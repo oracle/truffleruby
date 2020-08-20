@@ -29,7 +29,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -197,7 +197,7 @@ public abstract class ObjectSpaceNodes {
 
         // MRI would do a dynamic call to #respond_to? but it seems better to warn the user earlier.
         // Wanting #method_missing(:call) to be called for a finalizer seems highly unlikely.
-        @Child private NewDispatchHeadNode respondToCallNode = NewDispatchHeadNode.create(PRIVATE_DOES_RESPOND);
+        @Child private DispatchNode respondToCallNode = DispatchNode.create(PRIVATE_DOES_RESPOND);
 
         @Specialization
         protected RubyArray defineFinalizer(VirtualFrame frame, RubyDynamicObject object, Object finalizer,

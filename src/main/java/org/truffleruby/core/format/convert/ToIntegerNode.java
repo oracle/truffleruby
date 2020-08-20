@@ -11,7 +11,7 @@ package org.truffleruby.core.format.convert;
 
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -23,7 +23,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 @NodeChild("value")
 public abstract class ToIntegerNode extends FormatNode {
 
-    @Child private NewDispatchHeadNode integerNode;
+    @Child private DispatchNode integerNode;
 
     public abstract Object executeToInteger(VirtualFrame frame, Object object);
 
@@ -51,7 +51,7 @@ public abstract class ToIntegerNode extends FormatNode {
     protected Object toInteger(VirtualFrame frame, Object value) {
         if (integerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            integerNode = insert(NewDispatchHeadNode.create(PRIVATE));
+            integerNode = insert(DispatchNode.create(PRIVATE));
         }
 
         return integerNode.call(getContext().getCoreLibrary().kernelModule, "Integer", value);

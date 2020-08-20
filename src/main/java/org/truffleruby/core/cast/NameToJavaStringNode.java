@@ -20,7 +20,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -74,7 +74,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
     protected String nameToJavaString(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
-            @Cached NewDispatchHeadNode toStr) {
+            @Cached DispatchNode toStr) {
         final Object coerced;
 
         try {

@@ -15,7 +15,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -39,7 +39,7 @@ public abstract class ToStrNode extends RubyContextSourceNode {
     @Specialization(guards = "!isRubyString(object)")
     protected RubyString coerceObject(Object object,
             @Cached BranchProfile errorProfile,
-            @Cached(parameters = "PRIVATE") NewDispatchHeadNode toStrNode) {
+            @Cached(parameters = "PRIVATE") DispatchNode toStrNode) {
         final Object coerced;
         try {
             coerced = toStrNode.call(object, "to_str");

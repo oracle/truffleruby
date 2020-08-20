@@ -13,7 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -65,7 +65,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
     public static class SmallHashLiteralNode extends HashLiteralNode {
 
         @Child private HashNode hashNode;
-        @Child private NewDispatchHeadNode equalNode;
+        @Child private DispatchNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
         private final BranchProfile duplicateKeyProfile = BranchProfile.create();
@@ -122,7 +122,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         private boolean callEqual(Object receiver, Object key) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(NewDispatchHeadNode.create(PRIVATE));
+                equalNode = insert(DispatchNode.create(PRIVATE));
             }
 
             if (booleanCastNode == null) {

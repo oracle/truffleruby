@@ -21,7 +21,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -42,8 +42,8 @@ public abstract class ToStringNode extends FormatNode {
     private final boolean inspectOnConversionFailure;
     private final Object valueOnNil;
 
-    @Child private NewDispatchHeadNode toStrNode;
-    @Child private NewDispatchHeadNode toSNode;
+    @Child private DispatchNode toStrNode;
+    @Child private DispatchNode toSNode;
     @Child private KernelNodes.ToSNode inspectNode;
 
     private final ConditionProfile taintedProfile = ConditionProfile.create();
@@ -113,7 +113,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
+            toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
         }
 
         final Object value = toSNode.call(array, "to_s");
@@ -162,10 +162,10 @@ public abstract class ToStringNode extends FormatNode {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private NewDispatchHeadNode getToStrNode() {
+    private DispatchNode getToStrNode() {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
+            toStrNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
         }
         return toStrNode;
     }

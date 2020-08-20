@@ -36,7 +36,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -87,7 +87,7 @@ public abstract class HashNodes {
 
         @Child private HashNode hashNode = new HashNode();
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-        @Child private NewDispatchHeadNode fallbackNode = NewDispatchHeadNode.create(PRIVATE);
+        @Child private DispatchNode fallbackNode = DispatchNode.create(PRIVATE);
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
@@ -218,7 +218,7 @@ public abstract class HashNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements BiFunctionNode {
 
         @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
-        @Child private NewDispatchHeadNode callDefaultNode;
+        @Child private DispatchNode callDefaultNode;
 
         public abstract Object executeGet(VirtualFrame frame, RubyHash hash, Object key);
 
@@ -231,7 +231,7 @@ public abstract class HashNodes {
         public Object accept(VirtualFrame frame, Object hash, Object key) {
             if (callDefaultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                callDefaultNode = insert(NewDispatchHeadNode.create(PRIVATE));
+                callDefaultNode = insert(DispatchNode.create(PRIVATE));
             }
             return callDefaultNode.call(hash, "default", key);
         }
@@ -639,7 +639,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(from)")
         protected RubyHash replaceCoerce(RubyHash self, Object from,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode coerceNode,
+                @Cached(parameters = "PRIVATE") DispatchNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
                     coreLibrary().truffleTypeModule,
@@ -772,7 +772,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NewDispatchHeadNode callDefaultNode = NewDispatchHeadNode.create(PRIVATE);
+        @Child private DispatchNode callDefaultNode = DispatchNode.create(PRIVATE);
 
         @Specialization(guards = "isEmptyHash(hash)")
         protected Object shiftEmpty(RubyHash hash) {

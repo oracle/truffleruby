@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -60,9 +60,9 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
     protected DirectCallNode createCall(InternalMethod method, RootCallTarget callTarget) {
         DirectCallNode callNode = DirectCallNode.create(callTarget);
-        final NewDispatchHeadNode head = NodeUtil.findParent(this, NewDispatchHeadNode.class);
-        if (head != null) {
-            head.applySplittingInliningStrategy(method, callNode);
+        final DispatchNode dispatch = NodeUtil.findParent(this, DispatchNode.class);
+        if (dispatch != null) {
+            dispatch.applySplittingInliningStrategy(method, callNode);
         }
         return callNode;
     }

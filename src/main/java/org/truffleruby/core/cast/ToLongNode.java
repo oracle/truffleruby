@@ -18,7 +18,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
@@ -79,7 +79,7 @@ public abstract class ToLongNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)", "!isNil(object)" })
     protected long coerceObject(Object object,
-            @Cached NewDispatchHeadNode toIntNode,
+            @Cached DispatchNode toIntNode,
             @Cached ToLongNode fitNode) {
         final Object coerced = toIntNode
                 .call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);

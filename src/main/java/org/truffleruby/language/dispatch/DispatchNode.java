@@ -39,7 +39,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.options.Options;
 
-public class NewDispatchHeadNode extends FrameSendingNode {
+public class DispatchNode extends FrameSendingNode {
 
     private static final class Missing implements TruffleObject {
     }
@@ -57,19 +57,19 @@ public class NewDispatchHeadNode extends FrameSendingNode {
     public static final DispatchConfiguration PRIVATE_DOES_RESPOND = DispatchConfiguration.PRIVATE_DOES_RESPOND;
     public static final DispatchConfiguration PUBLIC_DOES_RESPOND = DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
-    public static NewDispatchHeadNode create(DispatchConfiguration config) {
-        return new NewDispatchHeadNode(config);
+    public static DispatchNode create(DispatchConfiguration config) {
+        return new DispatchNode(config);
     }
 
-    public static NewDispatchHeadNode create() {
-        return new NewDispatchHeadNode(DispatchConfiguration.PRIVATE);
+    public static DispatchNode create() {
+        return new DispatchNode(DispatchConfiguration.PRIVATE);
     }
 
-    public static NewDispatchHeadNode getUncached(DispatchConfiguration config) {
+    public static DispatchNode getUncached(DispatchConfiguration config) {
         return Uncached.uncachedNodes[config.ordinal()];
     }
 
-    public static NewDispatchHeadNode getUncached() {
+    public static DispatchNode getUncached() {
         return getUncached(DispatchConfiguration.PRIVATE);
     }
 
@@ -80,14 +80,14 @@ public class NewDispatchHeadNode extends FrameSendingNode {
     @Child protected CallInternalMethodNode callNode;
     @Child protected NameToJavaStringNode nameToString;
     @Child protected CallForeignMethodNode callForeign;
-    @Child protected NewDispatchHeadNode callMethodMissing;
+    @Child protected DispatchNode callMethodMissing;
 
     protected final ConditionProfile nameIsString;
     protected final ConditionProfile methodMissing;
     protected final ConditionProfile isForeignCall;
     protected final BranchProfile methodMissingMissing;
 
-    protected NewDispatchHeadNode(
+    protected DispatchNode(
             DispatchConfiguration config,
             MetaClassNode metaclassNode,
             LookupMethodNode methodLookup,
@@ -106,7 +106,7 @@ public class NewDispatchHeadNode extends FrameSendingNode {
         this.methodMissingMissing = methodMissingMissing;
     }
 
-    protected NewDispatchHeadNode(DispatchConfiguration config) {
+    protected DispatchNode(DispatchConfiguration config) {
         this(
                 config,
                 MetaClassNode.create(),
@@ -218,7 +218,7 @@ public class NewDispatchHeadNode extends FrameSendingNode {
             VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissing = insert(NewDispatchHeadNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
+            callMethodMissing = insert(DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
         }
         // NOTE(norswap, 24 Jul 2020): It's important to not pass a frame here in order to avoid looking up refinements,
         //   which should be ignored in the case of `method_missing`.
@@ -262,7 +262,7 @@ public class NewDispatchHeadNode extends FrameSendingNode {
         }
     }
 
-    private static class Uncached extends NewDispatchHeadNode {
+    private static class Uncached extends DispatchNode {
 
         static final Uncached[] uncachedNodes = new Uncached[DispatchConfiguration.values().length];
         static {
@@ -295,6 +295,7 @@ public class NewDispatchHeadNode extends FrameSendingNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 nameToString = insert(NameToJavaStringNode.getUncached());
             }
+
             return nameToString.execute(methodName);
         }
 
@@ -314,7 +315,7 @@ public class NewDispatchHeadNode extends FrameSendingNode {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
-                        NewDispatchHeadNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING));
+                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING));
             }
 
             // null: see note in supermethod

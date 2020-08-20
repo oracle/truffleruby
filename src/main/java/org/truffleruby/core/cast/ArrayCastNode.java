@@ -18,7 +18,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -38,7 +38,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
 
-    @Child private NewDispatchHeadNode toArrayNode = NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
+    @Child private DispatchNode toArrayNode = DispatchNode.create(PRIVATE_RETURN_MISSING);
 
     public static ArrayCastNode create() {
         return ArrayCastNodeGen.create(null);
@@ -112,7 +112,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
             return nil;
         }
 
-        if (result == NewDispatchHeadNode.MISSING) {
+        if (result == DispatchNode.MISSING) {
             return nil;
         }
 

@@ -81,7 +81,7 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -1094,14 +1094,14 @@ public class CExtNodes {
     @CoreMethod(names = "rb_class_new", onSingleton = true, required = 1)
     public abstract static class ClassNewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NewDispatchHeadNode allocateNode;
+        @Child private DispatchNode allocateNode;
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
         protected RubyClass classNew(RubyClass superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(NewDispatchHeadNode.create(PRIVATE));
+                allocateNode = insert(DispatchNode.create(PRIVATE));
                 initializeClassNode = insert(InitializeClassNodeGen.create(false));
             }
 
@@ -1115,7 +1115,7 @@ public class CExtNodes {
     @CoreMethod(names = "rb_tr_debug", onSingleton = true, rest = true)
     public abstract static class DebugNode extends CoreMethodArrayArgumentsNode {
 
-        @Child NewDispatchHeadNode toSCall;
+        @Child DispatchNode toSCall;
 
         @TruffleBoundary
         @Specialization
@@ -1154,7 +1154,7 @@ public class CExtNodes {
         private RubyString callToS(Object object) {
             if (toSCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSCall = insert(NewDispatchHeadNode.create(PRIVATE));
+                toSCall = insert(DispatchNode.create(PRIVATE));
             }
 
             return (RubyString) toSCall.call(object, "to_s");

@@ -12,7 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -25,8 +25,8 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
 
     private final int minArgumentCount;
 
-    @Child private NewDispatchHeadNode respondToToHashNode;
-    @Child private NewDispatchHeadNode callToHashNode;
+    @Child private DispatchNode respondToToHashNode;
+    @Child private DispatchNode callToHashNode;
 
     private final ConditionProfile notEnoughArgumentsProfile = ConditionProfile.create();
     private final ConditionProfile lastArgumentIsHashProfile = ConditionProfile.create();
@@ -70,7 +70,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(NewDispatchHeadNode.create(PRIVATE_DOES_RESPOND));
+            respondToToHashNode = insert(DispatchNode.create(PRIVATE_DOES_RESPOND));
         }
         return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
     }
@@ -78,7 +78,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private Object callToHash(VirtualFrame frame, Object lastArgument) {
         if (callToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToHashNode = insert(NewDispatchHeadNode.create(PRIVATE));
+            callToHashNode = insert(DispatchNode.create(PRIVATE));
         }
         return callToHashNode.call(lastArgument, "to_hash");
     }

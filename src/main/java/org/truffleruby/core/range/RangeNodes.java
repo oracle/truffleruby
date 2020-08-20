@@ -32,7 +32,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -93,7 +93,7 @@ public abstract class RangeNodes {
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        @Child private NewDispatchHeadNode eachInternalCall;
+        @Child private DispatchNode eachInternalCall;
 
         @Specialization
         protected RubyIntRange eachInt(RubyIntRange range, RubyProc block) {
@@ -142,7 +142,7 @@ public abstract class RangeNodes {
         private Object eachInternal(VirtualFrame frame, RubyRange range, RubyProc block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eachInternalCall = insert(NewDispatchHeadNode.create(PRIVATE));
+                eachInternalCall = insert(DispatchNode.create(PRIVATE));
             }
 
             return eachInternalCall.callWithBlock(range, "each_internal", block);
@@ -251,7 +251,7 @@ public abstract class RangeNodes {
     @CoreMethod(names = "step", needsBlock = true, optional = 1, lowerFixnum = 1)
     public abstract static class StepNode extends YieldingCoreMethodNode {
 
-        @Child private NewDispatchHeadNode stepInternalCall;
+        @Child private DispatchNode stepInternalCall;
 
         @Specialization(guards = "step > 0")
         protected Object stepInt(RubyIntRange range, int step, RubyProc block) {
@@ -299,7 +299,7 @@ public abstract class RangeNodes {
         protected Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                stepInternalCall = insert(NewDispatchHeadNode.create(PRIVATE));
+                stepInternalCall = insert(DispatchNode.create(PRIVATE));
             }
 
             if (RubyGuards.wasNotProvided(step)) {
@@ -314,7 +314,7 @@ public abstract class RangeNodes {
     @CoreMethod(names = "to_a")
     public abstract static class ToANode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NewDispatchHeadNode toAInternalCall;
+        @Child private DispatchNode toAInternalCall;
 
         @Specialization
         protected RubyArray toA(RubyIntRange range) {
@@ -344,7 +344,7 @@ public abstract class RangeNodes {
         protected Object boundedToA(RubyObjectRange range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAInternalCall = insert(NewDispatchHeadNode.create(PRIVATE));
+                toAInternalCall = insert(DispatchNode.create(PRIVATE));
             }
 
             return toAInternalCall.call(range, "to_a_internal");
@@ -452,7 +452,7 @@ public abstract class RangeNodes {
 
         @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode compare) {
+                @Cached(parameters = "PRIVATE") DispatchNode compare) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));

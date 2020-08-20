@@ -19,7 +19,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.loader.FeatureLoader;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -35,7 +35,7 @@ public abstract class GetConstantNode extends RubyContextNode {
 
     private final boolean callConstMissing;
 
-    @Child private NewDispatchHeadNode constMissingNode;
+    @Child private DispatchNode constMissingNode;
 
     public static GetConstantNode create() {
         return create(true);
@@ -77,7 +77,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             String name,
             RubyConstant autoloadConstant,
             LookupConstantInterface lookupConstantNode,
-            @Cached(parameters = "PRIVATE") NewDispatchHeadNode callRequireNode) {
+            @Cached(parameters = "PRIVATE") DispatchNode callRequireNode) {
 
         final RubyString feature = autoloadConstant.getAutoloadConstant().getFeature();
 
@@ -216,7 +216,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         if (callConstMissing) {
             if (constMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                constMissingNode = insert(NewDispatchHeadNode.create(PRIVATE));
+                constMissingNode = insert(DispatchNode.create(PRIVATE));
             }
 
             return constMissingNode.call(module, "const_missing", symbolName);

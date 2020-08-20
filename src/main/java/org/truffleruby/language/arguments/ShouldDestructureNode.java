@@ -11,7 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -21,7 +21,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DO
 
 public class ShouldDestructureNode extends RubyContextSourceNode {
 
-    @Child private NewDispatchHeadNode respondToToAry;
+    @Child private DispatchNode respondToToAry;
 
     private final BranchProfile checkIsArrayProfile = BranchProfile.create();
 
@@ -41,7 +41,7 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
         if (respondToToAry == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToAry = insert(NewDispatchHeadNode.create(PRIVATE_DOES_RESPOND));
+            respondToToAry = insert(DispatchNode.create(PRIVATE_DOES_RESPOND));
         }
 
         // TODO(cseaton): check this is actually a static "find if there is such method" and not a

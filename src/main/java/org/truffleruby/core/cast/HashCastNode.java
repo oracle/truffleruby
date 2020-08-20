@@ -17,7 +17,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -31,7 +31,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RE
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 
-    @Child private NewDispatchHeadNode toHashNode = NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
+    @Child private DispatchNode toHashNode = DispatchNode.create(PRIVATE_RETURN_MISSING);
 
     protected abstract RubyNode getChild();
 
@@ -75,7 +75,7 @@ public abstract class HashCastNode extends RubyContextSourceNode {
             @Cached BranchProfile errorProfile) {
         final Object result = toHashNode.call(object, "to_hash");
 
-        if (result == NewDispatchHeadNode.MISSING) {
+        if (result == DispatchNode.MISSING) {
             return nil;
         }
 

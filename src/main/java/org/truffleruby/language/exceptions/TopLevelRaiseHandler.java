@@ -17,7 +17,7 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 
@@ -86,7 +86,7 @@ public class TopLevelRaiseHandler extends RubyContextNode {
     private void handleSignalException(RubyException exception) {
         if (exception.getLogicalClass() == coreLibrary().signalExceptionClass) {
             // Calls raise(3) or no-op
-            NewDispatchHeadNode.getUncached().call(exception, "reached_top_level");
+            DispatchNode.getUncached().call(exception, "reached_top_level");
         }
     }
 

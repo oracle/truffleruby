@@ -12,7 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.IsANode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -27,14 +27,14 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 public abstract class NumericToFloatNode extends RubyContextNode {
 
     @Child private IsANode isANode = IsANode.create();
-    @Child private NewDispatchHeadNode toFloatCallNode;
+    @Child private DispatchNode toFloatCallNode;
 
     public abstract double executeDouble(RubyDynamicObject value);
 
     private Object callToFloat(RubyDynamicObject value) {
         if (toFloatCallNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toFloatCallNode = insert(NewDispatchHeadNode.create(PRIVATE));
+            toFloatCallNode = insert(DispatchNode.create(PRIVATE));
         }
         return toFloatCallNode.call(value, "to_f");
     }

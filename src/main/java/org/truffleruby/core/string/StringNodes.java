@@ -170,7 +170,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -428,7 +428,7 @@ public abstract class StringNodes {
 
         @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create();
         @Child private KernelNodes.RespondToNode respondToNode;
-        @Child private NewDispatchHeadNode objectEqualNode;
+        @Child private DispatchNode objectEqualNode;
         @Child private BooleanCastNode booleanCastNode;
 
         @Specialization
@@ -446,7 +446,7 @@ public abstract class StringNodes {
             if (respondToNode.executeDoesRespondTo(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(NewDispatchHeadNode.create(PRIVATE));
+                    objectEqualNode = insert(DispatchNode.create(PRIVATE));
                 }
 
                 if (booleanCastNode == null) {
@@ -506,7 +506,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "rest.length == 0", "wasProvided(first)", "!isRubyString(first)" })
         protected Object concatGeneric(RubyString string, Object first, Object[] rest,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode callNode) {
+                @Cached(parameters = "PRIVATE") DispatchNode callNode) {
             return callNode.call(coreLibrary().truffleStringOperationsModule, "concat_internal", string, first);
         }
 
@@ -682,7 +682,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice1(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode callNode,
+                @Cached(parameters = "PRIVATE") DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
                 @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             return sliceCapture(frame, string, regexp, 0, callNode, readCallerNode, setFrameAndThreadLocalVariable);
@@ -690,7 +690,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode callNode,
+                @Cached(parameters = "PRIVATE") DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
                 @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
@@ -711,9 +711,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice2(RubyString string, RubyString matchStr, NotProvided length,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode includeNode,
+                @Cached(parameters = "PRIVATE") DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached(parameters = "PRIVATE") NewDispatchHeadNode dupNode) {
+                @Cached(parameters = "PRIVATE") DispatchNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
@@ -2364,10 +2364,10 @@ public abstract class StringNodes {
 
         public abstract Object executeSum(VirtualFrame frame, RubyString string, Object bits);
 
-        @Child private NewDispatchHeadNode addNode = NewDispatchHeadNode.create(PRIVATE);
-        @Child private NewDispatchHeadNode subNode = NewDispatchHeadNode.create(PRIVATE);
-        @Child private NewDispatchHeadNode shiftNode = NewDispatchHeadNode.create(PRIVATE);
-        @Child private NewDispatchHeadNode andNode = NewDispatchHeadNode.create(PRIVATE);
+        @Child private DispatchNode addNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode subNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode shiftNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode andNode = DispatchNode.create(PRIVATE);
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization

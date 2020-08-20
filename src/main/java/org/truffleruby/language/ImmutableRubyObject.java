@@ -14,7 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -100,7 +100,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public Object getMembers(boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached NewDispatchHeadNode dispatchNode) {
+            @Exclusive @Cached DispatchNode dispatchNode) {
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 // language=ruby prefix=Truffle::Interop.
@@ -111,15 +111,15 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberReadable(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode) {
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode) {
         return definedNode.doesRespondTo(null, name, this);
     }
 
     @ExportMessage
     public Object readMember(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode,
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached @Exclusive NewDispatchHeadNode dispatch,
+            @Cached @Exclusive DispatchNode dispatch,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.doesRespondTo(null, name, this)) {
@@ -133,19 +133,19 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInvocable(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode) {
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode) {
         return definedNode.doesRespondTo(null, name, this);
     }
 
     @ExportMessage
     public Object invokeMember(String name, Object[] arguments,
-            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") NewDispatchHeadNode dispatchMember,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object result = dispatchMember.call(this, name, convertedArguments);
-        if (result == NewDispatchHeadNode.MISSING) {
+        if (result == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);
         }
@@ -154,8 +154,8 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInternal(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") NewDispatchHeadNode definedPublicNode) {
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
+            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchNode definedPublicNode) {
         // defined but not publicly
         return definedNode.doesRespondTo(null, name, this) &&
                 !definedPublicNode.doesRespondTo(null, name, this);

@@ -14,7 +14,7 @@ import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -29,7 +29,7 @@ public abstract class ReadHashValueNode extends FormatNode {
 
     private final Object key;
 
-    @Child private NewDispatchHeadNode fetchNode;
+    @Child private DispatchNode fetchNode;
 
     private final ConditionProfile oneHashProfile = ConditionProfile.create();
 
@@ -47,7 +47,7 @@ public abstract class ReadHashValueNode extends FormatNode {
 
         if (fetchNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            fetchNode = insert(NewDispatchHeadNode.create(PRIVATE));
+            fetchNode = insert(DispatchNode.create(PRIVATE));
         }
 
         return fetchNode.call(hash, "fetch", key);

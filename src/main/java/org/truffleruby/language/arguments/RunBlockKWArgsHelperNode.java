@@ -13,7 +13,7 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
@@ -28,7 +28,7 @@ public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
 
     @Child private ReadFrameSlotNode readArrayNode;
     @Child private WriteFrameSlotNode writeArrayNode;
-    @Child private NewDispatchHeadNode callHelperNode;
+    @Child private DispatchNode callHelperNode;
     @Child private NotOptimizedWarningNode notOptimizedWarningNode = NotOptimizedWarningNode.create();
 
     private final Object kwrestName;
@@ -36,7 +36,7 @@ public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
     public RunBlockKWArgsHelperNode(FrameSlot arrayFrameSlot, Object kwrestName) {
         readArrayNode = ReadFrameSlotNodeGen.create(arrayFrameSlot);
         writeArrayNode = WriteFrameSlotNodeGen.create(arrayFrameSlot);
-        callHelperNode = NewDispatchHeadNode.create(PRIVATE);
+        callHelperNode = DispatchNode.create(PRIVATE);
         this.kwrestName = kwrestName;
     }
 

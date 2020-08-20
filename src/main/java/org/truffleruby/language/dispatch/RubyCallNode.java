@@ -34,7 +34,9 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
 
 public class RubyCallNode extends RubyContextSourceNode {
 
@@ -51,7 +53,7 @@ public class RubyCallNode extends RubyContextSourceNode {
     private final boolean isSafeNavigation;
     private final boolean isAttrAssign;
 
-    @Child private NewDispatchHeadNode dispatchHead;
+    @Child private DispatchNode dispatchHead;
     @Child private ArrayToObjectArrayNode toObjectArrayNode;
     @Child private DefinedNode definedNode;
 
@@ -112,9 +114,7 @@ public class RubyCallNode extends RubyContextSourceNode {
             Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(NewDispatchHeadNode.create(ignoreVisibility
-                    ? DispatchConfiguration.PRIVATE
-                    : DispatchConfiguration.PROTECTED));
+            dispatchHead = insert(DispatchNode.create(ignoreVisibility ? PRIVATE : PROTECTED));
         }
 
         final Object returnValue = dispatchHead
@@ -180,7 +180,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         private final RubySymbol methodNameSymbol = getContext().getSymbol(methodName);
 
-        @Child private NewDispatchHeadNode respondToMissing = NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
+        @Child private DispatchNode respondToMissing = DispatchNode.create(PRIVATE_RETURN_MISSING);
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
         // TODO CS-10-Apr-17 see below
@@ -225,7 +225,7 @@ public class RubyCallNode extends RubyContextSourceNode {
             if (methodNotFoundProfile.profile(method == null)) {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
-                if (r != NewDispatchHeadNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
+                if (r != DispatchNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
                     return nil;
                 }
             } else if (methodUndefinedProfile.profile(method.isUndefined())) {

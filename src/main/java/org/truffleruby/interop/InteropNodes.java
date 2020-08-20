@@ -40,7 +40,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CallTarget;
@@ -1139,7 +1139,7 @@ public abstract class InteropNodes {
 
         @Specialization
         protected Object dispatchMissing() {
-            return NewDispatchHeadNode.MISSING;
+            return DispatchNode.MISSING;
         }
 
     }

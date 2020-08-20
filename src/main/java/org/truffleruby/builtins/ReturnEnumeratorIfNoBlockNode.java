@@ -15,7 +15,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -28,7 +28,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
 
     private final String methodName;
     @Child private RubyNode method;
-    @Child private NewDispatchHeadNode toEnumNode;
+    @Child private DispatchNode toEnumNode;
     @CompilationFinal private RubySymbol methodSymbol;
     private final ConditionProfile noBlockProfile = ConditionProfile.create();
 
@@ -44,7 +44,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(NewDispatchHeadNode.create(PRIVATE));
+                toEnumNode = insert(DispatchNode.create(PRIVATE));
             }
 
             if (methodSymbol == null) {

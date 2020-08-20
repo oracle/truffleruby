@@ -29,7 +29,7 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.NewDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.MainLoader;
@@ -105,9 +105,9 @@ public abstract class TruffleBootNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Child TopLevelRaiseHandler topLevelRaiseHandler = new TopLevelRaiseHandler();
-        @Child NewDispatchHeadNode checkSyntax = NewDispatchHeadNode.create(PRIVATE);
+        @Child DispatchNode checkSyntax = DispatchNode.create(PRIVATE);
         @Child IndirectCallNode callNode = IndirectCallNode.create();
-        @Child NewDispatchHeadNode requireNode = NewDispatchHeadNode.create(PRIVATE);
+        @Child DispatchNode requireNode = DispatchNode.create(PRIVATE);
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
