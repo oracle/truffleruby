@@ -249,7 +249,7 @@ public abstract class BasicObjectNodes {
             final long id = object.getObjectId();
 
             if (id == 0) {
-                final long newId = context.getObjectSpaceManager().getNextObjectID();
+                final long newId = context.getLanguage().getNextObjectID();
                 object.setObjectId(newId);
                 return newId;
             }
