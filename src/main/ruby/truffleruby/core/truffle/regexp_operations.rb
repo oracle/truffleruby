@@ -16,6 +16,7 @@ module Truffle
       if (!str.valid_encoding?)
         raise ArgumentError, "invalid byte sequence in #{str.encoding}"
       end
+      raise Encoding::CompatibilityError, "incompatible character encodings: #{re.encoding} and #{str.encoding}" unless Encoding.compatible?(re, str)
       if forward
         from = start_index
         to = end_index
