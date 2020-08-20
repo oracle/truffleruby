@@ -11,6 +11,7 @@
 module Truffle
   module RegexpOperations
 
+    COMPARE_ENGINES = false
     USE_TRUFFLE_REGEX = false
     USE_TRUFFLE_REGEX_EXEC_BYTES = false
 
@@ -59,44 +60,60 @@ module Truffle
     end
 
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-      if USE_TRUFFLE_REGEX
-        if (nil == Primitive.object_hidden_var_get(re, TREGEX))
-          begin
-            Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
-          rescue => e
-            $stderr.puts "Failure to compile #{re.source} using tregex - generated error #{e}."
-            return match_in_region_joni(re, str, from, to, at_start, encoding_conversion, start)
+      if COMPARE_ENGINES
+        begin
+          md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+          md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+          if md1 == md2
+            return md2
+          else
+            $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gave #{md1} but should have given #{md2}."
+            return md2
           end
-        end
-        if to < from
-          $stderr.puts 'Backwards searching not yet supported'
-          return match_in_region_joni(re, str, from, to, at_start, encoding_conversion, start)
-        end
-        tr = Primitive.object_hidden_var_get(re, TREGEX)
-        if USE_TRUFFLE_REGEX_EXEC_BYTES && str.encoding == Encoding::UTF_8
-          bytes = Truffle::StringOperations.raw_bytes(str.byteslice(from, to - from))
-          tr_match = tr.execBytes(bytes, from)
-        else
-          tr_match = tr.exec(str, from)
-        end
-        if (tr_match.isMatch)
-          starts = []
-          ends = []
-          pos = 0
-          while true
-            a_start = tr_match.getStart(pos)
-            a_end = tr_match.getEnd(pos)
-            break if (a_start == -1)
-            starts << a_start + from
-            ends << a_end + from
-            pos += 1
-          end
-          Primitive.matchdata_create(re, str, starts, ends)
-        else
-          nil
+        rescue => e
+          $stderr.puts "match_in_region(#{re}, str, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gave #{md1} raised #{e}"
+          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      end
+    end
+
+    def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+      if (nil == Primitive.object_hidden_var_get(re, TREGEX))
+        begin
+          Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
+        rescue => e
+          $stderr.puts "Failure to compile #{re.source} using tregex - generated error #{e}."
+          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        end
+      end
+      if to < from
+        $stderr.puts 'Backwards searching not yet supported'
+        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      end
+      tr = Primitive.object_hidden_var_get(re, TREGEX)
+      if USE_TRUFFLE_REGEX_EXEC_BYTES && str.encoding == Encoding::UTF_8
+        bytes = Truffle::StringOperations.raw_bytes(str.byteslice(from, to - from))
+        tr_match = tr.execBytes(bytes, from)
+      else
+        tr_match = tr.exec(str, from)
+      end
+      if (tr_match.isMatch)
+        starts = []
+        ends = []
+        pos = 0
+        while true
+          a_start = tr_match.getStart(pos)
+          a_end = tr_match.getEnd(pos)
+          break if (a_start == -1)
+          starts << a_start + from
+          ends << a_end + from
+          pos += 1
+        end
+        Primitive.matchdata_create(re, str, starts, ends)
+      else
+        nil
       end
     end
 
