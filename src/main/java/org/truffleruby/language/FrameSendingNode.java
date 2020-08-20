@@ -10,7 +10,9 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 
 import com.oracle.truffle.api.Assumption;
@@ -19,13 +21,43 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
+import org.truffleruby.language.methods.DeclarationContext;
 
+/** Some Ruby methods need access to the caller frame (the frame active when the method call was made): see usages of
+ * {@link ReadCallerFrameNode}. This is notably used to get hold of instances of {@link DeclarationContext} and
+ * {@link RubyBinding}.
+ *
+ * <p>
+ * This means that when making a method call, we might need to pass down its {@link Frame} active when the method call
+ * was made.
+ *
+ * <p>
+ * When retrieving the frame in a method called through the Ruby {@code #send} method, we must not retrieve the frame of
+ * the actual call (made by {@code #send}) but the frame of the {@code #send} call itself.
+ *
+ * <p>
+ * Materializing a frame is expensive, and the point of this parent node is to only materialize the frame when we know
+ * for sure it has been requested by the callee. It is also possible to walk the stack to retrieve the frame to
+ * materialize - but this is even slower and causes a deoptimization in the callee.
+ *
+ * <p>
+ * This class works in tandem with {@link ReadCallerFrameNode} for this purpose. At first, we don't send down the frame.
+ * If the callee needs it, it will de-optimize and walk the stack to retrieve it (slow). It will also call
+ * {@link #startSendingOwnFrame()}}, so that the next time the method is called, the frame will be passed down and the
+ * method does not need further de-optimizations. (Note in the case of {@code #send} calls, we need to recursively call
+ * {@link ReadCallerFrameNode} to get the parent frame!)
+ *
+ * <p>
+ * This class is the sole consumer of {@link RubyRootNode#getNeedsCallerAssumption()}, which is used to optimize
+ * {@link #getFrameIfRequired(VirtualFrame)} (called by subclasses in order to pass down the frame or not). Starting to
+ * send the frame invalidates the assumption. In other words, the assumption guards the fact that {@link #sendsFrame} is
+ * a compilation constant, and is invalidated whenever it needs to change. */
 public abstract class FrameSendingNode extends RubyContextNode {
 
-    protected enum SendsFrame {
-        NO_FRAME,
-        MY_FRAME,
-        CALLER_FRAME;
+    private enum SendsFrame {
+        NO_FRAME,       // callees don't need to read the frame
+        MY_FRAME,       // for most calls
+        CALLER_FRAME;   // for `send` calls
     }
 
     @CompilationFinal protected SendsFrame sendsFrame = SendsFrame.NO_FRAME;
@@ -33,6 +65,7 @@ public abstract class FrameSendingNode extends RubyContextNode {
 
     @Child protected ReadCallerFrameNode readCaller;
 
+    /** Whether we are sending down the frame (because the called method reads it). */
     protected boolean sendingFrames() {
         return sendsFrame != SendsFrame.NO_FRAME;
     }
@@ -52,7 +85,7 @@ public abstract class FrameSendingNode extends RubyContextNode {
         }
 
         // We'd only get AlwaysValidAssumption if the root node isn't Ruby (in which case this shouldn't be called),
-        // or when we already know to send the frame (in which case we'd have exited above.
+        // or when we already know to send the frame (in which case we'd have exited above).
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
 
         this.sendsFrame = frameToSend;
@@ -67,7 +100,7 @@ public abstract class FrameSendingNode extends RubyContextNode {
         }
     }
 
-    protected synchronized void resetNeedsCallerAssumption() {
+    private synchronized void resetNeedsCallerAssumption() {
         Node root = getRootNode();
         if (root instanceof RubyRootNode && !sendingFrames()) {
             needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
@@ -76,9 +109,8 @@ public abstract class FrameSendingNode extends RubyContextNode {
         }
     }
 
-    public MaterializedFrame getFrameIfRequiredNew(VirtualFrame frame) {
-        // TODO(norswap, 07 Aug 2020): worth moving up to the dispatch node & profiling?
-        if (frame == null) {
+    public MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
+        if (frame == null) { // the frame should be proved null or non-null at PE time
             return null;
         }
 
@@ -93,17 +125,6 @@ public abstract class FrameSendingNode extends RubyContextNode {
             resetNeedsCallerAssumption();
         }
 
-        switch (sendsFrame) {
-            case MY_FRAME:
-                return frame.materialize();
-            case CALLER_FRAME:
-                return readCaller.execute(frame);
-            default:
-                return null;
-        }
-    }
-
-    public MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
         switch (sendsFrame) {
             case MY_FRAME:
                 return frame.materialize();

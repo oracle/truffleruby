@@ -169,7 +169,7 @@ public class DispatchNode extends FrameSendingNode {
             return method.isImplemented();
         }
 
-        final MaterializedFrame callerFrame = getFrameIfRequiredNew(frame);
+        final MaterializedFrame callerFrame = getFrameIfRequired(frame);
         final Object[] frameArguments = RubyArguments.pack(null, callerFrame, method, null, receiver, block, arguments);
 
         return callNode.execute(method, frameArguments);
