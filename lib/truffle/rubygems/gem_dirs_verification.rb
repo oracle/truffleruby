@@ -71,13 +71,12 @@ module Gem
       dirs.reject do |dir|
         specifications = File.join(dir, 'specifications')
 
-        false ||
-            # The path does not exist yet, nothing can be loaded, everything is fine
-            !File.directory?(specifications) ||
-            # The directory is empty, TruffleRuby could not have marked it, nothing can be loaded, everything is fine
-            Dir.empty?(specifications) ||
-            # The directory is marked as TruffleRuby's, everything is fine
-            File.exist?(marker_path(dir))
+        # The path does not exist yet, nothing can be loaded, everything is fine
+        !File.directory?(specifications) ||
+        # The directory is empty, TruffleRuby could not have marked it, nothing can be loaded, everything is fine
+        Dir.empty?(specifications) ||
+        # The directory is marked as TruffleRuby's, everything is fine
+        File.exist?(marker_path(dir))
       end
     end
 
