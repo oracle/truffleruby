@@ -22,6 +22,7 @@ Compatibility:
 * Fix `String#{casecmp, casecmp?}` parameter conversion.
 * Fix `Regexp` issue which raised syntax error instead of `RegexpError` (#2066).
 * Handle `Object#autoload` when autoload itself (#1616, @ssnickolay)
+* Skip upgraded default gems while loading RubyGems (#2075).
 
 Performance:
 

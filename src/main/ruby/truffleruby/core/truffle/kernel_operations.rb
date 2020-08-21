@@ -10,6 +10,14 @@
 
 module Truffle
   module KernelOperations
+    @loading_rubygems = false
+    class << self
+      attr_writer :loading_rubygems
+      def loading_rubygems?
+        @loading_rubygems
+      end
+    end
+
     def self.to_enum_with_size(enum, method, size_method)
       enum.to_enum(method) { enum.send(size_method) }
     end
