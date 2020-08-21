@@ -20,7 +20,7 @@ function recompile_openssl() {
     CORES=$(getconf _NPROCESSORS_ONLN || echo 1)
   fi
   make "--jobs=$CORES"
-  cp "openssl.$(ruby -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
+  cp "openssl.$(ruby -rrbconfig -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
 }
 
 if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" == "false" ]; then
