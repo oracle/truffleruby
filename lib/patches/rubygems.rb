@@ -1,3 +1,8 @@
+# Check if the Gem paths are correct as early as possible
+unless Truffle::Boot.get_option 'testing-rubygems'
+  Truffle::GemUtil.verify_gem_paths
+end
+
 require 'rubygems'
 
 # Add TruffleRuby rubygems hooks to install and uninstall executables from additional
@@ -10,7 +15,6 @@ end
 # Make sure we don't use foreign gem directories
 unless Truffle::Boot.get_option 'testing-rubygems'
   require 'rubygems/gem_dirs_verification'
-  Gem::GemDirsVerification.verify(Gem.path)
   Gem::GemDirsVerification.install_hook
 end
 
