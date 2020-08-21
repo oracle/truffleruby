@@ -29,6 +29,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
@@ -217,8 +219,8 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "fixup_matchdata", onSingleton = true, required = 2, lowerFixnum = 2)
-    public abstract static class FixupMatchData extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "matchdata_fixup_positions", lowerFixnum = { 1 })
+    public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos) {
@@ -227,7 +229,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "initialized?", onSingleton = true, required = 1)
+    @Primitive(name = "regexp_initialized?")
     public static abstract class InitializedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -236,12 +238,36 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "match_in_region", onSingleton = true, required = 7, lowerFixnum = { 3, 4, 7 })
-    public static abstract class MatchInRegionNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 6 })
+    public static abstract class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
 
+        /** Matches a regular expression against a string over the specified range of characters.
+         *
+         * @param regexp The regexp to match
+         *
+         * @param string The string to match against
+         *
+         * @param fromPos The poistion to search from
+         *
+         * @param toPos The position to search to (if less than from pos then this means search backwards)
+         *
+         * @param atStart Whether to only match at the beginning of the string, if false then the regexp can have any
+         *            amount of prematch.
+         *
+         * @param encodingConversion Whether to attempt encoding conversion of the regexp to match the string
+         *
+         * @param startPos The position within the string which the matcher should consider the start. Setting this to
+         *            the from position allows scanners to match starting partway through a string while still setting
+         *            atStart and thus forcing the match to be at the specific starting position. */
         @Specialization
-        protected Object matchInRegion(RubyRegexp regexp, RubyString string, int fromPos, int toPos, boolean atStart,
-                boolean encodingConversion, int startPos,
+        protected Object matchInRegion(
+                RubyRegexp regexp,
+                RubyString string,
+                int fromPos,
+                int toPos,
+                boolean atStart,
+                boolean encodingConversion,
+                int startPos,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode) {
             Rope rope = string.rope;

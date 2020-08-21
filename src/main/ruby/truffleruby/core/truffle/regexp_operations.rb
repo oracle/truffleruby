@@ -12,7 +12,7 @@ module Truffle
   module RegexpOperations
 
     def self.search_region(re, str, start_index, end_index, forward)
-      raise TypeError, 'uninitialized regexp' unless initialized?(re)
+      raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       if (!str.valid_encoding?)
         raise ArgumentError, "invalid byte sequence in #{str.encoding}"
       end
@@ -24,12 +24,16 @@ module Truffle
         from = end_index
         to = start_index
       end
-      match_in_region(re, str, from, to, false, true, 0)
+      Primitive.regexp_match_in_region(re, str, from, to, false, true, 0)
     end
 
+    # This path is used by some string and scanner methods and allows
+    # for at_start to be specified on the matcher.  FIXME it might be
+    # possible to refactor search region to offer the ability to
+    # specify at start, we should investigate this at some point.
     def self.match_onwards(re, str, from, at_start)
-      md = match_in_region(re, str, from, str.bytesize, at_start, true, from)
-      fixup_matchdata(md, from) if md
+      md = Primitive.regexp_match_in_region(re, str, from, str.bytesize, at_start, true, from)
+      Primitive.matchdata_fixup_positions(md, from) if md
       md
     end
 
