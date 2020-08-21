@@ -13,6 +13,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
@@ -105,20 +106,28 @@ public abstract class SymbolNodes {
         protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
-                @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") RubyProc cachedProc) {
+                @Cached("getOrCreateProc(cachedDeclarationContext, symbol)") RubyProc cachedProc) {
             return cachedProc;
         }
 
         @Specialization
         protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
-            final InternalMethod method = getMethod(frame);
             DeclarationContext declarationContext = getDeclarationContext(frame);
-            return createProc(declarationContext, method, symbol);
+            return getOrCreateProc(declarationContext, symbol);
         }
 
         @TruffleBoundary
-        protected RubyProc createProc(DeclarationContext declarationContext, InternalMethod method,
-                RubySymbol symbol) {
+        protected RubyProc getOrCreateProc(DeclarationContext declarationContext, RubySymbol symbol) {
+            declarationContext = declarationContext == null ? DeclarationContext.NONE : declarationContext;
+            return ConcurrentOperations.getOrCompute(
+                    symbol.getCachedProcs(),
+                    declarationContext,
+                    key -> createProc(key, symbol));
+        }
+
+        @TruffleBoundary
+        protected RubyProc createProc(DeclarationContext declarationContext, RubySymbol symbol) {
+            final InternalMethod method = getContext().getCoreMethods().SYMBOL_TO_PROC;
             final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
@@ -157,7 +166,7 @@ public abstract class SymbolNodes {
                     method,
                     null,
                     null,
-                    declarationContext == null ? DeclarationContext.NONE : declarationContext);
+                    declarationContext);
         }
 
         protected InternalMethod getMethod(VirtualFrame frame) {

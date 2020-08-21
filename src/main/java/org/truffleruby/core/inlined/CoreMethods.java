@@ -85,6 +85,7 @@ public class CoreMethods {
     public final InternalMethod STRING_BYTESIZE;
     public final InternalMethod MODULE_CASE_EQUAL;
     public final InternalMethod STRING_EQUAL;
+    public final InternalMethod SYMBOL_TO_PROC;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -96,6 +97,7 @@ public class CoreMethods {
         final RubyClass moduleClass = context.getCoreLibrary().moduleClass;
         final RubyClass nilClass = context.getCoreLibrary().nilClass;
         final RubyClass stringClass = context.getCoreLibrary().stringClass;
+        final RubyClass symbolClass = context.getCoreLibrary().symbolClass;
 
         integerNegAssumption = registerAssumption(integerClass, "-@");
         floatNegAssumption = registerAssumption(floatClass, "-@");
@@ -143,6 +145,7 @@ public class CoreMethods {
         KERNEL_KIND_OF = getMethod(kernelModule, "kind_of?");
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
         STRING_EQUAL = getMethod(stringClass, "==");
+        SYMBOL_TO_PROC = getMethod(symbolClass, "to_proc");
     }
 
     private Assumption registerAssumption(RubyClass klass, String methodName) {
