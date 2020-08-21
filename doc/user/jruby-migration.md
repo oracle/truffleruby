@@ -1,7 +1,7 @@
 # Migration from JRuby to TruffleRuby
 
 When trying TruffleRuby on your gems and applications, you are encouraged to
-[get in touch with the TruffleRuby team](https://github.com/oracle/truffleruby/blob/master/README.md#contact) for help.
+[get in touch with the TruffleRuby team](../../README.md#contact) for help.
 
 ## Deployment
 

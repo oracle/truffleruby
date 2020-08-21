@@ -76,7 +76,7 @@ forked back out of JRuby after it had matured.
 
 ### Who do I ask about TruffleRuby?
 
-See the Contact section in the [README](https://github.com/oracle/truffleruby/blob/master/README.md#contact).
+See the Contact section in the [README](../../README.md#contact).
 
 ### How do I know if I’m using TruffleRuby?
 
