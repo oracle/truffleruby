@@ -13,10 +13,9 @@ module Truffle
 
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
-      if (!str.valid_encoding?)
-        raise ArgumentError, "invalid byte sequence in #{str.encoding}"
-      end
+      raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?
       raise Encoding::CompatibilityError, "incompatible character encodings: #{re.encoding} and #{str.encoding}" unless Encoding.compatible?(re, str)
+
       if forward
         from = start_index
         to = end_index
