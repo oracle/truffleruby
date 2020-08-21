@@ -7,6 +7,7 @@ Bug fixes:
 
 * Handle foreign null object as falsy value (#1902, @ssnickolay)
 * Fixed return value of `Enumerable#first` (#2056, @LillianZ).
+* Improve reliability of the post install hook by disabling RubyGems (#2075).
 
 Compatibility:
 
