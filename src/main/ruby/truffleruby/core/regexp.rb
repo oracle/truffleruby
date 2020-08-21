@@ -145,11 +145,7 @@ class Regexp
   end
 
   def =~(str)
-    unless str
-      Truffle::RegexpOperations.set_last_match(nil, Primitive.caller_binding)
-      return nil
-    end
-    result = Truffle::RegexpOperations.match(self, str, 0)
+    result = str ? Truffle::RegexpOperations.match(self, str, 0) : nil
     Truffle::RegexpOperations.set_last_match(result, Primitive.caller_binding)
 
     result.begin(0) if result

@@ -1710,7 +1710,10 @@ module Truffle::CExt
   end
 
   def rb_reg_match(re, str)
-    re =~ str
+    result = str ? Truffle::RegexpOperations.match(re, str, 0) : nil
+    Truffle::RegexpOperations.set_last_match(result, Truffle::ThreadOperations.ruby_caller([Truffle::CExt, Truffle::Interop.singleton_class]))
+
+    result.begin(0) if result
   end
 
   def rb_hash_aref(object, key)
