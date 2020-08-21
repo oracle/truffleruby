@@ -76,7 +76,7 @@ forked back out of JRuby after it had matured.
 
 ### Who do I ask about TruffleRuby?
 
-See the Contact section in the [README](../../README.md#contact).
+See the Contact section in the [README](https://github.com/oracle/truffleruby/blob/master/README.md#contact).
 
 ### How do I know if I’m using TruffleRuby?
 
@@ -133,8 +133,7 @@ benchmarks and applications that we’ve been using. Adding them is generally no
 complicated and over time we will have specialisations to cover a broad range of
 applications.
 
-Make sure that you are using the [Enterprise Edition of GraalVM, and have
-rebuilt the executable images](installing-graalvm.md) for the best
+Make sure that you are using the [Enterprise Edition of GraalVM, and have rebuilt the executable images](installing-graalvm.md) for the best
 performance.
 
 ### How is this related to `invokedynamic`?

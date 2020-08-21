@@ -4,7 +4,7 @@
 
 ## Dependencies
 
-[TruffleRuby's dependencies](../../README.md#dependencies) need to be installed
+[TruffleRuby's dependencies](https://github.com/oracle/truffleruby/blob/master/README.md#dependencies) need to be installed
 for TruffleRuby to run correctly.
 
 ## Community Edition and Enterprise Edition
