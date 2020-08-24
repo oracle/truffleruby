@@ -115,7 +115,6 @@ public abstract class MutexOperations {
         return lock.newCondition();
     }
 
-    @TruffleBoundary
     public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode,
             BranchProfile errorProfile) {
         if (!lock.isHeldByCurrentThread()) {
