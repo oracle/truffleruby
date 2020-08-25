@@ -23,7 +23,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     private final RubyContext context;
     private final SharedMethodInfo sharedMethodInfo;
-    private final boolean allowCloning;
+    private boolean allowCloning;
 
     @Child private RubyNode body;
 
@@ -63,6 +63,10 @@ public class RubyRootNode extends RubyBaseRootNode {
     @Override
     public boolean isCloningAllowed() {
         return allowCloning;
+    }
+
+    public void setAllowCloning(boolean allowCloning) {
+        this.allowCloning = allowCloning;
     }
 
     @Override

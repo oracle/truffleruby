@@ -236,6 +236,7 @@ module Kernel
       raise Truffle::KernelOperations.load_error(feature)
     end
   end
+  Truffle::Graal.never_split(instance_method(:gem_original_require))
 
   # A #require which lazily loads rubygems when needed.
   # The logic is inlined so there is no extra backtrace entry for lazy-rubygems.
@@ -275,6 +276,7 @@ module Kernel
     end
   end
   module_function :require
+  Truffle::Graal.never_split(instance_method(:require))
 
   Truffle::KernelOperations::ORIGINAL_REQUIRE = instance_method(:require)
 
@@ -294,6 +296,7 @@ module Kernel
     end
   end
   module_function :require_relative
+  Truffle::Graal.never_split(instance_method(:require_relative))
 
   def define_singleton_method(*args, &block)
     singleton_class.define_method(*args, &block)

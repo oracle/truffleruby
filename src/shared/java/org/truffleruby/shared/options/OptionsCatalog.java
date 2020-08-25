@@ -134,6 +134,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> INLINE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CORE_ALWAYS_CLONE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ALWAYS_SPLIT_HONOR_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> NEVER_SPLIT_HONOR_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> INLINE_NEEDS_CALLER_FRAME_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> YIELD_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> YIELD_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
@@ -946,6 +947,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor NEVER_SPLIT_HONOR = OptionDescriptor
+            .newBuilder(NEVER_SPLIT_HONOR_KEY, "ruby.never-split-honor")
+            .help("Honor Truffle::Graal.never_split annotations")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor INLINE_NEEDS_CALLER_FRAME = OptionDescriptor
             .newBuilder(INLINE_NEEDS_CALLER_FRAME_KEY, "ruby.inline-needs-caller-frame")
             .help("Inline methods that need their caller frame")
@@ -1267,6 +1275,8 @@ public class OptionsCatalog {
                 return CORE_ALWAYS_CLONE;
             case "ruby.always-split-honor":
                 return ALWAYS_SPLIT_HONOR;
+            case "ruby.never-split-honor":
+                return NEVER_SPLIT_HONOR;
             case "ruby.inline-needs-caller-frame":
                 return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield-always-clone":
@@ -1414,6 +1424,7 @@ public class OptionsCatalog {
             INLINE_DEFAULT,
             CORE_ALWAYS_CLONE,
             ALWAYS_SPLIT_HONOR,
+            NEVER_SPLIT_HONOR,
             INLINE_NEEDS_CALLER_FRAME,
             YIELD_ALWAYS_CLONE,
             YIELD_ALWAYS_INLINE,

@@ -75,6 +75,40 @@ public abstract class TruffleGraalNodes {
         }
     }
 
+    @CoreMethod(names = "never_split", onSingleton = true, required = 1, argumentNames = "method_or_proc")
+    public abstract static class NeverSplitNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyMethod neverSplitMethod(RubyMethod rubyMethod) {
+            if (getContext().getOptions().NEVER_SPLIT_HONOR) {
+                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
+                rootNode.setAllowCloning(false);
+            }
+            return rubyMethod;
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyUnboundMethod neverSplitUnboundMethod(RubyUnboundMethod rubyMethod) {
+            if (getContext().getOptions().NEVER_SPLIT_HONOR) {
+                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
+                rootNode.setAllowCloning(false);
+            }
+            return rubyMethod;
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyProc neverSplitProc(RubyProc rubyProc) {
+            if (getContext().getOptions().NEVER_SPLIT_HONOR) {
+                RubyRootNode rootNode = (RubyRootNode) rubyProc.method.getCallTarget().getRootNode();
+                rootNode.setAllowCloning(false);
+            }
+            return rubyProc;
+        }
+    }
+
     /** This method creates a new Proc with a copy of the captured variables' values, which is correct if these
      * variables are not changed in the parent scope later on. It works by replacing {@link ReadDeclarationVariableNode}
      * with the captured variables' values. This avoids constantly reading from the declaration frame (which always
