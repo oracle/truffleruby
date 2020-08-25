@@ -62,4 +62,4 @@ jruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ## Running as a Benchmark from the TruffleRuby Repository
 
 If you have a local checkout of TruffleRuby, you can also use the version of OptCarrot under `bench/optcarrot`.
-See the [Benchmarking](https://github.com/oracle/truffleruby/blob/master/doc/contributor/benchmarking.md#optcarrot) documentation for details.
+See the [Benchmarking](../contributor/benchmarking.md#optcarrot) documentation for details.

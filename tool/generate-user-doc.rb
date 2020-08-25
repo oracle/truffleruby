@@ -36,5 +36,6 @@ File.write("#{root}/doc/user/README.md", contents)
 Dir.glob("#{root}/doc/user/*.md") do |file|
   contents = File.read(file)
   contents = contents.gsub('](../../README.md#', '](../#')
+  contents = contents.gsub('](../contributor/', '](https://github.com/oracle/truffleruby/blob/master/doc/contributor/')
   File.write(file, contents)
 end
