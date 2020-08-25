@@ -26,6 +26,21 @@ describe "array_storage_equal primitive" do
     Primitive.array_storage_equal?(a, b).should == false
   end
 
+  it "returns false when original is modified by pop" do
+    a = ["one", "two"]
+    b = a.dup
+    a.pop
+    Primitive.array_storage_equal?(a, b).should == false
+  end
+
+  it "returns false when arrays are modified by shift/pop" do
+    a = ["one", "two"]
+    b = a.dup
+    a.pop
+    b.shift
+    Primitive.array_storage_equal?(a, b).should == false
+  end
+
   it "returns false for unequal array" do
     loaded_features = ["one", "two"]
 
