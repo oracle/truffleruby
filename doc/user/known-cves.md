@@ -1,7 +1,7 @@
 # Security
 
 Please report security vulnerabilities via the process outlined at [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
-Specific guidelines for reporting security issues of the GraalVM project including TruffleRuby can be found in the [SECURITY.md file](../../SECURITY.md).
+Specific guidelines for reporting security issues of the GraalVM project including TruffleRuby can be found in the [SECURITY.md file](https://github.com/oracle/truffleruby/blob/master/SECURITY.md).
 
 ## Unimplemented Security Features
 

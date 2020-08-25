@@ -31,3 +31,11 @@ contents = contents.sub(" built by\n[Oracle Labs](https://labs.oracle.com)", '')
 contents = "# TruffleRuby\n\n#{contents}"
 
 File.write("#{root}/doc/user/README.md", contents)
+
+# Fix links to README for all doc/user files
+Dir.glob("#{root}/doc/user/*.md") do |file|
+  contents = File.read(file)
+  contents = contents.gsub('](../../README.md#', '](../#')
+  contents = contents.gsub('](../contributor/', '](https://github.com/oracle/truffleruby/blob/master/doc/contributor/')
+  File.write(file, contents)
+end
