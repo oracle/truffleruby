@@ -44,7 +44,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.ValueWrapperManager;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -60,7 +59,11 @@ public class ObjectSpaceManager {
     private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
     private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
-    private final AtomicLong nextObjectID = new AtomicLong(ValueWrapperManager.TAG_MASK + 1);
+    public static long INITIAL_LANGUAGE_OBJECT_ID = 16;
+    public static long OBJECT_ID_INCREMENT_BY = 16;
+    private static long INITIAL_CONTEXT_OBJECT_ID = 8;
+
+    private final AtomicLong nextObjectID = new AtomicLong(INITIAL_CONTEXT_OBJECT_ID);
 
     public void traceAllocationsStart(RubyLanguage language) {
         if (tracingAssumptionActivations.incrementAndGet() == 1) {
@@ -95,9 +98,9 @@ public class ObjectSpaceManager {
     }
 
     public long getNextObjectID() {
-        final long id = nextObjectID.getAndAdd(ValueWrapperManager.TAG_MASK + 1);
+        final long id = nextObjectID.getAndAdd(OBJECT_ID_INCREMENT_BY);
 
-        if (id == 0) {
+        if (id == INITIAL_CONTEXT_OBJECT_ID - OBJECT_ID_INCREMENT_BY) {
             throw CompilerDirectives.shouldNotReachHere("Object IDs exhausted");
         }
 
