@@ -72,6 +72,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
@@ -392,6 +393,19 @@ public abstract class KernelNodes {
             // the "called name" of a method.
             return getSymbol(getContext().getCallStack().getCallingMethodIgnoringSend().getName());
         }
+    }
+
+    @Primitive(name = "canonicalize_path")
+    public abstract static class CanonicalizePathNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        @TruffleBoundary
+        protected RubyString canonicalPath(RubyString string,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final String expandedPath = getContext().getFeatureLoader().canonicalize(string.getJavaString());
+            return makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
     }
 
     @Primitive(name = "kernel_caller_locations", lowerFixnum = { 0, 1 })

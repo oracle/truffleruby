@@ -14,6 +14,7 @@ Bug fixes:
 * Fixed `String#encode` with options issue (#2091, #2095, @LillianZ)
 * Fixed issue with `spawn` when `:close` redirect is used (#2097).
 * Fixed `coverage` issue when `*eval` is used (#2078).
+* Use expanded load paths for feature matching (#1501).
 
 Compatibility:
 
