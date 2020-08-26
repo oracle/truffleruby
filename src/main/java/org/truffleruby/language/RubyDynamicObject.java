@@ -51,6 +51,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -89,14 +90,14 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     @ExportMessage
     public boolean isFrozen(
-            @Exclusive @Cached ReadObjectFieldNode readFrozenNode) {
-        return (boolean) readFrozenNode.execute(this, Layouts.FROZEN_IDENTIFIER, false);
+            @CachedLibrary("this") DynamicObjectLibrary readFrozenNode) {
+        return (boolean) readFrozenNode.getOrDefault(this, Layouts.FROZEN_IDENTIFIER, false);
     }
 
     @ExportMessage
     public boolean isTainted(
-            @Exclusive @Cached ReadObjectFieldNode readTaintedNode) {
-        return (boolean) readTaintedNode.execute(this, Layouts.TAINTED_IDENTIFIER, false);
+            @CachedLibrary("this") DynamicObjectLibrary readTaintedNode) {
+        return (boolean) readTaintedNode.getOrDefault(this, Layouts.TAINTED_IDENTIFIER, false);
     }
 
     @ExportMessage
