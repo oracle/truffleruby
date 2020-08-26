@@ -202,7 +202,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    // TODO (eregon, 12 May 2015): ideally all callers would be nodes and check themselves.
     public void checkFrozen(RubyContext context, Node currentNode) {
         if (context.getCoreLibrary() != null && RubyLibrary.getUncached().isFrozen(rubyModuleObject)) {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(rubyModuleObject, currentNode));
@@ -431,6 +430,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public void undefMethod(RubyContext context, Node currentNode, String methodName) {
+        checkFrozen(context, currentNode);
+
         final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, methodName, null);
         if (method == null || method.isUndefined()) {
             final RubyModule moduleForError;
