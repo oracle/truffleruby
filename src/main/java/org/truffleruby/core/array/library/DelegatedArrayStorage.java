@@ -171,4 +171,8 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
         }
     }
 
+    public boolean isEquivalentTo(DelegatedArrayStorage other) {
+        return storage == other.storage && offset == other.offset && length == other.length;
+    }
+
 }

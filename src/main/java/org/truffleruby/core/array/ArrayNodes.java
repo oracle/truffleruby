@@ -2120,8 +2120,10 @@ public abstract class ArrayNodes {
         protected boolean storageEqual(RubyArray array, RubyArray other) {
             final Object arrayStore = array.store;
             final Object otherStore = other.store;
+            // Array#shift and #pop do not modify the underlying storage but still mutate the Array
             return arrayStore instanceof DelegatedArrayStorage && otherStore instanceof DelegatedArrayStorage &&
-                    ((DelegatedArrayStorage) arrayStore).storage == ((DelegatedArrayStorage) otherStore).storage;
+                    ((DelegatedArrayStorage) arrayStore).isEquivalentTo((DelegatedArrayStorage) otherStore) &&
+                    array.size == other.size;
         }
 
     }
