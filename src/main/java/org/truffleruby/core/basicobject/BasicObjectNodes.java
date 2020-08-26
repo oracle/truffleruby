@@ -291,13 +291,13 @@ public abstract class BasicObjectNodes {
                             return existingID;
                         } else {
                             final long newId = context.getObjectSpaceManager().getNextObjectID();
-                            objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                            objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                             return newId;
                         }
                     }
                 } else {
                     final long newId = context.getObjectSpaceManager().getNextObjectID();
-                    objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                    objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                     return newId;
                 }
             }
