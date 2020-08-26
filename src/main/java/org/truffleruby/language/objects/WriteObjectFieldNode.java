@@ -31,42 +31,16 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         return WriteObjectFieldNodeGen.create();
     }
 
-    public final void write(RubyDynamicObject object, Object name, Object value) {
-        execute(object, name, value);
-    }
+    public abstract void execute(RubyDynamicObject object, Object name, Object value);
 
-    protected abstract void execute(RubyDynamicObject object, Object name, Object value);
-
-    @Specialization(guards = { "name == cachedName", "!objectLibrary.isShared(object)" }, limit = "getCacheLimit()")
-    protected void writeLocalCached(RubyDynamicObject object, Object name, Object value,
-            @Cached("name") Object cachedName,
-            @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
-        writeLocalUncached(object, cachedName, value, objectLibrary);
-    }
-
-    @Specialization(
-            guards = "!objectLibrary.isShared(object)",
-            replaces = "writeLocalCached",
-            limit = "getCacheLimit()")
-    protected void writeLocalUncached(RubyDynamicObject object, Object name, Object value,
+    @Specialization(guards = "!objectLibrary.isShared(object)", limit = "getCacheLimit()")
+    protected void writeLocal(RubyDynamicObject object, Object name, Object value,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(object, name, value);
     }
 
-    @Specialization(guards = { "name == cachedName", "objectLibrary.isShared(object)" }, limit = "getCacheLimit()")
-    protected void writeSharedCached(RubyDynamicObject object, Object name, Object value,
-            @Cached("name") Object cachedName,
-            @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
-            @Cached WriteBarrierNode writeBarrierNode,
-            @Cached BranchProfile shapeRaceProfile) {
-        writeSharedUncached(object, cachedName, value, objectLibrary, writeBarrierNode, shapeRaceProfile);
-    }
-
-    @Specialization(
-            guards = "objectLibrary.isShared(object)",
-            replaces = "writeSharedCached",
-            limit = "getCacheLimit()")
-    protected void writeSharedUncached(RubyDynamicObject object, Object name, Object value,
+    @Specialization(guards = "objectLibrary.isShared(object)", limit = "getCacheLimit()")
+    protected void writeShared(RubyDynamicObject object, Object name, Object value,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached BranchProfile shapeRaceProfile) {

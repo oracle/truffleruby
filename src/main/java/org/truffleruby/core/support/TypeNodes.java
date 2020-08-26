@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.oracle.truffle.api.dsl.Fallback;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -47,12 +46,12 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -197,10 +196,10 @@ public abstract class TypeNodes {
     @Primitive(name = "object_ivar_get")
     public abstract static class ObjectIVarGetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object ivarGet(RubyDynamicObject object, RubySymbol name,
-                @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name.getString());
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
+            return objectLibrary.getOrDefault(object, name.getString(), nil);
         }
     }
 
@@ -209,8 +208,9 @@ public abstract class TypeNodes {
 
         @Specialization
         protected Object ivarSet(RubyDynamicObject object, RubySymbol name, Object value,
-                @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, name.getString(), value);
+                @Cached WriteObjectFieldNode writeNode) {
+            writeNode.execute(object, name.getString(), value);
+            return value;
         }
     }
 
@@ -229,10 +229,10 @@ public abstract class TypeNodes {
     @Primitive(name = "object_hidden_var_get")
     public abstract static class ObjectHiddenVarGetNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object objectHiddenVarGet(RubyDynamicObject object, Object identifier,
-                @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, identifier);
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
+            return objectLibrary.getOrDefault(object, identifier, nil);
         }
 
         @Fallback
@@ -246,8 +246,9 @@ public abstract class TypeNodes {
 
         @Specialization
         protected Object objectHiddenVarSet(RubyDynamicObject object, Object identifier, Object value,
-                @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, identifier, value);
+                @Cached WriteObjectFieldNode writeNode) {
+            writeNode.execute(object, identifier, value);
+            return value;
         }
     }
 

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -49,7 +50,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.shared.TruffleRuby;
@@ -910,10 +910,11 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "associated", onSingleton = true, required = 1)
     public abstract static class AssociatedNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
-        protected RubyArray associated(RubyString string,
-                @Cached ReadObjectFieldNode readAssociatedNode) {
-            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null);
+        protected RubyArray associated(RubyString string) {
+            final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
+            Pointer[] associated = (Pointer[]) objectLibrary.getOrDefault(string, Layouts.ASSOCIATED_IDENTIFIER, null);
 
             if (associated == null) {
                 associated = Pointer.EMPTY_ARRAY;

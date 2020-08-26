@@ -109,7 +109,7 @@ class Exception
     name = Truffle::Type.module_name cls
     out << ms.serialize(name.to_sym)
 
-    ivars = ms.serializable_instance_variables(self, [:@custom_backtrace])
+    ivars = Primitive.object_ivars(self)
     number_of_ivars = ivars.size + 2
     cause = self.cause
     out << ms.serialize_fixnum(cause ? number_of_ivars + 1 : number_of_ivars)
@@ -145,7 +145,7 @@ class Time
       extra_values[:nano_den] = 1
     end
 
-    ivars = ms.serializable_instance_variables(self, false)
+    ivars = Primitive.object_ivars(self)
     out << 'I'.b
     out << Truffle::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
 
@@ -1006,19 +1006,13 @@ module Marshal
       Truffle::Type.binary_string(str)
     end
 
-    def serializable_instance_variables(obj, exclude_ivars)
-      ivars = Primitive.object_ivars obj
-      ivars -= exclude_ivars if exclude_ivars
-      ivars
-    end
-
-    def serialize_instance_variables_prefix(obj, exclude_ivars = false)
-      ivars = serializable_instance_variables(obj, exclude_ivars)
+    def serialize_instance_variables_prefix(obj)
+      ivars = Primitive.object_ivars(obj)
       !ivars.empty? || serialize_encoding?(obj) ? 'I'.b : ''.b
     end
 
-    def serialize_instance_variables_suffix(obj, force=false, exclude_ivars=false)
-      ivars = serializable_instance_variables(obj, exclude_ivars)
+    def serialize_instance_variables_suffix(obj, force = false)
+      ivars = Primitive.object_ivars(obj)
 
       unless force or !ivars.empty? or serialize_encoding?(obj)
         return ''.b
@@ -1167,7 +1161,7 @@ module Marshal
         value = construct
         case ivar
         when :bt
-          Primitive.object_ivar_set obj, :@custom_backtrace, value
+          Primitive.exception_set_custom_backtrace obj, value
         when :mesg
           Primitive.exception_set_message obj, value
         when :cause

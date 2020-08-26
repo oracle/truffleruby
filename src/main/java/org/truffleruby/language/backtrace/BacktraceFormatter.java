@@ -105,7 +105,7 @@ public class BacktraceFormatter {
             printer.print(info);
         }
 
-        // can be null, if @custom_backtrace is used
+        // can be null, if rubyException.customBacktrace is used
         final Backtrace backtrace = rubyException.backtrace;
         final String formatted;
         if (backtrace != null) {
