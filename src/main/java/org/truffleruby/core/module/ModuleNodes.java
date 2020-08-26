@@ -1939,7 +1939,6 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
-        @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
         protected RubyModule undefMethods(RubyModule module, Object[] names) {
@@ -1958,14 +1957,7 @@ public abstract class ModuleNodes {
 
         private void undefMethod(RubyModule module, String name) {
             raiseIfFrozenNode.execute(module);
-
             module.fields.undefMethod(getContext(), this, name);
-            if (RubyGuards.isSingletonClass(module)) {
-                final RubyDynamicObject receiver = ((RubyClass) module).attached;
-                methodUndefinedNode.call(receiver, "singleton_method_undefined", getSymbol(name));
-            } else {
-                methodUndefinedNode.call(module, "method_undefined", getSymbol(name));
-            }
         }
 
     }

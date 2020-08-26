@@ -45,7 +45,6 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
@@ -406,23 +405,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
-            final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
-            final Node prev = callNodeRef.set(currentNode);
-            try {
-                if (RubyGuards.isSingletonClass(rubyModuleObject)) {
-                    RubyDynamicObject receiver = ((RubyClass) rubyModuleObject).attached;
-                    context.send(
-                            receiver,
-                            "singleton_method_added",
-                            context.getSymbol(method.getName()));
-                } else {
-                    context.send(
-                            rubyModuleObject,
-                            "method_added",
-                            context.getSymbol(method.getName()));
-                }
-            } finally {
-                callNodeRef.set(prev);
+            final RubySymbol methodSymbol = context.getSymbol(method.getName());
+            if (RubyGuards.isSingletonClass(rubyModuleObject)) {
+                RubyDynamicObject receiver = ((RubyClass) rubyModuleObject).attached;
+                context.send(currentNode, receiver, "singleton_method_added", methodSymbol);
+            } else {
+                context.send(currentNode, rubyModuleObject, "method_added", methodSymbol);
             }
         }
     }
@@ -458,6 +446,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     currentNode));
         } else {
             addMethod(context, currentNode, method.undefined());
+
+            final RubySymbol methodSymbol = context.getSymbol(methodName);
+            if (RubyGuards.isSingletonClass(rubyModuleObject)) {
+                final RubyDynamicObject receiver = ((RubyClass) rubyModuleObject).attached;
+                context.send(currentNode, receiver, "singleton_method_undefined", methodSymbol);
+            } else {
+                context.send(currentNode, rubyModuleObject, "method_undefined", methodSymbol);
+            }
         }
     }
 
