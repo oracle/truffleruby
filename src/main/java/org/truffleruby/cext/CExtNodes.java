@@ -1485,7 +1485,7 @@ public class CExtNodes {
         @Specialization
         protected Object setMarkList(RubyDynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
-            writeMarkedNode.write(
+            writeMarkedNode.execute(
                     structOwner,
                     Layouts.MARKED_OBJECTS_IDENTIFIER,
                     getContext().getMarkingService().finishMarking());

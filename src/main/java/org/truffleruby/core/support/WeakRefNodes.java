@@ -35,7 +35,7 @@ public abstract class WeakRefNodes {
 
         @Specialization
         protected Object weakRefSetObject(RubyDynamicObject weakRef, Object object) {
-            fieldNode.write(weakRef, FIELD_NAME, newTruffleWeakReference(object));
+            fieldNode.execute(weakRef, FIELD_NAME, newTruffleWeakReference(object));
             return object;
         }
 

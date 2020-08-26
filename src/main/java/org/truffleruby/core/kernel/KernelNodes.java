@@ -1043,7 +1043,7 @@ public abstract class KernelNodes {
                 @Cached CheckIVarNameNode checkIVarNameNode,
                 @Cached WriteObjectFieldNode writeNode) {
             checkIVarNameNode.execute(object, name);
-            writeNode.write(object, name, value);
+            writeNode.execute(object, name, value);
             return value;
         }
     }

@@ -84,7 +84,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public void freeze(
             @Exclusive @Cached WriteObjectFieldNode writeFrozenNode) {
-        writeFrozenNode.write(this, Layouts.FROZEN_IDENTIFIER, true);
+        writeFrozenNode.execute(this, Layouts.FROZEN_IDENTIFIER, true);
     }
 
     @ExportMessage
@@ -111,7 +111,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
         }
 
-        writeTaintNode.write(this, Layouts.TAINTED_IDENTIFIER, true);
+        writeTaintNode.execute(this, Layouts.TAINTED_IDENTIFIER, true);
     }
 
     @ExportMessage
@@ -129,7 +129,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
         }
 
-        writeTaintNode.write(this, Layouts.TAINTED_IDENTIFIER, false);
+        writeTaintNode.execute(this, Layouts.TAINTED_IDENTIFIER, false);
     }
     // endregion
 
@@ -434,7 +434,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
                 throw UnsupportedMessageException.create();
             }
             if (isIVar(name)) {
-                writeObjectFieldNode.write(this, name, value);
+                writeObjectFieldNode.execute(this, name, value);
             } else {
                 errorProfile.enter();
                 throw UnknownIdentifierException.create(name);

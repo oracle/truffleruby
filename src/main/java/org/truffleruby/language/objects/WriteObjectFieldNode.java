@@ -31,11 +31,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         return WriteObjectFieldNodeGen.create();
     }
 
-    public final void write(RubyDynamicObject object, Object name, Object value) {
-        execute(object, name, value);
-    }
-
-    protected abstract void execute(RubyDynamicObject object, Object name, Object value);
+    public abstract void execute(RubyDynamicObject object, Object name, Object value);
 
     @Specialization(guards = "!objectLibrary.isShared(object)", limit = "getCacheLimit()")
     protected void writeLocal(RubyDynamicObject object, Object name, Object value,

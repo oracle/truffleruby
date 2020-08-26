@@ -1464,7 +1464,7 @@ public abstract class StringNodes {
                     writeAssociatedNode = insert(WriteObjectFieldNode.create());
                 }
 
-                writeAssociatedNode.write(self, Layouts.ASSOCIATED_IDENTIFIER, associated);
+                writeAssociatedNode.execute(self, Layouts.ASSOCIATED_IDENTIFIER, associated);
             }
         }
 
