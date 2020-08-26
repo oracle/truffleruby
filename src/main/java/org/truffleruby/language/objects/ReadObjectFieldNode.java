@@ -13,7 +13,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -30,15 +29,8 @@ public abstract class ReadObjectFieldNode extends RubyBaseNode {
 
     public abstract Object execute(RubyDynamicObject object, Object name, Object defaultValue);
 
-    @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-    protected Object readCached(RubyDynamicObject receiver, Object name, Object defaultValue,
-            @Cached(value = "name", allowUncached = true) Object cachedName,
-            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
-        return objectLibrary.getOrDefault(receiver, cachedName, defaultValue);
-    }
-
-    @Specialization(replaces = "readCached", limit = "getCacheLimit()")
-    protected Object readUncached(RubyDynamicObject receiver, Object name, Object defaultValue,
+    @Specialization(limit = "getCacheLimit()")
+    protected Object read(RubyDynamicObject receiver, Object name, Object defaultValue,
             @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
         return objectLibrary.getOrDefault(receiver, name, defaultValue);
     }
