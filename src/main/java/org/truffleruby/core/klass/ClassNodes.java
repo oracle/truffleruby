@@ -67,7 +67,7 @@ public abstract class ClassNodes {
 
         setLogicalAndMetaClass(rubyClass, rubyClass);
 
-        model.rubyModuleObject = rubyClass;
+        model.rubyModule = rubyClass;
 
         assert rubyClass.getLogicalClass() == rubyClass;
         assert rubyClass.getMetaClass() == rubyClass;
@@ -83,7 +83,7 @@ public abstract class ClassNodes {
         final ModuleFields fields = new ModuleFields(context, sourceSection, null, name);
         final RubyClass rubyClass = new RubyClass(classShape, fields, false, null, superclass);
 
-        fields.rubyModuleObject = rubyClass;
+        fields.rubyModule = rubyClass;
         fields.setFullName(name);
 
         if (superclass != Nil.INSTANCE) {
@@ -142,7 +142,7 @@ public abstract class ClassNodes {
         assert superclass != null;
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
         final RubyClass rubyClass = new RubyClass(classShape, fields, isSingleton, attached, superclass);
-        fields.rubyModuleObject = rubyClass;
+        fields.rubyModule = rubyClass;
 
         if (lexicalParent != null) {
             fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
@@ -166,7 +166,7 @@ public abstract class ClassNodes {
             Shape classShape) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, null, null);
         final RubyClass rubyClass = new RubyClass(classShape, fields, false, null, null);
-        fields.rubyModuleObject = rubyClass;
+        fields.rubyModule = rubyClass;
 
         // For Class.allocate, set it in the fields but not in RubyClass#superclass to mark as not yet initialized
         fields.setSuperClass(context.getCoreLibrary().objectClass);

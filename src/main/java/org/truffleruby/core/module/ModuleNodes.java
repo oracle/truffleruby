@@ -130,7 +130,7 @@ public abstract class ModuleNodes {
             RubyModule lexicalParent, String name, Node currentNode) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
         final RubyModule module = new RubyModule(selfClass.instanceShape, fields);
-        fields.rubyModuleObject = module;
+        fields.rubyModule = module;
 
         if (lexicalParent != null) {
             fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
