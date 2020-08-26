@@ -61,16 +61,6 @@ class Exception
     end
   end
 
-  # This is here rather than in yaml.rb because it contains "private"
-  # information, ie, the list of ivars. Putting it over in the yaml
-  # source means it's easy to forget about.
-  def to_yaml_properties
-    list = super
-    list.delete :@backtrace
-    list.delete :@custom_backtrace
-    list
-  end
-
   # Needed to properly implement #exception, which must clone and call
   # #initialize again, BUT not a subclasses initialize.
   alias_method :__initialize__, :initialize
@@ -88,14 +78,14 @@ class Exception
     case bt
     when Array
       if bt.all? { |s| s.kind_of? String }
-        @custom_backtrace = bt
+        Primitive.exception_set_custom_backtrace(self, bt)
       else
         raise TypeError, 'backtrace must be Array of String'
       end
     when String
-      @custom_backtrace = [bt]
+      Primitive.exception_set_custom_backtrace(self, [bt])
     when nil
-      @custom_backtrace = nil
+      Primitive.exception_set_custom_backtrace(self, nil)
     else
       raise TypeError, 'backtrace must be Array of String'
     end
