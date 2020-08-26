@@ -108,15 +108,15 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -1020,8 +1020,10 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object instanceVariableGetSymbol(RubyDynamicObject object, String name,
-                @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name, true);
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
+            checkIVarNameNode.execute(object, name);
+            return objectLibrary.getOrDefault(object, name, nil);
         }
     }
 
@@ -1038,8 +1040,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object instanceVariableSet(RubyDynamicObject object, String name, Object value,
-                @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, name, value, true);
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @Cached WriteObjectFieldNode writeNode) {
+            checkIVarNameNode.execute(object, name);
+            writeNode.write(object, name, value);
+            return value;
         }
     }
 
