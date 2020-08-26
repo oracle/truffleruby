@@ -17,6 +17,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.nodes.Node;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -411,6 +413,17 @@ public class RubyContext {
         return IndirectCallNode.getUncached().call(
                 method.getCallTarget(),
                 RubyArguments.pack(null, null, method, null, object, null, arguments));
+    }
+
+    @TruffleBoundary
+    public Object send(Node currentNode, Object object, String methodName, Object... arguments) {
+        final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
+        final Node prev = callNodeRef.set(currentNode);
+        try {
+            return send(object, methodName, arguments);
+        } finally {
+            callNodeRef.set(prev);
+        }
     }
 
     public void finalizeContext() {

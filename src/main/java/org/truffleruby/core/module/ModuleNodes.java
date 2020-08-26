@@ -130,7 +130,7 @@ public abstract class ModuleNodes {
             RubyModule lexicalParent, String name, Node currentNode) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
         final RubyModule module = new RubyModule(selfClass.instanceShape, fields);
-        fields.rubyModuleObject = module;
+        fields.rubyModule = module;
 
         if (lexicalParent != null) {
             fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
@@ -1937,35 +1937,22 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "undef_method", rest = true, neverSplit = true, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
-        @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
-
+        @TruffleBoundary
         @Specialization
-        protected RubyModule undefMethods(RubyModule module, Object[] names) {
+        protected RubyModule undefMethods(RubyModule module, Object[] names,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
-                undefMethod(module, nameToJavaStringNode.execute(name));
+                module.fields.undefMethod(getContext(), this, nameToJavaStringNode.execute(name));
             }
             return module;
         }
 
         /** Used only by undef keyword {@link org.truffleruby.parser.BodyTranslator#visitUndefNode} */
+        @TruffleBoundary
         @Specialization
         protected RubyModule undefKeyword(RubyModule module, RubySymbol name) {
-            undefMethod(module, name.getString());
+            module.fields.undefMethod(getContext(), this, name.getString());
             return module;
-        }
-
-        private void undefMethod(RubyModule module, String name) {
-            raiseIfFrozenNode.execute(module);
-
-            module.fields.undefMethod(getContext(), this, name);
-            if (RubyGuards.isSingletonClass(module)) {
-                final RubyDynamicObject receiver = ((RubyClass) module).attached;
-                methodUndefinedNode.call(receiver, "singleton_method_undefined", getSymbol(name));
-            } else {
-                methodUndefinedNode.call(module, "method_undefined", getSymbol(name));
-            }
         }
 
     }

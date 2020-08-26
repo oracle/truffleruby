@@ -670,7 +670,7 @@ public abstract class ModuleOperations {
                     context,
                     context.getCoreExceptions().nameErrorClassVariableNotDefined(
                             name,
-                            moduleFields.rubyModuleObject,
+                            moduleFields.rubyModule,
                             currentNode));
         }
         return found;
