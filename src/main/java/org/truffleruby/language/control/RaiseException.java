@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -16,7 +18,6 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
@@ -114,14 +115,16 @@ public class RaiseException extends RuntimeException implements TruffleException
 
     @Override
     public int getExitStatus() {
-        final Object status = ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", 1);
+        final Object status = DynamicObjectLibrary.getUncached().getOrDefault(exception, "@status", 1);
 
         if (status instanceof Integer) {
             return (int) status;
+        } else {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives.shouldNotReachHere(
+                    String.format("Ruby exit exception status is not an integer (%s)", status.getClass()));
         }
 
-        throw new UnsupportedOperationException(
-                String.format("Ruby exit exception status is not an integer (%s)", status.getClass()));
     }
 
     private boolean isA(RubyContext context, RubyClass rubyClass) {

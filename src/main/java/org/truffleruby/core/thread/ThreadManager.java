@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -36,7 +37,6 @@ import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -223,12 +223,12 @@ public class ThreadManager {
 
     private boolean getGlobalReportOnException() {
         final RubyClass threadClass = context.getCoreLibrary().threadClass;
-        return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@report_on_exception", null);
+        return (boolean) DynamicObjectLibrary.getUncached().getOrDefault(threadClass, "@report_on_exception", null);
     }
 
     private boolean getGlobalAbortOnException() {
         final RubyClass threadClass = context.getCoreLibrary().threadClass;
-        return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@abort_on_exception", null);
+        return (boolean) DynamicObjectLibrary.getUncached().getOrDefault(threadClass, "@abort_on_exception", null);
     }
 
     private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {

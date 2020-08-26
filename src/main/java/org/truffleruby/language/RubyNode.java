@@ -294,6 +294,10 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         default int getRubyLibraryCacheLimit() {
             return getContext().getOptions().RUBY_LIBRARY_CACHE;
         }
+
+        default int getDynamicObjectCacheLimit() {
+            return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
+        }
     }
 
     /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes

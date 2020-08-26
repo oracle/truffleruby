@@ -12,6 +12,7 @@ package org.truffleruby.cext;
 import java.math.BigInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.jcodings.specific.USASCIIEncoding;
@@ -87,7 +88,6 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -1432,11 +1432,11 @@ public class CExtNodes {
     @CoreMethod(names = "create_mark_list", onSingleton = true, required = 1)
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected Object createNewMarkList(RubyDynamicObject obj,
-                @Cached ReadObjectFieldNode readMarkedNode) {
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        protected Object createNewMarkList(RubyDynamicObject object,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
             getContext().getMarkingService().startMarking(
-                    (Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
+                    (Object[]) objectLibrary.getOrDefault(object, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
             return nil;
         }
     }

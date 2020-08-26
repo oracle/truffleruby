@@ -171,7 +171,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.utils.Utils;
@@ -190,9 +189,11 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -1431,8 +1432,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode readAssociatedNode = ReadObjectFieldNode.create();
-        @Child private WriteObjectFieldNode writeAssociatedNode;
+        @Child private WriteObjectFieldNode writeAssociatedNode; // for synchronization
 
         @Specialization(guards = "self == from")
         protected Object initializeCopySelfIsSameAsFrom(RubyString self, RubyString from) {
@@ -1440,22 +1440,24 @@ public abstract class StringNodes {
         }
 
 
-        @Specialization(guards = { "self != from", "!isNativeRope(from)" })
-        protected Object initializeCopy(RubyString self, RubyString from) {
+        @Specialization(guards = { "self != from", "!isNativeRope(from)" }, limit = "getDynamicObjectCacheLimit()")
+        protected Object initializeCopy(RubyString self, RubyString from,
+                @CachedLibrary("from") DynamicObjectLibrary fromLibrary) {
             StringOperations.setRope(self, from.rope);
-            copyAssociated(self, from);
+            copyAssociated(self, from, fromLibrary);
             return self;
         }
 
-        @Specialization(guards = { "self != from", "isNativeRope(from)" })
-        protected Object initializeCopyFromNative(RubyString self, RubyString from) {
+        @Specialization(guards = { "self != from", "isNativeRope(from)" }, limit = "getDynamicObjectCacheLimit()")
+        protected Object initializeCopyFromNative(RubyString self, RubyString from,
+                @CachedLibrary("from") DynamicObjectLibrary fromLibrary) {
             StringOperations.setRope(self, ((NativeRope) from.rope).makeCopy(getContext().getFinalizationService()));
-            copyAssociated(self, from);
+            copyAssociated(self, from, fromLibrary);
             return self;
         }
 
-        private void copyAssociated(RubyString self, RubyString from) {
-            final Object associated = readAssociatedNode.execute(from, Layouts.ASSOCIATED_IDENTIFIER, null);
+        private void copyAssociated(RubyString self, RubyString from, DynamicObjectLibrary fromLibrary) {
+            final Object associated = fromLibrary.getOrDefault(from, Layouts.ASSOCIATED_IDENTIFIER, null);
             if (associated != null) {
                 if (writeAssociatedNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -2667,6 +2669,7 @@ public abstract class StringNodes {
     public abstract static class UnpackNode extends CoreMethodNode {
 
         @Child private RubyLibrary rubyLibrary;
+        @Child private DynamicObjectLibrary associatedLibrary;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
@@ -2680,8 +2683,7 @@ public abstract class StringNodes {
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached RopeNodes.EqualNode equalNode,
-                @Cached ReadObjectFieldNode readAssociatedNode) {
+                @Cached RopeNodes.EqualNode equalNode) {
             final Rope rope = string.rope;
 
             final ArrayResult result;
@@ -2692,7 +2694,7 @@ public abstract class StringNodes {
                                 bytesNode.execute(rope),
                                 rope.byteLength(),
                                 string.tainted,
-                                readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
+                                readAssociated(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -2704,8 +2706,7 @@ public abstract class StringNodes {
         @Specialization(replaces = "unpackCached")
         protected RubyArray unpackUncached(RubyString string, RubyString format,
                 @Cached IndirectCallNode callUnpackNode,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @Cached ReadObjectFieldNode readAssociatedNode) {
+                @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = string.rope;
 
             final ArrayResult result;
@@ -2717,13 +2718,22 @@ public abstract class StringNodes {
                                 bytesNode.execute(rope),
                                 rope.byteLength(),
                                 string.tainted,
-                                readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
+                                readAssociated(string) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishUnpack(result);
+        }
+
+        private Object readAssociated(RubyString string) {
+            if (associatedLibrary == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                associatedLibrary = insert(
+                        DynamicObjectLibrary.getFactory().createDispatched(getDynamicObjectCacheLimit()));
+            }
+            return associatedLibrary.getOrDefault(string, Layouts.ASSOCIATED_IDENTIFIER, null);
         }
 
         private RubyArray finishUnpack(ArrayResult result) {
@@ -2742,7 +2752,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         protected RootCallTarget compileFormat(RubyString format) {
-            return new UnpackCompiler(getContext(), this).compile(format.toString());
+            return new UnpackCompiler(getContext(), this).compile(StringOperations.getString(format));
         }
 
         protected int getCacheLimit() {

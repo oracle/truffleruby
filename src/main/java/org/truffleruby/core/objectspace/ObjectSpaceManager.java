@@ -43,11 +43,15 @@ import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import org.truffleruby.language.RubyDynamicObject;
 
 /** Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long} values, mapped to objects
  * with a weak hash map. */
@@ -95,6 +99,14 @@ public class ObjectSpaceManager {
 
     public void setTracingPaused(boolean tracingPaused) {
         this.tracingPaused.set(tracingPaused);
+    }
+
+    public static long readObjectID(RubyDynamicObject object, DynamicObjectLibrary objectLibrary) {
+        try {
+            return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+        } catch (UnexpectedResultException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
     }
 
     public long getNextObjectID() {

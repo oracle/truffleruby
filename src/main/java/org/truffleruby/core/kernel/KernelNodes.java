@@ -116,7 +116,6 @@ import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -1068,7 +1067,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object removeInstanceVariable(RubyDynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil);
+            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, ivar, nil);
 
             if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {
