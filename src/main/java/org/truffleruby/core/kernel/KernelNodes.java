@@ -115,10 +115,8 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -442,13 +440,13 @@ public abstract class KernelNodes {
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
-                @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
-                @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
+                @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
             final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil);
-                writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
+                final Property property = properties[i];
+                final Object value = property.get(self, cachedShape);
+                writeFieldNodes[i].putWithFlags(newObject, property.getKey(), value, property.getFlags());
             }
 
             return newObject;
@@ -479,18 +477,10 @@ public abstract class KernelNodes {
             return copiedProperties.toArray(EMPTY_PROPERTY_ARRAY);
         }
 
-        protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
-            final ReadObjectFieldNode[] nodes = new ReadObjectFieldNode[properties.length];
+        protected DynamicObjectLibrary[] createWriteFieldNodes(Property[] properties) {
+            final DynamicObjectLibrary[] nodes = new DynamicObjectLibrary[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                nodes[i] = ReadObjectFieldNode.create();
-            }
-            return nodes;
-        }
-
-        protected WriteObjectFieldNode[] createWriteFieldNodes(Property[] properties) {
-            final WriteObjectFieldNode[] nodes = new WriteObjectFieldNode[properties.length];
-            for (int i = 0; i < properties.length; i++) {
-                nodes[i] = WriteObjectFieldNode.create();
+                nodes[i] = DynamicObjectLibrary.getFactory().createDispatched(1);
             }
             return nodes;
         }
