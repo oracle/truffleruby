@@ -24,7 +24,6 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
@@ -105,21 +104,11 @@ public class BacktraceFormatter {
             printer.print(info);
         }
 
-        // can be null, if rubyException.customBacktrace is used
-        final Backtrace backtrace = rubyException.backtrace;
-        final String formatted;
-        if (backtrace != null) {
-            formatted = formatBacktrace(rubyException, backtrace);
-        } else {
-            // formatBacktrace() uses top order, so use the same order here to be consistent
-            final Object fullMessage = context.send(rubyException, "full_message_order_top");
-            if (RubyGuards.isRubyString(fullMessage)) {
-                formatted = StringOperations.getString((RubyString) fullMessage);
-            } else {
-                formatted = fullMessage.toString();
-            }
-        }
-
+        final Object fullMessage = context.send(
+                context.getCoreLibrary().truffleExceptionOperationsModule,
+                "get_formatted_backtrace",
+                rubyException);
+        final String formatted = StringOperations.getString((RubyString) fullMessage);
         if (formatted.endsWith("\n")) {
             printer.print(formatted);
         } else {

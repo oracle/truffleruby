@@ -104,9 +104,19 @@ module Truffle
         causes[err.cause] = true
         if reverse
           append_causes(str, err.cause, causes, reverse, highlight)
-          str << Truffle::ExceptionOperations.backtrace_message(highlight, reverse, err.cause.backtrace, err.cause)
+          backtrace_message = Truffle::ExceptionOperations.backtrace_message(highlight, reverse, err.cause.backtrace, err.cause)
+          if backtrace_message.empty?
+            str << Truffle::ExceptionOperations.message_and_class(err, highlight)
+          else
+            str << backtrace_message
+          end
         else
-          str << Truffle::ExceptionOperations.backtrace_message(highlight, reverse, err.cause.backtrace, err.cause)
+          backtrace_message = Truffle::ExceptionOperations.backtrace_message(highlight, reverse, err.cause.backtrace, err.cause)
+          if backtrace_message.empty?
+            str << Truffle::ExceptionOperations.message_and_class(err, highlight)
+          else
+            str << backtrace_message
+          end
           append_causes(str, err.cause, causes, reverse, highlight)
         end
       end
@@ -131,6 +141,10 @@ module Truffle
       else
         Truffle::Type.object_class(val).name
       end
+    end
+
+    def self.get_formatted_backtrace(e)
+      e.full_message(order: :top)
     end
 
     def self.comparison_error_message(x, y)
