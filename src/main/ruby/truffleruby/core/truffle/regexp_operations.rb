@@ -62,9 +62,11 @@ module Truffle
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if COMPARE_ENGINES
         begin
+          $stderr.puts 'Chdcking with TRegex'
           md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+          $stderr.puts 'Checking with Joni'
           md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-          if md1 == md2
+          if md1.captures == md2.captures
             return md2
           else
             $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gave #{md1} but should have given #{md2}."
@@ -74,6 +76,8 @@ module Truffle
           $stderr.puts "match_in_region(#{re}, str, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gave #{md1} raised #{e}"
           return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
+      elsif USE_TRUFFLE_REGEX
+        match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
