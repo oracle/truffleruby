@@ -18,12 +18,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+import org.truffleruby.language.methods.Split;
 
 public class RubyRootNode extends RubyBaseRootNode {
 
     private final RubyContext context;
     private final SharedMethodInfo sharedMethodInfo;
-    private boolean allowCloning;
+    private Split split;
 
     @Child private RubyNode body;
 
@@ -35,7 +36,7 @@ public class RubyRootNode extends RubyBaseRootNode {
             FrameDescriptor frameDescriptor,
             SharedMethodInfo sharedMethodInfo,
             RubyNode body,
-            boolean allowCloning) {
+            Split split) {
         super(context.getLanguage(), frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
@@ -43,7 +44,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         this.context = context;
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
-        this.allowCloning = allowCloning;
+        this.split = split;
 
         // Ensure the body node is instrument-able, which requires a non-null SourceSection
         if (!body.hasSource()) {
@@ -62,11 +63,19 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Override
     public boolean isCloningAllowed() {
-        return allowCloning;
+        return split != Split.NEVER;
     }
 
-    public void setAllowCloning(boolean allowCloning) {
-        this.allowCloning = allowCloning;
+    public boolean shouldAlwaysClone() {
+        return split == Split.ALWAYS;
+    }
+
+    public Split getSplit() {
+        return split;
+    }
+
+    public void setSplit(Split split) {
+        this.split = split;
     }
 
     @Override

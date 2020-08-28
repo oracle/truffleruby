@@ -304,7 +304,7 @@ public abstract class MethodNodes {
                     oldRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),
                     setReceiverNode,
-                    true);
+                    ((RubyRootNode) oldRootNode).getSplit());
             return Truffle.getRuntime().createCallTarget(newRootNode);
         }
 

@@ -107,6 +107,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
@@ -1279,7 +1280,7 @@ public abstract class KernelNodes {
                     new FrameDescriptor(nil),
                     info,
                     newBody,
-                    true);
+                    Split.HEURISTIC);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final RubyClass module = coreLibrary().getMetaClass(self);

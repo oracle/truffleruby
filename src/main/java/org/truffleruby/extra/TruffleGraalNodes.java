@@ -22,12 +22,12 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 import org.truffleruby.language.locals.ReadDeclarationVariableNode;
 import org.truffleruby.language.locals.WriteDeclarationVariableNode;
-import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -49,8 +49,8 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyMethod splitMethod(RubyMethod rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                InternalMethod internalMethod = rubyMethod.method;
-                internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
+                rootNode.setSplit(Split.ALWAYS);
             }
             return rubyMethod;
         }
@@ -59,8 +59,8 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyUnboundMethod splitUnboundMethod(RubyUnboundMethod rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                InternalMethod internalMethod = rubyMethod.method;
-                internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
+                rootNode.setSplit(Split.ALWAYS);
             }
             return rubyMethod;
         }
@@ -69,7 +69,8 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyProc splitProc(RubyProc rubyProc) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                rubyProc.sharedMethodInfo.setAlwaysClone(true);
+                ((RubyRootNode) rubyProc.callTargetForType.getRootNode()).setSplit(Split.ALWAYS);
+                ((RubyRootNode) rubyProc.callTargetForLambdas.getRootNode()).setSplit(Split.ALWAYS);
             }
             return rubyProc;
         }
@@ -83,7 +84,7 @@ public abstract class TruffleGraalNodes {
         protected RubyMethod neverSplitMethod(RubyMethod rubyMethod) {
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
                 RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
-                rootNode.setAllowCloning(false);
+                rootNode.setSplit(Split.NEVER);
             }
             return rubyMethod;
         }
@@ -93,7 +94,7 @@ public abstract class TruffleGraalNodes {
         protected RubyUnboundMethod neverSplitUnboundMethod(RubyUnboundMethod rubyMethod) {
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
                 RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
-                rootNode.setAllowCloning(false);
+                rootNode.setSplit(Split.NEVER);
             }
             return rubyMethod;
         }
@@ -102,8 +103,8 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyProc neverSplitProc(RubyProc rubyProc) {
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) rubyProc.method.getCallTarget().getRootNode();
-                rootNode.setAllowCloning(false);
+                ((RubyRootNode) rubyProc.callTargetForType.getRootNode()).setSplit(Split.NEVER);
+                ((RubyRootNode) rubyProc.callTargetForLambdas.getRootNode()).setSplit(Split.NEVER);
             }
             return rubyProc;
         }
@@ -140,7 +141,7 @@ public abstract class TruffleGraalNodes {
                     rootNode.getFrameDescriptor(),
                     rootNode.getSharedMethodInfo(),
                     newBody,
-                    true);
+                    Split.HEURISTIC);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final RootCallTarget callTargetForLambdas = proc.type == ProcType.LAMBDA

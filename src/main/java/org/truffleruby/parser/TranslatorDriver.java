@@ -69,6 +69,7 @@ import org.truffleruby.language.methods.CatchReturnAsErrorNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
@@ -205,8 +206,7 @@ public class TranslatorDriver {
                 methodName,
                 0,
                 null,
-                null,
-                false);
+                null);
 
         final boolean topLevel = parserContext.isTopLevel();
         final boolean isModuleBody = topLevel;
@@ -353,7 +353,7 @@ public class TranslatorDriver {
                 environment.getFrameDescriptor(),
                 sharedMethodInfo,
                 truffleNode,
-                true);
+                Split.HEURISTIC);
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
@@ -431,8 +431,7 @@ public class TranslatorDriver {
                     null,
                     0,
                     "external",
-                    null,
-                    false);
+                    null);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             // TODO(CS): how do we know if the frame is a block or not?
             return new TranslatorEnvironment(

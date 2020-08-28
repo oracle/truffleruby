@@ -15,6 +15,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -99,7 +100,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
     protected abstract void reassessSplittingInliningStrategy();
 
     protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
-        if (callNode.isCallTargetCloningAllowed() && method.getSharedMethodInfo().shouldAlwaysClone()) {
+        if (callNode.isCallTargetCloningAllowed() &&
+                ((RubyRootNode) method.getCallTarget().getRootNode()).shouldAlwaysClone()) {
             callNode.cloneCallTarget();
         }
 
