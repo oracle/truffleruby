@@ -14,6 +14,7 @@ import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1882,8 +1883,9 @@ public abstract class ArrayNodes {
     public abstract static class SelectNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object selectOther(RubyArray array, RubyProc block,
+        protected Object select(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode) {
             final Object store = array.store;
@@ -1892,8 +1894,9 @@ public abstract class ArrayNodes {
             int selectedSize = 0;
 
             int n = 0;
+            loopProfile.profileCounted(array.size);
             try {
-                for (; n < array.size; n++) {
+                for (; loopProfile.inject(n < array.size); n++) {
                     final Object value = stores.read(store, n);
 
                     if (booleanCastNode.executeToBoolean(yield(block, value))) {

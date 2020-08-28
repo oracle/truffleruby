@@ -22,6 +22,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
@@ -62,10 +63,12 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             limit = "storageStrategyLimit()")
     protected RubyArray iterateMany(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
+            @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
+        loopProfile.profileCounted(array.size - startAt);
         try {
-            for (; i < array.size; i++) {
+            for (; loopProfile.inject(i < array.size); i++) {
                 if (strategyMatchProfile.profile(arrays.accepts(array.store))) {
                     final Object store = array.store;
                     consumerNode.accept(array, block, arrays.read(store, i), i);
