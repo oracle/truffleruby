@@ -94,7 +94,7 @@ class Symbol
 
     case pattern
     when Regexp
-      match_data = pattern.search_region(str, 0, str.bytesize, true)
+      match_data = Truffle::RegexpOperations.search_region(pattern, str, 0, str.bytesize, true)
       Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
       match_data.byte_begin(0) if match_data
     when String
@@ -136,7 +136,7 @@ class Symbol
       end
 
       str = to_s
-      match_data = index.search_region(str, 0, str.bytesize, true)
+      match_data = Truffle::RegexpOperations.search_region(index, str, 0, str.bytesize, true)
       Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
       if match_data
         result = match_data.to_s

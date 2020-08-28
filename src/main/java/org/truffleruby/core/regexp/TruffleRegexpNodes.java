@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
@@ -28,6 +29,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
@@ -37,8 +40,10 @@ import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -59,6 +64,53 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
+
+    @TruffleBoundary
+    public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
+            boolean encodingConversion, int start, Node currentNode) {
+        final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange(), true);
+        Regex regex = regexp.regex;
+
+        if (encodingConversion && regex.getEncoding() != enc) {
+            EncodingCache encodingCache = regexp.cachedEncodings;
+            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
+        }
+
+        return regex.matcher(stringBytes, start, stringBytes.length);
+    }
+
+    @TruffleBoundary
+    public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange, boolean warn) {
+        final Encoding regexEnc = regexp.regex.getEncoding();
+
+        if (strEnc == regexEnc) {
+            return regexEnc;
+        } else if (regexEnc == USASCIIEncoding.INSTANCE && codeRange == CodeRange.CR_7BIT) {
+            return regexEnc;
+        } else if (strEnc.isAsciiCompatible() && regexp.options.isFixed()) {
+            return regexEnc;
+        }
+        return strEnc;
+    }
+
+    private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, Encoding enc, Node currentNode) {
+        final Encoding[] fixedEnc = new Encoding[]{ null };
+        final Rope sourceRope = regexp.source;
+        final RopeBuilder preprocessed = ClassicRegexp
+                .preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        final RegexpOptions options = regexp.options;
+        try {
+            return new Regex(
+                    preprocessed.getUnsafeBytes(),
+                    0,
+                    preprocessed.getLength(),
+                    options.toJoniOptions(),
+                    enc,
+                    new RegexWarnCallback(context));
+        } catch (SyntaxException e) {
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
+        }
+    }
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
     public static abstract class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
@@ -164,6 +216,70 @@ public class TruffleRegexpNodes {
         protected Object buildStatsArray(
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(matchedRegexps, arrayBuilderNode, getContext());
+        }
+    }
+
+    @Primitive(name = "matchdata_fixup_positions", lowerFixnum = { 1 })
+    public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos) {
+            RegexpNodes.fixupMatchDataForStart(matchData, startPos);
+            return matchData;
+        }
+    }
+
+    @Primitive(name = "regexp_initialized?")
+    public static abstract class InitializedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean initialized(RubyRegexp regexp) {
+            return RegexpGuards.isInitialized(regexp);
+        }
+    }
+
+    @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 6 })
+    public static abstract class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
+
+        /** Matches a regular expression against a string over the specified range of characters.
+         *
+         * @param regexp The regexp to match
+         *
+         * @param string The string to match against
+         *
+         * @param fromPos The poistion to search from
+         *
+         * @param toPos The position to search to (if less than from pos then this means search backwards)
+         *
+         * @param atStart Whether to only match at the beginning of the string, if false then the regexp can have any
+         *            amount of prematch.
+         *
+         * @param encodingConversion Whether to attempt encoding conversion of the regexp to match the string
+         *
+         * @param startPos The position within the string which the matcher should consider the start. Setting this to
+         *            the from position allows scanners to match starting partway through a string while still setting
+         *            atStart and thus forcing the match to be at the specific starting position. */
+        @Specialization
+        protected Object matchInRegion(
+                RubyRegexp regexp,
+                RubyString string,
+                int fromPos,
+                int toPos,
+                boolean atStart,
+                boolean encodingConversion,
+                int startPos,
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleRegexpNodes.MatchNode matchNode) {
+            Rope rope = string.rope;
+            Matcher matcher = createMatcher(
+                    getContext(),
+                    regexp,
+                    rope,
+                    bytesNode.execute(rope),
+                    encodingConversion,
+                    startPos,
+                    this);
+            return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
         }
     }
 
