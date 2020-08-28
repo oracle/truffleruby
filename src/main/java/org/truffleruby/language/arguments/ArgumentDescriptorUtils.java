@@ -17,8 +17,11 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public class ArgumentDescriptorUtils {
 
+    @TruffleBoundary
     public static RubyArray argumentDescriptorsToParameters(RubyContext context,
             ArgumentDescriptor[] argsDesc,
             boolean isLambda) {
@@ -31,9 +34,7 @@ public class ArgumentDescriptorUtils {
         return ArrayHelpers.createArray(context, params);
     }
 
-    public static RubyArray toArray(RubyContext context,
-            ArgumentDescriptor argDesc,
-            boolean isLambda) {
+    public static RubyArray toArray(RubyContext context, ArgumentDescriptor argDesc, boolean isLambda) {
         if ((argDesc.type == ArgumentType.req) && !isLambda) {
             return toArray(context, ArgumentType.opt, argDesc.name);
         }
@@ -45,14 +46,9 @@ public class ArgumentDescriptorUtils {
         final Object[] store;
 
         if (argType.anonymous || name == null) {
-            store = new Object[]{
-                    context.getSymbol(argType.symbolicName)
-            };
+            store = new Object[]{ context.getSymbol(argType.symbolicName) };
         } else {
-            store = new Object[]{
-                    context.getSymbol(argType.symbolicName),
-                    context.getSymbol(name)
-            };
+            store = new Object[]{ context.getSymbol(argType.symbolicName), context.getSymbol(name) };
         }
 
         return ArrayHelpers.createArray(context, store);
