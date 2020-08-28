@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -81,13 +82,15 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             limit = "storageStrategyLimit()")
     protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
+            @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
         final int newSize = index + 1;
         Object store = array.store;
         final Object objectStore = arrays.allocateForNewValue(store, nil, newSize);
         int oldSize = array.size;
         arrays.copyContents(store, 0, objectStore, 0, oldSize);
-        for (int n = oldSize; n < index; n++) {
+        loopProfile.profileCounted(index - oldSize);
+        for (int n = oldSize; loopProfile.inject(n < index); n++) {
             newArrays.write(objectStore, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);
@@ -105,10 +108,12 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     protected Object writeBeyondObject(RubyArray array, int index, Object value,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
-            @Cached ArrayEnsureCapacityNode ensureCapacityNode) {
+            @Cached ArrayEnsureCapacityNode ensureCapacityNode,
+            @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
         final Object store = array.store;
-        for (int n = array.size; n < index; n++) {
+        loopProfile.profileCounted(index - array.size);
+        for (int n = array.size; loopProfile.inject(n < index); n++) {
             newArrays.write(store, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);

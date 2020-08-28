@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.IsSharedNode;
@@ -54,7 +55,8 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
             @Cached IsSharedNode isDstShared,
             @Cached IsSharedNode isSrcShared,
             @Cached WriteBarrierNode writeBarrierNode,
-            @Cached ConditionProfile share) {
+            @Cached ConditionProfile share,
+            @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
 
         final Object srcStore = src.store;
         stores.copyContents(srcStore, srcStart, dst.store, dstStart, length);
@@ -62,7 +64,8 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
         if (share.profile(!stores.isPrimitive(srcStore) &&
                 isDstShared.executeIsShared(dst) &&
                 !isSrcShared.executeIsShared(src))) {
-            for (int i = 0; i < length; ++i) {
+            loopProfile.profileCounted(length);
+            for (int i = 0; loopProfile.inject(i < length); ++i) {
                 writeBarrierNode.executeWriteBarrier(stores.read(srcStore, i));
             }
         }
