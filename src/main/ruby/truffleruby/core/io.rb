@@ -1680,7 +1680,7 @@ class IO
       line = l
       break
     end
-    Truffle::IOOperations.set_last_line(line, Primitive.caller_binding) if line
+    Primitive.frame_local_variable_set(:$_, line, Primitive.caller_binding) if line
     line
   end
 
@@ -2597,5 +2597,5 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :$_,
-  -> b { Truffle::IOOperations.last_line(b) },
-  -> v, b { Truffle::IOOperations.set_last_line(v, b) })
+  -> b { Primitive.frame_local_variable_get(:$_, b) },
+  -> v, b { Primitive.frame_local_variable_set(:$_, v, b) })

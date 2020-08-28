@@ -95,7 +95,7 @@ class Symbol
     case pattern
     when Regexp
       match_data = Truffle::RegexpOperations.search_region(pattern, str, 0, str.bytesize, true)
-      Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
+      Primitive.frame_local_variable_set(:$~, match_data, Primitive.caller_binding)
       match_data.byte_begin(0) if match_data
     when String
       raise TypeError, 'type mismatch: String given'
@@ -131,13 +131,13 @@ class Symbol
     if index.kind_of?(Regexp)
       unless Primitive.undefined?(other)
         match, str = to_s.send(:subpattern, index, other)
-        Truffle::RegexpOperations.set_last_match(match, Primitive.caller_binding)
+        Primitive.frame_local_variable_set(:$~, match, Primitive.caller_binding)
         return str
       end
 
       str = to_s
       match_data = Truffle::RegexpOperations.search_region(index, str, 0, str.bytesize, true)
-      Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
+      Primitive.frame_local_variable_set(:$~, match_data, Primitive.caller_binding)
       if match_data
         result = match_data.to_s
         Primitive.infect result, index
