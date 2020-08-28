@@ -10,20 +10,10 @@
 
 module Truffle
   module IOOperations
-    def self.last_line(a_binding)
-      Primitive.frame_local_variable_get(:$_, a_binding)
-    end
-    Truffle::Graal.always_split(method(:last_line))
-
-    def self.set_last_line(value, a_binding)
-      Primitive.frame_local_variable_set(:$_, a_binding, value)
-    end
-    Truffle::Graal.always_split(method(:set_last_line))
-
     def self.print(io, args, last_line_binding)
       if args.empty?
         raise 'last_line_binding is required' if Primitive.nil? last_line_binding
-        io.write Truffle::IOOperations.last_line(last_line_binding).to_s
+        io.write Primitive.frame_local_variable_get(:$_, last_line_binding).to_s
       else
         args.each { |o| io.write o.to_s }
       end

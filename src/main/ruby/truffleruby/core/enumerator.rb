@@ -391,7 +391,7 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
         matches = pattern === val
-        Truffle::RegexpOperations.set_last_match($~, binding)
+        Primitive.frame_local_variable_set(:$~, $~, binding)
 
         if matches
           if block
@@ -409,7 +409,7 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
         matches = pattern === val
-        Truffle::RegexpOperations.set_last_match($~, binding)
+        Primitive.frame_local_variable_set(:$~, $~, binding)
 
         unless matches
           if block

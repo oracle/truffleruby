@@ -20,6 +20,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.kernel.TruffleKernelNodesFactory.SetFrameAndThreadLocalVariableFactory;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
@@ -190,8 +191,14 @@ public abstract class TruffleKernelNodes {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
+        public static SetFrameAndThreadLocalVariable create() {
+            return SetFrameAndThreadLocalVariableFactory.create(null);
+        }
+
+        public abstract Object execute(RubySymbol name, Object value, RubyBinding binding);
+
         @Specialization
-        protected Object set(RubySymbol name, RubyBinding binding, Object value,
+        protected Object set(RubySymbol name, Object value, RubyBinding binding,
                 @Cached ConditionProfile sameThreadProfile) {
             threadLocalNode.execute(name, binding.getFrame()).set(value, sameThreadProfile);
             return value;

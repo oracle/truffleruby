@@ -53,20 +53,6 @@ module Truffle
       search_region(re, str, pos, str.bytesize, true)
     end
 
-    def self.last_match(a_binding)
-      Primitive.frame_local_variable_get(:'$~', a_binding)
-    end
-    Truffle::Graal.always_split(method(:last_match))
-
-    def self.set_last_match(value, a_binding)
-      unless Primitive.nil?(value) || Primitive.object_kind_of?(value, MatchData)
-        raise TypeError, "Wrong argument type #{value} (expected MatchData)"
-      end
-      # TODO DMM 2018-01-12 Proc.binding being nil is a bug, we can remove the check once we've fixed it.
-      Primitive.frame_local_variable_set(:'$~', a_binding, value)
-    end
-    Truffle::Graal.always_split(method(:set_last_match))
-
     def self.compilation_stats
       Hash[*compilation_stats_array]
     end

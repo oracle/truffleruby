@@ -17,7 +17,7 @@ module LastMatchFixtures
   end
 
   def self.set_last_match(data)
-    Truffle::RegexpOperations.set_last_match(data, Primitive.caller_binding)
+    Primitive.frame_local_variable_set(:$~, data, Primitive.caller_binding)
     data
   end
 

@@ -117,6 +117,7 @@ import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.kernel.TruffleKernelNodes.SetFrameAndThreadLocalVariable;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -159,6 +160,7 @@ import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNo
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.core.support.RubyByteArray;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -679,31 +681,27 @@ public abstract class StringNodes {
         @Specialization
         protected Object slice1(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode,
-                @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
-                @Cached ReadCallerFrameNode readCallerNode) {
-            return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode, readCallerNode);
+                @Cached ReadCallerFrameNode readCallerNode,
+                @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
+            return sliceCapture(frame, string, regexp, 0, callNode, readCallerNode, setFrameAndThreadLocalVariable);
         }
 
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode,
-                @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
-                @Cached ReadCallerFrameNode readCallerNode) {
+                @Cached ReadCallerFrameNode readCallerNode,
+                @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
             final RubyBinding binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame));
             if (matchStrPair == nil) {
-                setLastMatchNode
-                        .call(coreLibrary().truffleRegexpOperationsModule, "set_last_match", nil, binding);
+                setFrameAndThreadLocalVariable.execute(CoreSymbols.BACKREF, nil, binding);
                 return nil;
+            } else {
+                final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
+                setFrameAndThreadLocalVariable.execute(CoreSymbols.BACKREF, array[0], binding);
+                return array[1];
             }
-
-            final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
-
-            setLastMatchNode
-                    .call(coreLibrary().truffleRegexpOperationsModule, "set_last_match", array[0], binding);
-
-            return array[1];
         }
 
         // endregion
