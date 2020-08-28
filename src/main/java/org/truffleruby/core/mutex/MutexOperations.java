@@ -59,7 +59,8 @@ public abstract class MutexOperations {
         }
     }
 
-    protected static void internalLockEvenWithException(RubyContext context, ReentrantLock lock, Node currentNode) {
+    @TruffleBoundary
+    public static void internalLockEvenWithException(RubyContext context, ReentrantLock lock, Node currentNode) {
         if (lock.isHeldByCurrentThread()) {
             throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
@@ -67,6 +68,7 @@ public abstract class MutexOperations {
         if (lock.tryLock()) {
             return;
         }
+
         Throwable throwable = null;
         try {
             while (true) {
@@ -82,7 +84,7 @@ public abstract class MutexOperations {
             }
         } finally {
             if (!lock.isHeldByCurrentThread()) {
-                throw CompilerDirectives.shouldNotReachHere("the lock could not be reacquired after Mutex#sleep");
+                throw CompilerDirectives.shouldNotReachHere("the lock could not be reacquired", throwable);
             }
         }
 

@@ -115,6 +115,25 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
 
+    @Primitive(name = "call_with_c_mutex_and_frame")
+    public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
+
+        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
+
+        @Specialization
+        protected Object callCWithMutex(Object receiver, RubyArray argsArray, Object block,
+                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
+            ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
+            extensionStack.push(block);
+
+            try {
+                return callCextNode.execute(receiver, argsArray);
+            } finally {
+                extensionStack.pop();
+            }
+        }
+    }
+
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
@@ -151,26 +170,6 @@ public class CExtNodes {
         protected int getCacheLimit() {
             return getContext().getOptions().DISPATCH_CACHE;
         }
-
-    }
-
-    @Primitive(name = "call_with_c_mutex_and_frame")
-    public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
-
-        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
-
-        @Specialization
-        protected Object callCWithMutex(Object receiver, RubyArray argsArray, Object block,
-                @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
-            extensionStack.push(block);
-
-            try {
-                return callCextNode.execute(receiver, argsArray);
-            } finally {
-                extensionStack.pop();
-            }
-        }
     }
 
     @Primitive(name = "call_without_c_mutex")
@@ -195,7 +194,7 @@ public class CExtNodes {
                     return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                 } finally {
                     if (owned) {
-                        MutexOperations.lockInternal(getContext(), lock, this);
+                        MutexOperations.internalLockEvenWithException(getContext(), lock, this);
                     }
                 }
             } else {
