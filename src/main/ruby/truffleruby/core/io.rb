@@ -2402,7 +2402,7 @@ class IO
     return 0 if data.empty?
 
     ensure_open_and_writable
-    @ibuffer.unseek!(self) unless @sync
+    reset_buffering unless @sync
 
     Truffle::POSIX.write_string(self, data, false)
   end
@@ -2478,7 +2478,7 @@ class IO
     data = String data
     return 0 if data.empty?
 
-    @ibuffer.unseek!(self) unless @sync
+    reset_buffering unless @sync
 
     self.nonblock = true
 
