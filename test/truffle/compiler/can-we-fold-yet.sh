@@ -6,6 +6,7 @@ jt ruby --experimental-options --engine.IterativePartialEscape test/truffle/comp
 
 if ! cmp test/truffle/compiler/can-we-fold-yet/expected.txt actual.txt
 then
+  set +x
   echo Output not as expected
   echo Expected:
   cat test/truffle/compiler/can-we-fold-yet/expected.txt
