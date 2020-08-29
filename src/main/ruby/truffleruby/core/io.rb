@@ -2465,7 +2465,7 @@ class IO
 
       while bytes_to_write > 0
         bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
-        @ibuffer.empty_to self if @ibuffer.full? or sync
+        @ibuffer.empty_to self if @ibuffer.full?
       end
     end
 
