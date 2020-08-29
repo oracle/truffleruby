@@ -302,21 +302,19 @@ class IO
   end
 
   private def mode_read_only?
-    @mode & ACCMODE == RDONLY
+    @mode == RDONLY
   end
 
   private def mode_write_only?
-    @mode & ACCMODE == WRONLY
+    @mode == WRONLY
   end
 
   private def force_read_only
-    @mode &= ~IO::ACCMODE
-    @mode |= RDONLY
+    @mode = RDONLY
   end
 
   private def force_write_only
-    @mode &= ~IO::ACCMODE
-    @mode |= WRONLY
+    @mode = WRONLY
   end
 
   def self.binread(file, length=nil, offset=0)
@@ -1495,18 +1493,16 @@ class IO
 
   private def ensure_open_and_readable
     ensure_open
-    write_only = @mode & ACCMODE == WRONLY
-    raise IOError, 'not opened for reading' if write_only
+    raise IOError, 'not opened for reading' if @mode == WRONLY
   end
 
   private def ensure_open_and_writable
     ensure_open
-    read_only = @mode & ACCMODE == RDONLY
-    raise IOError, 'not opened for writing' if read_only
+    raise IOError, 'not opened for writing' if @mode == RDONLY
   end
 
   def external_encoding
-    if @mode & ACCMODE == RDONLY
+    if @mode == RDONLY
       @external || Encoding.default_external
     else
       @external
@@ -2055,7 +2051,7 @@ class IO
         # We need to use that mode of other here like MRI, and not fcntl(), because fcntl(fd, F_GETFL)
         # gives O_RDWR for the 3 standard IOs, even though they are not bidirectional.
         @mode = other.instance_variable_get :@mode
-        @ibuffer = (@mode & ACCMODE) != WRONLY ? IO::InternalBuffer.new : nil
+        @ibuffer = @mode != WRONLY ? IO::InternalBuffer.new : nil
 
         if io.respond_to?(:path)
           @path = io.path
@@ -2092,8 +2088,8 @@ class IO
       mode = Truffle::POSIX.fcntl(Primitive.io_fd(self), F_GETFL, 0)
       Errno.handle if mode < 0
 
-      @mode = mode
-      @ibuffer = (@mode & ACCMODE) != WRONLY ? IO::InternalBuffer.new : nil
+      @mode = (mode & ACCMODE)
+      @ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
     end
 
     self
