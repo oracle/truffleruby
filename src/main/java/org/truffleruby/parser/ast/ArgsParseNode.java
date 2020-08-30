@@ -38,6 +38,7 @@ import java.util.List;
 
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.parser.Helpers;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents the argument declarations of a method. The fields: foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ...,
@@ -116,6 +117,7 @@ public class ArgsParseNode extends ParseNode {
 
     private Arity createArity() {
         final String[] keywordArguments;
+        boolean isAllKeywordsOptional = true;
 
         if (getKeywordCount() > 0) {
             final ParseNode[] keywordNodes = getKeywords().children();
@@ -127,9 +129,13 @@ public class ArgsParseNode extends ParseNode {
                 final AssignableParseNode assignableNode = kwarg.getAssignable();
 
                 if (assignableNode instanceof LocalAsgnParseNode) {
-                    keywordArguments[i] = ((LocalAsgnParseNode) assignableNode).getName();
+                    final LocalAsgnParseNode node = ((LocalAsgnParseNode) assignableNode);
+                    keywordArguments[i] = node.getName();
+                    isAllKeywordsOptional &= !Helpers.isRequiredKeywordArgumentValueNode(assignableNode);
                 } else if (assignableNode instanceof DAsgnParseNode) {
-                    keywordArguments[i] = ((DAsgnParseNode) assignableNode).getName();
+                    final DAsgnParseNode node = ((DAsgnParseNode) assignableNode);
+                    keywordArguments[i] = node.getName();
+                    isAllKeywordsOptional &= !Helpers.isRequiredKeywordArgumentValueNode(assignableNode);
                 } else {
                     throw new UnsupportedOperationException("unsupported keyword arg " + kwarg);
                 }
@@ -144,6 +150,7 @@ public class ArgsParseNode extends ParseNode {
                 hasRestArg(),
                 getPostCount(),
                 keywordArguments,
+                isAllKeywordsOptional,
                 hasKeyRest());
     }
 
