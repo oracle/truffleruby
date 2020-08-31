@@ -695,7 +695,8 @@ public class ThreadManager {
                 builder.append(" (root)");
             }
 
-            if (thread == getCurrentThread()) {
+            // cannot use getCurrentThread() as it might have been cleared
+            if (thread == currentThread.get()) {
                 builder.append(" (current)");
             }
 
