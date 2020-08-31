@@ -52,14 +52,12 @@ public abstract class MutexOperations {
             RubyContext context, ReentrantLock lock, RubyThread thread, Node currentNode) {
         // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
         // Yet, we also need to allow safepoints to happen otherwise the thread that could unlock could be blocked.
-        try {
-            internalLockEvenWithException(context, lock, currentNode);
-        } finally {
-            thread.ownedLocks.add(lock);
-        }
+        internalLockEvenWithException(context, lock, currentNode);
+        thread.ownedLocks.add(lock);
     }
 
-    protected static void internalLockEvenWithException(RubyContext context, ReentrantLock lock, Node currentNode) {
+    @TruffleBoundary
+    public static void internalLockEvenWithException(RubyContext context, ReentrantLock lock, Node currentNode) {
         if (lock.isHeldByCurrentThread()) {
             throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
@@ -67,6 +65,7 @@ public abstract class MutexOperations {
         if (lock.tryLock()) {
             return;
         }
+
         Throwable throwable = null;
         try {
             while (true) {
@@ -82,7 +81,7 @@ public abstract class MutexOperations {
             }
         } finally {
             if (!lock.isHeldByCurrentThread()) {
-                throw CompilerDirectives.shouldNotReachHere("the lock could not be reacquired after Mutex#sleep");
+                throw CompilerDirectives.shouldNotReachHere("the lock could not be reacquired", throwable);
             }
         }
 
