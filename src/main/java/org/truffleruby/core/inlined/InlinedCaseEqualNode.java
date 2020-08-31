@@ -17,7 +17,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.IsANode;
 
 
@@ -49,7 +49,7 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected boolean doModule(VirtualFrame frame, RubyModule self, Object b,
-            @Cached LookupMethodNode lookupNode,
+            @Cached LookupMethodOnSelfNode lookupNode,
             @Cached IsANode isANode) {
         return isANode.executeIsA(b, self);
     }

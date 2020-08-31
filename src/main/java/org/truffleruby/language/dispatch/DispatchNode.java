@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.proc.RubyProc;
@@ -24,8 +25,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import org.truffleruby.language.objects.MetaClassNode;
 
 public abstract class DispatchNode extends FrameSendingNode {
+
+    @Child MetaClassNode metaClassNode = MetaClassNode.create();
 
     private final DispatchAction dispatchAction;
 
@@ -58,10 +62,11 @@ public abstract class DispatchNode extends FrameSendingNode {
             String name,
             boolean ignoreVisibility,
             boolean onlyCallPublic) {
+        final RubyClass metaClass = metaClassNode.executeMetaClass(receiver);
         final MethodLookupResult method = LookupMethodNode.lookupMethodCachedWithVisibility(
                 getContext(),
                 frame,
-                receiver,
+                metaClass,
                 name,
                 ignoreVisibility,
                 onlyCallPublic);

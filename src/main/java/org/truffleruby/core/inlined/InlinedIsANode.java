@@ -16,7 +16,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.IsANode;
 
 public abstract class InlinedIsANode extends BinaryInlinedOperationNode {
@@ -35,7 +35,7 @@ public abstract class InlinedIsANode extends BinaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected boolean doIsA(VirtualFrame frame, Object self, RubyModule module,
-            @Cached LookupMethodNode lookupNode,
+            @Cached LookupMethodOnSelfNode lookupNode,
             @Cached IsANode isANode) {
         return isANode.executeIsA(self, module);
     }

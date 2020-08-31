@@ -18,7 +18,7 @@ import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
@@ -48,7 +48,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected boolean stringEqual(VirtualFrame frame, RubyString self, RubyString b,
-            @Cached LookupMethodNode lookupNode,
+            @Cached LookupMethodOnSelfNode lookupNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
         return stringEqualNode.executeStringEqual(self, b);
     }

@@ -14,12 +14,12 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.LookupMethodNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 @NodeChild(value = "block", type = RubyNode.class)
 public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
@@ -35,7 +35,7 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
-            @Cached LookupMethodNode lookupNode) {
+            @Cached LookupMethodOnSelfNode lookupNode) {
         return ProcOperations.createLambdaFromBlock(getContext(), block);
     }
 

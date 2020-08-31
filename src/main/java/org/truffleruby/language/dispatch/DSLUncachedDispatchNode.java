@@ -24,7 +24,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -107,8 +107,8 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached MetaClassNode metaClassNode,
             @Cached NotOptimizedWarningNode notOptimizedWarningNode,
-            @Cached LookupMethodNode lookupMethodNode,
-            @Cached LookupMethodNode lookupMethodMissingNode,
+            @Cached LookupMethodOnSelfNode lookupMethodNode,
+            @Cached LookupMethodOnSelfNode lookupMethodMissingNode,
             @Cached NameToJavaStringNode nameToJavaStringNode,
             @Cached IndirectCallNode indirectCallNode,
             @Cached ToSymbolNode toSymbolNode,

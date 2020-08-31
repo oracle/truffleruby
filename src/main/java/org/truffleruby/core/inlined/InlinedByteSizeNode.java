@@ -12,11 +12,11 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.LookupMethodNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
 
@@ -31,7 +31,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected int byteSize(VirtualFrame frame, RubyString self,
-            @Cached LookupMethodNode lookupNode) {
+            @Cached LookupMethodOnSelfNode lookupNode) {
         return self.rope.byteLength();
     }
 

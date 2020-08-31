@@ -9,14 +9,14 @@
  */
 package org.truffleruby.core.inlined;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.LookupMethodNode;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
 
@@ -37,11 +37,11 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
     @Specialization(
             guards = {
                     "isRubyValue(self)",
-                    "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL", },
+                    "lookup.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL", },
             assumptions = "assumptions",
             limit = "1")
     protected boolean notNil(VirtualFrame frame, Object self,
-            @Cached LookupMethodNode lookupNode) {
+            @Cached LookupMethodOnSelfNode lookup) {
         return false;
     }
 

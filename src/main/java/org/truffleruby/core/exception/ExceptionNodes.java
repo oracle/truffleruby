@@ -23,7 +23,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -205,7 +205,7 @@ public abstract class ExceptionNodes {
                         "lookupNode.lookup(frame, exception, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
                 limit = "1")
         protected boolean backtraceQuery(VirtualFrame frame, RubyException exception,
-                @Cached LookupMethodNode lookupNode) {
+                @Cached LookupMethodOnSelfNode lookupNode) {
             return !(exception.customBacktrace == null && exception.backtrace == null);
         }
 

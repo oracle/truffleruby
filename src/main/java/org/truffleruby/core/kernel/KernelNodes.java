@@ -105,7 +105,7 @@ import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -1221,13 +1221,13 @@ public abstract class KernelNodes {
 
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private LookupMethodNode lookupMethodNode;
+        @Child private LookupMethodOnSelfNode lookupMethodNode;
         @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
             this.ignoreVisibility = ignoreVisibility;
-            lookupMethodNode = LookupMethodNode.create();
+            lookupMethodNode = LookupMethodOnSelfNode.create();
         }
 
         public abstract RubyMethod executeGetMethodObject(VirtualFrame frame, Object self, Object name);

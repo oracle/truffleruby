@@ -12,11 +12,11 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.LookupMethodNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
 
@@ -31,7 +31,7 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected boolean not(VirtualFrame frame, Object self,
-            @Cached LookupMethodNode lookupNode,
+            @Cached LookupMethodOnSelfNode lookupNode,
             @Cached BooleanCastNode booleanCastNode) {
         return !booleanCastNode.executeToBoolean(self);
     }
