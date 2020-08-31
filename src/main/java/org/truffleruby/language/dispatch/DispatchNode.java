@@ -19,13 +19,12 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameSendingNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -81,6 +80,7 @@ public class DispatchNode extends FrameSendingNode {
     @Child protected NameToJavaStringNode nameToString;
     @Child protected CallForeignMethodNode callForeign;
     @Child protected DispatchNode callMethodMissing;
+    @Child protected ToSymbolNode toSymbol;
 
     protected final ConditionProfile nameIsString;
     protected final ConditionProfile methodMissing;
@@ -226,16 +226,12 @@ public class DispatchNode extends FrameSendingNode {
         return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
     }
 
-    private RubySymbol nameToSymbol(Object methodName) {
-        if (methodName instanceof RubySymbol) {
-            return (RubySymbol) methodName;
-        } else if (RubyGuards.isRubyString(methodName)) {
-            return getContext().getSymbol(((RubyString) methodName).rope);
-        } else if (methodName instanceof String) {
-            return getContext().getSymbol((String) methodName);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere();
+    protected RubySymbol nameToSymbol(Object methodName) {
+        if (toSymbol == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toSymbol = insert(ToSymbolNode.create());
         }
+        return toSymbol.execute(methodName);
     }
 
     /** This will be called from the {@link CallInternalMethodNode} child whenever it creates a new
@@ -320,6 +316,15 @@ public class DispatchNode extends FrameSendingNode {
 
             // null: see note in supermethod
             return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
+        }
+
+        @Override
+        protected RubySymbol nameToSymbol(Object methodName) {
+            if (toSymbol == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toSymbol = insert(ToSymbolNode.getUncached());
+            }
+            return toSymbol.execute(methodName);
         }
 
         @Override
