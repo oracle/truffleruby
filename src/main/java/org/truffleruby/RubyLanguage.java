@@ -11,10 +11,13 @@ package org.truffleruby;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.StringUtils;
@@ -93,6 +96,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final SymbolTable symbolTable;
 
     @CompilationFinal private AllocationReporter allocationReporter;
+
+    private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
 
     public RubyLanguage() {
         ropeCache = new RopeCache();
@@ -291,6 +296,16 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public AllocationReporter getAllocationReporter() {
         return allocationReporter;
+    }
+
+    public long getNextObjectID() {
+        final long id = nextObjectID.getAndAdd(ObjectSpaceManager.OBJECT_ID_INCREMENT_BY);
+
+        if (id == ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID - ObjectSpaceManager.OBJECT_ID_INCREMENT_BY) {
+            throw CompilerDirectives.shouldNotReachHere("Language Object IDs exhausted");
+        }
+
+        return id;
     }
 
 }

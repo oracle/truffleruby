@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
+/** Must be always split for performance since it needs a constant FrameDescriptor of the caller. */
 public abstract class FindThreadAndFrameLocalStorageNode extends RubyContextNode {
 
     public FindThreadAndFrameLocalStorageNode() {

@@ -17,7 +17,7 @@ There are three ways to install TruffleRuby releases and nightly builds:
 
 * Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
   chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
-  [*native* configuration](#truffleruby-configurations), making it a smaller
+  [*native* configuration](#truffleruby-runtime-configurations), making it a smaller
   download. It is meant for users just wanting a Ruby implementation and already
   using a Ruby manager.
 

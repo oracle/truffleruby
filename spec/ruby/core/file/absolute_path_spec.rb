@@ -73,8 +73,10 @@ describe "File.absolute_path" do
     File.absolute_path('~').should_not == File.expand_path('~')
   end
 
-  it "does not expand '~' when given dir argument" do
-    File.absolute_path('~', '/').should == '/~'
+  platform_is_not :windows do
+    it "does not expand '~' when given dir argument" do
+      File.absolute_path('~', '/').should == '/~'
+    end
   end
 
   it "does not expand '~user' to a home directory." do

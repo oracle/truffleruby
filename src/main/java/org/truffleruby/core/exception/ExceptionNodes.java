@@ -25,9 +25,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -37,8 +35,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "Exception", isClass = true)
 public abstract class ExceptionNodes {
-
-    protected final static String CUSTOM_BACKTRACE_FIELD = "@custom_backtrace";
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -139,6 +135,7 @@ public abstract class ExceptionNodes {
             self.cause = from.cause;
             self.backtraceStringArray = from.backtraceStringArray;
             self.backtraceLocations = from.backtraceLocations;
+            self.customBacktrace = from.customBacktrace;
         }
 
     }
@@ -146,14 +143,11 @@ public abstract class ExceptionNodes {
     @CoreMethod(names = "backtrace")
     public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode readCustomBacktraceNode;
-
         @Specialization
         protected Object backtrace(RubyException exception,
                 @Cached ConditionProfile hasCustomBacktraceProfile,
                 @Cached ConditionProfile hasBacktraceProfile) {
-            final Object customBacktrace = getReadCustomBacktraceNode()
-                    .execute(exception, CUSTOM_BACKTRACE_FIELD, null);
+            final Object customBacktrace = exception.customBacktrace;
 
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
@@ -169,15 +163,6 @@ public abstract class ExceptionNodes {
             } else {
                 return nil;
             }
-        }
-
-        private ReadObjectFieldNode getReadCustomBacktraceNode() {
-            if (readCustomBacktraceNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readCustomBacktraceNode = insert(ReadObjectFieldNode.create());
-            }
-
-            return readCustomBacktraceNode;
         }
 
     }
@@ -211,8 +196,6 @@ public abstract class ExceptionNodes {
 
         protected static final String METHOD = "backtrace";
 
-        @Child private ReadObjectFieldNode readCustomBacktraceNode;
-
         /* We can cheaply determine if an Exception has a backtrace via object inspection. However, if
          * `Exception#backtrace` is redefined, then `Exception#backtrace?` needs to follow along to be consistent. So,
          * we check if the method has been redefined here and if so, fall back to the Ruby code for the method by
@@ -223,23 +206,12 @@ public abstract class ExceptionNodes {
                 limit = "1")
         protected boolean backtraceQuery(VirtualFrame frame, RubyException exception,
                 @Cached LookupMethodNode lookupNode) {
-            final Object customBacktrace = readCustomBacktrace(exception);
-
-            return !(customBacktrace == null && exception.backtrace == null);
+            return !(exception.customBacktrace == null && exception.backtrace == null);
         }
 
         @Specialization
         protected Object fallback(RubyException exception) {
             return FAILURE;
-        }
-
-        private Object readCustomBacktrace(RubyException exception) {
-            if (readCustomBacktraceNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readCustomBacktraceNode = insert(ReadObjectFieldNode.create());
-            }
-
-            return readCustomBacktraceNode.execute(exception, CUSTOM_BACKTRACE_FIELD, null);
         }
 
     }
@@ -274,9 +246,20 @@ public abstract class ExceptionNodes {
     public abstract static class MessageSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setMessage(RubyException error, Object message) {
-            error.message = message;
-            return error;
+        protected Object setMessage(RubyException exception, Object message) {
+            exception.message = message;
+            return nil;
+        }
+
+    }
+
+    @Primitive(name = "exception_set_custom_backtrace")
+    public abstract static class SetCustomBacktrace extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object set(RubyException exception, Object customBacktrace) {
+            exception.customBacktrace = customBacktrace;
+            return customBacktrace;
         }
 
     }

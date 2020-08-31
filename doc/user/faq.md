@@ -133,8 +133,7 @@ benchmarks and applications that we’ve been using. Adding them is generally no
 complicated and over time we will have specialisations to cover a broad range of
 applications.
 
-Make sure that you are using the [Enterprise Edition of GraalVM, and have
-rebuilt the executable images](installing-graalvm.md) for the best
+Make sure that you are using the [Enterprise Edition of GraalVM, and have rebuilt the executable images](installing-graalvm.md) for the best
 performance.
 
 ### How is this related to `invokedynamic`?

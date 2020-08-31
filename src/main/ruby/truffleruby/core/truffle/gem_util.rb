@@ -49,6 +49,8 @@ module Truffle::GemUtil
     'zlib' => true
   }
 
+  MARKER_NAME = 'truffleruby_gem_dir_marker.txt'
+
   def self.upgraded_default_gem?(feature)
     if i = feature.index('/')
       first_component = feature[0...i]
@@ -74,6 +76,28 @@ module Truffle::GemUtil
     end
 
     false
+  end
+
+  def self.verify_gem_paths
+    bad_dirs = bad_gem_dirs(gem_paths)
+    unless bad_dirs.empty?
+      warn "[ruby] WARNING gem paths: #{bad_dirs.join ', '} are not marked as installed by TruffleRuby " +
+               '(they could belong to another Ruby implementation and break unexpectedly)'
+    end
+    bad_dirs
+  end
+
+  def self.bad_gem_dirs(dirs)
+    dirs.reject do |dir|
+      specifications = File.join(dir, 'specifications')
+
+      # The path does not exist yet, nothing can be loaded, everything is fine
+      !File.directory?(specifications) ||
+          # The directory is empty, TruffleRuby could not have marked it, nothing can be loaded, everything is fine
+          Dir.empty?(specifications) ||
+          # The directory is marked as TruffleRuby's, everything is fine
+          File.exist?("#{dir}/#{MARKER_NAME}")
+    end
   end
 
   # Gem.path, without needing to load RubyGems

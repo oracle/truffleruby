@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.objectspace;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -32,8 +33,6 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -72,15 +71,15 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isBasicObjectID(id)")
-        protected Object id2Ref(long id,
-                @Cached ReadObjectFieldNode readObjectIdNode) {
+        protected Object id2Ref(long id) {
+            final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
+
             for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 assert ObjectGraph.isSymbolOrDynamicObject(object);
 
                 long objectID = 0L;
                 if (object instanceof RubyDynamicObject) {
-                    objectID = (long) readObjectIdNode
-                            .execute((RubyDynamicObject) object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+                    objectID = ObjectSpaceManager.readObjectID((RubyDynamicObject) object, objectLibrary);
                 } else if (object instanceof RubySymbol) {
                     objectID = ((RubySymbol) object).getObjectId();
                 }
@@ -198,9 +197,6 @@ public abstract class ObjectSpaceNodes {
         // Wanting #method_missing(:call) to be called for a finalizer seems highly unlikely.
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
 
-        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNode.create();
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
-
         @Specialization
         protected RubyArray defineFinalizer(VirtualFrame frame, RubyDynamicObject object, Object finalizer,
                 @Cached BranchProfile errorProfile,
@@ -227,15 +223,16 @@ public abstract class ObjectSpaceNodes {
                     ? (RubyDynamicObject) finalizer
                     : null;
             final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
+            final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
 
             synchronized (object) {
-                final FinalizerReference ref = (FinalizerReference) getFinaliserNode
-                        .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
+                final FinalizerReference ref = (FinalizerReference) objectLibrary
+                        .getOrDefault(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 if (ref == null) {
                     final FinalizerReference newRef = getContext()
                             .getFinalizationService()
                             .addFinalizer(object, ObjectSpaceManager.class, action, root);
-                    setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
+                    objectLibrary.put(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                 } else {
                     getContext()
                             .getFinalizationService()
@@ -249,21 +246,19 @@ public abstract class ObjectSpaceNodes {
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)
     public abstract static class UndefineFinalizerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNode.create();
-        @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
-
         @TruffleBoundary
         @Specialization
         protected Object undefineFinalizer(RubyDynamicObject object) {
+            final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
             synchronized (object) {
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode
-                        .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
+                FinalizerReference ref = (FinalizerReference) objectLibrary
+                        .getOrDefault(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 if (ref != null) {
                     FinalizerReference newRef = getContext()
                             .getFinalizationService()
                             .removeFinalizers(object, ref, ObjectSpaceManager.class);
                     if (ref != newRef) {
-                        setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
+                        objectLibrary.put(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                     }
                 }
             }

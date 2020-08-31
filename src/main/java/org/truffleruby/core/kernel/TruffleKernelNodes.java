@@ -17,8 +17,10 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.kernel.TruffleKernelNodesFactory.SetFrameAndThreadLocalVariableFactory;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
@@ -171,8 +173,8 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @CoreMethod(names = "frame_local_variable_get", onSingleton = true, required = 2)
-    public abstract static class GetFrameAndThreadLocalVariable extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "frame_local_variable_get")
+    public abstract static class GetFrameAndThreadLocalVariable extends PrimitiveArrayArgumentsNode {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
@@ -184,13 +186,19 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @CoreMethod(names = "frame_local_variable_set", onSingleton = true, required = 3)
-    public abstract static class SetFrameAndThreadLocalVariable extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "frame_local_variable_set")
+    public abstract static class SetFrameAndThreadLocalVariable extends PrimitiveArrayArgumentsNode {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
+        public static SetFrameAndThreadLocalVariable create() {
+            return SetFrameAndThreadLocalVariableFactory.create(null);
+        }
+
+        public abstract Object execute(RubySymbol name, Object value, RubyBinding binding);
+
         @Specialization
-        protected Object executeGetValue(RubySymbol name, RubyBinding binding, Object value,
+        protected Object set(RubySymbol name, Object value, RubyBinding binding,
                 @Cached ConditionProfile sameThreadProfile) {
             threadLocalNode.execute(name, binding.getFrame()).set(value, sameThreadProfile);
             return value;

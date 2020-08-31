@@ -46,7 +46,7 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode {
                 writeNode = insert(WriteObjectFieldNode.create());
             }
 
-            writeNode.write((RubyDynamicObject) object, name, value);
+            writeNode.execute((RubyDynamicObject) object, name, value);
         } else {
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }

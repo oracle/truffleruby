@@ -133,7 +133,7 @@ class StringScanner
     end
 
     # We need to match one byte, regardless of the string encoding
-    @match = Primitive.regexp_search_from_binary(/./mn, @string, pos)
+    @match = Primitive.matchdata_create(/./mn, @string, [pos], [pos+1])
 
     @prev_pos = @pos
     @pos += 1
@@ -317,7 +317,7 @@ class StringScanner
     end
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
 
-    @match = pattern.match_onwards @string, pos, headonly
+    @match = Truffle::RegexpOperations.match_onwards pattern, @string, pos, headonly
     return nil unless @match
 
     fin = @match.byte_end(0)

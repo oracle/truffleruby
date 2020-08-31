@@ -108,15 +108,12 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.ObjectIVarGetNode;
-import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -443,13 +440,13 @@ public abstract class KernelNodes {
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
-                @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
-                @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
+                @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
             final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil);
-                writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
+                final Property property = properties[i];
+                final Object value = property.get(self, cachedShape);
+                writeFieldNodes[i].putWithFlags(newObject, property.getKey(), value, property.getFlags());
             }
 
             return newObject;
@@ -480,18 +477,10 @@ public abstract class KernelNodes {
             return copiedProperties.toArray(EMPTY_PROPERTY_ARRAY);
         }
 
-        protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
-            final ReadObjectFieldNode[] nodes = new ReadObjectFieldNode[properties.length];
+        protected DynamicObjectLibrary[] createWriteFieldNodes(Property[] properties) {
+            final DynamicObjectLibrary[] nodes = new DynamicObjectLibrary[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                nodes[i] = ReadObjectFieldNode.create();
-            }
-            return nodes;
-        }
-
-        protected WriteObjectFieldNode[] createWriteFieldNodes(Property[] properties) {
-            final WriteObjectFieldNode[] nodes = new WriteObjectFieldNode[properties.length];
-            for (int i = 0; i < properties.length; i++) {
-                nodes[i] = WriteObjectFieldNode.create();
+                nodes[i] = DynamicObjectLibrary.getFactory().createDispatched(1);
             }
             return nodes;
         }
@@ -1031,8 +1020,10 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object instanceVariableGetSymbol(RubyDynamicObject object, String name,
-                @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, name, true);
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
+            checkIVarNameNode.execute(object, name);
+            return objectLibrary.getOrDefault(object, name, nil);
         }
     }
 
@@ -1049,8 +1040,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object instanceVariableSet(RubyDynamicObject object, String name, Object value,
-                @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, name, value, true);
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @Cached WriteObjectFieldNode writeNode) {
+            checkIVarNameNode.execute(object, name);
+            writeNode.execute(object, name, value);
+            return value;
         }
     }
 
@@ -1068,7 +1062,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object removeInstanceVariable(RubyDynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil);
+            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, ivar, nil);
 
             if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {

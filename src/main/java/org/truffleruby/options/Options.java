@@ -251,6 +251,8 @@ public class Options {
     public final boolean CORE_ALWAYS_CLONE;
     /** --always-split-honor=CLONE_DEFAULT */
     public final boolean ALWAYS_SPLIT_HONOR;
+    /** --never-split-honor=true */
+    public final boolean NEVER_SPLIT_HONOR;
     /** --inline-needs-caller-frame=INLINE_DEFAULT */
     public final boolean INLINE_NEEDS_CALLER_FRAME;
     /** --yield-always-clone=CLONE_DEFAULT */
@@ -393,6 +395,7 @@ public class Options {
         INLINE_DEFAULT = options.get(OptionsCatalog.INLINE_DEFAULT_KEY);
         CORE_ALWAYS_CLONE = options.get(OptionsCatalog.CORE_ALWAYS_CLONE_KEY);
         ALWAYS_SPLIT_HONOR = options.hasBeenSet(OptionsCatalog.ALWAYS_SPLIT_HONOR_KEY) ? options.get(OptionsCatalog.ALWAYS_SPLIT_HONOR_KEY) : CLONE_DEFAULT;
+        NEVER_SPLIT_HONOR = options.get(OptionsCatalog.NEVER_SPLIT_HONOR_KEY);
         INLINE_NEEDS_CALLER_FRAME = options.hasBeenSet(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME_KEY) ? options.get(OptionsCatalog.INLINE_NEEDS_CALLER_FRAME_KEY) : INLINE_DEFAULT;
         YIELD_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         YIELD_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
@@ -638,6 +641,8 @@ public class Options {
                 return CORE_ALWAYS_CLONE;
             case "ruby.always-split-honor":
                 return ALWAYS_SPLIT_HONOR;
+            case "ruby.never-split-honor":
+                return NEVER_SPLIT_HONOR;
             case "ruby.inline-needs-caller-frame":
                 return INLINE_NEEDS_CALLER_FRAME;
             case "ruby.yield-always-clone":

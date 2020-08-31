@@ -24,6 +24,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
@@ -54,7 +55,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
@@ -71,7 +71,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -249,7 +248,7 @@ public abstract class BasicObjectNodes {
             final long id = object.getObjectId();
 
             if (id == 0) {
-                final long newId = context.getObjectSpaceManager().getNextObjectID();
+                final long newId = context.getLanguage().getNextObjectID();
                 object.setObjectId(newId);
                 return newId;
             }
@@ -281,36 +280,28 @@ public abstract class BasicObjectNodes {
 
         private static long objectIDDynamicObject(RubyContext context, RubyDynamicObject object,
                 DynamicObjectLibrary objectLibrary) {
-            final long id = readObjectID(object, objectLibrary);
+            final long id = ObjectSpaceManager.readObjectID(object, objectLibrary);
 
             if (id == 0L) {
                 if (objectLibrary.isShared(object)) {
                     synchronized (object) {
-                        final long existingID = readObjectID(object, objectLibrary);
+                        final long existingID = ObjectSpaceManager.readObjectID(object, objectLibrary);
                         if (existingID != 0L) {
                             return existingID;
                         } else {
                             final long newId = context.getObjectSpaceManager().getNextObjectID();
-                            objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                            objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                             return newId;
                         }
                     }
                 } else {
                     final long newId = context.getObjectSpaceManager().getNextObjectID();
-                    objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                    objectLibrary.putLong(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                     return newId;
                 }
             }
 
             return id;
-        }
-
-        private static long readObjectID(RubyDynamicObject object, DynamicObjectLibrary objectLibrary) {
-            try {
-                return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
-            } catch (UnexpectedResultException e) {
-                throw CompilerDirectives.shouldNotReachHere(e);
-            }
         }
 
         protected int getCacheLimit() {

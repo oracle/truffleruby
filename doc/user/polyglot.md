@@ -151,7 +151,7 @@ Nashorn JavaScript implementation, as also implemented by GraalVM JavaScript.
 
 It is easier to use Java interoperability in JVM mode (`--jvm`).
 Java interoperability is also supported in native mode but requires more setup.
-See [here](https://www.graalvm.org/docs/reference-manual/embed-languages/#build-native-images-from-polyglot-applications)
+See [here](https://www.graalvm.org/reference-manual/embed-languages/#build-native-images-from-polyglot-applications)
 for more details.
 
 `Java.type('name')` returns a Java class object, given a name such as

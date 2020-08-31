@@ -43,12 +43,15 @@ import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.ValueWrapperManager;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import org.truffleruby.language.RubyDynamicObject;
 
 /** Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long} values, mapped to objects
  * with a weak hash map. */
@@ -60,7 +63,11 @@ public class ObjectSpaceManager {
     private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
     private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
-    private final AtomicLong nextObjectID = new AtomicLong(ValueWrapperManager.TAG_MASK + 1);
+    public static long INITIAL_LANGUAGE_OBJECT_ID = 16;
+    public static long OBJECT_ID_INCREMENT_BY = 16;
+    private static long INITIAL_CONTEXT_OBJECT_ID = 8;
+
+    private final AtomicLong nextObjectID = new AtomicLong(INITIAL_CONTEXT_OBJECT_ID);
 
     public void traceAllocationsStart(RubyLanguage language) {
         if (tracingAssumptionActivations.incrementAndGet() == 1) {
@@ -94,10 +101,18 @@ public class ObjectSpaceManager {
         this.tracingPaused.set(tracingPaused);
     }
 
-    public long getNextObjectID() {
-        final long id = nextObjectID.getAndAdd(ValueWrapperManager.TAG_MASK + 1);
+    public static long readObjectID(RubyDynamicObject object, DynamicObjectLibrary objectLibrary) {
+        try {
+            return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+        } catch (UnexpectedResultException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
+    }
 
-        if (id == 0) {
+    public long getNextObjectID() {
+        final long id = nextObjectID.getAndAdd(OBJECT_ID_INCREMENT_BY);
+
+        if (id == INITIAL_CONTEXT_OBJECT_ID - OBJECT_ID_INCREMENT_BY) {
             throw CompilerDirectives.shouldNotReachHere("Object IDs exhausted");
         }
 

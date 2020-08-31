@@ -26,7 +26,7 @@ module Truffle
 
     def self.gsub_block_set_last_match(s, pattern, &block)
       Truffle::StringOperations.gsub_internal_block(s, pattern) do |m|
-        RegexpOperations.set_last_match(m, block.binding)
+        Primitive.frame_local_variable_set(:$~, m, block.binding)
         yield m.to_s
       end
     end
@@ -77,7 +77,7 @@ module Truffle
         match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
       else
         pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-        match = pattern.search_region(orig, 0, orig.bytesize, true)
+        match = Truffle::RegexpOperations.search_region(pattern, orig, 0, orig.bytesize, true)
       end
 
       return nil unless match
@@ -279,7 +279,7 @@ module Truffle
     def self.byte_index(src, str, start=0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize
-        Truffle::RegexpOperations.set_last_match(nil, Primitive.caller_binding) if str.kind_of? Regexp
+        Primitive.frame_local_variable_set(:$~, nil, Primitive.caller_binding) if str.kind_of? Regexp
         return nil
       end
 

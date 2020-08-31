@@ -356,7 +356,7 @@ module Enumerable
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Truffle::RegexpOperations.set_last_match($~, block.binding)
+        Primitive.frame_local_variable_set(:$~, $~, block.binding)
         if matches
           ary << yield(o)
         end
@@ -369,7 +369,7 @@ module Enumerable
         end
       end
 
-      Truffle::RegexpOperations.set_last_match($~, Primitive.caller_binding)
+      Primitive.frame_local_variable_set(:$~, $~, Primitive.caller_binding)
     end
 
     ary
@@ -382,7 +382,7 @@ module Enumerable
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Truffle::RegexpOperations.set_last_match($~, block.binding)
+        Primitive.frame_local_variable_set(:$~, $~, block.binding)
         unless matches
           ary << yield(o)
         end
@@ -395,7 +395,7 @@ module Enumerable
         end
       end
 
-      Truffle::RegexpOperations.set_last_match($~, Primitive.caller_binding)
+      Primitive.frame_local_variable_set(:$~, $~, Primitive.caller_binding)
     end
 
     ary

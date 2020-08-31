@@ -188,7 +188,7 @@ module Kernel
 
   def !~(other)
     r = self =~ other ? false : true
-    Truffle::RegexpOperations.set_last_match($~, Primitive.caller_binding)
+    Primitive.frame_local_variable_set(:$~, $~, Primitive.caller_binding)
     r
   end
 
@@ -236,6 +236,7 @@ module Kernel
       raise Truffle::KernelOperations.load_error(feature)
     end
   end
+  Truffle::Graal.never_split(instance_method(:gem_original_require))
 
   # A #require which lazily loads rubygems when needed.
   # The logic is inlined so there is no extra backtrace entry for lazy-rubygems.
@@ -243,7 +244,9 @@ module Kernel
     feature = Truffle::Type.coerce_to_path(feature)
 
     lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
-    upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
+    upgraded_default_gem = lazy_rubygems &&
+        !Truffle::KernelOperations.loading_rubygems? &&
+        Truffle::GemUtil.upgraded_default_gem?(feature)
     if upgraded_default_gem
       status, path = :not_found, nil # load RubyGems
     else
@@ -257,7 +260,9 @@ module Kernel
       Primitive.load_feature(feature, path)
     when :not_found
       if lazy_rubygems
+        Truffle::KernelOperations.loading_rubygems = true
         gem_original_require 'rubygems'
+        Truffle::KernelOperations.loading_rubygems = false
 
         # Check that #require was redefined by RubyGems, otherwise we would end up in infinite recursion
         new_require = ::Kernel.instance_method(:require)
@@ -271,6 +276,7 @@ module Kernel
     end
   end
   module_function :require
+  Truffle::Graal.never_split(instance_method(:require))
 
   Truffle::KernelOperations::ORIGINAL_REQUIRE = instance_method(:require)
 
@@ -290,6 +296,7 @@ module Kernel
     end
   end
   module_function :require_relative
+  Truffle::Graal.never_split(instance_method(:require_relative))
 
   def define_singleton_method(*args, &block)
     singleton_class.define_method(*args, &block)
@@ -359,7 +366,7 @@ module Kernel
 
   def gets(*args)
     line = ARGF.gets(*args)
-    Truffle::IOOperations.set_last_line(line, Primitive.caller_binding) if line
+    Primitive.frame_local_variable_set(:$_, line, Primitive.caller_binding) if line
     line
   end
   module_function :gets
@@ -754,17 +761,17 @@ module Kernel
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('gets-loop')
       def chomp(separator=$/)
-        last_line = Truffle::IOOperations.last_line(Primitive.caller_binding)
+        last_line = Primitive.frame_local_variable_get(:$_, Primitive.caller_binding)
         result = Truffle::KernelOperations.check_last_line(last_line).chomp(separator)
-        Truffle::IOOperations.set_last_line(result, Primitive.caller_binding)
+        Primitive.frame_local_variable_set(:$_, result, Primitive.caller_binding)
         result
       end
       module_function :chomp
 
       def chop
-        last_line = Truffle::IOOperations.last_line(Primitive.caller_binding)
+        last_line = Primitive.frame_local_variable_get(:$_, Primitive.caller_binding)
         result = Truffle::KernelOperations.check_last_line(last_line).chop
-        Truffle::IOOperations.set_last_line(result, Primitive.caller_binding)
+        Primitive.frame_local_variable_set(:$_, result, Primitive.caller_binding)
         result
       end
       module_function :chop

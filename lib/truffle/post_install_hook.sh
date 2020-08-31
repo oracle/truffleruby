@@ -10,17 +10,19 @@ root=$(dirname "$(dirname "$lib_truffle")")
 
 # In case the script shells out to ruby, make sure to use truffleruby and not rely on system ruby
 export PATH="$root/bin:$PATH"
+# Make sure RubyGems is not used while running this file, since it is not needed
+export TRUFFLERUBYOPT="--disable-gems $TRUFFLERUBYOPT"
 
 cd "$root"
 
 function recompile_openssl() {
   cd src/main/c/openssl
-  "$root/bin/truffleruby" -w extconf.rb
+  truffleruby -w extconf.rb
   if [ -z "$CORES" ]; then
     CORES=$(getconf _NPROCESSORS_ONLN || echo 1)
   fi
   make "--jobs=$CORES"
-  cp "openssl.$(ruby -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
+  cp "openssl.$(truffleruby -rrbconfig -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
 }
 
 if [ "$TRUFFLERUBY_RECOMPILE_OPENSSL" == "false" ]; then

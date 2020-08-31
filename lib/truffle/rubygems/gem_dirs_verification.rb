@@ -17,7 +17,7 @@ module Gem
         install_dir = tool.gem_home
         return unless install_dir # gem is not being installed, just e.g. registered by bundler from a path
 
-        bad_dirs = bad_dirs Gem.path
+        bad_dirs = Truffle::GemUtil.bad_gem_dirs Gem.path
         bad_install_dir = bad_dirs.include? install_dir
         unless bad_dirs.empty?
           unless tool.ask_yes_no <<-TXT.gsub(/^ +/, '').chomp, true
@@ -38,7 +38,8 @@ module Gem
         if Dir.empty?(File.join(install_dir, 'specifications'))
           # If the directory is empty then the very first gem is being installed in it.
           # Therefore mark (claim) it as TruffleRuby's gem directory.
-          File.write marker_path(install_dir), <<-TXT.gsub(/^ */, '')
+          marker_path = "#{install_dir}/#{Truffle::GemUtil::MARKER_NAME}"
+          File.write marker_path, <<-TXT.gsub(/^ */, '')
             DO NOT DELETE: This file is used by TruffleRuby to distinguish its
             gem installation directory from that of other Ruby installations.
           TXT
@@ -54,35 +55,6 @@ module Gem
     # Currently unused, documents how to remove the hooks if necessary for testing or other cases.
     def remove_hook(install_hook)
       Gem.pre_install_hooks.delete(install_hook)
-    end
-
-    def verify(dirs)
-      bad_dirs = bad_dirs(dirs)
-      unless bad_dirs.empty?
-        warn "[ruby] WARNING gem paths: #{bad_dirs.join ', '} are not marked as installed by TruffleRuby " +
-                 '(they could belong to another Ruby implementation and break unexpectedly)'
-      end
-      bad_dirs
-    end
-
-    private
-
-    def bad_dirs(dirs)
-      dirs.reject do |dir|
-        specifications = File.join(dir, 'specifications')
-
-        false ||
-            # The path does not exist yet, nothing can be loaded, everything is fine
-            !File.directory?(specifications) ||
-            # The directory is empty, TruffleRuby could not have marked it, nothing can be loaded, everything is fine
-            Dir.empty?(specifications) ||
-            # The directory is marked as TruffleRuby's, everything is fine
-            File.exist?(marker_path(dir))
-      end
-    end
-
-    def marker_path(dir)
-      File.join(dir, MARKER_NAME)
     end
   end
 end

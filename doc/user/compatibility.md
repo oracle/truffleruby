@@ -277,7 +277,7 @@ par with one another.
 Java interoperability works in the native configuration but requires more setup.
 First, only for classes loaded in the image can be accessed.
 You can add more classes by compiling a native image including TruffleRuby.
-See [here](https://www.graalvm.org/docs/reference-manual/embed-languages/#build-native-images-from-polyglot-applications) for more details.
+See [here](https://www.graalvm.org/reference-manual/embed-languages/#build-native-images-from-polyglot-applications) for more details.
 
 ## Spec Completeness
 

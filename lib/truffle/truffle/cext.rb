@@ -1692,7 +1692,7 @@ module Truffle::CExt
   end
 
   def rb_backref_get
-    Truffle::RegexpOperations.last_match(
+    Primitive.frame_local_variable_get(:$~,
       Truffle::ThreadOperations.ruby_caller([Truffle::CExt, Truffle::Interop.singleton_class]))
   end
 
@@ -1710,7 +1710,10 @@ module Truffle::CExt
   end
 
   def rb_reg_match(re, str)
-    re =~ str
+    result = str ? Truffle::RegexpOperations.match(re, str, 0) : nil
+    Primitive.frame_local_variable_set(:$~, result, Truffle::ThreadOperations.ruby_caller([Truffle::CExt, Truffle::Interop.singleton_class]))
+
+    result.begin(0) if result
   end
 
   def rb_hash_aref(object, key)
