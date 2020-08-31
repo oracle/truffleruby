@@ -29,6 +29,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.NotProvidedNode;
@@ -157,12 +158,12 @@ public class CoreMethodNodeManager {
                 arity,
                 visibility,
                 methodNodeFactory,
-                method.neverSplit());
+                method.split());
     }
 
     public void addLazyCoreMethod(String nodeFactoryName, String moduleName, boolean isClass, Visibility visibility,
             boolean isModuleFunction, boolean onSingleton,
-            boolean neverSplit, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
+            Split split, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
         final RubyModule module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
@@ -172,14 +173,14 @@ public class CoreMethodNodeManager {
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
         });
 
-        addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory, neverSplit);
+        addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory, split);
     }
 
     private void addMethods(RubyModule module, boolean isModuleFunction, boolean onSingleton, String[] names,
             Arity arity, Visibility visibility,
-            Function<SharedMethodInfo, RubyNode> methodNodeFactory, boolean neverSplit) {
+            Function<SharedMethodInfo, RubyNode> methodNodeFactory, Split split) {
         if (isModuleFunction) {
-            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, arity, neverSplit);
+            addMethod(context, module, methodNodeFactory, names, Visibility.PRIVATE, arity, split);
             addMethod(
                     context,
                     getSingletonClass(module),
@@ -187,18 +188,18 @@ public class CoreMethodNodeManager {
                     names,
                     Visibility.PUBLIC,
                     arity,
-                    neverSplit);
+                    split);
         } else if (onSingleton) {
-            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, arity, neverSplit);
+            addMethod(context, getSingletonClass(module), methodNodeFactory, names, visibility, arity, split);
         } else {
-            addMethod(context, module, methodNodeFactory, names, visibility, arity, neverSplit);
+            addMethod(context, module, methodNodeFactory, names, visibility, arity, split);
         }
     }
 
     private static void addMethod(RubyContext context, RubyModule module,
             Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility,
             Arity arity,
-            boolean neverSplit) {
+            Split split) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         for (String name : names) {
@@ -208,7 +209,8 @@ public class CoreMethodNodeManager {
             }
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, lexicalScope, module, name, arity);
             final RubyNode methodNode = methodNodeFactory.apply(sharedMethodInfo);
-            final RootCallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode, neverSplit);
+            split = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : split;
+            final RootCallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode, split);
             final InternalMethod method = new InternalMethod(
                     context,
                     sharedMethodInfo,
@@ -233,8 +235,7 @@ public class CoreMethodNodeManager {
                 name,
                 0,
                 "builtin",
-                null,
-                context.getOptions().CORE_ALWAYS_CLONE);
+                null);
     }
 
     private static Arity createArity(int required, int optional, boolean rest, String keywordAsOptional) {
@@ -246,14 +247,14 @@ public class CoreMethodNodeManager {
     }
 
     private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo,
-            RubyNode methodNode, boolean neverSplit) {
+            RubyNode methodNode, Split split) {
         final RubyRootNode rootNode = new RubyRootNode(
                 context,
                 sharedMethodInfo.getSourceSection(),
                 null,
                 sharedMethodInfo,
                 methodNode,
-                !neverSplit);
+                split);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 

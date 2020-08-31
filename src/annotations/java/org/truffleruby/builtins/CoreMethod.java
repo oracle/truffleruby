@@ -15,6 +15,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 @Target(ElementType.TYPE)
@@ -70,11 +71,9 @@ public @interface CoreMethod {
      * . */
     String enumeratorSize() default "";
 
-    /** Disallow method splitting for this CoreMethod. Useful for methods not specializing on their arguments and just
-     * calling a TruffleBoundary method. */
-    boolean neverSplit() default false;
-
     /** Use these names in Ruby core methods stubs, ignore argument names in Java specializations. */
     String[] argumentNames() default {};
+
+    Split split() default Split.HEURISTIC;
 
 }

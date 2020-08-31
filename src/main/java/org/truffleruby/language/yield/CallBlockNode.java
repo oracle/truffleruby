@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 
@@ -84,7 +85,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     protected DirectCallNode createBlockCallNode(RubyContext context, RubyProc block, RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        final boolean clone = block.sharedMethodInfo.shouldAlwaysClone() ||
+        final boolean clone = ((RubyRootNode) block.callTargetForType.getRootNode()).shouldAlwaysClone() ||
                 context.getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();

@@ -89,6 +89,7 @@ import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
 import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -299,7 +300,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, neverSplit = true)
+    @CoreMethod(names = "alias_method", required = 2, raiseIfFrozenSelf = true, split = Split.NEVER)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "newName", type = RubyNode.class)
     @NodeChild(value = "oldName", type = RubyNode.class)
@@ -354,7 +355,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "append_features", required = 1, visibility = Visibility.PRIVATE, neverSplit = true)
+    @CoreMethod(names = "append_features", required = 1, visibility = Visibility.PRIVATE, split = Split.NEVER)
     public abstract static class AppendFeaturesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
@@ -413,8 +414,7 @@ public abstract class ModuleNodes {
                     accessorName,
                     0,
                     isGetter ? "attr_reader" : "attr_writer",
-                    null,
-                    false);
+                    null);
 
             final RubyNode accessInstanceVariable;
             if (isGetter) {
@@ -434,7 +434,7 @@ public abstract class ModuleNodes {
                     null,
                     sharedMethodInfo,
                     body,
-                    true);
+                    Split.HEURISTIC);
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
             final InternalMethod method = new InternalMethod(
                     getContext(),
@@ -1098,7 +1098,7 @@ public abstract class ModuleNodes {
             needsBlock = true,
             required = 1,
             optional = 1,
-            neverSplit = true,
+            split = Split.NEVER,
             argumentNames = { "name", "proc_or_method", "block" })
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
@@ -1215,7 +1215,7 @@ public abstract class ModuleNodes {
                     rootNode.getFrameDescriptor(),
                     info,
                     newBody,
-                    true);
+                    Split.HEURISTIC);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final InternalMethod method = InternalMethod.fromProc(
@@ -1530,7 +1530,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "prepend_features", required = 1, visibility = Visibility.PRIVATE, neverSplit = true)
+    @CoreMethod(names = "prepend_features", required = 1, visibility = Visibility.PRIVATE, split = Split.NEVER)
     public abstract static class PrependFeaturesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
@@ -1934,7 +1934,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "undef_method", rest = true, neverSplit = true, argumentNames = "names")
+    @CoreMethod(names = "undef_method", rest = true, split = Split.NEVER, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

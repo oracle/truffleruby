@@ -30,6 +30,7 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.SymbolProcNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 
@@ -127,8 +128,7 @@ public abstract class SymbolNodes {
                     symbol.getString(),
                     0,
                     "proc",
-                    ArgumentDescriptor.ANON_REST,
-                    false);
+                    ArgumentDescriptor.ANON_REST);
             final Object[] args = RubyArguments
                     .pack(null, null, method, declarationContext, null, nil, null, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
@@ -143,7 +143,7 @@ public abstract class SymbolNodes {
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
                     new SymbolProcNode(symbol.getString()),
-                    true);
+                    Split.HEURISTIC);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 

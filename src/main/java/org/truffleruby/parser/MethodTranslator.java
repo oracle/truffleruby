@@ -37,6 +37,7 @@ import org.truffleruby.language.methods.CatchForLambdaNode;
 import org.truffleruby.language.methods.CatchForMethodNode;
 import org.truffleruby.language.methods.CatchForProcNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
@@ -180,7 +181,7 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 bodyProc,
-                true);
+                Split.HEURISTIC);
 
         // Lambdas
         RubyNode composed = composeBody(sourceSection, preludeLambda, body /* no copy, last usage */);
@@ -193,7 +194,7 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 composed,
-                true);
+                Split.HEURISTIC);
 
         // TODO CS 23-Nov-15 only the second one will get instrumented properly!
         final RootCallTarget callTargetAsLambda = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
@@ -312,7 +313,7 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 body,
-                true);
+                Split.HEURISTIC);
 
         return Truffle.getRuntime().createCallTarget(rootNode);
     }

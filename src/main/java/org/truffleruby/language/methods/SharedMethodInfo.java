@@ -39,7 +39,6 @@ public class SharedMethodInfo {
     /** Extra information. If blockDepth > 0 then it is the name of the method containing this block. */
     private final String notes;
     private final ArgumentDescriptor[] argumentDescriptors;
-    private boolean alwaysClone;
     private String descriptiveNameAndSource;
 
     public SharedMethodInfo(
@@ -50,9 +49,7 @@ public class SharedMethodInfo {
             String name,
             int blockDepth,
             String notes,
-            ArgumentDescriptor[] argumentDescriptors,
-            boolean alwaysClone) {
-
+            ArgumentDescriptor[] argumentDescriptors) {
         assert lexicalScope != null;
         this.sourceSection = sourceSection;
         this.lexicalScope = lexicalScope;
@@ -62,7 +59,6 @@ public class SharedMethodInfo {
         this.blockDepth = blockDepth;
         this.notes = notes;
         this.argumentDescriptors = argumentDescriptors;
-        this.alwaysClone = alwaysClone;
     }
 
     public SourceSection getSourceSection() {
@@ -85,14 +81,6 @@ public class SharedMethodInfo {
         return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
     }
 
-    public boolean shouldAlwaysClone() {
-        return alwaysClone;
-    }
-
-    public void setAlwaysClone(boolean alwaysClone) {
-        this.alwaysClone = alwaysClone;
-    }
-
     public SharedMethodInfo convertMethodMissingToMethod(String newName) {
         final ArgumentDescriptor[] oldArgs = getArgumentDescriptors();
         final ArgumentDescriptor[] newArgs = Arrays.copyOfRange(oldArgs, 1, oldArgs.length);
@@ -106,8 +94,7 @@ public class SharedMethodInfo {
                 newName,
                 blockDepth,
                 notes,
-                newArgs,
-                alwaysClone);
+                newArgs);
     }
 
     public SharedMethodInfo forDefineMethod(RubyModule newDefinitionModule, String newName) {
@@ -119,8 +106,7 @@ public class SharedMethodInfo {
                 newName,
                 0, // no longer a block
                 null,
-                argumentDescriptors,
-                alwaysClone);
+                argumentDescriptors);
     }
 
     /** Returns the method name on its own. */

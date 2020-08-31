@@ -130,6 +130,7 @@ import org.truffleruby.language.methods.GetDefaultDefineeNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.DefineClassNode;
 import org.truffleruby.language.objects.DefineModuleNode;
@@ -837,8 +838,7 @@ public class BodyTranslator extends Translator {
                     methodName,
                     0,
                     null,
-                    null,
-                    false);
+                    null);
 
             final ReturnID returnId;
 
@@ -909,7 +909,7 @@ public class BodyTranslator extends Translator {
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 body,
-                true);
+                Split.NEVER);
 
         final ModuleBodyDefinitionNode definitionNode = new ModuleBodyDefinitionNode(
                 environment.getSharedMethodInfo().getName(),
@@ -1259,8 +1259,7 @@ public class BodyTranslator extends Translator {
                 methodName,
                 0,
                 null,
-                argumentDescriptors,
-                false);
+                argumentDescriptors);
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 environment,
@@ -1752,8 +1751,7 @@ public class BodyTranslator extends Translator {
                 SharedMethodInfo.getBlockName(blockDepth, methodName),
                 blockDepth,
                 methodName,
-                Helpers.argsNodeToArgumentDescriptors(argsNode),
-                false);
+                Helpers.argsNodeToArgumentDescriptors(argsNode));
 
         final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
         final ReturnID returnID = isLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
