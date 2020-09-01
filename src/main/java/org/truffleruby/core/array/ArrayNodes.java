@@ -1563,8 +1563,7 @@ public abstract class ArrayNodes {
             stores.copyContents(store, size - numPop, popped, 0, numPop);
 
             // Remove the end from the original array.
-            final Object filler = stores.allocator(store).allocate(numPop);
-            stores.copyContents(filler, 0, store, size - numPop, numPop);
+            stores.clear(store, size - numPop, numPop);
             setSize(array, size - numPop);
 
             return createArray(popped, numPop);

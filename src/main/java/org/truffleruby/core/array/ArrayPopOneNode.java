@@ -37,6 +37,7 @@ public abstract class ArrayPopOneNode extends RubyContextNode {
             @CachedLibrary("array.store") ArrayStoreLibrary stores) {
         final int size = array.size;
         final Object value = stores.read(array.store, size - 1);
+        stores.clear(array.store, size - 1, 1);
         setSize(array, size - 1);
         return value;
     }
