@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
@@ -24,8 +25,21 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
 
     protected static final String METHOD = "===";
 
+    final Assumption integerCaseEqualAssumption;
+
     public InlinedCaseEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(context, callNodeParameters);
+        this.integerCaseEqualAssumption = context.getCoreMethods().integerCaseEqualAssumption;
+    }
+
+    @Specialization(assumptions = { "assumptions", "integerCaseEqualAssumption" })
+    protected boolean intCaseEqual(int a, int b) {
+        return a == b;
+    }
+
+    @Specialization(assumptions = { "assumptions", "integerCaseEqualAssumption" })
+    protected boolean longCaseEqual(long a, long b) {
+        return a == b;
     }
 
     @Specialization(
