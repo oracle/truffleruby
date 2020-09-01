@@ -785,8 +785,7 @@ public class BodyTranslator extends Translator {
                         arguments,
                         false,
                         true);
-                final RubyNode conditionNode = Translator
-                        .withSourceSection(sourceSection, new RubyCallNode(callParameters));
+                final RubyNode conditionNode = context.getCoreMethods().createCallNode(callParameters, environment);
 
                 // Create the if node
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());

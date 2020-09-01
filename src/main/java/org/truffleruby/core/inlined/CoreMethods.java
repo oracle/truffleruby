@@ -68,6 +68,7 @@ public class CoreMethods {
     final Assumption integerBitAndAssumption;
 
     final Assumption integerEqualAssumption;
+    final Assumption integerCaseEqualAssumption;
     final Assumption integerLessThanAssumption, integerLessOrEqualAssumption;
     final Assumption integerGreaterThanAssumption, integerGreaterOrEqualAssumption;
 
@@ -123,6 +124,7 @@ public class CoreMethods {
         integerBitAndAssumption = registerAssumption(integerClass, "&");
 
         integerEqualAssumption = registerAssumption(integerClass, "==");
+        integerCaseEqualAssumption = registerAssumption(integerClass, "===");
         integerLessThanAssumption = registerAssumption(integerClass, "<");
         integerLessOrEqualAssumption = registerAssumption(integerClass, "<=");
         integerGreaterThanAssumption = registerAssumption(integerClass, ">");
