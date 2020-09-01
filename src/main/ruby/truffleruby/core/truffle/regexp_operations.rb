@@ -62,14 +62,25 @@ module Truffle
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if COMPARE_ENGINES
         begin
-          $stderr.puts 'Chdcking with TRegex'
           md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-          $stderr.puts 'Checking with Joni'
           md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
           if md1.captures == md2.captures
             return md2
           else
-            $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gave #{md1} but should have given #{md2}."
+            $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
+            md1.size.times do |x|
+              $stderr.puts "    #{md1.begin(x)} - #{md1.end(x)}"
+            end
+            md1.captures.each do |c|
+              $stderr.puts "    #{c}"
+            end
+            $stderr.puts "but we expected"
+            md2.size.times do |x|
+              $stderr.puts "    #{md2.begin(x)} - #{md2.end(x)}"
+            end
+            md2.captures.each do |c|
+              $stderr.puts "    #{c}"
+            end
             return md2
           end
         rescue => e
@@ -106,14 +117,11 @@ module Truffle
       if (tr_match.isMatch)
         starts = []
         ends = []
-        pos = 0
-        while true
+        tr.groupCount.times do |pos|
           a_start = tr_match.getStart(pos)
           a_end = tr_match.getEnd(pos)
-          break if (a_start == -1)
           starts << a_start + from
           ends << a_end + from
-          pos += 1
         end
         Primitive.matchdata_create(re, str, starts, ends)
       else
