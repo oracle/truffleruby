@@ -139,16 +139,13 @@ def ruby_testdownstream_aot(args):
         mx.abort("Incorrect argument count: mx ruby_testdownstream_aot <aot_bin> [<format>] [<build_type>]")
 
     aot_bin = args[0]
-    spec_format = args[1] if len(args) >= 2 else 'dot'
-
     fast = ['--excl-tag', 'slow']
-    mspec_args = ['--format', spec_format, '--excl-tag', 'ci']
 
     os.environ['RUBY_BIN'] = aot_bin
-    ruby_run_specs(mspec_args)
+    ruby_run_specs([])
 
     # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native
-    ruby_run_specs(fast + mspec_args + [':truffle'])
+    ruby_run_specs(fast + [':truffle'])
 
 def ruby_testdownstream_sulong(args):
     """Run C extension tests"""
