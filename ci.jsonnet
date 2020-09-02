@@ -431,8 +431,8 @@ local part_definitions = {
     chunky: { benchmarks+:: ["chunky"] },
     psd: { benchmarks+:: ["psd"] },
     asciidoctor: { benchmarks+:: ["asciidoctor"] },
-    other_extra: { benchmarks+:: ["savina", "micro"] },
-    other: { benchmarks+:: ["image-demo", "optcarrot", "synthetic", "rubykon"] },
+    other_extra: { benchmarks+:: ["savina"] },
+    other: { benchmarks+:: ["micro", "image-demo", "optcarrot", "synthetic", "rubykon"] },
 
     server: {
       local build = self,
