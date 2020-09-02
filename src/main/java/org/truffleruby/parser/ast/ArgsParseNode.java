@@ -38,6 +38,8 @@ import java.util.List;
 
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.parser.Helpers;
+import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Represents the argument declarations of a method. The fields: foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ...,
@@ -116,6 +118,7 @@ public class ArgsParseNode extends ParseNode {
 
     private Arity createArity() {
         final String[] keywordArguments;
+        boolean allKeywordsOptional = true;
 
         if (getKeywordCount() > 0) {
             final ParseNode[] keywordNodes = getKeywords().children();
@@ -125,14 +128,11 @@ public class ArgsParseNode extends ParseNode {
             for (int i = 0; i < keywordsCount; i++) {
                 final KeywordArgParseNode kwarg = (KeywordArgParseNode) keywordNodes[i];
                 final AssignableParseNode assignableNode = kwarg.getAssignable();
-
-                if (assignableNode instanceof LocalAsgnParseNode) {
-                    keywordArguments[i] = ((LocalAsgnParseNode) assignableNode).getName();
-                } else if (assignableNode instanceof DAsgnParseNode) {
-                    keywordArguments[i] = ((DAsgnParseNode) assignableNode).getName();
-                } else {
+                if (!(assignableNode instanceof LocalAsgnParseNode || assignableNode instanceof DAsgnParseNode)) {
                     throw new UnsupportedOperationException("unsupported keyword arg " + kwarg);
                 }
+                keywordArguments[i] = ((INameNode) assignableNode).getName();
+                allKeywordsOptional &= !Helpers.isRequiredKeywordArgumentValueNode(assignableNode);
             }
         } else {
             keywordArguments = Arity.NO_KEYWORDS;
@@ -144,6 +144,7 @@ public class ArgsParseNode extends ParseNode {
                 hasRestArg(),
                 getPostCount(),
                 keywordArguments,
+                allKeywordsOptional,
                 hasKeyRest());
     }
 

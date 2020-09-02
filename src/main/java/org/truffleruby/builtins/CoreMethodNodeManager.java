@@ -242,7 +242,7 @@ public class CoreMethodNodeManager {
         if (keywordAsOptional == null) {
             return new Arity(required, optional, rest);
         } else {
-            return new Arity(required, optional, rest, 0, new String[]{ keywordAsOptional }, false);
+            return new Arity(required, optional, rest, 0, new String[]{ keywordAsOptional }, true, false);
         }
     }
 
