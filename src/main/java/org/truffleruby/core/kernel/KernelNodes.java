@@ -190,7 +190,7 @@ public abstract class KernelNodes {
         private boolean areEqual(Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(DispatchNode.create(PRIVATE));
+                equalNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {
@@ -238,7 +238,7 @@ public abstract class KernelNodes {
         private boolean areEql(Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(DispatchNode.create(PRIVATE));
+                eqlNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {
@@ -436,7 +436,7 @@ public abstract class KernelNodes {
             return CopyNodeFactory.create(null);
         }
 
-        @Child private DispatchNode allocateNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode allocateNode = DispatchNode.create();
 
         public abstract RubyDynamicObject executeCopy(RubyDynamicObject self);
 
@@ -516,7 +516,7 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends CoreMethodNode {
 
         @Child private CopyNode copyNode = CopyNode.create();
-        @Child private DispatchNode initializeCloneNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
@@ -944,7 +944,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
     public abstract static class InitializeDupCloneNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode initializeCopyNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode initializeCopyNode = DispatchNode.create();
 
         @Specialization
         protected Object initializeDup(VirtualFrame frame, RubyDynamicObject self, RubyDynamicObject from) {
@@ -1227,7 +1227,7 @@ public abstract class KernelNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodOnSelfNode lookupMethodNode;
-        @Child private DispatchNode respondToMissingNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode respondToMissingNode = DispatchNode.create();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
@@ -1298,7 +1298,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyContextSourceNode {
 
             private final Object methodName;
-            @Child private DispatchNode methodMissing = DispatchNode.create(PRIVATE);
+            @Child private DispatchNode methodMissing = DispatchNode.create();
 
             public CallMethodMissingWithStaticName(Object methodName) {
                 this.methodName = methodName;
@@ -1362,7 +1362,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode callInspectNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode callInspectNode = DispatchNode.create();
 
         @Specialization
         protected Object p(VirtualFrame frame, Object value) {
@@ -1590,7 +1590,7 @@ public abstract class KernelNodes {
                 boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(DispatchNode.create(PRIVATE));
+                respondToMissingNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {

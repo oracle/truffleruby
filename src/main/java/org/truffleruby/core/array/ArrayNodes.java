@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 import java.util.Arrays;
 
@@ -1215,7 +1214,7 @@ public abstract class ArrayNodes {
         protected Object callToAry(Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAryNode = insert(DispatchNode.create(PRIVATE));
+                toAryNode = insert(DispatchNode.create());
             }
             return toAryNode.call(object, "to_ary");
         }

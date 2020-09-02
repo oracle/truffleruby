@@ -16,11 +16,10 @@ import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class AutoSplitNode extends RubyContextSourceNode {
 
-    @Child private DispatchNode callSplitNode = DispatchNode.create(PRIVATE);
+    @Child private DispatchNode callSplitNode = DispatchNode.create();
     @Child private ReadGlobalVariableNode readGlobalVariableNode = ReadGlobalVariableNodeGen.create("$_");
     @Child private WriteSimpleGlobalVariableNode writeSimpleGlobalVariableNode = WriteSimpleGlobalVariableNode
             .create("$F");

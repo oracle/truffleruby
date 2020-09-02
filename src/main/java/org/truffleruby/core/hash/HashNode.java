@@ -18,7 +18,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class HashNode extends RubyContextNode {
 
@@ -70,7 +69,7 @@ public class HashNode extends RubyContextNode {
     private Object hash(Object object) {
         if (hashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashNode = insert(DispatchNode.create(PRIVATE));
+            hashNode = insert(DispatchNode.create());
         }
         return hashNode.call(object, "hash");
     }

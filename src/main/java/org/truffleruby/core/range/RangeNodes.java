@@ -48,7 +48,6 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "Range", isClass = true)
 public abstract class RangeNodes {
@@ -142,7 +141,7 @@ public abstract class RangeNodes {
         private Object eachInternal(VirtualFrame frame, RubyRange range, RubyProc block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eachInternalCall = insert(DispatchNode.create(PRIVATE));
+                eachInternalCall = insert(DispatchNode.create());
             }
 
             return eachInternalCall.callWithBlock(range, "each_internal", block);
@@ -299,7 +298,7 @@ public abstract class RangeNodes {
         protected Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                stepInternalCall = insert(DispatchNode.create(PRIVATE));
+                stepInternalCall = insert(DispatchNode.create());
             }
 
             if (RubyGuards.wasNotProvided(step)) {
@@ -344,7 +343,7 @@ public abstract class RangeNodes {
         protected Object boundedToA(RubyObjectRange range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAInternalCall = insert(DispatchNode.create(PRIVATE));
+                toAInternalCall = insert(DispatchNode.create());
             }
 
             return toAInternalCall.call(range, "to_a_internal");

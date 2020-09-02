@@ -47,7 +47,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class GetTimeZoneNode extends RubyContextNode {
 
@@ -59,7 +58,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         TZ_UNCHANGED.invalidate();
     }
 
-    @Child private DispatchNode lookupEnvNode = DispatchNode.create(PRIVATE);
+    @Child private DispatchNode lookupEnvNode = DispatchNode.create();
 
     public abstract TimeZoneAndName executeGetTimeZone();
 

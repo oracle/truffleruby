@@ -48,7 +48,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "BigDecimal", isClass = true)
 public abstract class BigDecimalNodes {
@@ -955,7 +954,7 @@ public abstract class BigDecimalNodes {
         private Object redoCompare(Object a, Object b) {
             if (redoCompare == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                redoCompare = insert(DispatchNode.create(PRIVATE));
+                redoCompare = insert(DispatchNode.create());
             }
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
@@ -1304,7 +1303,7 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "to_r")
     public abstract static class ToRNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode createRationalNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode createRationalNode = DispatchNode.create();
 
         @Specialization(guards = "isNormal(value)")
         protected Object toR(RubyBigDecimal value,

@@ -42,7 +42,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.Locale;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "Float", isClass = true)
 public abstract class FloatNodes {
@@ -165,8 +164,8 @@ public abstract class FloatNodes {
             if (complexProfile.profile(base < 0 && exponent != Math.round(exponent))) {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    complexConvertNode = insert(DispatchNode.create(PRIVATE));
-                    complexPowNode = insert(DispatchNode.create(PRIVATE));
+                    complexConvertNode = insert(DispatchNode.create());
+                    complexPowNode = insert(DispatchNode.create());
                 }
 
                 final Object aComplex = complexConvertNode.call(coreLibrary().complexClass, "convert", base, 0);
@@ -378,7 +377,7 @@ public abstract class FloatNodes {
         protected Object equal(VirtualFrame frame, double a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(DispatchNode.create(PRIVATE));
+                fallbackCallNode = insert(DispatchNode.create());
             }
 
             return fallbackCallNode.call(a, "equal_fallback", b);

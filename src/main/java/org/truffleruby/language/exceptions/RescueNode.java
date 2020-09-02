@@ -25,7 +25,6 @@ import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @GenerateWrapper
 public abstract class RescueNode extends RubyContextSourceNode {
@@ -61,7 +60,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
         if (callTripleEqualsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callTripleEqualsNode = insert(DispatchNode.create(PRIVATE));
+            callTripleEqualsNode = insert(DispatchNode.create());
         }
         if (booleanCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

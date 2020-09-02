@@ -59,7 +59,6 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
@@ -1894,7 +1893,7 @@ public abstract class IntegerNodes {
         protected Object downto(Object from, Object to, RubyProc block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                downtoInternalCall = insert(DispatchNode.create(PRIVATE));
+                downtoInternalCall = insert(DispatchNode.create());
             }
 
             return downtoInternalCall.callWithBlock(from, "downto_internal", block, to);
@@ -1974,7 +1973,7 @@ public abstract class IntegerNodes {
         protected Object upto(Object from, Object to, RubyProc block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                uptoInternalCall = insert(DispatchNode.create(PRIVATE));
+                uptoInternalCall = insert(DispatchNode.create());
             }
 
             return uptoInternalCall.callWithBlock(from, "upto_internal", block, to);

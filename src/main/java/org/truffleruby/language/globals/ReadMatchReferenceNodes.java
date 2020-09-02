@@ -19,7 +19,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
@@ -49,7 +48,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         private Object callGetIndex(VirtualFrame frame, Object match, int index) {
             if (getIndexNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                getIndexNode = insert(DispatchNode.create(PRIVATE));
+                getIndexNode = insert(DispatchNode.create());
             }
             return getIndexNode.call(match, "[]", index);
         }

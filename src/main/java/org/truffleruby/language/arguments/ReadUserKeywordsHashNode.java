@@ -18,7 +18,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DOES_RESPOND;
 
 public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
@@ -78,7 +77,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private Object callToHash(VirtualFrame frame, Object lastArgument) {
         if (callToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToHashNode = insert(DispatchNode.create(PRIVATE));
+            callToHashNode = insert(DispatchNode.create());
         }
         return callToHashNode.call(lastArgument, "to_hash");
     }

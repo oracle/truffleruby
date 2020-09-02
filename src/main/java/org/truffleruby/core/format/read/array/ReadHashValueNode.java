@@ -22,7 +22,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadHashValueNode extends FormatNode {
@@ -47,7 +46,7 @@ public abstract class ReadHashValueNode extends FormatNode {
 
         if (fetchNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            fetchNode = insert(DispatchNode.create(PRIVATE));
+            fetchNode = insert(DispatchNode.create());
         }
 
         return fetchNode.call(hash, "fetch", key);

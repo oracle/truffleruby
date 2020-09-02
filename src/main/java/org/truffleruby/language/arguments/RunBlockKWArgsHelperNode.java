@@ -22,7 +22,6 @@ import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
 
@@ -36,7 +35,7 @@ public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
     public RunBlockKWArgsHelperNode(FrameSlot arrayFrameSlot, Object kwrestName) {
         readArrayNode = ReadFrameSlotNodeGen.create(arrayFrameSlot);
         writeArrayNode = WriteFrameSlotNodeGen.create(arrayFrameSlot);
-        callHelperNode = DispatchNode.create(PRIVATE);
+        callHelperNode = DispatchNode.create();
         this.kwrestName = kwrestName;
     }
 

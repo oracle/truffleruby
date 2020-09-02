@@ -53,7 +53,6 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "Hash", isClass = true)
 public abstract class HashNodes {
@@ -87,7 +86,7 @@ public abstract class HashNodes {
 
         @Child private HashNode hashNode = new HashNode();
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-        @Child private DispatchNode fallbackNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode fallbackNode = DispatchNode.create();
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
@@ -231,7 +230,7 @@ public abstract class HashNodes {
         public Object accept(VirtualFrame frame, Object hash, Object key) {
             if (callDefaultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                callDefaultNode = insert(DispatchNode.create(PRIVATE));
+                callDefaultNode = insert(DispatchNode.create());
             }
             return callDefaultNode.call(hash, "default", key);
         }
@@ -772,7 +771,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode callDefaultNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode callDefaultNode = DispatchNode.create();
 
         @Specialization(guards = "isEmptyHash(hash)")
         protected Object shiftEmpty(RubyHash hash) {

@@ -17,7 +17,6 @@ import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class KernelPrintLastLineNode extends RubyContextSourceNode {
 
@@ -28,7 +27,7 @@ public class KernelPrintLastLineNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         if (callPrintNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callPrintNode = insert(DispatchNode.create(PRIVATE));
+            callPrintNode = insert(DispatchNode.create());
         }
         if (readGlobalVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

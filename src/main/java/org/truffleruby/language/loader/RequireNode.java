@@ -49,14 +49,13 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class RequireNode extends RubyContextNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
-    @Child private DispatchNode isInLoadedFeatures = DispatchNode.create(PRIVATE);
+    @Child private DispatchNode isInLoadedFeatures = DispatchNode.create();
     @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
-    @Child private DispatchNode addToLoadedFeatures = DispatchNode.create(PRIVATE);
+    @Child private DispatchNode addToLoadedFeatures = DispatchNode.create();
 
     @Child private WarningNode warningNode;
 

@@ -20,7 +20,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.ErrnoDescriptions;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class ErrnoErrorNode extends RubyContextNode {
 
@@ -58,7 +57,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
     private RubyString formatMessage(Object errnoDescription, int errno, RubyString extraMessage) {
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            formatMessageNode = insert(DispatchNode.create(PRIVATE));
+            formatMessageNode = insert(DispatchNode.create());
         }
         return (RubyString) formatMessageNode.call(
                 getContext().getCoreLibrary().truffleExceptionOperationsModule,

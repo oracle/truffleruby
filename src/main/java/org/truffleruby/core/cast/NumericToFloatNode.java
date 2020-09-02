@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 /** Casts a value into a Ruby Float (double). */
 public abstract class NumericToFloatNode extends RubyContextNode {
@@ -34,7 +33,7 @@ public abstract class NumericToFloatNode extends RubyContextNode {
     private Object callToFloat(RubyDynamicObject value) {
         if (toFloatCallNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toFloatCallNode = insert(DispatchNode.create(PRIVATE));
+            toFloatCallNode = insert(DispatchNode.create());
         }
         return toFloatCallNode.call(value, "to_f");
     }

@@ -123,7 +123,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "Module", isClass = true)
 public abstract class ModuleNodes {
@@ -1867,7 +1866,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
-        @Child private DispatchNode methodRemovedNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode methodRemovedNode = DispatchNode.create();
 
         @Specialization
         protected RubyModule removeMethods(RubyModule module, Object[] names) {
@@ -1916,7 +1915,7 @@ public abstract class ModuleNodes {
                 } else {
                     if (callRbInspect == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        callRbInspect = insert(DispatchNode.create(PRIVATE));
+                        callRbInspect = insert(DispatchNode.create());
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);

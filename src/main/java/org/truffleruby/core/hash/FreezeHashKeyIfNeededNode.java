@@ -18,7 +18,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
@@ -62,7 +61,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
     private Object dup(Object value) {
         if (dupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dupNode = insert(DispatchNode.create(PRIVATE));
+            dupNode = insert(DispatchNode.create());
         }
         return dupNode.call(value, "dup");
     }

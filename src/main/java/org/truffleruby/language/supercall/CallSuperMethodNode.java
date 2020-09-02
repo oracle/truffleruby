@@ -21,7 +21,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class CallSuperMethodNode extends FrameSendingNode {
 
@@ -68,7 +67,7 @@ public class CallSuperMethodNode extends FrameSendingNode {
     private Object callMethodMissing(VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissingNode = insert(DispatchNode.create(PRIVATE));
+            callMethodMissingNode = insert(DispatchNode.create());
         }
         return callMethodMissingNode.callWithBlock(receiver, "method_missing", block, arguments);
     }

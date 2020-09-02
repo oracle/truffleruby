@@ -29,7 +29,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class GetConstantNode extends RubyContextNode {
 
@@ -216,7 +215,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         if (callConstMissing) {
             if (constMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                constMissingNode = insert(DispatchNode.create(PRIVATE));
+                constMissingNode = insert(DispatchNode.create());
             }
 
             return constMissingNode.call(module, "const_missing", symbolName);

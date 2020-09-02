@@ -20,7 +20,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class EnumeratorSizeNode extends RubyContextSourceNode {
 
@@ -45,7 +44,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumWithSize == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumWithSize = insert(DispatchNode.create(PRIVATE));
+                toEnumWithSize = insert(DispatchNode.create());
             }
 
             final Object self = RubyArguments.getSelf(frame);

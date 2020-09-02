@@ -200,7 +200,6 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
@@ -446,7 +445,7 @@ public abstract class StringNodes {
             if (respondToNode.executeDoesRespondTo(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(DispatchNode.create(PRIVATE));
+                    objectEqualNode = insert(DispatchNode.create());
                 }
 
                 if (booleanCastNode == null) {
@@ -2364,10 +2363,10 @@ public abstract class StringNodes {
 
         public abstract Object executeSum(VirtualFrame frame, RubyString string, Object bits);
 
-        @Child private DispatchNode addNode = DispatchNode.create(PRIVATE);
-        @Child private DispatchNode subNode = DispatchNode.create(PRIVATE);
-        @Child private DispatchNode shiftNode = DispatchNode.create(PRIVATE);
-        @Child private DispatchNode andNode = DispatchNode.create(PRIVATE);
+        @Child private DispatchNode addNode = DispatchNode.create();
+        @Child private DispatchNode subNode = DispatchNode.create();
+        @Child private DispatchNode shiftNode = DispatchNode.create();
+        @Child private DispatchNode andNode = DispatchNode.create();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization

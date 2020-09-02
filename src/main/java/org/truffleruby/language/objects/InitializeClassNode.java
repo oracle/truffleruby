@@ -23,7 +23,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class InitializeClassNode extends RubyContextNode {
 
@@ -120,7 +119,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     private void triggerInheritedHook(RubyClass subClass, RubyClass superClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            inheritedNode = insert(DispatchNode.create(PRIVATE));
+            inheritedNode = insert(DispatchNode.create());
         }
         inheritedNode.call(superClass, "inherited", subClass);
     }

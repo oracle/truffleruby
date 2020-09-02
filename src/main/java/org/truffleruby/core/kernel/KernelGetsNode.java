@@ -15,7 +15,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class KernelGetsNode extends RubyContextSourceNode {
 
@@ -25,7 +24,7 @@ public class KernelGetsNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         if (callGetsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callGetsNode = insert(DispatchNode.create(PRIVATE));
+            callGetsNode = insert(DispatchNode.create());
         }
         return callGetsNode.dispatch(frame, coreLibrary().kernelModule, "gets", null, EMPTY_ARGUMENTS);
     }

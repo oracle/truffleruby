@@ -112,7 +112,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
@@ -1101,7 +1100,7 @@ public class CExtNodes {
         protected RubyClass classNew(RubyClass superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(DispatchNode.create(PRIVATE));
+                allocateNode = insert(DispatchNode.create());
                 initializeClassNode = insert(InitializeClassNodeGen.create(false));
             }
 
@@ -1154,7 +1153,7 @@ public class CExtNodes {
         private RubyString callToS(Object object) {
             if (toSCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSCall = insert(DispatchNode.create(PRIVATE));
+                toSCall = insert(DispatchNode.create());
             }
 
             return (RubyString) toSCall.call(object, "to_s");
