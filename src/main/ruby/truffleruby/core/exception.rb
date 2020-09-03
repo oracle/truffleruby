@@ -132,16 +132,22 @@ class Exception
                       end
       result << traceback_msg
       Truffle::ExceptionOperations.append_causes(result, self, {}.compare_by_identity, reverse, highlight)
-      result << Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
+      backtrace_message = Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
+      if backtrace_message.empty?
+        result << Truffle::ExceptionOperations.message_and_class(self, highlight)
+      else
+        result << backtrace_message
+      end
     else
-      result << Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
+      backtrace_message = Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
+      if backtrace_message.empty?
+        result << Truffle::ExceptionOperations.message_and_class(self, highlight)
+      else
+        result << backtrace_message
+      end
       Truffle::ExceptionOperations.append_causes(result, self, {}.compare_by_identity, reverse, highlight)
     end
     result
-  end
-
-  private def full_message_order_top
-    full_message(order: :top)
   end
 
   class << self
