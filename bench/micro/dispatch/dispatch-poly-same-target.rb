@@ -12,8 +12,9 @@ class Superclass
   end
 end
 
+N_VARIANTS = RUBY_ENGINE == 'truffleruby' ? Truffle::Boot.get_option('dispatch-cache') : 8
 classes = []
-Truffle::Boot.get_option('dispatch-cache').times do |i|
+N_VARIANTS.times do |i|
   classes[i] = Class.new(Superclass)
 end
 
