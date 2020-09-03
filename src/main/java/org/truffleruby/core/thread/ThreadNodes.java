@@ -76,6 +76,8 @@ import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
+import org.truffleruby.interop.InteropNodes;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SafepointAction;
@@ -88,11 +90,14 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
@@ -503,46 +508,49 @@ public abstract class ThreadNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "unblock", required = 2)
-    public abstract static class UnblockNode extends YieldingCoreMethodNode {
+    @Primitive(name = "call_with_unblocking_function")
+    public abstract static class CallWithUnblockingFunctionNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        protected Object unblock(RubyThread thread, Object unblocker, RubyProc runner,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object call(RubyThread thread, Object function, Object arg, Object unblocker, Object unblockerArg,
+                @CachedLibrary("function") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
             final ThreadManager threadManager = getContext().getThreadManager();
             final UnblockingAction unblockingAction;
             if (unblocker == nil) {
                 unblockingAction = threadManager.getNativeCallUnblockingAction();
             } else {
-                unblockingAction = makeUnblockingAction((RubyProc) unblocker);
+                unblockingAction = makeUnblockingAction(unblocker, unblockerArg);
             }
+
             final UnblockingActionHolder actionHolder = threadManager.getActionHolder(Thread.currentThread());
-
             final UnblockingAction oldAction = actionHolder.changeTo(unblockingAction);
+            final ThreadStatus status = thread.status;
+            thread.status = ThreadStatus.SLEEP;
             try {
-                Object result;
-                do {
-                    final ThreadStatus status = thread.status;
-                    thread.status = ThreadStatus.SLEEP;
-
-                    try {
-                        result = yield(runner);
-                    } finally {
-                        thread.status = status;
-                    }
-                } while (loopProfile.profile(result == null));
-
-                return result;
+                return InteropNodes.execute(function, new Object[]{ arg }, receivers, translateInteropExceptionNode);
             } finally {
+                thread.status = status;
                 actionHolder.restore(oldAction);
+
             }
         }
 
         @TruffleBoundary
-        private UnblockingAction makeUnblockingAction(RubyProc unblocker) {
-            return () -> yield(unblocker);
+        private UnblockingAction makeUnblockingAction(Object function, Object argument) {
+            assert InteropLibrary.getUncached().isExecutable(function);
+            return () -> {
+                try {
+                    InteropLibrary.getUncached().execute(function, argument);
+                } catch (InteropException e) {
+                    throw CompilerDirectives.shouldNotReachHere(e);
+                }
+            };
         }
 
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
+        }
     }
 
     @CoreMethod(names = "list", onSingleton = true)
