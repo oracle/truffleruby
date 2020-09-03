@@ -104,6 +104,10 @@ public class SafepointManager {
 
     @TruffleBoundary
     private void assumptionInvalidated(Node currentNode, boolean fromBlockingCall) {
+        if (lock.isHeldByCurrentThread()) {
+            throw CompilerDirectives.shouldNotReachHere("poll() should not be called by the driving thread");
+        }
+
         final RubyThread thread = context.getThreadManager().getCurrentThread();
         final InterruptMode interruptMode = thread.interruptMode;
 
@@ -125,6 +129,8 @@ public class SafepointManager {
 
     @TruffleBoundary
     private SafepointAction step(Node currentNode, boolean isDrivingThread) {
+        assert isDrivingThread == lock.isHeldByCurrentThread();
+
         final RubyThread thread = context.getThreadManager().getCurrentThread();
 
         // Wait for other threads to reach their safepoint
@@ -310,9 +316,8 @@ public class SafepointManager {
         this.action = action;
         this.deferred = deferred;
 
-        /* this is a potential cause for race conditions, but we need to invalidate first so the interrupted threads see
-         * the invalidation in poll() in their catch(InterruptedException) clause and wait on the barrier instead of
-         * retrying their blocking action. */
+        /* We need to invalidate first so the interrupted threads see the invalidation in poll() in their
+         * catch(InterruptedException) clause and wait on the Phaser instead of retrying their blocking action. */
         assumption.invalidate();
         interruptOtherThreads();
 
