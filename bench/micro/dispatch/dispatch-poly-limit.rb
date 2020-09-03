@@ -6,8 +6,9 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+N_VARIANTS = RUBY_ENGINE == 'truffleruby' ? Truffle::Boot.get_option('dispatch-cache') : 8
 classes = []
-Truffle::Boot.get_option('dispatch-cache').times do |i|
+N_VARIANTS.times do |i|
   classes[i] = Class.new do
     send(:define_method, :call) { i }
   end

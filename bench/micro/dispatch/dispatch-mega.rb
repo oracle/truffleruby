@@ -6,8 +6,9 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+N_VARIANTS = RUBY_ENGINE == 'truffleruby' ? Truffle::Boot.get_option('dispatch-cache') : 8
 classes = []
-(2 + Truffle::Boot.get_option('dispatch-cache')).times do |i|
+(N_VARIANTS + 2).times do |i|
   classes[i] = Class.new do
     class_eval "def call; #{i}; end"
   end
