@@ -1072,6 +1072,10 @@ module Truffle::CExt
     raise 'not implemented'
   end
 
+  def rb_ivar_count(object)
+    object.instance_variables.size
+  end
+
   def rb_ivar_get(object, name)
     Primitive.object_ivar_get object, name
   end

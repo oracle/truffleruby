@@ -21,6 +21,10 @@ VALUE rb_ivar_defined(VALUE object, ID id) {
   return RUBY_CEXT_INVOKE("rb_ivar_defined", object, ID2SYM(id));
 }
 
+st_index_t rb_ivar_count(VALUE object) {
+  return NUM2ULONG(RUBY_CEXT_INVOKE("rb_ivar_count", object));
+}
+
 VALUE rb_ivar_get(VALUE object, ID name) {
   return RUBY_CEXT_INVOKE("rb_ivar_get", object, ID2SYM(name));
 }
