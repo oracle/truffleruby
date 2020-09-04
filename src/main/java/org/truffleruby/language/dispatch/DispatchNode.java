@@ -18,7 +18,6 @@ import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.klass.RubyClass;
@@ -77,7 +76,6 @@ public class DispatchNode extends FrameSendingNode {
     @Child protected MetaClassNode metaclassNode;
     @Child protected LookupMethodNode methodLookup;
     @Child protected CallInternalMethodNode callNode;
-    @Child protected NameToJavaStringNode nameToString;
     @Child protected CallForeignMethodNode callForeign;
     @Child protected DispatchNode callMethodMissing;
     @Child protected ToSymbolNode toSymbol;
@@ -126,29 +124,25 @@ public class DispatchNode extends FrameSendingNode {
         return execute(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(VirtualFrame frame, Object receiver, Object methodName, RubyProc block, Object[] arguments) {
+    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
         return execute(frame, receiver, methodName, block, arguments);
     }
 
-    public boolean doesRespondTo(VirtualFrame frame, Object methodName, Object receiver) {
+    public boolean doesRespondTo(VirtualFrame frame, String methodName, Object receiver) {
         assert config == PRIVATE_DOES_RESPOND || config == PUBLIC_DOES_RESPOND;
         return (boolean) execute(frame, receiver, methodName, null, EMPTY_ARGUMENTS);
     }
 
-    public Object execute(VirtualFrame frame, Object receiver, Object methodName, RubyProc block, Object[] arguments) {
-
-        final String stringName = nameIsString.profile(methodName instanceof String)
-                ? (String) methodName
-                : nameToString(methodName);
+    public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
 
         if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
             assert config.dispatchAction == DispatchAction.CALL_METHOD;
-            return callForeign(receiver, stringName, block, arguments);
+            return callForeign(receiver, methodName, block, arguments);
         }
 
-        final InternalMethod method = methodLookup.execute(frame, metaclass, stringName, config);
+        final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
         if (methodMissing.profile(method == null || method.isUndefined())) {
             switch (config.dispatchAction) {
@@ -159,7 +153,7 @@ public class DispatchNode extends FrameSendingNode {
                         case RETURN_MISSING:
                             return MISSING;
                         case CALL_METHOD_MISSING:
-                            return callMethodMissing(frame, receiver, methodName, stringName, block, arguments);
+                            return callMethodMissing(frame, receiver, methodName, block, arguments);
                     }
             }
         }
@@ -176,7 +170,7 @@ public class DispatchNode extends FrameSendingNode {
     }
 
     private Object callMethodMissing(
-            VirtualFrame frame, Object receiver, Object methodName, String stringName, RubyProc block,
+            VirtualFrame frame, Object receiver, String methodName, RubyProc block,
             Object[] arguments) {
 
         final RubySymbol symbolName = nameToSymbol(methodName);
@@ -190,20 +184,12 @@ public class DispatchNode extends FrameSendingNode {
             throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                     formatter,
                     receiver,
-                    stringName,
+                    methodName,
                     arguments,
                     this));
         }
 
         return result;
-    }
-
-    protected String nameToString(Object methodName) {
-        if (nameToString == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            nameToString = insert(NameToJavaStringNode.create());
-        }
-        return nameToString.execute(methodName);
     }
 
     protected Object callForeign(Object receiver, String methodName, RubyProc block, Object[] arguments) {
@@ -226,7 +212,7 @@ public class DispatchNode extends FrameSendingNode {
         return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
     }
 
-    protected RubySymbol nameToSymbol(Object methodName) {
+    protected RubySymbol nameToSymbol(String methodName) {
         if (toSymbol == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSymbol = insert(ToSymbolNode.create());
@@ -280,19 +266,9 @@ public class DispatchNode extends FrameSendingNode {
         }
 
         @Override
-        public Object execute(VirtualFrame frame, Object receiver, Object methodName, RubyProc block,
+        public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block,
                 Object[] arguments) {
             return super.execute(null, receiver, methodName, block, arguments);
-        }
-
-        @Override
-        protected String nameToString(Object methodName) {
-            if (nameToString == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                nameToString = insert(NameToJavaStringNode.getUncached());
-            }
-
-            return nameToString.execute(methodName);
         }
 
         @Override
@@ -319,7 +295,7 @@ public class DispatchNode extends FrameSendingNode {
         }
 
         @Override
-        protected RubySymbol nameToSymbol(Object methodName) {
+        protected RubySymbol nameToSymbol(String methodName) {
             if (toSymbol == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toSymbol = insert(ToSymbolNode.getUncached());

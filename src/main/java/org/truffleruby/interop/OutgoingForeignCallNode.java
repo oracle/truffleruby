@@ -14,6 +14,7 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
@@ -163,12 +164,13 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(guards = { "name == cachedName", "cachedName.equals(SEND)", "args.length >= 1" }, limit = "1")
     protected Object sendOutgoing(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached @Shared("dispatch") DispatchNode dispatchNode) {
+            @Cached @Shared("dispatch") DispatchNode dispatchNode,
+            @Cached NameToJavaStringNode nameToJavaString) {
 
         final Object sendName = args[0];
         final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
 
-        return dispatchNode.dispatch(null, receiver, sendName, null, sendArgs);
+        return dispatchNode.dispatch(null, receiver, nameToJavaString.execute(sendName), null, sendArgs);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NIL)", "args.length == 0" }, limit = "1")

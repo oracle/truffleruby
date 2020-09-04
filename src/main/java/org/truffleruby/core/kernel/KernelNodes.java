@@ -78,6 +78,7 @@ import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -1489,6 +1490,7 @@ public abstract class KernelNodes {
 
         @Child private DispatchNode dispatchNode = DispatchNode.create(PUBLIC);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
@@ -1500,7 +1502,7 @@ public abstract class KernelNodes {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
-            return dispatchNode.dispatch(frame, self, name, block, args);
+            return dispatchNode.dispatch(frame, self, nameToJavaString.execute(name), block, args);
         }
 
     }
@@ -1539,13 +1541,14 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 Object object,
                 RubyString name,
-                boolean includeProtectedAndPrivate) {
+                boolean includeProtectedAndPrivate,
+                @Cached ToJavaStringNode toJavaString) {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, name, object);
+                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             } else {
-                ret = dispatch.doesRespondTo(frame, name, object);
+                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             }
 
             if (isTrueProfile.profile(ret)) {
@@ -1567,13 +1570,14 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 Object object,
                 RubySymbol name,
-                boolean includeProtectedAndPrivate) {
+                boolean includeProtectedAndPrivate,
+                @Cached ToJavaStringNode toJavaString) {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, name, object);
+                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             } else {
-                ret = dispatch.doesRespondTo(frame, name, object);
+                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             }
 
             if (isTrueProfile.profile(ret)) {

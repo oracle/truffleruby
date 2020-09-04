@@ -64,6 +64,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -1351,9 +1352,18 @@ public abstract class ArrayNodes {
                 RubySymbol symbol,
                 Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached ToJavaStringNode toJavaString) {
             final Object store = array.store;
-            return injectSymbolHelper(frame, array, symbol, stores, store, initialOrSymbol, 0, loopProfile);
+            return injectSymbolHelper(
+                    frame,
+                    array,
+                    toJavaString.executeToJavaString(symbol),
+                    stores,
+                    store,
+                    initialOrSymbol,
+                    0,
+                    loopProfile);
         }
 
         @Specialization(
@@ -1366,12 +1376,13 @@ public abstract class ArrayNodes {
                 NotProvided symbol,
                 Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached ToJavaStringNode toJavaString) {
             final Object store = array.store;
             return injectSymbolHelper(
                     frame,
                     array,
-                    initialOrSymbol,
+                    toJavaString.executeToJavaString(initialOrSymbol),
                     stores,
                     store,
                     stores.read(store, 0),
@@ -1379,7 +1390,7 @@ public abstract class ArrayNodes {
                     loopProfile);
         }
 
-        public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, RubySymbol symbol,
+        public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
                 ArrayStoreLibrary stores, Object store, Object initial, int start,
                 LoopConditionProfile loopProfile) {
             Object accumulator = initial;
