@@ -6,13 +6,14 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+if RUBY_ENGINE == 'truffleruby'
+  callees = Array.new(1000) { Truffle::Debug.foreign_string('foreign-string') }
 
-callees = Array.new(1000) { Truffle::Debug.foreign_string('foreign-string') }
-
-benchmark 'dispatch-foreign' do
-  i = 0
-  while i < 1000
-    callees[i].to_s
-    i += 1
+  benchmark 'dispatch-foreign' do
+    i = 0
+    while i < 1000
+      callees[i].to_s
+      i += 1
+    end
   end
 end
