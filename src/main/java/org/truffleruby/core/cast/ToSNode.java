@@ -33,7 +33,7 @@ public abstract class ToSNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyString(object)")
     protected RubyString toSFallback(VirtualFrame frame, Object object,
-            @Cached(parameters = "PRIVATE") DispatchNode callToSNode) {
+            @Cached DispatchNode callToSNode) {
         final Object value = callToSNode.call(object, "to_s");
 
         if (value instanceof RubyString) {

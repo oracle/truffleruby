@@ -968,13 +968,13 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, NotProvided block,
-                @Cached(parameters = "PRIVATE") DispatchNode callFillInternal) {
+                @Cached DispatchNode callFillInternal) {
             return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
-                @Cached(parameters = "PRIVATE") DispatchNode callFillInternal) {
+                @Cached DispatchNode callFillInternal) {
             return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
 
@@ -989,7 +989,7 @@ public abstract class ArrayNodes {
         @Specialization(limit = "storageStrategyLimit()")
         protected long hash(VirtualFrame frame, RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached(parameters = "PRIVATE") DispatchNode toHashNode,
+                @Cached DispatchNode toHashNode,
                 @Cached ToLongNode toLongNode,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final int size = array.size;
@@ -2093,7 +2093,7 @@ public abstract class ArrayNodes {
         protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary originalStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
-                @Cached(parameters = "PRIVATE") DispatchNode compareDispatchNode,
+                @Cached DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object originalStore = array.store;
             final Object store = originalStores
@@ -2155,13 +2155,13 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object sortArrayWithoutBlock(RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached(parameters = "PRIVATE") DispatchNode fallbackNode) {
+                @Cached DispatchNode fallbackNode) {
             return fallbackNode.call(array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
         protected Object sortGenericWithBlock(RubyArray array, RubyProc block,
-                @Cached(parameters = "PRIVATE") DispatchNode fallbackNode) {
+                @Cached DispatchNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
 

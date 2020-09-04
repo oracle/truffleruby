@@ -84,7 +84,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object addCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.PLUS, b);
         }
     }
@@ -107,7 +107,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object addCoerced(RubyBigDecimal a, Object b, int precision,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("add"), b, precision);
         }
     }
@@ -127,7 +127,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object subCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MINUS, b);
         }
     }
@@ -150,7 +150,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object subCoerced(RubyBigDecimal a, Object b, int precision,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("sub"), b, precision);
         }
     }
@@ -221,7 +221,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object multCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MULTIPLY, b);
         }
     }
@@ -256,7 +256,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object multCoerced(RubyBigDecimal a, Object b, int precision,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("mult"), b, precision);
         }
     }
@@ -287,7 +287,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object divCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVIDE, b);
         }
     }
@@ -299,7 +299,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = { "isNormal(a)", "isNormal(b)" })
         protected Object div(RubyBigDecimal a, RubyBigDecimal b, NotProvided precision,
                 @Cached ConditionProfile bZeroProfile,
-                @Cached(parameters = "PRIVATE") DispatchNode floorNode) {
+                @Cached DispatchNode floorNode) {
             if (bZeroProfile.profile(isNormalZero(b))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -388,13 +388,13 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object divCoerced(RubyBigDecimal a, Object b, NotProvided precision,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("div"), b);
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object divCoerced(RubyBigDecimal a, Object b, int precision,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("div"), b, precision);
         }
     }
@@ -433,7 +433,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isNormal(a) || !isNormal(b)" })
         protected RubyArray divmodSpecial(RubyBigDecimal a, RubyBigDecimal b,
-                @Cached(parameters = "PRIVATE") DispatchNode signCall,
+                @Cached DispatchNode signCall,
                 @Cached IntegerCastNode signIntegerCast,
                 @Cached ConditionProfile nanProfile,
                 @Cached ConditionProfile normalNegProfile,
@@ -484,7 +484,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object divmodCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("divmod"), b);
         }
 
@@ -524,7 +524,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object remainderCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("remainder"), b);
         }
     }
@@ -592,7 +592,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object moduloCoerced(RubyBigDecimal a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", getSymbol("modulo"), b);
         }
     }
@@ -1136,7 +1136,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(value)")
         protected Object round(RubyBigDecimal value, int ndigits, RubySymbol roundingMode,
-                @Cached(parameters = "PRIVATE") DispatchNode callRoundModeFromSymbol) {
+                @Cached DispatchNode callRoundModeFromSymbol) {
             return createBigDecimal(round(
                     value,
                     ndigits,

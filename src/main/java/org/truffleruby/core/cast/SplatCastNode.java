@@ -92,7 +92,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
     protected RubyArray splat(VirtualFrame frame, Object object,
-            @Cached(parameters = "PRIVATE") DispatchNode toArrayNode) {
+            @Cached DispatchNode toArrayNode) {
         final Object array = toArrayNode.call(
                 coreLibrary().truffleTypeModule,
                 "rb_check_convert_type",

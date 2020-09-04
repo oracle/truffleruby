@@ -505,7 +505,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "rest.length == 0", "wasProvided(first)", "!isRubyString(first)" })
         protected Object concatGeneric(RubyString string, Object first, Object[] rest,
-                @Cached(parameters = "PRIVATE") DispatchNode callNode) {
+                @Cached DispatchNode callNode) {
             return callNode.call(coreLibrary().truffleStringOperationsModule, "concat_internal", string, first);
         }
 
@@ -681,7 +681,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice1(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
-                @Cached(parameters = "PRIVATE") DispatchNode callNode,
+                @Cached DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
                 @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             return sliceCapture(frame, string, regexp, 0, callNode, readCallerNode, setFrameAndThreadLocalVariable);
@@ -689,7 +689,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
-                @Cached(parameters = "PRIVATE") DispatchNode callNode,
+                @Cached DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
                 @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
@@ -710,9 +710,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice2(RubyString string, RubyString matchStr, NotProvided length,
-                @Cached(parameters = "PRIVATE") DispatchNode includeNode,
+                @Cached DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached(parameters = "PRIVATE") DispatchNode dupNode) {
+                @Cached DispatchNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 

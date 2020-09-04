@@ -164,7 +164,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object addCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.PLUS, b);
         }
     }
@@ -221,7 +221,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object subCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MINUS, b);
         }
 
@@ -283,7 +283,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object mul(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MULTIPLY, b);
         }
 
@@ -438,7 +438,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object divCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVIDE, b);
         }
 
@@ -588,7 +588,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object modCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MODULO, b);
         }
 
@@ -676,7 +676,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.LESS_THAN, b);
         }
     }
@@ -721,7 +721,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessEqualCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.LEQ, b);
         }
 
@@ -772,7 +772,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object equal(VirtualFrame frame, Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode reverseCallNode,
+                @Cached DispatchNode reverseCallNode,
                 @Cached BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
             return booleanCastNode.executeToBoolean(reversedResult);
@@ -845,7 +845,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object compare(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
@@ -891,7 +891,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterEqualCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.GEQ, b);
         }
 
@@ -937,7 +937,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.GREATER_THAN, b);
         }
 
@@ -1026,7 +1026,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object bitAndCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", CoreSymbols.AMPERSAND, b);
         }
 
@@ -1064,7 +1064,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object bitOrCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", CoreSymbols.PIPE, b);
         }
 
@@ -1100,7 +1100,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object bitXOrCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") DispatchNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", CoreSymbols.CIRCUMFLEX, b);
         }
 

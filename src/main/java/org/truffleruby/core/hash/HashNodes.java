@@ -638,7 +638,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(from)")
         protected RubyHash replaceCoerce(RubyHash self, Object from,
-                @Cached(parameters = "PRIVATE") DispatchNode coerceNode,
+                @Cached DispatchNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
                     coreLibrary().truffleTypeModule,

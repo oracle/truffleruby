@@ -76,7 +76,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             String name,
             RubyConstant autoloadConstant,
             LookupConstantInterface lookupConstantNode,
-            @Cached(parameters = "PRIVATE") DispatchNode callRequireNode) {
+            @Cached DispatchNode callRequireNode) {
 
         final RubyString feature = autoloadConstant.getAutoloadConstant().getFeature();
 

@@ -643,7 +643,7 @@ public abstract class KernelNodes {
                 @Cached IsImmutableObjectNode isImmutableObjectNode,
                 @Cached ConditionProfile immutableProfile,
                 @Cached CopyNode copyNode,
-                @Cached(parameters = "PRIVATE") DispatchNode initializeDupNode) {
+                @Cached DispatchNode initializeDupNode) {
             if (immutableProfile.profile(isImmutableObjectNode.execute(self))) {
                 return self;
             }

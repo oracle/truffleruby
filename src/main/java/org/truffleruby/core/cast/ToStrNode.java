@@ -39,7 +39,7 @@ public abstract class ToStrNode extends RubyContextSourceNode {
     @Specialization(guards = "!isRubyString(object)")
     protected RubyString coerceObject(Object object,
             @Cached BranchProfile errorProfile,
-            @Cached(parameters = "PRIVATE") DispatchNode toStrNode) {
+            @Cached DispatchNode toStrNode) {
         final Object coerced;
         try {
             coerced = toStrNode.call(object, "to_str");
