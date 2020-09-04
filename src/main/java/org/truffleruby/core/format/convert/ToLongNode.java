@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
@@ -17,20 +19,18 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
-
 @NodeChild("value")
 public abstract class ToLongNode extends FormatNode {
 
-    private final boolean errorIfNeedsConversion;
+    protected final boolean errorIfNeedsConversion;
 
-    @Child private DispatchNode toIntNode;
-    @Child private ToLongNode redoNode;
+    public static ToLongNode create(boolean errorIfNeedsConversion) {
+        return ToLongNodeGen.create(errorIfNeedsConversion, null);
+    }
 
     public ToLongNode(boolean errorIfNeedsConversion) {
         this.errorIfNeedsConversion = errorIfNeedsConversion;
@@ -65,25 +65,23 @@ public abstract class ToLongNode extends FormatNode {
     }
 
     @Specialization(
-            guards = { "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
+            guards = { "errorIfNeedsConversion", "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
     protected long toLong(VirtualFrame frame, Object object) {
-        if (errorIfNeedsConversion) {
-            throw new CantConvertException("can't convert Object to Integer");
-        }
-
-        if (toIntNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
-        }
-
-        final Object value = toIntNode.call(object, "to_int");
-
-        if (redoNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            redoNode = insert(ToLongNodeGen.create(true, null));
-        }
-
-        return redoNode.executeToLong(frame, value);
+        throw new CantConvertException("can't convert Object to Integer");
     }
 
+    @Specialization(
+            guards = { "!errorIfNeedsConversion", "!isBoolean(object)", "!isRubyInteger(object)", "!isNil(object)" })
+    protected long toLong(VirtualFrame frame, Object object,
+            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toIntNode,
+            @Cached("create(true)") ToLongNode redoNode,
+            @Cached BranchProfile noConversionAvailable) {
+
+        Object result = toIntNode.call(object, "to_int");
+        if (result == DispatchNode.MISSING) {
+            noConversionAvailable.enter();
+            throw new CantConvertException("can't convert Object to Integer");
+        }
+        return redoNode.executeToLong(frame, result);
+    }
 }
