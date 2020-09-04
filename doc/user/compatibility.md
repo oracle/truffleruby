@@ -147,14 +147,6 @@ be a large effort to support every Ruby String operation on native strings.
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done
 as best-effort. It may not work, or the title you try to set may be truncated.
 
-#### Line numbers other than 1 work differently
-
-In an `eval` where a custom line number can be specified, line numbers below 1
-are treated as 1, and line numbers above 1 are implemented by inserting blank
-lines in front of the source before parsing it.
-
-The `erb` standard library has been modified to not use negative line numbers.
-
 #### Polyglot standard IO streams
 
 If you use standard IO streams provided by the Polyglot engine, via the

@@ -28,6 +28,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.TranslateExceptionNode;
+import org.truffleruby.parser.RubySource;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -244,7 +245,7 @@ public class BacktraceFormatter {
                     builder.append(RubyContext.getPath(reportedSourceSection.getSource()));
                 }
                 builder.append(":");
-                builder.append(reportedSourceSection.getStartLine());
+                builder.append(RubySource.getStartLineAdjusted(context, reportedSourceSection));
             }
             builder.append(":in `");
             builder.append(reportedName);

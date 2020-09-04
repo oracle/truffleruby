@@ -38,6 +38,7 @@ Compatibility:
 * Pass the final `super` specs (#2104, @chrisseaton).
 * Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
 * Fix arity for `Proc` (#2098, @ssnickolay)
+* Implement negative line numbers for eval (#1482).
 
 Performance:
 

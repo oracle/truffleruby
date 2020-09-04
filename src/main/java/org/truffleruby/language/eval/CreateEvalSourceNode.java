@@ -9,10 +9,8 @@
  */
 package org.truffleruby.language.eval;
 
-import java.util.Arrays;
 
 import org.jcodings.Encoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
@@ -48,7 +46,10 @@ public class CreateEvalSourceNode extends RubyContextNode {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
 
-        return new RubySource(source, file, sourceRope, true);
+        final RubySource rubySource = new RubySource(source, file, sourceRope, true, line - 1);
+
+        getContext().getSourceLineOffsets().put(source, line - 1);
+        return rubySource;
     }
 
     private static Rope createEvalRope(Rope source, String method, String file, int line) {
@@ -64,46 +65,7 @@ public class CreateEvalSourceNode extends RubyContextNode {
             source = RopeOperations.withEncoding(source, encoding[0]);
         }
 
-        // Do padding after magic comment detection
-        return offsetSource(method, source, file, line);
-    }
-
-    private static Rope offsetSource(String method, Rope source, String file, int line) {
-        // TODO CS 23-Apr-18 Truffle doesn't support line numbers starting at anything but 1
-        if (line == 0) {
-            // fine instead of warning because these seem common
-            RubyLanguage.LOGGER.fine(() -> String.format(
-                    "zero line number %s:%d not supported in #%s - will be reported as starting at 1",
-                    file,
-                    line,
-                    method));
-            return source;
-        } else if (line < 1) {
-            RubyLanguage.LOGGER.warning(
-                    String.format(
-                            "negative line number %s:%d not supported in #%s - will be reported as starting at 1",
-                            file,
-                            line,
-                            method));
-            return source;
-        } else if (line > 1) {
-            // fine instead of warning because we can simulate these
-            RubyLanguage.LOGGER.fine(() -> String.format(
-                    "offset line number %s:%d are simulated in #%s by adding blank lines",
-                    file,
-                    line,
-                    method));
-            if (!source.getEncoding().isAsciiCompatible()) {
-                throw new UnsupportedOperationException("Cannot prepend newlines in an ASCII incompatible encoding");
-            }
-            final int n = line - 1;
-            final byte[] bytes = new byte[n + source.byteLength()];
-            Arrays.fill(bytes, 0, n, (byte) '\n');
-            System.arraycopy(source.getBytes(), 0, bytes, n, source.byteLength());
-            return RopeOperations.create(bytes, source.getEncoding(), source.getCodeRange());
-        } else {
-            return source;
-        }
+        return source;
     }
 
 }

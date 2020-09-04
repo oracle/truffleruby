@@ -2273,7 +2273,7 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
                 }
                 | keyword__LINE__ {
-                    $$ = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
+                    $$ = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine() + lexer.getLineOffset());
                 }
                 | keyword__ENCODING__ {
                     $$ = new EncodingParseNode(lexer.tokline, lexer.getEncoding());

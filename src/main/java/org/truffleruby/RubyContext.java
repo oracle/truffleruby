@@ -13,7 +13,10 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -120,6 +123,7 @@ public class RubyContext {
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager;
+    private final Map<Source, Integer> sourceLineOffsets = Collections.synchronizedMap(new WeakHashMap<>());
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
@@ -756,6 +760,10 @@ public class RubyContext {
 
     public ValueWrapperManager getValueWrapperManager() {
         return valueWrapperManager;
+    }
+
+    public Map<Source, Integer> getSourceLineOffsets() {
+        return sourceLineOffsets;
     }
 
     private static SecureRandom createRandomInstance() {

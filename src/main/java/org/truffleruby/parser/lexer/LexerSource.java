@@ -57,6 +57,7 @@ public class LexerSource {
 
     private Rope sourceBytes;
     private int byteOffset;
+    private final int lineOffset;
 
     public LexerSource(RubySource rubySource, Encoding encoding) {
         this.source = rubySource.getSource();
@@ -71,6 +72,7 @@ public class LexerSource {
             this.sourceBytes = RopeOperations
                     .create(source.getCharacters().toString().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
         }
+        this.lineOffset = rubySource.getLineOffset();
     }
 
     public Source getSource() {
@@ -133,4 +135,7 @@ public class LexerSource {
         return fromRope;
     }
 
+    public int getLineOffset() {
+        return lineOffset;
+    }
 }
