@@ -6,23 +6,24 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-
-class Callee
-  def to_s
-    'foo'
+if RUBY_ENGINE == 'truffleruby'
+  class Callee
+    def to_s
+      'foo'
+    end
   end
-end
 
-def foreign_string
-  Truffle::Debug.foreign_string('foreign-string')
-end
+  def foreign_string
+    Truffle::Debug.foreign_string('foreign-string')
+  end
 
-callees = Array.new(1000) { |i| i.even? ? foreign_string : Callee.new }
+  callees = Array.new(1000) { |i| i.even? ? foreign_string : Callee.new }
 
-benchmark 'dispatch-foreign-mixed' do
-  i = 0
-  while i < 1000
-    callees[i].to_s
-    i += 1
+  benchmark 'dispatch-foreign-mixed' do
+    i = 0
+    while i < 1000
+      callees[i].to_s
+      i += 1
+    end
   end
 end
