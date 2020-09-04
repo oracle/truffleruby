@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.basicobject.BasicObjectType;
@@ -26,6 +27,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 
+@ReportPolymorphism
 @GenerateUncached
 @ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
 public abstract class MetaClassNode extends RubyBaseNode {
@@ -36,7 +38,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     public abstract RubyClass execute(Object value);
 
-    // Cover all primitives
+    // Cover all primitives, nil and symbols
 
     @Specialization(guards = "value")
     protected RubyClass metaClassTrue(boolean value,
@@ -73,8 +75,6 @@ public abstract class MetaClassNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().floatClass;
     }
-
-    // nil
 
     @Specialization
     protected RubyClass metaClassNil(Nil value,

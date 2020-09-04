@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 
 import com.oracle.truffle.api.Assumption;
@@ -48,7 +50,11 @@ public abstract class FrameSendingNode extends RubyContextNode {
             assert sendsFrame == frameToSend;
             return;
         }
+
+        // We'd only get AlwaysValidAssumption if the root node isn't Ruby (in which case this shouldn't be called),
+        // or when we already know to send the frame (in which case we'd have exited above.
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
+
         this.sendsFrame = frameToSend;
         if (frameToSend == SendsFrame.CALLER_FRAME) {
             this.readCaller = insert(new ReadCallerFrameNode());
@@ -70,7 +76,23 @@ public abstract class FrameSendingNode extends RubyContextNode {
         }
     }
 
-    public MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
+    public MaterializedFrame getFrameIfRequiredNew(VirtualFrame frame) {
+        // TODO(norswap, 07 Aug 2020): worth moving up to the dispatch node & profiling?
+        if (frame == null) {
+            return null;
+        }
+
+        if (needsCallerAssumption == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            resetNeedsCallerAssumption();
+        }
+        try {
+            needsCallerAssumption.check();
+        } catch (InvalidAssumptionException e) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            resetNeedsCallerAssumption();
+        }
+
         switch (sendsFrame) {
             case MY_FRAME:
                 return frame.materialize();
@@ -81,4 +103,14 @@ public abstract class FrameSendingNode extends RubyContextNode {
         }
     }
 
+    public MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
+        switch (sendsFrame) {
+            case MY_FRAME:
+                return frame.materialize();
+            case CALLER_FRAME:
+                return readCaller.execute(frame);
+            default:
+                return null;
+        }
+    }
 }

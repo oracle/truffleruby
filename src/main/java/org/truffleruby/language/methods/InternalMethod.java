@@ -133,6 +133,7 @@ public class InternalMethod implements ObjectGraphNode {
             RubyProc proc,
             RootCallTarget callTarget,
             RubyProc capturedBlock) {
+        assert declaringModule != null;
         assert lexicalScope != null;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
@@ -167,6 +168,10 @@ public class InternalMethod implements ObjectGraphNode {
 
     public boolean isUndefined() {
         return undefined;
+    }
+
+    public boolean isImplemented() {
+        return !unimplemented;
     }
 
     public boolean isUnimplemented() {

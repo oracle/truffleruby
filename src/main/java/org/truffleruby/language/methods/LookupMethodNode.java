@@ -19,6 +19,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.utils.Utils;
 
@@ -45,54 +46,43 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     public InternalMethod lookup(VirtualFrame frame, RubyClass metaClass, String name) {
-        return execute(frame, metaClass, name, false, false);
+        return execute(frame, metaClass, name, DispatchConfiguration.PROTECTED);
     }
 
-    public abstract InternalMethod execute(Frame frame, RubyClass metaClass, String name,
-            boolean ignoreVisibility, boolean onlyLookupPublic);
+    public abstract InternalMethod execute(Frame frame, RubyClass metaclass, String name,
+            DispatchConfiguration config);
 
     @Specialization(
             guards = {
                     "metaClass == cachedMetaClass",
                     "name == cachedName",
-                    "contextReference.get() == cachedContext",
-                    "ignoreVisibility == cachedIgnoreVisibility",
-                    "onlyLookupPublic == cachedOnlyLookupPublic" },
+                    "config == cachedConfig",
+                    "contextReference.get() == cachedContext" },
             assumptions = "methodLookupResult.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
             Frame frame,
             RubyClass metaClass,
             String name,
-            boolean ignoreVisibility,
-            boolean onlyLookupPublic,
+            DispatchConfiguration config,
             @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("name") String cachedName,
-            @Cached(value = "ignoreVisibility", allowUncached = true) boolean cachedIgnoreVisibility,
-            @Cached(value = "onlyLookupPublic", allowUncached = true) boolean cachedOnlyLookupPublic,
+            @Cached("config") DispatchConfiguration cachedConfig,
             @Cached("metaClass") RubyClass cachedMetaClass,
-            @Cached("doCachedLookup(cachedContext, frame, cachedMetaClass, cachedName, cachedIgnoreVisibility, cachedOnlyLookupPublic)") MethodLookupResult methodLookupResult) {
+            @Cached("lookupCached(cachedContext, frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
     }
 
-    @Specialization(
-            guards = {
-                    "ignoreVisibility == cachedIgnoreVisibility",
-                    "onlyLookupPublic == cachedOnlyLookupPublic" },
-            replaces = "lookupMethodCached",
-            limit = "1")
+    @Specialization(replaces = "lookupMethodCached")
     protected InternalMethod lookupMethodUncached(
             Frame frame,
             RubyClass metaClass,
             String name,
-            boolean ignoreVisibility,
-            boolean onlyLookupPublic,
+            DispatchConfiguration config,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached MetaClassNode callerMetaClassNode,
-            @Cached(value = "ignoreVisibility", allowUncached = true) boolean cachedIgnoreVisibility,
-            @Cached(value = "onlyLookupPublic", allowUncached = true) boolean cachedOnlyLookupPublic,
+            @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,
             @Cached ConditionProfile isSendProfile,
             @Cached BranchProfile foreignProfile,
@@ -132,13 +122,13 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
         // Check visibility
 
-        if (!cachedIgnoreVisibility) {
+        if (!config.ignoreVisibility) {
             final Visibility visibility = method.getVisibility();
             if (publicProfile.profile(visibility == Visibility.PUBLIC)) {
                 return method;
             }
 
-            if (cachedOnlyLookupPublic) {
+            if (config.onlyLookupPublic) {
                 return null;
             }
 
@@ -154,10 +144,10 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             if (noCallerMethodProfile.profile(callerMethod == null)) {
                 callerClass = context.getCoreLibrary().objectClass;
             } else if (!isSendProfile.profile(context.getCoreLibrary().isSend(callerMethod))) {
-                callerClass = callerMetaClassNode.execute(RubyArguments.getSelf(frame));
+                callerClass = metaClassNode.execute(RubyArguments.getSelf(frame));
             } else {
                 Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
-                callerClass = callerMetaClassNode.execute(RubyArguments.getSelf(callerFrame));
+                callerClass = metaClassNode.execute(RubyArguments.getSelf(callerFrame));
             }
 
             if (!isVisibleProfile.profile(method.isProtectedMethodVisibleTo(callerClass))) {
@@ -168,14 +158,18 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return method;
     }
 
-    protected MethodLookupResult doCachedLookup(
-            RubyContext context, Frame frame, RubyClass metaClass, String name, boolean ignoreVisibility,
-            boolean onlyLookupPublic) {
-        return lookupMethodCachedWithVisibility(context, frame, metaClass, name, ignoreVisibility, onlyLookupPublic);
+    public static MethodLookupResult lookupCached(RubyContext context, Frame callingFrame,
+            RubyClass metaClass, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+        return lookupCached(
+                context,
+                callingFrame,
+                metaClass,
+                name,
+                DispatchConfiguration.from(ignoreVisibility, onlyLookupPublic));
     }
 
-    public static MethodLookupResult lookupMethodCachedWithVisibility(RubyContext context, Frame callingFrame,
-            RubyClass metaClass, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+    protected static MethodLookupResult lookupCached(RubyContext context, Frame callingFrame,
+            RubyClass metaClass, String name, DispatchConfiguration config) {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 
         if (metaClass == context.getCoreLibrary().truffleInteropForeignClass) {
@@ -190,13 +184,13 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         }
 
         // Check visibility
-        if (!ignoreVisibility) {
+        if (!config.ignoreVisibility) {
             final Visibility visibility = method.getMethod().getVisibility();
             if (visibility == Visibility.PUBLIC) {
                 return method;
             }
 
-            if (onlyLookupPublic) {
+            if (config.onlyLookupPublic) {
                 return method.withNoMethod();
             }
 
@@ -214,7 +208,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return method;
     }
 
-    protected static RubyClass getCallerClass(RubyContext context, Frame callingFrame) {
+    private static RubyClass getCallerClass(RubyContext context, Frame callingFrame) {
         final InternalMethod callerMethod = RubyArguments.tryGetMethod(callingFrame);
         if (callerMethod == null) {
             return context.getCoreLibrary().objectClass;
@@ -227,11 +221,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
     }
-
-    protected static RubyContext getCurrentContext() {
-        return RubyLanguage.getCurrentContext();
-    }
-
 }

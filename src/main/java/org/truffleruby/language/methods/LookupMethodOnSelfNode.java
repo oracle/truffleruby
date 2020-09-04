@@ -16,6 +16,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.objects.MetaClassNode;
 
 @GenerateUncached
@@ -26,31 +27,30 @@ public abstract class LookupMethodOnSelfNode extends RubyBaseNode {
     }
 
     public InternalMethod lookup(VirtualFrame frame, Object self, String name) {
-        return execute(frame, self, name, false, false);
+        return execute(frame, self, name, DispatchConfiguration.PROTECTED);
+    }
+
+    public InternalMethod lookup(VirtualFrame frame, Object self, String name, boolean ignoreVisibility,
+            boolean onlyCallPublic) {
+        return execute(frame, self, name, DispatchConfiguration.from(ignoreVisibility, onlyCallPublic));
     }
 
     public InternalMethod lookup(
-            VirtualFrame frame, Object self, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
-        return execute(frame, self, name, ignoreVisibility, onlyLookupPublic);
+            VirtualFrame frame, Object self, String name, DispatchConfiguration config) {
+        return execute(frame, self, name, config);
     }
 
     public InternalMethod lookupIgnoringVisibility(VirtualFrame frame, Object self, String name) {
-        return execute(frame, self, name, true, false);
+        return execute(frame, self, name, DispatchConfiguration.PRIVATE);
     }
 
-    protected abstract InternalMethod execute(Frame frame, Object self, String name,
-            boolean ignoreVisibility, boolean onlyLookupPublic);
+    protected abstract InternalMethod execute(Frame frame, Object self, String name, DispatchConfiguration config);
 
     @Specialization
-    protected InternalMethod doLookup(
-            Frame frame,
-            Object self,
-            String name,
-            boolean ignoreVisibility,
-            boolean onlyLookupPublic,
+    protected InternalMethod doLookup(Frame frame, Object self, String name, DispatchConfiguration config,
             @Cached MetaClassNode metaClassNode,
             @Cached LookupMethodNode lookupMethod) {
-        final RubyClass metaclass = metaClassNode.executeMetaClass(self);
-        return lookupMethod.execute(frame, metaclass, name, ignoreVisibility, onlyLookupPublic);
+        final RubyClass metaclass = metaClassNode.execute(self);
+        return lookupMethod.execute(frame, metaclass, name, config);
     }
 }

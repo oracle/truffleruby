@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -38,7 +40,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
-            @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("createCall(cachedMethod, cachedCallTarget)") DirectCallNode callNode) {
         return callNode.call(frameArguments);
     }
 
@@ -48,11 +50,20 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return indirectCallNode.call(method.getCallTarget(), frameArguments);
     }
 
+    protected Assumption getModuleAssumption(InternalMethod method) {
+        return method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption();
+    }
+
     protected int getCacheLimit() {
         return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
     }
 
-    protected Assumption getModuleAssumption(InternalMethod method) {
-        return method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption();
+    protected DirectCallNode createCall(InternalMethod method, RootCallTarget callTarget) {
+        DirectCallNode callNode = DirectCallNode.create(callTarget);
+        final NewDispatchHeadNode head = NodeUtil.findParent(this, NewDispatchHeadNode.class);
+        if (head != null) {
+            head.applySplittingInliningStrategy(method, callNode);
+        }
+        return callNode;
     }
 }

@@ -62,8 +62,8 @@ public abstract class DispatchNode extends FrameSendingNode {
             String name,
             boolean ignoreVisibility,
             boolean onlyCallPublic) {
-        final RubyClass metaClass = metaClassNode.executeMetaClass(receiver);
-        final MethodLookupResult method = LookupMethodNode.lookupMethodCachedWithVisibility(
+        final RubyClass metaClass = metaClassNode.execute(receiver);
+        final MethodLookupResult method = LookupMethodNode.lookupCached(
                 getContext(),
                 frame,
                 metaClass,

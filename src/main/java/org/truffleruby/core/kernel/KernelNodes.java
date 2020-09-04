@@ -93,6 +93,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
@@ -152,6 +153,9 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 @CoreModule("Kernel")
 public abstract class KernelNodes {
@@ -1217,7 +1221,7 @@ public abstract class KernelNodes {
             return GetMethodObjectNodeGen.create(ignoreVisibility);
         }
 
-        private final boolean ignoreVisibility;
+        private final DispatchConfiguration dispatchConfig;
 
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
@@ -1226,7 +1230,7 @@ public abstract class KernelNodes {
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
-            this.ignoreVisibility = ignoreVisibility;
+            this.dispatchConfig = ignoreVisibility ? PRIVATE : PUBLIC;
             lookupMethodNode = LookupMethodOnSelfNode.create();
         }
 
@@ -1238,14 +1242,14 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
-                    .lookup(frame, self, normalizedName, ignoreVisibility, !ignoreVisibility);
+                    .lookup(frame, self, normalizedName, dispatchConfig);
 
             if (notFoundProfile.profile(method == null)) {
                 final Object respondToMissing = respondToMissingNode
-                        .call(self, "respond_to_missing?", name, ignoreVisibility);
+                        .call(self, "respond_to_missing?", name, dispatchConfig.ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode
-                            .lookup(frame, self, "method_missing", ignoreVisibility, !ignoreVisibility);
+                            .lookup(frame, self, "method_missing", dispatchConfig);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
                     throw new RaiseException(
