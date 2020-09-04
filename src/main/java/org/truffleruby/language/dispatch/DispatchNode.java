@@ -65,7 +65,7 @@ public class DispatchNode extends FrameSendingNode {
     }
 
     public static DispatchNode getUncached(DispatchConfiguration config) {
-        return Uncached.uncachedNodes[config.ordinal()];
+        return Uncached.UNCACHED_NODES[config.ordinal()];
     }
 
     public static DispatchNode getUncached() {
@@ -260,10 +260,10 @@ public class DispatchNode extends FrameSendingNode {
 
     private static class Uncached extends DispatchNode {
 
-        static final Uncached[] uncachedNodes = new Uncached[DispatchConfiguration.values().length];
+        static final Uncached[] UNCACHED_NODES = new Uncached[DispatchConfiguration.values().length];
         static {
             for (DispatchConfiguration config : DispatchConfiguration.values()) {
-                uncachedNodes[config.ordinal()] = new Uncached(config);
+                UNCACHED_NODES[config.ordinal()] = new Uncached(config);
             }
         }
 

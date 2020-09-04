@@ -38,7 +38,7 @@ import org.truffleruby.language.methods.DeclarationContext;
  * <p>
  * Materializing a frame is expensive, and the point of this parent node is to only materialize the frame when we know
  * for sure it has been requested by the callee. It is also possible to walk the stack to retrieve the frame to
- * materialize - but this is even slower and causes a deoptimization in the callee.
+ * materialize - but this is even slower and causes a deoptimization in the callee every time we walk the stack.
  *
  * <p>
  * This class works in tandem with {@link ReadCallerFrameNode} for this purpose. At first, we don't send down the frame.

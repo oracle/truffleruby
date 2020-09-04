@@ -53,7 +53,7 @@ public class RubyCallNode extends RubyContextSourceNode {
     private final boolean isSafeNavigation;
     private final boolean isAttrAssign;
 
-    @Child private DispatchNode dispatchHead;
+    @Child private DispatchNode dispatch;
     @Child private ArrayToObjectArrayNode toObjectArrayNode;
     @Child private DefinedNode definedNode;
 
@@ -112,12 +112,12 @@ public class RubyCallNode extends RubyContextSourceNode {
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, RubyProc blockObject,
             Object[] argumentsObjects) {
-        if (dispatchHead == null) {
+        if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(DispatchNode.create(ignoreVisibility ? PRIVATE : PROTECTED));
+            dispatch = insert(DispatchNode.create(ignoreVisibility ? PRIVATE : PROTECTED));
         }
 
-        final Object returnValue = dispatchHead
+        final Object returnValue = dispatch
                 .dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         if (isAttrAssign) {
             return argumentsObjects[argumentsObjects.length - 1];
