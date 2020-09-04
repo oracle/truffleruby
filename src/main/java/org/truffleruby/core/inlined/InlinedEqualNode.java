@@ -43,7 +43,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "lookupNode.lookup(frame, self, METHOD) == coreMethods().STRING_EQUAL"
+                    "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_EQUAL"
             },
             assumptions = "assumptions",
             limit = "1")

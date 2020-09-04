@@ -44,7 +44,7 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "lookupNode.lookup(frame, self, METHOD) == coreMethods().MODULE_CASE_EQUAL"
+                    "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().MODULE_CASE_EQUAL"
             },
             assumptions = "assumptions",
             limit = "1")

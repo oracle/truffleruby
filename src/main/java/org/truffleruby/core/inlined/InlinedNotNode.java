@@ -27,7 +27,7 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
     }
 
     @Specialization(
-            guards = { "lookupNode.lookup(frame, self, METHOD) == coreMethods().NOT", },
+            guards = { "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().NOT", },
             assumptions = "assumptions",
             limit = "1")
     protected boolean not(VirtualFrame frame, Object self,

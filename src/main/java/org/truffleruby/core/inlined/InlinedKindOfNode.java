@@ -30,7 +30,7 @@ public abstract class InlinedKindOfNode extends BinaryInlinedOperationNode {
     @Specialization(
             guards = {
                     "isRubyValue(self)",
-                    "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_KIND_OF",
+                    "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().KERNEL_KIND_OF",
             },
             assumptions = "assumptions",
             limit = "1")

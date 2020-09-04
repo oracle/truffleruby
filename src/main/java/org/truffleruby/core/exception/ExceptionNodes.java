@@ -202,7 +202,7 @@ public abstract class ExceptionNodes {
          * returning `FAILURE` in the fallback specialization. */
         @Specialization(
                 guards = {
-                        "lookupNode.lookup(frame, exception, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
+                        "lookupNode.lookupProtected(frame, exception, METHOD) == getContext().getCoreMethods().EXCEPTION_BACKTRACE", },
                 limit = "1")
         protected boolean backtraceQuery(VirtualFrame frame, RubyException exception,
                 @Cached LookupMethodOnSelfNode lookupNode) {

@@ -26,11 +26,11 @@ public abstract class LookupMethodOnSelfNode extends RubyBaseNode {
         return LookupMethodOnSelfNodeGen.create();
     }
 
-    public InternalMethod lookup(VirtualFrame frame, Object self, String name) {
+    public InternalMethod lookupProtected(VirtualFrame frame, Object self, String name) {
         return execute(frame, self, name, DispatchConfiguration.PROTECTED);
     }
 
-    public InternalMethod lookup(
+    public InternalMethod lookupPrivate(
             VirtualFrame frame, Object self, String name, DispatchConfiguration config) {
         return execute(frame, self, name, config);
     }

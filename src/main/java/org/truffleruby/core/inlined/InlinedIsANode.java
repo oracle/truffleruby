@@ -30,7 +30,7 @@ public abstract class InlinedIsANode extends BinaryInlinedOperationNode {
     @Specialization(
             guards = {
                     "isRubyValue(self)",
-                    "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_A",
+                    "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().KERNEL_IS_A",
             },
             assumptions = "assumptions",
             limit = "1")
