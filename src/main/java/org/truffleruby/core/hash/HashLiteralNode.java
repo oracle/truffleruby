@@ -13,12 +13,13 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
 
 public abstract class HashLiteralNode extends RubyContextSourceNode {
 
@@ -63,7 +64,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
     public static class SmallHashLiteralNode extends HashLiteralNode {
 
         @Child private HashNode hashNode;
-        @Child private CallDispatchHeadNode equalNode;
+        @Child private DispatchNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
         private final BranchProfile duplicateKeyProfile = BranchProfile.create();
@@ -120,7 +121,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         private boolean callEqual(Object receiver, Object key) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.createPrivate());
+                equalNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {

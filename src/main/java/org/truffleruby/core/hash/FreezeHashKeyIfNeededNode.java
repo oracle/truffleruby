@@ -11,16 +11,17 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
+
 public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
-    @Child private CallDispatchHeadNode dupNode;
+    @Child private DispatchNode dupNode;
 
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
@@ -60,7 +61,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
     private Object dup(Object value) {
         if (dupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dupNode = insert(CallDispatchHeadNode.createPrivate());
+            dupNode = insert(DispatchNode.create());
         }
         return dupNode.call(value, "dup");
     }

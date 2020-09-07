@@ -13,7 +13,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -21,12 +21,13 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+
 public class CallSuperMethodNode extends FrameSendingNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.create();
 
     @Child private CallInternalMethodNode callMethodNode;
-    @Child private CallDispatchHeadNode callMethodMissingNode;
+    @Child private DispatchNode callMethodMissingNode;
 
     public static CallSuperMethodNode create() {
         return new CallSuperMethodNode();
@@ -60,13 +61,13 @@ public class CallSuperMethodNode extends FrameSendingNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodNode = insert(CallInternalMethodNode.create());
         }
-        return callMethodNode.executeCallMethod(superMethod, frameArguments);
+        return callMethodNode.execute(superMethod, frameArguments);
     }
 
     private Object callMethodMissing(VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissingNode = insert(CallDispatchHeadNode.createPrivate());
+            callMethodMissingNode = insert(DispatchNode.create());
         }
         return callMethodMissingNode.callWithBlock(receiver, "method_missing", block, arguments);
     }

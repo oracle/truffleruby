@@ -29,7 +29,7 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.MainLoader;
@@ -50,6 +50,7 @@ import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.llvm.api.Toolchain;
+
 
 @CoreModule("Truffle::Boot")
 public abstract class TruffleBootNodes {
@@ -103,9 +104,9 @@ public abstract class TruffleBootNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Child TopLevelRaiseHandler topLevelRaiseHandler = new TopLevelRaiseHandler();
-        @Child CallDispatchHeadNode checkSyntax = CallDispatchHeadNode.createPrivate();
+        @Child DispatchNode checkSyntax = DispatchNode.create();
         @Child IndirectCallNode callNode = IndirectCallNode.create();
-        @Child CallDispatchHeadNode requireNode = CallDispatchHeadNode.createPrivate();
+        @Child DispatchNode requireNode = DispatchNode.create();
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary

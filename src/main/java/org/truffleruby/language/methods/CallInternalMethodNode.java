@@ -9,9 +9,11 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -19,6 +21,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -28,16 +31,16 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return CallInternalMethodNodeGen.create();
     }
 
-    public abstract Object executeCallMethod(InternalMethod method, Object[] frameArguments);
+    public abstract Object execute(InternalMethod method, Object[] frameArguments);
 
     @Specialization(
             guards = "method.getCallTarget() == cachedCallTarget",
-            /* TODO(eregon, 12 June 2015) we should maybe check an Assumption here to remove the cache entry when the
-             * lookup changes (redefined method, hierarchy changes) */
+            assumptions = "getModuleAssumption(cachedMethod)",
             limit = "getCacheLimit()")
     protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
-            @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("method") InternalMethod cachedMethod,
+            @Cached("createCall(cachedMethod, cachedCallTarget)") DirectCallNode callNode) {
         return callNode.call(frameArguments);
     }
 
@@ -47,8 +50,20 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return indirectCallNode.call(method.getCallTarget(), frameArguments);
     }
 
+    protected Assumption getModuleAssumption(InternalMethod method) {
+        return method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption();
+    }
+
     protected int getCacheLimit() {
         return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
     }
 
+    protected DirectCallNode createCall(InternalMethod method, RootCallTarget callTarget) {
+        DirectCallNode callNode = DirectCallNode.create(callTarget);
+        final DispatchNode dispatch = NodeUtil.findParent(this, DispatchNode.class);
+        if (dispatch != null) {
+            dispatch.applySplittingInliningStrategy(method, callNode);
+        }
+        return callNode;
+    }
 }

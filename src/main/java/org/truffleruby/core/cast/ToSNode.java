@@ -13,7 +13,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -33,7 +33,7 @@ public abstract class ToSNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyString(object)")
     protected RubyString toSFallback(VirtualFrame frame, Object object,
-            @Cached("createPrivate()") CallDispatchHeadNode callToSNode) {
+            @Cached DispatchNode callToSNode) {
         final Object value = callToSNode.call(object, "to_s");
 
         if (value instanceof RubyString) {

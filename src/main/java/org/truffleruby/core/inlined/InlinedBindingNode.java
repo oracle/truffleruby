@@ -13,12 +13,12 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.LookupMethodNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
 
@@ -33,7 +33,7 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected RubyBinding binding(VirtualFrame frame, Object self,
-            @Cached LookupMethodNode lookupNode,
+            @Cached LookupMethodOnSelfNode lookupNode,
             @Cached("getMyEncapsulatingSourceSection()") SourceSection sourceSection) {
         return BindingNodes.createBinding(getContext(), frame.materialize(), sourceSection);
     }

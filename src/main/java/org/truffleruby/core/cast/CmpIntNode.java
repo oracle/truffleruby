@@ -26,7 +26,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -79,8 +79,8 @@ public abstract class CmpIntNode extends RubyContextNode {
 
     @Specialization(guards = { "!isRubyInteger(value)", "!isNil(value)" })
     protected int cmpObject(Object value, Object receiver, Object other,
-            @Cached("createPrivate()") CallDispatchHeadNode gtNode,
-            @Cached("createPrivate()") CallDispatchHeadNode ltNode,
+            @Cached DispatchNode gtNode,
+            @Cached DispatchNode ltNode,
             @Cached BooleanCastNode gtCastNode,
             @Cached BooleanCastNode ltCastNode) {
 

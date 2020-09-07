@@ -14,18 +14,20 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 public class SymbolProcNode extends RubyContextSourceNode {
 
     private final String symbol;
     private final BranchProfile noReceiverProfile = BranchProfile.create();
 
-    @Child private CallDispatchHeadNode callNode;
+    @Child private DispatchNode callNode;
 
     public SymbolProcNode(String symbol) {
         this.symbol = symbol;
@@ -47,10 +49,10 @@ public class SymbolProcNode extends RubyContextSourceNode {
         return getCallNode().dispatch(frame, receiver, symbol, block, arguments);
     }
 
-    private CallDispatchHeadNode getCallNode() {
+    private DispatchNode getCallNode() {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.createPublic());
+            callNode = insert(DispatchNode.create(PUBLIC));
         }
 
         return callNode;

@@ -38,9 +38,10 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.Locale;
+
 
 @CoreModule(value = "Float", isClass = true)
 public abstract class FloatNodes {
@@ -75,7 +76,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object addCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.PLUS, b);
         }
     }
@@ -100,7 +101,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object subCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MINUS, b);
         }
 
@@ -126,7 +127,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object mulCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MULTIPLY, b);
         }
 
@@ -135,8 +136,8 @@ public abstract class FloatNodes {
     @CoreMethod(names = "**", required = 1)
     public abstract static class PowNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode complexConvertNode;
-        @Child private CallDispatchHeadNode complexPowNode;
+        @Child private DispatchNode complexConvertNode;
+        @Child private DispatchNode complexPowNode;
 
         private final ConditionProfile complexProfile = ConditionProfile.create();
 
@@ -163,8 +164,8 @@ public abstract class FloatNodes {
             if (complexProfile.profile(base < 0 && exponent != Math.round(exponent))) {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    complexConvertNode = insert(CallDispatchHeadNode.createPrivate());
-                    complexPowNode = insert(CallDispatchHeadNode.createPrivate());
+                    complexConvertNode = insert(DispatchNode.create());
+                    complexPowNode = insert(DispatchNode.create());
                 }
 
                 final Object aComplex = complexConvertNode.call(coreLibrary().complexClass, "convert", base, 0);
@@ -182,7 +183,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(exponent)")
         protected Object powCoerced(double base, Object exponent,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(base, "redo_coerced", CoreSymbols.POW, exponent);
         }
 
@@ -208,7 +209,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object divCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVIDE, b);
         }
 
@@ -254,7 +255,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object modCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MODULO, b);
         }
 
@@ -282,7 +283,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyBignum(b)")
         protected Object divModCoerced(double a, RubyDynamicObject b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
+                @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVMOD, b);
         }
 
@@ -308,7 +309,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.LESS_THAN, b);
         }
     }
@@ -333,7 +334,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessEqualCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.LEQ, b);
         }
     }
@@ -355,7 +356,7 @@ public abstract class FloatNodes {
     @CoreMethod(names = { "==", "===" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode fallbackCallNode;
+        @Child private DispatchNode fallbackCallNode;
 
         @Specialization
         protected boolean equal(double a, long b) {
@@ -376,7 +377,7 @@ public abstract class FloatNodes {
         protected Object equal(VirtualFrame frame, double a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(CallDispatchHeadNode.createPrivate());
+                fallbackCallNode = insert(DispatchNode.create());
             }
 
             return fallbackCallNode.call(a, "equal_fallback", b);
@@ -418,13 +419,13 @@ public abstract class FloatNodes {
 
         @Specialization(guards = { "!isNaN(a)", "!isRubyBignum(b)" })
         protected Object compare(double a, RubyDynamicObject b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
         @Specialization(guards = { "!isNaN(a)" })
         protected Object compare(double a, Nil b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
@@ -450,7 +451,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterEqualCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.GEQ, b);
         }
 
@@ -476,7 +477,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterCoerced(double a, Object b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+                @Cached DispatchNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.GREATER_THAN, b);
         }
     }

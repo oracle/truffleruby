@@ -17,8 +17,9 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.ErrnoDescriptions;
+
 
 public abstract class ErrnoErrorNode extends RubyContextNode {
 
@@ -26,7 +27,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
         return ErrnoErrorNodeGen.create();
     }
 
-    @Child private CallDispatchHeadNode formatMessageNode;
+    @Child private DispatchNode formatMessageNode;
 
     public abstract RubySystemCallError execute(int errno, RubyString extraMessage, Backtrace backtrace);
 
@@ -56,7 +57,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
     private RubyString formatMessage(Object errnoDescription, int errno, RubyString extraMessage) {
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            formatMessageNode = insert(CallDispatchHeadNode.createPrivate());
+            formatMessageNode = insert(DispatchNode.create());
         }
         return (RubyString) formatMessageNode.call(
                 getContext().getCoreLibrary().truffleExceptionOperationsModule,

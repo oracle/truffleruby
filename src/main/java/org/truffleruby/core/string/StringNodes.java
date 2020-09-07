@@ -170,7 +170,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -199,6 +199,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
@@ -426,7 +427,7 @@ public abstract class StringNodes {
 
         @Child private StringEqualNode stringEqualNode = StringEqualNodeGen.create();
         @Child private KernelNodes.RespondToNode respondToNode;
-        @Child private CallDispatchHeadNode objectEqualNode;
+        @Child private DispatchNode objectEqualNode;
         @Child private BooleanCastNode booleanCastNode;
 
         @Specialization
@@ -444,7 +445,7 @@ public abstract class StringNodes {
             if (respondToNode.executeDoesRespondTo(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(CallDispatchHeadNode.createPrivate());
+                    objectEqualNode = insert(DispatchNode.create());
                 }
 
                 if (booleanCastNode == null) {
@@ -504,7 +505,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "rest.length == 0", "wasProvided(first)", "!isRubyString(first)" })
         protected Object concatGeneric(RubyString string, Object first, Object[] rest,
-                @Cached("createPrivate()") CallDispatchHeadNode callNode) {
+                @Cached DispatchNode callNode) {
             return callNode.call(coreLibrary().truffleStringOperationsModule, "concat_internal", string, first);
         }
 
@@ -680,7 +681,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice1(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
-                @Cached("createPrivate()") CallDispatchHeadNode callNode,
+                @Cached DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
                 @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             return sliceCapture(frame, string, regexp, 0, callNode, readCallerNode, setFrameAndThreadLocalVariable);
@@ -688,7 +689,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
-                @Cached("createPrivate()") CallDispatchHeadNode callNode,
+                @Cached DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
                 @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
@@ -709,9 +710,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice2(RubyString string, RubyString matchStr, NotProvided length,
-                @Cached("createPrivate()") CallDispatchHeadNode includeNode,
+                @Cached DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached("createPrivate()") CallDispatchHeadNode dupNode) {
+                @Cached DispatchNode dupNode) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
@@ -2362,10 +2363,10 @@ public abstract class StringNodes {
 
         public abstract Object executeSum(VirtualFrame frame, RubyString string, Object bits);
 
-        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode addNode = DispatchNode.create();
+        @Child private DispatchNode subNode = DispatchNode.create();
+        @Child private DispatchNode shiftNode = DispatchNode.create();
+        @Child private DispatchNode andNode = DispatchNode.create();
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization

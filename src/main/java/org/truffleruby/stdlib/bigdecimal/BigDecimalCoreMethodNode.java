@@ -16,18 +16,19 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.utils.Utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+
 public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
 
     @Child private CreateBigDecimalNode createBigDecimal;
-    @Child private CallDispatchHeadNode limitCall;
+    @Child private DispatchNode limitCall;
     @Child private IntegerCastNode limitIntegerCast;
-    @Child private CallDispatchHeadNode roundModeCall;
+    @Child private DispatchNode roundModeCall;
     @Child private IntegerCastNode roundModeIntegerCast;
 
     public static boolean isNormal(RubyBigDecimal value) {
@@ -120,10 +121,10 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
         return createBigDecimal;
     }
 
-    private CallDispatchHeadNode getLimitCall() {
+    private DispatchNode getLimitCall() {
         if (limitCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            limitCall = insert(CallDispatchHeadNode.createPrivate());
+            limitCall = insert(DispatchNode.create());
         }
 
         return limitCall;
@@ -138,10 +139,10 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
         return limitIntegerCast;
     }
 
-    private CallDispatchHeadNode getRoundModeCall() {
+    private DispatchNode getRoundModeCall() {
         if (roundModeCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            roundModeCall = insert(CallDispatchHeadNode.createPrivate());
+            roundModeCall = insert(DispatchNode.create());
         }
 
         return roundModeCall;

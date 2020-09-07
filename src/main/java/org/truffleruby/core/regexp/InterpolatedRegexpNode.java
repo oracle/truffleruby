@@ -25,13 +25,14 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+
 
 public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
@@ -61,7 +62,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     public static abstract class RegexpBuilderNode extends RubyContextNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
-        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode copyNode = DispatchNode.create();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {

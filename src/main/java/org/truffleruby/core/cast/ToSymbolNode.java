@@ -29,6 +29,10 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return ToSymbolNodeGen.create();
     }
 
+    public static ToSymbolNode getUncached() {
+        return ToSymbolNodeGen.getUncached();
+    }
+
     public abstract RubySymbol execute(Object object);
 
     @Specialization

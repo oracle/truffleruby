@@ -11,6 +11,7 @@ package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
+import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 import java.util.Arrays;
 
@@ -63,12 +64,13 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
@@ -967,13 +969,13 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, NotProvided block,
-                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
+                @Cached DispatchNode callFillInternal) {
             return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
-                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
+                @Cached DispatchNode callFillInternal) {
             return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
 
@@ -988,7 +990,7 @@ public abstract class ArrayNodes {
         @Specialization(limit = "storageStrategyLimit()")
         protected long hash(VirtualFrame frame, RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode toHashNode,
+                @Cached DispatchNode toHashNode,
                 @Cached ToLongNode toLongNode,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final int size = array.size;
@@ -1045,7 +1047,7 @@ public abstract class ArrayNodes {
     public abstract static class InitializeNode extends YieldingCoreMethodNode {
 
         @Child private ToIntNode toIntNode;
-        @Child private CallDispatchHeadNode toAryNode;
+        @Child private DispatchNode toAryNode;
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
         protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
@@ -1213,7 +1215,7 @@ public abstract class ArrayNodes {
         protected Object callToAry(Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAryNode = insert(CallDispatchHeadNode.createPrivate());
+                toAryNode = insert(DispatchNode.create());
             }
             return toAryNode.call(object, "to_ary");
         }
@@ -1256,7 +1258,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createPublic();
+        @Child private DispatchNode dispatch = DispatchNode.create(PUBLIC);
 
         // With block
 
@@ -1350,9 +1352,18 @@ public abstract class ArrayNodes {
                 RubySymbol symbol,
                 Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached ToJavaStringNode toJavaString) {
             final Object store = array.store;
-            return injectSymbolHelper(frame, array, symbol, stores, store, initialOrSymbol, 0, loopProfile);
+            return injectSymbolHelper(
+                    frame,
+                    array,
+                    toJavaString.executeToJavaString(symbol),
+                    stores,
+                    store,
+                    initialOrSymbol,
+                    0,
+                    loopProfile);
         }
 
         @Specialization(
@@ -1365,12 +1376,13 @@ public abstract class ArrayNodes {
                 NotProvided symbol,
                 Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached ToJavaStringNode toJavaString) {
             final Object store = array.store;
             return injectSymbolHelper(
                     frame,
                     array,
-                    initialOrSymbol,
+                    toJavaString.executeToJavaString(initialOrSymbol),
                     stores,
                     store,
                     stores.read(store, 0),
@@ -1378,7 +1390,7 @@ public abstract class ArrayNodes {
                     loopProfile);
         }
 
-        public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, RubySymbol symbol,
+        public Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
                 ArrayStoreLibrary stores, Object store, Object initial, int start,
                 LoopConditionProfile loopProfile) {
             Object accumulator = initial;
@@ -2092,7 +2104,7 @@ public abstract class ArrayNodes {
         protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary originalStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
+                @Cached DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object originalStore = array.store;
             final Object store = originalStores
@@ -2154,13 +2166,13 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object sortArrayWithoutBlock(RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
+                @Cached DispatchNode fallbackNode) {
             return fallbackNode.call(array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
         protected Object sortGenericWithBlock(RubyArray array, RubyProc block,
-                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
+                @Cached DispatchNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
 

@@ -18,7 +18,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -26,6 +26,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
 /** Splat as used to cast a value to an array if it isn't already, as in {@code *value}. */
 @NodeChild(value = "child", type = RubyNode.class)
@@ -43,7 +45,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     @CompilationFinal private boolean copy = true;
 
     @Child private ArrayDupNode dup;
-    @Child private CallDispatchHeadNode toA;
+    @Child private DispatchNode toA;
 
     public SplatCastNode(NilBehavior nilBehavior, boolean useToAry) {
         this.nilBehavior = nilBehavior;
@@ -90,7 +92,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
     protected RubyArray splat(VirtualFrame frame, Object object,
-            @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
+            @Cached DispatchNode toArrayNode) {
         final Object array = toArrayNode.call(
                 coreLibrary().truffleTypeModule,
                 "rb_check_convert_type",
@@ -111,7 +113,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     private Object callToA(VirtualFrame frame, Object nil) {
         if (toA == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toA = insert(CallDispatchHeadNode.createReturnMissing());
+            toA = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
         }
         return toA.call(nil, "to_a");
     }

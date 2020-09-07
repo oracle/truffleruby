@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -77,6 +78,7 @@ import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -92,9 +94,8 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -105,7 +106,7 @@ import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -153,6 +154,11 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DOES_RESPOND;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_DOES_RESPOND;
+
 @CoreModule("Kernel")
 public abstract class KernelNodes {
 
@@ -161,7 +167,7 @@ public abstract class KernelNodes {
     @Primitive(name = "object_same_or_equal")
     public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode equalNode;
+        @Child private DispatchNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.create();
@@ -185,7 +191,7 @@ public abstract class KernelNodes {
         private boolean areEqual(Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.createPrivate());
+                equalNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {
@@ -213,7 +219,7 @@ public abstract class KernelNodes {
     /** Check if operands are the same object or call #eql? */
     public abstract static class SameOrEqlNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode eqlNode;
+        @Child private DispatchNode eqlNode;
         @Child private BooleanCastNode booleanCastNode;
 
         private final ConditionProfile sameProfile = ConditionProfile.create();
@@ -233,7 +239,7 @@ public abstract class KernelNodes {
         private boolean areEql(Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(CallDispatchHeadNode.createPrivate());
+                eqlNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {
@@ -431,7 +437,7 @@ public abstract class KernelNodes {
             return CopyNodeFactory.create(null);
         }
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode allocateNode = DispatchNode.create();
 
         public abstract RubyDynamicObject executeCopy(RubyDynamicObject self);
 
@@ -511,7 +517,7 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends CoreMethodNode {
 
         @Child private CopyNode copyNode = CopyNode.create();
-        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode initializeCloneNode = DispatchNode.create();
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
@@ -638,7 +644,7 @@ public abstract class KernelNodes {
                 @Cached IsImmutableObjectNode isImmutableObjectNode,
                 @Cached ConditionProfile immutableProfile,
                 @Cached CopyNode copyNode,
-                @Cached("createPrivate()") CallDispatchHeadNode initializeDupNode) {
+                @Cached DispatchNode initializeDupNode) {
             if (immutableProfile.profile(isImmutableObjectNode.execute(self))) {
                 return self;
             }
@@ -939,7 +945,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
     public abstract static class InitializeDupCloneNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode initializeCopyNode = DispatchNode.create();
 
         @Specialization
         protected Object initializeDup(VirtualFrame frame, RubyDynamicObject self, RubyDynamicObject from) {
@@ -1162,13 +1168,8 @@ public abstract class KernelNodes {
         }
 
         private boolean isLiteralBlock(Node callNode) {
-            if (callNode.getParent() instanceof DispatchNode) {
-                RubyCallNode rubyCallNode = ((DispatchNode) callNode.getParent()).findRubyCallNode();
-                if (rubyCallNode != null) {
-                    return rubyCallNode.hasLiteralBlock();
-                }
-            }
-            return false;
+            RubyCallNode rubyCallNode = NodeUtil.findParent(callNode, RubyCallNode.class);
+            return rubyCallNode != null && rubyCallNode.hasLiteralBlock();
         }
 
         private void warnProcWithoutBlock() {
@@ -1222,17 +1223,17 @@ public abstract class KernelNodes {
             return GetMethodObjectNodeGen.create(ignoreVisibility);
         }
 
-        private final boolean ignoreVisibility;
+        private final DispatchConfiguration dispatchConfig;
 
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private LookupMethodNode lookupMethodNode;
-        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
+        @Child private LookupMethodOnSelfNode lookupMethodNode;
+        @Child private DispatchNode respondToMissingNode = DispatchNode.create();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
-            this.ignoreVisibility = ignoreVisibility;
-            lookupMethodNode = LookupMethodNode.create();
+            this.dispatchConfig = ignoreVisibility ? PRIVATE : PUBLIC;
+            lookupMethodNode = LookupMethodOnSelfNode.create();
         }
 
         public abstract RubyMethod executeGetMethodObject(VirtualFrame frame, Object self, Object name);
@@ -1243,14 +1244,14 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
-                    .lookup(frame, self, normalizedName, ignoreVisibility, !ignoreVisibility);
+                    .lookupPrivate(frame, self, normalizedName, dispatchConfig);
 
             if (notFoundProfile.profile(method == null)) {
                 final Object respondToMissing = respondToMissingNode
-                        .call(self, "respond_to_missing?", name, ignoreVisibility);
+                        .call(self, "respond_to_missing?", name, dispatchConfig.ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode
-                            .lookup(frame, self, "method_missing", ignoreVisibility, !ignoreVisibility);
+                            .lookupPrivate(frame, self, "method_missing", dispatchConfig);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
                     throw new RaiseException(
@@ -1298,7 +1299,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyContextSourceNode {
 
             private final Object methodName;
-            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createPrivate();
+            @Child private DispatchNode methodMissing = DispatchNode.create();
 
             public CallMethodMissingWithStaticName(Object methodName) {
                 this.methodName = methodName;
@@ -1362,7 +1363,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode callInspectNode = DispatchNode.create();
 
         @Specialization
         protected Object p(VirtualFrame frame, Object value) {
@@ -1487,8 +1488,9 @@ public abstract class KernelNodes {
     @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true)
     public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPublic();
+        @Child private DispatchNode dispatchNode = DispatchNode.create(PUBLIC);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
@@ -1500,7 +1502,7 @@ public abstract class KernelNodes {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
-            return dispatchNode.dispatch(frame, self, name, block, args);
+            return dispatchNode.dispatch(frame, self, nameToJavaString.execute(name), block, args);
         }
 
     }
@@ -1511,19 +1513,19 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeProtectedAndPrivate", type = RubyNode.class)
     public abstract static class RespondToNode extends CoreMethodNode {
 
-        @Child private DoesRespondDispatchHeadNode dispatch;
-        @Child private DoesRespondDispatchHeadNode dispatchIgnoreVisibility;
-        @Child private DoesRespondDispatchHeadNode dispatchRespondToMissing;
-        @Child private CallDispatchHeadNode respondToMissingNode;
+        @Child private DispatchNode dispatch;
+        @Child private DispatchNode dispatchIgnoreVisibility;
+        @Child private DispatchNode dispatchRespondToMissing;
+        @Child private DispatchNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
         private final ConditionProfile isTrueProfile = ConditionProfile.create();
         private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
-            dispatch = DoesRespondDispatchHeadNode.create(DoesRespondDispatchHeadNode.PUBLIC);
-            dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.create();
-            dispatchRespondToMissing = DoesRespondDispatchHeadNode.create();
+            dispatch = DispatchNode.create(PUBLIC_DOES_RESPOND);
+            dispatchIgnoreVisibility = DispatchNode.create(PRIVATE_DOES_RESPOND);
+            dispatchRespondToMissing = DispatchNode.create(PRIVATE_DOES_RESPOND);
         }
 
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,
@@ -1539,13 +1541,14 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 Object object,
                 RubyString name,
-                boolean includeProtectedAndPrivate) {
+                boolean includeProtectedAndPrivate,
+                @Cached ToJavaStringNode toJavaString) {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, name, object);
+                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             } else {
-                ret = dispatch.doesRespondTo(frame, name, object);
+                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             }
 
             if (isTrueProfile.profile(ret)) {
@@ -1567,13 +1570,14 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 Object object,
                 RubySymbol name,
-                boolean includeProtectedAndPrivate) {
+                boolean includeProtectedAndPrivate,
+                @Cached ToJavaStringNode toJavaString) {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, name, object);
+                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             } else {
-                ret = dispatch.doesRespondTo(frame, name, object);
+                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
             }
 
             if (isTrueProfile.profile(ret)) {
@@ -1590,7 +1594,7 @@ public abstract class KernelNodes {
                 boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(CallDispatchHeadNode.createPrivate());
+                respondToMissingNode = insert(DispatchNode.create());
             }
 
             if (booleanCastNode == null) {

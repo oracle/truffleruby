@@ -14,7 +14,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -23,11 +23,12 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+
 /** Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
 
-    @Child private CallDispatchHeadNode toStr;
+    @Child private DispatchNode toStr;
 
     @Specialization
     protected RubySymbol coerceRubySymbol(RubySymbol symbol) {
@@ -69,7 +70,7 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
     private Object callToStr(Object object) {
         if (toStr == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStr = insert(CallDispatchHeadNode.createPrivate());
+            toStr = insert(DispatchNode.create());
         }
         return toStr.call(object, "to_str");
     }

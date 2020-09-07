@@ -31,7 +31,7 @@ import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 import org.truffleruby.language.loader.CodeLoader;
@@ -109,8 +109,8 @@ public abstract class TruffleKernelNodes {
                 self = mainObject;
             } else {
                 declarationContext = DeclarationContext.topLevel(wrapModule);
-                self = CallDispatchHeadNode.getUncached().call(mainObject, "clone");
-                CallDispatchHeadNode.getUncached().call(self, "extend", wrapModule);
+                self = DispatchNode.getUncached().call(mainObject, "clone");
+                DispatchNode.getUncached().call(self, "extend", wrapModule);
             }
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(

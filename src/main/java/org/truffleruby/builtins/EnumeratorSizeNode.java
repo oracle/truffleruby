@@ -14,16 +14,17 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+
 public class EnumeratorSizeNode extends RubyContextSourceNode {
 
     @Child private RubyNode method;
-    @Child private CallDispatchHeadNode toEnumWithSize;
+    @Child private DispatchNode toEnumWithSize;
 
     private final ConditionProfile noBlockProfile = ConditionProfile.create();
 
@@ -43,7 +44,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumWithSize == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumWithSize = insert(CallDispatchHeadNode.createPrivate());
+                toEnumWithSize = insert(DispatchNode.create());
             }
 
             final Object self = RubyArguments.getSelf(frame);

@@ -10,23 +10,24 @@
 package org.truffleruby.core.kernel;
 
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+
 public class KernelPrintLastLineNode extends RubyContextSourceNode {
 
-    @Child private CallDispatchHeadNode callPrintNode;
+    @Child private DispatchNode callPrintNode;
     @Child private ReadGlobalVariableNode readGlobalVariableNode;
 
     @Override
     public Object execute(VirtualFrame frame) {
         if (callPrintNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callPrintNode = insert(CallDispatchHeadNode.createPrivate());
+            callPrintNode = insert(DispatchNode.create());
         }
         if (readGlobalVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

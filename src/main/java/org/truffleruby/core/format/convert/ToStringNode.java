@@ -21,8 +21,8 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -32,6 +32,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 @NodeChild("value")
 public abstract class ToStringNode extends FormatNode {
 
@@ -40,8 +42,8 @@ public abstract class ToStringNode extends FormatNode {
     private final boolean inspectOnConversionFailure;
     private final Object valueOnNil;
 
-    @Child private CallDispatchHeadNode toStrNode;
-    @Child private CallDispatchHeadNode toSNode;
+    @Child private DispatchNode toStrNode;
+    @Child private DispatchNode toSNode;
     @Child private KernelNodes.ToSNode inspectNode;
 
     private final ConditionProfile taintedProfile = ConditionProfile.create();
@@ -111,7 +113,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(CallDispatchHeadNode.createReturnMissing());
+            toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
         }
 
         final Object value = toSNode.call(array, "to_s");
@@ -160,10 +162,10 @@ public abstract class ToStringNode extends FormatNode {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private CallDispatchHeadNode getToStrNode() {
+    private DispatchNode getToStrNode() {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(CallDispatchHeadNode.createReturnMissing());
+            toStrNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
         }
         return toStrNode;
     }

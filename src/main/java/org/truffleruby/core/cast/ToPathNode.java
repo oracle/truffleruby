@@ -12,7 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -28,7 +28,7 @@ public abstract class ToPathNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyString(object)")
     protected RubyString coerceObject(Object object,
-            @Cached("createPrivate()") CallDispatchHeadNode toPathNode) {
+            @Cached DispatchNode toPathNode) {
         return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);
     }
 

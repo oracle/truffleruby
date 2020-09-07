@@ -11,7 +11,7 @@ package org.truffleruby.interop;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -46,7 +46,7 @@ public class ProxyForeignObject implements TruffleObject {
     @TruffleBoundary
     @ExportMessage
     protected Object send(Message message, Object[] rawArgs,
-            @Cached CallDispatchHeadNode dispatchNode,
+            @Cached DispatchNode dispatchNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedLibrary("this.delegate") ReflectionLibrary reflections,
             @CachedLanguage RubyLanguage language) throws Exception {

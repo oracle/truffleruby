@@ -78,7 +78,7 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.AddMethodNode;
@@ -122,6 +122,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
 
 @CoreModule(value = "Module", isClass = true)
 public abstract class ModuleNodes {
@@ -1865,7 +1866,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
-        @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode methodRemovedNode = DispatchNode.create();
 
         @Specialization
         protected RubyModule removeMethods(RubyModule module, Object[] names) {
@@ -1898,7 +1899,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callRbInspect;
+        @Child private DispatchNode callRbInspect;
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
@@ -1914,7 +1915,7 @@ public abstract class ModuleNodes {
                 } else {
                     if (callRbInspect == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        callRbInspect = insert(CallDispatchHeadNode.createPrivate());
+                        callRbInspect = insert(DispatchNode.create());
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
@@ -1936,7 +1937,6 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "undef_method", rest = true, split = Split.NEVER, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected RubyModule undefMethods(RubyModule module, Object[] names,

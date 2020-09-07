@@ -18,15 +18,15 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
 /*
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
@@ -38,7 +38,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
 
-    @Child private CallDispatchHeadNode toArrayNode = CallDispatchHeadNode.createReturnMissing();
+    @Child private DispatchNode toArrayNode = DispatchNode.create(PRIVATE_RETURN_MISSING);
 
     public static ArrayCastNode create() {
         return ArrayCastNodeGen.create(null);

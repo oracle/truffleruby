@@ -51,7 +51,7 @@ import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -61,6 +61,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
 
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
@@ -117,7 +118,7 @@ public class TruffleRegexpNodes {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
+        @Child DispatchNode copyNode = DispatchNode.create();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -287,7 +288,7 @@ public class TruffleRegexpNodes {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode dupNode = DispatchNode.create();
 
         public static MatchNode create() {
             return MatchNodeGen.create();

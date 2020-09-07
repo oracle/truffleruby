@@ -15,19 +15,21 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 @NodeChild("value")
 public abstract class ToLongNode extends FormatNode {
 
     private final boolean errorIfNeedsConversion;
 
-    @Child private CallDispatchHeadNode toIntNode;
+    @Child private DispatchNode toIntNode;
     @Child private ToLongNode redoNode;
 
     public ToLongNode(boolean errorIfNeedsConversion) {
@@ -71,7 +73,7 @@ public abstract class ToLongNode extends FormatNode {
 
         if (toIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(CallDispatchHeadNode.createReturnMissing());
+            toIntNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
         }
 
         final Object value = toIntNode.call(object, "to_int");

@@ -35,7 +35,7 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
         final RubyProc typedBlock = procOrNullNode.executeProcOrNull(block);
         final Object[] frameArguments = packArguments(method, internalMethod, arguments, typedBlock);
 
-        return callInternalMethodNode.executeCallMethod(internalMethod, frameArguments);
+        return callInternalMethodNode.execute(internalMethod, frameArguments);
     }
 
     private Object[] packArguments(RubyMethod method, InternalMethod internalMethod, Object[] arguments,

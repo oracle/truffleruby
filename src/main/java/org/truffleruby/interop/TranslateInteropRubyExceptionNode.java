@@ -15,7 +15,7 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.utils.Utils;
 
@@ -147,7 +147,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             String identifier,
             Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached CallDispatchHeadNode dispatch,
+            @Cached DispatchNode dispatch,
             @Cached IntegerCastNode intCastNode,
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws ArityException {
         int expected = intCastNode.executeCastInt(dispatch.call(exception.getException(), "expected"));

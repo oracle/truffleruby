@@ -17,7 +17,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -25,12 +25,13 @@ import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+
 @GenerateWrapper
 public abstract class RescueNode extends RubyContextSourceNode {
 
     @Child private RubyNode rescueBody;
 
-    @Child private CallDispatchHeadNode callTripleEqualsNode;
+    @Child private DispatchNode callTripleEqualsNode;
     @Child private BooleanCastNode booleanCastNode;
 
     private final BranchProfile errorProfile = BranchProfile.create();
@@ -59,7 +60,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
         if (callTripleEqualsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callTripleEqualsNode = insert(CallDispatchHeadNode.createPrivate());
+            callTripleEqualsNode = insert(DispatchNode.create());
         }
         if (booleanCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

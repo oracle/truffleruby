@@ -17,11 +17,12 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
 
 public abstract class InitializeClassNode extends RubyContextNode {
 
@@ -29,7 +30,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     private final BranchProfile errorProfile = BranchProfile.create();
 
     @Child private ModuleNodes.InitializeNode moduleInitializeNode;
-    @Child private CallDispatchHeadNode inheritedNode;
+    @Child private DispatchNode inheritedNode;
 
     public InitializeClassNode(boolean callInherited) {
         this.callInherited = callInherited;
@@ -118,7 +119,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     private void triggerInheritedHook(RubyClass subClass, RubyClass superClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            inheritedNode = insert(CallDispatchHeadNode.createPrivate());
+            inheritedNode = insert(DispatchNode.create());
         }
         inheritedNode.call(superClass, "inherited", subClass);
     }

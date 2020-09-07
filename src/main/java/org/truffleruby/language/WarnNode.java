@@ -14,12 +14,13 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
+
 
 /** Warns if $VERBOSE is true or false, but not nil. Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a
  * given SourceSection. */
@@ -27,7 +28,7 @@ public class WarnNode extends RubyContextNode {
 
     @Child protected ReadSimpleGlobalVariableNode readVerboseNode = ReadSimpleGlobalVariableNode.create("$VERBOSE");
 
-    @Child private CallDispatchHeadNode callWarnNode;
+    @Child private DispatchNode callWarnNode;
     @Child private MakeStringNode makeStringNode;
 
     public boolean shouldWarn() {
@@ -54,7 +55,7 @@ public class WarnNode extends RubyContextNode {
 
         if (callWarnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callWarnNode = insert(CallDispatchHeadNode.createPrivate());
+            callWarnNode = insert(DispatchNode.create());
         }
         callWarnNode.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
     }

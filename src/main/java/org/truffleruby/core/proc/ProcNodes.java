@@ -32,7 +32,7 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -63,7 +63,7 @@ public abstract class ProcNodes {
     @CoreMethod(names = "new", constructor = true, needsBlock = true, rest = true)
     public abstract static class ProcNewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode initializeNode;
+        @Child private DispatchNode initializeNode;
         @Child private AllocateHelperNode allocateHelper;
 
         public abstract RubyProc executeProcNew(
@@ -114,7 +114,7 @@ public abstract class ProcNodes {
         @Specialization(guards = "procClass != metaClass(block)")
         protected RubyProc procSpecial(RubyClass procClass, Object[] args, RubyProc block,
                 @Cached AllocateHelperNode allocateHelper,
-                @Cached CallDispatchHeadNode initialize) {
+                @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
             final RubyProc proc = new RubyProc(

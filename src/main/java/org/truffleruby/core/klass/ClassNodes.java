@@ -24,7 +24,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -38,6 +38,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
 
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
@@ -275,7 +276,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "allocate")
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode allocateNode = DispatchNode.create();
 
         @Specialization
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass) {
@@ -286,8 +287,8 @@ public abstract class ClassNodes {
     @CoreMethod(names = "new", needsBlock = true, rest = true)
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode allocateNode = DispatchNode.create();
+        @Child private DispatchNode initialize = DispatchNode.create();
 
         @Specialization
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, NotProvided block) {

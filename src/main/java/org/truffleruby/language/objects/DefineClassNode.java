@@ -15,12 +15,13 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
 
 public class DefineClassNode extends RubyContextSourceNode {
 
@@ -29,7 +30,7 @@ public class DefineClassNode extends RubyContextSourceNode {
     @Child private RubyNode superClassNode;
     @Child private RubyNode lexicalParentModule;
     @Child private LookupForExistingModuleNode lookupForExistingModuleNode;
-    @Child private CallDispatchHeadNode inheritedNode;
+    @Child private DispatchNode inheritedNode;
 
     private final ConditionProfile needToDefineProfile = ConditionProfile.create();
     private final ConditionProfile noSuperClassSupplied = ConditionProfile.create();
@@ -122,7 +123,7 @@ public class DefineClassNode extends RubyContextSourceNode {
     private void callInherited(VirtualFrame frame, RubyClass superClass, RubyClass childClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            inheritedNode = insert(CallDispatchHeadNode.createPrivate());
+            inheritedNode = insert(DispatchNode.create());
         }
         inheritedNode.call(superClass, "inherited", childClass);
     }

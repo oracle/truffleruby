@@ -19,6 +19,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
@@ -40,13 +41,14 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -75,6 +77,7 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+
 @CoreModule(value = "BasicObject", isClass = true)
 public abstract class BasicObjectNodes {
 
@@ -92,7 +95,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "!=", required = 1)
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode equalNode = DispatchNode.create();
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
@@ -557,8 +560,7 @@ public abstract class BasicObjectNodes {
             return superCallNode != null;
         }
 
-        /** See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}. The only way to fail if method is not
-         * null and not undefined is visibility. */
+        /** See {@link LookupMethodNode}. The only way to fail if method is not null and not undefined is visibility. */
         private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name,
                 FrameAndCallNode callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);
@@ -581,8 +583,9 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPrivate();
+        @Child private DispatchNode dispatchNode = DispatchNode.create(DispatchNode.PRIVATE);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
@@ -594,7 +597,7 @@ public abstract class BasicObjectNodes {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
-            return dispatchNode.dispatch(frame, self, name, block, args);
+            return dispatchNode.dispatch(frame, self, nameToJavaString.execute(name), block, args);
         }
 
     }

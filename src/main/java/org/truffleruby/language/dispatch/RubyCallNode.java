@@ -34,6 +34,10 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
+
 public class RubyCallNode extends RubyContextSourceNode {
 
     private final String methodName;
@@ -49,7 +53,7 @@ public class RubyCallNode extends RubyContextSourceNode {
     private final boolean isSafeNavigation;
     private final boolean isAttrAssign;
 
-    @Child private CallDispatchHeadNode dispatchHead;
+    @Child private DispatchNode dispatch;
     @Child private ArrayToObjectArrayNode toObjectArrayNode;
     @Child private DefinedNode definedNode;
 
@@ -108,13 +112,12 @@ public class RubyCallNode extends RubyContextSourceNode {
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, RubyProc blockObject,
             Object[] argumentsObjects) {
-        if (dispatchHead == null) {
+        if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(
-                    new CallDispatchHeadNode(ignoreVisibility, false, MissingBehavior.CALL_METHOD_MISSING));
+            dispatch = insert(DispatchNode.create(ignoreVisibility ? PRIVATE : PROTECTED));
         }
 
-        final Object returnValue = dispatchHead
+        final Object returnValue = dispatch
                 .dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         if (isAttrAssign) {
             return argumentsObjects[argumentsObjects.length - 1];
@@ -177,7 +180,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         private final RubySymbol methodNameSymbol = getContext().getSymbol(methodName);
 
-        @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.createReturnMissing();
+        @Child private DispatchNode respondToMissing = DispatchNode.create(PRIVATE_RETURN_MISSING);
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
         // TODO CS-10-Apr-17 see below

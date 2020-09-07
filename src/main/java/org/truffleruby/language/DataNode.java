@@ -14,16 +14,17 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+
 public class DataNode extends RubyContextSourceNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode;
-    @Child private CallDispatchHeadNode callHelperNode;
+    @Child private DispatchNode callHelperNode;
 
     private final int endPosition;
 
@@ -40,7 +41,7 @@ public class DataNode extends RubyContextSourceNode {
 
         if (callHelperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callHelperNode = insert(CallDispatchHeadNode.createPrivate());
+            callHelperNode = insert(DispatchNode.create());
         }
 
         final String path = getPath();
