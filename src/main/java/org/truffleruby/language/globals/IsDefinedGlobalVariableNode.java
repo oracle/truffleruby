@@ -59,7 +59,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
     }
 
     protected int isDefinedArity(GlobalVariableStorage storage) {
-        return storage.getIsDefined().sharedMethodInfo.getArity().getArityNumber();
+        return storage.getIsDefined().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {

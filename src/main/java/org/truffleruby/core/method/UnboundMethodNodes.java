@@ -66,7 +66,7 @@ public abstract class UnboundMethodNodes {
 
         @Specialization
         protected int arity(RubyUnboundMethod unboundMethod) {
-            return unboundMethod.method.getSharedMethodInfo().getArity().getArityNumber();
+            return unboundMethod.method.getArityNumber();
         }
 
     }

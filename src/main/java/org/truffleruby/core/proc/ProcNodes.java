@@ -160,9 +160,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected int arity(RubyProc proc) {
-            return proc.sharedMethodInfo.getArity().getArityNumber();
+            return proc.getArityNumber();
         }
-
     }
 
     @CoreMethod(names = "binding")

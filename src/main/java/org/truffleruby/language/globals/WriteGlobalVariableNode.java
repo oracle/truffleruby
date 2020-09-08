@@ -59,7 +59,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
     }
 
     protected int setterArity(GlobalVariableStorage storage) {
-        return storage.getSetter().sharedMethodInfo.getArity().getArityNumber();
+        return storage.getSetter().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {

@@ -501,7 +501,7 @@ public abstract class HashNodes {
 
         private Object yieldPair(RubyProc block, Object key, Object value) {
             // MRI behavior, see rb_hash_each_pair()
-            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getArityNumber() > 1)) {
+            if (arityMoreThanOne.profile(block.getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
                 return yield(block, createArray(new Object[]{ key, value }));
@@ -722,7 +722,7 @@ public abstract class HashNodes {
 
         private Object yieldPair(RubyProc block, Object key, Object value) {
             // MRI behavior, see rb_hash_each_pair()
-            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getArityNumber() > 1)) {
+            if (arityMoreThanOne.profile(block.getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
                 return yield(block, createArray(new Object[]{ key, value }));
