@@ -29,6 +29,7 @@ import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
@@ -204,7 +205,27 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public void checkFrozen(RubyContext context, Node currentNode) {
         if (context.getCoreLibrary() != null && RubyLibrary.getUncached().isFrozen(rubyModule)) {
-            throw new RaiseException(context, context.getCoreExceptions().frozenError(rubyModule, currentNode));
+            String name;
+            if (rubyModule instanceof RubyClass) {
+                final RubyClass cls = (RubyClass) rubyModule;
+                name = "object";
+                if (cls.isSingleton) {
+                    if (cls.attached instanceof RubyClass) {
+                        name = "Class";
+                    } else if (cls.attached instanceof RubyModule) {
+                        name = "Module";
+                    }
+                } else {
+                    name = "class";
+                }
+            } else {
+                name = "module";
+            }
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().frozenError(
+                            StringUtils.format("can't modify frozen %s", name),
+                            currentNode));
         }
     }
 
