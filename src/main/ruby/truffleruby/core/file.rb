@@ -102,8 +102,6 @@ class File < IO
     FNM_SYSCASE = File::FNM_SYSCASE
   end
 
-  FFI = Truffle::FFI
-
   SEPARATOR = '/'
   Separator = SEPARATOR
   ALT_SEPARATOR = nil
@@ -847,7 +845,7 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
-    FFI::MemoryPointer.new(Truffle::Platform::PATH_MAX) do |ptr|
+    Truffle::FFI::MemoryPointer.new(Truffle::Platform::PATH_MAX) do |ptr|
       n = POSIX.readlink Truffle::Type.coerce_to_path(path), ptr, Truffle::Platform::PATH_MAX
       Errno.handle if n == -1
 

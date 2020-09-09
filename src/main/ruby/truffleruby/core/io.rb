@@ -35,7 +35,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class IO
-  FFI = Truffle::FFI
 
   include Enumerable
 
@@ -1560,7 +1559,7 @@ class IO
       # Most Linux ioctl codes predate the convention, so a fallback like this
       # is still necessary.
       buffer_size = 4096 if buffer_size < 4096
-      buffer = FFI::MemoryPointer.new(buffer_size)
+      buffer = Truffle::FFI::MemoryPointer.new(buffer_size)
       buffer.write_string(arg, arg.bytesize)
       real_arg = buffer.address
     else
