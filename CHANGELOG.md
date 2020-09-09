@@ -9,6 +9,7 @@ Bug fixes:
 * Fixed return value of `Enumerable#first` (#2056, @LillianZ).
 * Improve reliability of the post install hook by disabling RubyGems (#2075).
 * Fixed top level exception handler to print exception cause (#2013).
+* Fixed `String#encode` with options issue (#2091, #2095, @LillianZ)
 
 Compatibility:
 
