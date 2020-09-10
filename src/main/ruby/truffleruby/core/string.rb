@@ -457,7 +457,7 @@ class String
         status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
         raise ec.last_error unless status == :finished
         return replace(dest)
-      elsif options == 0
+      else
         force_encoding to_enc
       end
     end

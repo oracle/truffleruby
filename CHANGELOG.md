@@ -11,6 +11,7 @@ Bug fixes:
 * Fixed top level exception handler to print exception cause (#2013).
 * Fixed issue when extending FFI from File (#2094).
 * Fixed issue with `Kernel#freeze` not freezing singleton class (#2093).
+* Fixed `String#encode` with options issue (#2091, #2095, @LillianZ)
 
 Compatibility:
 
