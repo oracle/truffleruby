@@ -18,6 +18,7 @@ import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -27,6 +28,7 @@ public abstract class ProcOperations {
     private static Object[] packArguments(RubyProc proc, Object... args) {
         return RubyArguments.pack(
                 proc.declarationFrame,
+                null,
                 null,
                 proc.method,
                 proc.frameOnStackMarker,
@@ -56,6 +58,7 @@ public abstract class ProcOperations {
             RootCallTarget callTargetForProcs,
             RootCallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
+            SpecialVariableStorage storage,
             InternalMethod method,
             RubyProc block,
             FrameOnStackMarker frameOnStackMarker,
@@ -82,6 +85,7 @@ public abstract class ProcOperations {
                 callTargetForType,
                 callTargetForLambdas,
                 declarationFrame,
+                storage,
                 method,
                 block,
                 frameOnStackMarker,
@@ -99,6 +103,7 @@ public abstract class ProcOperations {
                 block.callTargetForLambdas,
                 block.callTargetForLambdas,
                 block.declarationFrame,
+                block.declarationStorage,
                 block.method,
                 block.block,
                 null,

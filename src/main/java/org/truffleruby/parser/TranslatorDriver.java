@@ -72,6 +72,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.SyntaxException;
@@ -234,6 +235,10 @@ public class TranslatorDriver {
             }
         }
 
+        if (parserContext.isTopLevel()) {
+            //            environment.declareSpecialStorage();
+        }
+
         // Translate to Ruby Truffle nodes
 
         // Like MRI, do not track coverage of eval's. This also avoids having to merge multiple Sources with the same RubyContext.getPath().
@@ -354,6 +359,11 @@ public class TranslatorDriver {
         }
 
         truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
+
+        if (parserContext.isTopLevel()) {
+            truffleNode = Translator
+                    .sequence(sourceIndexLength, Arrays.asList(new MakeSpecialVariableStorageNode(), truffleNode));
+        }
 
         return new RubyRootNode(
                 context,

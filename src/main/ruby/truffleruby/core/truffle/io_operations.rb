@@ -10,10 +10,10 @@
 
 module Truffle
   module IOOperations
-    def self.print(io, args, last_line_binding)
+    def self.print(io, args, last_line_storage)
       if args.empty?
-        raise 'last_line_binding is required' if Primitive.nil? last_line_binding
-        io.write Primitive.frame_local_variable_get(:$_, last_line_binding).to_s
+        raise 'last_line_binding is required' if Primitive.nil? last_line_storage
+        io.write Primitive.io_last_line_get(last_line_storage).to_s
       else
         args.each { |o| io.write o.to_s }
       end

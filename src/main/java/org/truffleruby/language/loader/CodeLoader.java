@@ -86,6 +86,7 @@ public class CodeLoader {
         return new DeferredCall(callTarget, RubyArguments.pack(
                 parentFrame,
                 null,
+                null,
                 method,
                 null,
                 self,

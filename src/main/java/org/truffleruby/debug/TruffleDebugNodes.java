@@ -279,7 +279,7 @@ public abstract class TruffleDebugNodes {
             return nil;
         }
 
-        private void printAst(InternalMethod method) {
+        public static void printAst(InternalMethod method) {
             NodeUtil.printCompactTree(System.err, method.getCallTarget().getRootNode());
         }
 

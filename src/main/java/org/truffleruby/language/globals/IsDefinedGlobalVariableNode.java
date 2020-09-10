@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -53,9 +53,10 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
     protected Object executeDefinedHooksWithBinding(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
-            @Cached YieldNode yieldNode) {
+            @Cached YieldNode yieldNode,
+            @Cached GetSpecialVariableStorage readStorage) {
         return yieldNode
-                .executeDispatch(storage.getIsDefined(), BindingNodes.createBinding(getContext(), frame.materialize()));
+                .executeDispatch(storage.getIsDefined(), readStorage.execute(frame));
     }
 
     protected int isDefinedArity(GlobalVariableStorage storage) {

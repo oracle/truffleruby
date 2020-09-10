@@ -77,6 +77,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
             final Object value = callNode.call(RubyArguments.pack(
                     null,
                     null,
+                    null,
                     method,
                     null,
                     context.getCoreLibrary().mainObject,

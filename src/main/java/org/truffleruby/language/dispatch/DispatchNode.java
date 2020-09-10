@@ -24,7 +24,7 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.FrameSendingNode;
+import org.truffleruby.language.FrameOrStorageSendingNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -36,9 +36,10 @@ import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.options.Options;
 
-public class DispatchNode extends FrameSendingNode {
+public class DispatchNode extends FrameOrStorageSendingNode {
 
     private static final class Missing implements TruffleObject {
     }
@@ -142,7 +143,9 @@ public class DispatchNode extends FrameSendingNode {
         }
 
         final MaterializedFrame callerFrame = getFrameIfRequired(frame);
-        final Object[] frameArguments = RubyArguments.pack(null, callerFrame, method, null, receiver, block, arguments);
+        final SpecialVariableStorage callerStorage = getStorageIfRequired(frame);
+        final Object[] frameArguments = RubyArguments
+                .pack(null, callerFrame, callerStorage, method, null, receiver, block, arguments);
 
         return callNode.execute(method, frameArguments);
     }

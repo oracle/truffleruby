@@ -20,6 +20,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -40,6 +41,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public final RootCallTarget callTargetForType;
     public final RootCallTarget callTargetForLambdas;
     public final MaterializedFrame declarationFrame;
+    public final SpecialVariableStorage declarationStorage;
     public final InternalMethod method;
     public final RubyProc block;
     public final FrameOnStackMarker frameOnStackMarker;
@@ -57,12 +59,41 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             @Nullable RubyProc block,
             @Nullable FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
+        this(
+                rubyClass,
+                shape,
+                type,
+                sharedMethodInfo,
+                callTargetForType,
+                callTargetForLambdas,
+                declarationFrame,
+                null,
+                method,
+                block,
+                frameOnStackMarker,
+                declarationContext);
+    }
+
+    public RubyProc(
+            RubyClass rubyClass,
+            Shape shape,
+            ProcType type,
+            SharedMethodInfo sharedMethodInfo,
+            RootCallTarget callTargetForType,
+            RootCallTarget callTargetForLambdas,
+            MaterializedFrame declarationFrame,
+            SpecialVariableStorage declarationStorage,
+            @Nullable InternalMethod method,
+            @Nullable RubyProc block,
+            @Nullable FrameOnStackMarker frameOnStackMarker,
+            DeclarationContext declarationContext) {
         super(rubyClass, shape);
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTargetForType = callTargetForType;
         this.callTargetForLambdas = callTargetForLambdas;
         this.declarationFrame = declarationFrame;
+        this.declarationStorage = declarationStorage;
         this.method = method;
         this.block = block;
         this.frameOnStackMarker = frameOnStackMarker;
