@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -48,7 +48,15 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
 
         if (restArgIndex != -1) {
             final Object restArg = superArguments[restArgIndex];
-            final Object[] restArgs = unsplat((RubyArray) restArg);
+
+            final Object[] restArgs;
+
+            if (restArg instanceof RubyArray) {
+                restArgs = unsplat((RubyArray) restArg);
+            } else {
+                restArgs = new Object[]{restArg};
+            }
+
             final int after = superArguments.length - (restArgIndex + 1);
             Object[] splattedArguments = ArrayUtils.copyOf(superArguments, superArguments.length + restArgs.length - 1);
             ArrayUtils.arraycopy(
