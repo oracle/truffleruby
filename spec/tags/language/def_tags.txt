@@ -1,0 +1,2 @@
+fails:An instance method raises FrozenError with the correct class name
+fails:A singleton method definition raises FrozenError with the correct class name

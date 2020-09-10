@@ -10,6 +10,7 @@ Bug fixes:
 * Improve reliability of the post install hook by disabling RubyGems (#2075).
 * Fixed top level exception handler to print exception cause (#2013).
 * Fixed issue when extending FFI from File (#2094).
+* Fixed issue with `Kernel#freeze` not freezing singleton class (#2093).
 
 Compatibility:
 

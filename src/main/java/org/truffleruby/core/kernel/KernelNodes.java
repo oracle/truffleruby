@@ -84,6 +84,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -846,9 +847,25 @@ public abstract class KernelNodes {
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "!isRubyDynamicObject(self)")
         protected Object freeze(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            rubyLibrary.freeze(self);
+            return self;
+        }
+
+        @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "isRubyDynamicObject(self)")
+        protected Object freezeDynamicObject(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @Cached("createBinaryProfile()") ConditionProfile singletonProfile,
+                @Cached MetaClassNode metaClassNode) {
+            final RubyClass metaClass = metaClassNode.execute(self);
+            if (singletonProfile.profile(metaClass.isSingleton &&
+                    !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton))) {
+                if (!RubyLibrary.getUncached().isFrozen(metaClass)) {
+                    RubyLibrary.getUncached().freeze(metaClass);
+                }
+            }
             rubyLibrary.freeze(self);
             return self;
         }
