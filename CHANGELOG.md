@@ -30,6 +30,7 @@ Compatibility:
 * Skip upgraded default gems while loading RubyGems (#2075).
 * Verify that gem paths are correct before loading RubyGems (#2075).
 * Implement `rb_ivar_count`.
+* Implemented `rb_yield_values2`.
 
 Performance:
 

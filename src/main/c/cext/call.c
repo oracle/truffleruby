@@ -93,6 +93,14 @@ VALUE rb_yield_values(int n, ...) {
   return rb_yield_splat(values);
 }
 
+VALUE rb_yield_values2(int n, const VALUE *argv) {
+  VALUE values = rb_ary_new_capa(n);
+  for (int i = 0; i < n; i++) {
+    rb_ary_store(values, i, (VALUE) argv[i]);
+  }
+  return rb_yield_splat(values);
+}
+
 void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_with_gvl", function, data1);
 }
