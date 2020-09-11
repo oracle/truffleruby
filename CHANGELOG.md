@@ -12,6 +12,7 @@ Bug fixes:
 * Fixed issue when extending FFI from File (#2094).
 * Fixed issue with `Kernel#freeze` not freezing singleton class (#2093).
 * Fixed `String#encode` with options issue (#2091, #2095, @LillianZ)
+* Fixed issue with `spawn` when `:close` redirect is used (#2097).
 
 Compatibility:
 
