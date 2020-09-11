@@ -12,6 +12,7 @@ Bug fixes:
 * Fixed issue when extending FFI from File (#2094).
 * Fixed issue with `Kernel#freeze` not freezing singleton class (#2093).
 * Fixed `String#encode` with options issue (#2091, #2095, @LillianZ)
+* Fixed `coverage` issue when `*eval` is used (#2078).
 
 Compatibility:
 

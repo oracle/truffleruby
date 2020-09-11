@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -87,7 +86,6 @@ public class CoverageManager {
         binding = instrumenter.attachExecutionEventFactory(
                 SourceSectionFilter
                         .newBuilder()
-                        .mimeTypeIs(TruffleRuby.MIME_TYPE)
                         .sourceIs(coveredSources::contains)
                         .tagIs(LineTag.class)
                         .build(),

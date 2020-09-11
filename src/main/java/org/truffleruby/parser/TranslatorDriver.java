@@ -233,7 +233,10 @@ public class TranslatorDriver {
 
         // Translate to Ruby Truffle nodes
 
-        context.getCoverageManager().loadingSource(source);
+        // Like MRI, do not track coverage of eval's. This also avoids having to merge multiple Sources with the same RubyContext.getPath().
+        if (!rubySource.isEval()) {
+            context.getCoverageManager().loadingSource(source);
+        }
 
         final BodyTranslator translator = new BodyTranslator(
                 context,

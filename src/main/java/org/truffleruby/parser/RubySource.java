@@ -24,18 +24,23 @@ public class RubySource {
      * for non-file Sources in the future (but then we'll need to still use this path in Ruby backtraces). */
     private final String sourcePath;
     private final Rope sourceRope;
+    private final boolean isEval;
 
     public RubySource(Source source, String sourcePath) {
-        this(source, sourcePath, null);
+        this(source, sourcePath, null, false);
     }
 
     public RubySource(Source source, String sourcePath, Rope sourceRope) {
-        assert RubyContext.getPath(source).equals(sourcePath) : RubyContext.getPath(source) + " vs " + sourcePath;
+        this(source, sourcePath, sourceRope, false);
+    }
 
+    public RubySource(Source source, String sourcePath, Rope sourceRope, boolean isEval) {
+        assert RubyContext.getPath(source).equals(sourcePath) : RubyContext.getPath(source) + " vs " + sourcePath;
         this.source = Objects.requireNonNull(source);
         //intern() to improve footprint
         this.sourcePath = Objects.requireNonNull(sourcePath).intern();
         this.sourceRope = sourceRope;
+        this.isEval = isEval;
     }
 
     public Source getSource() {
@@ -50,4 +55,7 @@ public class RubySource {
         return sourceRope;
     }
 
+    public boolean isEval() {
+        return isEval;
+    }
 }
