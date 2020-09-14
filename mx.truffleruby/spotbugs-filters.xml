@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <Match>
+    <Package name="~org\.truffleruby.*" />
+    <Not>
+      <Or>
+        <!-- These are not worth fixing -->
+        <Bug pattern="MS_PKGPROTECT" />
+        <Bug pattern="MS_MUTABLE_ARRAY" />
+        <Bug pattern="MS_MUTABLE_COLLECTION" />
+        <Bug pattern="SF_SWITCH_NO_DEFAULT" />
+        <Bug pattern="RI_REDUNDANT_INTERFACES" />
+        <!-- Intentional -->
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+        <Bug pattern="DM_EXIT" />
+        <Bug pattern="DM_GC" />
+        <Bug pattern="EI_EXPOSE_REP" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+        <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
+      </Or>
+    </Not>
+  </Match>
+</FindBugsFilter>

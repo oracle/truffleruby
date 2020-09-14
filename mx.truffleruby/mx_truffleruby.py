@@ -13,6 +13,7 @@ from os.path import join, exists, basename
 import mx
 import mx_sdk
 import mx_subst
+import mx_spotbugs
 
 if 'RUBY_BENCHMARKS' in os.environ:
     import mx_truffleruby_benchmark  # pylint: disable=unused-import
@@ -160,6 +161,14 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'mri', '--all-sulong')
     jt('test', 'cexts')
 
+def ruby_spotbugs(args):
+    """Run SpotBugs with custom options to detect more issues"""
+    filters = join(root, 'mx.truffleruby', 'spotbugs-filters.xml')
+    spotbugsArgs = ['-textui', '-low', '-longBugCodes', '-include', filters]
+    if mx.is_interactive():
+        spotbugsArgs.append('-progress')
+    mx_spotbugs.spotbugs(args, spotbugsArgs)
+
 def verify_ci(args):
     """Verify CI configuration"""
     mx.verify_ci(args, mx.suite('truffle'), _suite, 'common.json')
@@ -247,5 +256,6 @@ mx.update_commands(_suite, {
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
+    'ruby_spotbugs': [ruby_spotbugs, ''],
     'verify-ci' : [verify_ci, '[options]'],
 })
