@@ -63,42 +63,27 @@ public abstract class ProcNodes {
     @CoreMethod(names = "new", constructor = true, needsBlock = true, rest = true)
     public abstract static class ProcNewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode initializeNode;
-        @Child private AllocateHelperNode allocateHelper;
+        public static ProcNewNode create() {
+            return ProcNodesFactory.ProcNewNodeFactory.create(null);
+        }
 
-        public abstract RubyProc executeProcNew(
-                VirtualFrame frame,
-                RubyClass procClass,
-                Object[] args,
-                Object block);
+        public abstract RubyProc executeProcNew(VirtualFrame frame, RubyClass procClass, Object[] args, Object block);
 
         @Specialization
         protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, NotProvided block,
                 @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
-                @Cached ReadCallerFrameNode readCaller) {
+                @Cached ReadCallerFrameNode readCaller,
+                @Cached ProcNewNode recurseNode) {
             final MaterializedFrame parentFrame = readCaller.execute(frame);
 
-            Object parentBlock = readNode
-                    .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
-
-            if (parentBlock == nil) {
-                parentBlock = tryParentBlockForCExts();
-            }
+            Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
             if (parentBlock == nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
+            } else {
+                final RubyProc proc = (RubyProc) parentBlock;
+                return recurseNode.executeProcNew(frame, procClass, args, proc);
             }
-
-            return executeProcNew(frame, procClass, args, parentBlock);
-        }
-
-        @TruffleBoundary
-        protected Object tryParentBlockForCExts() {
-            /* TODO CS 11-Mar-17 to pass the remaining cext proc specs we need to determine here if Proc.new has been
-             * called from a cext from rb_funcall, and then reach down the stack to the Ruby method that originally went
-             * into C and get the block from there. */
-
-            return nil;
         }
 
         @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
