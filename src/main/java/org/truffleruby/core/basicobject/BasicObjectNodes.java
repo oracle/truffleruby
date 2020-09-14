@@ -506,7 +506,7 @@ public abstract class BasicObjectNodes {
                     self,
                     name,
                     relevantCallerFrame)) != null) {
-                if (visibility.isPrivate()) {
+                if (visibility == Visibility.PRIVATE) {
                     formatter = ExceptionOperations
                             .getFormatter(ExceptionOperations.PRIVATE_METHOD_ERROR, getContext());
                     return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
@@ -567,7 +567,7 @@ public abstract class BasicObjectNodes {
             final InternalMethod method = ModuleOperations
                     .lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
-                assert method.getVisibility().isPrivate() || method.getVisibility().isProtected();
+                assert method.getVisibility() == Visibility.PRIVATE || method.getVisibility() == Visibility.PROTECTED;
                 return method.getVisibility();
             }
             return null;
