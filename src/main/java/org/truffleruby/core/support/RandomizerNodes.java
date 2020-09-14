@@ -121,7 +121,7 @@ public abstract class RandomizerNodes {
             }
         }
 
-        public static int N = 624;
+        public static final int N = 624;
 
         @TruffleBoundary
         public static Randomizer randomFromBignum(RubyBignum seed) {
