@@ -608,8 +608,7 @@ module Commands
   include Utilities
 
   def help
-    # <<~ cannot be used since idea thinks TR is 2.1 and displays it as error
-    puts <<-TXT.gsub(/^ {6}/, '')
+    puts <<~TXT
       Usage: jt [options] COMMAND [command-options]
           Where options are:
           --build                   Runs `jt build` before the command
@@ -1221,18 +1220,18 @@ module Commands
           expected_file = "#{dir}/expected.txt"
           expected = File.read(expected_file)
           unless actual == expected
-            abort <<-EOS
-C extension #{dir} didn't work as expected
-
-Actual:
-#{actual}
-
-Expected:
-#{expected}
-
-Diff:
-#{diff(expected_file, output_file)}
-EOS
+            abort <<~EOS
+              C extension #{dir} didn't work as expected
+              
+              Actual:
+              #{actual}
+              
+              Expected:
+              #{expected}
+              
+              Diff:
+              #{diff(expected_file, output_file)}
+            EOS
           end
         ensure
           File.delete output_file if File.exist? output_file
