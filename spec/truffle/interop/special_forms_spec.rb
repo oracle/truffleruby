@@ -189,8 +189,10 @@ describe "Interop special forms" do
     l.log.should include(["instantiate"])
   end
 
+  # Always include in the documentation, even when run on native
+  desc = description['.class', :readMember, ['"class"'], 'when `foreign_object` is a `java.lang.Class`']
   guard -> { !TruffleRuby.native? } do
-    it description['.class', :readMember, ['"class"'], 'when `foreign_object` is a `java.lang.Class`'] do
+    it desc do
       Java.type('java.math.BigInteger').class.getName.should == 'java.math.BigInteger'
     end
   end
