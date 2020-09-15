@@ -11,7 +11,9 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.SuppressFBWarnings;
 
+@SuppressFBWarnings("Se")
 public class GetBacktraceException extends RuntimeException implements TruffleException {
 
     private static final long serialVersionUID = 2633487517169337464L;
