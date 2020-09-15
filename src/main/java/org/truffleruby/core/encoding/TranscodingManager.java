@@ -45,6 +45,8 @@ import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 
 import com.oracle.truffle.api.TruffleOptions;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringUtils;
 
 public class TranscodingManager {
 
@@ -56,8 +58,8 @@ public class TranscodingManager {
             for (Hash.HashEntry<TranscoderDB.Entry> destinationEntry : sourceEntry.entryIterator()) {
                 final TranscoderDB.Entry e = destinationEntry.value;
 
-                final String sourceName = new String(e.getSource()).toUpperCase();
-                final String destinationName = new String(e.getDestination()).toUpperCase();
+                final String sourceName = StringUtils.toUpperCase(RopeOperations.decodeAscii(e.getSource()));
+                final String destinationName = StringUtils.toUpperCase(RopeOperations.decodeAscii(e.getDestination()));
 
                 if (TruffleOptions.AOT) {
                     // Load the classes eagerly

@@ -117,7 +117,7 @@ public abstract class EncodingConverterNodes {
 
                 final byte[] segmentSource = transcoder.getSource();
                 ret[retIndex++] = getSymbol(
-                        RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
+                        RopeOperations.decodeAscii(segmentSource).toUpperCase());
             }
 
             final int retSize = retIndex + 1;
@@ -129,7 +129,7 @@ public abstract class EncodingConverterNodes {
 
             final byte[] destinationName = destinationEncoding.getName();
             ret[retIndex] = getSymbol(
-                    RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
+                    RopeOperations.decodeAscii(destinationName).toUpperCase());
 
             return createArray(ret);
         }

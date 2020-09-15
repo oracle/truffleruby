@@ -33,6 +33,7 @@ import org.jcodings.Encoding;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 
 public class EncodingUtils {
 
@@ -80,7 +81,7 @@ public class EncodingUtils {
         boolean isValid = false;
         if (s >= end) {
             isValid = true;
-            names.add(new String(name, p, end));
+            names.add(RopeOperations.decodeAscii(name, p, end));
         }
 
         if (!isValid || hasLower) {
@@ -111,7 +112,7 @@ public class EncodingUtils {
                     }
                 }
                 if (hasUpper) {
-                    names.add(new String(constName, 0, constName.length));
+                    names.add(RopeOperations.decodeAscii(constName));
                 }
             }
             if (hasLower) {
@@ -121,7 +122,7 @@ public class EncodingUtils {
                         constName[s] = AsciiTables.ToUpperCaseTable[code];
                     }
                 }
-                names.add(new String(constName, 0, constName.length));
+                names.add(RopeOperations.decodeAscii(constName));
             }
         }
 
