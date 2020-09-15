@@ -9,6 +9,11 @@
  */
 package org.truffleruby.core.kernel;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DOES_RESPOND;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_DOES_RESPOND;
+
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Paths;
@@ -17,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.nodes.NodeUtil;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -59,7 +63,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
-import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
@@ -148,17 +151,13 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
-
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DOES_RESPOND;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
 @CoreModule("Kernel")
 public abstract class KernelNodes {
@@ -1424,10 +1423,9 @@ public abstract class KernelNodes {
     @CoreMethod(names = "proc", isModuleFunction = true, needsBlock = true)
     public abstract static class ProcNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ProcNewNode procNewNode = ProcNewNodeFactory.create(null);
-
         @Specialization
-        protected RubyProc proc(VirtualFrame frame, Object maybeBlock) {
+        protected RubyProc proc(VirtualFrame frame, Object maybeBlock,
+                @Cached ProcNewNode procNewNode) {
             return procNewNode.executeProcNew(frame, coreLibrary().procClass, ArrayUtils.EMPTY_ARRAY, maybeBlock);
         }
 
