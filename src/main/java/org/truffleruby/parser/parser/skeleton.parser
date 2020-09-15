@@ -179,6 +179,7 @@ t              yydebug.shift(yyState, yyTable[yyN], yyErrorFlag-1);
 .            case 0:
 .              support.yyerror("syntax error", yyExpecting(yyState), yyNames[yyToken]);
 t              if (yydebug != null) yydebug.error("syntax error");
+.              break;
 .  
 .            case 1: case 2:
 .              yyErrorFlag = 3;
@@ -196,7 +197,8 @@ t                if (yydebug != null) yydebug.pop(yyStates[yyTop]);
 .              } while (-- yyTop >= 0);
 t              if (yydebug != null) yydebug.reject();
 .              support.yyerror("irrecoverable syntax error");
-.  
+.              break;
+.
 .            case 3:
 .              if (yyToken == 0) {
 t                if (yydebug != null) yydebug.reject();

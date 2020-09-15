@@ -116,8 +116,7 @@ public abstract class EncodingConverterNodes {
                 }
 
                 final byte[] segmentSource = transcoder.getSource();
-                ret[retIndex++] = getSymbol(
-                        RopeOperations.decodeAscii(segmentSource).toUpperCase());
+                ret[retIndex++] = getSymbol(StringUtils.toUpperCase(RopeOperations.decodeAscii(segmentSource)));
             }
 
             final int retSize = retIndex + 1;
@@ -128,8 +127,7 @@ public abstract class EncodingConverterNodes {
             }
 
             final byte[] destinationName = destinationEncoding.getName();
-            ret[retIndex] = getSymbol(
-                    RopeOperations.decodeAscii(destinationName).toUpperCase());
+            ret[retIndex] = getSymbol(StringUtils.toUpperCase(RopeOperations.decodeAscii(destinationName)));
 
             return createArray(ret);
         }
@@ -172,8 +170,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected Object search(RubySymbol source) {
-            final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths
-                    .get(source.getString());
+            final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths.get(source.getString());
             if (transcoders == null) {
                 return nil;
             }

@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
@@ -187,6 +188,7 @@ public class ThreadManager {
         return thread;
     }
 
+    @SuppressFBWarnings("RV")
     public void spawnFiber(Runnable task) {
         fiberPool.submit(task);
     }

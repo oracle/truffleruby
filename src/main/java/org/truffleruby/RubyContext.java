@@ -144,11 +144,16 @@ public class RubyContext {
 
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
+    private static boolean isPreInitializingContext() {
+        boolean isPreInitializingContext = preInitializeContexts;
+        preInitializeContexts = false; // Only the first context is pre-initialized
+        return isPreInitializingContext;
+    }
+
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
-        this.preInitializing = preInitializeContexts;
-        RubyContext.preInitializeContexts = false; // Only the first context is pre-initialized
+        this.preInitializing = isPreInitializingContext();
         this.preInitialized = preInitializing;
 
         preInitializationManager = preInitializing ? new PreInitializationManager(this) : null;

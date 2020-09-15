@@ -42,15 +42,19 @@ public class SafepointManager {
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final Phaser phaser = new Phaser() {
-        @Override
-        protected boolean onAdvance(int phase, int registeredParties) {
-            // This Phaser should not be automatically terminated,
-            // even when registeredParties drops to 0.
-            // This notably happens when pre-initializing the context.
-            return false;
-        }
-    };
+    private final Phaser phaser = createPhaser();
+
+    private static Phaser createPhaser() {
+        return new Phaser() {
+            @Override
+            protected boolean onAdvance(int phase, int registeredParties) {
+                // This Phaser should not be automatically terminated,
+                // even when registeredParties drops to 0.
+                // This notably happens when pre-initializing the context.
+                return false;
+            }
+        };
+    }
 
     @CompilationFinal private Assumption assumption = Truffle.getRuntime().createAssumption("SafepointManager");
 
@@ -142,7 +146,7 @@ public class SafepointManager {
         final SafepointAction deferredAction = deferred ? action : null;
 
         try {
-            if (!deferred && thread != null) {
+            if (!deferred) {
                 action.accept(thread, currentNode);
             }
         } finally {

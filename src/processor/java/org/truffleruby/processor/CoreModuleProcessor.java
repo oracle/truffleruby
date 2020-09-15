@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -426,7 +427,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                             .getSimpleName()
                             .toString()
                             .replaceAll("(.)(\\p{Upper})", "$1_$2")
-                            .toLowerCase()
+                            .toLowerCase(Locale.ENGLISH)
                             .replaceAll("^(maybe|unused)_", "");
                     String name = KEYWORDS.contains(nameCanBeKeyword) ? nameCanBeKeyword + "_" : nameCanBeKeyword;
 

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.backtrace;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
@@ -17,6 +18,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -27,7 +29,9 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -97,9 +101,10 @@ public class BacktraceFormatter {
         }
     }
 
+    @SuppressFBWarnings("OS")
     @TruffleBoundary
     public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
-        final PrintStream printer = new PrintStream(context.getEnv().err(), true);
+        final PrintStream printer = printStreamFor(context.getEnv().err());
         if (!info.isEmpty()) {
             printer.print(info);
         }
@@ -116,11 +121,20 @@ public class BacktraceFormatter {
         }
     }
 
+    @SuppressFBWarnings("OS")
     @TruffleBoundary
     public void printBacktraceOnEnvStderr(Node currentNode) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final PrintStream printer = new PrintStream(context.getEnv().err(), true);
+        final PrintStream printer = printStreamFor(context.getEnv().err());
         printer.println(formatBacktrace(null, backtrace));
+    }
+
+    public static PrintStream printStreamFor(OutputStream outputStream) {
+        try {
+            return new PrintStream(outputStream, true, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
     }
 
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
@@ -343,7 +357,7 @@ public class BacktraceFormatter {
 
     private static boolean isRubyCore(RubyContext context, Source source) {
         final String path = RubyContext.getPath(source);
-        return path != null && path.startsWith(context.getOptions().CORE_LOAD_PATH);
+        return path.startsWith(context.getOptions().CORE_LOAD_PATH);
     }
 
     public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {

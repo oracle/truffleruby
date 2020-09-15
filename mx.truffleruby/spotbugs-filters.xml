@@ -21,6 +21,9 @@
         <Bug pattern="EI_EXPOSE_REP2" />
         <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
+        <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN" />
+        <Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED" /> <!-- used as a way to assert the type -->
+        <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
       </Or>
     </Not>
   </Match>

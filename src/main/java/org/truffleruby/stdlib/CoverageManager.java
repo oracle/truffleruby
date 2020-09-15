@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -116,6 +117,7 @@ public class CoverageManager {
                         }
                     }
 
+                    @SuppressFBWarnings("UwF")
                     @TruffleBoundary
                     private void incrementAndGet() {
                         counters.incrementAndGet(lineNumber);

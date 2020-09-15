@@ -27,6 +27,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
@@ -463,6 +464,7 @@ public abstract class RopeNodes {
             return withEncodingNode.executeWithEncoding(left, encoding);
         }
 
+        @SuppressFBWarnings("RV")
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "!isCodeRangeBroken(left, right)" })
         protected Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached ConditionProfile sameCodeRangeProfile,
@@ -607,6 +609,7 @@ public abstract class RopeNodes {
             }
         }
 
+        @SuppressFBWarnings("RV")
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
         protected Rope concatCrBroken(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached MakeLeafRopeNode makeLeafRopeNode,
@@ -898,8 +901,9 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
         protected Rope repeatManaged(ManagedRope base, int times) {
+            int byteLength;
             try {
-                Math.multiplyExact(base.byteLength(), times);
+                byteLength = Math.multiplyExact(base.byteLength(), times);
             } catch (ArithmeticException e) {
                 throw new RaiseException(
                         getContext(),
@@ -908,7 +912,7 @@ public abstract class RopeNodes {
                                 this));
             }
 
-            return new RepeatingRope(base, times);
+            return new RepeatingRope(base, times, byteLength);
         }
 
         @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })

@@ -130,7 +130,7 @@ public abstract class ConditionVariableNodes {
 
         /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
          * safepoints. */
-        @SuppressFBWarnings(value = "UL")
+        @SuppressFBWarnings(value = { "UL", "RV" })
         private void awaitSignal(RubyConditionVariable self, RubyThread thread, long durationInNanos,
                 ReentrantLock condLock, Condition condition, long endNanoTime) {
             final ThreadStatus status = thread.status;

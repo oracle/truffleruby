@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
@@ -63,6 +64,7 @@ public class ParseEnvironment {
         return new ReturnID();
     }
 
+    @SuppressFBWarnings("ISC")
     public BreakID allocateBreakID() {
         return new BreakID();
     }

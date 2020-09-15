@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
@@ -164,15 +165,17 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         protected void createProcessingThread(Class<?> owner) {
             final ThreadManager threadManager = context.getThreadManager();
+            RubyThread newThread;
             synchronized (this) {
                 if (processingThread != null) {
                     return;
                 }
-                processingThread = threadManager.createBootThread(threadName());
+                newThread = threadManager.createBootThread(threadName());
+                processingThread = newThread;
             }
             final String sharingReason = "creating " + threadName() + " thread for " + owner.getSimpleName();
 
-            threadManager.initialize(processingThread, null, threadName(), sharingReason, () -> {
+            threadManager.initialize(newThread, null, threadName(), sharingReason, () -> {
                 while (true) {
                     final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager
                             .runUntilResult(null, processingQueue::remove);
@@ -271,6 +274,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         first = newRef;
     }
 
+    @SuppressFBWarnings("IS")
     protected R getFirst() {
         return first;
     }

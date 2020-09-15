@@ -496,9 +496,11 @@ public abstract class RubyDateFormatter {
                         output = output.substring(0, width);
                     } else {
                         // Not enough precision, fill with 0
-                        while (output.length() < width) {
-                            output += "0";
+                        final StringBuilder outputBuilder = new StringBuilder(output);
+                        while (outputBuilder.length() < width) {
+                            outputBuilder.append('0');
                         }
+                        output = outputBuilder.toString();
                     }
                     formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER; // no more formatting
                     break;

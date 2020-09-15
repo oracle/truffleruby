@@ -90,6 +90,8 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             ExtensionCallStack stack = markingService.getThreadLocalData().getExtensionCallStack();
             stack.push(stack.getBlock());
             try {
+                // TODO (eregon, 15 Sept 2020): there seems to be no synchronization here while walking the list of
+                // markingService, and concurrent mutations seem to be possible.
                 MarkerReference currentMarker = markingService.getFirst();
                 MarkerReference nextMarker;
                 while (currentMarker != null) {

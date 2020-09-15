@@ -22,33 +22,32 @@ public class StringArrayOptionType {
             "String[]",
             StringArrayOptionType::parseStringArray);
 
-    @SuppressWarnings("fallthrough")
+    private enum State {
+        STRING_OF_STRING,
+        WITHIN_STRING,
+        ESCAPE
+    }
+
     private static String[] parseStringArray(String string) {
         final List<String> values = new ArrayList<>();
-
-        final int STRING_OF_STRING = 0;
-        final int WITHIN_STRING = 1;
-        final int ESCAPE = 2;
-
-        int state = STRING_OF_STRING;
-
         final StringBuilder builder = new StringBuilder();
+        State state = State.STRING_OF_STRING;
 
         for (int n = 0; n < string.length(); n++) {
-            switch (state) {
-                case STRING_OF_STRING:
-                    builder.setLength(0);
-                    state = WITHIN_STRING;
-                    // continue with next case
+            if (state == State.STRING_OF_STRING) {
+                builder.setLength(0);
+                state = State.WITHIN_STRING;
+            }
 
+            switch (state) {
                 case WITHIN_STRING:
                     switch (string.charAt(n)) {
                         case ',':
                             values.add(builder.toString());
-                            state = STRING_OF_STRING;
+                            state = State.STRING_OF_STRING;
                             break;
                         case '\\':
-                            state = ESCAPE;
+                            state = State.ESCAPE;
                             break;
                         default:
                             builder.append(string.charAt(n));
@@ -57,7 +56,7 @@ public class StringArrayOptionType {
                     break;
 
                 case ESCAPE:
-                    state = WITHIN_STRING;
+                    state = State.WITHIN_STRING;
                     if (string.charAt(n) == ',') {
                         builder.append(string.charAt(n));
                     } else {

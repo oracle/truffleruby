@@ -2304,7 +2304,7 @@ public abstract class ArrayNodes {
     public abstract static class IsStoreNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected boolean IsStoreNative(RubyArray array,
+        protected boolean isStoreNative(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             return stores.isNative(array.store);
         }

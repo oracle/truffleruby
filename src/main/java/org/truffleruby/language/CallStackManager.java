@@ -147,23 +147,34 @@ public class CallStackManager {
      * <p>
      * skip=0 starts at the current frame and skip=1 starts at the caller frame. */
     private <R> R iterateFrames(int skip, Predicate<FrameInstance> filter, Function<FrameInstance, R> action) {
-        return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<R>() {
-            int skipped = 0;
+        return Truffle.getRuntime().iterateFrames(new FilterApplyVisitor<>(skip, filter, action));
+    }
 
-            @Override
-            public R visitFrame(FrameInstance frameInstance) {
-                if (skipped < skip) {
-                    skipped++;
-                    return null; // Go to the next frame
-                }
+    private static class FilterApplyVisitor<R> implements FrameInstanceVisitor<R> {
+        private final int skip;
+        private final Predicate<FrameInstance> filter;
+        private final Function<FrameInstance, R> action;
+        private int skipped = 0;
 
-                if (filter.test(frameInstance)) {
-                    return action.apply(frameInstance);
-                } else {
-                    return null; // Go to the next frame
-                }
+        private FilterApplyVisitor(int skip, Predicate<FrameInstance> filter, Function<FrameInstance, R> action) {
+            this.skip = skip;
+            this.filter = filter;
+            this.action = action;
+        }
+
+        @Override
+        public R visitFrame(FrameInstance frameInstance) {
+            if (skipped < skip) {
+                skipped++;
+                return null; // Go to the next frame
             }
-        });
+
+            if (filter.test(frameInstance)) {
+                return action.apply(frameInstance);
+            } else {
+                return null; // Go to the next frame
+            }
+        }
     }
 
     private boolean isRubyFrameAndNotSend(Frame frame) {

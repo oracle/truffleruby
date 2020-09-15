@@ -11,6 +11,7 @@ package org.truffleruby.language.constants;
 
 import java.util.ArrayList;
 
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -89,6 +90,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         return constant.getConstant();
     }
 
+    @SuppressFBWarnings("ES")
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {
         // This is likely as for literal constant lookup the name does not change and Symbols
         // always return the same String.

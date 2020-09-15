@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -103,7 +104,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
     private String runCommand(String command) throws IOException, InterruptedException {
         final Process git = new ProcessBuilder(command.split("\\s+")).directory(trufflerubyHome).start();
         final String firstLine;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(git.getInputStream()))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(git.getInputStream(), StandardCharsets.UTF_8))) {
             firstLine = reader.readLine();
         }
 

@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.util.ArrayReader;
@@ -73,12 +74,15 @@ public final class TruffleRubySupport {
             try (InputStream is = ArrayReader.class.getResourceAsStream(entry)) {
                 if (is != null) {
                     byte[] buf = new byte[is.available()];
-                    new DataInputStream(is).readFully(buf);
+                    try (DataInputStream dataInputStream = new DataInputStream(is)) {
+                        dataInputStream.readFully(buf);
+                    }
                     jcodingsTables.put(name, buf);
                 } else {
-                    throw new Error("Unable to load Jcodings table " + name);
+                    throw CompilerDirectives.shouldNotReachHere("Unable to load Jcodings table " + name);
                 }
             } catch (IOException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
             }
         }
         return jcodingsTables;

@@ -17,8 +17,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -32,6 +34,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
+@SuppressFBWarnings("VO")
 public class ValueWrapperManager {
 
     static final long UNSET_HANDLE = -2L;
@@ -232,7 +235,7 @@ public class ValueWrapperManager {
         }
 
         public long setHandleOnWrapper(ValueWrapper wrapper) {
-            long handle = getBase() + count * 8;
+            long handle = getBase() + count * Pointer.SIZE;
             wrapper.setHandle(handle, this);
             wrappers[count] = wrapper;
             count++;

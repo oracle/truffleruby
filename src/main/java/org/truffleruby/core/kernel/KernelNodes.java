@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -1389,9 +1390,10 @@ public abstract class KernelNodes {
             return value;
         }
 
+        @SuppressFBWarnings("OS")
         @TruffleBoundary
         private void print(Object inspected) {
-            final PrintStream stream = new PrintStream(getContext().getEnv().out(), true);
+            final PrintStream stream = BacktraceFormatter.printStreamFor(getContext().getEnv().out());
             stream.println(inspected.toString());
         }
     }

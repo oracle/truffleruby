@@ -700,6 +700,7 @@ public class CoreLibrary {
         patchFiles = initializePatching(context);
     }
 
+    @SuppressFBWarnings("SIC")
     private ConcurrentMap<String, Boolean> initializePatching(RubyContext context) {
         defineModule(truffleModule, "Patching");
         final ConcurrentMap<String, Boolean> patchFiles = new ConcurrentHashMap<>();
@@ -711,7 +712,7 @@ public class CoreLibrary {
                         patchesDirectory,
                         new SimpleFileVisitor<Path>() {
                             @Override
-                            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
                                 String relativePath = patchesDirectory.relativize(path).toString();
                                 if (relativePath.endsWith(".rb")) {
                                     patchFiles.put(relativePath.substring(0, relativePath.length() - 3), false);

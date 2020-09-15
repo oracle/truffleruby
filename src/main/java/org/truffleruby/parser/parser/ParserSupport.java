@@ -810,7 +810,7 @@ public class ParserSupport {
         value_expr(lexer, left);
 
         if (left == null && right == null) {
-            return new AndParseNode(position, makeNullNil(left), makeNullNil(right));
+            return new AndParseNode(position, NilImplicitParseNode.NIL, NilImplicitParseNode.NIL);
         }
 
         return new AndParseNode(position(left, right), makeNullNil(left), makeNullNil(right));
@@ -820,7 +820,7 @@ public class ParserSupport {
         value_expr(lexer, left);
 
         if (left == null && right == null) {
-            return new OrParseNode(position, makeNullNil(left), makeNullNil(right));
+            return new OrParseNode(position, NilImplicitParseNode.NIL, NilImplicitParseNode.NIL);
         }
 
         return new OrParseNode(position(left, right), makeNullNil(left), makeNullNil(right));
@@ -958,34 +958,6 @@ public class ParserSupport {
     public ParseNode new_attrassign(SourceIndexLength position, ParseNode receiver, String name, ParseNode args,
             boolean isLazy) {
         return new AttrAssignParseNode(position, receiver, name, args, isLazy);
-    }
-
-    @SuppressWarnings("unused")
-    private boolean isNumericOperator(String name) {
-        if (name.length() == 1) {
-            switch (name.charAt(0)) {
-                case '+':
-                case '-':
-                case '*':
-                case '/':
-                case '<':
-                case '>':
-                    return true;
-            }
-        } else if (name.length() == 2) {
-            switch (name.charAt(0)) {
-                case '<':
-                case '>':
-                case '=':
-                    switch (name.charAt(1)) {
-                        case '=':
-                        case '<':
-                            return true;
-                    }
-            }
-        }
-
-        return false;
     }
 
     public ParseNode new_call(ParseNode receiver, Rope callType, Rope name, ParseNode argsNode, ParseNode iter) {
@@ -1435,11 +1407,7 @@ public class ParserSupport {
 
     public SourceIndexLength getPosition(ParseNode start) {
         if (start != null) {
-            SourceIndexLength startPosition = start.getPosition();
-            if (startPosition != null) {
-                return startPosition;
-            }
-            return lexer.getPosition();
+            return start.getPosition();
         } else {
             return lexer.getPosition();
         }
@@ -1519,11 +1487,7 @@ public class ParserSupport {
         }
 
         StaticScope current = getCurrentScope();
-        if (current.isBlockScope()) {
-            if (current.exists(name) >= 0) {
-                yyerror("duplicated argument name");
-            }
-        } else if (current.exists(name) >= 0) {
+        if (current.exists(name) >= 0) {
             yyerror("duplicated argument name");
         }
 
@@ -1589,7 +1553,7 @@ public class ParserSupport {
             throw compile_error(re.getMessage());
         }
         return value;
-    }        // 1.9 mode overrides to do extra checking...
+    }
 
     private void allocateNamedLocals(RegexpParseNode regexpNode) {
         ClassicRegexp pattern = new ClassicRegexp(
@@ -1642,12 +1606,10 @@ public class ParserSupport {
     public RuntimeException compile_error(String message) { // mri: rb_compile_error_with_enc
         String line = lexer.getCurrentLine();
         SourceIndexLength position = lexer.getPosition();
-        String errorMessage = lexer.getFile() + ":" + (position.toSourceSection(lexer.getSource()).getStartLine()) +
-                ": ";
+        String errorMessage = lexer.getFile() + ":" + position.toSourceSection(lexer.getSource()).getStartLine() + ": ";
 
-        if (line != null && line.length() > 5) {
+        if (line.length() > 5) {
             boolean addNewline = message != null && !message.endsWith("\n");
-
             message += (addNewline ? "\n" : "") + line;
         }
 
@@ -1684,7 +1646,7 @@ public class ParserSupport {
             value = parserRopeOperations.withEncoding(value, optionsEncoding);
         } else if (options.isEncodingNone()) {
             if (value.getEncoding() == ASCIIEncoding.INSTANCE && !is7BitASCII(value)) {
-                compileError(optionsEncoding, value.getEncoding());
+                compileError(null, value.getEncoding());
             }
             value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
         } else if (lexer.getEncoding() == USASCIIEncoding.INSTANCE) {
@@ -1730,8 +1692,7 @@ public class ParserSupport {
                 ParseNode fragment = dStrNode.get(i);
                 if (fragment instanceof StrParseNode) {
                     Rope frag = ((StrParseNode) fragment).getValue();
-                    frag = regexpFragmentCheck(end, frag);
-                    //                    if (!lexer.isOneEight()) encoding = frag.getEncoding();
+                    regexpFragmentCheck(end, frag);
                 }
             }
 
@@ -1756,9 +1717,7 @@ public class ParserSupport {
     // right encoding.
     private Rope createMaster(RegexpOptions options) {
         final Encoding encoding = options.setup();
-        final Rope rope = RopeOperations.emptyRope(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
-
-        return rope;
+        return RopeOperations.emptyRope(encoding == null ? ASCIIEncoding.INSTANCE : encoding);
     }
 
     public KeywordArgParseNode keyword_arg(SourceIndexLength position, AssignableParseNode assignable) {

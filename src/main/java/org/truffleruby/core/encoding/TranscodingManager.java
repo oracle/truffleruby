@@ -51,7 +51,7 @@ import org.truffleruby.core.string.StringUtils;
 public class TranscodingManager {
 
     private static final List<Transcoder> allTranscoders = new ArrayList<>();
-    public static final Map<String, Set<String>> allDirectTranscoderPaths = new HashMap<>();
+    static final Map<String, Set<String>> allDirectTranscoderPaths = new HashMap<>();
 
     static {
         for (CaseInsensitiveBytesHash<TranscoderDB.Entry> sourceEntry : TranscoderDB.transcoders) {

@@ -12,6 +12,7 @@ package org.truffleruby.core.format.printf;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatNode;
@@ -98,6 +99,8 @@ public class PrintfSimpleTreeBuilder {
                         switch (config.getFormat()) {
                             case 'b':
                             case 'B':
+                            case 'x':
+                            case 'X':
                                 format = config.getFormat();
                                 break;
                             case 'd':
@@ -108,12 +111,8 @@ public class PrintfSimpleTreeBuilder {
                             case 'o':
                                 format = 'o';
                                 break;
-                            case 'x':
-                            case 'X':
-                                format = config.getFormat();
-                                break;
                             default:
-                                throw new UnsupportedOperationException();
+                                throw CompilerDirectives.shouldNotReachHere(String.valueOf(config.getFormat()));
                         }
 
                         if (config.getFormat() == 'b' || config.getFormat() == 'B') {

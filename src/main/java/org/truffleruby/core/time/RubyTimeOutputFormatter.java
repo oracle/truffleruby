@@ -80,7 +80,7 @@ public class RubyTimeOutputFormatter {
         for (int i = 0; i < flags.length(); i++) {
             switch (flags.charAt(i)) {
                 case '^':
-                    sequence = sequence.toUpperCase();
+                    sequence = StringUtils.toUpperCase(sequence);
                     break;
                 case '#': // change case
                     char last = sequence.charAt(sequence.length() - 1);

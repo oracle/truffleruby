@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 import org.jcodings.Encoding;
@@ -80,14 +79,11 @@ public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
                 if (encodingCommentLine != null) {
                     Rope encodingCommentRope = StringOperations.encodeRope(encodingCommentLine, UTF8Encoding.INSTANCE);
                     Charset[] encodingHolder = new Charset[1];
-                    RubyLexer.parseMagicComment(encodingCommentRope, new BiConsumer<String, Rope>() {
-                        @Override
-                        public void accept(String name, Rope value) {
-                            if (RubyLexer.isMagicEncodingComment(name)) {
-                                Encoding encoding = EncodingManager.getEncoding(value);
-                                if (encoding != null) {
-                                    encodingHolder[0] = encoding.getCharset();
-                                }
+                    RubyLexer.parseMagicComment(encodingCommentRope, (name, value) -> {
+                        if (RubyLexer.isMagicEncodingComment(name)) {
+                            Encoding encoding = EncodingManager.getEncoding(value);
+                            if (encoding != null) {
+                                encodingHolder[0] = encoding.getCharset();
                             }
                         }
                     });

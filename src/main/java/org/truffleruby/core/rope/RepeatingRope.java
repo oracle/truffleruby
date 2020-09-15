@@ -19,11 +19,11 @@ public class RepeatingRope extends ManagedRope {
     private final ManagedRope child;
     private final int times;
 
-    public RepeatingRope(ManagedRope child, int times) {
+    public RepeatingRope(ManagedRope child, int times, int byteLength) {
         super(
                 child.getEncoding(),
                 child.getCodeRange(),
-                child.byteLength() * times,
+                byteLength,
                 child.characterLength() * times,
                 child.depth() + 1,
                 null);
@@ -34,13 +34,16 @@ public class RepeatingRope extends ManagedRope {
     @Override
     Rope withEncoding7bit(Encoding newEncoding) {
         assert getCodeRange() == CodeRange.CR_7BIT;
-        return new RepeatingRope((ManagedRope) RopeOperations.withEncoding(child, newEncoding), times);
+        return new RepeatingRope((ManagedRope) RopeOperations.withEncoding(child, newEncoding), times, byteLength());
     }
 
     @Override
     Rope withBinaryEncoding() {
         assert getCodeRange() == CodeRange.CR_VALID;
-        return new RepeatingRope((ManagedRope) RopeOperations.withEncoding(child, ASCIIEncoding.INSTANCE), times);
+        return new RepeatingRope(
+                (ManagedRope) RopeOperations.withEncoding(child, ASCIIEncoding.INSTANCE),
+                times,
+                byteLength());
     }
 
     @Override

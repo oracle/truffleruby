@@ -32,10 +32,6 @@ public class StrftimeLexer {
     }
 
     public Token formatter(String flags, String widthString) {
-        if (flags == null) {
-            flags = "";
-        }
-
         int width = 0;
         if (widthString != null) {
             width = Integer.parseInt(widthString);
@@ -121,7 +117,7 @@ public class StrftimeLexer {
         } else if ((width = parseWidth()) != null) {
             if ((directive = parseConversion()) != null) {
                 next = directive;
-                return formatter(flags, width);
+                return formatter("", width);
             }
         }
 

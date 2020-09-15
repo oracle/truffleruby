@@ -11,6 +11,7 @@ package org.truffleruby.language.constants;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -228,6 +229,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         return constant == null || ((RubyConstant) constant).isUndefined();
     }
 
+    @SuppressFBWarnings("ES")
     protected boolean guardName(String name, String cachedName, ConditionProfile sameNameProfile) {
         // This is likely as for literal constant lookup the name does not change and Symbols
         // always return the same String.

@@ -1724,14 +1724,11 @@ public abstract class StringNodes {
                     if (clen <= 2) {
                         clen = 1;
                     } else {
-                        final int q = p;
                         clen--;
                         for (; clen > 1; clen--) {
-                            ret = StringSupport.characterLength(enc, cr, pBytes, q, q + clen);
+                            ret = StringSupport.characterLength(enc, cr, pBytes, p, p + clen);
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
-                            } else if (MBCLEN_INVALID_P(ret)) {
-                                continue;
                             }
                         }
                     }
@@ -2826,24 +2823,19 @@ public abstract class StringNodes {
         @Child private InvertAsciiCaseBytesNode invertNode;
 
         public static InvertAsciiCaseNode createLowerToUpper() {
-            final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
-            ret.invertNode = InvertAsciiCaseBytesNode.createLowerToUpper();
-
-            return ret;
+            return InvertAsciiCaseNodeGen.create(InvertAsciiCaseBytesNode.createLowerToUpper());
         }
 
         public static InvertAsciiCaseNode createUpperToLower() {
-            final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
-            ret.invertNode = InvertAsciiCaseBytesNode.createUpperToLower();
-
-            return ret;
+            return InvertAsciiCaseNodeGen.create(InvertAsciiCaseBytesNode.createUpperToLower());
         }
 
         public static InvertAsciiCaseNode createSwapCase() {
-            final InvertAsciiCaseNode ret = InvertAsciiCaseNodeGen.create();
-            ret.invertNode = InvertAsciiCaseBytesNode.createSwapCase();
+            return InvertAsciiCaseNodeGen.create(InvertAsciiCaseBytesNode.createSwapCase());
+        }
 
-            return ret;
+        public InvertAsciiCaseNode(InvertAsciiCaseBytesNode invertNode) {
+            this.invertNode = invertNode;
         }
 
         public abstract Object executeInvert(RubyString string);

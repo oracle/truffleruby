@@ -42,7 +42,7 @@ public class GlobalVariableStorage {
     }
 
     GlobalVariableStorage(Object value, RubyProc getter, RubyProc setter, RubyProc isDefined) {
-        assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
+        assert ((getter == null) == (setter == null)) && ((getter == null) == (isDefined == null));
 
         this.value = value;
         this.getter = getter;

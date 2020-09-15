@@ -147,9 +147,8 @@ public class ConvertBytes {
         }
     }
 
-    @SuppressWarnings("fallthrough")
     private int calculateLength() {
-        int len = 0;
+        int len;
         byte second = ((str + 1 < end) && data[str] == '0') ? data[str + 1] : (byte) 0;
 
         switch (base) {
@@ -166,6 +165,8 @@ public class ConvertBytes {
                 if (second == 'o' || second == 'O') {
                     str += 2;
                 }
+                len = 3;
+                break;
             case 4:
             case 5:
             case 6:
@@ -176,6 +177,8 @@ public class ConvertBytes {
                 if (second == 'd' || second == 'D') {
                     str += 2;
                 }
+                len = 4;
+                break;
             case 9:
             case 11:
             case 12:
