@@ -48,12 +48,9 @@ public class DispatchNode extends FrameSendingNode {
     //   values. We also want to use `parameters` rather than factory methods because Truffle uses it to automatically
     //   generate uncached instances where required.
 
-    public static final DispatchConfiguration PRIVATE = DispatchConfiguration.PRIVATE;
     public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC;
     public static final DispatchConfiguration PRIVATE_RETURN_MISSING = DispatchConfiguration.PRIVATE_RETURN_MISSING;
     public static final DispatchConfiguration PUBLIC_RETURN_MISSING = DispatchConfiguration.PUBLIC_RETURN_MISSING;
-    public static final DispatchConfiguration PRIVATE_DOES_RESPOND = DispatchConfiguration.PRIVATE_DOES_RESPOND;
-    public static final DispatchConfiguration PUBLIC_DOES_RESPOND = DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
     public static DispatchNode create(DispatchConfiguration config) {
         return new DispatchNode(config);
@@ -80,7 +77,6 @@ public class DispatchNode extends FrameSendingNode {
     @Child protected DispatchNode callMethodMissing;
     @Child protected ToSymbolNode toSymbol;
 
-    protected final ConditionProfile nameIsString;
     protected final ConditionProfile methodMissing;
     protected final ConditionProfile isForeignCall;
     protected final BranchProfile methodMissingMissing;
@@ -90,7 +86,6 @@ public class DispatchNode extends FrameSendingNode {
             MetaClassNode metaclassNode,
             LookupMethodNode methodLookup,
             CallInternalMethodNode callNode,
-            ConditionProfile nameIsString,
             ConditionProfile methodMissing,
             ConditionProfile isForeignCall,
             BranchProfile methodMissingMissing) {
@@ -98,7 +93,6 @@ public class DispatchNode extends FrameSendingNode {
         this.metaclassNode = metaclassNode;
         this.methodLookup = methodLookup;
         this.callNode = callNode;
-        this.nameIsString = nameIsString;
         this.methodMissing = methodMissing;
         this.isForeignCall = isForeignCall;
         this.methodMissingMissing = methodMissingMissing;
@@ -110,7 +104,6 @@ public class DispatchNode extends FrameSendingNode {
                 MetaClassNode.create(),
                 LookupMethodNode.create(),
                 CallInternalMethodNode.create(),
-                ConditionProfile.create(),
                 ConditionProfile.create(),
                 ConditionProfile.create(),
                 BranchProfile.create());
@@ -128,12 +121,9 @@ public class DispatchNode extends FrameSendingNode {
         return execute(frame, receiver, methodName, block, arguments);
     }
 
-    public boolean doesRespondTo(VirtualFrame frame, String methodName, Object receiver) {
-        assert config == PRIVATE_DOES_RESPOND || config == PUBLIC_DOES_RESPOND;
-        return (boolean) execute(frame, receiver, methodName, null, EMPTY_ARGUMENTS);
-    }
-
     public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
+
+        assert config.dispatchAction == DispatchAction.CALL_METHOD;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
 
@@ -145,22 +135,12 @@ public class DispatchNode extends FrameSendingNode {
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
         if (methodMissing.profile(method == null || method.isUndefined())) {
-            switch (config.dispatchAction) {
-                case RESPOND_TO_METHOD:
-                    return false;
-                case CALL_METHOD:
-                    switch (config.missingBehavior) {
-                        case RETURN_MISSING:
-                            return MISSING;
-                        case CALL_METHOD_MISSING:
-                            return callMethodMissing(frame, receiver, methodName, block, arguments);
-                    }
+            switch (config.missingBehavior) {
+                case RETURN_MISSING:
+                    return MISSING;
+                case CALL_METHOD_MISSING:
+                    return callMethodMissing(frame, receiver, methodName, block, arguments);
             }
-        }
-
-        if (config.dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
-            // NOTE: The whole point of an "unimplemented method" is that is is callable, but `respond_to` returns false.
-            return method.isImplemented();
         }
 
         final MaterializedFrame callerFrame = getFrameIfRequired(frame);
@@ -259,7 +239,6 @@ public class DispatchNode extends FrameSendingNode {
                     MetaClassNodeGen.getUncached(),
                     LookupMethodNodeGen.getUncached(),
                     CallInternalMethodNodeGen.getUncached(),
-                    ConditionProfile.getUncached(),
                     ConditionProfile.getUncached(),
                     ConditionProfile.getUncached(),
                     BranchProfile.getUncached());

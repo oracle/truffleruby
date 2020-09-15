@@ -41,6 +41,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
@@ -583,7 +584,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode dispatchNode = DispatchNode.create(DispatchNode.PRIVATE);
+        @Child private DispatchNode dispatchNode = DispatchNode.create(DispatchConfiguration.PRIVATE);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
         @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 

@@ -15,6 +15,7 @@ import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.DispatchRespondToNode;
 import org.truffleruby.language.library.RubyLibrary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -111,13 +112,13 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberReadable(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode) {
+            @Cached @Shared("definedNode") DispatchRespondToNode definedNode) {
         return definedNode.doesRespondTo(null, name, this);
     }
 
     @ExportMessage
     public Object readMember(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
+            @Cached @Shared("definedNode") DispatchRespondToNode definedNode,
             @Cached ForeignToRubyNode nameToRubyNode,
             @Cached @Exclusive DispatchNode dispatch,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
@@ -133,7 +134,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInvocable(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode) {
+            @Cached @Shared("definedNode") DispatchRespondToNode definedNode) {
         return definedNode.doesRespondTo(null, name, this);
     }
 
@@ -154,8 +155,8 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInternal(String name,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchNode definedPublicNode) {
+            @Cached @Shared("definedNode") DispatchRespondToNode definedNode,
+            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchRespondToNode definedPublicNode) {
         // defined but not publicly
         return definedNode.doesRespondTo(null, name, this) &&
                 !definedPublicNode.doesRespondTo(null, name, this);

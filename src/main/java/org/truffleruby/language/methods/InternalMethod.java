@@ -166,6 +166,10 @@ public class InternalMethod implements ObjectGraphNode {
         return visibility;
     }
 
+    public boolean isDefined() {
+        return !undefined;
+    }
+
     public boolean isUndefined() {
         return undefined;
     }
