@@ -1261,14 +1261,14 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
-                    .lookupPrivate(frame, self, normalizedName, dispatchConfig);
+                    .lookup(frame, self, normalizedName, dispatchConfig);
 
             if (notFoundProfile.profile(method == null)) {
                 final Object respondToMissing = respondToMissingNode
                         .call(self, "respond_to_missing?", name, dispatchConfig.ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode
-                            .lookupPrivate(frame, self, "method_missing", dispatchConfig);
+                            .lookup(frame, self, "method_missing", dispatchConfig);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
                     throw new RaiseException(
