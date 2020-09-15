@@ -172,6 +172,7 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -2453,7 +2454,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = { "to_sym", "intern" })
+    @CoreMethod(names = { "to_sym", "intern" }, split = Split.ALWAYS)
     @ImportStatic({ StringCachingGuards.class, StringGuards.class, StringOperations.class })
     public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
 

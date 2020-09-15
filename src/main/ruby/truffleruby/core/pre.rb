@@ -58,11 +58,6 @@ class Symbol
   end
 end
 
-class Array
-  Truffle::Graal.always_split(instance_method(:[]))
-  Truffle::Graal.always_split(instance_method(:[]=))
-end
-
 module Truffle::Boot
   if preinitializing?
     TO_RUN_AT_INIT = []

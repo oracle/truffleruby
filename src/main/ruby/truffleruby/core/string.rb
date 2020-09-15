@@ -41,8 +41,6 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
-  Truffle::Graal.always_split(instance_method(:to_sym))
-
   private def range_begin(range, size)
     first = Primitive.rb_num2int range.begin
     first += size if first < 0

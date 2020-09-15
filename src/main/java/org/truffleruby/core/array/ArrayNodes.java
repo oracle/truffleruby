@@ -72,6 +72,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -250,6 +251,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(
             names = { "[]", "slice" },
+            split = Split.ALWAYS,
             required = 1,
             optional = 1,
             lowerFixnum = { 1, 2 },
@@ -304,6 +306,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(
             names = "[]=",
+            split = Split.ALWAYS,
             required = 2,
             optional = 1,
             lowerFixnum = { 1, 2 },
