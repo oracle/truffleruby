@@ -856,13 +856,14 @@ public abstract class KernelNodes {
         @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "isRubyDynamicObject(self)")
         protected Object freezeDynamicObject(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary,
-                @Cached("createBinaryProfile()") ConditionProfile singletonProfile,
+                @CachedLibrary(limit = "1") RubyLibrary rubyLibraryMetaClass,
+                @Cached ConditionProfile singletonProfile,
                 @Cached MetaClassNode metaClassNode) {
             final RubyClass metaClass = metaClassNode.execute(self);
             if (singletonProfile.profile(metaClass.isSingleton &&
                     !(RubyGuards.isRubyClass(self) && ((RubyClass) self).isSingleton))) {
-                if (!RubyLibrary.getUncached().isFrozen(metaClass)) {
-                    RubyLibrary.getUncached().freeze(metaClass);
+                if (!rubyLibraryMetaClass.isFrozen(metaClass)) {
+                    rubyLibraryMetaClass.freeze(metaClass);
                 }
             }
             rubyLibrary.freeze(self);

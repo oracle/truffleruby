@@ -91,17 +91,21 @@ describe "An instance method" do
   end
 
   it "raises FrozenError with the correct class name" do
-    -> { Module.new do
-      self.freeze
-      def foo; end
-    end }.should raise_error(FrozenError){ |e|
+    -> {
+      Module.new do
+        self.freeze
+        def foo; end
+      end
+    }.should raise_error(FrozenError) { |e|
       e.message.should == "can't modify frozen module"
     }
 
-    -> { Class.new do
-      self.freeze
-      def foo; end
-    end }.should raise_error(FrozenError){ |e|
+    -> {
+      Class.new do
+        self.freeze
+        def foo; end
+      end
+    }.should raise_error(FrozenError){ |e|
       e.message.should == "can't modify frozen class"
     }
   end
