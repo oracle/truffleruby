@@ -262,7 +262,12 @@ module Truffle
 
       def redirect(from, to)
         map = (@options[:redirect_fd] ||= [])
-        map << from << to
+        if to.nil?
+          @options[:fds_to_close] ||= []
+          @options[:fds_to_close] << from
+        else
+          map << from << to
+        end
       end
 
       def convert_io_fd(obj)
@@ -491,6 +496,8 @@ module Truffle
             end
           when :chdir
             chdir = value
+          when :fds_to_close
+            value.each { |fd| fds_to_close << fd }
           else
             raise "Unknown spawn option: #{key}"
           end

@@ -80,3 +80,4 @@ slow:Process.spawn inside Dir.chdir does not create extra process without chdir
 slow:Process.spawn inside Dir.chdir kills extra chdir processes
 slow:Process.spawn redirects both STDERR and STDOUT to the given file descriptor
 slow:Process.spawn defaults :close_others to false
+slow:Process.spawn closes STDERR in the child if :err => :close
