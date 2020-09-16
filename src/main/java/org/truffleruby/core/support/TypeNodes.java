@@ -160,6 +160,11 @@ public abstract class TypeNodes {
         }
 
         @Specialization
+        protected RubyArray instanceVariables(double object) {
+            return ArrayHelpers.createEmptyArray(getContext());
+        }
+
+        @Specialization
         protected RubyArray instanceVariables(boolean object) {
             return ArrayHelpers.createEmptyArray(getContext());
         }
