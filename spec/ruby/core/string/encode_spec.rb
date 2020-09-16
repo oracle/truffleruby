@@ -21,7 +21,7 @@ describe "String#encode" do
       str = "あ"
       encoded = str.encode
       encoded.should_not equal(str)
-      encoded.should eql(str)
+      encoded.should == str
     end
 
     it "returns a copy for a ASCII-only String when Encoding.default_internal is nil" do
@@ -29,7 +29,7 @@ describe "String#encode" do
       str = "abc"
       encoded = str.encode
       encoded.should_not equal(str)
-      encoded.should eql(str)
+      encoded.should == str
     end
 
     it "encodes an ascii substring of a binary string to UTF-8" do
@@ -45,7 +45,7 @@ describe "String#encode" do
       str = "あ"
       encoded = str.encode(Encoding::UTF_8)
       encoded.should_not equal(str)
-      encoded.should eql(str)
+      encoded.should == str
     end
 
     it "round trips a String" do
@@ -81,7 +81,7 @@ describe "String#encode" do
       encoded = str.encode("utf-8", "utf-8")
 
       encoded.should_not equal(str)
-      encoded.should eql(str.force_encoding("utf-8"))
+      encoded.should == str.force_encoding("utf-8")
       encoded.encoding.should == Encoding::UTF_8
     end
 
@@ -96,7 +96,7 @@ describe "String#encode" do
       str = "あ"
       encoded = str.encode(Encoding::UTF_8, undef: :replace)
       encoded.should_not equal(str)
-      encoded.should eql(str)
+      encoded.should == str
     end
   end
 
@@ -105,7 +105,7 @@ describe "String#encode" do
       str = "あ"
       encoded = str.encode("utf-8", "utf-8", invalid: :replace)
       encoded.should_not equal(str)
-      encoded.should eql(str)
+      encoded.should == str
     end
 
     it "returns a copy in the destination encoding when both encodings are the same" do
@@ -114,7 +114,7 @@ describe "String#encode" do
       encoded = str.encode("utf-8", "utf-8", invalid: :replace)
 
       encoded.should_not equal(str)
-      encoded.should eql(str.force_encoding("utf-8"))
+      encoded.should == str.force_encoding("utf-8")
       encoded.encoding.should == Encoding::UTF_8
     end
   end
