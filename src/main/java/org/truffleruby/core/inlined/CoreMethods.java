@@ -87,6 +87,7 @@ public class CoreMethods {
     public final InternalMethod STRING_BYTESIZE;
     public final InternalMethod MODULE_CASE_EQUAL;
     public final InternalMethod STRING_EQUAL;
+    public final InternalMethod STRING_TO_SYM;
     public final InternalMethod SYMBOL_TO_PROC;
     public final InternalMethod ARRAY_AT;
     public final InternalMethod ARRAY_INDEX_GET;
@@ -153,6 +154,7 @@ public class CoreMethods {
         KERNEL_KIND_OF = getMethod(kernelModule, "kind_of?");
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
         STRING_EQUAL = getMethod(stringClass, "==");
+        STRING_TO_SYM = getMethod(stringClass, "to_sym");
         SYMBOL_TO_PROC = getMethod(symbolClass, "to_proc");
         ARRAY_AT = getMethod(arrayClass, "at");
         ARRAY_INDEX_GET = getMethod(arrayClass, "[]");
@@ -211,6 +213,8 @@ public class CoreMethods {
                     return InlinedIsNilNodeGen.create(context, callParameters, self);
                 case "bytesize":
                     return InlinedByteSizeNodeGen.create(context, callParameters, self);
+                case "to_sym":
+                    return InlinedToSymNodeGen.create(context, callParameters, self);
                 default:
             }
         } else if (n == 2) {

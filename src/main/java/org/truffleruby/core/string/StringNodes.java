@@ -2493,6 +2493,12 @@ public abstract class StringNodes {
 
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
 
+        public static ToSymNode create() {
+            return StringNodesFactory.ToSymNodeFactory.create(null);
+        }
+
+        public abstract RubySymbol execute(RubyString string);
+
         @Specialization(
                 guards = { "!isBrokenCodeRange(string, codeRangeNode)", "equalNode.execute(string.rope,cachedRope)" },
                 limit = "getDefaultCacheLimit()")
