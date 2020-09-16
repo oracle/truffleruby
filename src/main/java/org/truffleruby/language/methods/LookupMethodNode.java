@@ -21,7 +21,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -33,7 +32,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Caches {@link ModuleOperations#lookupMethodCached(RubyModule, String, DeclarationContext)} on an actual instance. */
@@ -85,7 +83,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,
             @Cached ConditionProfile isSendProfile,
-            @Cached BranchProfile foreignProfile,
+            @Cached ConditionProfile foreignProfile,
             @Cached ConditionProfile noPrependedModulesProfile,
             @Cached ConditionProfile onMetaClassProfile,
             @Cached ConditionProfile hasRefinementsProfile,
@@ -98,9 +96,8 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
         // Actual lookup
 
-        if (metaClass == context.getCoreLibrary().truffleInteropForeignClass) {
-            foreignProfile.enter();
-            throw Utils.unsupportedOperation("method lookup not supported on foreign objects");
+        if (foreignProfile.profile(metaClass == context.getCoreLibrary().truffleInteropForeignClass)) {
+            return null;
         }
 
         final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(frame);
@@ -163,7 +160,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 
         if (metaClass == context.getCoreLibrary().truffleInteropForeignClass) {
-            throw new UnsupportedOperationException("method lookup not supported on foreign objects");
+            return new MethodLookupResult(null);
         }
 
         final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callingFrame);
