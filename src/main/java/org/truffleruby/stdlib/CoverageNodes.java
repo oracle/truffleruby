@@ -9,8 +9,7 @@
  */
 package org.truffleruby.stdlib;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -60,7 +59,6 @@ public abstract class CoverageNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray resultArray() {
-            final List<RubyArray> results = new ArrayList<>();
 
             final Map<Source, long[]> counts = getContext().getCoverageManager().getCounts();
 
@@ -68,6 +66,7 @@ public abstract class CoverageNodes {
                 throw new RaiseException(getContext(), coreExceptions().runtimeErrorCoverageNotEnabled(this));
             }
 
+            Map<String, RubyArray> results = new HashMap<>();
             for (Map.Entry<Source, long[]> source : counts.entrySet()) {
                 final long[] countsArray = source.getValue();
 
@@ -81,16 +80,18 @@ public abstract class CoverageNodes {
                     }
                 }
 
-                results.add(createArray(new Object[]{
+                final String path = RubyContext.getPath(source.getKey());
+                assert !results.containsKey(path) : "path already exists in coverage results";
+                results.put(path, createArray(new Object[]{
                         makeStringNode.executeMake(
-                                RubyContext.getPath(source.getKey()),
+                                path,
                                 UTF8Encoding.INSTANCE,
                                 CodeRange.CR_UNKNOWN),
                         createArray(countsStore)
                 }));
             }
 
-            return createArray(results.toArray());
+            return createArray(results.values().toArray());
         }
 
     }
