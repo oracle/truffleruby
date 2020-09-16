@@ -156,7 +156,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public boolean isMemberInternal(String name,
             @Cached @Shared("definedNode") DispatchRespondToNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchRespondToNode definedPublicNode) {
+            @Exclusive @Cached(parameters = "PUBLIC") DispatchRespondToNode definedPublicNode) {
         // defined but not publicly
         return definedNode.doesRespondTo(null, name, this) &&
                 !definedPublicNode.doesRespondTo(null, name, this);

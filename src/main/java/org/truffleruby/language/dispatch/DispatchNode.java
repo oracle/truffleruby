@@ -123,12 +123,9 @@ public class DispatchNode extends FrameSendingNode {
 
     public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
 
-        assert config.dispatchAction == DispatchAction.CALL_METHOD;
-
         final RubyClass metaclass = metaclassNode.execute(receiver);
 
         if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
-            assert config.dispatchAction == DispatchAction.CALL_METHOD;
             return callForeign(receiver, methodName, block, arguments);
         }
 

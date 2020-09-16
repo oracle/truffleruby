@@ -11,7 +11,6 @@ package org.truffleruby.core.kernel;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -1555,7 +1554,7 @@ public abstract class KernelNodes {
         private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
-            dispatch = DispatchRespondToNode.create(PUBLIC_DOES_RESPOND);
+            dispatch = DispatchRespondToNode.create(PUBLIC);
             dispatchIgnoreVisibility = DispatchRespondToNode.create();
             dispatchRespondToMissing = DispatchRespondToNode.create();
         }

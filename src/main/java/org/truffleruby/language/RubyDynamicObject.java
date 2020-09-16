@@ -629,7 +629,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isMemberInternal(String name,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Cached @Shared("definedNode") DispatchRespondToNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchRespondToNode definedPublicNode,
+            @Exclusive @Cached(parameters = "PUBLIC") DispatchRespondToNode definedPublicNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -685,7 +685,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     // region Instantiable
     @ExportMessage
     public boolean isInstantiable(
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchRespondToNode doesRespond) {
+            @Exclusive @Cached(parameters = "PUBLIC") DispatchRespondToNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", this);
     }
 

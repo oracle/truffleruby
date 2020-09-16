@@ -23,14 +23,14 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
 public class DispatchRespondToNode extends RubyBaseNode {
 
     // NOTE(norswap): cf. comment above static fields in DispatchNode to see why we need this field
-    public static final DispatchConfiguration PUBLIC_DOES_RESPOND = DispatchConfiguration.PUBLIC_DOES_RESPOND;
+    public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC;
 
     public static DispatchRespondToNode create(DispatchConfiguration config) {
         return new DispatchRespondToNode(config);
     }
 
     public static DispatchRespondToNode create() {
-        return new DispatchRespondToNode(DispatchConfiguration.PRIVATE_DOES_RESPOND);
+        return new DispatchRespondToNode(DispatchConfiguration.PRIVATE);
     }
 
     public static DispatchRespondToNode getUncached(DispatchConfiguration config) {
@@ -38,7 +38,7 @@ public class DispatchRespondToNode extends RubyBaseNode {
     }
 
     public static DispatchRespondToNode getUncached() {
-        return getUncached(DispatchConfiguration.PRIVATE_DOES_RESPOND);
+        return getUncached(DispatchConfiguration.PRIVATE);
     }
 
     public final DispatchConfiguration config;
@@ -63,7 +63,6 @@ public class DispatchRespondToNode extends RubyBaseNode {
     }
 
     public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
-        assert config.dispatchAction == DispatchAction.RESPOND_TO_METHOD;
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
         return method != null && method.isDefined() && method.isImplemented();
