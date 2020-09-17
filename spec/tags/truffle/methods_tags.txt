@@ -97,10 +97,8 @@ fails:Public methods on TracePoint should include instruction_sequence
 fails:Public methods on TracePoint should include parameters
 fails:Public methods on TracePoint should include raised_exception
 fails:Public methods on TracePoint should include return_value
-fails:Public methods on Digest::Base should include <<
 fails:Public methods on Digest::Base should include block_length
 fails:Public methods on Digest::Base should include digest_length
 fails:Public methods on Digest::Base should include reset
-fails:Public methods on Digest::Base should include update
 fails:Public methods on Digest::MD5 should not include block_length
 fails:Public methods on Digest::SHA1 should not include block_length
