@@ -165,4 +165,14 @@ public class DeclarationContext {
 
     /** Used when we know there cannot be a method definition inside a given method. */
     public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
+
+    @TruffleBoundary
+    @Override
+    public String toString() {
+        return "DeclarationContext{" +
+                "visibility=" + visibility +
+                ", defaultDefinee=" + defaultDefinee +
+                ", refinements=" + refinements +
+                "}@" + hashCode();
+    }
 }
