@@ -29,6 +29,7 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.core.rope.RopeOperations;
 
 @NodeChild("width")
 @NodeChild("precision")
@@ -62,7 +63,7 @@ public abstract class FormatFloatNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization
-    protected byte[] formatInfinite(int width, int precision, double dval) {
+    protected byte[] format(int width, int precision, double dval) {
         //        if (arg == null || name != null) {
         //            arg = args.next(name);
         //            name = null;
@@ -473,9 +474,8 @@ public abstract class FormatFloatNode extends FormatNode {
                 intLength = intDigits + intZeroes;
                 decDigits = nDigits - intDigits;
                 decZeroes = Math.max(0, -(decDigits + exponent));
-                decLength = decZeroes + decDigits;
 
-                if (precision < decLength) {
+                if (precision < decZeroes + decDigits) {
                     if (precision < decZeroes) {
                         decDigits = 0;
                         decZeroes = precision;
@@ -488,11 +488,9 @@ public abstract class FormatFloatNode extends FormatNode {
                             intLength = intDigits + intZeroes;
                             decDigits = nDigits - intDigits;
                             decZeroes = Math.max(0, -(decDigits + exponent));
-                            decLength = decZeroes + decDigits;
                         }
                         decDigits = precision - decZeroes;
                     }
-                    decLength = decZeroes + decDigits;
                 }
                 if (precision > 0) {
                     len += Math.max(1, intLength) + 1 + precision;
@@ -659,7 +657,7 @@ public abstract class FormatFloatNode extends FormatNode {
                     floatingPointLiteral = floatingPointLiteral.replace(hexPrefix, padded.toString());
                     width = 0;
                 }
-                buf.append(floatingPointLiteral.getBytes());
+                buf.append(RopeOperations.encodeAsciiBytes(floatingPointLiteral));
                 if (width > 0 && !hasMinusFlag) {
                     buf.append(' ', width);
                 }

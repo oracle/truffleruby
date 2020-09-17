@@ -152,11 +152,17 @@ public class RopeOperations {
         return bytes;
     }
 
+    public static String decodeAscii(byte[] bytes) {
+        return decodeAscii(bytes, 0, bytes.length);
+    }
+
     public static String decodeAscii(byte[] bytes, int byteOffset, int byteLength) {
         final char[] buffer = new char[byteLength];
 
         for (int i = 0; i < byteLength; i++) {
-            buffer[i] = (char) bytes[byteOffset + i];
+            byte b = bytes[byteOffset + i];
+            assert b >= 0;
+            buffer[i] = (char) b;
         }
 
         return newString(buffer);

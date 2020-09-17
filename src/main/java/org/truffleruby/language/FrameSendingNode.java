@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 
@@ -52,6 +53,7 @@ import org.truffleruby.language.methods.DeclarationContext;
  * {@link #getFrameIfRequired(VirtualFrame)} (called by subclasses in order to pass down the frame or not). Starting to
  * send the frame invalidates the assumption. In other words, the assumption guards the fact that {@link #sendsFrame} is
  * a compilation constant, and is invalidated whenever it needs to change. */
+@SuppressFBWarnings("IS")
 public abstract class FrameSendingNode extends RubyContextNode {
 
     private enum SendsFrame {

@@ -63,9 +63,9 @@ public class ObjectSpaceManager {
     private final AtomicInteger tracingAssumptionActivations = new AtomicInteger(0);
     private final ThreadLocal<Boolean> tracingPaused = ThreadLocal.withInitial(() -> false);
 
-    public static long INITIAL_LANGUAGE_OBJECT_ID = 16;
-    public static long OBJECT_ID_INCREMENT_BY = 16;
-    private static long INITIAL_CONTEXT_OBJECT_ID = 8;
+    public static final long INITIAL_LANGUAGE_OBJECT_ID = 16;
+    public static final long OBJECT_ID_INCREMENT_BY = 16;
+    private static final long INITIAL_CONTEXT_OBJECT_ID = 8;
 
     private final AtomicLong nextObjectID = new AtomicLong(INITIAL_CONTEXT_OBJECT_ID);
 

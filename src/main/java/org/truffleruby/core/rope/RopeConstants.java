@@ -30,7 +30,7 @@ public class RopeConstants {
     public static final LeafRope[] UTF8_SINGLE_BYTE_ROPES = new LeafRope[256];
     public static final LeafRope[] US_ASCII_SINGLE_BYTE_ROPES = new LeafRope[256];
     public static final LeafRope[] ASCII_8BIT_SINGLE_BYTE_ROPES = new LeafRope[256];
-    public static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
+    static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
 
     static {
         for (int i = 0; i < 128; i++) {

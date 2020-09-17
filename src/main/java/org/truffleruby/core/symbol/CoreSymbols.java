@@ -23,8 +23,8 @@ import org.truffleruby.core.rope.RopeOperations;
 // @formatter:off
 public class CoreSymbols {
 
-    public static long STATIC_SYMBOL_ID = 0x1;
-    private static long GLOBAL_SYMBOL_ID = (0x03 << 1);
+    public static final long STATIC_SYMBOL_ID = 0x1;
+    private static final long GLOBAL_SYMBOL_ID = (0x03 << 1);
 
     public static final List<RubySymbol> CORE_SYMBOLS = new ArrayList<>();
     public static final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[216];

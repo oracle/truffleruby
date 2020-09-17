@@ -91,7 +91,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private AppendArrayNode getAppendArrayNode() {
             if (appendArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendArrayNode = insert(AppendArrayNode.create(getContext(), startNode.allocator));
+                appendArrayNode = insert(AppendArrayNode.create(getContext()));
             }
             return appendArrayNode;
         }
@@ -99,7 +99,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private AppendOneNode getAppendOneNode() {
             if (appendOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendOneNode = insert(AppendOneNode.create(getContext(), startNode.allocator));
+                appendOneNode = insert(AppendOneNode.create(getContext()));
             }
             return appendOneNode;
         }
@@ -129,10 +129,10 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
             if (newStrategy != oldStrategy) {
                 if (appendArrayNode != null) {
-                    appendArrayNode.replace(AppendArrayNode.create(getContext(), updatedAllocator));
+                    appendArrayNode.replace(AppendArrayNode.create(getContext()));
                 }
                 if (appendOneNode != null) {
-                    appendOneNode.replace(AppendOneNode.create(getContext(), updatedAllocator));
+                    appendOneNode.replace(AppendOneNode.create(getContext()));
                 }
             }
 
@@ -184,16 +184,14 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendOneNode extends ArrayBuilderBaseNode {
 
-        public static AppendOneNode create(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
-            return AppendOneNodeGen.create(context, allocator);
+        public static AppendOneNode create(RubyContext context) {
+            return AppendOneNodeGen.create(context);
         }
 
         private final RubyContext context;
-        protected final ArrayStoreLibrary.ArrayAllocator allocator;
 
-        public AppendOneNode(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
+        public AppendOneNode(RubyContext context) {
             this.context = context;
-            this.allocator = allocator;
         }
 
         public abstract void executeAppend(BuilderState array, int index, Object value);
@@ -249,16 +247,14 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendArrayNode extends ArrayBuilderBaseNode {
 
-        public static AppendArrayNode create(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
-            return AppendArrayNodeGen.create(context, allocator);
+        public static AppendArrayNode create(RubyContext context) {
+            return AppendArrayNodeGen.create(context);
         }
 
         private final RubyContext context;
-        protected final ArrayStoreLibrary.ArrayAllocator allocator;
 
-        public AppendArrayNode(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
+        public AppendArrayNode(RubyContext context) {
             this.context = context;
-            this.allocator = allocator;
         }
 
         public abstract void executeAppend(BuilderState state, int index, RubyArray value);

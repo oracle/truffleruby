@@ -1416,7 +1416,7 @@ public abstract class ModuleNodes {
                 method = module.fields.getMethod(name);
             }
 
-            return method != null && !method.isUndefined() && !method.getVisibility().isPrivate();
+            return method != null && !method.isUndefined() && !(method.getVisibility() == Visibility.PRIVATE);
         }
 
     }

@@ -41,6 +41,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
@@ -500,8 +501,14 @@ public abstract class EncodingNodes {
     // Port of MRI's `get_actual_encoding`.
     public abstract static class GetActualEncodingNode extends RubyContextNode {
 
-        protected static final Encoding UTF16Dummy = EncodingDB.getEncodings().get("UTF-16".getBytes()).getEncoding();
-        protected static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();
+        protected static final Encoding UTF16Dummy = EncodingDB
+                .getEncodings()
+                .get(RopeOperations.encodeAsciiBytes("UTF-16"))
+                .getEncoding();
+        protected static final Encoding UTF32Dummy = EncodingDB
+                .getEncodings()
+                .get(RopeOperations.encodeAsciiBytes("UTF-32"))
+                .getEncoding();
 
         public static GetActualEncodingNode create() {
             return EncodingNodesFactory.GetActualEncodingNodeGen.create();

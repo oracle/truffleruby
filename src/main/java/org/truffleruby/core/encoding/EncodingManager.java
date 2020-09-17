@@ -13,7 +13,6 @@
 package org.truffleruby.core.encoding;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -98,7 +97,7 @@ public class EncodingManager {
 
             // The alias name should be exactly the one in the encodings DB.
             final Encoding encoding = encodingEntry.getEncoding();
-            final RubyEncoding rubyEncoding = defineAlias(encoding, new String(e.bytes, e.p, e.end));
+            final RubyEncoding rubyEncoding = defineAlias(encoding, RopeOperations.decodeAscii(e.bytes, e.p, e.end));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
@@ -158,7 +157,7 @@ public class EncodingManager {
 
             final long address = nfi.asPointer(nl_langinfo.call(codeset));
             final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(context, 0);
-            localeEncodingName = new String(bytes, StandardCharsets.US_ASCII);
+            localeEncodingName = RopeOperations.decodeAscii(bytes);
         } else {
             localeEncodingName = Charset.defaultCharset().name();
         }
@@ -274,7 +273,7 @@ public class EncodingManager {
             return null;
         }
 
-        byte[] nameBytes = name.getBytes();
+        byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
         EncodingDB.dummy(nameBytes);
         final Entry entry = EncodingDB.getEncodings().get(nameBytes);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
@@ -286,8 +285,8 @@ public class EncodingManager {
             return null;
         }
 
-        EncodingDB.replicate(name, new String(encoding.getName()));
-        byte[] nameBytes = name.getBytes();
+        EncodingDB.replicate(name, encoding.toString());
+        byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
         final Entry entry = EncodingDB.getEncodings().get(nameBytes);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
     }

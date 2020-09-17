@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -128,7 +129,7 @@ public abstract class ExceptionNodes {
             if (backtrace != null) {
                 self.backtrace = backtrace.copy(getContext(), self);
             } else {
-                self.backtrace = backtrace;
+                self.backtrace = null;
             }
             self.formatter = from.formatter;
             self.message = from.message;
@@ -316,6 +317,7 @@ public abstract class ExceptionNodes {
     @SuppressWarnings("unused")
     public static abstract class Breakpoint extends PrimitiveNode {
 
+        @SuppressFBWarnings("DLS")
         @TruffleBoundary
         @Specialization
         protected boolean breakpoint() {

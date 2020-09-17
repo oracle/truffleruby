@@ -10,8 +10,7 @@
 
 package org.truffleruby.core.array.library;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.Collections;
 
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
@@ -95,23 +94,7 @@ public class ZeroLengthArrayStore {
 
     @ExportMessage
     protected Iterable<Object> getIterable(int from, int length) {
-        return () -> new Iterator<Object>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public Object next() throws NoSuchElementException {
-                throw new NoSuchElementException();
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException("remove");
-            }
-
-        };
+        return () -> Collections.emptyIterator();
     }
 
     @ExportMessage

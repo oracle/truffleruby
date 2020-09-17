@@ -68,6 +68,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
@@ -274,7 +275,7 @@ public abstract class VMPrimitiveNodes {
                     prev = truffleContext.enter();
                 } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
                     // Not in a context, so we cannot use TruffleLogger
-                    final PrintStream printStream = new PrintStream(context.getEnv().err(), true);
+                    final PrintStream printStream = BacktraceFormatter.printStreamFor(context.getEnv().err());
                     printStream.println(
                             "[ruby] SEVERE: signal " + signal +
                                     " caught but can't attach a thread to handle it so restoring the default handler and re-raising the signal");

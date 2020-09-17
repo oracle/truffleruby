@@ -15,8 +15,8 @@ import org.truffleruby.core.klass.RubyClass;
 
 public final class BasicObjectType extends ObjectType {
 
-    protected final RubyClass logicalClass;
-    protected final RubyClass metaClass;
+    private final RubyClass logicalClass;
+    private final RubyClass metaClass;
 
     public BasicObjectType(RubyClass logicalClass, RubyClass metaClass) {
         this.logicalClass = logicalClass;

@@ -25,7 +25,7 @@ import sun.misc.Unsafe;
 public class Pointer implements AutoCloseable {
 
     public static final Pointer NULL = new Pointer(0);
-    public static final int SIZE = Long.BYTES;
+    public static final long SIZE = Long.BYTES;
 
     public static final Pointer[] EMPTY_ARRAY = new Pointer[0];
 

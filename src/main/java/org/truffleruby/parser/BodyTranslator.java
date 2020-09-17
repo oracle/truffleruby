@@ -25,6 +25,7 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
@@ -1538,6 +1539,7 @@ public class BodyTranslator extends Translator {
         }
     }
 
+    @SuppressFBWarnings("SIC")
     private RubyNode translateDummyAssignment(ParseNode dummyAssignment, final RubyNode rhs) {
         // The JRuby AST includes assignment nodes without a proper value,
         // so we need to patch them to include the proper rhs value to translate them correctly.
@@ -2140,7 +2142,7 @@ public class BodyTranslator extends Translator {
                     environment.findLocalVarNode(tempRHSName, sourceSection));
         } else if (node.getPre() == null && node.getPost() == null && node.getRest() instanceof StarParseNode) {
             result = rhsTranslated;
-        } else if (node.getPre() == null && node.getPost() == null && node.getRest() != null && rhs != null &&
+        } else if (node.getPre() == null && node.getPost() == null && node.getRest() != null &&
                 !(rhs instanceof ArrayParseNode)) {
             /* *a = b
              *
@@ -2197,7 +2199,7 @@ public class BodyTranslator extends Translator {
             }
 
             result = new ElidableResultNode(sequence(sourceSection, sequence), assignmentResult);
-        } else if (node.getPre() == null && node.getPost() == null && node.getRest() != null && rhs != null &&
+        } else if (node.getPre() == null && node.getPost() == null && node.getRest() != null &&
                 rhs instanceof ArrayParseNode) {
             /* *a = [b, c]
              *

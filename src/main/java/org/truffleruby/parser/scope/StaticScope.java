@@ -214,6 +214,7 @@ public class StaticScope {
         return findVariableName(name);
     }
 
+    @SuppressFBWarnings("ES")
     private int findVariableName(String name) {
         assert name == name.intern() : name;
         for (int i = 0; i < variableNames.length; i++) {
@@ -327,6 +328,7 @@ public class StaticScope {
         return commandArgumentStack;
     }
 
+    @SuppressFBWarnings("ES")
     private void growVariableNames(String name) {
         assert name == name.intern() : name;
         String[] newVariableNames = new String[variableNames.length + 1];

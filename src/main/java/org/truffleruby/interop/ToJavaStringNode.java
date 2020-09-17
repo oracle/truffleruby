@@ -61,7 +61,7 @@ public abstract class ToJavaStringNode extends RubySourceNode {
         final byte[] bytes = bytesNode.execute(rope);
 
         if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {
-            return RopeOperations.decodeAscii(bytes, 0, bytes.length);
+            return RopeOperations.decodeAscii(bytes);
         } else {
             return RopeOperations.decodeNonAscii(rope.getEncoding(), bytes, 0, bytes.length);
         }

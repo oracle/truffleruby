@@ -10,6 +10,7 @@
 package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.SuppressFBWarnings;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -214,6 +215,7 @@ public final class BigIntegerOps {
         return compare(a.value, b);
     }
 
+    @SuppressFBWarnings("RV") // compare only returns -1, 0 or 1
     public static int compare(double a, RubyBignum b) {
         return -compare(b.value, a);
     }

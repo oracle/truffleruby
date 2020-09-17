@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.format;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+
+import com.oracle.truffle.api.CompilerDirectives;
 
 public enum FormatEncoding {
 
@@ -54,7 +55,7 @@ public enum FormatEncoding {
         }
 
         // TODO (kjmenard 17-Oct-18): This entire enum needs to be rethought since a format string can take on any encoding, not just the 3 codified here.
-        throw new UnsupportedOperationException("Can't find format encoding for " + new String(encoding.getName()));
+        throw new UnsupportedOperationException("Can't find format encoding for " + encoding);
     }
 
     /** Given the current encoding for a pack string, and something that requires another encoding, give us the encoding

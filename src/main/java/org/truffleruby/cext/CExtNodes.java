@@ -754,11 +754,11 @@ public class CExtNodes {
 
             switch (visibility.getString()) {
                 case "private":
-                    return callerVisibility.isPrivate();
+                    return callerVisibility == Visibility.PRIVATE;
                 case "protected":
-                    return callerVisibility.isProtected();
+                    return callerVisibility == Visibility.PROTECTED;
                 case "module_function":
-                    return callerVisibility.isModuleFunction();
+                    return callerVisibility == Visibility.MODULE_FUNCTION;
                 default:
                     throw CompilerDirectives.shouldNotReachHere();
             }

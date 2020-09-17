@@ -2271,6 +2271,10 @@ EOS
     end
   end
 
+  def spotbugs
+    mx 'ruby_spotbugs'
+  end
+
   module Formatting
     extend self
 
@@ -2466,7 +2470,7 @@ EOS
     # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
     #  - includes verifylibraryurls though
     #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
-    mx 'spotbugs' unless fast
+    spotbugs unless fast
 
     mx 'verify-ci' if changed['.py']
 

@@ -15,6 +15,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 
@@ -89,7 +90,8 @@ public abstract class TruffleRopesNodes {
         protected RubyString getStructure(RubyString string) {
             Rope rope = string.rope;
             String result = getStructure(rope);
-            return makeStringNode.executeMake(result.getBytes(), rope.getEncoding(), CodeRange.CR_7BIT);
+            byte[] bytes = StringOperations.encodeBytes(result, UTF8Encoding.INSTANCE);
+            return makeStringNode.executeMake(bytes, rope.getEncoding(), CodeRange.CR_7BIT);
         }
 
         protected static String getStructure(Rope rope) {

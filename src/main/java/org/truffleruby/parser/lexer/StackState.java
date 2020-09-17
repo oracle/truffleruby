@@ -30,7 +30,7 @@
 package org.truffleruby.parser.lexer;
 
 /** @author jpetersen */
-public class StackState implements Cloneable {
+public class StackState {
     private long stack = 0;
 
     public void reset() {

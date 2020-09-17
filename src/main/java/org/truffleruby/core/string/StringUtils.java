@@ -11,17 +11,13 @@ package org.truffleruby.core.string;
 
 import java.util.Locale;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.rope.RopeOperations;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class StringUtils {
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
-
-    @TruffleBoundary
-    public static String create(byte[] bytes) {
-        return new String(bytes);
-    }
 
     @TruffleBoundary
     public static String toString(Object value) {
@@ -55,6 +51,11 @@ public abstract class StringUtils {
     @TruffleBoundary
     public static String toLowerCase(String string) {
         return string.toLowerCase(Locale.ENGLISH);
+    }
+
+    @TruffleBoundary
+    public static String toUpperCase(String string) {
+        return string.toUpperCase(Locale.ENGLISH);
     }
 
 }

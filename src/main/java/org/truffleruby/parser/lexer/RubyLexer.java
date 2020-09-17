@@ -61,6 +61,7 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.rope.BytesKey;
@@ -707,6 +708,7 @@ public class RubyLexer implements MagicCommentHandler {
         return -1; // not-reached
     }
 
+    @SuppressFBWarnings({ "INT", "DB" })
     private int hereDocumentIdentifier() {
         int c = nextc();
         int term;
@@ -801,6 +803,7 @@ public class RubyLexer implements MagicCommentHandler {
      *
      * @return Description of the Returned Value */
     @SuppressWarnings("fallthrough")
+    @SuppressFBWarnings("SF")
     private int yylex() {
         int c;
         boolean spaceSeen = false;
@@ -1558,6 +1561,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     @SuppressWarnings("fallthrough")
+    @SuppressFBWarnings("SF")
     private int dollar() {
         setState(EXPR_END);
         newtok(true);
@@ -2353,6 +2357,7 @@ public class RubyLexer implements MagicCommentHandler {
      * @param c The first character of the number.
      * @return A int constant wich represents a token. */
     @SuppressWarnings("fallthrough")
+    @SuppressFBWarnings("SF")
     private int parseNumber(int c) {
         setState(EXPR_END);
         newtok(true);
@@ -2657,6 +2662,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     @SuppressWarnings("fallthrough")
+    @SuppressFBWarnings("SF")
     public int readEscape() {
         int c = nextc();
 

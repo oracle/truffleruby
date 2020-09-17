@@ -26,6 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.time;
 
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.FieldType;
 
 /** Support for GNU-C output formatters, see:
@@ -79,14 +80,14 @@ public class RubyTimeOutputFormatter {
         for (int i = 0; i < flags.length(); i++) {
             switch (flags.charAt(i)) {
                 case '^':
-                    sequence = sequence.toUpperCase();
+                    sequence = StringUtils.toUpperCase(sequence);
                     break;
                 case '#': // change case
                     char last = sequence.charAt(sequence.length() - 1);
                     if (Character.isLowerCase(last)) {
-                        sequence = sequence.toUpperCase();
+                        sequence = StringUtils.toUpperCase(sequence);
                     } else {
-                        sequence = sequence.toLowerCase();
+                        sequence = StringUtils.toLowerCase(sequence);
                     }
                     break;
             }

@@ -27,7 +27,6 @@ public class PrintfSimpleParser {
         this.isDebug = isDebug;
     }
 
-    @SuppressWarnings("fallthrough")
     public List<SprintfConfig> parse() {
         List<SprintfConfig> configs = new ArrayList<>();
         ArgType argType = ArgType.NONE;
@@ -39,7 +38,8 @@ public class PrintfSimpleParser {
 
             // Add literal bytes up to the first %
             int literalEnd = i;
-            for (; literalEnd < end && source[literalEnd] != '%'; literalEnd++) {
+            while (literalEnd < end && source[literalEnd] != '%') {
+                literalEnd++;
             }
             final int literalLength = literalEnd - i;
             if (literalLength > 0) {
@@ -193,28 +193,18 @@ public class PrintfSimpleParser {
                         break;
                     case '\n':
                     case '\0':
-                        i--;
                     case '%':
                         if (config.hasFlags()) {
                             throw new InvalidFormatException("invalid format character - %");
                         }
                         config.setLiteral(true);
-                        byte[] literal = { (byte) '%' };
-                        config.setLiteralBytes(literal);
-                        i++;
-                        finished = true;
-                        break;
-                    case 'c':
-                        config.setFormatType(SprintfConfig.FormatType.OTHER);
-                        config.setFormat(p);
-                        i++;
-                        if (!argTypeSet) {
-                            checkNextArg(argType, 1);
-                            argCount += 1;
-                            argType = ArgType.UNNUMBERED;
+                        config.setLiteralBytes(new byte[]{ (byte) '%' });
+                        if (p == '%') {
+                            i++;
                         }
                         finished = true;
                         break;
+                    case 'c':
                     case 's':
                     case 'p':
                         config.setFormatType(SprintfConfig.FormatType.OTHER);

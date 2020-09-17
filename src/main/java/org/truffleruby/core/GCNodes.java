@@ -12,6 +12,7 @@ package org.truffleruby.core;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -50,6 +51,7 @@ public abstract class GCNodes {
     @Primitive(name = "gc_force")
     public static abstract class GCForce extends PrimitiveArrayArgumentsNode {
 
+        @SuppressFBWarnings("DLS")
         @TruffleBoundary
         @Specialization
         protected Object force() {

@@ -41,13 +41,14 @@
 package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
 import org.truffleruby.parser.TranslatorEnvironment;
@@ -134,8 +135,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
-import java.nio.charset.Charset;
-
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
@@ -159,7 +158,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 127 "-"
+// line 126 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -979,6 +978,7 @@ public class RubyParser {
   
             case 0:
               support.yyerror("syntax error", yyExpecting(yyState), yyNames[yyToken]);
+              break;
   
             case 1: case 2:
               yyErrorFlag = 3;
@@ -992,7 +992,8 @@ public class RubyParser {
                 }
               } while (-- yyTop >= 0);
               support.yyerror("irrecoverable syntax error");
-  
+              break;
+
             case 3:
               if (yyToken == 0) {
                 support.yyerror("irrecoverable syntax error at end-of-file");
@@ -3342,8 +3343,8 @@ states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    Encoding encoding = support.getConfiguration().getContext() == null ? EncodingManager.getEncoding(Charset.defaultCharset().name()) : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
-    yyVal = new FileParseNode(lexer.tokline, RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
+    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+    yyVal = new FileParseNode(lexer.tokline, StringOperations.encodeRope(lexer.getFile(), encoding, CR_UNKNOWN));
     return yyVal;
 };
 states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3859,7 +3860,7 @@ states[651] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2739 "RubyParser.y"
+// line 2738 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3876,4 +3877,4 @@ states[651] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10641 "-"
+// line 10642 "-"

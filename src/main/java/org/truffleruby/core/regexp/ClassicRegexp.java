@@ -53,6 +53,7 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.joni.exception.JOniException;
 import org.truffleruby.RubyContext;
+import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -96,7 +97,7 @@ public class ClassicRegexp implements ReOptions {
     private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding,
             RegexpOptions options) {
         if (context == null) {
-            final Regex regex = makeRegexp(context, bytes, options, encoding);
+            final Regex regex = makeRegexp(null, bytes, options, encoding);
             regex.setUserObject(bytes);
             return regex;
         }
@@ -311,7 +312,7 @@ public class ClassicRegexp implements ReOptions {
         } else {
             if (to != null) {
                 to.unsafeEnsureSpace(to.getLength() + 6);
-                to.setLength(to.getLength() + utf8Decode(context, to.getUnsafeBytes(), to.getLength(), code));
+                to.setLength(to.getLength() + utf8Decode(to.getUnsafeBytes(), to.getLength(), code));
             }
             if (enc[0] == null) {
                 enc[0] = UTF8Encoding.INSTANCE;
@@ -321,38 +322,33 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    public static int utf8Decode(RubyContext context, byte[] to, int p, int code) {
+    public static int utf8Decode(byte[] to, int p, int code) {
         if (code <= 0x7f) {
             to[p] = (byte) code;
             return 1;
-        }
-        if (code <= 0x7ff) {
+        } else if (code <= 0x7ff) {
             to[p + 0] = (byte) (((code >>> 6) & 0xff) | 0xc0);
             to[p + 1] = (byte) ((code & 0x3f) | 0x80);
             return 2;
-        }
-        if (code <= 0xffff) {
+        } else if (code <= 0xffff) {
             to[p + 0] = (byte) (((code >>> 12) & 0xff) | 0xe0);
             to[p + 1] = (byte) (((code >>> 6) & 0x3f) | 0x80);
             to[p + 2] = (byte) ((code & 0x3f) | 0x80);
             return 3;
-        }
-        if (code <= 0x1fffff) {
+        } else if (code <= 0x1fffff) {
             to[p + 0] = (byte) (((code >>> 18) & 0xff) | 0xf0);
             to[p + 1] = (byte) (((code >>> 12) & 0x3f) | 0x80);
             to[p + 2] = (byte) (((code >>> 6) & 0x3f) | 0x80);
             to[p + 3] = (byte) ((code & 0x3f) | 0x80);
             return 4;
-        }
-        if (code <= 0x3ffffff) {
+        } else if (code <= 0x3ffffff) {
             to[p + 0] = (byte) (((code >>> 24) & 0xff) | 0xf8);
             to[p + 1] = (byte) (((code >>> 18) & 0x3f) | 0x80);
             to[p + 2] = (byte) (((code >>> 12) & 0x3f) | 0x80);
             to[p + 3] = (byte) (((code >>> 6) & 0x3f) | 0x80);
             to[p + 4] = (byte) ((code & 0x3f) | 0x80);
             return 5;
-        }
-        if (code <= 0x7fffffff) {
+        } else { // code <= 0x7fffffff = max int
             to[p + 0] = (byte) (((code >>> 30) & 0xff) | 0xfc);
             to[p + 1] = (byte) (((code >>> 24) & 0x3f) | 0x80);
             to[p + 2] = (byte) (((code >>> 18) & 0x3f) | 0x80);
@@ -361,7 +357,6 @@ public class ClassicRegexp implements ReOptions {
             to[p + 5] = (byte) ((code & 0x3f) | 0x80);
             return 6;
         }
-        throw new RaiseException(context, context.getCoreExceptions().rangeError("pack(U): value out of range", null));
     }
 
     private static void checkUnicodeRange(RubyContext context, int code, Rope str, RegexpSupport.ErrorMode mode) {
@@ -420,6 +415,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @SuppressWarnings("fallthrough")
+    @SuppressFBWarnings("SF")
     public static int readEscapedByte(RubyContext context, byte[] to, int toP, byte[] bytes, int p, int end, Rope str,
             RegexpSupport.ErrorMode mode) {
         if (p == end || bytes[p++] != (byte) '\\') {
@@ -625,8 +621,11 @@ public class ClassicRegexp implements ReOptions {
             if (regexpEnc != null && regexpEnc != fixedEnc[0]) {
                 throw new RaiseException(
                         context,
-                        context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " +
-                                new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
+                        context
+                                .getCoreExceptions()
+                                .regexpError(
+                                        "encoding mismatch in dynamic regexp: " + regexpEnc + " and " + fixedEnc[0],
+                                        null));
             }
             regexpEnc = fixedEnc[0];
         }
@@ -997,7 +996,7 @@ public class ClassicRegexp implements ReOptions {
         for (Iterator<NameEntry> i = pattern.namedBackrefIterator(); i.hasNext();) {
             NameEntry e = i.next();
             //intern() to improve footprint
-            names[j++] = new String(e.name, e.nameP, e.nameEnd - e.nameP).intern();
+            names[j++] = new String(e.name, e.nameP, e.nameEnd - e.nameP, pattern.getEncoding().getCharset()).intern();
         }
 
         return names;
