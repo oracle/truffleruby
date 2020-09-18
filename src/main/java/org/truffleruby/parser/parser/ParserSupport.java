@@ -1459,7 +1459,7 @@ public class ParserSupport {
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]
     public boolean is_local_id(Rope name) {
-        return lexer.isIdentifierChar(name.get(0) & 0xFF);
+        return lexer.isIdentifierChar(name.getString().charAt(0));
     }
 
     // 1.9

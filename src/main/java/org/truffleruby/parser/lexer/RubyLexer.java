@@ -1798,7 +1798,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
             tempVal = createTokenRope();
 
-            if (result == 0 && Character.isUpperCase(tempVal.get(0) & 0xFF)) {
+            if (result == 0 && Character.isUpperCase(tempVal.getString().charAt(0))) {
                 result = RubyParser.tCONSTANT;
             } else {
                 result = RubyParser.tIDENTIFIER;
@@ -3493,7 +3493,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public void validateFormalIdentifier(Rope identifier) {
-        int first = identifier.get(0) & 0xFF;
+        int first = identifier.getString().charAt(0);
 
         if (Character.isUpperCase(first)) {
             compile_error("formal argument cannot be a constant");
