@@ -125,9 +125,9 @@ def ruby_run_ruby(args):
     jt = join(root, 'tool/jt.rb')
     os.execlp(jt, jt, "ruby", *args)
 
-def ruby_run_specs(args):
+def ruby_run_specs(ruby, args):
     with VerboseMx():
-        jt('test', 'specs', *args)
+        jt('--use', ruby, 'test', 'specs', *args)
 
 def ruby_testdownstream_hello(args):
     """Run a minimal Hello World test"""
@@ -140,16 +140,12 @@ def ruby_testdownstream_aot(args):
         mx.abort("Incorrect argument count: mx ruby_testdownstream_aot <aot_bin> [<format>] [<build_type>]")
 
     aot_bin = args[0]
-    spec_format = args[1] if len(args) >= 2 else 'dot'
-
     fast = ['--excl-tag', 'slow']
-    mspec_args = ['--format', spec_format, '--excl-tag', 'ci']
 
-    os.environ['RUBY_BIN'] = aot_bin
-    ruby_run_specs(mspec_args)
+    ruby_run_specs(aot_bin, [])
 
     # Run "jt test fast --native :truffle" to catch slow specs in Truffle which only apply to native
-    ruby_run_specs(fast + mspec_args + [':truffle'])
+    ruby_run_specs(aot_bin, fast + [':truffle'])
 
 def ruby_testdownstream_sulong(args):
     """Run C extension tests"""
