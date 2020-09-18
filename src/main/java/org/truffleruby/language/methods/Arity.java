@@ -130,6 +130,10 @@ public class Arity {
         return type == ProcType.PROC ? procArityNumber : arityNumber;
     }
 
+    public int getMethodArityNumber() {
+        return arityNumber;
+    }
+
     public String[] getKeywordArguments() {
         return keywordArguments;
     }

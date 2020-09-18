@@ -14,7 +14,6 @@ import java.util.Set;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Visibility;
@@ -184,7 +183,7 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     public int getArityNumber() {
-        return sharedMethodInfo.getArity().getArityNumber(ProcType.LAMBDA);
+        return sharedMethodInfo.getArity().getMethodArityNumber();
     }
 
     public RootCallTarget getCallTarget() {
