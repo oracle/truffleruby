@@ -32,6 +32,8 @@ Compatibility:
 * Verify that gem paths are correct before loading RubyGems (#2075).
 * Implement `rb_ivar_count`.
 * Implemented `rb_yield_values2`.
+* Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
+* Fix arity for `Proc` (#2098, @ssnickolay)
 
 Performance:
 
