@@ -32,7 +32,7 @@ Compatibility:
 * Verify that gem paths are correct before loading RubyGems (#2075).
 * Implement `rb_ivar_count`.
 * Implemented `rb_yield_values2`.
-* Pass the final `super` specs (#2104, #chrisseaton).
+* Pass the final `super` specs (#2104, @chrisseaton).
 
 Performance:
 
