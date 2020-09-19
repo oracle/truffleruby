@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.supercall;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
@@ -28,6 +29,7 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
     @Child private ArrayToObjectArrayNode unsplatNode;
 
     private final int restArgIndex;
+    private final ConditionProfile isArrayProfile = ConditionProfile.create();
 
     public ReadZSuperArgumentsNode(int restArgIndex, RubyNode[] reloadNodes) {
         this.restArgIndex = restArgIndex;
@@ -50,11 +52,10 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
             final Object restArg = superArguments[restArgIndex];
 
             final Object[] restArgs;
-
-            if (restArg instanceof RubyArray) {
+            if (isArrayProfile.profile(restArg instanceof RubyArray)) {
                 restArgs = unsplat((RubyArray) restArg);
             } else {
-                restArgs = new Object[]{restArg};
+                restArgs = new Object[]{ restArg };
             }
 
             final int after = superArguments.length - (restArgIndex + 1);
