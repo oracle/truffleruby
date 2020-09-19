@@ -622,25 +622,36 @@ module Truffle::CExt
 
   def events_to_events_array(events)
     events_ary = []
-    if events.anybits? 0x0001
-      events ^= 0x0001
-      events_ary << :line
-    end
-    if events.anybits? 0x0002
-      events ^= 0x0002
-      events_ary << :class
+    parse_event = -> bits, name do
+      if events.anybits? bits
+        events ^= bits
+        if Symbol === name
+          events_ary << name
+        else
+          warn "warning: rb_tracepoint_new(#{name}) is not yet implemented" if $VERBOSE
+          events_ary << :never
+        end
+      end
     end
 
-    if events.anybits? 0x100000
-      events ^= 0x100000
-      warn 'warning: rb_tracepoint_new(RUBY_INTERNAL_EVENT_NEWOBJ) is not yet implemented' if $VERBOSE
-      events_ary << :never
-    end
-    if events.anybits? 0x200000
-      events ^= 0x200000
-      warn 'warning: rb_tracepoint_new(RUBY_INTERNAL_EVENT_FREEOBJ) is not yet implemented' if $VERBOSE
-      events_ary << :never
-    end
+    parse_event[0x0001, :line]
+    parse_event[0x0002, :class]
+    parse_event[0x0004, :end]
+    parse_event[0x0008, :call]
+    parse_event[0x0010, :return]
+    parse_event[0x0020, :c_call]
+    parse_event[0x0040, :c_return]
+    parse_event[0x0080, :raise]
+
+    parse_event[0x0100, :b_call]
+    parse_event[0x0200, :b_return]
+    parse_event[0x0400, :thread_begin]
+    parse_event[0x0800, :thread_end]
+    parse_event[0x1000, :fiber_switch]
+    parse_event[0x2000, :script_compiled]
+
+    parse_event[0x100000, 'RUBY_INTERNAL_EVENT_NEWOBJ']
+    parse_event[0x200000, 'RUBY_INTERNAL_EVENT_FREEOBJ']
 
     raise ArgumentError, "unknown event #{'%#x' % events}" unless events == 0
     events_ary
