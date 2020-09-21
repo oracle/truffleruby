@@ -72,8 +72,8 @@ describe "The launcher" do
     unless [:ruby, :truffleruby].include?(launcher)
       it "runs #{launcher} as an -S command" do
         out = ruby_exe(nil, options: "-S#{launcher} --version", args: @redirect)
-        out.should =~ test
         check_status_and_empty_stderr
+        out.should =~ test
       end
     end
   end
@@ -82,8 +82,8 @@ describe "The launcher" do
     it "supports running #{launcher} in any of the bin/ directories" do
       @bin_dirs.each do |bin_dir|
         out = `#{bin_dir}/#{launcher} --version #{@redirect}`
-        out.should =~ test
         check_status_and_empty_stderr
+        out.should =~ test
       end
     end
   end
@@ -98,8 +98,8 @@ describe "The launcher" do
             linkname = "linkto#{launcher}"
             File.symlink("#{bin_dir}/#{launcher}", linkname)
             out = `./#{linkname} --version #{@redirect}`
-            out.should =~ test
             check_status_and_empty_stderr
+            out.should =~ test
           end
         end
       end
@@ -148,17 +148,17 @@ describe "The launcher" do
   ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
     it "should recognize ruby --vm options in #{var}" do
       out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" }, args: @redirect)
-      out.should == 'bar'
       check_status_and_empty_stderr
+      out.should == 'bar'
     end
   end
 
   def should_print_full_java_command(options, env: {})
     out = ruby_exe(nil, options: options, env: env, args: @redirect)
+    check_status_and_empty_stderr
     parts = out.split(' ')
     parts[0].should == "$"
     parts[1].should =~ /(java|graalvm)$/
-    check_status_and_empty_stderr
   end
 
   it "does not create context on --version and -v" do
