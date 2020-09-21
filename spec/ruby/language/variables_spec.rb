@@ -796,3 +796,29 @@ describe 'Local variable shadowing' do
     end
   end
 end
+
+describe 'Allowed characters' do
+  it 'does not allow non-ASCII upcased characters at the beginning' do
+    -> do
+      eval <<-CODE
+        def test
+           ἍBB = 1
+         end
+      CODE
+    end.should raise_error(SyntaxError, /dynamic constant assignment/)
+  end
+
+  it 'allows non-ASCII lowercased characters at the beginning' do
+    result = nil
+
+    eval <<-CODE
+      def test
+        μ = 1
+      end
+
+      result = test
+    CODE
+
+    result.should == 1
+  end
+end
