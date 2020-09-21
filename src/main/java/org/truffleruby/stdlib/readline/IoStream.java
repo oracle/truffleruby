@@ -9,9 +9,9 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.adapters.InputStreamAdapter;
 import org.truffleruby.core.adapters.OutputStreamAdapter;
@@ -25,7 +25,7 @@ public class IoStream {
     private final RubyContext context;
     private final int fd;
     private final RubyIO io;
-    private InputStream in;
+    private NonBlockingInputStream in;
     private OutputStream out;
 
     public IoStream(RubyContext context, int fd, RubyIO io) {
@@ -42,7 +42,7 @@ public class IoStream {
         return io;
     }
 
-    public InputStream getIn() {
+    public NonBlockingInputStream getIn() {
         if (in == null) {
             // Always use the InputStreamAdapter as reading from System.in with
             // FileInputStream.readBytes() is not interruptible.

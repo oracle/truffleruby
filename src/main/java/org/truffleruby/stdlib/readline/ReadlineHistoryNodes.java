@@ -40,6 +40,7 @@
  */
 package org.truffleruby.stdlib.readline;
 
+import org.graalvm.shadowed.org.jline.reader.History;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -63,7 +64,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
-import jline.console.history.History;
+import java.io.IOException;
 
 @CoreModule("Truffle::ReadlineHistory")
 public abstract class ReadlineHistoryNodes {
@@ -105,7 +106,7 @@ public abstract class ReadlineHistoryNodes {
                 return nil;
             }
 
-            final String lastLine = consoleHolder.getHistory().removeLast().toString();
+            final String lastLine = consoleHolder.getHistory().removeLast().line();
             final RubyString ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             rubyLibrary.taint(ret);
             return ret;
@@ -128,7 +129,7 @@ public abstract class ReadlineHistoryNodes {
                 return nil;
             }
 
-            final String lastLine = consoleHolder.getHistory().removeFirst().toString();
+            final String lastLine = consoleHolder.getHistory().removeFirst().line();
             final RubyString ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             rubyLibrary.taint(ret);
             return ret;
@@ -153,7 +154,11 @@ public abstract class ReadlineHistoryNodes {
         @TruffleBoundary
         @Specialization
         protected Object clear() {
-            getContext().getConsoleHolder().getHistory().clear();
+            try {
+                getContext().getConsoleHolder().getHistory().purge();
+            } catch (IOException e) {
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
+            }
             return nil;
         }
 
@@ -181,7 +186,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         private String historyEntryToString(History.Entry entry) {
-            return entry.value().toString();
+            return entry.line();
         }
 
     }
@@ -200,7 +205,7 @@ public abstract class ReadlineHistoryNodes {
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
 
             try {
-                final String line = consoleHolder.getHistory().get(normalizedIndex).toString();
+                final String line = consoleHolder.getHistory().get(normalizedIndex);
                 final RubyString ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
                 rubyLibrary.taint(ret);
                 return ret;
@@ -255,7 +260,7 @@ public abstract class ReadlineHistoryNodes {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
             try {
-                final String line = consoleHolder.getHistory().remove(normalizedIndex).toString();
+                final String line = consoleHolder.getHistory().remove(normalizedIndex).line();
                 final RubyString ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
                 rubyLibrary.taint(ret);
                 return ret;
@@ -265,5 +270,4 @@ public abstract class ReadlineHistoryNodes {
         }
 
     }
-
 }

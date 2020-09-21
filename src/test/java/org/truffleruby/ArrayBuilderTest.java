@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -31,8 +32,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.shared.TruffleRuby;
-
-import jline.internal.InputStreamReader;
 
 public class ArrayBuilderTest {
 

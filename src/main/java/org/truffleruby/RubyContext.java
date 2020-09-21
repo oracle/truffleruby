@@ -13,6 +13,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -466,6 +467,10 @@ public class RubyContext {
             return;
         }
 
+        if (consoleHolder != null) {
+            consoleHolder.close();
+        }
+
         threadManager.cleanupMainThread();
         safepointManager.checkNoRunningThreads();
 
@@ -684,6 +689,8 @@ public class RubyContext {
 
     public void setConsoleHolder(ConsoleHolder consoleHolder) {
         synchronized (this) {
+            final ConsoleHolder previous = Objects.requireNonNull(this.consoleHolder);
+            previous.close();
             this.consoleHolder = consoleHolder;
         }
     }

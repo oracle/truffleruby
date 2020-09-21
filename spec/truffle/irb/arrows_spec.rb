@@ -14,9 +14,22 @@ describe "IRB" do
     IO.popen([*ruby_exe, "-S", "irb", "-f", "--prompt=simple", "--readline"], "r+") do |io|
       io.gets.should == "Switch to inspect mode.\n"
 
-      io.puts "\e[A" # up arrow
-      # JLine seems to add a bell character
-      [">> \n", ">> \a\n"].should include(io.gets)
+      if RUBY_ENGINE == "truffleruby"
+        io.puts "B = 42"
+        io.gets.should == ">> B = 42\n"
+        io.gets.should == "=> 42\n"
+      end
+
+      io.puts "\e[B" # down arrow
+      # JLine adds a bell character (since there is no history)
+      echo = io.gets
+      [">> \n", ">> [B\n"].should include(echo)
+
+      if echo == ">> [B\n" # "[B" (echo'd by JLine) looks like a legal expression to IRB so we need to complete it
+        io.puts "]"
+        io.gets.should == ">> ]\n"
+        io.gets.should == "=> [42]\n"
+      end
 
       io.puts "22 + 33"
       # The extra bell character causes a continuation line

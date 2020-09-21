@@ -166,7 +166,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
-                "truffle:JLINE",
+                "sdk:JLINE3",
                 "sulong:SULONG_API",
                 "JONI",
                 "JCODINGS",

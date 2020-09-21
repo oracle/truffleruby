@@ -500,29 +500,6 @@ public class ThreadManager {
         return result;
     }
 
-    /** Runs {@code action} until it returns a non-null value. The blocking action might be {@link Thread#interrupted()}
-     * , for instance by the {@link SafepointManager}, in which case it will be run again. The unblocking action is
-     * registered with the thread manager and will be invoked if the {@link SafepointManager} needs to interrupt the
-     * thread. If the blocking action is making a native call, simply interrupting the thread will not unblock the
-     * action. It is the responsibility of the unblocking action to break out of the native call so the thread can be
-     * interrupted.
-     *
-     * @param blockingAction must not touch any Ruby state
-     * @param unblockingAction must not touch any Ruby state
-     * @return the first non-null return value from {@code action} */
-    @TruffleBoundary
-    public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
-        assert unblockingAction != null;
-        final UnblockingActionHolder holder = getActionHolder(Thread.currentThread());
-
-        final UnblockingAction oldUnblockingAction = holder.changeTo(unblockingAction);
-        try {
-            return runUntilResult(currentNode, blockingAction);
-        } finally {
-            holder.restore(oldUnblockingAction);
-        }
-    }
-
     @TruffleBoundary
     UnblockingActionHolder getActionHolder(Thread thread) {
         return ConcurrentOperations.getOrCompute(unblockingActions, thread, t -> new UnblockingActionHolder(t, null));

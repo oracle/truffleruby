@@ -41,25 +41,50 @@
 package org.truffleruby.stdlib.readline;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.graalvm.shadowed.org.jline.builtins.Completers;
+import org.graalvm.shadowed.org.jline.reader.Candidate;
+import org.graalvm.shadowed.org.jline.reader.Completer;
+import org.graalvm.shadowed.org.jline.reader.LineReader;
+import org.graalvm.shadowed.org.jline.reader.LineReader.Option;
+import org.graalvm.shadowed.org.jline.reader.LineReaderBuilder;
+import org.graalvm.shadowed.org.jline.reader.ParsedLine;
+import org.graalvm.shadowed.org.jline.terminal.Size;
+import org.graalvm.shadowed.org.jline.terminal.Terminal;
+import org.graalvm.shadowed.org.jline.terminal.impl.DumbTerminal;
+import org.graalvm.shadowed.org.jline.terminal.impl.ExecPty;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.support.RubyIO;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-import jline.console.ConsoleReader;
-import jline.console.completer.Completer;
-import jline.console.history.History;
-import jline.console.history.MemoryHistory;
+public class ConsoleHolder implements Completer {
 
-public class ConsoleHolder {
+    // Set to true to print logging messages from JLine
+    private static final boolean DEBUG_JLINE = false;
+
+    static {
+        if (DEBUG_JLINE) {
+            final Level level = Level.FINEST;
+            final Logger logger = Logger.getLogger("org.graalvm.shadowed.org.jline");
+            logger.setLevel(level);
+            final ConsoleHandler handler = new ConsoleHandler();
+            handler.setLevel(level);
+            logger.addHandler(handler);
+        }
+    }
 
     private final RubyContext context;
-    private final ConsoleReader readline;
-    private Completer currentCompleter;
-    private final History history;
+    private final LineReader readline;
     private final IoStream in;
     private final IoStream out;
+    private Completer currentCompleter;
 
     public static ConsoleHolder create(RubyContext context) {
         final RubyIO stdin = (RubyIO) context.getCoreLibrary().getStdin();
@@ -69,13 +94,12 @@ public class ConsoleHolder {
                 stdin,
                 1,
                 null,
-                false,
-                true,
-                true,
-                new ReadlineNodes.RubyFileNameCompleter(),
-                new MemoryHistory());
+                new Completers.FileNameCompleter(),
+                new MemoryHistory(),
+                new ParserWithCustomDelimiters());
     }
 
+    /** We need to pass all the state through this constructor in order to keep it when updating the streams. */
     @TruffleBoundary
     private ConsoleHolder(
             RubyContext context,
@@ -83,60 +107,88 @@ public class ConsoleHolder {
             RubyIO inIo,
             int outFd,
             RubyIO outIo,
-            boolean historyEnabled,
-            boolean paginationEnabled,
-            boolean bellEnabled,
             Completer completer,
-            History history) {
+            MemoryHistory history,
+            ParserWithCustomDelimiters parser) {
         this.context = context;
         this.in = new IoStream(context, inFd, inIo);
         this.out = new IoStream(context, outFd, outIo);
 
-        // Disable the creation of a Thread to read the input. We already handle interrupts
-        // natively. See ConsoleReader.setInput() for the logic to determine "nonBlockingEnabled".
-        final String timeout = System.getProperty(ConsoleReader.JLINE_ESC_TIMEOUT);
-        System.setProperty(ConsoleReader.JLINE_ESC_TIMEOUT, "0");
+        boolean isTTY = System.console() != null;
+        boolean system = isTTY && inFd == 0 && outFd == 1;
+
+        final Terminal terminal;
         try {
-            readline = new ConsoleReader(in.getIn(), out.getOut());
+            if (system) {
+                terminal = new PosixSysTerminalKeepSignalHandlers(
+                        "TruffleRuby",
+                        getType(),
+                        ExecPty.current(),
+                        StandardCharsets.UTF_8);
+            } else {
+                try (Terminal inherit = new DumbTerminal(in.getIn(), out.getOut())) {
+                    terminal = new SingleThreadTerminal(
+                            "TruffleRuby",
+                            getType(),
+                            in.getIn(),
+                            out.getOut(),
+                            StandardCharsets.UTF_8,
+                            inherit.getAttributes(),
+                            new Size(160, 50));
+                }
+            }
         } catch (IOException e) {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
-        } finally {
-            if (timeout == null) {
-                System.clearProperty(ConsoleReader.JLINE_ESC_TIMEOUT);
-            } else {
-                System.setProperty(ConsoleReader.JLINE_ESC_TIMEOUT, timeout);
-            }
         }
 
-        readline.setExpandEvents(false);
+        readline = LineReaderBuilder
+                .builder()
+                .terminal(terminal)
+                .history(history)
+                .parser(parser)
+                .completer(this)
+                .build();
 
-        readline.setHistoryEnabled(historyEnabled);
-        readline.setPaginationEnabled(paginationEnabled);
-        readline.setBellEnabled(bellEnabled);
+        readline.option(Option.DISABLE_EVENT_EXPANSION, true);
+        readline.option(Option.HISTORY_BEEP, true);
+
+        if (!system) {
+            readline.option(Option.BRACKETED_PASTE, false);
+        }
 
         this.currentCompleter = completer;
-        readline.addCompleter(currentCompleter);
-
-        this.history = history;
-        readline.setHistory(history);
     }
 
-    public ConsoleReader getReadline() {
+    private String getType() {
+        String type = System.getProperty("org.jline.terminal.type");
+        if (type == null) {
+            type = System.getenv("TERM");
+        }
+        return type;
+    }
+
+    public void close() {
+        try {
+            readline.getTerminal().close();
+        } catch (IOException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
+    }
+
+    public LineReader getReadline() {
         return readline;
     }
 
-    public Completer getCurrentCompleter() {
-        return currentCompleter;
+    public MemoryHistory getHistory() {
+        return (MemoryHistory) readline.getHistory();
     }
 
-    public void setCurrentCompleter(Completer completer) {
-        readline.removeCompleter(currentCompleter);
-        currentCompleter = completer;
-        readline.addCompleter(completer);
+    public ParserWithCustomDelimiters getParser() {
+        return (ParserWithCustomDelimiters) readline.getParser();
     }
 
-    public History getHistory() {
-        return history;
+    public void setCompleter(Completer completer) {
+        this.currentCompleter = completer;
     }
 
     public ConsoleHolder updateIn(int fd, RubyIO io) {
@@ -150,11 +202,9 @@ public class ConsoleHolder {
                 io,
                 out.getFd(),
                 out.getIo(),
-                readline.isHistoryEnabled(),
-                readline.isPaginationEnabled(),
-                readline.getBellEnabled(),
                 currentCompleter,
-                history);
+                getHistory(),
+                getParser());
     }
 
     public ConsoleHolder updateOut(int fd, RubyIO io) {
@@ -168,11 +218,13 @@ public class ConsoleHolder {
                 in.getIo(),
                 fd,
                 io,
-                readline.isHistoryEnabled(),
-                readline.isPaginationEnabled(),
-                readline.getBellEnabled(),
                 currentCompleter,
-                history);
+                getHistory(),
+                getParser());
     }
 
+    @Override
+    public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
+        currentCompleter.complete(lineReader, parsedLine, list);
+    }
 }

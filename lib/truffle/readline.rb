@@ -32,6 +32,7 @@ module Readline
     pre_input_hook
     pre_input_hook=
     redisplay
+    refresh_line
     set_screen_size
     special_prefixes
     special_prefixes=
