@@ -798,14 +798,17 @@ describe 'Local variable shadowing' do
 end
 
 describe 'Allowed characters' do
-  it 'does not allow non-ASCII upcased characters at the beginning' do
-    -> do
-      eval <<-CODE
-        def test
-           ἍBB = 1
-         end
-      CODE
-    end.should raise_error(SyntaxError, /dynamic constant assignment/)
+  ruby_version_is "2.6" do
+    # new feature in 2.6 -- https://bugs.ruby-lang.org/issues/13770
+    it 'does not allow non-ASCII upcased characters at the beginning' do
+      -> do
+        eval <<-CODE
+          def test
+            ἍBB = 1
+          end
+        CODE
+      end.should raise_error(SyntaxError, /dynamic constant assignment/)
+    end
   end
 
   it 'allows non-ASCII lowercased characters at the beginning' do
