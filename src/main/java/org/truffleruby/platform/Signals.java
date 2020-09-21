@@ -20,9 +20,9 @@ public class Signals {
     // Use String and not Signal as key to work around SVM not allowing new Signal("PROF")
     private static final ConcurrentMap<String, SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    public static void registerHandler(Runnable newHandler, String signalName) {
+    public static void registerHandler(SignalHandler newHandler, String signalName) {
         final Signal signal = new Signal(signalName);
-        final SignalHandler oldHandler = Signal.handle(signal, s -> newHandler.run());
+        final SignalHandler oldHandler = Signal.handle(signal, newHandler);
         DEFAULT_HANDLERS.putIfAbsent(signalName, oldHandler);
     }
 
