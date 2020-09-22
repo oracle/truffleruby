@@ -1407,7 +1407,7 @@ EOS
     args, ruby_args = args_split(args)
 
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
-    vm_args << '--vm.Xmx2G'
+    vm_args << (truffleruby_native? ? '--vm.Xmx3G' : '--vm.Xmx2G')
     vm_args << '--polyglot' unless truffleruby_native?
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
