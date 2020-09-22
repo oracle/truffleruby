@@ -1,0 +1,5 @@
+<<
+block_length
+digest_length
+reset
+update

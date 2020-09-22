@@ -17,8 +17,11 @@ require_relative '../ruby/spec_helper'
 # $ jt purge spec/truffle/methods_spec.rb
 
 modules = %w[
-  Array BasicObject Binding Class Complex Complex Data Digest.singleton_class
-  Digest::Class.singleton_class Digest::Instance Dir ENV.singleton_class
+  Array BasicObject Binding Class Complex Complex Data Digest
+  Digest.singleton_class Digest::Class Digest::Class.singleton_class
+  Digest::Base Digest::Base.singleton_class Digest::Instance
+  Digest::Instance.singleton_class Digest::MD5 Digest::MD5.singleton_class
+  Digest::SHA1 Digest::SHA1.singleton_class Dir ENV.singleton_class
   Encoding Enumerable Enumerator Enumerator::Lazy Exception FalseClass Fiber
   File FileTest Float GC Hash IO Integer Kernel Marshal MatchData Math Method
   Module Mutex NilClass Numeric Object ObjectSpace Proc Process Queue Random

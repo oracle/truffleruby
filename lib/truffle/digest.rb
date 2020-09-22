@@ -79,7 +79,7 @@ module Digest
     end
 
     def update(message)
-      Truffle::Digest.update @digest, message
+      raise RuntimeError, "#{self.class.name} does not implement update()"
     end
     alias_method :<<, :update
 
@@ -154,6 +154,12 @@ module Digest
   end
 
   class Base < ::Digest::Class
+    def update(str)
+      str = StringValue(str)
+      Truffle::Digest.update(@digest, str)
+      self
+    end
+    alias_method :<<, :update
   end
 
   class MD5 < Base
