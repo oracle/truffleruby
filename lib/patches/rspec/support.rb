@@ -26,7 +26,7 @@ module RSpec
     module RubyFeatures
       module_function
       def ripper_supported?
-        false
+        true
       end
     end
 
