@@ -35,7 +35,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
     protected Object executeDefined(
             @Cached("getStorage()") GlobalVariableStorage storage) {
         if (storage.isDefined()) {
-            return coreStrings().GLOBAL_VARIABLE.createInstance();
+            return coreStrings().GLOBAL_VARIABLE.createInstance(getContext());
         } else {
             return nil;
         }

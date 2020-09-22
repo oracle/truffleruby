@@ -232,7 +232,7 @@ public class RubyCallNode extends RubyContextSourceNode {
                 return nil;
             }
 
-            return coreStrings().METHOD.createInstance();
+            return coreStrings().METHOD.createInstance(context);
         }
 
         private boolean isVisibleTo(InternalMethod method, Object self) {

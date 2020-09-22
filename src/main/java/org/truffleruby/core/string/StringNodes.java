@@ -443,7 +443,8 @@ public abstract class StringNodes {
                 respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
 
-            if (respondToNode.executeDoesRespondTo(frame, b, coreStrings().TO_STR.createInstance(), false)) {
+            if (respondToNode
+                    .executeDoesRespondTo(frame, b, coreStrings().TO_STR.createInstance(getContext()), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(DispatchNode.create());

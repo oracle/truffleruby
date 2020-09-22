@@ -44,7 +44,7 @@ public class SelfNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return coreStrings().SELF.createInstance();
+        return coreStrings().SELF.createInstance(context);
     }
 
 }

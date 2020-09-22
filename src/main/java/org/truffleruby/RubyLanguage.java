@@ -20,6 +20,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -92,6 +93,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
 
+    public final CoreStrings coreStrings;
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
 
@@ -100,6 +102,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
 
     public RubyLanguage() {
+        coreStrings = new CoreStrings(this);
         ropeCache = new RopeCache();
         symbolTable = new SymbolTable(ropeCache);
     }

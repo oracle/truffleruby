@@ -33,9 +33,9 @@ public class BooleanLiteralNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (value) {
-            return coreStrings().TRUE.createInstance();
+            return coreStrings().TRUE.createInstance(context);
         } else {
-            return coreStrings().FALSE.createInstance();
+            return coreStrings().FALSE.createInstance(context);
         }
     }
 

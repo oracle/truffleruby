@@ -111,7 +111,6 @@ public class RubyContext {
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
-    private final CoreStrings coreStrings = new CoreStrings(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
@@ -623,7 +622,7 @@ public class RubyContext {
     }
 
     public CoreStrings getCoreStrings() {
-        return coreStrings;
+        return language.coreStrings;
     }
 
     public RubyString getFrozenStringLiteral(Rope rope) {

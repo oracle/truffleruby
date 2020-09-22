@@ -93,7 +93,7 @@ public class TraceManager {
                                 context,
                                 eventContext,
                                 traceFunc,
-                                context.getCoreStrings().LINE.createInstance())));
+                                context.getCoreStrings().LINE.createInstance(context))));
 
         instruments.add(
                 instrumenter.attachExecutionEventFactory(
@@ -106,7 +106,7 @@ public class TraceManager {
                                 context,
                                 eventContext,
                                 traceFunc,
-                                context.getCoreStrings().CLASS.createInstance())));
+                                context.getCoreStrings().CLASS.createInstance(context))));
 
         if (context.getOptions().TRACE_CALLS) {
             instruments.add(
@@ -121,7 +121,7 @@ public class TraceManager {
                                     context,
                                     eventContext,
                                     traceFunc,
-                                    context.getCoreStrings().CALL.createInstance())));
+                                    context.getCoreStrings().CALL.createInstance(context))));
         }
     }
 

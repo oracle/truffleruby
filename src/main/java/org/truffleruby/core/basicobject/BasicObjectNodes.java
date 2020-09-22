@@ -378,7 +378,7 @@ public abstract class BasicObjectNodes {
                     callerFrame,
                     receiver,
                     string,
-                    coreStrings().EVAL_FILENAME_STRING.createInstance(),
+                    coreStrings().EVAL_FILENAME_STRING.createInstance(getContext()),
                     1,
                     callNode);
         }

@@ -53,7 +53,7 @@ public class ThreadBacktraceLocationNodes {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
-                return coreStrings().UNKNOWN.createInstance();
+                return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Source source = sourceSection.getSource();
                 final String path = RubyContext.getPath(source);
@@ -82,7 +82,7 @@ public class ThreadBacktraceLocationNodes {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
-                return coreStrings().UNKNOWN.createInstance();
+                return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Rope path;
                 if (BacktraceFormatter.isCore(getContext(), sourceSection)) {

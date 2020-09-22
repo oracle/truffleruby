@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.string;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 
 public class CoreStrings {
 
@@ -50,43 +50,43 @@ public class CoreStrings {
     public final CoreString X_OUTSIDE_OF_STRING;
     public final CoreString YIELD;
 
-    public CoreStrings(RubyContext context) {
-        ARGUMENT_OUT_OF_RANGE = new CoreString(context, "argument out of range");
-        ASSIGNMENT = new CoreString(context, "assignment");
-        CALL = new CoreString(context, "call");
-        CANT_COMPRESS_NEGATIVE = new CoreString(context, "can't compress negative numbers");
-        CLASS = new CoreString(context, "class");
-        CLASS_VARIABLE = new CoreString(context, "class variable");
-        CONSTANT = new CoreString(context, "constant");
-        EVAL_FILENAME_STRING = new CoreString(context, "(eval)");
-        EXPRESSION = new CoreString(context, "expression");
-        FAILED_TO_ALLOCATE_MEMORY = new CoreString(context, "failed to allocate memory");
-        FALSE = new CoreString(context, "false");
-        GLOBAL_VARIABLE = new CoreString(context, "global-variable");
-        INSTANCE_VARIABLE = new CoreString(context, "instance-variable");
-        LINE = new CoreString(context, "line");
-        LOCAL_VARIABLE = new CoreString(context, "local-variable");
-        METHOD = new CoreString(context, "method");
-        NEGATIVE_ARRAY_SIZE = new CoreString(context, "negative array size");
-        NEGATIVE_STRING_SIZE = new CoreString(context, "negative string size (or size too big)");
-        NIL = new CoreString(context, "nil");
-        ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
-        PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
-        REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
-        SELF = new CoreString(context, "self");
-        STACK_LEVEL_TOO_DEEP = new CoreString(context, "stack level too deep");
-        SUPER = new CoreString(context, "super");
-        TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
-        TO_ARY = new CoreString(context, "to_ary");
-        TO_STR = new CoreString(context, "to_str");
-        TOO_FEW_ARGUMENTS = new CoreString(context, "too few arguments");
-        TRUE = new CoreString(context, "true");
-        TZ = new CoreString(context, "TZ");
-        UNKNOWN = new CoreString(context, "(unknown)");
-        UTC = new CoreString(context, "UTC");
-        WRONG_ARGS_ZERO_PLUS_ONE = new CoreString(context, "wrong number of arguments (0 for 1+)");
-        X_OUTSIDE_OF_STRING = new CoreString(context, "X outside of string");
-        YIELD = new CoreString(context, "yield");
+    public CoreStrings(RubyLanguage language) {
+        ARGUMENT_OUT_OF_RANGE = new CoreString(language, "argument out of range");
+        ASSIGNMENT = new CoreString(language, "assignment");
+        CALL = new CoreString(language, "call");
+        CANT_COMPRESS_NEGATIVE = new CoreString(language, "can't compress negative numbers");
+        CLASS = new CoreString(language, "class");
+        CLASS_VARIABLE = new CoreString(language, "class variable");
+        CONSTANT = new CoreString(language, "constant");
+        EVAL_FILENAME_STRING = new CoreString(language, "(eval)");
+        EXPRESSION = new CoreString(language, "expression");
+        FAILED_TO_ALLOCATE_MEMORY = new CoreString(language, "failed to allocate memory");
+        FALSE = new CoreString(language, "false");
+        GLOBAL_VARIABLE = new CoreString(language, "global-variable");
+        INSTANCE_VARIABLE = new CoreString(language, "instance-variable");
+        LINE = new CoreString(language, "line");
+        LOCAL_VARIABLE = new CoreString(language, "local-variable");
+        METHOD = new CoreString(language, "method");
+        NEGATIVE_ARRAY_SIZE = new CoreString(language, "negative array size");
+        NEGATIVE_STRING_SIZE = new CoreString(language, "negative string size (or size too big)");
+        NIL = new CoreString(language, "nil");
+        ONE_HASH_REQUIRED = new CoreString(language, "one hash required");
+        PROC_WITHOUT_BLOCK = new CoreString(language, "tried to create Proc object without a block");
+        REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(language, "replacement character setup failed");
+        SELF = new CoreString(language, "self");
+        STACK_LEVEL_TOO_DEEP = new CoreString(language, "stack level too deep");
+        SUPER = new CoreString(language, "super");
+        TIME_INTERVAL_MUST_BE_POS = new CoreString(language, "time interval must be positive");
+        TO_ARY = new CoreString(language, "to_ary");
+        TO_STR = new CoreString(language, "to_str");
+        TOO_FEW_ARGUMENTS = new CoreString(language, "too few arguments");
+        TRUE = new CoreString(language, "true");
+        TZ = new CoreString(language, "TZ");
+        UNKNOWN = new CoreString(language, "(unknown)");
+        UTC = new CoreString(language, "UTC");
+        WRONG_ARGS_ZERO_PLUS_ONE = new CoreString(language, "wrong number of arguments (0 for 1+)");
+        X_OUTSIDE_OF_STRING = new CoreString(language, "X outside of string");
+        YIELD = new CoreString(language, "yield");
     }
 
 }
