@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.symbol;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -17,6 +18,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
@@ -45,6 +47,8 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+
+import java.util.Map;
 
 @CoreModule(value = "Symbol", isClass = true)
 public abstract class SymbolNodes {
@@ -101,34 +105,39 @@ public abstract class SymbolNodes {
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization(
-                guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
+                guards = { "symbol == cachedSymbol", "getRefinements(frame) == cachedRefinements" },
                 limit = "getIdentityCacheLimit()")
         protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
-                @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
-                @Cached("getOrCreateProc(cachedDeclarationContext, symbol)") RubyProc cachedProc) {
+                @Cached("getRefinements(frame)") Map<RubyModule, RubyModule[]> cachedRefinements,
+                @Cached("getOrCreateProc(cachedRefinements, symbol)") RubyProc cachedProc) {
             return cachedProc;
         }
 
         @Specialization
         protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
-            DeclarationContext declarationContext = getDeclarationContext(frame);
-            return getOrCreateProc(declarationContext, symbol);
+            final Map<RubyModule, RubyModule[]> refinements = getRefinements(frame);
+            return getOrCreateProc(refinements, symbol);
         }
 
         @TruffleBoundary
-        protected RubyProc getOrCreateProc(DeclarationContext declarationContext, RubySymbol symbol) {
-            declarationContext = declarationContext == null ? DeclarationContext.NONE : declarationContext;
+        protected RubyProc getOrCreateProc(Map<RubyModule, RubyModule[]> refinements, RubySymbol symbol) {
+            // TODO (eregon, 23 Sep 2020): this should ideally cache on the refinements by comparing classes, and not by identity.
             return ConcurrentOperations.getOrCompute(
                     symbol.getCachedProcs(),
-                    declarationContext,
-                    key -> createProc(key, symbol));
+                    refinements,
+                    key -> createProc(getContext(), key, symbol));
         }
 
         @TruffleBoundary
-        protected RubyProc createProc(DeclarationContext declarationContext, RubySymbol symbol) {
-            final InternalMethod method = getContext().getCoreMethods().SYMBOL_TO_PROC;
+        protected static RubyProc createProc(RubyContext context, Map<RubyModule, RubyModule[]> refinements,
+                RubySymbol symbol) {
+            final InternalMethod method = context.getCoreMethods().SYMBOL_TO_PROC;
             final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
+            final DeclarationContext declarationContext = refinements.isEmpty()
+                    ? DeclarationContext.NONE
+                    : new DeclarationContext(Visibility.PUBLIC, null, refinements);
+
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
@@ -145,9 +154,9 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
+                    .createMaterializedFrame(args, context.getCoreLibrary().emptyDescriptor);
             final RubyRootNode rootNode = new RubyRootNode(
-                    getContext(),
+                    context,
                     sourceSection,
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
@@ -157,7 +166,7 @@ public abstract class SymbolNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             return ProcOperations.createRubyProc(
-                    getContext().getCoreLibrary().procShape,
+                    context.getCoreLibrary().procShape,
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget,
@@ -173,12 +182,16 @@ public abstract class SymbolNodes {
             return RubyArguments.getMethod(frame);
         }
 
-        protected int getCacheLimit() {
-            return getContext().getOptions().SYMBOL_TO_PROC_CACHE;
+        protected Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {
+            final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
+            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame);
+            return declarationContext != null
+                    ? declarationContext.getRefinements()
+                    : DeclarationContext.NONE.getRefinements();
         }
 
-        protected DeclarationContext getDeclarationContext(VirtualFrame frame) {
-            return RubyArguments.tryGetDeclarationContext(readCallerFrame.execute(frame));
+        protected int getCacheLimit() {
+            return getContext().getOptions().SYMBOL_TO_PROC_CACHE;
         }
 
     }

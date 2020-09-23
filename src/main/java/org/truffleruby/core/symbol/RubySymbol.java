@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObject;
@@ -24,8 +25,8 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import org.truffleruby.language.methods.DeclarationContext;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -40,7 +41,8 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
     private final Rope rope;
     private final int javaStringHashCode;
     private final long id;
-    private final ConcurrentMap<DeclarationContext, RubyProc> cachedProcs = new ConcurrentHashMap<>();
+    /** refinements -> Proc for Symbol#to_proc */
+    private final ConcurrentMap<Map<RubyModule, RubyModule[]>, RubyProc> cachedProcs = new ConcurrentHashMap<>();
 
     public RubySymbol(String string, Rope rope, long id) {
         this.string = string;
@@ -65,7 +67,7 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
         return rope;
     }
 
-    public ConcurrentMap<DeclarationContext, RubyProc> getCachedProcs() {
+    public ConcurrentMap<Map<RubyModule, RubyModule[]>, RubyProc> getCachedProcs() {
         return cachedProcs;
     }
 
