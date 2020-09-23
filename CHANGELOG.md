@@ -42,6 +42,8 @@ Compatibility:
 Performance:
 
 * Calls with a literal block are no longer always split but instead the decision is made by the Truffle splitting heuristic.
+* `Symbol#to_proc` is now AST-inlined in order to not rely on splitting and to avoid needing the caller frame to find refinements which apply.
+* `Symbol#to_proc` is now globally cached per Symbol and refinements, to avoid creating many redundant `CallTargets`.
 
 Changes:
 
