@@ -35,6 +35,8 @@ Compatibility:
 * Implemented `rb_yield_values2`.
 * Implemented `Digest::Base#{update, <<}` (#2100).
 * Pass the final `super` specs (#2104, @chrisseaton).
+* Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
+* Fix arity for `Proc` (#2098, @ssnickolay)
 
 Performance:
 

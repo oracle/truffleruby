@@ -1,6 +1,0 @@
-fails:"Proc#arity for instances created with proc { || } returns zero for definition \n    @a = proc { |a=1| }\n    @b = proc { |a=1, b=2| }"
-fails:"Proc#arity for instances created with proc { || } returns zero for definition \n    @a = proc { |a: 1| }\n    @b = proc { |a: 1, b: 2| }"
-fails:"Proc#arity for instances created with proc { || } returns zero for definition \n    @a = proc { |**k, &l| }\n    @b = proc { |a: 1, b: 2, **k| }"
-fails:"Proc#arity for instances created with proc { || } returns zero for definition \n    @a = proc { |a=1, b: 2| }\n    @b = proc { |a=1, b: 2| }"
-fails:"Proc#arity for instances created with proc { || } returns positive values for definition \n    @a = proc { |a, b=1| }\n    @b = proc { |a, b, c=1, d=2| }"
-fails:"Proc#arity for instances created with proc { || } returns positive values for definition \n    @a = proc { |(a, (*b, c)), d=1| }\n    @b = proc { |a, (*b, c), d, (*e), (*), **k| }"

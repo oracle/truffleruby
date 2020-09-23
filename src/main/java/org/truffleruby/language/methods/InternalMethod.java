@@ -182,6 +182,10 @@ public class InternalMethod implements ObjectGraphNode {
         return builtIn;
     }
 
+    public int getArityNumber() {
+        return sharedMethodInfo.getArity().getMethodArityNumber();
+    }
+
     public RootCallTarget getCallTarget() {
         return callTarget;
     }

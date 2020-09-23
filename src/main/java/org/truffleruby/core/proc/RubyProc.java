@@ -86,6 +86,10 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     }
     // endregion
 
+    public int getArityNumber() {
+        return sharedMethodInfo.getArity().getArityNumber(type);
+    }
+
     // region Executable
     @ExportMessage
     public boolean isExecutable() {

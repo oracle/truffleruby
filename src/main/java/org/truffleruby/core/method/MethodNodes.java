@@ -97,7 +97,7 @@ public abstract class MethodNodes {
 
         @Specialization
         protected int arity(RubyMethod method) {
-            return method.method.getSharedMethodInfo().getArity().getArityNumber();
+            return method.method.getArityNumber();
         }
 
     }

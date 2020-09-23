@@ -53,7 +53,7 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     }
 
     protected int getterArity(GlobalVariableStorage storage) {
-        return storage.getGetter().sharedMethodInfo.getArity().getArityNumber();
+        return storage.getGetter().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {
