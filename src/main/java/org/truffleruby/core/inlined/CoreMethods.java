@@ -74,6 +74,8 @@ public class CoreMethods {
 
     final Assumption nilClassIsNilAssumption;
 
+    public final Assumption symbolToProcAssumption;
+
     public final InternalMethod EXCEPTION_BACKTRACE;
     public final InternalMethod BLOCK_GIVEN;
     public final InternalMethod LAMBDA;
@@ -133,6 +135,8 @@ public class CoreMethods {
         integerGreaterOrEqualAssumption = registerAssumption(integerClass, ">=");
 
         nilClassIsNilAssumption = registerAssumption(nilClass, "nil?");
+
+        symbolToProcAssumption = registerAssumption(symbolClass, "to_proc");
 
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
         LAMBDA = getMethod(kernelModule, "lambda");
