@@ -19,7 +19,6 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayOperations {
 
@@ -67,22 +66,6 @@ public abstract class ArrayOperations {
         }
 
         return true;
-    }
-
-    public static int normalizeIndex(int length, int index, ConditionProfile negativeIndexProfile) {
-        if (negativeIndexProfile.profile(index < 0)) {
-            return length + index;
-        } else {
-            return index;
-        }
-    }
-
-    public static int normalizeIndex(int length, int index) {
-        if (CompilerDirectives.injectBranchProbability(CompilerDirectives.SLOWPATH_PROBABILITY, index < 0)) {
-            return length + index;
-        } else {
-            return index;
-        }
     }
 
     public static int clampExclusiveIndex(int length, int index) {

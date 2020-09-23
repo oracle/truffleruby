@@ -264,9 +264,10 @@ public abstract class ArrayNodes {
         protected Object index(RubyArray array, int index, NotProvided length,
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ReadNormalizedNode readNode) {
-            final int normalizedIndex = ArrayOperations
-                    .normalizeIndex(array.size, index, negativeIndexProfile);
-            return readNode.executeRead(array, normalizedIndex);
+            if (negativeIndexProfile.profile(index < 0)) {
+                index += array.size;
+            }
+            return readNode.executeRead(array, index);
         }
 
         @Specialization
@@ -291,9 +292,10 @@ public abstract class ArrayNodes {
             if (length < 0) {
                 return nil;
             }
-            final int normalizedStart = ArrayOperations
-                    .normalizeIndex(array.size, start, negativeIndexProfile);
-            return readSliceNode.executeReadSlice(array, normalizedStart, length);
+            if (negativeIndexProfile.profile(start < 0)) {
+                start += array.size;
+            }
+            return readSliceNode.executeReadSlice(array, start, length);
         }
 
         @Specialization(guards = { "wasProvided(length)", "!isInteger(start) || !isInteger(length)" })
@@ -728,7 +730,10 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ConditionProfile notInBoundsProfile) {
             final int size = array.size;
-            final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
+            int i = index;
+            if (negativeIndexProfile.profile(index < 0)) {
+                i += size;
+            }
 
             if (notInBoundsProfile.profile(i < 0 || i >= size)) {
                 return nil;
@@ -751,7 +756,10 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ConditionProfile notInBoundsProfile) {
             final int size = array.size;
-            final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
+            int i = index;
+            if (negativeIndexProfile.profile(index < 0)) {
+                i += size;
+            }
 
             if (notInBoundsProfile.profile(i < 0 || i >= size)) {
                 return nil;
