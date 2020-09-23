@@ -159,7 +159,7 @@ public abstract class TimeNodes {
 
             time.isUtc = true;
             time.relativeOffset = false;
-            time.zone = coreStrings().UTC.createInstance();
+            time.zone = coreStrings().UTC.createInstance(getContext());
             time.dateTime = inUTC(dateTime);
 
             return time;
@@ -524,7 +524,7 @@ public abstract class TimeNodes {
             if (isutc) {
                 zone = GetTimeZoneNode.UTC;
                 relativeOffset = false;
-                zoneToStore = coreStrings().UTC.createInstance();
+                zoneToStore = coreStrings().UTC.createInstance(getContext());
             } else if (utcoffset == nil) {
                 if (makeStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();

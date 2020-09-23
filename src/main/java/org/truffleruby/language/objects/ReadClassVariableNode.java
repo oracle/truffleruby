@@ -71,7 +71,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
         if (value == null) {
             return nil;
         } else {
-            return coreStrings().CLASS_VARIABLE.createInstance();
+            return coreStrings().CLASS_VARIABLE.createInstance(context);
         }
     }
 

@@ -34,7 +34,7 @@ public class DefinedWrapperNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return definition.createInstance();
+        return definition.createInstance(context);
     }
 
 }

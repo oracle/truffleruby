@@ -1212,7 +1212,8 @@ public abstract class ArrayNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
-            return respondToToAryNode.executeDoesRespondTo(null, object, coreStrings().TO_ARY.createInstance(), true);
+            return respondToToAryNode
+                    .executeDoesRespondTo(null, object, coreStrings().TO_ARY.createInstance(getContext()), true);
         }
 
         protected Object callToAry(Object object) {

@@ -58,7 +58,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
             if (execute(frame) == nil) {
                 return nil;
             } else {
-                return coreStrings().GLOBAL_VARIABLE.createInstance();
+                return coreStrings().GLOBAL_VARIABLE.createInstance(context);
             }
         }
     }

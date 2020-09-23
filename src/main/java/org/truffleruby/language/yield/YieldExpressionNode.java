@@ -83,7 +83,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
         if (RubyArguments.getBlock(frame) == null) {
             return nil;
         } else {
-            return coreStrings().YIELD.createInstance();
+            return coreStrings().YIELD.createInstance(context);
         }
     }
 

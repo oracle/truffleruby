@@ -32,7 +32,7 @@ public abstract class WriteLocalNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance();
+        return coreStrings().ASSIGNMENT.createInstance(context);
     }
 
     @Override

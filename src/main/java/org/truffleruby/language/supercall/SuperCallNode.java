@@ -57,7 +57,7 @@ public class SuperCallNode extends RubyContextSourceNode {
         if (superMethod == null) {
             return nil;
         } else {
-            return coreStrings().SUPER.createInstance();
+            return coreStrings().SUPER.createInstance(context);
         }
     }
 

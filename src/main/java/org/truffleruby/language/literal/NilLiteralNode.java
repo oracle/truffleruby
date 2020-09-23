@@ -32,7 +32,7 @@ public class NilLiteralNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return coreStrings().NIL.createInstance();
+        return coreStrings().NIL.createInstance(context);
     }
 
     public boolean isImplicit() {

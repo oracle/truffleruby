@@ -12,6 +12,7 @@ package org.truffleruby.core.string;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 
@@ -21,15 +22,15 @@ import org.truffleruby.core.rope.RopeOperations;
 
 public class CoreString {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final String literal;
 
     @CompilationFinal private volatile Rope rope;
 
-    public CoreString(RubyContext context, String literal) {
-        assert context != null;
+    public CoreString(RubyLanguage language, String literal) {
+        assert language != null;
         assert is7Bit(literal);
-        this.context = context;
+        this.language = language;
         this.literal = literal;
     }
 
@@ -37,7 +38,7 @@ public class CoreString {
         if (rope == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
-            rope = context.getRopeCache().getRope(
+            rope = language.ropeCache.getRope(
                     RopeOperations.encodeAsciiBytes(literal),
                     // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
                     // When used for creating a Symbol, the encoding is adapted as needed.
@@ -48,7 +49,7 @@ public class CoreString {
         return rope;
     }
 
-    public RubyString createInstance() {
+    public RubyString createInstance(RubyContext context) {
         return StringOperations.createString(context, getRope());
     }
 

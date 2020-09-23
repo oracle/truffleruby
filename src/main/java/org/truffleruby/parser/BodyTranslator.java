@@ -507,12 +507,12 @@ public class BodyTranslator extends Translator {
             final Rope nodeRope = strNode.getValue();
             final CodeRange codeRange = strNode.getCodeRange();
 
-            final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
+            final Rope rope = language.ropeCache.getRope(nodeRope, codeRange);
             final RubyString frozenString = context.getFrozenStringLiteral(rope);
 
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
-                    new DefinedWrapperNode(context.getCoreStrings().METHOD, new ObjectLiteralNode(frozenString))));
+                    new DefinedWrapperNode(language.coreStrings.METHOD, new ObjectLiteralNode(frozenString))));
         }
 
         if (receiver instanceof ConstParseNode &&
@@ -2290,7 +2290,7 @@ public class BodyTranslator extends Translator {
             throw CompilerDirectives.shouldNotReachHere();
         }
 
-        final RubyNode ret = new DefinedWrapperNode(context.getCoreStrings().ASSIGNMENT, result);
+        final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, result);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2362,7 +2362,7 @@ public class BodyTranslator extends Translator {
         final RubyNode andNode = new AndNode(lhs, rhs);
         andNode.unsafeSetSourceSection(sourceSection);
 
-        final RubyNode ret = new DefinedWrapperNode(context.getCoreStrings().ASSIGNMENT, andNode);
+        final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, andNode);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2439,7 +2439,7 @@ public class BodyTranslator extends Translator {
 
             final RubyNode controlNode = isOrOperator ? new OrNode(lhs, rhs) : new AndNode(lhs, rhs);
             final RubyNode ret = new DefinedWrapperNode(
-                    context.getCoreStrings().ASSIGNMENT,
+                    language.coreStrings.ASSIGNMENT,
                     sequence(
                             sourceSection,
                             Arrays.asList(writeReceiverToTemp.accept(this), controlNode)));
@@ -2515,7 +2515,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode ret = new DefinedWrapperNode(
-                context.getCoreStrings().ASSIGNMENT,
+                language.coreStrings.ASSIGNMENT,
                 new OrLazyValueDefinedNode(lhs, rhs));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -2925,14 +2925,14 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final Rope rope = context.getRopeCache().getRope(node.getValue(), node.getCodeRange());
+        final Rope rope = language.ropeCache.getRope(node.getValue(), node.getCodeRange());
         final RubyNode ret;
 
         if (node.isFrozen()) {
             final RubyString frozenString = context.getFrozenStringLiteral(rope);
 
             ret = new DefinedWrapperNode(
-                    context.getCoreStrings().EXPRESSION,
+                    language.coreStrings.EXPRESSION,
                     new ObjectLiteralNode(frozenString));
         } else {
             ret = new StringLiteralNode(rope);

@@ -70,7 +70,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
     }
 
     protected Object getTZ() {
-        return lookupEnvNode.call(coreLibrary().getENV(), "[]", coreStrings().TZ.createInstance());
+        return lookupEnvNode.call(coreLibrary().getENV(), "[]", coreStrings().TZ.createInstance(getContext()));
     }
 
     @TruffleBoundary

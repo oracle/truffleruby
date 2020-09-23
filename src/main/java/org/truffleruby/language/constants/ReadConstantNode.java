@@ -92,7 +92,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
         }
 
         if (ModuleOperations.isConstantDefined(constant)) {
-            return coreStrings().CONSTANT.createInstance();
+            return coreStrings().CONSTANT.createInstance(getContext());
         } else {
             return nil;
         }

@@ -308,7 +308,7 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
-                coreStrings().FAILED_TO_ALLOCATE_MEMORY.createInstance(),
+                coreStrings().FAILED_TO_ALLOCATE_MEMORY.createInstance(context),
                 currentNode,
                 javaThrowable);
     }
@@ -1037,7 +1037,7 @@ public class CoreExceptions {
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
-                coreStrings().REPLACEMENT_CHARACTER_SETUP_FAILED.createInstance(),
+                coreStrings().REPLACEMENT_CHARACTER_SETUP_FAILED.createInstance(context),
                 currentNode,
                 null);
     }

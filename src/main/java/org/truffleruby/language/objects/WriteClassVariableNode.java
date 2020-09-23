@@ -53,7 +53,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance();
+        return coreStrings().ASSIGNMENT.createInstance(context);
     }
 
     private void warnTopLevelClassVariableAccess() {

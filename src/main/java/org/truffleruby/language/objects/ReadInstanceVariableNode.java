@@ -72,7 +72,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
             final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
             if (objectLibrary.containsKey(dynamicObject, name)) {
-                return coreStrings().INSTANCE_VARIABLE.createInstance();
+                return coreStrings().INSTANCE_VARIABLE.createInstance(context);
             } else {
                 return nil;
             }

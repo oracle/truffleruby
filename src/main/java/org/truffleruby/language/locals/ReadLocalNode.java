@@ -40,11 +40,11 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         switch (type) {
             case FRAME_LOCAL:
-                return coreStrings().LOCAL_VARIABLE.createInstance();
+                return coreStrings().LOCAL_VARIABLE.createInstance(context);
 
             case FRAME_LOCAL_GLOBAL:
                 if (readFrameSlot(frame) != nil) {
-                    return coreStrings().GLOBAL_VARIABLE.createInstance();
+                    return coreStrings().GLOBAL_VARIABLE.createInstance(context);
                 } else {
                     return nil;
                 }
