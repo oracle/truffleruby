@@ -430,7 +430,7 @@ public abstract class ArrayNodes {
         protected int normalize(int arraySize, int index,
                 ConditionProfile negativeDenormalizedIndex, BranchProfile negativeNormalizedIndex) {
             if (negativeDenormalizedIndex.profile(index < 0)) {
-                index = arraySize + index;
+                index += arraySize;
                 if (index < 0) {
                     negativeNormalizedIndex.enter();
                     throw new RaiseException(
