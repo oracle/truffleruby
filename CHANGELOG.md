@@ -42,6 +42,10 @@ Performance:
 
 * Calls with a literal block are no longer always split but instead the decision is made by the Truffle splitting heuristic.
 
+Changes:
+
+* Migrated from JLine 2 to JLine 3 for the `readline` standard library.
+
 # 20.2.0
 
 New features:

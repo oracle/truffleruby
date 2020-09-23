@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "df007aafea9720ec5a05757301a1b240b0b8cb93",
+                "version": "71072b3da8fc0930502a7fa0c915d1b1451a0838",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -166,7 +166,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
-                "truffle:JLINE",
+                "sdk:JLINE3",
                 "sulong:SULONG_API",
                 "JONI",
                 "JCODINGS",

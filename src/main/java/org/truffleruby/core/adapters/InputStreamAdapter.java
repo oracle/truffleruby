@@ -9,16 +9,19 @@
  */
 package org.truffleruby.core.adapters;
 
-import java.io.InputStream;
-
+import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.language.Nil;
 
-public class InputStreamAdapter extends InputStream {
+/** extends NonBlockingInputStream so JLine does not create an extra thread and calls read() on the same thread as
+ * calling readLine(). */
+public class InputStreamAdapter extends NonBlockingInputStream {
 
     private final RubyContext context;
     private final RubyIO object;
+
+    private int peeked = EOF;
 
     public InputStreamAdapter(RubyContext context, RubyIO object) {
         this.context = context;
@@ -30,9 +33,24 @@ public class InputStreamAdapter extends InputStream {
         final Object result = context.send(object, "getbyte");
 
         if (result == Nil.INSTANCE) {
-            return -1;
+            return EOF;
         }
 
         return (int) result;
+    }
+
+    @Override
+    public int read(long timeout, boolean isPeek) {
+        if (peeked != EOF) {
+            int c = peeked;
+            this.peeked = EOF;
+            return c;
+        }
+
+        int character = read();
+        if (isPeek) {
+            peeked = character;
+        }
+        return character;
     }
 }

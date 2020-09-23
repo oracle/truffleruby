@@ -90,6 +90,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 @CoreModule(value = "VMPrimitives", isClass = true)
 public abstract class VMPrimitiveNodes {
@@ -229,17 +230,17 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean restoreDefault(RubyString signalName, RubyString action) {
+        protected boolean restoreDefault(RubyString signalString, RubyString action) {
             final String actionString = StringOperations.getString(action);
-            final String signal = StringOperations.getString(signalName);
+            final String signalName = StringOperations.getString(signalString);
 
             switch (actionString) {
                 case "DEFAULT":
-                    return restoreDefaultHandler(signal);
+                    return restoreDefaultHandler(signalName);
                 case "SYSTEM_DEFAULT":
-                    return restoreSystemHandler(signal);
+                    return restoreSystemHandler(signalName);
                 case "IGNORE":
-                    return registerIgnoreHandler(signal);
+                    return registerIgnoreHandler(signalName);
                 default:
                     throw new UnsupportedOperationException(actionString);
             }
@@ -247,7 +248,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean watchSignalProc(RubyString signalName, RubyProc action) {
+        protected boolean watchSignalProc(RubyString signalString, RubyProc action) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), action);
@@ -255,8 +256,8 @@ public abstract class VMPrimitiveNodes {
 
             final RubyContext context = getContext();
 
-            final String signal = StringOperations.getString(signalName);
-            return registerHandler(signal, () -> {
+            String signalName = StringOperations.getString(signalString);
+            return registerHandler(signalName, signal -> {
                 if (context.getOptions().SINGLE_THREADED) {
                     RubyLanguage.LOGGER.severe(
                             "signal " + signal + " caught but can't create a thread to handle it so ignoring");
@@ -279,9 +280,9 @@ public abstract class VMPrimitiveNodes {
                     printStream.println(
                             "[ruby] SEVERE: signal " + signal +
                                     " caught but can't attach a thread to handle it so restoring the default handler and re-raising the signal");
-                    Signals.restoreDefaultHandler(signal);
+                    Signals.restoreDefaultHandler(signalName);
                     try {
-                        Signal.raise(new Signal(signal));
+                        Signal.raise(signal);
                     } catch (IllegalArgumentException illegalArgumentException) {
                         illegalArgumentException.printStackTrace(printStream);
                     }
@@ -351,7 +352,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        private boolean registerHandler(String signalName, Runnable newHandler) {
+        private boolean registerHandler(String signalName, SignalHandler newHandler) {
             if (getContext().getOptions().EMBEDDED) {
                 RubyLanguage.LOGGER.warning(
                         "trapping signal " + signalName +
