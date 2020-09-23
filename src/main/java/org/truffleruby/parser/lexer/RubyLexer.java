@@ -3497,7 +3497,7 @@ public class RubyLexer implements MagicCommentHandler {
             compile_error("formal argument cannot be a constant");
         }
 
-        int first = identifier.getString().charAt(0);
+        int first = identifier.get(0) & 0xFF;
 
         switch (first) {
             case '@':
