@@ -1606,16 +1606,9 @@ module Truffle::CExt
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
-    if unblock
-      unblocker = -> {
-        Truffle::Interop.execute_without_conversion(unblock, data2)
-      }
-    end
-
-    Primitive.call_without_c_mutex(
-        -> { Thread.current.unblock(
-            unblocker,
-            -> { function.call(data1) }) }, [])
+    Primitive.call_without_c_mutex(-> {
+      Primitive.call_with_unblocking_function(Thread.current, function, data1, unblock, data2)
+    }, [])
   end
 
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
