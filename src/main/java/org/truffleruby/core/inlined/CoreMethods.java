@@ -88,6 +88,7 @@ public class CoreMethods {
     public final InternalMethod MODULE_CASE_EQUAL;
     public final InternalMethod STRING_EQUAL;
     public final InternalMethod SYMBOL_TO_PROC;
+    public final InternalMethod ARRAY_AT;
     public final InternalMethod ARRAY_INDEX_GET;
     public final InternalMethod ARRAY_INDEX_SET;
 
@@ -153,6 +154,7 @@ public class CoreMethods {
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
         STRING_EQUAL = getMethod(stringClass, "==");
         SYMBOL_TO_PROC = getMethod(symbolClass, "to_proc");
+        ARRAY_AT = getMethod(arrayClass, "at");
         ARRAY_INDEX_GET = getMethod(arrayClass, "[]");
         ARRAY_INDEX_SET = getMethod(arrayClass, "[]=");
     }
@@ -245,6 +247,8 @@ public class CoreMethods {
                     return InlinedGreaterOrEqualNodeGen.create(context, callParameters, self, args[0]);
                 case "[]":
                     return InlinedIndexGetNodeGen.create(context, callParameters, self, args[0]);
+                case "at":
+                    return InlinedAtNodeGen.create(context, callParameters, self, args[0]);
                 case "is_a?":
                     return InlinedIsANodeGen.create(context, callParameters, self, args[0]);
                 case "kind_of?":
