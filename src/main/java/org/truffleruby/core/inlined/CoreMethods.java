@@ -88,6 +88,7 @@ public class CoreMethods {
     public final InternalMethod MODULE_CASE_EQUAL;
     public final InternalMethod STRING_EQUAL;
     public final InternalMethod SYMBOL_TO_PROC;
+    public final InternalMethod ARRAY_INDEX_GET;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -100,6 +101,7 @@ public class CoreMethods {
         final RubyClass nilClass = context.getCoreLibrary().nilClass;
         final RubyClass stringClass = context.getCoreLibrary().stringClass;
         final RubyClass symbolClass = context.getCoreLibrary().symbolClass;
+        final RubyClass arrayClass = context.getCoreLibrary().arrayClass;
 
         integerNegAssumption = registerAssumption(integerClass, "-@");
         floatNegAssumption = registerAssumption(floatClass, "-@");
@@ -150,6 +152,7 @@ public class CoreMethods {
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
         STRING_EQUAL = getMethod(stringClass, "==");
         SYMBOL_TO_PROC = getMethod(symbolClass, "to_proc");
+        ARRAY_INDEX_GET = getMethod(arrayClass, "[]");
     }
 
     private Assumption registerAssumption(RubyClass klass, String methodName) {
@@ -238,6 +241,8 @@ public class CoreMethods {
                     return InlinedGreaterThanNodeGen.create(context, callParameters, self, args[0]);
                 case ">=":
                     return InlinedGreaterOrEqualNodeGen.create(context, callParameters, self, args[0]);
+                case "[]":
+                    return InlinedIndexGetNodeGen.create(context, callParameters, self, args[0]);
                 case "is_a?":
                     return InlinedIsANodeGen.create(context, callParameters, self, args[0]);
                 case "kind_of?":
