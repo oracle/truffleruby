@@ -26,6 +26,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
@@ -37,6 +38,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -280,9 +282,11 @@ public class FeatureLoader {
         if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(feature);
         } else if (hasExtension(feature)) {
-            for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
-                // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
-                final String loadPath = canonicalize(pathObject.toString());
+            final RubyArray expandedLoadPath = (RubyArray) DispatchNode.getUncached().call(
+                    context.getCoreLibrary().truffleFeatureLoaderModule,
+                    "get_expanded_load_path");
+            for (Object pathObject : ArrayOperations.toIterable(expandedLoadPath)) {
+                final String loadPath = ((RubyString) pathObject).getJavaString();
 
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
                     RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
@@ -298,9 +302,12 @@ public class FeatureLoader {
             }
         } else {
             extensionLoop: for (String extension : EXTENSIONS) {
-                for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
+                final RubyArray expandedLoadPath = (RubyArray) DispatchNode.getUncached().call(
+                        context.getCoreLibrary().truffleFeatureLoaderModule,
+                        "get_expanded_load_path");
+                for (Object pathObject : ArrayOperations.toIterable(expandedLoadPath)) {
                     // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
-                    final String loadPath = canonicalize(pathObject.toString());
+                    final String loadPath = ((RubyString) pathObject).getJavaString();
 
                     if (context.getOptions().LOG_FEATURE_LOCATION) {
                         RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));

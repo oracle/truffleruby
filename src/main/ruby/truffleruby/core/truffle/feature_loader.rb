@@ -18,9 +18,15 @@ module Truffle
     # A snapshot of $LOADED_FEATURES, to check if the @loaded_features_index cache is up to date.
     @loaded_features_copy = []
 
+    @expanded_load_path = []
+    # A snapshot of $LOAD_PATH, to check if the @expanded_load_path cache is up to date.
+    @load_path_copy = []
+
     def self.clear_cache
       @loaded_features_index.clear
       @loaded_features_copy.clear
+      @expanded_load_path.clear
+      @load_path_copy.clear
     end
 
     class FeatureEntry
@@ -149,7 +155,7 @@ module Truffle
                              if expanded
                                nil
                              else
-                               loaded_feature_path(loaded_feature, feature, $LOAD_PATH)
+                               loaded_feature_path(loaded_feature, feature, get_expanded_load_path)
                              end
                            end
             if feature_path
@@ -269,6 +275,14 @@ module Truffle
         @loaded_features_index[feature_entry] = [offset]
         feature_entry.part_of_index = true
       end
+    end
+
+    def self.get_expanded_load_path
+      unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH)
+        @expanded_load_path = $LOAD_PATH.map { |path| Primitive.canonicalize_path(path) }
+        @loaded_features_copy = $LOAD_PATH.dup
+      end
+      @expanded_load_path
     end
 
   end

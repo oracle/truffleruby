@@ -42,9 +42,14 @@ public class RubyString extends RubyDynamicObject {
         this.rope = rope;
     }
 
+    /** should only be used for debugging */
     @Override
     public String toString() {
         return rope.toString();
+    }
+
+    public String getJavaString() {
+        return StringOperations.getString(this);
     }
 
     // region RubyLibrary messages
