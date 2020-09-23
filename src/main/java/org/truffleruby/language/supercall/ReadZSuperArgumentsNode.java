@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.supercall;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
@@ -28,6 +29,7 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
     @Child private ArrayToObjectArrayNode unsplatNode;
 
     private final int restArgIndex;
+    private final ConditionProfile isArrayProfile = ConditionProfile.create();
 
     public ReadZSuperArgumentsNode(int restArgIndex, RubyNode[] reloadNodes) {
         this.restArgIndex = restArgIndex;
@@ -48,7 +50,14 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
 
         if (restArgIndex != -1) {
             final Object restArg = superArguments[restArgIndex];
-            final Object[] restArgs = unsplat((RubyArray) restArg);
+
+            final Object[] restArgs;
+            if (isArrayProfile.profile(restArg instanceof RubyArray)) {
+                restArgs = unsplat((RubyArray) restArg);
+            } else {
+                restArgs = new Object[]{ restArg };
+            }
+
             final int after = superArguments.length - (restArgIndex + 1);
             Object[] splattedArguments = ArrayUtils.copyOf(superArguments, superArguments.length + restArgs.length - 1);
             ArrayUtils.arraycopy(

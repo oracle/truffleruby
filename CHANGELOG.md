@@ -34,6 +34,7 @@ Compatibility:
 * Implement `rb_ivar_count`.
 * Implemented `rb_yield_values2`.
 * Implemented `Digest::Base#{update, <<}` (#2100).
+* Pass the final `super` specs (#2104, @chrisseaton).
 
 Performance:
 
