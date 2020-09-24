@@ -38,6 +38,7 @@ Compatibility:
 * Pass the final `super` specs (#2104, @chrisseaton).
 * Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
 * Fix arity for `Proc` (#2098, @ssnickolay)
+* Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known. 
 
 Performance:
 

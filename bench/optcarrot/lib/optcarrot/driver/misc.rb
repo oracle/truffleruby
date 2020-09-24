@@ -105,7 +105,7 @@ module Optcarrot
       end
       dat = dat.bytes.map {|clr| palette[clr - 35] }
 
-      return width, height, pixels.write_string(dat.pack("V*"))
+      return width, height, pixels.write_bytes(dat.pack("V*"))
     end
   end
 end

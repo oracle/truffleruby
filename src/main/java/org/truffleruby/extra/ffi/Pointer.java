@@ -26,6 +26,7 @@ public class Pointer implements AutoCloseable {
 
     public static final Pointer NULL = new Pointer(0);
     public static final long SIZE = Long.BYTES;
+    public static final long UNBOUNDED = Long.MAX_VALUE;
 
     public static final Pointer[] EMPTY_ARRAY = new Pointer[0];
 
@@ -49,7 +50,7 @@ public class Pointer implements AutoCloseable {
     private FinalizerReference finalizerRef = null;
 
     public Pointer(long address) {
-        this(address, 0);
+        this(address, UNBOUNDED);
     }
 
     public Pointer(long address, long size) {

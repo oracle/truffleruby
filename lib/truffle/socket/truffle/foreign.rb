@@ -97,7 +97,7 @@ module Truffle
       def self.bind(descriptor, sockaddr)
         sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
         begin
-          sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+          sockaddr_p.write_bytes(sockaddr)
           _bind(descriptor, sockaddr_p, sockaddr.bytesize)
         ensure
           Truffle::FFI::Pool.stack_free(sockaddr_p)
@@ -110,7 +110,7 @@ module Truffle
         sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
 
         begin
-          sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+          sockaddr_p.write_bytes(sockaddr)
 
           _connect(descriptor, sockaddr_p, sockaddr.bytesize)
         ensure
@@ -201,7 +201,7 @@ module Truffle
           :char, sockaddr.bytesize, :char, ::Socket::NI_MAXHOST, :char, ::Socket::NI_MAXSERV)
 
         begin
-          sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
+          sockaddr_p.write_bytes(sockaddr)
 
           if reverse_lookup
             err = _getnameinfo(sockaddr_p, sockaddr.bytesize, node,

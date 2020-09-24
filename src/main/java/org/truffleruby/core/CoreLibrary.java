@@ -77,6 +77,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.time.RubyTime;
 import org.truffleruby.core.tracepoint.RubyTracePoint;
 import org.truffleruby.extra.RubyAtomicReference;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -807,6 +808,8 @@ public class CoreLibrary {
         setConstant(truffleFFIModule, "TYPE_CHARARR", NativeTypes.TYPE_CHARARR);
         setConstant(truffleFFIModule, "TYPE_ENUM", NativeTypes.TYPE_ENUM);
         setConstant(truffleFFIModule, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
+
+        setConstant(truffleFFIPointerClass, "UNBOUNDED", Pointer.UNBOUNDED);
 
         setConstant(objectClass, "RUBY_VERSION", frozenUSASCIIString(TruffleRuby.LANGUAGE_VERSION));
         setConstant(objectClass, "RUBY_PATCHLEVEL", 0);

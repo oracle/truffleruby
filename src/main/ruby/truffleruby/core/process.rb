@@ -215,9 +215,10 @@ module Process
     argv0_address = Truffle::POSIX._NSGetArgv.read_pointer.read_pointer
 
     @_argv0_max_length ||= argv0_address.read_string.bytesize
+    argv0_address = argv0_address.slice(0, @_argv0_max_length)
 
     new_title = setproctitle_truncate_title(title, @_argv0_max_length)
-    argv0_address.write_string new_title
+    argv0_address.write_bytes new_title
   end
   private_class_method :setproctitle_darwin
 
@@ -259,8 +260,8 @@ module Process
 
     new_title = setproctitle_truncate_title(title, @_argv0_max_length)
 
-    argv0_ptr = FFI::Pointer.new(:char, @_argv0_address)
-    argv0_ptr.write_string(new_title)
+    argv0_ptr = FFI::Pointer.new(:char, @_argv0_address).slice(0, @_argv0_max_length)
+    argv0_ptr.write_bytes(new_title)
 
     new_command = File.binread('/proc/self/cmdline')
     raise 'failed' unless new_command.start_with?(new_title)

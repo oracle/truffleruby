@@ -39,10 +39,6 @@ module Truffle::FFI
   end
 
   class Pointer < AbstractMemory
-    # Indicates how many bytes the chunk of memory that is pointed to takes up.
-    attr_accessor :total
-    alias_method :size, :total
-
     # Indicates how many bytes the type that the pointer is cast as uses.
     attr_accessor :type_size
 
@@ -78,16 +74,21 @@ module Truffle::FFI
     end
 
     def initialize_copy(from)
-      total = from.total
-      raise RuntimeError, 'cannot duplicate unbounded memory area' unless total
+      total = Primitive.pointer_size(from)
+      raise RuntimeError, 'cannot duplicate unbounded memory area' unless total != UNBOUNDED
       Primitive.pointer_malloc self, total
       Primitive.pointer_copy_memory address, from.address, total
       self
     end
 
+    def size
+      Primitive.pointer_size(self)
+    end
+    alias_method :total, :size
+
     def clear
-      raise RuntimeError, 'cannot clear unbounded memory area' unless @total
-      Primitive.pointer_clear self, @total
+      raise RuntimeError, 'cannot clear unbounded memory area' unless Primitive.pointer_size(self) != UNBOUNDED
+      Primitive.pointer_clear self, Primitive.pointer_size(self)
     end
 
     def inspect
@@ -115,8 +116,8 @@ module Truffle::FFI
 
     def +(offset)
       ptr = Pointer.new(address + offset)
-      if total
-        ptr.total = total - offset
+      if Primitive.pointer_size(self) != UNBOUNDED
+        ptr.total = Primitive.pointer_size(self) - offset
       end
       ptr
     end
@@ -143,7 +144,8 @@ module Truffle::FFI
     end
 
     private def check_bounds(offset, length)
-      if offset < 0 || (@total && length > @total)
+      size = Primitive.pointer_size(self)
+      if offset < 0 || offset + length > size
         raise IndexError, "Memory access offset=#{offset} size=#{length} is out of bounds"
       end
     end
@@ -212,6 +214,7 @@ module Truffle::FFI
     end
 
     def get_bytes(offset, length)
+      check_bounds(offset, length)
       Primitive.pointer_read_bytes address + offset, length
     end
 
@@ -227,6 +230,7 @@ module Truffle::FFI
         end
         length = str.bytesize - index
       end
+      check_bounds(offset, length)
       Primitive.pointer_write_bytes address + offset, str, index, length
       self
     end
@@ -296,10 +300,10 @@ module Truffle::FFI
   class MemoryPointer < Pointer
     def initialize(type, count = 1, clear = true)
       super(type, 0)
-      @total = @type_size * (count || 1)
+      total = @type_size * (count || 1)
 
-      Primitive.pointer_malloc self, @total
-      Primitive.pointer_clear self, @total if clear
+      Primitive.pointer_malloc self, total
+      Primitive.pointer_clear self, total if clear
     end
 
     def self.new(type, count = 1, clear = true)

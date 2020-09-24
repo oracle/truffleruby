@@ -98,7 +98,7 @@ class BasicSocket < IO
       end
     elsif optval.is_a?(String)
       Truffle::Socket::Foreign.memory_pointer(optval.bytesize) do |pointer|
-        pointer.write_string(optval)
+        pointer.write_bytes(optval)
 
         error = Truffle::Socket::Foreign
           .setsockopt(Primitive.io_fd(self), level, optname, pointer, optval.bytesize)
@@ -129,7 +129,7 @@ class BasicSocket < IO
     end
 
     Truffle::Socket::Foreign.char_pointer(bytes) do |buffer|
-      buffer.write_string(message)
+      buffer.write_bytes(message)
 
       if dest_sockaddr.is_a?(String)
         addr = Truffle::Socket.sockaddr_class_for_socket(self)
@@ -258,7 +258,7 @@ class BasicSocket < IO
     address    = nil
 
     begin
-      msg_buffer.write_string(message)
+      msg_buffer.write_bytes(message)
 
       header.message = io_vec
 

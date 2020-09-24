@@ -37,7 +37,7 @@ module Truffle
           end
 
           pointer = Foreign.memory_pointer(size)
-          pointer.write_string(addr, addr.bytesize)
+          pointer.write_bytes(addr)
 
           new(pointer)
         end

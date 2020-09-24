@@ -418,7 +418,7 @@ module Truffle::POSIX
     length = string.bytesize
     buffer = Primitive.io_thread_buffer_allocate(length)
     begin
-      buffer.write_string string
+      buffer.write_bytes string
 
       written = 0
       while written < length
@@ -466,7 +466,7 @@ module Truffle::POSIX
     length = string.bytesize
     buffer = Primitive.io_thread_buffer_allocate(length)
     begin
-      buffer.write_string string
+      buffer.write_bytes string
       written = Truffle::POSIX.write(fd, buffer, length)
 
       if written < 0
