@@ -24,9 +24,9 @@ public class RopeCache {
     private int ropesReusedCount;
     private int ropeBytesSaved;
 
-    public RopeCache() {
+    public RopeCache(CoreSymbols coreSymbols) {
         addRopeConstants();
-        addCoreSymbolRopes();
+        addCoreSymbolRopes(coreSymbols);
     }
 
     private void addRopeConstants() {
@@ -44,8 +44,8 @@ public class RopeCache {
         }
     }
 
-    private void addCoreSymbolRopes() {
-        for (RubySymbol symbol : CoreSymbols.CORE_SYMBOLS) {
+    private void addCoreSymbolRopes(CoreSymbols coreSymbols) {
+        for (RubySymbol symbol : coreSymbols.CORE_SYMBOLS) {
             register(symbol.getRope());
         }
     }

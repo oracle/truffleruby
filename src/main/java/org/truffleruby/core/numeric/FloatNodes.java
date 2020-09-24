@@ -12,6 +12,7 @@ package org.truffleruby.core.numeric;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -33,7 +35,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
@@ -76,8 +77,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object addCoerced(double a, Object b,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", CoreSymbols.PLUS, b);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.PLUS, b);
         }
     }
 
@@ -101,8 +103,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object subCoerced(double a, Object b,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", CoreSymbols.MINUS, b);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.MINUS, b);
         }
 
     }
@@ -127,8 +130,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object mulCoerced(double a, Object b,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", CoreSymbols.MULTIPLY, b);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.MULTIPLY, b);
         }
 
     }
@@ -183,8 +187,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(exponent)")
         protected Object powCoerced(double base, Object exponent,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(base, "redo_coerced", CoreSymbols.POW, exponent);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(base, "redo_coerced", language.coreSymbols.POW, exponent);
         }
 
     }
@@ -209,8 +214,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object divCoerced(double a, Object b,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVIDE, b);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.DIVIDE, b);
         }
 
     }
@@ -255,8 +261,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object modCoerced(double a, Object b,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", CoreSymbols.MODULO, b);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.MODULO, b);
         }
 
     }
@@ -283,8 +290,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyBignum(b)")
         protected Object divModCoerced(double a, RubyDynamicObject b,
-                @Cached DispatchNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVMOD, b);
+                @Cached DispatchNode redoCoerced,
+                @CachedLanguage RubyLanguage language) {
+            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.DIVMOD, b);
         }
 
     }
@@ -309,8 +317,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessCoerced(double a, Object b,
-                @Cached DispatchNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.LESS_THAN, b);
+                @Cached DispatchNode redoCompare,
+                @CachedLanguage RubyLanguage language) {
+            return redoCompare.call(a, "redo_compare", language.coreSymbols.LESS_THAN, b);
         }
     }
 
@@ -334,8 +343,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessEqualCoerced(double a, Object b,
-                @Cached DispatchNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.LEQ, b);
+                @Cached DispatchNode redoCompare,
+                @CachedLanguage RubyLanguage language) {
+            return redoCompare.call(a, "redo_compare", language.coreSymbols.LEQ, b);
         }
     }
 
@@ -451,8 +461,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterEqualCoerced(double a, Object b,
-                @Cached DispatchNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.GEQ, b);
+                @Cached DispatchNode redoCompare,
+                @CachedLanguage RubyLanguage language) {
+            return redoCompare.call(a, "redo_compare", language.coreSymbols.GEQ, b);
         }
 
     }
@@ -477,8 +488,9 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterCoerced(double a, Object b,
-                @Cached DispatchNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.GREATER_THAN, b);
+                @Cached DispatchNode redoCompare,
+                @CachedLanguage RubyLanguage language) {
+            return redoCompare.call(a, "redo_compare", language.coreSymbols.GREATER_THAN, b);
         }
     }
 

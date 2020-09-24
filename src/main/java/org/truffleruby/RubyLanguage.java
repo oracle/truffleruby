@@ -22,6 +22,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.RubyThread;
@@ -94,6 +95,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
 
     public final CoreStrings coreStrings;
+    public final CoreSymbols coreSymbols;
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
 
@@ -103,8 +105,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public RubyLanguage() {
         coreStrings = new CoreStrings(this);
-        ropeCache = new RopeCache();
-        symbolTable = new SymbolTable(ropeCache);
+        coreSymbols = new CoreSymbols();
+        ropeCache = new RopeCache(coreSymbols);
+        symbolTable = new SymbolTable(ropeCache, coreSymbols);
     }
 
     @TruffleBoundary

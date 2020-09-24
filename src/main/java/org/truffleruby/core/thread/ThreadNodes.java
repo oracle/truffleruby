@@ -42,9 +42,11 @@ package org.truffleruby.core.thread;
 
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -72,7 +74,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyRandomizer;
-import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
@@ -256,13 +257,10 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected Object handle_interrupt(
-                RubyThread self,
-                RubyClass exceptionClass,
-                RubySymbol timing,
-                RubyProc block) {
+        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block,
+                @CachedLanguage RubyLanguage language) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
-            final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
+            final InterruptMode newInterruptMode = symbolToInterruptMode(language, timing);
 
             final InterruptMode oldInterruptMode = self.interruptMode;
             self.interruptMode = newInterruptMode;
@@ -273,12 +271,12 @@ public abstract class ThreadNodes {
             }
         }
 
-        private InterruptMode symbolToInterruptMode(RubySymbol symbol) {
-            if (symbol == CoreSymbols.IMMEDIATE) {
+        private InterruptMode symbolToInterruptMode(RubyLanguage language, RubySymbol symbol) {
+            if (symbol == language.coreSymbols.IMMEDIATE) {
                 return InterruptMode.IMMEDIATE;
-            } else if (symbol == CoreSymbols.ON_BLOCKING) {
+            } else if (symbol == language.coreSymbols.ON_BLOCKING) {
                 return InterruptMode.ON_BLOCKING;
-            } else if (symbol == CoreSymbols.NEVER) {
+            } else if (symbol == language.coreSymbols.NEVER) {
                 return InterruptMode.NEVER;
             } else {
                 errorProfile.enter();

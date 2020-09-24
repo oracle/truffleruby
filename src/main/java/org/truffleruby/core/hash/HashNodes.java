@@ -11,6 +11,8 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -29,7 +31,6 @@ import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -639,6 +640,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(from)")
         protected RubyHash replaceCoerce(RubyHash self, Object from,
+                @CachedLanguage RubyLanguage language,
                 @Cached DispatchNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
@@ -646,7 +648,7 @@ public abstract class HashNodes {
                     "coerce_to",
                     from,
                     coreLibrary().hashClass,
-                    CoreSymbols.TO_HASH);
+                    language.coreSymbols.TO_HASH);
             return initializeCopyNode.executeReplace(self, (RubyHash) otherHash);
         }
 

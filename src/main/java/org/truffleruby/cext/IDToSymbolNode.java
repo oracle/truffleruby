@@ -11,6 +11,7 @@ package org.truffleruby.cext;
 
 import static org.truffleruby.core.symbol.CoreSymbols.idToIndex;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
@@ -38,10 +39,11 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
 
     @Specialization(guards = "isStaticSymbol(value)")
     protected Object unwrapStaticUncached(long value,
+            @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile) {
         final int index = idToIndex(value);
-        final RubySymbol symbol = CoreSymbols.STATIC_SYMBOLS[index];
+        final RubySymbol symbol = language.coreSymbols.STATIC_SYMBOLS[index];
         if (symbol == null) {
             errorProfile.enter();
             throw new RaiseException(

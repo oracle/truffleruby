@@ -75,6 +75,7 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -160,7 +161,6 @@ import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNo
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.core.support.RubyByteArray;
-import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -685,24 +685,34 @@ public abstract class StringNodes {
         protected Object slice1(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
                 @Cached DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
-                @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
-            return sliceCapture(frame, string, regexp, 0, callNode, readCallerNode, setFrameAndThreadLocalVariable);
+                @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable,
+                @CachedLanguage RubyLanguage language) {
+            return sliceCapture(
+                    frame,
+                    string,
+                    regexp,
+                    0,
+                    callNode,
+                    readCallerNode,
+                    setFrameAndThreadLocalVariable,
+                    language);
         }
 
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
                 @Cached DispatchNode callNode,
                 @Cached ReadCallerFrameNode readCallerNode,
-                @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable) {
+                @Cached SetFrameAndThreadLocalVariable setFrameAndThreadLocalVariable,
+                @CachedLanguage RubyLanguage language) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
             final RubyBinding binding = BindingNodes.createBinding(getContext(), readCallerNode.execute(frame));
             if (matchStrPair == nil) {
-                setFrameAndThreadLocalVariable.execute(CoreSymbols.BACKREF, nil, binding);
+                setFrameAndThreadLocalVariable.execute(language.coreSymbols.BACKREF, nil, binding);
                 return nil;
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
-                setFrameAndThreadLocalVariable.execute(CoreSymbols.BACKREF, array[0], binding);
+                setFrameAndThreadLocalVariable.execute(language.coreSymbols.BACKREF, array[0], binding);
                 return array[1];
             }
         }
