@@ -305,7 +305,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = { "!isInteger(index)", "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        protected Object getIndex(RubyMatchData matchData, Object index, NotProvided length,
+        protected Object getIndexCoerce(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
