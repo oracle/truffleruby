@@ -2329,22 +2329,27 @@ EOS
       split_points = []
       i += 1 while line[i] != '('
       i += 1
-      brackets = 1
+      parens = 1
+      generic = 0
       split_points << i # ( start of arguments
 
 
       while i < line.size
         case line[i]
         when '('
-          brackets += 1
+          parens += 1
         when ')'
-          brackets -= 1
-          if brackets == 0
+          parens -= 1
+          if parens == 0
             split_points << i
             break
           end
+        when '<'
+          generic += 1
+        when '>'
+          generic -= 1
         when ','
-          split_points << i if brackets == 1
+          split_points << i if parens == 1 && generic == 0
         else
           # nothing to do
         end
@@ -2382,7 +2387,7 @@ EOS
           # look for end of annotation
           while braces != 0
             new_content << line
-            line   = lines.shift
+            line = lines.shift
             braces += count_braces(line)
           end
 
@@ -2398,11 +2403,11 @@ EOS
           end
 
           # look for whole declaration
-          braces      = count_braces(line)
+          braces = count_braces(line)
           declaration = [line]
           while braces != 0
             # new_content << line
-            line   = lines.shift
+            line = lines.shift
             braces += count_braces(line)
             declaration << line
           end

@@ -25,6 +25,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -48,6 +50,8 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -938,6 +942,20 @@ public abstract class TruffleDebugNodes {
         protected Object drainFinalizationQueue() {
             getContext().getFinalizationService().drainFinalizationQueue();
             return nil;
+        }
+
+    }
+
+    @Primitive(name = "frame_declaration_context_to_string")
+    public abstract static class FrameDeclarationContextToStringNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
+        @Specialization
+        protected RubyString getDeclarationContextToString(VirtualFrame frame) {
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+            return makeStringNode
+                    .executeMake(declarationContext.toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

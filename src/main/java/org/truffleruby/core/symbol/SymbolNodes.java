@@ -9,13 +9,16 @@
  */
 package org.truffleruby.core.symbol;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
@@ -38,12 +41,13 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+
+import java.util.Map;
 
 @CoreModule(value = "Symbol", isClass = true)
 public abstract class SymbolNodes {
@@ -91,35 +95,55 @@ public abstract class SymbolNodes {
 
     }
 
-    @ReportPolymorphism
     @CoreMethod(names = "to_proc")
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
         public static final Arity ARITY = new Arity(0, 0, true);
 
+        public static ToProcNode create() {
+            return SymbolNodesFactory.ToProcNodeFactory.create(null);
+        }
+
+        public abstract RubyProc execute(VirtualFrame frame, RubySymbol symbol);
+
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization(
-                guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
+                guards = { "symbol == cachedSymbol", "getRefinements(frame) == cachedRefinements" },
                 limit = "getIdentityCacheLimit()")
         protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
-                @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
-                @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") RubyProc cachedProc) {
+                @Cached("getRefinements(frame)") Map<RubyModule, RubyModule[]> cachedRefinements,
+                @Cached("getOrCreateProc(getContext(), cachedRefinements, symbol)") RubyProc cachedProc) {
             return cachedProc;
         }
 
-        @Specialization
+        @Specialization(replaces = "toProcCached")
         protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
-            final InternalMethod method = getMethod(frame);
-            DeclarationContext declarationContext = getDeclarationContext(frame);
-            return createProc(declarationContext, method, symbol);
+            final Map<RubyModule, RubyModule[]> refinements = getRefinements(frame);
+            return getOrCreateProc(getContext(), refinements, symbol);
         }
 
         @TruffleBoundary
-        protected RubyProc createProc(DeclarationContext declarationContext, InternalMethod method,
+        public static RubyProc getOrCreateProc(RubyContext context,
+                Map<RubyModule, RubyModule[]> refinements,
                 RubySymbol symbol) {
+            // TODO (eregon, 23 Sep 2020): this should ideally cache on the refinements by comparing classes, and not by identity.
+            return ConcurrentOperations.getOrCompute(
+                    symbol.getCachedProcs(),
+                    refinements,
+                    key -> createProc(context, key, symbol));
+        }
+
+        @TruffleBoundary
+        private static RubyProc createProc(RubyContext context, Map<RubyModule, RubyModule[]> refinements,
+                RubySymbol symbol) {
+            final InternalMethod method = context.getCoreMethods().SYMBOL_TO_PROC;
             final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
+            final DeclarationContext declarationContext = refinements.isEmpty()
+                    ? DeclarationContext.NONE
+                    : new DeclarationContext(Visibility.PUBLIC, null, refinements);
+
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
@@ -136,9 +160,9 @@ public abstract class SymbolNodes {
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
+                    .createMaterializedFrame(args, context.getCoreLibrary().emptyDescriptor);
             final RubyRootNode rootNode = new RubyRootNode(
-                    getContext(),
+                    context,
                     sourceSection,
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
@@ -148,7 +172,7 @@ public abstract class SymbolNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             return ProcOperations.createRubyProc(
-                    getContext().getCoreLibrary().procShape,
+                    context.getCoreLibrary().procShape,
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget,
@@ -157,19 +181,23 @@ public abstract class SymbolNodes {
                     method,
                     null,
                     null,
-                    declarationContext == null ? DeclarationContext.NONE : declarationContext);
+                    declarationContext);
         }
 
         protected InternalMethod getMethod(VirtualFrame frame) {
             return RubyArguments.getMethod(frame);
         }
 
-        protected int getCacheLimit() {
-            return getContext().getOptions().SYMBOL_TO_PROC_CACHE;
+        protected Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {
+            final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
+            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame);
+            return declarationContext != null
+                    ? declarationContext.getRefinements()
+                    : DeclarationContext.NONE.getRefinements();
         }
 
-        protected DeclarationContext getDeclarationContext(VirtualFrame frame) {
-            return RubyArguments.tryGetDeclarationContext(readCallerFrame.execute(frame));
+        protected int getCacheLimit() {
+            return getContext().getOptions().SYMBOL_TO_PROC_CACHE;
         }
 
     }

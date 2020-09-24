@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.tracepoint;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -27,7 +29,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
@@ -93,12 +94,13 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected RubyTracePoint initialize(RubyTracePoint tracePoint, RubyArray eventsArray, RubyProc block,
-                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @CachedLanguage RubyLanguage language) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
             final TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
             for (int i = 0; i < eventSymbols.length; i++) {
-                events[i] = createEvents((RubySymbol) eventSymbols[i]);
+                events[i] = createEvents(language, (RubySymbol) eventSymbols[i]);
             }
 
             tracePoint.events = events;
@@ -107,12 +109,12 @@ public abstract class TracePointNodes {
         }
 
         @TruffleBoundary
-        private TracePointEvent createEvents(RubySymbol eventSymbol) {
-            if (eventSymbol == CoreSymbols.LINE) {
+        private TracePointEvent createEvents(RubyLanguage language, RubySymbol eventSymbol) {
+            if (eventSymbol == language.coreSymbols.LINE) {
                 return new TracePointEvent(TraceManager.LineTag.class, eventSymbol);
-            } else if (eventSymbol == CoreSymbols.CLASS) {
+            } else if (eventSymbol == language.coreSymbols.CLASS) {
                 return new TracePointEvent(TraceManager.ClassTag.class, eventSymbol);
-            } else if (eventSymbol == CoreSymbols.NEVER) {
+            } else if (eventSymbol == language.coreSymbols.NEVER) {
                 return new TracePointEvent(TraceManager.NeverTag.class, eventSymbol);
             } else {
                 throw new UnsupportedOperationException(eventSymbol.getString());

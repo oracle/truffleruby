@@ -38,13 +38,13 @@ public class SymbolTable {
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<Rope, RubySymbol> symbolMap = new WeakValueCache<>();
 
-    public SymbolTable(RopeCache ropeCache) {
+    public SymbolTable(RopeCache ropeCache, CoreSymbols coreSymbols) {
         this.ropeCache = ropeCache;
-        addCoreSymbols();
+        addCoreSymbols(coreSymbols);
     }
 
-    private void addCoreSymbols() {
-        for (RubySymbol symbol : CoreSymbols.CORE_SYMBOLS) {
+    private void addCoreSymbols(CoreSymbols coreSymbols) {
+        for (RubySymbol symbol : coreSymbols.CORE_SYMBOLS) {
             final Rope rope = symbol.getRope();
             assert rope == normalizeRopeForLookup(rope);
             assert rope == ropeCache.getRope(rope);

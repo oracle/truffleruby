@@ -9,10 +9,14 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -22,7 +26,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/** Casts an object to a Ruby Proc object. */
+import java.util.Map;
+
+/** The `&` in `foo(&block)`. Converts the passed block to a RubyProc or nil. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToProcNode extends RubyContextSourceNode {
 
@@ -36,10 +42,23 @@ public abstract class ToProcNode extends RubyContextSourceNode {
         return proc;
     }
 
-    @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" })
+    // AST-inlined version of Symbol#to_proc
+    // No need to guard the refinements here since refinements are always the same in a given source location
+    @Specialization(
+            guards = "symbol == cachedSymbol",
+            assumptions = "getContext().getCoreMethods().symbolToProcAssumption",
+            limit = "1")
+    protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
+            @Cached("symbol") RubySymbol cachedSymbol,
+            @Cached("getProcForSymbol(getRefinements(frame), cachedSymbol)") RubyProc cachedProc) {
+        return cachedProc;
+    }
+
+    @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" }, replaces = "doRubySymbolASTInlined")
     protected RubyProc doObject(VirtualFrame frame, Object object,
             @Cached DispatchNode toProc,
             @Cached BranchProfile errorProfile) {
+        // The semantics are to call #method_missing here
         final Object coerced;
         try {
             coerced = toProc.dispatch(frame, object, "to_proc", null, EMPTY_ARGUMENTS);
@@ -62,6 +81,14 @@ public abstract class ToProcNode extends RubyContextSourceNode {
                     getContext(),
                     coreExceptions().typeErrorBadCoercion(object, "Proc", "to_proc", coerced, this));
         }
+    }
+
+    protected RubyProc getProcForSymbol(Map<RubyModule, RubyModule[]> refinements, RubySymbol symbol) {
+        return SymbolNodes.ToProcNode.getOrCreateProc(getContext(), refinements, symbol);
+    }
+
+    protected static Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {
+        return RubyArguments.getDeclarationContext(frame).getRefinements();
     }
 
 }

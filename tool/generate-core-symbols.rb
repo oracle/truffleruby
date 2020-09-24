@@ -59,6 +59,7 @@ end
 min_index = ids_map.keys.min
 offset = 128
 index = offset
+static_symbols_size = 216
 
 File.write('src/main/java/org/truffleruby/core/symbol/CoreSymbols.java', ERB.new(<<'JAVA').result)
 /*
@@ -89,35 +90,33 @@ public class CoreSymbols {
     public static final long STATIC_SYMBOL_ID = 0x1;
     private static final long GLOBAL_SYMBOL_ID = (0x03 << 1);
 
-    public static final List<RubySymbol> CORE_SYMBOLS = new ArrayList<>();
-    public static final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[216];
+    public static final int STATIC_SYMBOLS_SIZE = <%= static_symbols_size %>;
 
-    public static final RubySymbol CLASS = createRubySymbol("class");
-    public static final RubySymbol DIVMOD = createRubySymbol("divmod");
-    public static final RubySymbol IMMEDIATE = createRubySymbol("immediate");
-    public static final RubySymbol LINE = createRubySymbol("line");
-    public static final RubySymbol NEVER = createRubySymbol("never");
-    public static final RubySymbol ON_BLOCKING = createRubySymbol("on_blocking");
+    public final List<RubySymbol> CORE_SYMBOLS = new ArrayList<>();
+    public final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[STATIC_SYMBOLS_SIZE];
+
+    public final RubySymbol CLASS = createRubySymbol("class");
+    public final RubySymbol DIVMOD = createRubySymbol("divmod");
+    public final RubySymbol IMMEDIATE = createRubySymbol("immediate");
+    public final RubySymbol LINE = createRubySymbol("line");
+    public final RubySymbol NEVER = createRubySymbol("never");
+    public final RubySymbol ON_BLOCKING = createRubySymbol("on_blocking");
 
     public static final int FIRST_OP_ID = <%=min_index%>;
 <% ids_map.each do |key, value|  %>
-    public static final RubySymbol <%= value[:name] %> = CoreSymbols.createRubySymbol(<%= value[:id].inspect %>, <%= key %>);<% end %>
+    public final RubySymbol <%= value[:name] %> = createRubySymbol(<%= value[:id].inspect %>, <%= key %>);<% end %>
 
 <% ids[:token_op].uniq {|_, op| op}.each do |id, op, token| %><% if token %>
-    public static final RubySymbol <%=token%> = createRubySymbol("<%=op%>", <%=index%>);<% index += 1 %><% end %><% end %>
+    public final RubySymbol <%=token%> = createRubySymbol("<%=op%>", <%=index%>);<% index += 1 %><% end %><% end %>
 <% ids[:preserved].each do |token| %><% if ids[:predefined][token] %>
-    public static final RubySymbol <%=token.start_with?('_') ? token[1..-1].upcase : token.upcase%> = createRubySymbol("<%=token == 'NULL' ?  '' : ids[:predefined][token]%>", <%=index%>);<% index += 1 %><% else %>
+    public final RubySymbol <%=token.start_with?('_') ? token[1..-1].upcase : token.upcase%> = createRubySymbol("<%=token == 'NULL' ?  '' : ids[:predefined][token]%>", <%=index%>);<% index += 1 %><% else %>
     // Skipped preserved token: `<%=token%>`<% index += 1 %><% end %><% end %>
     public static final int LAST_OP_ID = <%=index-1%>;
 <% types.each do |type| %><% tokens = ids[type] %><% tokens.each do |token| %>
-    public static final RubySymbol <%=token.upcase%> = createRubySymbol("<%=ids[:predefined][token]%>", to<%=type.capitalize%>(<%=index%>));<% index += 1 %><% end %><% end %>
+    public final RubySymbol <%=token.upcase%> = createRubySymbol("<%=ids[:predefined][token]%>", to<%=type.capitalize%>(<%=index%>));<% index += 1 %><% end %><% end %>
+<% raise "#{index} vs #{static_symbols_size}" unless index == static_symbols_size %>
 
-    public static final int STATIC_SYMBOLS_SIZE = <%=index%>;
-    static {
-        assert STATIC_SYMBOLS_SIZE == STATIC_SYMBOLS.length;
-    }
-
-    public static RubySymbol createRubySymbol(String string, long id) {
+    public RubySymbol createRubySymbol(String string, long id) {
         Rope rope = RopeConstants.lookupUSASCII(string);
         if (rope == null) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
@@ -133,7 +132,7 @@ public class CoreSymbols {
         return symbol;
     }
 
-    public static RubySymbol createRubySymbol(String string) {
+    public RubySymbol createRubySymbol(String string) {
         return createRubySymbol(string, RubySymbol.UNASSIGNED_ID);
     }
 

@@ -11,6 +11,7 @@ package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.nodes.LoopNode;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -26,9 +27,10 @@ public class RescueSplatNode extends RescueNode {
     @Child private SplatCastNode splatCastNode;
     @Child private ArrayStoreLibrary stores;
 
-    public RescueSplatNode(RubyNode handlingClassesArray, RubyNode rescueBody) {
+    public RescueSplatNode(RubyLanguage language, RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
         this.splatCastNode = SplatCastNodeGen.create(
+                language,
                 SplatCastNode.NilBehavior.EMPTY_ARRAY,
                 true,
                 handlingClassesArray);
