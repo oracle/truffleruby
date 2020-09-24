@@ -33,7 +33,7 @@ module Truffle
 
         def self.with_sockaddr(addr)
           pointer = Foreign.memory_pointer(addr.bytesize)
-          pointer.write_string(addr, addr.bytesize)
+          pointer.write_bytes(addr)
 
           new(pointer)
         end

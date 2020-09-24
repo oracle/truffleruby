@@ -165,7 +165,7 @@ class Socket < BasicSocket
     family = Truffle::Socket.address_family(family)
 
     Truffle::Socket::Foreign.char_pointer(addr.bytesize) do |in_pointer|
-      in_pointer.write_string(addr)
+      in_pointer.write_bytes(addr)
 
       out_pointer = Truffle::Socket::Foreign
         .gethostbyaddr(in_pointer, in_pointer.total, family)

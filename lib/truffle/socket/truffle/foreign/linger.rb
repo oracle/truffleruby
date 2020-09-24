@@ -33,7 +33,7 @@ module Truffle
         def self.from_string(string)
           linger = new
 
-          linger.pointer.write_string(string, string.bytesize)
+          linger.pointer.write_bytes(string)
 
           linger
         end
