@@ -106,6 +106,7 @@ RUBY
 
     code << <<-RUBY
   def read_#{type}
+    check_bounds(0, #{SIZEOF[base_type]})
     Primitive.pointer_read_#{type} address
   end
 RUBY
@@ -113,6 +114,7 @@ RUBY
 
     code << <<-RUBY
   def write_#{type}(value)
+    check_bounds(0, #{SIZEOF[base_type]})
     Primitive.pointer_write_#{type} address, #{transform.call('value')}
     self
   end
@@ -121,6 +123,7 @@ RUBY
 
     code << <<-RUBY
   def get_#{type}(offset)
+    check_bounds(offset, #{SIZEOF[base_type]})
     Primitive.pointer_read_#{type} address + offset
   end
 RUBY
@@ -128,6 +131,7 @@ RUBY
 
     code << <<-RUBY
   def put_#{type}(offset, value)
+    check_bounds(offset, #{SIZEOF[base_type]})
     Primitive.pointer_write_#{type} address + offset, #{transform.call('value')}
     self
   end
@@ -138,6 +142,7 @@ RUBY
 
     code << <<-RUBY
   def read_array_of_#{type}(length)
+    check_bounds(0, length * #{SIZEOF[base_type]})
     Array.new(length) do |i|
       Primitive.pointer_read_#{type} address + (i * #{SIZEOF[base_type]})
     end
@@ -148,6 +153,7 @@ RUBY
     code << <<-RUBY
   def write_array_of_#{type}(ary)
     Truffle::Type.rb_check_type(ary, ::Array)
+    check_bounds(0, ary.size * #{SIZEOF[base_type]})
     ary.each_with_index do |value, i|
       Primitive.pointer_write_#{type} address + (i * #{SIZEOF[base_type]}), #{transform.call('value')}
     end

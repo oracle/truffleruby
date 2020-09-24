@@ -158,6 +158,28 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_size")
+    public static abstract class PointerSizeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected long size(RubyPointer pointer) {
+            return pointer.pointer.getSize();
+        }
+
+    }
+
+    @CoreMethod(names = "total=", required = 1)
+    public static abstract class PointerSetSizeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected long setSize(RubyPointer pointer, long size) {
+            final Pointer old = pointer.pointer;
+            pointer.pointer = new Pointer(old.getAddress(), size);
+            return size;
+        }
+
+    }
+
     @CoreMethod(names = "autorelease?")
     public static abstract class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
