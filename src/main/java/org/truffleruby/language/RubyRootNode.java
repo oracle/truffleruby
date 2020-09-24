@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.Assumption;
@@ -57,6 +58,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        assert RubyLanguage.getCurrentContext() == context;
         context.getSafepointManager().poll(this);
         return body.execute(frame);
     }
