@@ -88,6 +88,9 @@ public class CoreMethods {
     public final InternalMethod MODULE_CASE_EQUAL;
     public final InternalMethod STRING_EQUAL;
     public final InternalMethod SYMBOL_TO_PROC;
+    public final InternalMethod ARRAY_AT;
+    public final InternalMethod ARRAY_INDEX_GET;
+    public final InternalMethod ARRAY_INDEX_SET;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -100,6 +103,7 @@ public class CoreMethods {
         final RubyClass nilClass = context.getCoreLibrary().nilClass;
         final RubyClass stringClass = context.getCoreLibrary().stringClass;
         final RubyClass symbolClass = context.getCoreLibrary().symbolClass;
+        final RubyClass arrayClass = context.getCoreLibrary().arrayClass;
 
         integerNegAssumption = registerAssumption(integerClass, "-@");
         floatNegAssumption = registerAssumption(floatClass, "-@");
@@ -150,6 +154,9 @@ public class CoreMethods {
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
         STRING_EQUAL = getMethod(stringClass, "==");
         SYMBOL_TO_PROC = getMethod(symbolClass, "to_proc");
+        ARRAY_AT = getMethod(arrayClass, "at");
+        ARRAY_INDEX_GET = getMethod(arrayClass, "[]");
+        ARRAY_INDEX_SET = getMethod(arrayClass, "[]=");
     }
 
     private Assumption registerAssumption(RubyClass klass, String methodName) {
@@ -238,10 +245,20 @@ public class CoreMethods {
                     return InlinedGreaterThanNodeGen.create(context, callParameters, self, args[0]);
                 case ">=":
                     return InlinedGreaterOrEqualNodeGen.create(context, callParameters, self, args[0]);
+                case "[]":
+                    return InlinedIndexGetNodeGen.create(context, callParameters, self, args[0]);
+                case "at":
+                    return InlinedAtNodeGen.create(context, callParameters, self, args[0]);
                 case "is_a?":
                     return InlinedIsANodeGen.create(context, callParameters, self, args[0]);
                 case "kind_of?":
                     return InlinedKindOfNodeGen.create(context, callParameters, self, args[0]);
+                default:
+            }
+        } else if (n == 3) {
+            switch (callParameters.getMethodName()) {
+                case "[]=":
+                    return InlinedIndexSetNodeGen.create(context, callParameters, self, args[0], args[1]);
                 default:
             }
         }

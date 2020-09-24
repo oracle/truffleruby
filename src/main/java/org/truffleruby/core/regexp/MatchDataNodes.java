@@ -241,14 +241,15 @@ public abstract class MatchDataNodes {
             final RubyString source = matchData.source;
             final Rope sourceRope = source.rope;
             final Region region = matchData.region;
-            final int normalizedIndex = ArrayOperations
-                    .normalizeIndex(region.beg.length, index, normalizedIndexProfile);
+            if (normalizedIndexProfile.profile(index < 0)) {
+                index += region.beg.length;
+            }
 
-            if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= region.beg.length))) {
+            if (indexOutOfBoundsProfile.profile((index < 0) || (index >= region.beg.length))) {
                 return nil;
             } else {
-                final int start = region.beg[normalizedIndex];
-                final int end = region.end[normalizedIndex];
+                final int start = region.beg[index];
+                final int end = region.end[index];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
@@ -262,11 +263,14 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected RubyArray getIndex(RubyMatchData matchData, int index, int length) {
+        protected RubyArray getIndex(RubyMatchData matchData, int index, int length,
+                @Cached ConditionProfile normalizedIndexProfile) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
             final Object[] values = getValuesNode.execute(matchData);
-            final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
-            final Object[] store = Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length);
+            if (normalizedIndexProfile.profile(index < 0)) {
+                index += values.length;
+            }
+            final Object[] store = Arrays.copyOfRange(values, index, index + length);
             return createArray(store);
         }
 
@@ -301,7 +305,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = { "!isInteger(index)", "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        protected Object getIndex(RubyMatchData matchData, Object index, NotProvided length,
+        protected Object getIndexCoerce(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
@@ -310,13 +314,19 @@ public abstract class MatchDataNodes {
         @Specialization
         protected RubyArray getIndex(RubyMatchData matchData, RubyIntRange range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
-            final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, range.begin);
-            final int end = ArrayOperations.normalizeIndex(values.length, range.end);
+            int index = range.begin;
+            if (range.begin < 0) {
+                index += values.length;
+            }
+            int end = range.end;
+            if (end < 0) {
+                end += values.length;
+            }
             final int exclusiveEnd = ArrayOperations
                     .clampExclusiveIndex(values.length, range.excludedEnd ? end : end + 1);
-            final int length = exclusiveEnd - normalizedIndex;
+            final int length = exclusiveEnd - index;
 
-            return createArray(Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length));
+            return createArray(Arrays.copyOfRange(values, index, index + length));
         }
 
         @TruffleBoundary

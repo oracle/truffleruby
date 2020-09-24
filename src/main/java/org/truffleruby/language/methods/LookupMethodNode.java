@@ -67,7 +67,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("metaClass") RubyClass cachedMetaClass,
             @Cached("name") String cachedName,
-            @Cached(value = "config", allowUncached = true) DispatchConfiguration cachedConfig,
+            @Cached("config") DispatchConfiguration cachedConfig,
             @Cached("lookupCached(cachedContext, frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
