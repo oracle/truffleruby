@@ -75,7 +75,7 @@ module Truffle::FFI
 
     def initialize_copy(from)
       total = Primitive.pointer_size(from)
-      raise RuntimeError, 'cannot duplicate unbounded memory area' unless total > 0
+      raise RuntimeError, 'cannot duplicate unbounded memory area' unless total != UNBOUNDED
       Primitive.pointer_malloc self, total
       Primitive.pointer_copy_memory address, from.address, total
       self
@@ -87,7 +87,7 @@ module Truffle::FFI
     alias_method :total, :size
 
     def clear
-      raise RuntimeError, 'cannot clear unbounded memory area' unless Primitive.pointer_size(self) > 0
+      raise RuntimeError, 'cannot clear unbounded memory area' unless Primitive.pointer_size(self) != UNBOUNDED
       Primitive.pointer_clear self, Primitive.pointer_size(self)
     end
 
@@ -116,7 +116,7 @@ module Truffle::FFI
 
     def +(offset)
       ptr = Pointer.new(address + offset)
-      if Primitive.pointer_size(self) > 0
+      if Primitive.pointer_size(self) != UNBOUNDED
         ptr.total = Primitive.pointer_size(self) - offset
       end
       ptr
@@ -145,7 +145,7 @@ module Truffle::FFI
 
     private def check_bounds(offset, length)
       size = Primitive.pointer_size(self)
-      if offset < 0 || (size > 0 && offset + length > size)
+      if offset < 0 || offset + length > size
         raise IndexError, "Memory access offset=#{offset} size=#{length} is out of bounds"
       end
     end
