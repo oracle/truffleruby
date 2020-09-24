@@ -1560,7 +1560,7 @@ class IO
       # is still necessary.
       buffer_size = 4096 if buffer_size < 4096
       buffer = Truffle::FFI::MemoryPointer.new(buffer_size)
-      buffer.write_string(arg, arg.bytesize)
+      buffer.write_bytes(arg)
       real_arg = buffer.address
     else
       real_arg = Primitive.rb_to_int(arg)
