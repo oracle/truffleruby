@@ -130,7 +130,7 @@ public class LoadArgumentsTranslator extends Translator {
         final List<RubyNode> sequence = new ArrayList<>();
 
         //if (!arraySlotStack.isEmpty()) {
-        sequence.add(loadSelf(context, methodBodyTranslator.getEnvironment()));
+        sequence.add(loadSelf(language, methodBodyTranslator.getEnvironment()));
         //}
 
         final ParseNode[] args = argsNode.getArgs();
@@ -321,7 +321,7 @@ public class LoadArgumentsTranslator extends Translator {
         } else {
             if (state == State.PRE) {
                 return profileArgument(
-                        context,
+                        language,
                         new ReadPreArgumentNode(
                                 index,
                                 isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));

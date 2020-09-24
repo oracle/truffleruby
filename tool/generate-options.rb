@@ -29,6 +29,9 @@ options_data = YAML.load_file('src/options.yml')
 
 options = []
 
+language_options_keys = options_data.delete('LANGUAGE_OPTIONS').to_h { |name| [name, true] }
+options_data.delete('LANGUAGE_OPTIONS')
+
 options_data.each do |category, stabilities|
   stabilities.each do |stability, category_options|
     category_options.each do |constant, values|
@@ -80,7 +83,8 @@ options_data.each do |category, stabilities|
           env_condition:     env_condition,
           description:       description + (mri_names.empty? ?
                                                 '' : " (configured by the #{mri_names.join(', ')} Ruby option#{'s' if mri_names.size > 1})"),
-          option_type:       option_type
+          option_type:       option_type,
+          language_option:   language_options_keys.has_key?(constant),
       )
     end
   end
@@ -101,9 +105,11 @@ options.each do |option|
   end
 end
 
+language_options, context_options = options.partition { |op| op.language_option }
+
 file = __FILE__
 
-File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(<<'JAVA').result)
+TEMPLATE = <<'JAVA'
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -121,22 +127,24 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
+<% if class_prefix == '' -%>
 import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.shared.options.Profile;
+<% end -%>
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
-public class Options {
+public class <%= class_prefix %>Options {
 <% options.each do |o| %>
     /** --<%= o.name %>=<%= o.env_condition %><%= o.default %> */
     public final <%= o.type %> <%= o.constant %>;<% end %>
 
-    public Options(Env env, OptionValues options) {
+    public <%= class_prefix %>Options(Env env, OptionValues options<%= class_prefix == "" ? ", LanguageOptions languageOptions" : "" %>) {
     <% options.each do |o| %>    <%= o.constant %> = <%= o.env_condition %><%=
       key = "OptionsCatalog.#{o.constant}_KEY"
       value = if o.reference_default
-        "options.hasBeenSet(#{key}) ? options.get(#{key}) : #{o.default}"
+        "options.hasBeenSet(#{key}) ? options.get(#{key}) : #{class_prefix == '' && language_keys.has_key?(o.default) ? "languageOptions." + o.default : o.default}"
       else
         "options.get(#{key})"
       end
@@ -152,9 +160,18 @@ public class Options {
                 return null;
         }
     }
+
+<% if class_prefix == 'Language' -%>
+    public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
+        return <%= options.map { |o| "one.get(OptionsCatalog.#{o.constant}_KEY).equals(two.get(OptionsCatalog.#{o.constant}_KEY))"  }.join(" &&\n               ") %>;
+    }
+<% end -%>
 }
 // @formatter:on
 JAVA
+
+File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(TEMPLATE, nil, '-').result_with_hash(class_prefix: '', options: context_options, language_keys: language_options_keys))
+File.write('src/main/java/org/truffleruby/options/LanguageOptions.java', ERB.new(TEMPLATE, nil, '-').result_with_hash(class_prefix: 'Language', options: language_options))
 
 File.write('src/shared/java/org/truffleruby/shared/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
 /*

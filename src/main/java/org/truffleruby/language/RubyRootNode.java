@@ -38,7 +38,7 @@ public class RubyRootNode extends RubyBaseRootNode {
             SharedMethodInfo sharedMethodInfo,
             RubyNode body,
             Split split) {
-        super(context.getLanguage(), frameDescriptor, sourceSection);
+        super(context.getLanguageSlow(), frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
 

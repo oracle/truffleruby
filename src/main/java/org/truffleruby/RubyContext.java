@@ -20,6 +20,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
@@ -71,6 +72,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.options.Options;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
@@ -167,7 +169,7 @@ public class RubyContext {
         this.env = env;
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
 
-        options = createOptions(env);
+        options = createOptions(env, language.options);
 
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);
@@ -273,7 +275,7 @@ public class RubyContext {
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(newEnv);
 
         final Options oldOptions = this.options;
-        final Options newOptions = createOptions(newEnv);
+        final Options newOptions = createOptions(newEnv, language.options);
         final String newHome = findRubyHome(newOptions);
         if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
             return false;
@@ -366,10 +368,9 @@ public class RubyContext {
         return true;
     }
 
-    private Options createOptions(TruffleLanguage.Env env) {
+    private Options createOptions(TruffleLanguage.Env env, LanguageOptions languageOptions) {
         Metrics.printTime("before-options");
-        final Options options = new Options(env, env.getOptions());
-
+        final Options options = new Options(env, env.getOptions(), languageOptions);
         if (options.OPTIONS_LOG && RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescriptor descriptor : OptionsCatalog.allDescriptors()) {
                 assert descriptor.getName().startsWith(TruffleRuby.LANGUAGE_ID);
@@ -511,7 +512,9 @@ public class RubyContext {
         return hashing;
     }
 
-    public RubyLanguage getLanguage() {
+    public RubyLanguage getLanguageSlow() {
+        CompilerAsserts.neverPartOfCompilation(
+                "@CachedLanguage or a final field in the node should be used so the RubyLanguage instance is constant in PE code");
         return language;
     }
 

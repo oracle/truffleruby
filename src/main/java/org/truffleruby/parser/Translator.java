@@ -45,7 +45,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
 
     public Translator(RubyContext context, Source source, ParserContext parserContext, Node currentNode) {
         this.context = context;
-        this.language = context.getLanguage();
+        this.language = context.getLanguageSlow();
         this.source = source;
         this.parserContext = parserContext;
         this.currentNode = currentNode;
@@ -149,13 +149,13 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    public static RubyNode loadSelf(RubyContext context, TranslatorEnvironment environment) {
+    public static RubyNode loadSelf(RubyLanguage language, TranslatorEnvironment environment) {
         final FrameSlot slot = environment.getFrameDescriptor().findOrAddFrameSlot(SelfNode.SELF_IDENTIFIER);
-        return new WriteLocalVariableNode(slot, profileArgument(context, new ReadSelfNode()));
+        return new WriteLocalVariableNode(slot, profileArgument(language, new ReadSelfNode()));
     }
 
-    public static RubyNode profileArgument(RubyContext context, RubyNode argumentNode) {
-        if (context.getOptions().PROFILE_ARGUMENTS) {
+    public static RubyNode profileArgument(RubyLanguage language, RubyNode argumentNode) {
+        if (language.options.PROFILE_ARGUMENTS) {
             return ProfileArgumentNodeGen.create(argumentNode);
         } else {
             return argumentNode;

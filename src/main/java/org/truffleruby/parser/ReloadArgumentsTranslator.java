@@ -111,7 +111,7 @@ public class ReloadArgumentsTranslator extends Translator {
                 keyValues[2 * i] = key;
                 keyValues[2 * i + 1] = value;
             }
-            kwArgsNode = HashLiteralNode.create(context, keyValues);
+            kwArgsNode = HashLiteralNode.create(language, keyValues);
         }
 
         if (node.hasKeyRest()) {
@@ -145,7 +145,7 @@ public class ReloadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitMultipleAsgnNode(MultipleAsgnParseNode node) {
-        return profileArgument(context, new ReadPreArgumentNode(index, MissingArgumentBehavior.NIL));
+        return profileArgument(language, new ReadPreArgumentNode(index, MissingArgumentBehavior.NIL));
     }
 
     @Override

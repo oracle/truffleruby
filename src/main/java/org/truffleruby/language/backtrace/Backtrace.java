@@ -314,7 +314,7 @@ public class Backtrace {
                     RubyLanguage.threadBacktraceLocationShape,
                     this,
                     i);
-            allocateHelperNode.trace(context.getLanguage(), context, instance);
+            allocateHelperNode.trace(context.getLanguageSlow(), context, instance);
             locations[i] = instance;
         }
         return ArrayHelpers.createArray(context, locations);

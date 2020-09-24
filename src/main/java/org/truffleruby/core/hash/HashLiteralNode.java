@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.RubyContext;
+
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -25,19 +25,21 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     @Children protected final RubyNode[] keyValues;
+    protected final RubyLanguage language;
 
-    protected HashLiteralNode(RubyNode[] keyValues) {
+    protected HashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
         assert keyValues.length % 2 == 0;
+        this.language = language;
         this.keyValues = keyValues;
     }
 
-    public static HashLiteralNode create(RubyContext context, RubyNode[] keyValues) {
+    public static HashLiteralNode create(RubyLanguage language, RubyNode[] keyValues) {
         if (keyValues.length == 0) {
-            return new EmptyHashLiteralNode();
-        } else if (keyValues.length <= context.getOptions().HASH_PACKED_ARRAY_MAX * 2) {
-            return new SmallHashLiteralNode(keyValues);
+            return new EmptyHashLiteralNode(language);
+        } else if (keyValues.length <= language.options.HASH_PACKED_ARRAY_MAX * 2) {
+            return new SmallHashLiteralNode(language, keyValues);
         } else {
-            return new GenericHashLiteralNode(keyValues);
+            return new GenericHashLiteralNode(language, keyValues);
         }
     }
 
@@ -51,8 +53,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     public static class EmptyHashLiteralNode extends HashLiteralNode {
 
-        public EmptyHashLiteralNode() {
-            super(RubyNode.EMPTY_ARRAY);
+        public EmptyHashLiteralNode(RubyLanguage language) {
+            super(language, RubyNode.EMPTY_ARRAY);
         }
 
         @Override
@@ -70,14 +72,14 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
         private final BranchProfile duplicateKeyProfile = BranchProfile.create();
 
-        public SmallHashLiteralNode(RubyNode[] keyValues) {
-            super(keyValues);
+        public SmallHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
+            super(language, keyValues);
         }
 
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
-            final Object[] store = PackedArrayStrategy.createStore(getContext());
+            final Object[] store = PackedArrayStrategy.createStore(language);
 
             int size = 0;
 
@@ -150,8 +152,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         @Child SetNode setNode;
         private final int bucketsCount;
 
-        public GenericHashLiteralNode(RubyNode[] keyValues) {
-            super(keyValues);
+        public GenericHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
+            super(language, keyValues);
             bucketsCount = BucketsStrategy.capacityGreaterThan(keyValues.length / 2) *
                     BucketsStrategy.OVERALLOCATE_FACTOR;
         }

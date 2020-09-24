@@ -244,14 +244,15 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
                 @Cached @Shared("allocateHelper") AllocateHelperNode allocateHelperNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLanguage RubyLanguage language) {
             final RubyString string = new RubyString(
                     context.getCoreLibrary().stringClass,
                     RubyLanguage.stringShape,
                     false,
                     false,
                     rope);
-            allocateHelperNode.trace(context.getLanguage(), context, string);
+            allocateHelperNode.trace(language, context, string);
             return string;
         }
 
@@ -259,7 +260,8 @@ public abstract class StringNodes {
         protected RubyString makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange,
                 @Cached @Shared("allocateHelper") AllocateHelperNode allocateHelperNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLanguage RubyLanguage language) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
             final RubyString string = new RubyString(
                     context.getCoreLibrary().stringClass,
@@ -267,7 +269,7 @@ public abstract class StringNodes {
                     false,
                     false,
                     rope);
-            allocateHelperNode.trace(context.getLanguage(), context, string);
+            allocateHelperNode.trace(language, context, string);
             return string;
         }
 
@@ -314,7 +316,7 @@ public abstract class StringNodes {
                     false,
                     source.tainted,
                     substringNode.executeSubstring(rope, offset, byteLength));
-            allocateHelperNode.trace(getContext().getLanguage(), getContext(), string);
+            allocateHelperNode.trace(getContext().getLanguageSlow(), getContext(), string);
             return string;
         }
 

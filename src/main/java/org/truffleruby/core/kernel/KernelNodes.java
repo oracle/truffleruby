@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -1272,7 +1273,8 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyMethod method(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
-                @Cached ConditionProfile respondToMissingProfile) {
+                @Cached ConditionProfile respondToMissingProfile,
+                @CachedLanguage RubyLanguage language) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
                     .lookup(frame, self, normalizedName, dispatchConfig);
@@ -1298,7 +1300,7 @@ public abstract class KernelNodes {
                     RubyLanguage.methodShape,
                     self,
                     method);
-            allocateNode.trace(getContext().getLanguage(), getContext(), instance);
+            allocateNode.trace(language, getContext(), instance);
             return instance;
         }
 

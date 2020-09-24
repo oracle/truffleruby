@@ -903,7 +903,7 @@ public class BodyTranslator extends Translator {
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
         }
 
-        final RubyNode writeSelfNode = loadSelf(context, environment);
+        final RubyNode writeSelfNode = loadSelf(language, environment);
         body = sequence(sourceSection, Arrays.asList(writeSelfNode, body));
 
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
@@ -1052,7 +1052,7 @@ public class BodyTranslator extends Translator {
 
     private RubyNode getLexicalScopeModuleNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
-            if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
+            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER
                         .info(() -> kind + " at " + RubyContext.fileLine(sourceSection.toSourceSection(source)));
             }
@@ -1064,7 +1064,7 @@ public class BodyTranslator extends Translator {
 
     private RubyNode getLexicalScopeNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
-            if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
+            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER
                         .info(() -> kind + " at " + RubyContext.fileLine(sourceSection.toSourceSection(source)));
             }
@@ -1087,7 +1087,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         if (environment.isDynamicConstantLookup()) {
-            if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
+            if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER.info(
                         () -> "dynamic constant lookup at " +
                                 RubyContext.fileLine(sourceSection.toSourceSection(source)));
@@ -1629,7 +1629,7 @@ public class BodyTranslator extends Translator {
             if (pair.getKey() == null) {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
                 final RubyNode hashLiteralSoFar = HashLiteralNode
-                        .create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+                        .create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
                 hashConcats.add(hashLiteralSoFar);
                 hashConcats.add(new EnsureSymbolKeysNode(
                         HashCastNodeGen.create(pair.getValue().accept(this))));
@@ -1645,7 +1645,7 @@ public class BodyTranslator extends Translator {
             }
         }
 
-        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+        final RubyNode hashLiteralSoFar = HashLiteralNode.create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
         hashConcats.add(hashLiteralSoFar);
 
         if (hashConcats.size() == 1) {
@@ -2771,7 +2771,7 @@ public class BodyTranslator extends Translator {
 
         boolean canOmitBacktrace = false;
 
-        if (context.getOptions().BACKTRACES_OMIT_UNUSED && rescueBody != null &&
+        if (language.options.BACKTRACES_OMIT_UNUSED && rescueBody != null &&
                 rescueBody.getBodyNode() instanceof SideEffectFree && rescueBody.getOptRescueNode() == null) {
             canOmitBacktrace = true;
         }
@@ -2892,7 +2892,7 @@ public class BodyTranslator extends Translator {
             } else {
                 // Switch to dynamic constant lookup
                 environment.getParseEnvironment().setDynamicConstantLookup(true);
-                if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                     RubyLanguage.LOGGER.info(
                             () -> "start dynamic constant lookup at " +
                                     RubyContext.fileLine(sourceSection.toSourceSection(source)));

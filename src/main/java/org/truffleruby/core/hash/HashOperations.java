@@ -105,7 +105,7 @@ public abstract class HashOperations {
 
             assert foundSizeSequence == size : StringUtils.format("%d %d", foundSizeSequence, size);
         } else if (store.getClass() == Object[].class) {
-            assert ((Object[]) store).length == context.getOptions().HASH_PACKED_ARRAY_MAX *
+            assert ((Object[]) store).length == context.getLanguageSlow().options.HASH_PACKED_ARRAY_MAX *
                     PackedArrayStrategy.ELEMENTS_PER_ENTRY : ((Object[]) store).length;
 
             final Object[] packedStore = (Object[]) store;

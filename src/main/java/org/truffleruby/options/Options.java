@@ -49,8 +49,6 @@ public class Options {
     public final boolean FROZEN_STRING_LITERALS;
     /** --rubygems=true */
     public final boolean RUBYGEMS;
-    /** --lazy-default=true */
-    public final boolean DEFAULT_LAZY;
     /** --lazy-rubygems=RUBYGEMS && DEFAULT_LAZY */
     public final boolean LAZY_RUBYGEMS;
     /** --patching=true */
@@ -81,8 +79,6 @@ public class Options {
     public final boolean CORE_AS_INTERNAL;
     /** --stdlib-as-internal=true */
     public final boolean STDLIB_AS_INTERNAL;
-    /** --lazy-translation-user=DEFAULT_LAZY */
-    public final boolean LAZY_TRANSLATION_USER;
     /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;
     /** --exceptions-print-java=false */
@@ -99,8 +95,6 @@ public class Options {
     public final boolean BACKTRACES_INTERLEAVE_JAVA;
     /** --backtraces-limit=9999 */
     public final int BACKTRACES_LIMIT;
-    /** --backtraces-omit-unused=true */
-    public final boolean BACKTRACES_OMIT_UNUSED;
     /** --backtraces-on-interrupt=false */
     public final boolean BACKTRACE_ON_INTERRUPT;
     /** --backtraces-sigalrm=!EMBEDDED */
@@ -149,22 +143,14 @@ public class Options {
     public final String[] ARGV_GLOBAL_FLAGS;
     /** --building-core-cexts=false */
     public final boolean BUILDING_CORE_CEXTS;
-    /** --lazy-translation-log=false */
-    public final boolean LAZY_TRANSLATION_LOG;
-    /** --constant-dynamic-lookup-log=false */
-    public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
     /** --rope-print-intern-stats=false */
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --preinit=true */
     public final boolean PREINITIALIZATION;
     /** --lazy-builtins=DEFAULT_LAZY */
     public final boolean LAZY_BUILTINS;
-    /** --lazy-translation-core=DEFAULT_LAZY */
-    public final boolean LAZY_TRANSLATION_CORE;
     /** --basic-ops-inline=true */
     public final boolean BASICOPS_INLINE;
-    /** --profile-arguments=true */
-    public final boolean PROFILE_ARGUMENTS;
     /** --default-cache=8 */
     public final int DEFAULT_CACHE;
     /** --method-lookup-cache=DEFAULT_CACHE */
@@ -229,8 +215,6 @@ public class Options {
     public final int ARRAY_UNINITIALIZED_SIZE;
     /** --array-small=3 */
     public final int ARRAY_SMALL;
-    /** --hash-packed-array-max=3 */
-    public final int HASH_PACKED_ARRAY_MAX;
     /** --pack-unroll=4 */
     public final int PACK_UNROLL_LIMIT;
     /** --pack-recover=32 */
@@ -280,7 +264,7 @@ public class Options {
     /** --testing-rubygems=false */
     public final boolean TESTING_RUBYGEMS;
 
-    public Options(Env env, OptionValues options) {
+    public Options(Env env, OptionValues options, LanguageOptions languageOptions) {
         LOAD_PATHS = options.get(OptionsCatalog.LOAD_PATHS_KEY);
         REQUIRED_LIBRARIES = options.get(OptionsCatalog.REQUIRED_LIBRARIES_KEY);
         WORKING_DIRECTORY = options.get(OptionsCatalog.WORKING_DIRECTORY_KEY);
@@ -294,8 +278,7 @@ public class Options {
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
-        DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
-        LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : DEFAULT_LAZY);
+        LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : languageOptions.DEFAULT_LAZY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
@@ -310,7 +293,6 @@ public class Options {
         COVERAGE_GLOBAL = options.get(OptionsCatalog.COVERAGE_GLOBAL_KEY);
         CORE_AS_INTERNAL = options.get(OptionsCatalog.CORE_AS_INTERNAL_KEY);
         STDLIB_AS_INTERNAL = options.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY);
-        LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : DEFAULT_LAZY;
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
         EXCEPTIONS_PRINT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_JAVA_KEY);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY);
@@ -319,7 +301,6 @@ public class Options {
         EXCEPTIONS_WARN_OUT_OF_MEMORY = options.get(OptionsCatalog.EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY);
         BACKTRACES_INTERLEAVE_JAVA = options.get(OptionsCatalog.BACKTRACES_INTERLEAVE_JAVA_KEY);
         BACKTRACES_LIMIT = options.get(OptionsCatalog.BACKTRACES_LIMIT_KEY);
-        BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
         BACKTRACE_ON_INTERRUPT = options.get(OptionsCatalog.BACKTRACE_ON_INTERRUPT_KEY);
         BACKTRACE_ON_SIGALRM = options.hasBeenSet(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) ? options.get(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) : !EMBEDDED;
         BACKTRACE_ON_RAISE = options.get(OptionsCatalog.BACKTRACE_ON_RAISE_KEY);
@@ -344,14 +325,10 @@ public class Options {
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
-        LAZY_TRANSLATION_LOG = options.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY);
-        LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
-        LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : DEFAULT_LAZY;
-        LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : DEFAULT_LAZY;
+        LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : languageOptions.DEFAULT_LAZY;
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
-        PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
         METHOD_LOOKUP_CACHE = options.hasBeenSet(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) ? options.get(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) : DEFAULT_CACHE;
         DISPATCH_CACHE = options.hasBeenSet(OptionsCatalog.DISPATCH_CACHE_KEY) ? options.get(OptionsCatalog.DISPATCH_CACHE_KEY) : DEFAULT_CACHE;
@@ -384,7 +361,6 @@ public class Options {
         ARRAY_STRATEGY_CACHE = options.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY);
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
-        HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
         PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
         PACK_RECOVER_LOOP_MIN = options.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
@@ -439,8 +415,6 @@ public class Options {
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
-            case "ruby.lazy-default":
-                return DEFAULT_LAZY;
             case "ruby.lazy-rubygems":
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
@@ -471,8 +445,6 @@ public class Options {
                 return CORE_AS_INTERNAL;
             case "ruby.stdlib-as-internal":
                 return STDLIB_AS_INTERNAL;
-            case "ruby.lazy-translation-user":
-                return LAZY_TRANSLATION_USER;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":
@@ -489,8 +461,6 @@ public class Options {
                 return BACKTRACES_INTERLEAVE_JAVA;
             case "ruby.backtraces-limit":
                 return BACKTRACES_LIMIT;
-            case "ruby.backtraces-omit-unused":
-                return BACKTRACES_OMIT_UNUSED;
             case "ruby.backtraces-on-interrupt":
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces-sigalrm":
@@ -539,22 +509,14 @@ public class Options {
                 return ARGV_GLOBAL_FLAGS;
             case "ruby.building-core-cexts":
                 return BUILDING_CORE_CEXTS;
-            case "ruby.lazy-translation-log":
-                return LAZY_TRANSLATION_LOG;
-            case "ruby.constant-dynamic-lookup-log":
-                return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
                 return PREINITIALIZATION;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
-            case "ruby.lazy-translation-core":
-                return LAZY_TRANSLATION_CORE;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
-            case "ruby.profile-arguments":
-                return PROFILE_ARGUMENTS;
             case "ruby.default-cache":
                 return DEFAULT_CACHE;
             case "ruby.method-lookup-cache":
@@ -619,8 +581,6 @@ public class Options {
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array-small":
                 return ARRAY_SMALL;
-            case "ruby.hash-packed-array-max":
-                return HASH_PACKED_ARRAY_MAX;
             case "ruby.pack-unroll":
                 return PACK_UNROLL_LIMIT;
             case "ruby.pack-recover":
@@ -673,5 +633,6 @@ public class Options {
                 return null;
         }
     }
+
 }
 // @formatter:on

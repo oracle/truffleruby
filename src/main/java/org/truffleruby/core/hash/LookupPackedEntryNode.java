@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.language.RubyContextNode;
 
@@ -94,13 +96,14 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
             int hashed,
             BiFunctionNode defaultValueNode,
             @Cached BranchProfile notInHashProfile,
-            @Cached ConditionProfile byIdentityProfile) {
+            @Cached ConditionProfile byIdentityProfile,
+            @CachedLanguage RubyLanguage language) {
         final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
 
         final Object[] store = (Object[]) hash.store;
         final int size = hash.size;
 
-        for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
+        for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);

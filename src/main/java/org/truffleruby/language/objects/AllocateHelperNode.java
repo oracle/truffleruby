@@ -44,7 +44,7 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
     public void trace(RubyDynamicObject instance, RubyNode.WithContext contextNode) {
         final RubyContext context = contextNode.getContext();
         CompilerAsserts.partialEvaluationConstant(context);
-        AllocationTracing.trace(context.getLanguage(), context, instance, (Node) contextNode);
+        AllocationTracing.trace(context.getLanguageSlow(), context, instance, (Node) contextNode);
     }
 
     public void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance) {

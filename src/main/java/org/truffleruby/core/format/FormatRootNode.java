@@ -35,7 +35,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
     @CompilationFinal private int expectedLength = 0;
 
     public FormatRootNode(RubyContext context, SourceSection sourceSection, FormatEncoding encoding, FormatNode child) {
-        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
+        super(context.getLanguageSlow(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
         this.context = context;
         this.encoding = encoding;
         this.child = child;
