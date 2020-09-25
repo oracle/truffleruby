@@ -111,6 +111,7 @@ import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadMatchReferenceNodes;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
 import org.truffleruby.language.literal.BooleanLiteralNode;
+import org.truffleruby.language.literal.EncodingLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
 import org.truffleruby.language.literal.LongFixnumLiteralNode;
@@ -1308,7 +1309,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitEncodingNode(EncodingParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret = new ObjectLiteralNode(context.getEncodingManager().getRubyEncoding(node.getEncoding()));
+        final RubyNode ret = new EncodingLiteralNode(node.getEncoding().getIndex());
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

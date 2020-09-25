@@ -51,6 +51,8 @@ public class EncodingManager {
     private static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
 
     private final List<RubyEncoding> ENCODING_LIST_BY_ENCODING_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
+    @CompilationFinal(dimensions = 1) private final RubyEncoding[] BUILT_IN_ENCODINGS = //
+            new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
     private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();
 
     private final RubyContext context;
@@ -79,7 +81,7 @@ public class EncodingManager {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
             final RubyEncoding rubyEncoding = defineEncoding(encodingEntry, e.bytes, e.p, e.end);
-
+            BUILT_IN_ENCODINGS[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
@@ -318,4 +320,9 @@ public class EncodingManager {
     public Encoding getDefaultInternalEncoding() {
         return defaultInternalEncoding;
     }
+
+    public RubyEncoding getBuiltInEncoding(int index) {
+        return BUILT_IN_ENCODINGS[index];
+    }
+
 }
