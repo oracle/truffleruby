@@ -33,7 +33,7 @@ public abstract class NameErrorNodes {
         @Specialization
         protected RubyNameError allocateNameError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyNameError instance = new RubyNameError(shape, nil, null, nil, null, nil);
+            final RubyNameError instance = new RubyNameError(rubyClass, shape, nil, null, nil, null, nil);
             allocateNode.trace(instance, this);
             return instance;
         }

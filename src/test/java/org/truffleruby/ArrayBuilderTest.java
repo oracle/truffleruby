@@ -111,6 +111,7 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
@@ -125,6 +126,7 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new int[10],
                     10);
@@ -139,6 +141,7 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new long[10],
                     10);
@@ -153,6 +156,7 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new double[10],
                     10);
@@ -167,6 +171,7 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new Object[10],
                     10);

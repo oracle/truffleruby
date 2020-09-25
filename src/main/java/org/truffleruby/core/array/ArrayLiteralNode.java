@@ -56,7 +56,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             allocateHelperNode = insert(AllocateHelperNode.create());
         }
-        final RubyArray array = new RubyArray(coreLibrary().arrayShape, store, size);
+        final RubyArray array = new RubyArray(coreLibrary().arrayClass, coreLibrary().arrayShape, store, size);
         allocateHelperNode.trace(array, this);
         return array;
     }

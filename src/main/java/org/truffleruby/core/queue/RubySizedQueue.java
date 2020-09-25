@@ -11,6 +11,7 @@ package org.truffleruby.core.queue;
 
 import java.util.Set;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -22,8 +23,8 @@ public class RubySizedQueue extends RubyDynamicObject implements ObjectGraphNode
 
     SizedQueue queue;
 
-    public RubySizedQueue(Shape shape, SizedQueue queue) {
-        super(shape);
+    public RubySizedQueue(RubyClass rubyClass, Shape shape, SizedQueue queue) {
+        super(rubyClass, shape);
         this.queue = queue;
     }
 

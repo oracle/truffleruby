@@ -112,6 +112,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
             // constructing the final regexp.
             final RubyRegexp regexp = new RubyRegexp(
+                    coreLibrary().regexpClass,
                     coreLibrary().regexpShape,
                     regexp1,
                     (Rope) regexp1.getUserObject(),

@@ -293,7 +293,7 @@ public abstract class ThreadNodes {
         protected RubyThread allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateNode) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyThread instance = getContext().getThreadManager().createThread(shape);
+            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape);
             allocateNode.trace(instance, this);
             return instance;
         }

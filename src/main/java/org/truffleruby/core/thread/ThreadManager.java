@@ -198,23 +198,32 @@ public class ThreadManager {
     }
 
     public RubyThread createBootThread(String info) {
-        return createThread(context.getCoreLibrary().threadShape, Nil.INSTANCE, info);
+        return createThread(
+                context.getCoreLibrary().threadClass,
+                context.getCoreLibrary().threadShape,
+                Nil.INSTANCE,
+                info);
     }
 
-    public RubyThread createThread(Shape shape) {
+    public RubyThread createThread(RubyClass rubyClass, Shape shape) {
         final Object currentGroup = getCurrentThread().threadGroup;
         assert currentGroup != null;
-        return createThread(shape, currentGroup, "<uninitialized>");
+        return createThread(rubyClass, shape, currentGroup, "<uninitialized>");
     }
 
     public RubyThread createForeignThread() {
         final Object currentGroup = rootThread.threadGroup;
         assert currentGroup != null;
-        return createThread(context.getCoreLibrary().threadShape, currentGroup, "<foreign thread>");
+        return createThread(
+                context.getCoreLibrary().threadClass,
+                context.getCoreLibrary().threadShape,
+                currentGroup,
+                "<foreign thread>");
     }
 
-    private RubyThread createThread(Shape shape, Object currentGroup, String info) {
+    private RubyThread createThread(RubyClass rubyClass, Shape shape, Object currentGroup, String info) {
         return new RubyThread(
+                rubyClass,
                 shape,
                 context,
                 getGlobalReportOnException(),

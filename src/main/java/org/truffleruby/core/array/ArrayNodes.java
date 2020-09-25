@@ -109,7 +109,11 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected RubyArray allocate(RubyClass rubyClass) {
-            RubyArray array = new RubyArray(helperNode.getCachedShape(rubyClass), ArrayStoreLibrary.INITIAL_STORE, 0);
+            RubyArray array = new RubyArray(
+                    rubyClass,
+                    helperNode.getCachedShape(rubyClass),
+                    ArrayStoreLibrary.INITIAL_STORE,
+                    0);
             helperNode.trace(array, this);
             return array;
         }
@@ -154,8 +158,10 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "count == 0")
         protected RubyArray mulZero(RubyArray array, int count) {
+            final RubyClass logicalClass = array.getLogicalClass();
             final RubyArray result = new RubyArray(
-                    helperNode.getCachedShape(array.getLogicalClass()),
+                    logicalClass,
+                    helperNode.getCachedShape(logicalClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
             propagateTaintNode.executePropagate(array, result);
@@ -183,8 +189,12 @@ public abstract class ArrayNodes {
                 arrays.copyContents(store, 0, newStore, n * size, size);
             }
 
-            final RubyArray result = new RubyArray(helperNode
-                    .getCachedShape(array.getLogicalClass()), newStore, newSize);
+            final RubyClass logicalClass = array.getLogicalClass();
+            final RubyArray result = new RubyArray(
+                    logicalClass,
+                    helperNode.getCachedShape(logicalClass),
+                    newStore,
+                    newSize);
             propagateTaintNode.executePropagate(array, result);
             return result;
         }
@@ -201,8 +211,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isEmptyArray(array)" })
         protected RubyArray mulEmpty(RubyArray array, long count) {
-            final RubyArray result = new RubyArray(helperNode
-                    .getCachedShape(array.getLogicalClass()), ArrayStoreLibrary.INITIAL_STORE, 0);
+            final RubyClass logicalClass = array.getLogicalClass();
+            final RubyArray result = new RubyArray(
+                    logicalClass,
+                    helperNode.getCachedShape(logicalClass),
+                    ArrayStoreLibrary.INITIAL_STORE,
+                    0);
             propagateTaintNode.executePropagate(array, result);
             return result;
         }

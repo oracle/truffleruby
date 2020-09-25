@@ -45,7 +45,7 @@ public abstract class ExceptionNodes {
         @Specialization
         protected RubyException allocateException(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyException instance = new RubyException(shape, nil, null, nil);
+            final RubyException instance = new RubyException(rubyClass, shape, nil, null, nil);
             allocateNode.trace(instance, this);
             return instance;
         }

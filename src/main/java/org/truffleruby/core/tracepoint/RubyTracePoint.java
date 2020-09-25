@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.tracepoint;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -23,8 +24,8 @@ public class RubyTracePoint extends RubyDynamicObject implements ObjectGraphNode
     TracePointEvent[] events;
     RubyProc proc;
 
-    public RubyTracePoint(Shape shape, TracePointEvent[] events, RubyProc proc) {
-        super(shape);
+    public RubyTracePoint(RubyClass rubyClass, Shape shape, TracePointEvent[] events, RubyProc proc) {
+        super(rubyClass, shape);
         this.events = events;
         this.proc = proc;
     }

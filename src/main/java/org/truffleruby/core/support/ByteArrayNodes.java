@@ -44,7 +44,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         protected RubyByteArray allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyByteArray instance = new RubyByteArray(shape, RopeConstants.EMPTY_BYTES);
+            final RubyByteArray instance = new RubyByteArray(rubyClass, shape, RopeConstants.EMPTY_BYTES);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -91,6 +91,7 @@ public abstract class ByteArrayNodes {
             System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
             System.arraycopy(bytes, 0, prependedBytes, prependLength, originalLength);
             final RubyByteArray instance = new RubyByteArray(
+                    coreLibrary().byteArrayClass,
                     coreLibrary().byteArrayShape,
                     prependedBytes);
             allocateNode.trace(instance, this);

@@ -11,6 +11,7 @@ package org.truffleruby.core.method;
 
 import java.util.Set;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -29,8 +30,8 @@ import com.oracle.truffle.api.source.SourceSection;
 @ExportLibrary(InteropLibrary.class)
 public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
 
-    public RubyMethod(Shape shape, Object receiver, InternalMethod method) {
-        super(shape);
+    public RubyMethod(RubyClass metaClass, Shape shape, Object receiver, InternalMethod method) {
+        super(metaClass, shape);
         this.receiver = receiver;
         this.method = method;
     }

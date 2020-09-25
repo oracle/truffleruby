@@ -66,7 +66,11 @@ public class LexicalScope {
             final Object self = RubyArguments.getSelf(frame);
             final InternalMethod method = RubyArguments.getMethod(frame);
             // TODO BJF Jul-30-2020 Add trace allocation
-            final RubyMethod boundMethod = new RubyMethod(context.getCoreLibrary().methodShape, self, method);
+            final RubyMethod boundMethod = new RubyMethod(
+                    context.getCoreLibrary().methodClass,
+                    context.getCoreLibrary().methodShape,
+                    self,
+                    method);
             return Scope
                     .newBuilder(name, getVariables(root, frame))
                     .node(root)

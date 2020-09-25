@@ -100,6 +100,7 @@ public abstract class UnboundMethodNodes {
                 }
             }
             final RubyMethod instance = new RubyMethod(
+                    coreLibrary().methodClass,
                     coreLibrary().methodShape,
                     object,
                     unboundMethod.method);
@@ -209,6 +210,7 @@ public abstract class UnboundMethodNodes {
                 return nil;
             } else {
                 final RubyUnboundMethod instance = new RubyUnboundMethod(
+                        coreLibrary().unboundMethodClass,
                         coreLibrary().unboundMethodShape,
                         superMethod.getMethod().getDeclaringModule(),
                         superMethod.getMethod());

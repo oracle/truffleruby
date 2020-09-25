@@ -184,7 +184,11 @@ public class EncodingManager {
                 .getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final RubyString string = StringOperations.createFrozenString(context, cachedRope);
 
-        final RubyEncoding instance = new RubyEncoding(context.getCoreLibrary().encodingShape, encoding, string);
+        final RubyEncoding instance = new RubyEncoding(
+                context.getCoreLibrary().encodingClass,
+                context.getCoreLibrary().encodingShape,
+                encoding,
+                string);
         // TODO BJF Jul-29-2020 Add allocation tracing
         return instance;
     }

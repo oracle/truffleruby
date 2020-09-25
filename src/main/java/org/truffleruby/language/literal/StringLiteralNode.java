@@ -37,7 +37,12 @@ public class StringLiteralNode extends RubyContextSourceNode {
 
     @Override
     public RubyString execute(VirtualFrame frame) {
-        final RubyString string = new RubyString(coreLibrary().stringShape, false, false, rope);
+        final RubyString string = new RubyString(
+                coreLibrary().stringClass,
+                coreLibrary().stringShape,
+                false,
+                false,
+                rope);
         allocateNode.trace(string, this);
         return string;
     }

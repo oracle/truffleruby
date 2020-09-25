@@ -1033,6 +1033,7 @@ public class CExtNodes {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             final RubyPointer instance = new RubyPointer(
+                    coreLibrary().truffleFFIPointerClass,
                     coreLibrary().truffleFFIPointerShape,
                     nativeRope.getNativePointer());
             allocateNode.trace(instance, this);

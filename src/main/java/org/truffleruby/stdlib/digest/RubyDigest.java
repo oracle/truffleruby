@@ -11,6 +11,7 @@ package org.truffleruby.stdlib.digest;
 
 import java.security.MessageDigest;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -20,8 +21,8 @@ public class RubyDigest extends RubyDynamicObject {
     final DigestAlgorithm algorithm;
     final MessageDigest digest;
 
-    public RubyDigest(Shape shape, DigestAlgorithm algorithm, MessageDigest digest) {
-        super(shape);
+    public RubyDigest(RubyClass rubyClass, Shape shape, DigestAlgorithm algorithm, MessageDigest digest) {
+        super(rubyClass, shape);
         this.algorithm = algorithm;
         this.digest = digest;
     }

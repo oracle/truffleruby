@@ -132,7 +132,10 @@ public abstract class TruffleDebugNodes {
 
                     });
 
-            final RubyHandle instance = new RubyHandle(coreLibrary().handleShape, breakpoint);
+            final RubyHandle instance = new RubyHandle(
+                    coreLibrary().handleClass,
+                    coreLibrary().handleShape,
+                    breakpoint);
             allocateNode.trace(instance, this);
             return instance;
         }

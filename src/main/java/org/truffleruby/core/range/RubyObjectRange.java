@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.range;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Nil;
 
 import com.oracle.truffle.api.object.Shape;
@@ -22,8 +23,8 @@ public final class RubyObjectRange extends RubyRange implements ObjectGraphNode 
     public Object begin;
     public Object end;
 
-    public RubyObjectRange(Shape shape, boolean excludedEnd, Object begin, Object end) {
-        super(shape, excludedEnd);
+    public RubyObjectRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, Object begin, Object end) {
+        super(rubyClass, shape, excludedEnd);
         this.begin = begin;
         this.end = end;
     }

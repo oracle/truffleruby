@@ -65,7 +65,7 @@ public abstract class TimeNodes {
         @Specialization
         protected RubyTime allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyTime instance = new RubyTime(shape, ZERO, nil, 0, false, false);
+            final RubyTime instance = new RubyTime(rubyClass, shape, ZERO, nil, 0, false, false);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -185,7 +185,7 @@ public abstract class TimeNodes {
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
             final Shape shape = allocateNode.getCachedShape(timeClass);
-            final RubyTime instance = new RubyTime(shape, dt, zone, nil, false, false);
+            final RubyTime instance = new RubyTime(timeClass, shape, dt, zone, nil, false, false);
             allocateNode.trace(instance, this);
             return instance;
 
@@ -213,6 +213,7 @@ public abstract class TimeNodes {
 
             final Shape shape = allocateNode.getCachedShape(timeClass);
             final RubyTime instance = new RubyTime(
+                    timeClass,
                     shape,
                     dateTime,
                     zone,
@@ -583,6 +584,7 @@ public abstract class TimeNodes {
             }
             final Shape shape = allocateNode.getCachedShape(timeClass);
             final RubyTime instance = new RubyTime(
+                    timeClass,
                     shape,
                     dt,
                     zoneToStore,

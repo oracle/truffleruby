@@ -20,6 +20,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.proc.RubyProc;
@@ -84,15 +85,17 @@ public class FiberManager {
     }
 
     private RubyFiber createRootFiber(RubyContext context, RubyThread thread) {
-        return createFiber(context, thread, context.getCoreLibrary().fiberShape);
+        return createFiber(context, thread, context.getCoreLibrary().fiberClass, context.getCoreLibrary().fiberShape);
     }
 
-    public RubyFiber createFiber(RubyContext context, RubyThread thread, Shape shape) {
+    public RubyFiber createFiber(RubyContext context, RubyThread thread, RubyClass rubyClass, Shape shape) {
         CompilerAsserts.partialEvaluationConstant(context);
-        final RubyBasicObject fiberLocals = new RubyBasicObject(context.getCoreLibrary().objectShape);
+        final RubyBasicObject fiberLocals = new RubyBasicObject(
+                context.getCoreLibrary().objectClass,
+                context.getCoreLibrary().objectShape);
         final RubyArray catchTags = ArrayHelpers.createEmptyArray(context);
 
-        return new RubyFiber(shape, fiberLocals, catchTags, thread);
+        return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread);
     }
 
     public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {

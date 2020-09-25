@@ -310,6 +310,7 @@ public class Backtrace {
         final Object[] locations = new Object[locationsLength];
         for (int i = 0; i < locationsLength; i++) {
             final RubyBacktraceLocation instance = new RubyBacktraceLocation(
+                    context.getCoreLibrary().threadBacktraceLocationClass,
                     context.getCoreLibrary().threadBacktraceLocationShape,
                     this,
                     i);

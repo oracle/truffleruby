@@ -158,6 +158,7 @@ public abstract class TruffleGraalNodes {
                     .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
 
             return new RubyProc(
+                    coreLibrary().procClass,
                     coreLibrary().procShape,
                     proc.type,
                     proc.sharedMethodInfo,

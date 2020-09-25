@@ -737,6 +737,7 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNameError(
+                context.getCoreLibrary().nameErrorClass,
                 context.getCoreLibrary().nameErrorShape,
                 messageString,
                 backtrace,
@@ -751,6 +752,7 @@ public class CoreExceptions {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         final RubyNameError exception = new RubyNameError(
+                context.getCoreLibrary().nameErrorClass,
                 context.getCoreLibrary().nameErrorShape,
                 null,
                 backtrace,
@@ -774,6 +776,7 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorClass,
                 context.getCoreLibrary().noMethodErrorShape,
                 messageString,
                 backtrace,
@@ -791,6 +794,7 @@ public class CoreExceptions {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         final RubyNoMethodError exception = new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorClass,
                 context.getCoreLibrary().noMethodErrorShape,
                 null,
                 backtrace,
@@ -814,6 +818,7 @@ public class CoreExceptions {
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         return new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorClass,
                 context.getCoreLibrary().noMethodErrorShape,
                 messageString,
                 backtrace,

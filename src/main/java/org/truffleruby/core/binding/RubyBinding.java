@@ -11,6 +11,7 @@ package org.truffleruby.core.binding;
 
 import java.util.Set;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -29,8 +30,8 @@ public final class RubyBinding extends RubyDynamicObject implements ObjectGraphN
     private MaterializedFrame frame;
     public final SourceSection sourceSection;
 
-    public RubyBinding(Shape shape, MaterializedFrame frame, SourceSection sourceSection) {
-        super(shape);
+    public RubyBinding(RubyClass rubyClass, Shape shape, MaterializedFrame frame, SourceSection sourceSection) {
+        super(rubyClass, shape);
         assert frame != null;
         this.frame = frame;
         this.sourceSection = sourceSection;

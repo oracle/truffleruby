@@ -16,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -37,8 +38,13 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
 
-    public RubyFiber(Shape shape, RubyBasicObject fiberLocals, RubyArray catchTags, RubyThread rubyThread) {
-        super(shape);
+    public RubyFiber(
+            RubyClass rubyClass,
+            Shape shape,
+            RubyBasicObject fiberLocals,
+            RubyArray catchTags,
+            RubyThread rubyThread) {
+        super(rubyClass, shape);
         this.fiberLocals = fiberLocals;
         this.catchTags = catchTags;
         this.rubyThread = rubyThread;

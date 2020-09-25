@@ -90,7 +90,7 @@ public abstract class FiberNodes {
                 @Cached AllocateHelperNode helperNode) {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             final Shape shape = helperNode.getCachedShape(rubyClass);
-            final RubyFiber fiber = thread.fiberManager.createFiber(getContext(), thread, shape);
+            final RubyFiber fiber = thread.fiberManager.createFiber(getContext(), thread, rubyClass, shape);
             helperNode.trace(fiber, this);
             return fiber;
         }

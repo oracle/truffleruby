@@ -13,6 +13,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -35,8 +36,8 @@ public class RubyString extends RubyDynamicObject {
     public boolean tainted;
     public Rope rope;
 
-    public RubyString(Shape shape, boolean frozen, boolean tainted, Rope rope) {
-        super(shape);
+    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, boolean tainted, Rope rope) {
+        super(rubyClass, shape);
         this.frozen = frozen;
         this.tainted = tainted;
         this.rope = rope;

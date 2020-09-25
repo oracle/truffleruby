@@ -11,14 +11,15 @@ package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.transcode.EConv;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyEncodingConverter extends RubyDynamicObject {
 
     EConv econv;
 
-    public RubyEncodingConverter(Shape shape, EConv econv) {
-        super(shape);
+    public RubyEncodingConverter(RubyClass rubyClass, Shape shape, EConv econv) {
+        super(rubyClass, shape);
         this.econv = econv;
     }
 

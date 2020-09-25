@@ -48,6 +48,8 @@ public abstract class ClassNodes {
         final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
         final BasicObjectType newObjectType = objectType.setMetaClass(singletonClass);
         DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
+
+        object.setMetaClass(singletonClass);
     }
 
     @TruffleBoundary
@@ -55,6 +57,8 @@ public abstract class ClassNodes {
         final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
         final BasicObjectType newObjectType = objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass);
         DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
+
+        object.setMetaClass(rubyClass);
     }
 
     /** Special constructor for class Class */
@@ -64,7 +68,7 @@ public abstract class ClassNodes {
         model.setFullName("Class");
 
         final Shape tempShape = CoreLibrary.createShape(RubyClass.class, null);
-        final RubyClass rubyClass = new RubyClass(tempShape, model, false, null, null);
+        final RubyClass rubyClass = new RubyClass(tempShape, model);
 
         setLogicalAndMetaClass(rubyClass, rubyClass);
 
@@ -80,9 +84,9 @@ public abstract class ClassNodes {
      * outside this class. */
     @TruffleBoundary
     public static RubyClass createBootClass(RubyContext context, SourceSection sourceSection,
-            Shape classShape, Object superclass, String name) {
+            RubyClass classClass, Object superclass, String name) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, null, name);
-        final RubyClass rubyClass = new RubyClass(classShape, fields, false, null, superclass);
+        final RubyClass rubyClass = new RubyClass(classClass, fields, false, null, superclass);
 
         fields.rubyModule = rubyClass;
         fields.setFullName(name);
@@ -106,7 +110,7 @@ public abstract class ClassNodes {
                 createRubyClass(
                         context,
                         sourceSection,
-                        getClassShapeFromClass(superclass),
+                        getClassClass(superclass),
                         null,
                         superclass,
                         name,
@@ -121,7 +125,7 @@ public abstract class ClassNodes {
         final RubyClass rubyClass = createRubyClass(
                 context,
                 sourceSection,
-                getClassShapeFromClass(superclass),
+                getClassClass(superclass),
                 lexicalParent,
                 superclass,
                 name,
@@ -134,7 +138,7 @@ public abstract class ClassNodes {
     @TruffleBoundary
     public static RubyClass createRubyClass(RubyContext context,
             SourceSection sourceSection,
-            Shape classShape,
+            RubyClass classClass,
             RubyModule lexicalParent,
             RubyClass superclass,
             String name,
@@ -142,7 +146,7 @@ public abstract class ClassNodes {
             RubyDynamicObject attached) {
         assert superclass != null;
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
-        final RubyClass rubyClass = new RubyClass(classShape, fields, isSingleton, attached, superclass);
+        final RubyClass rubyClass = new RubyClass(classClass, fields, isSingleton, attached, superclass);
         fields.rubyModule = rubyClass;
 
         if (lexicalParent != null) {
@@ -164,9 +168,13 @@ public abstract class ClassNodes {
     @TruffleBoundary
     public static RubyClass createUninitializedRubyClass(RubyContext context,
             SourceSection sourceSection,
-            Shape classShape) {
+            RubyClass classClass) {
+        if (classClass != context.getCoreLibrary().classClass) {
+            throw CompilerDirectives.shouldNotReachHere("Subclasses of class Class are forbidden in Ruby");
+        }
+
         final ModuleFields fields = new ModuleFields(context, sourceSection, null, null);
-        final RubyClass rubyClass = new RubyClass(classShape, fields, false, null, null);
+        final RubyClass rubyClass = new RubyClass(classClass, fields, false, null, null);
         fields.rubyModule = rubyClass;
 
         // For Class.allocate, set it in the fields but not in RubyClass#superclass to mark as not yet initialized
@@ -242,7 +250,7 @@ public abstract class ClassNodes {
         RubyClass metaClass = ClassNodes.createRubyClass(
                 context,
                 rubyClass.fields.getSourceSection(),
-                getClassShapeFromClass(rubyClass),
+                getClassClass(rubyClass),
                 null,
                 singletonSuperclass,
                 name,
@@ -254,9 +262,9 @@ public abstract class ClassNodes {
         return rubyClass.getMetaClass();
     }
 
-    /** The same as {@link CoreLibrary#classShape} but available while executing the CoreLibrary constructor */
-    private static Shape getClassShapeFromClass(RubyClass rubyClass) {
-        return rubyClass.getLogicalClass().instanceShape;
+    /** The same as {@link CoreLibrary#classClass} but available while executing the CoreLibrary constructor */
+    private static RubyClass getClassClass(RubyClass rubyClass) {
+        return rubyClass.getLogicalClass();
     }
 
     @TruffleBoundary
@@ -375,11 +383,10 @@ public abstract class ClassNodes {
 
         @Specialization
         protected RubyClass allocate(RubyClass classClass) {
-            assert classClass == coreLibrary().classClass : "Subclasses of class Class are forbidden in Ruby";
             return createUninitializedRubyClass(
                     getContext(),
                     getEncapsulatingSourceSection(),
-                    coreLibrary().classShape);
+                    classClass);
         }
 
     }

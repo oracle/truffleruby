@@ -12,6 +12,7 @@ package org.truffleruby.core.mutex;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -23,8 +24,8 @@ public final class RubyConditionVariable extends RubyDynamicObject {
     int waiters = 0;
     int signals = 0;
 
-    public RubyConditionVariable(Shape shape, ReentrantLock lock, Condition condition) {
-        super(shape);
+    public RubyConditionVariable(RubyClass rubyClass, Shape shape, ReentrantLock lock, Condition condition) {
+        super(rubyClass, shape);
         this.lock = lock;
         this.condition = condition;
     }

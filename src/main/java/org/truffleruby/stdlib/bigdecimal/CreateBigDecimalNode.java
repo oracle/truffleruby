@@ -53,13 +53,21 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     public abstract RubyBigDecimal executeCreate(Object value, Object digits, boolean strict);
 
     private RubyBigDecimal createNormalBigDecimal(BigDecimal value) {
-        final RubyBigDecimal instance = new RubyBigDecimal(coreLibrary().bigDecimalShape, value, BigDecimalType.NORMAL);
+        final RubyBigDecimal instance = new RubyBigDecimal(
+                coreLibrary().bigDecimalClass,
+                coreLibrary().bigDecimalShape,
+                value,
+                BigDecimalType.NORMAL);
         allocateNode.trace(instance, this);
         return instance;
     }
 
     private RubyBigDecimal createSpecialBigDecimal(BigDecimalType type) {
-        final RubyBigDecimal instance = new RubyBigDecimal(coreLibrary().bigDecimalShape, BigDecimal.ZERO, type);
+        final RubyBigDecimal instance = new RubyBigDecimal(
+                coreLibrary().bigDecimalClass,
+                coreLibrary().bigDecimalShape,
+                BigDecimal.ZERO,
+                type);
         allocateNode.trace(instance, this);
         return instance;
     }

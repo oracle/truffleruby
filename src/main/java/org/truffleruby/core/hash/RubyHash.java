@@ -15,6 +15,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -30,6 +31,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public boolean compareByIdentity;
 
     public RubyHash(
+            RubyClass rubyClass,
             Shape shape,
             RubyContext context,
             Object store,
@@ -39,7 +41,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
             Object defaultBlock,
             Object defaultValue,
             boolean compareByIdentity) {
-        super(shape);
+        super(rubyClass, shape);
         this.defaultBlock = defaultBlock;
         this.defaultValue = defaultValue;
         this.store = store;

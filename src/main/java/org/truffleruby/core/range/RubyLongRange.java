@@ -10,14 +10,15 @@
 package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 
 public final class RubyLongRange extends RubyRange {
 
     public final long begin;
     public final long end;
 
-    public RubyLongRange(Shape shape, boolean excludedEnd, long begin, long end) {
-        super(shape, excludedEnd);
+    public RubyLongRange(RubyClass rubyClass, Shape shape, boolean excludedEnd, long begin, long end) {
+        super(rubyClass, shape, excludedEnd);
         this.begin = begin;
         this.end = end;
     }

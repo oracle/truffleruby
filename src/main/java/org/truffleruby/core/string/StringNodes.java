@@ -246,7 +246,12 @@ public abstract class StringNodes {
         protected RubyString makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
                 @Cached @Shared("allocateHelper") AllocateHelperNode allocateHelperNode,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
-            final RubyString string = new RubyString(context.getCoreLibrary().stringShape, false, false, rope);
+            final RubyString string = new RubyString(
+                    context.getCoreLibrary().stringClass,
+                    context.getCoreLibrary().stringShape,
+                    false,
+                    false,
+                    rope);
             allocateHelperNode.trace(context.getLanguage(), context, string);
             return string;
         }
@@ -257,7 +262,12 @@ public abstract class StringNodes {
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
-            final RubyString string = new RubyString(context.getCoreLibrary().stringShape, false, false, rope);
+            final RubyString string = new RubyString(
+                    context.getCoreLibrary().stringClass,
+                    context.getCoreLibrary().stringShape,
+                    false,
+                    false,
+                    rope);
             allocateHelperNode.trace(context.getLanguage(), context, string);
             return string;
         }
@@ -297,8 +307,10 @@ public abstract class StringNodes {
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Rope rope = source.rope;
 
-            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
+            final RubyClass logicalClass = source.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(
+                    logicalClass,
                     shape,
                     false,
                     source.tainted,
@@ -316,7 +328,7 @@ public abstract class StringNodes {
         protected RubyString allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
-            final RubyString string = new RubyString(shape, false, false, EMPTY_ASCII_8BIT_ROPE);
+            final RubyString string = new RubyString(rubyClass, shape, false, false, EMPTY_ASCII_8BIT_ROPE);
             allocateHelperNode.trace(string, this);
             return string;
         }
@@ -341,7 +353,12 @@ public abstract class StringNodes {
             final Rope concatRope = stringAppendNode.executeStringAppend(string, other);
             final boolean eitherPartTainted = string.tainted || other.tainted;
 
-            final RubyString ret = new RubyString(coreLibrary().stringShape, false, eitherPartTainted, concatRope);
+            final RubyString ret = new RubyString(
+                    coreLibrary().stringClass,
+                    coreLibrary().stringShape,
+                    false,
+                    eitherPartTainted,
+                    concatRope);
             allocateHelperNode.trace(ret, this);
             return ret;
         }
@@ -366,8 +383,10 @@ public abstract class StringNodes {
         @Specialization(guards = "times == 0")
         protected RubyString multiplyZero(RubyString string, int times) {
 
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString instance = new RubyString(
+                    logicalClass,
                     shape,
                     false,
                     false,
@@ -393,8 +412,9 @@ public abstract class StringNodes {
             }
 
             final Rope repeated = repeatNode.executeRepeat(string.rope, times);
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
-            final RubyString instance = new RubyString(shape, false, false, repeated);
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString instance = new RubyString(logicalClass, shape, false, false, repeated);
             allocateHelperNode.trace(instance, this);
             return instance;
         }
@@ -404,8 +424,9 @@ public abstract class StringNodes {
                 @Cached RopeNodes.RepeatNode repeatNode) {
             final Rope repeated = repeatNode.executeRepeat(string.rope, 0);
 
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
-            final RubyString instance = new RubyString(shape, false, false, repeated);
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString instance = new RubyString(logicalClass, shape, false, false, repeated);
             allocateHelperNode.trace(instance, this);
             return instance;
         }
@@ -1300,8 +1321,9 @@ public abstract class StringNodes {
 
             final Rope substringRope = substringNode.executeSubstring(rope, beg, end - beg);
 
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
-            final RubyString ret = new RubyString(shape, false, string.tainted, substringRope);
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString ret = new RubyString(logicalClass, shape, false, string.tainted, substringRope);
             allocateHelperNode.trace(ret, this);
             return ret;
         }
@@ -1939,8 +1961,9 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
-            final RubyString result = new RubyString(shape, false, false, rope);
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString result = new RubyString(logicalClass, shape, false, false, rope);
             allocateHelperNode.trace(result, this);
             return result;
         }
@@ -1967,8 +1990,9 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
-            final RubyString result = new RubyString(shape, false, false, rope);
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString result = new RubyString(logicalClass, shape, false, false, rope);
             allocateHelperNode.trace(result, this);
             return result;
         }
@@ -2448,6 +2472,7 @@ public abstract class StringNodes {
         protected RubyString toSOnSubclass(RubyString string,
                 @Cached AllocateHelperNode allocateHelperNode) {
             final RubyString result = new RubyString(
+                    coreLibrary().stringClass,
                     coreLibrary().stringShape,
                     false,
                     string.tainted,
@@ -4584,7 +4609,7 @@ public abstract class StringNodes {
                     .executeRepeat(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[pattern], size);
 
             final Shape shape = allocateHelperNode.getCachedShape(stringClass);
-            final RubyString result = new RubyString(shape, false, false, repeatingRope);
+            final RubyString result = new RubyString(stringClass, shape, false, false, repeatingRope);
             allocateHelperNode.trace(result, this);
             return result;
         }
@@ -4595,7 +4620,7 @@ public abstract class StringNodes {
             final Rope repeatingRope = repeatNode.executeRepeat(rope, size / rope.byteLength());
 
             final Shape shape = allocateHelperNode.getCachedShape(stringClass);
-            final RubyString result = new RubyString(shape, false, false, repeatingRope);
+            final RubyString result = new RubyString(stringClass, shape, false, false, repeatingRope);
             allocateHelperNode.trace(result, this);
             return result;
         }
@@ -4623,6 +4648,7 @@ public abstract class StringNodes {
 
             final Shape shape = allocateHelperNode.getCachedShape(stringClass);
             final RubyString result = new RubyString(
+                    stringClass,
                     shape,
                     false,
                     false,
@@ -4972,8 +4998,10 @@ public abstract class StringNodes {
                 substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
-            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
+            final RubyClass logicalClass = string.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString ret = new RubyString(
+                    logicalClass,
                     shape,
                     false,
                     string.tainted,

@@ -10,6 +10,7 @@
 package org.truffleruby.core.queue;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -20,8 +21,8 @@ public class RubyQueue extends RubyDynamicObject implements ObjectGraphNode {
 
     public final UnsizedQueue queue;
 
-    public RubyQueue(Shape shape, UnsizedQueue queue) {
-        super(shape);
+    public RubyQueue(RubyClass rubyClass, Shape shape, UnsizedQueue queue) {
+        super(rubyClass, shape);
         this.queue = queue;
     }
 

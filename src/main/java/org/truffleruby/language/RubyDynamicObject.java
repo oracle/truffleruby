@@ -14,7 +14,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
@@ -59,16 +58,29 @@ import com.oracle.truffle.api.utilities.TriState;
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
 
-    public RubyDynamicObject(Shape shape) {
+    private RubyClass metaClass;
+
+    public RubyDynamicObject(RubyClass metaClass, Shape shape) {
         super(shape);
+        assert metaClass != null;
+        this.metaClass = metaClass;
     }
 
-    public final RubyClass getLogicalClass() {
-        return BasicObjectType.getLogicalClass(getShape());
+    protected RubyDynamicObject(Shape shape, String constructorOnlyForClassClass) {
+        super(shape);
+        this.metaClass = (RubyClass) this;
     }
 
     public final RubyClass getMetaClass() {
-        return BasicObjectType.getMetaClass(getShape());
+        return metaClass;
+    }
+
+    public void setMetaClass(RubyClass metaClass) {
+        this.metaClass = metaClass;
+    }
+
+    public final RubyClass getLogicalClass() {
+        return metaClass.nonSingletonClass;
     }
 
     @Override

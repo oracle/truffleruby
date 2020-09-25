@@ -41,7 +41,7 @@ public abstract class QueueNodes {
         @Specialization
         protected RubyQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyQueue instance = new RubyQueue(shape, new UnsizedQueue());
+            final RubyQueue instance = new RubyQueue(rubyClass, shape, new UnsizedQueue());
             allocateNode.trace(instance, this);
             return instance;
         }

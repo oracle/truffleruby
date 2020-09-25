@@ -20,7 +20,17 @@ public abstract class HashOperations {
 
     public static RubyHash newEmptyHash(RubyContext context) {
         final Object nil = Nil.INSTANCE;
-        return new RubyHash(context.getCoreLibrary().hashShape, context, null, 0, null, null, nil, nil, false);
+        return new RubyHash(
+                context.getCoreLibrary().hashClass,
+                context.getCoreLibrary().hashShape,
+                context,
+                null,
+                0,
+                null,
+                null,
+                nil,
+                nil,
+                false);
     }
 
     public static boolean verifyStore(RubyContext context, RubyHash hash) {

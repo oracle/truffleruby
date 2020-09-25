@@ -159,6 +159,7 @@ public class CoreLibrary {
     public final RubyClass arrayClass;
     public final Shape arrayShape;
     public final RubyClass basicObjectClass;
+    public final RubyClass bindingClass;
     public final Shape bindingShape;
     public final RubyClass classClass;
     public final Shape classShape;
@@ -170,6 +171,7 @@ public class CoreLibrary {
     public final RubyClass encodingErrorClass;
     public final RubyClass exceptionClass;
     public final RubyClass falseClass;
+    public final RubyClass fiberClass;
     public final Shape fiberShape;
     public final RubyClass floatClass;
     public final RubyClass floatDomainErrorClass;
@@ -182,6 +184,7 @@ public class CoreLibrary {
     public final RubyClass ioErrorClass;
     public final RubyClass loadErrorClass;
     public final RubyClass localJumpErrorClass;
+    public final RubyClass matchDataClass;
     public final Shape matchDataShape;
     public final RubyClass moduleClass;
     public final RubyClass nameErrorClass;
@@ -203,6 +206,7 @@ public class CoreLibrary {
     public final Shape objectRangeShape;
     public final RubyClass rangeErrorClass;
     public final RubyClass rationalClass;
+    public final RubyClass regexpClass;
     public final Shape regexpShape;
     public final RubyClass regexpErrorClass;
     public final RubyClass graalErrorClass;
@@ -221,6 +225,7 @@ public class CoreLibrary {
     public final RubyClass systemExitClass;
     public final RubyClass threadClass;
     public final Shape threadShape;
+    public final RubyClass threadBacktraceLocationClass;
     public final Shape threadBacktraceLocationShape;
     public final RubyClass trueClass;
     public final RubyClass typeErrorClass;
@@ -254,17 +259,23 @@ public class CoreLibrary {
     public final Shape bigDecimalShape;
     public final RubyClass encodingCompatibilityErrorClass;
     public final RubyClass encodingUndefinedConversionErrorClass;
+    public final RubyClass methodClass;
     public final Shape methodShape;
+    public final RubyClass unboundMethodClass;
     public final Shape unboundMethodShape;
+    public final RubyClass byteArrayClass;
     public final Shape byteArrayShape;
     public final RubyClass fiberErrorClass;
     public final RubyClass threadErrorClass;
     public final RubyModule objectSpaceModule;
+    public final RubyClass randomizerClass;
     public final Shape randomizerShape;
+    public final RubyClass handleClass;
     public final Shape handleShape;
     public final RubyClass ioClass;
     public final RubyClass closedQueueErrorClass;
     public final RubyModule warningModule;
+    public final RubyClass digestClass;
     public final Shape digestShape;
     public final RubyClass structClass;
     public final RubyClass weakMapClass;
@@ -381,15 +392,15 @@ public class CoreLibrary {
         classShape = classClass.getShape();
         classClass.instanceShape = classShape;
 
-        basicObjectClass = ClassNodes.createBootClass(context, null, classShape, Nil.INSTANCE, "BasicObject");
+        basicObjectClass = ClassNodes.createBootClass(context, null, classClass, Nil.INSTANCE, "BasicObject");
         Shape basicObjectShape = createShape(RubyBasicObject.class, basicObjectClass);
         basicObjectClass.instanceShape = basicObjectShape;
 
-        objectClass = ClassNodes.createBootClass(context, null, classShape, basicObjectClass, "Object");
+        objectClass = ClassNodes.createBootClass(context, null, classClass, basicObjectClass, "Object");
         objectShape = createShape(RubyBasicObject.class, objectClass);
         objectClass.instanceShape = objectShape;
 
-        moduleClass = ClassNodes.createBootClass(context, null, classShape, objectClass, "Module");
+        moduleClass = ClassNodes.createBootClass(context, null, classClass, objectClass, "Module");
         Shape moduleShape = createShape(RubyModule.class, moduleClass);
         moduleClass.instanceShape = moduleShape;
 
@@ -494,7 +505,7 @@ public class CoreLibrary {
         arrayClass = defineClass("Array");
         arrayShape = createShape(RubyArray.class, arrayClass);
         arrayClass.instanceShape = arrayShape;
-        RubyClass bindingClass = defineClass("Binding");
+        bindingClass = defineClass("Binding");
         bindingShape = createShape(RubyBinding.class, bindingClass);
         bindingClass.instanceShape = bindingShape;
         RubyClass conditionVariableClass = defineClass("ConditionVariable");
@@ -506,17 +517,17 @@ public class CoreLibrary {
         encodingShape = createShape(RubyEncoding.class, encodingClass);
         encodingClass.instanceShape = encodingShape;
         falseClass = defineClass("FalseClass");
-        RubyClass fiberClass = defineClass("Fiber");
+        fiberClass = defineClass("Fiber");
         fiberShape = createShape(RubyFiber.class, fiberClass);
         fiberClass.instanceShape = fiberShape;
         defineModule("FileTest");
         hashClass = defineClass("Hash");
         hashShape = createShape(RubyHash.class, hashClass);
         hashClass.instanceShape = hashShape;
-        RubyClass matchDataClass = defineClass("MatchData");
+        matchDataClass = defineClass("MatchData");
         matchDataShape = createShape(RubyMatchData.class, matchDataClass);
         matchDataClass.instanceShape = matchDataShape;
-        RubyClass methodClass = defineClass("Method");
+        methodClass = defineClass("Method");
         methodShape = createShape(RubyMethod.class, methodClass);
         methodClass.instanceShape = methodShape;
         RubyClass mutexClass = defineClass("Mutex");
@@ -540,7 +551,7 @@ public class CoreLibrary {
         objectRangeShape = createShape(RubyObjectRange.class, rangeClass);
         rangeClass.instanceShape = objectRangeShape;
 
-        RubyClass regexpClass = defineClass("Regexp");
+        regexpClass = defineClass("Regexp");
         regexpShape = createShape(RubyRegexp.class, regexpClass);
         regexpClass.instanceShape = regexpShape;
         stringClass = defineClass("String");
@@ -555,14 +566,14 @@ public class CoreLibrary {
         threadClass.instanceShape = threadShape;
 
         RubyClass threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
-        RubyClass threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
+        threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
         threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class, threadBacktraceLocationClass);
         threadBacktraceLocationClass.instanceShape = threadBacktraceLocationShape;
         RubyClass timeClass = defineClass("Time");
         Shape timeShape = createShape(RubyTime.class, timeClass);
         timeClass.instanceShape = timeShape;
         trueClass = defineClass("TrueClass");
-        RubyClass unboundMethodClass = defineClass("UnboundMethod");
+        unboundMethodClass = defineClass("UnboundMethod");
         unboundMethodShape = createShape(RubyUnboundMethod.class, unboundMethodClass);
         unboundMethodClass.instanceShape = unboundMethodShape;
         ioClass = defineClass("IO");
@@ -652,7 +663,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
-        RubyClass handleClass = defineClass(truffleModule, objectClass, "Handle");
+        handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleShape = createShape(RubyHandle.class, handleClass);
         handleClass.instanceShape = handleShape;
         warningModule = defineModule("Warning");
@@ -671,18 +682,18 @@ public class CoreLibrary {
 
         truffleTypeModule = defineModule(truffleModule, "Type");
 
-        RubyClass byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
+        byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
         byteArrayShape = createShape(RubyByteArray.class, byteArrayClass);
         byteArrayClass.instanceShape = byteArrayShape;
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
-        RubyClass randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
+        randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
         randomizerShape = createShape(RubyRandomizer.class, randomizerClass);
         randomizerClass.instanceShape = randomizerShape;
 
         // Standard library
 
-        RubyClass digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
+        digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
         digestShape = createShape(RubyDigest.class, digestClass);
         digestClass.instanceShape = digestShape;
 
@@ -692,9 +703,9 @@ public class CoreLibrary {
 
         // Create some key objects
 
-        mainObject = new RubyBasicObject(objectShape);
+        mainObject = new RubyBasicObject(objectClass, objectShape);
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
-        argv = new RubyArray(arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
+        argv = new RubyArray(arrayClass, arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();
 

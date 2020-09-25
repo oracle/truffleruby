@@ -107,7 +107,17 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 }
             }
 
-            return new RubyHash(coreLibrary().hashShape, getContext(), store, size, null, null, nil, nil, false);
+            return new RubyHash(
+                    coreLibrary().hashClass,
+                    coreLibrary().hashShape,
+                    getContext(),
+                    store,
+                    size,
+                    null,
+                    null,
+                    nil,
+                    nil,
+                    false);
         }
 
         private int hash(Object key) {
@@ -155,6 +165,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
             final Entry[] newEntries = new Entry[bucketsCount];
             final RubyHash hash = new RubyHash(
+                    coreLibrary().hashClass,
                     coreLibrary().hashShape,
                     getContext(),
                     newEntries,

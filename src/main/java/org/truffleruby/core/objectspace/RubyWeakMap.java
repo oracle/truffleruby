@@ -10,14 +10,15 @@
 package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyWeakMap extends RubyDynamicObject {
 
     final WeakMapStorage storage;
 
-    public RubyWeakMap(Shape shape, WeakMapStorage storage) {
-        super(shape);
+    public RubyWeakMap(RubyClass rubyClass, Shape shape, WeakMapStorage storage) {
+        super(rubyClass, shape);
         this.storage = storage;
     }
 

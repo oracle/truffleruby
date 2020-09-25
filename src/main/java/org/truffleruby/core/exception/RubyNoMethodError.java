@@ -10,6 +10,7 @@
 package org.truffleruby.core.exception;
 
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -25,6 +26,7 @@ public final class RubyNoMethodError extends RubyNameError implements ObjectGrap
     public Object args;
 
     public RubyNoMethodError(
+            RubyClass rubyClass,
             Shape shape,
             Object message,
             Backtrace backtrace,
@@ -32,7 +34,7 @@ public final class RubyNoMethodError extends RubyNameError implements ObjectGrap
             Object receiver,
             Object name,
             Object args) {
-        super(shape, message, backtrace, cause, receiver, name);
+        super(rubyClass, shape, message, backtrace, cause, receiver, name);
         assert args == Nil.INSTANCE || args instanceof RubyArray;
         this.args = args;
     }

@@ -185,7 +185,13 @@ public abstract class MatchDataNodes {
         protected Object create(RubyString regexp, RubyString string, int start, int end,
                 @Cached AllocateHelperNode allocateNode) {
             final Region region = new Region(start, end);
-            RubyMatchData matchData = new RubyMatchData(coreLibrary().matchDataShape, regexp, string, region, null);
+            RubyMatchData matchData = new RubyMatchData(
+                    coreLibrary().matchDataClass,
+                    coreLibrary().matchDataShape,
+                    regexp,
+                    string,
+                    region,
+                    null);
             allocateNode.trace(matchData, this);
             return matchData;
         }
@@ -206,7 +212,13 @@ public abstract class MatchDataNodes {
                 region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
             }
 
-            RubyMatchData matchData = new RubyMatchData(coreLibrary().matchDataShape, regexp, string, region, null);
+            RubyMatchData matchData = new RubyMatchData(
+                    coreLibrary().matchDataClass,
+                    coreLibrary().matchDataShape,
+                    regexp,
+                    string,
+                    region,
+                    null);
             allocateNode.trace(matchData, this);
             return matchData;
         }
@@ -252,8 +264,9 @@ public abstract class MatchDataNodes {
                 final int end = region.end[index];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
-                    final RubyString string = new RubyString(shape, false, false, rope);
+                    final RubyClass logicalClass = source.getLogicalClass();
+                    final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+                    final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
                     allocateHelperNode.trace(string, this);
                     return string;
                 } else {
@@ -460,8 +473,9 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
-                    final RubyString string = new RubyString(shape, false, isTainted, rope);
+                    final RubyClass logicalClass = source.getLogicalClass();
+                    final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+                    final RubyString string = new RubyString(logicalClass, shape, false, isTainted, rope);
                     allocateHelperNode.trace(string, this);
                     values[n] = string;
                 } else {
@@ -576,8 +590,9 @@ public abstract class MatchDataNodes {
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
-            final RubyString string = new RubyString(shape, false, false, rope);
+            final RubyClass logicalClass = source.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
             allocateHelperNode.trace(string, this);
             return string;
         }
@@ -599,8 +614,9 @@ public abstract class MatchDataNodes {
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
-            final RubyString string = new RubyString(shape, false, false, rope);
+            final RubyClass logicalClass = source.getLogicalClass();
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
+            final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
             allocateHelperNode.trace(string, this);
             return string;
         }
@@ -656,7 +672,13 @@ public abstract class MatchDataNodes {
         @Specialization
         protected RubyMatchData allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateNode) {
-            RubyMatchData matchData = new RubyMatchData(allocateNode.getCachedShape(rubyClass), null, null, null, null);
+            RubyMatchData matchData = new RubyMatchData(
+                    rubyClass,
+                    allocateNode.getCachedShape(rubyClass),
+                    null,
+                    null,
+                    null,
+                    null);
             allocateNode.trace(matchData, this);
             return matchData;
         }

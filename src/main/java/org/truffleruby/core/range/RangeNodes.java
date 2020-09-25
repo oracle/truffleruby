@@ -205,7 +205,12 @@ public abstract class RangeNodes {
         protected RubyIntRange dupIntRange(RubyIntRange range) {
             // RubyIntRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
             final Shape shape = coreLibrary().intRangeShape;
-            final RubyIntRange copy = new RubyIntRange(shape, range.excludedEnd, range.begin, range.end);
+            final RubyIntRange copy = new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    shape,
+                    range.excludedEnd,
+                    range.begin,
+                    range.end);
             allocateHelper.trace(copy, this);
             return copy;
         }
@@ -214,15 +219,26 @@ public abstract class RangeNodes {
         protected RubyLongRange dupLongRange(RubyLongRange range) {
             // RubyLongRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
             final Shape shape = coreLibrary().longRangeShape;
-            final RubyLongRange copy = new RubyLongRange(shape, range.excludedEnd, range.begin, range.end);
+            final RubyLongRange copy = new RubyLongRange(
+                    coreLibrary().rangeClass,
+                    shape,
+                    range.excludedEnd,
+                    range.begin,
+                    range.end);
             allocateHelper.trace(copy, this);
             return copy;
         }
 
         @Specialization
         protected RubyObjectRange dup(RubyObjectRange range) {
-            final Shape shape = allocateHelper.getCachedShape(range.getLogicalClass());
-            final RubyObjectRange copy = new RubyObjectRange(shape, range.excludedEnd, range.begin, range.end);
+            final RubyClass logicalClass = range.getLogicalClass();
+            final Shape shape = allocateHelper.getCachedShape(logicalClass);
+            final RubyObjectRange copy = new RubyObjectRange(
+                    logicalClass,
+                    shape,
+                    range.excludedEnd,
+                    range.begin,
+                    range.end);
             allocateHelper.trace(copy, this);
             return copy;
         }
@@ -373,20 +389,35 @@ public abstract class RangeNodes {
         protected RubyIntRange longRange(RubyLongRange range, RubyArray array) {
             int begin = toInt(range.begin);
             int end = toInt(range.end);
-            return new RubyIntRange(coreLibrary().intRangeShape, range.excludedEnd, begin, end);
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    coreLibrary().intRangeShape,
+                    range.excludedEnd,
+                    begin,
+                    end);
         }
 
         @Specialization(guards = "range.isBounded()")
         protected RubyIntRange boundedObjectRange(RubyObjectRange range, RubyArray array) {
             int begin = toInt(range.begin);
             int end = toInt(range.end);
-            return new RubyIntRange(coreLibrary().intRangeShape, range.excludedEnd, begin, end);
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    coreLibrary().intRangeShape,
+                    range.excludedEnd,
+                    begin,
+                    end);
         }
 
         @Specialization(guards = "range.isEndless()")
         protected RubyIntRange endlessObjectRange(RubyObjectRange range, RubyArray array) {
             int end = array.size;
-            return new RubyIntRange(coreLibrary().intRangeShape, true, toInt(range.begin), end);
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    coreLibrary().intRangeShape,
+                    true,
+                    toInt(range.begin),
+                    end);
         }
 
         private int toInt(Object indexObject) {
@@ -427,7 +458,12 @@ public abstract class RangeNodes {
         @Specialization(guards = "rubyClass == getRangeClass()")
         protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
-            final RubyIntRange range = new RubyIntRange(coreLibrary().intRangeShape, excludeEnd, begin, end);
+            final RubyIntRange range = new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    coreLibrary().intRangeShape,
+                    excludeEnd,
+                    begin,
+                    end);
             allocateHelper.trace(range, this);
             return range;
         }
@@ -436,7 +472,12 @@ public abstract class RangeNodes {
         protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final Shape shape = coreLibrary().intRangeShape;
-            final RubyIntRange range = new RubyIntRange(shape, excludeEnd, (int) begin, (int) end);
+            final RubyIntRange range = new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    shape,
+                    excludeEnd,
+                    (int) begin,
+                    (int) end);
             allocateHelper.trace(range, this);
             return range;
         }
@@ -444,7 +485,12 @@ public abstract class RangeNodes {
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
         protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
-            final RubyLongRange range = new RubyLongRange(coreLibrary().longRangeShape, excludeEnd, begin, end);
+            final RubyLongRange range = new RubyLongRange(
+                    coreLibrary().rangeClass,
+                    coreLibrary().longRangeShape,
+                    excludeEnd,
+                    begin,
+                    end);
             allocateHelper.trace(range, this);
             return range;
         }
@@ -458,7 +504,7 @@ public abstract class RangeNodes {
             }
 
             final Shape shape = allocateHelper.getCachedShape(rubyClass);
-            final RubyObjectRange range = new RubyObjectRange(shape, excludeEnd, begin, end);
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end);
             allocateHelper.trace(range, this);
             return range;
         }
@@ -475,7 +521,12 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyObjectRange allocate(RubyClass rubyClass) {
-            final RubyObjectRange range = new RubyObjectRange(coreLibrary().objectRangeShape, false, nil, nil);
+            final RubyObjectRange range = new RubyObjectRange(
+                    rubyClass,
+                    coreLibrary().objectRangeShape,
+                    false,
+                    nil,
+                    nil);
             allocateHelper.trace(range, this);
             return range;
         }

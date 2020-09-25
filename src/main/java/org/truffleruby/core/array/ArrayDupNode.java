@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -50,7 +51,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
         for (int i = 0; i < cachedSize; i++) {
             toStores.write(copy, i, fromStores.read(original, i));
         }
-        return allocateArray(coreLibrary().arrayShape, copy, cachedSize);
+        return allocateArray(coreLibrary().arrayClass, coreLibrary().arrayShape, copy, cachedSize);
     }
 
     @Specialization(replaces = "dupProfiledSize")
@@ -58,15 +59,15 @@ public abstract class ArrayDupNode extends RubyContextNode {
             @Cached ArrayCopyOnWriteNode cowNode) {
         final int size = from.size;
         final Object copy = cowNode.execute(from, 0, from.size);
-        return allocateArray(coreLibrary().arrayShape, copy, size);
+        return allocateArray(coreLibrary().arrayClass, coreLibrary().arrayShape, copy, size);
     }
 
-    private RubyArray allocateArray(Shape arrayShape, Object store, int size) {
+    private RubyArray allocateArray(RubyClass rubyClass, Shape arrayShape, Object store, int size) {
         if (helperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             helperNode = insert(AllocateHelperNode.create());
         }
-        RubyArray array = new RubyArray(arrayShape, store, size);
+        RubyArray array = new RubyArray(rubyClass, arrayShape, store, size);
         helperNode.trace(array, this);
         return array;
     }

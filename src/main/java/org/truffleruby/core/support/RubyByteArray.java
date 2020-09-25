@@ -10,14 +10,15 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyByteArray extends RubyDynamicObject {
 
     public byte[] bytes;
 
-    public RubyByteArray(Shape shape, byte[] bytes) {
-        super(shape);
+    public RubyByteArray(RubyClass rubyClass, Shape shape, byte[] bytes) {
+        super(rubyClass, shape);
         this.bytes = bytes;
     }
 

@@ -103,6 +103,7 @@ public abstract class ProcNodes {
             // Instantiate a new instance of procClass as classes do not correspond
 
             final RubyProc proc = new RubyProc(
+                    procClass,
                     allocateHelper.getCachedShape(procClass),
                     block.type,
                     block.sharedMethodInfo,
@@ -138,8 +139,10 @@ public abstract class ProcNodes {
         @Specialization
         protected RubyProc dup(RubyProc proc,
                 @Cached AllocateHelperNode allocateHelper) {
+            final RubyClass logicalClass = proc.getLogicalClass();
             final RubyProc copy = new RubyProc(
-                    allocateHelper.getCachedShape(proc.getLogicalClass()),
+                    logicalClass,
+                    allocateHelper.getCachedShape(logicalClass),
                     proc.type,
                     proc.sharedMethodInfo,
                     proc.callTargetForType,
@@ -258,6 +261,7 @@ public abstract class ProcNodes {
         protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block,
                 @Cached AllocateHelperNode allocateHelper) {
             final RubyProc composedProc = new RubyProc(
+                    coreLibrary().procClass,
                     coreLibrary().procShape,
                     block.type,
                     userProc.sharedMethodInfo,

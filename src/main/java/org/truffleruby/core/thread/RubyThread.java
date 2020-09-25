@@ -22,6 +22,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.support.RandomizerNodes;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
@@ -58,13 +59,14 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     Object name;
 
     public RubyThread(
+            RubyClass rubyClass,
             Shape shape,
             RubyContext context,
             boolean reportOnException,
             boolean abortOnException,
             Object threadGroup,
             String sourceLocation) {
-        super(shape);
+        super(rubyClass, shape);
         this.threadLocalGlobals = new ThreadLocalGlobals();
         this.interruptMode = InterruptMode.IMMEDIATE;
         this.status = ThreadStatus.RUN;

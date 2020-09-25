@@ -84,7 +84,8 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         }
 
         return ProcOperations.createRubyProc(
-                getContext().getCoreLibrary().procShape,
+                coreLibrary().procClass,
+                coreLibrary().procShape,
                 type,
                 sharedMethodInfo,
                 callTargetForProcs,

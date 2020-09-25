@@ -109,7 +109,7 @@ public abstract class IONodes {
         @Specialization
         protected RubyIO allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyIO instance = new RubyIO(shape, RubyIO.CLOSED_FD);
+            final RubyIO instance = new RubyIO(rubyClass, shape, RubyIO.CLOSED_FD);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -511,6 +511,7 @@ public abstract class IONodes {
                 @Cached ConditionProfile sizeProfile) {
             RubyThread thread = currentThreadNode.execute();
             final RubyPointer instance = new RubyPointer(
+                    coreLibrary().truffleFFIPointerClass,
                     coreLibrary().truffleFFIPointerShape,
                     getBuffer(thread, size, sizeProfile));
             allocateNode.trace(instance, this);

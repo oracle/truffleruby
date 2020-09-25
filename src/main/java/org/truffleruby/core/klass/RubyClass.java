@@ -36,17 +36,27 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     public Object superclass;
 
     public RubyClass(
-            Shape shape,
+            RubyClass classClass,
             ModuleFields fields,
             boolean isSingleton,
             RubyDynamicObject attached,
             Object superclass) {
-        super(shape, fields);
+        super(classClass, classClass.instanceShape, fields);
         this.isSingleton = isSingleton;
         this.attached = attached;
         this.superclass = superclass;
 
         this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
+    }
+
+    /** Special constructor to build the 'Class' RubyClass itself */
+    RubyClass(Shape tempShape, ModuleFields fields) {
+        super(tempShape, fields, "constructor only for Class Class");
+        this.isSingleton = false;
+        this.attached = null;
+        this.superclass = null;
+
+        this.nonSingletonClass = this;
     }
 
     private RubyClass computeNonSingletonClass(boolean isSingleton, Object superclassObject) {

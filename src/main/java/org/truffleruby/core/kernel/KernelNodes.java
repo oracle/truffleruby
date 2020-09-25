@@ -1294,7 +1294,11 @@ public abstract class KernelNodes {
                                     this));
                 }
             }
-            final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
+            final RubyMethod instance = new RubyMethod(
+                    coreLibrary().methodClass,
+                    coreLibrary().methodShape,
+                    self,
+                    method);
             allocateNode.trace(getContext().getLanguage(), getContext(), instance);
             return instance;
         }
@@ -1707,7 +1711,11 @@ public abstract class KernelNodes {
             if (singletonProfile.profile(metaClass.isSingleton)) {
                 final InternalMethod method = metaClass.fields.getMethod(name);
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
-                    final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
+                    final RubyMethod instance = new RubyMethod(
+                            coreLibrary().methodClass,
+                            coreLibrary().methodShape,
+                            self,
+                            method);
                     allocateNode.trace(instance, this);
                     return instance;
                 }

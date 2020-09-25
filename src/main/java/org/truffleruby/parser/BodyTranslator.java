@@ -2747,6 +2747,7 @@ public class BodyTranslator extends Translator {
         // constructing the final regexp.
         final Rope updatedRope = (Rope) regex.getUserObject();
         final RubyRegexp regexp = RegexpNodes.createRubyRegexp(
+                context.getCoreLibrary().regexpClass,
                 context.getCoreLibrary().regexpShape,
                 regex,
                 updatedRope,

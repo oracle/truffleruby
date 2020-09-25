@@ -131,7 +131,7 @@ public abstract class ModuleNodes {
     public static RubyModule createModule(RubyContext context, SourceSection sourceSection, RubyClass selfClass,
             RubyModule lexicalParent, String name, Node currentNode) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
-        final RubyModule module = new RubyModule(selfClass.instanceShape, fields);
+        final RubyModule module = new RubyModule(selfClass, selfClass.instanceShape, fields);
         fields.rubyModule = module;
 
         if (lexicalParent != null) {
@@ -1595,7 +1595,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
-            final RubyUnboundMethod instance = new RubyUnboundMethod(coreLibrary().unboundMethodShape, module, method);
+            final RubyUnboundMethod instance = new RubyUnboundMethod(
+                    coreLibrary().unboundMethodClass,
+                    coreLibrary().unboundMethodShape,
+                    module,
+                    method);
             allocateHelperNode.trace(instance, this);
             return instance;
         }
@@ -1748,7 +1752,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
-            final RubyUnboundMethod instance = new RubyUnboundMethod(coreLibrary().unboundMethodShape, module, method);
+            final RubyUnboundMethod instance = new RubyUnboundMethod(
+                    coreLibrary().unboundMethodClass,
+                    coreLibrary().unboundMethodShape,
+                    module,
+                    method);
             allocateHelperNode.trace(instance, this);
             return instance;
         }

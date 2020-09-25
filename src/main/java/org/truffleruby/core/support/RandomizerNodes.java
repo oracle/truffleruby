@@ -64,7 +64,10 @@ public abstract class RandomizerNodes {
     public static RubyRandomizer newRandomizer(RubyContext context) {
         final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
-        return new RubyRandomizer(context.getCoreLibrary().randomizerShape, randomizer);
+        return new RubyRandomizer(
+                context.getCoreLibrary().randomizerClass,
+                context.getCoreLibrary().randomizerShape,
+                randomizer);
     }
 
     public static void resetSeed(RubyContext context, RubyRandomizer random) {
@@ -78,7 +81,7 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
-            return new RubyRandomizer(coreLibrary().randomizerShape, new Randomizer());
+            return new RubyRandomizer(coreLibrary().randomizerClass, coreLibrary().randomizerShape, new Randomizer());
         }
 
     }

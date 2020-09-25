@@ -11,6 +11,7 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import java.math.BigDecimal;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -20,8 +21,8 @@ public class RubyBigDecimal extends RubyDynamicObject {
     public final BigDecimal value;
     final BigDecimalType type;
 
-    public RubyBigDecimal(Shape shape, BigDecimal value, BigDecimalType type) {
-        super(shape);
+    public RubyBigDecimal(RubyClass rubyClass, Shape shape, BigDecimal value, BigDecimalType type) {
+        super(rubyClass, shape);
         this.value = value;
         this.type = type;
     }

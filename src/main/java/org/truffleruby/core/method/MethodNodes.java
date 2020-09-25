@@ -213,6 +213,7 @@ public abstract class MethodNodes {
                 return nil;
             } else {
                 final RubyMethod instance = new RubyMethod(
+                        coreLibrary().methodClass,
                         coreLibrary().methodShape,
                         receiver,
                         superMethod.getMethod());
@@ -233,6 +234,7 @@ public abstract class MethodNodes {
                 @Cached AllocateHelperNode allocateHelperNode) {
             final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
+                    coreLibrary().unboundMethodClass,
                     coreLibrary().unboundMethodShape,
                     receiverClass,
                     method.method);
@@ -276,7 +278,8 @@ public abstract class MethodNodes {
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, coreLibrary().emptyDescriptor);
             return ProcOperations.createRubyProc(
-                    getContext().getCoreLibrary().procShape,
+                    coreLibrary().procClass,
+                    coreLibrary().procShape,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,

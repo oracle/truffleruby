@@ -172,6 +172,7 @@ public abstract class SymbolNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             return ProcOperations.createRubyProc(
+                    context.getCoreLibrary().procClass,
                     context.getCoreLibrary().procShape,
                     ProcType.PROC,
                     sharedMethodInfo,
