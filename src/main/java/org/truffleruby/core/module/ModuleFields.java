@@ -67,7 +67,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         RubyLanguage.LOGGER.info(builder.toString());
     }
 
-    public RubyModule rubyModule;
+    public final RubyModule rubyModule;
 
     // The context is stored here - objects can obtain it via their class (which is a module)
     private final RubyContext context;
@@ -106,12 +106,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             RubyContext context,
             SourceSection sourceSection,
             RubyModule lexicalParent,
-            String givenBaseName) {
+            String givenBaseName,
+            RubyModule rubyModule) {
         super(null);
         this.context = context;
         this.sourceSection = sourceSection;
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
+        this.rubyModule = rubyModule;
         this.methodsUnmodifiedAssumption = new CyclicAssumption("methods are unmodified");
         this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
         start = new PrependMarker(this);

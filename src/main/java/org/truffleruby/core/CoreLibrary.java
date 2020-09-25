@@ -388,19 +388,19 @@ public class CoreLibrary {
 
         // Create the cyclic classes and modules
 
-        classClass = ClassNodes.createClassClass(context, null);
+        classClass = ClassNodes.createClassClass(context);
         classShape = classClass.getShape();
         classClass.instanceShape = classShape;
 
-        basicObjectClass = ClassNodes.createBootClass(context, null, classClass, Nil.INSTANCE, "BasicObject");
+        basicObjectClass = ClassNodes.createBootClass(context, classClass, Nil.INSTANCE, "BasicObject");
         Shape basicObjectShape = createShape(RubyBasicObject.class, basicObjectClass);
         basicObjectClass.instanceShape = basicObjectShape;
 
-        objectClass = ClassNodes.createBootClass(context, null, classClass, basicObjectClass, "Object");
+        objectClass = ClassNodes.createBootClass(context, classClass, basicObjectClass, "Object");
         objectShape = createShape(RubyBasicObject.class, objectClass);
         objectClass.instanceShape = objectShape;
 
-        moduleClass = ClassNodes.createBootClass(context, null, classClass, objectClass, "Module");
+        moduleClass = ClassNodes.createBootClass(context, classClass, objectClass, "Module");
         Shape moduleShape = createShape(RubyModule.class, moduleClass);
         moduleClass.instanceShape = moduleShape;
 

@@ -15,7 +15,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectType;
-import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
@@ -63,16 +62,11 @@ public abstract class ClassNodes {
 
     /** Special constructor for class Class */
     @TruffleBoundary
-    public static RubyClass createClassClass(RubyContext context, SourceSection sourceSection) {
-        final ModuleFields model = new ModuleFields(context, sourceSection, null, "Class");
-        model.setFullName("Class");
-
+    public static RubyClass createClassClass(RubyContext context) {
         final Shape tempShape = CoreLibrary.createShape(RubyClass.class, null);
-        final RubyClass rubyClass = new RubyClass(tempShape, model);
+        final RubyClass rubyClass = new RubyClass(context, tempShape);
 
         setLogicalAndMetaClass(rubyClass, rubyClass);
-
-        model.rubyModule = rubyClass;
 
         assert rubyClass.getLogicalClass() == rubyClass;
         assert rubyClass.getMetaClass() == rubyClass;
@@ -83,13 +77,9 @@ public abstract class ClassNodes {
     /** This constructor supports initialization and solves boot-order problems and should not normally be used from
      * outside this class. */
     @TruffleBoundary
-    public static RubyClass createBootClass(RubyContext context, SourceSection sourceSection,
-            RubyClass classClass, Object superclass, String name) {
-        final ModuleFields fields = new ModuleFields(context, sourceSection, null, name);
-        final RubyClass rubyClass = new RubyClass(classClass, fields, false, null, superclass);
-
-        fields.rubyModule = rubyClass;
-        fields.setFullName(name);
+    public static RubyClass createBootClass(RubyContext context, RubyClass classClass, Object superclass, String name) {
+        final RubyClass rubyClass = new RubyClass(classClass, context, null, null, name, false, null, superclass);
+        rubyClass.fields.setFullName(name);
 
         if (superclass != Nil.INSTANCE) {
             rubyClass.setSuperClass((RubyClass) superclass);
@@ -145,14 +135,20 @@ public abstract class ClassNodes {
             boolean isSingleton,
             RubyDynamicObject attached) {
         assert superclass != null;
-        final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
-        final RubyClass rubyClass = new RubyClass(classClass, fields, isSingleton, attached, superclass);
-        fields.rubyModule = rubyClass;
+        final RubyClass rubyClass = new RubyClass(
+                classClass,
+                context,
+                sourceSection,
+                lexicalParent,
+                name,
+                isSingleton,
+                attached,
+                superclass);
 
         if (lexicalParent != null) {
-            fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
+            rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
         } else if (name != null) { // bootstrap module
-            fields.setFullName(name);
+            rubyClass.fields.setFullName(name);
         }
 
         rubyClass.setSuperClass(superclass);
@@ -173,12 +169,10 @@ public abstract class ClassNodes {
             throw CompilerDirectives.shouldNotReachHere("Subclasses of class Class are forbidden in Ruby");
         }
 
-        final ModuleFields fields = new ModuleFields(context, sourceSection, null, null);
-        final RubyClass rubyClass = new RubyClass(classClass, fields, false, null, null);
-        fields.rubyModule = rubyClass;
+        final RubyClass rubyClass = new RubyClass(classClass, context, sourceSection, null, null, false, null, null);
 
         // For Class.allocate, set it in the fields but not in RubyClass#superclass to mark as not yet initialized
-        fields.setSuperClass(context.getCoreLibrary().objectClass);
+        rubyClass.fields.setSuperClass(context.getCoreLibrary().objectClass);
 
         setInstanceShape(rubyClass, context.getCoreLibrary().objectClass);
 

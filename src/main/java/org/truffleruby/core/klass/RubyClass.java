@@ -11,7 +11,8 @@ package org.truffleruby.core.klass;
 
 import java.util.Set;
 
-import org.truffleruby.core.module.ModuleFields;
+import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.IsANode;
@@ -37,11 +38,14 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     public RubyClass(
             RubyClass classClass,
-            ModuleFields fields,
+            RubyContext context,
+            SourceSection sourceSection,
+            RubyModule lexicalParent,
+            String givenBaseName,
             boolean isSingleton,
             RubyDynamicObject attached,
             Object superclass) {
-        super(classClass, classClass.instanceShape, fields);
+        super(classClass, classClass.instanceShape, context, sourceSection, lexicalParent, givenBaseName);
         this.isSingleton = isSingleton;
         this.attached = attached;
         this.superclass = superclass;
@@ -50,8 +54,8 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     }
 
     /** Special constructor to build the 'Class' RubyClass itself */
-    RubyClass(Shape tempShape, ModuleFields fields) {
-        super(tempShape, fields, "constructor only for Class Class");
+    RubyClass(RubyContext context, Shape tempShape) {
+        super(context, tempShape, "constructor only for the class Class");
         this.isSingleton = false;
         this.attached = null;
         this.superclass = null;
