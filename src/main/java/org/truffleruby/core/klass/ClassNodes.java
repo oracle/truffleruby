@@ -14,7 +14,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
@@ -33,7 +32,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
@@ -42,31 +40,11 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
 
-    @TruffleBoundary
-    public static void setMetaClass(RubyDynamicObject object, RubyClass singletonClass) {
-        final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
-        final BasicObjectType newObjectType = objectType.setMetaClass(singletonClass);
-        DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
-
-        object.setMetaClass(singletonClass);
-    }
-
-    @TruffleBoundary
-    public static void setLogicalAndMetaClass(RubyDynamicObject object, RubyClass rubyClass) {
-        final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
-        final BasicObjectType newObjectType = objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass);
-        DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
-
-        object.setMetaClass(rubyClass);
-    }
-
     /** Special constructor for class Class */
     @TruffleBoundary
     public static RubyClass createClassClass(RubyContext context) {
         final Shape tempShape = CoreLibrary.createShape(RubyClass.class, null);
         final RubyClass rubyClass = new RubyClass(context, tempShape);
-
-        setLogicalAndMetaClass(rubyClass, rubyClass);
 
         assert rubyClass.getLogicalClass() == rubyClass;
         assert rubyClass.getMetaClass() == rubyClass;
@@ -193,10 +171,7 @@ public abstract class ClassNodes {
 
     public static void setInstanceShape(RubyClass rubyClass, RubyClass baseClass) {
         assert !rubyClass.isSingleton : "Singleton classes cannot be instantiated";
-        final Shape parentShape = baseClass.instanceShape;
-        final BasicObjectType objectType = (BasicObjectType) parentShape.getObjectType();
-        final Shape newShape = parentShape.changeType(objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass));
-        rubyClass.instanceShape = newShape;
+        rubyClass.instanceShape = baseClass.instanceShape;
     }
 
     private static RubyClass ensureItHasSingletonClassCreated(RubyContext context, RubyClass rubyClass) {
@@ -251,7 +226,7 @@ public abstract class ClassNodes {
                 true,
                 rubyClass);
         SharedObjects.propagate(context, rubyClass, metaClass);
-        setMetaClass(rubyClass, metaClass);
+        rubyClass.setMetaClass(metaClass);
 
         return rubyClass.getMetaClass();
     }

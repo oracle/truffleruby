@@ -12,7 +12,6 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -23,13 +22,10 @@ import org.truffleruby.language.RubyDynamicObject;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 
 @ReportPolymorphism
 @GenerateUncached
-@ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
 public abstract class MetaClassNode extends RubyBaseNode {
 
     public static MetaClassNode create() {
@@ -96,29 +92,11 @@ public abstract class MetaClassNode extends RubyBaseNode {
     protected RubyClass singletonClassCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
-
         return metaClass;
     }
 
-    @Specialization(
-            guards = "object.getShape() == cachedShape",
-            assumptions = "cachedShape.getValidAssumption()",
-            replaces = "singletonClassCached",
-            limit = "getCacheLimit()")
-    protected RubyClass metaClassCached(RubyDynamicObject object,
-            @Cached("object.getShape()") Shape cachedShape,
-            @Cached("getMetaClass(cachedShape)") RubyClass metaClass) {
-
-        return metaClass;
-    }
-
-    @Specialization(guards = "updateShape(object)")
-    protected RubyClass updateShapeAndMetaClass(RubyDynamicObject object) {
-        return execute(object);
-    }
-
-    @Specialization(replaces = { "metaClassCached", "singletonClassCached", "updateShapeAndMetaClass" })
-    protected RubyClass metaClassUncached(RubyDynamicObject object) {
+    @Specialization(replaces = "singletonClassCached")
+    protected RubyClass metaClassObject(RubyDynamicObject object) {
         return object.getMetaClass();
     }
 

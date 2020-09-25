@@ -52,7 +52,6 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.RubyModule;
@@ -419,7 +418,7 @@ public abstract class VMPrimitiveNodes {
         protected RubyDynamicObject setClass(RubyDynamicObject object, RubyClass newClass) {
             SharedObjects.propagate(getContext(), object, newClass);
             synchronized (object) {
-                ClassNodes.setLogicalAndMetaClass(object, newClass);
+                object.setMetaClass(newClass);
             }
             return object;
         }

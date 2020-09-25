@@ -911,7 +911,7 @@ public class CoreLibrary {
     }
 
     public static Shape createShape(Class<? extends RubyDynamicObject> layoutClass, RubyClass rubyClass) {
-        final BasicObjectType objectType = new BasicObjectType(rubyClass, rubyClass);
+        final BasicObjectType objectType = new BasicObjectType();
         return Shape.newBuilder().allowImplicitCastIntToLong(true).layout(layoutClass).dynamicType(objectType).build();
     }
 

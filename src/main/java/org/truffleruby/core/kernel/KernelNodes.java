@@ -38,7 +38,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -443,7 +442,7 @@ public abstract class KernelNodes {
 
     }
 
-    @ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
+    @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
         public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
@@ -460,10 +459,10 @@ public abstract class KernelNodes {
         @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
         protected RubyDynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
-                @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
-            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(logicalClass, "__allocate__");
+            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode
+                    .call(self.getLogicalClass(), "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
                 final Property property = properties[i];

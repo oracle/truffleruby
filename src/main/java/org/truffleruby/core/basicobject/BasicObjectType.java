@@ -10,43 +10,10 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.object.ObjectType;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.core.klass.RubyClass;
 
 public final class BasicObjectType extends ObjectType {
 
-    private final RubyClass logicalClass;
-    private final RubyClass metaClass;
-
-    public BasicObjectType(RubyClass logicalClass, RubyClass metaClass) {
-        this.logicalClass = logicalClass;
-        this.metaClass = metaClass;
-    }
-
-    public RubyClass getLogicalClass() {
-        assert logicalClass == metaClass.nonSingletonClass;
-        return logicalClass;
-    }
-
-    public BasicObjectType setLogicalClass(RubyClass logicalClass) {
-        return new BasicObjectType(logicalClass, metaClass);
-    }
-
-    public RubyClass getMetaClass() {
-        assert metaClass.nonSingletonClass == logicalClass;
-        return metaClass;
-    }
-
-    public BasicObjectType setMetaClass(RubyClass metaClass) {
-        return new BasicObjectType(logicalClass, metaClass);
-    }
-
-    public static RubyClass getLogicalClass(Shape shape) {
-        return ((BasicObjectType) shape.getObjectType()).getLogicalClass();
-    }
-
-    public static RubyClass getMetaClass(Shape shape) {
-        return ((BasicObjectType) shape.getObjectType()).getMetaClass();
+    public BasicObjectType() {
     }
 
 }
