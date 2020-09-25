@@ -179,6 +179,7 @@ public abstract class ClassNodes {
         return rubyClass;
     }
 
+    @TruffleBoundary
     public static RubyClass getSingletonClass(RubyContext context, RubyClass rubyClass) {
         // We also need to create the singleton class of a singleton class for proper lookup and consistency.
         // See rb_singleton_class() documentation in MRI.
