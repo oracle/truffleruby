@@ -51,6 +51,7 @@ end
 if defined?(::TruffleRuby)
   # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
   # currently required as TruffleRuby cannot yet link to static libraries.
+  # See https://github.com/sparklemotion/nokogiri/pull/2085 when solving this.
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
 end
 
@@ -575,14 +576,8 @@ MSG
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote)
-    if defined?(::TruffleRuby)
-      # Specify output file (-o) explictly. Clang 3.8 produces conftest.o and 3.9 conftest.bc.
-      RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -o #{CONFTEST}.#{$OBJEXT} -c #{CONFTEST_C}",
-                       conf)
-    else
-      RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
-                       conf)
-    end
+    RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
+                     conf)
   end
 
   def cpp_command(outfile, opt="")
