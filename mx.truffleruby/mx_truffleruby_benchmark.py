@@ -308,7 +308,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     'metric.better': 'higher',
                     'metric.iteration': len(samples),
                     'extra.metric.warmedup': 'true',
-                    'extra.metric.elapsed-num': elapsed[-1] + 2.0, # just put the data point beyond the last one a bit
+                    'extra.metric.elapsed-num': elapsed[-1] + 2.0 if elapsed else 2.0, # just put the data point beyond the last one a bit
                     'error': 'optimised away'
                 }]
             else:
