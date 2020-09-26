@@ -32,7 +32,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -43,8 +42,7 @@ public abstract class ClassNodes {
     /** Special constructor for class Class */
     @TruffleBoundary
     public static RubyClass createClassClass(RubyContext context) {
-        final Shape tempShape = CoreLibrary.createShape(RubyClass.class, null);
-        final RubyClass rubyClass = new RubyClass(context, tempShape);
+        final RubyClass rubyClass = new RubyClass(context, context.getLanguage().classShape);
 
         assert rubyClass.getLogicalClass() == rubyClass;
         assert rubyClass.getMetaClass() == rubyClass;

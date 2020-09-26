@@ -134,7 +134,7 @@ public abstract class TruffleDebugNodes {
 
             final RubyHandle instance = new RubyHandle(
                     coreLibrary().handleClass,
-                    coreLibrary().handleShape,
+                    RubyLanguage.handleShape,
                     breakpoint);
             allocateNode.trace(instance, this);
             return instance;

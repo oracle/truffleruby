@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -1601,7 +1602,7 @@ public abstract class ModuleNodes {
 
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
-                    coreLibrary().unboundMethodShape,
+                    RubyLanguage.unboundMethodShape,
                     module,
                     method);
             allocateHelperNode.trace(instance, this);
@@ -1758,7 +1759,7 @@ public abstract class ModuleNodes {
 
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
-                    coreLibrary().unboundMethodShape,
+                    RubyLanguage.unboundMethodShape,
                     module,
                     method);
             allocateHelperNode.trace(instance, this);

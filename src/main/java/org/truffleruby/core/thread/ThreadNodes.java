@@ -291,9 +291,10 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected RubyThread allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateNode) {
+                @Cached AllocateHelperNode allocateNode,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape);
+            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, language);
             allocateNode.trace(instance, this);
             return instance;
         }

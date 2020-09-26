@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
@@ -62,6 +63,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
             RubyClass rubyClass,
             Shape shape,
             RubyContext context,
+            RubyLanguage language,
             boolean reportOnException,
             boolean abortOnException,
             Object threadGroup,
@@ -88,7 +90,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         this.sourceLocation = sourceLocation;
         this.name = Nil.INSTANCE;
         // Initialized last as it captures `this`
-        this.fiberManager = new FiberManager(context, this);
+        this.fiberManager = new FiberManager(language, context, this);
     }
 
     @Override

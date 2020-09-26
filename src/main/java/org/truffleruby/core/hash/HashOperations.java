@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -22,7 +23,7 @@ public abstract class HashOperations {
         final Object nil = Nil.INSTANCE;
         return new RubyHash(
                 context.getCoreLibrary().hashClass,
-                context.getCoreLibrary().hashShape,
+                RubyLanguage.hashShape,
                 context,
                 null,
                 0,

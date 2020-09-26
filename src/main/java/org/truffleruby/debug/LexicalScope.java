@@ -27,6 +27,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.string.StringUtils;
@@ -68,7 +69,7 @@ public class LexicalScope {
             // TODO BJF Jul-30-2020 Add trace allocation
             final RubyMethod boundMethod = new RubyMethod(
                     context.getCoreLibrary().methodClass,
-                    context.getCoreLibrary().methodShape,
+                    RubyLanguage.methodShape,
                     self,
                     method);
             return Scope

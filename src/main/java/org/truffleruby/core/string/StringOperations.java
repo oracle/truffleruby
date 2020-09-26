@@ -40,6 +40,7 @@ import java.nio.charset.Charset;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -55,7 +56,7 @@ public abstract class StringOperations {
             RubyContextSourceNode rubyContextSourceNode, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
-                context.getCoreLibrary().stringShape,
+                RubyLanguage.stringShape,
                 false,
                 false,
                 rope);
@@ -67,7 +68,7 @@ public abstract class StringOperations {
     public static RubyString createString(RubyContext context, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
-                context.getCoreLibrary().stringShape,
+                RubyLanguage.stringShape,
                 false,
                 false,
                 rope);
@@ -78,7 +79,7 @@ public abstract class StringOperations {
     public static RubyString createFrozenString(RubyContext context, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
-                context.getCoreLibrary().stringShape,
+                RubyLanguage.stringShape,
                 true,
                 false,
                 rope);

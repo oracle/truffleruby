@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -56,7 +57,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             allocateHelperNode = insert(AllocateHelperNode.create());
         }
-        final RubyArray array = new RubyArray(coreLibrary().arrayClass, coreLibrary().arrayShape, store, size);
+        final RubyArray array = new RubyArray(coreLibrary().arrayClass, RubyLanguage.arrayShape, store, size);
         allocateHelperNode.trace(array, this);
         return array;
     }

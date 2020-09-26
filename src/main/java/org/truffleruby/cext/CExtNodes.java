@@ -19,6 +19,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -1034,7 +1035,7 @@ public class CExtNodes {
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
-                    coreLibrary().truffleFFIPointerShape,
+                    RubyLanguage.truffleFFIPointerShape,
                     nativeRope.getNativePointer());
             allocateNode.trace(instance, this);
             return instance;

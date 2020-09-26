@@ -11,6 +11,7 @@ package org.truffleruby.core.method;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -214,7 +215,7 @@ public abstract class MethodNodes {
             } else {
                 final RubyMethod instance = new RubyMethod(
                         coreLibrary().methodClass,
-                        coreLibrary().methodShape,
+                        RubyLanguage.methodShape,
                         receiver,
                         superMethod.getMethod());
                 allocateNode.trace(instance, this);
@@ -235,7 +236,7 @@ public abstract class MethodNodes {
             final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
-                    coreLibrary().unboundMethodShape,
+                    RubyLanguage.unboundMethodShape,
                     receiverClass,
                     method.method);
             allocateHelperNode.trace(instance, this);
@@ -279,7 +280,7 @@ public abstract class MethodNodes {
                     .createMaterializedFrame(packedArgs, coreLibrary().emptyDescriptor);
             return ProcOperations.createRubyProc(
                     coreLibrary().procClass,
-                    coreLibrary().procShape,
+                    RubyLanguage.procShape,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,

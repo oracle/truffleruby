@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
@@ -66,7 +67,7 @@ public abstract class BindingNodes {
     public static RubyBinding createBinding(RubyContext context, MaterializedFrame frame, SourceSection sourceSection) {
         return new RubyBinding(
                 context.getCoreLibrary().bindingClass,
-                context.getCoreLibrary().bindingShape,
+                RubyLanguage.bindingShape,
                 frame,
                 sourceSection);
     }
@@ -145,7 +146,7 @@ public abstract class BindingNodes {
         protected RubyBinding dup(RubyBinding binding) {
             return new RubyBinding(
                     coreLibrary().bindingClass,
-                    coreLibrary().bindingShape,
+                    RubyLanguage.bindingShape,
                     binding.getFrame(),
                     binding.sourceSection);
         }

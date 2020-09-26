@@ -37,6 +37,7 @@ import java.math.BigInteger;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -66,7 +67,7 @@ public abstract class RandomizerNodes {
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         return new RubyRandomizer(
                 context.getCoreLibrary().randomizerClass,
-                context.getCoreLibrary().randomizerShape,
+                RubyLanguage.randomizerShape,
                 randomizer);
     }
 
@@ -81,7 +82,7 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
-            return new RubyRandomizer(coreLibrary().randomizerClass, coreLibrary().randomizerShape, new Randomizer());
+            return new RubyRandomizer(coreLibrary().randomizerClass, RubyLanguage.randomizerShape, new Randomizer());
         }
 
     }

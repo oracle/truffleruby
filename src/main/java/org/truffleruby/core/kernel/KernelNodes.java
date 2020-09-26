@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1295,7 +1296,7 @@ public abstract class KernelNodes {
             }
             final RubyMethod instance = new RubyMethod(
                     coreLibrary().methodClass,
-                    coreLibrary().methodShape,
+                    RubyLanguage.methodShape,
                     self,
                     method);
             allocateNode.trace(getContext().getLanguage(), getContext(), instance);
@@ -1712,7 +1713,7 @@ public abstract class KernelNodes {
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
                     final RubyMethod instance = new RubyMethod(
                             coreLibrary().methodClass,
-                            coreLibrary().methodShape,
+                            RubyLanguage.methodShape,
                             self,
                             method);
                     allocateNode.trace(instance, this);

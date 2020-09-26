@@ -18,6 +18,7 @@
  */
 package org.truffleruby.language.literal;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -39,7 +40,7 @@ public class StringLiteralNode extends RubyContextSourceNode {
     public RubyString execute(VirtualFrame frame) {
         final RubyString string = new RubyString(
                 coreLibrary().stringClass,
-                coreLibrary().stringShape,
+                RubyLanguage.stringShape,
                 false,
                 false,
                 rope);

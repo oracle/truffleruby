@@ -248,7 +248,7 @@ public abstract class StringNodes {
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             final RubyString string = new RubyString(
                     context.getCoreLibrary().stringClass,
-                    context.getCoreLibrary().stringShape,
+                    RubyLanguage.stringShape,
                     false,
                     false,
                     rope);
@@ -264,7 +264,7 @@ public abstract class StringNodes {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
             final RubyString string = new RubyString(
                     context.getCoreLibrary().stringClass,
-                    context.getCoreLibrary().stringShape,
+                    RubyLanguage.stringShape,
                     false,
                     false,
                     rope);
@@ -355,7 +355,7 @@ public abstract class StringNodes {
 
             final RubyString ret = new RubyString(
                     coreLibrary().stringClass,
-                    coreLibrary().stringShape,
+                    RubyLanguage.stringShape,
                     false,
                     eitherPartTainted,
                     concatRope);
@@ -2473,7 +2473,7 @@ public abstract class StringNodes {
                 @Cached AllocateHelperNode allocateHelperNode) {
             final RubyString result = new RubyString(
                     coreLibrary().stringClass,
-                    coreLibrary().stringShape,
+                    RubyLanguage.stringShape,
                     false,
                     string.tainted,
                     string.rope);

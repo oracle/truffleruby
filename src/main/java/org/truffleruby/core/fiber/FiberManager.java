@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -51,9 +52,9 @@ public class FiberManager {
     private RubyFiber currentFiber;
     private final Set<RubyFiber> runningFibers = newFiberSet();
 
-    public FiberManager(RubyContext context, RubyThread rubyThread) {
+    public FiberManager(RubyLanguage language, RubyContext context, RubyThread rubyThread) {
         this.context = context;
-        this.rootFiber = createRootFiber(context, rubyThread);
+        this.rootFiber = createRootFiber(language, context, rubyThread);
         this.currentFiber = rootFiber;
     }
 
@@ -84,15 +85,16 @@ public class FiberManager {
         currentFiber = fiber;
     }
 
-    private RubyFiber createRootFiber(RubyContext context, RubyThread thread) {
-        return createFiber(context, thread, context.getCoreLibrary().fiberClass, context.getCoreLibrary().fiberShape);
+    private RubyFiber createRootFiber(RubyLanguage language, RubyContext context, RubyThread thread) {
+        return createFiber(language, context, thread, context.getCoreLibrary().fiberClass, RubyLanguage.fiberShape);
     }
 
-    public RubyFiber createFiber(RubyContext context, RubyThread thread, RubyClass rubyClass, Shape shape) {
-        CompilerAsserts.partialEvaluationConstant(context);
+    public RubyFiber createFiber(RubyLanguage language, RubyContext context, RubyThread thread, RubyClass rubyClass,
+            Shape shape) {
+        CompilerAsserts.partialEvaluationConstant(language);
         final RubyBasicObject fiberLocals = new RubyBasicObject(
                 context.getCoreLibrary().objectClass,
-                context.getCoreLibrary().objectShape);
+                language.basicObjectShape);
         final RubyArray catchTags = ArrayHelpers.createEmptyArray(context);
 
         return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread);

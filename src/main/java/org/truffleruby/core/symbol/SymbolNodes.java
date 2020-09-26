@@ -10,6 +10,7 @@
 package org.truffleruby.core.symbol;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -173,7 +174,7 @@ public abstract class SymbolNodes {
 
             return ProcOperations.createRubyProc(
                     context.getCoreLibrary().procClass,
-                    context.getCoreLibrary().procShape,
+                    RubyLanguage.procShape,
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget,

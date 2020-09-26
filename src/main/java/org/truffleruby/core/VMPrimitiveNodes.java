@@ -175,7 +175,7 @@ public abstract class VMPrimitiveNodes {
             }
             final RubyMethod instance = new RubyMethod(
                     coreLibrary().methodClass,
-                    coreLibrary().methodShape,
+                    RubyLanguage.methodShape,
                     receiver,
                     method);
             allocateNode.trace(instance, this);

@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.fiber;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -87,10 +89,11 @@ public abstract class FiberNodes {
 
         @Specialization
         protected RubyFiber allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode helperNode) {
+                @Cached AllocateHelperNode helperNode,
+                @CachedLanguage RubyLanguage language) {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             final Shape shape = helperNode.getCachedShape(rubyClass);
-            final RubyFiber fiber = thread.fiberManager.createFiber(getContext(), thread, rubyClass, shape);
+            final RubyFiber fiber = thread.fiberManager.createFiber(language, getContext(), thread, rubyClass, shape);
             helperNode.trace(fiber, this);
             return fiber;
         }

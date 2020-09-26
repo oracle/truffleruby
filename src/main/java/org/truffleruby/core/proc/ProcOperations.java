@@ -11,6 +11,7 @@ package org.truffleruby.core.proc;
 
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -92,7 +93,7 @@ public abstract class ProcOperations {
     public static RubyProc createLambdaFromBlock(RubyContext context, RubyProc block) {
         return ProcOperations.createRubyProc(
                 context.getCoreLibrary().procClass,
-                context.getCoreLibrary().procShape,
+                RubyLanguage.procShape,
                 ProcType.LAMBDA,
                 block.sharedMethodInfo,
                 block.callTargetForLambdas,

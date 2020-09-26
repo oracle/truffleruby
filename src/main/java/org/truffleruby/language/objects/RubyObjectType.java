@@ -7,13 +7,13 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.basicobject;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.object.ObjectType;
 
-public final class BasicObjectType extends ObjectType {
+public final class RubyObjectType extends ObjectType {
 
-    public BasicObjectType() {
+    public RubyObjectType() {
     }
 
 }

@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 
 public abstract class ArrayHelpers {
@@ -30,7 +31,7 @@ public abstract class ArrayHelpers {
 
     public static RubyArray createArray(RubyContext context, Object store, int size) {
         assert !(store instanceof Object[]) || store.getClass() == Object[].class;
-        return new RubyArray(context.getCoreLibrary().arrayClass, context.getCoreLibrary().arrayShape, store, size);
+        return new RubyArray(context.getCoreLibrary().arrayClass, RubyLanguage.arrayShape, store, size);
     }
 
     public static RubyArray createArray(RubyContext context, int[] store) {
@@ -49,7 +50,7 @@ public abstract class ArrayHelpers {
     public static RubyArray createEmptyArray(RubyContext context) {
         return new RubyArray(
                 context.getCoreLibrary().arrayClass,
-                context.getCoreLibrary().arrayShape,
+                RubyLanguage.arrayShape,
                 ArrayStoreLibrary.INITIAL_STORE,
                 0);
     }
