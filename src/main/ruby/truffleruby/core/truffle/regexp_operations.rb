@@ -11,11 +11,12 @@
 module Truffle
   module RegexpOperations
 
-    COMPARE_ENGINES = false
-    USE_TRUFFLE_REGEX = false
-    USE_TRUFFLE_REGEX_EXEC_BYTES = false
+    COMPARE_ENGINES = true
+    USE_TRUFFLE_REGEX = true
+    USE_TRUFFLE_REGEX_EXEC_BYTES = true
 
     TREGEX = Primitive.object_hidden_var_create :tregex
+    TREGEX_STICKY = Primitive.object_hidden_var_create :tregex_sticky
 
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
@@ -64,27 +65,37 @@ module Truffle
         begin
           md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
           md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-          if md1.captures == md2.captures
+          if md1 == nil && md2 == nil
+            return nil
+          elsif md1 != nil && md2 != nil && md1.captures == md2.captures
             return md2
           else
             $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
-            md1.size.times do |x|
-              $stderr.puts "    #{md1.begin(x)} - #{md1.end(x)}"
-            end
-            md1.captures.each do |c|
-              $stderr.puts "    #{c}"
+            if md1 == nil
+              $stderr.puts "    NO MATCH"
+            else
+              md1.size.times do |x|
+                $stderr.puts "    #{md1.begin(x)} - #{md1.end(x)}"
+              end
+              md1.captures.each do |c|
+                $stderr.puts "    #{c}"
+              end
             end
             $stderr.puts "but we expected"
-            md2.size.times do |x|
-              $stderr.puts "    #{md2.begin(x)} - #{md2.end(x)}"
-            end
-            md2.captures.each do |c|
-              $stderr.puts "    #{c}"
+            if md2 == nil
+              $stderr.puts "    NO MATCH"
+            else
+              md2.size.times do |x|
+                $stderr.puts "    #{md2.begin(x)} - #{md2.end(x)}"
+              end
+              md2.captures.each do |c|
+                $stderr.puts "    #{c}"
+              end
             end
             return md2
           end
         rescue => e
-          $stderr.puts "match_in_region(#{re}, str, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gave #{md1} raised #{e}"
+          $stderr.puts "match_in_region(#{re}, str, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) raised #{e}"
           return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
       elsif USE_TRUFFLE_REGEX
@@ -94,34 +105,70 @@ module Truffle
       end
     end
 
+    def self.options_to_flags(options)
+      flags = ""
+      if options & Regexp::MULTILINE != 0
+        flags += "m"
+      end
+      if options & Regexp::IGNORECASE != 0
+        flags += "i"
+      end
+      if options & Regexp::EXTENDED != 0
+        flags += "x"
+      end
+      return flags
+    end
+
+    def self.encoding_to_tregex_encoding_name(encoding)
+      case encoding
+        when Encoding::ASCII
+          "LATIN-1"
+        when Encoding::UTF_8
+          "UTF-8"
+        when Encoding::UTF_16
+          "UTF-16"
+      end
+    end
+
     def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-      if (nil == Primitive.object_hidden_var_get(re, TREGEX))
+      if str.encoding != Encoding::ASCII && str.encoding != Encoding::UTF_8 && str.encoding != Encoding::UTF_16
+        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      end
+      compiled_regex_key = at_start ? TREGEX_STICKY : TREGEX
+      if (nil == Primitive.object_hidden_var_get(re, compiled_regex_key))
         begin
-          Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
+          if at_start
+            flags = options_to_flags(re.options) + "y"
+          else
+            flags = options_to_flags(re.options)
+          end
+          Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, encoding_to_tregex_encoding_name(re.encoding)))
         rescue => e
           $stderr.puts "Failure to compile #{re.source} using tregex - generated error #{e}."
           return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
       end
       if to < from
-        $stderr.puts 'Backwards searching not yet supported'
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
-      tr = Primitive.object_hidden_var_get(re, TREGEX)
-      if USE_TRUFFLE_REGEX_EXEC_BYTES && str.encoding == Encoding::UTF_8
-        bytes = Truffle::StringOperations.raw_bytes(str.byteslice(from, to - from))
-        tr_match = tr.execBytes(bytes, from)
-      else
-        tr_match = tr.exec(str, from)
+      tr = Primitive.object_hidden_var_get(re, compiled_regex_key)
+      begin
+        if USE_TRUFFLE_REGEX_EXEC_BYTES && (str.encoding == Encoding::ASCII || str.encoding == Encoding::UTF_8)
+          bytes = Truffle::StringOperations.raw_bytes(str)
+          tr_match = tr.execBytes(bytes, from)
+        else
+          tr_match = tr.exec(str, from)
+        end
+      rescue => e
+        $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
+        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
-      if (tr_match.isMatch)
+      if tr_match.isMatch
         starts = []
         ends = []
         tr.groupCount.times do |pos|
-          a_start = tr_match.getStart(pos)
-          a_end = tr_match.getEnd(pos)
-          starts << a_start + from
-          ends << a_end + from
+          starts << tr_match.getStart(pos)
+          ends << tr_match.getEnd(pos)
         end
         Primitive.matchdata_create(re, str, starts, ends)
       else
@@ -147,19 +194,6 @@ module Truffle
 
       nd = match.byte_begin(0) - 1
       source.byteslice(idx, nd-idx+1)
-    end
-
-    def self.compare_engines(&block)
-      use_tregex = const_get(:USE_TRUFFLE_REGEX)
-      begin
-        const_set(:USE_TRUFFLE_REGEX, false)
-        r1 = yield
-        const_set(:USE_TRUFFLE_REGEX, true)
-        r2 = yield
-      ensure
-        const_set(:USE_TRUFFLE_REGEX, use_tregex)
-      end
-      return r1 == r2
     end
   end
 end

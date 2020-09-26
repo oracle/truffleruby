@@ -24,6 +24,10 @@ import java.util.logging.Level;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AssumedValue;
@@ -87,15 +91,10 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -890,7 +889,7 @@ public class RubyContext {
                 .internal(true)
                 .build();
         Object regexEngineBuilder = env.parseInternal(engineBuilderRequest).call();
-        String regexOptions = "";
+        String regexOptions = "Flavor=Ruby";
         try {
             return InteropLibrary.getFactory().getUncached().execute(regexEngineBuilder, regexOptions);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
