@@ -59,7 +59,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
         assert object.getShape() == sharedShape;
 
         // Share the logical class
-        if (!SharedObjects.isShared(getContext(), object.getLogicalClass().getShape())) {
+        if (!object.getLogicalClass().getShape().isShared()) {
             // The logical class is fixed for a given Shape and only needs to be shared once
             CompilerDirectives.transferToInterpreterAndInvalidate();
             SharedObjects.writeBarrier(getContext(), object.getLogicalClass());
@@ -67,7 +67,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
 
         // Share the metaclass. Note that the metaclass might refer to `object` via `attached`,
         // so it is important to share the object first.
-        if (!SharedObjects.isShared(getContext(), object.getMetaClass().getShape())) {
+        if (!object.getMetaClass().getShape().isShared()) {
             // The metaclass is fixed for a given Shape and only needs to be shared once
             CompilerDirectives.transferToInterpreterAndInvalidate();
             SharedObjects.writeBarrier(getContext(), object.getMetaClass());
@@ -84,7 +84,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
 
     private boolean allFieldsAreShared(RubyDynamicObject object) {
         for (Object value : ObjectGraph.getAdjacentObjects(object)) {
-            assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
+            assert SharedObjects.isShared(value) : "unshared field in shared object: " + value;
         }
 
         return true;
@@ -126,7 +126,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
     }
 
     protected Shape createSharedShape(Shape cachedShape) {
-        if (SharedObjects.isShared(getContext(), cachedShape)) {
+        if (cachedShape.isShared()) {
             throw new UnsupportedOperationException(
                     "Thread-safety bug: the object is already shared. This means another thread marked the object as shared concurrently.");
         } else {

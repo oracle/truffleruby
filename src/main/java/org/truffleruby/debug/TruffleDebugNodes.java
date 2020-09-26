@@ -363,13 +363,13 @@ public abstract class TruffleDebugNodes {
                 limit = "getCacheLimit()")
         protected boolean isSharedCached(RubyDynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape,
-                @Cached("isShared(getContext(), cachedShape)") boolean shared) {
+                @Cached("cachedShape.isShared()") boolean shared) {
             return shared;
         }
 
         @Specialization(replaces = "isSharedCached")
         protected boolean isShared(RubyDynamicObject object) {
-            return SharedObjects.isShared(getContext(), object);
+            return SharedObjects.isShared(object);
         }
 
         @Specialization

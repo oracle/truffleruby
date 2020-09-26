@@ -1102,7 +1102,7 @@ public abstract class KernelNodes {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, ivar, nil);
 
-            if (SharedObjects.isShared(getContext(), object)) {
+            if (SharedObjects.isShared(object)) {
                 synchronized (object) {
                     removeField(object, name);
                 }

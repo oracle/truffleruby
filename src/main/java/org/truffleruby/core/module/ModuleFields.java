@@ -405,7 +405,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         checkFrozen(context, currentNode);
 
-        if (SharedObjects.isShared(context, rubyModule)) {
+        if (SharedObjects.isShared(rubyModule)) {
             Set<Object> adjacent = ObjectGraph.newObjectSet();
             ObjectGraph.addProperty(adjacent, method);
             for (Object object : adjacent) {

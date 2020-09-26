@@ -11,7 +11,6 @@ package org.truffleruby.core.array;
 
 import java.lang.reflect.Array;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
@@ -35,8 +34,7 @@ public abstract class ArrayOperations {
                 backingStore instanceof int[] || backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
-        final RubyContext context = array.getLogicalClass().fields.getContext();
-        if (SharedObjects.isShared(context, array)) {
+        if (SharedObjects.isShared(array)) {
             final Object store = array.store;
 
             if (store.getClass() == Object[].class) {
@@ -44,7 +42,6 @@ public abstract class ArrayOperations {
 
                 for (Object element : objectArray) {
                     assert SharedObjects.assertPropagateSharing(
-                            context,
                             array,
                             element) : "unshared element in shared Array: " + element;
                 }
@@ -56,7 +53,6 @@ public abstract class ArrayOperations {
                 for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
                     final Object element = objectArray[i];
                     assert SharedObjects.assertPropagateSharing(
-                            context,
                             array,
                             element) : "unshared element in shared copy-on-write Array: " + element;
                 }

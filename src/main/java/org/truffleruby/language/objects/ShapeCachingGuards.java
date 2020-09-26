@@ -10,7 +10,6 @@
 
 package org.truffleruby.language.objects;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
@@ -24,7 +23,7 @@ public abstract class ShapeCachingGuards {
         // TODO (eregon, 14 July 2020): review callers, once they use the library they should not need to update the Shape manually anymore
         boolean updated = DynamicObjectLibrary.getUncached().updateShape(object);
         if (updated) {
-            assert !SharedObjects.isShared(RubyLanguage.getCurrentContext(), object);
+            assert !SharedObjects.isShared(object);
         }
         return updated;
     }

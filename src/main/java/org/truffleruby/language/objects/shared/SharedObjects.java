@@ -24,7 +24,6 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class SharedObjects {
@@ -112,38 +111,39 @@ public class SharedObjects {
         shareObjects(context, stack);
     }
 
-    public static boolean isShared(RubyContext context, Object object) {
+    /** Callers of this should be careful, this method will return true for RubySymbol even if the
+     * SHARED_OBJECTS_ENABLED option is false. */
+    public static boolean isShared(Object object) {
         return object instanceof RubySymbol ||
-                (object instanceof RubyDynamicObject && isShared(context, ((RubyDynamicObject) object).getShape()));
+                (object instanceof RubyDynamicObject && isShared((RubyDynamicObject) object));
     }
 
-    public static boolean isShared(RubyContext context, Shape shape) {
-        return context.getOptions().SHARED_OBJECTS_ENABLED && shape.isShared();
+    public static boolean isShared(RubyDynamicObject object) {
+        return object.getShape().isShared();
     }
 
-    public static boolean assertPropagateSharing(RubyContext context, RubyDynamicObject source, Object value) {
-        if (isShared(context, source) && value instanceof RubyDynamicObject) {
-            return isShared(context, value);
+    public static boolean assertPropagateSharing(RubyDynamicObject source, Object value) {
+        if (isShared(source) && value instanceof RubyDynamicObject) {
+            return isShared(value);
         } else {
             return true;
         }
     }
 
     public static void writeBarrier(RubyContext context, Object value) {
-        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof RubyDynamicObject &&
-                !isShared(context, value)) {
+        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof RubyDynamicObject && !isShared(value)) {
             shareObject(context, (RubyDynamicObject) value);
         }
     }
 
     public static void propagate(RubyContext context, RubyDynamicObject source, Object value) {
-        if (isShared(context, source)) {
+        if (isShared(source)) {
             writeBarrier(context, value);
         }
     }
 
     private static boolean share(RubyContext context, RubyDynamicObject object) {
-        if (isShared(context, object)) {
+        if (isShared(object)) {
             return false;
         }
 

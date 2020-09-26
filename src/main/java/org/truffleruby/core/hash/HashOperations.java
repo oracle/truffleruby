@@ -59,11 +59,9 @@ public abstract class HashOperations {
 
                 while (entry != null) {
                     assert SharedObjects.assertPropagateSharing(
-                            context,
                             hash,
                             entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
                     assert SharedObjects.assertPropagateSharing(
-                            context,
                             hash,
                             entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
 
@@ -119,8 +117,8 @@ public abstract class HashOperations {
                 final Object key = PackedArrayStrategy.getKey(packedStore, n);
                 final Object value = PackedArrayStrategy.getValue(packedStore, n);
 
-                assert SharedObjects.assertPropagateSharing(context, hash, key) : "unshared key in shared Hash: " + key;
-                assert SharedObjects.assertPropagateSharing(context, hash, value) : "unshared value in shared Hash: " +
+                assert SharedObjects.assertPropagateSharing(hash, key) : "unshared key in shared Hash: " + key;
+                assert SharedObjects.assertPropagateSharing(hash, value) : "unshared value in shared Hash: " +
                         value;
             }
 

@@ -51,7 +51,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             @Cached("value.getShape()") Shape cachedShape,
             @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
-            @Cached("isShared(cachedContext, cachedShape)") boolean alreadyShared,
+            @Cached("cachedShape.isShared()") boolean alreadyShared,
             @Cached("createShareObjectNode(alreadyShared)") ShareObjectNode shareObjectNode) {
         if (!alreadyShared) {
             shareObjectNode.executeShare(value);
@@ -71,10 +71,6 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     @Specialization(guards = "!isRubyDynamicObject(value)")
     protected void noWriteBarrier(Object value) {
-    }
-
-    protected boolean isShared(RubyContext context, Shape shape) {
-        return SharedObjects.isShared(context, shape);
     }
 
     protected ShareObjectNode createShareObjectNode(boolean alreadyShared) {
