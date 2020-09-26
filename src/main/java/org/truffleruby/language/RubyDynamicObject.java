@@ -52,6 +52,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.TriState;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 /** All Ruby DynamicObjects extend this. */
 @ExportLibrary(RubyLibrary.class)
@@ -76,6 +77,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     }
 
     public void setMetaClass(RubyClass metaClass) {
+        SharedObjects.assertPropagateSharing(this, metaClass);
         this.metaClass = metaClass;
     }
 
