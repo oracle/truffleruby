@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "b6998e9380084ade695dbb160e8406bdd6441a93";
+local overlay = "f1a73a4625a1b7a4d552734bcd248f291c25d715";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
