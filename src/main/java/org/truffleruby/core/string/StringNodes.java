@@ -2487,7 +2487,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = { "to_sym", "intern" }, split = Split.ALWAYS)
+    @CoreMethod(names = { "to_sym", "intern" })
     @ImportStatic({ StringCachingGuards.class, StringGuards.class, StringOperations.class })
     public abstract static class ToSymNode extends CoreMethodArrayArgumentsNode {
 

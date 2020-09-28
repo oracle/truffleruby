@@ -72,5 +72,3 @@ example "'abc'.getbyte(10_000) == nil", true
 
 example "14.to_s.length", 2
 counter example "14.to_s.getbyte(0)" # Doesn't work becuase the bytes are only populated on demand and so aren't constant
-
-example "'TO_SYM'.to_sym", :TO_SYM
