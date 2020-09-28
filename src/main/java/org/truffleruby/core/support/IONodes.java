@@ -67,6 +67,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -109,7 +110,7 @@ public abstract class IONodes {
         @Specialization
         protected RubyIO allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyIO instance = new RubyIO(shape, RubyIO.CLOSED_FD);
+            final RubyIO instance = new RubyIO(rubyClass, shape, RubyIO.CLOSED_FD);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -511,7 +512,8 @@ public abstract class IONodes {
                 @Cached ConditionProfile sizeProfile) {
             RubyThread thread = currentThreadNode.execute();
             final RubyPointer instance = new RubyPointer(
-                    coreLibrary().truffleFFIPointerShape,
+                    coreLibrary().truffleFFIPointerClass,
+                    RubyLanguage.truffleFFIPointerShape,
                     getBuffer(thread, size, sizeProfile));
             allocateNode.trace(instance, this);
             return instance;

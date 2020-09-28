@@ -11,6 +11,8 @@ package org.truffleruby.core.module;
 
 import java.util.Set;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -29,8 +31,22 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     public final ModuleFields fields;
 
-    public RubyModule(Shape shape, ModuleFields fields) {
-        super(shape);
+    public RubyModule(
+            RubyClass rubyClass,
+            Shape shape,
+            RubyContext context,
+            SourceSection sourceSection,
+            RubyModule lexicalParent,
+            String givenBaseName) {
+        super(rubyClass, shape);
+        this.fields = new ModuleFields(context, sourceSection, lexicalParent, givenBaseName, this);
+    }
+
+    protected RubyModule(RubyContext context, Shape tempShape, String constructorOnlyForClassClass) {
+        super(tempShape, constructorOnlyForClassClass);
+
+        final ModuleFields fields = new ModuleFields(context, null, null, "Class", this);
+        fields.setFullName("Class");
         this.fields = fields;
     }
 

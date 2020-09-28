@@ -15,6 +15,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -80,7 +81,7 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyPointer allocate(RubyClass pointerClass) {
             final Shape shape = allocateNode.getCachedShape(pointerClass);
-            final RubyPointer instance = new RubyPointer(shape, Pointer.NULL);
+            final RubyPointer instance = new RubyPointer(pointerClass, shape, Pointer.NULL);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -263,7 +264,8 @@ public abstract class PointerNodes {
         @Specialization(guards = "limit == 0")
         protected RubyString readNullPointer(long address, long limit) {
             final RubyString instance = new RubyString(
-                    coreLibrary().stringShape,
+                    coreLibrary().stringClass,
+                    RubyLanguage.stringShape,
                     false,
                     true,
                     RopeConstants.EMPTY_ASCII_8BIT_ROPE);
@@ -280,7 +282,12 @@ public abstract class PointerNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
 
-            final RubyString instance = new RubyString(coreLibrary().stringShape, false, true, rope);
+            final RubyString instance = new RubyString(
+                    coreLibrary().stringClass,
+                    RubyLanguage.stringShape,
+                    false,
+                    true,
+                    rope);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -294,7 +301,12 @@ public abstract class PointerNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
 
-            final RubyString instance = new RubyString(coreLibrary().stringShape, false, true, rope);
+            final RubyString instance = new RubyString(
+                    coreLibrary().stringClass,
+                    RubyLanguage.stringShape,
+                    false,
+                    true,
+                    rope);
             allocateNode.trace(instance, this);
             return instance;
         }
@@ -313,7 +325,8 @@ public abstract class PointerNodes {
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
                 final RubyString instance = new RubyString(
-                        coreLibrary().stringShape,
+                        coreLibrary().stringClass,
+                        RubyLanguage.stringShape,
                         false,
                         false,
                         RopeConstants.EMPTY_ASCII_8BIT_ROPE);
@@ -325,7 +338,12 @@ public abstract class PointerNodes {
                 ptr.readBytes(0, bytes, 0, length);
                 final Rope rope = makeLeafRopeNode
                         .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-                final RubyString instance = new RubyString(coreLibrary().stringShape, false, true, rope);
+                final RubyString instance = new RubyString(
+                        coreLibrary().stringClass,
+                        RubyLanguage.stringShape,
+                        false,
+                        true,
+                        rope);
                 allocateNode.trace(instance, this);
                 return instance;
             }
@@ -489,7 +507,10 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(0);
-            final RubyPointer instance = new RubyPointer(coreLibrary().truffleFFIPointerShape, readPointer);
+            final RubyPointer instance = new RubyPointer(
+                    coreLibrary().truffleFFIPointerClass,
+                    RubyLanguage.truffleFFIPointerShape,
+                    readPointer);
             allocateNode.trace(instance, this);
             return instance;
         }

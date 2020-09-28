@@ -41,7 +41,7 @@ public abstract class WeakMapNodes {
         @Specialization
         protected RubyWeakMap allocate(RubyClass rubyClass) {
             final Shape shape = allocate.getCachedShape(rubyClass);
-            final RubyWeakMap weakMap = new RubyWeakMap(shape, new WeakMapStorage());
+            final RubyWeakMap weakMap = new RubyWeakMap(rubyClass, shape, new WeakMapStorage());
             allocate.trace(weakMap, this);
             return weakMap;
         }

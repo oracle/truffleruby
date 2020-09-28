@@ -66,6 +66,7 @@ public abstract class HashNodes {
         @Specialization
         protected RubyHash allocate(RubyClass rubyClass) {
             RubyHash hash = new RubyHash(
+                    rubyClass,
                     helperNode.getCachedShape(rubyClass),
                     getContext(),
                     null,
@@ -127,6 +128,7 @@ public abstract class HashNodes {
             }
 
             return new RubyHash(
+                    hashClass,
                     helperNode.getCachedShape(hashClass),
                     getContext(),
                     newStore,

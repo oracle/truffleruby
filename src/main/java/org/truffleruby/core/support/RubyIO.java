@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -19,8 +20,8 @@ public final class RubyIO extends RubyDynamicObject {
 
     private int descriptor;
 
-    public RubyIO(Shape shape, int descriptor) {
-        super(shape);
+    public RubyIO(RubyClass rubyClass, Shape shape, int descriptor) {
+        super(rubyClass, shape);
         this.descriptor = descriptor;
     }
 

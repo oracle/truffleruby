@@ -34,7 +34,7 @@ public abstract class NoMethodErrorNodes {
         @Specialization
         protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyNoMethodError instance = new RubyNoMethodError(shape, nil, null, nil, null, nil, nil);
+            final RubyNoMethodError instance = new RubyNoMethodError(rubyClass, shape, nil, null, nil, null, nil, nil);
             allocateNode.trace(instance, this);
             return instance;
         }

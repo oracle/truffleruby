@@ -29,6 +29,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -184,7 +185,11 @@ public class EncodingManager {
                 .getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final RubyString string = StringOperations.createFrozenString(context, cachedRope);
 
-        final RubyEncoding instance = new RubyEncoding(context.getCoreLibrary().encodingShape, encoding, string);
+        final RubyEncoding instance = new RubyEncoding(
+                context.getCoreLibrary().encodingClass,
+                RubyLanguage.encodingShape,
+                encoding,
+                string);
         // TODO BJF Jul-29-2020 Add allocation tracing
         return instance;
     }

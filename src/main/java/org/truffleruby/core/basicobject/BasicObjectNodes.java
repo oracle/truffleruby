@@ -612,7 +612,7 @@ public abstract class BasicObjectNodes {
         protected RubyBasicObject allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
-            final RubyBasicObject instance = new RubyBasicObject(shape);
+            final RubyBasicObject instance = new RubyBasicObject(rubyClass, shape);
             allocateHelperNode.trace(instance, this);
             return instance;
         }

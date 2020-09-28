@@ -82,7 +82,7 @@ public abstract class TracePointNodes {
         @Specialization
         protected RubyTracePoint allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyTracePoint instance = new RubyTracePoint(shape, null, null);
+            final RubyTracePoint instance = new RubyTracePoint(rubyClass, shape, null, null);
             allocateNode.trace(instance, this);
             return instance;
         }

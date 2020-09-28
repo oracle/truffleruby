@@ -11,6 +11,7 @@ package org.truffleruby.core.exception;
 
 import java.util.Set;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -23,8 +24,15 @@ public class RubyNameError extends RubyException implements ObjectGraphNode {
     public Object receiver;
     public Object name;
 
-    public RubyNameError(Shape shape, Object message, Backtrace backtrace, Object cause, Object receiver, Object name) {
-        super(shape, message, backtrace, cause);
+    public RubyNameError(
+            RubyClass rubyClass,
+            Shape shape,
+            Object message,
+            Backtrace backtrace,
+            Object cause,
+            Object receiver,
+            Object name) {
+        super(rubyClass, shape, message, backtrace, cause);
         assert name != null;
         this.receiver = receiver;
         this.name = name;

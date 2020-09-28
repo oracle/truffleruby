@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
@@ -64,7 +65,11 @@ public abstract class BindingNodes {
     }
 
     public static RubyBinding createBinding(RubyContext context, MaterializedFrame frame, SourceSection sourceSection) {
-        return new RubyBinding(context.getCoreLibrary().bindingShape, frame, sourceSection);
+        return new RubyBinding(
+                context.getCoreLibrary().bindingClass,
+                RubyLanguage.bindingShape,
+                frame,
+                sourceSection);
     }
 
     @TruffleBoundary
@@ -139,7 +144,11 @@ public abstract class BindingNodes {
     public abstract static class DupNode extends UnaryCoreMethodNode {
         @Specialization
         protected RubyBinding dup(RubyBinding binding) {
-            return new RubyBinding(coreLibrary().bindingShape, binding.getFrame(), binding.sourceSection);
+            return new RubyBinding(
+                    coreLibrary().bindingClass,
+                    RubyLanguage.bindingShape,
+                    binding.getFrame(),
+                    binding.sourceSection);
         }
     }
 

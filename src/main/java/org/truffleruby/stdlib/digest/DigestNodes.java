@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -44,7 +45,8 @@ public abstract class DigestNodes {
     private static RubyDigest createDigest(RubyContext context, AllocateHelperNode allocateNode,
             RubyContextSourceNode rubyContextSourceNode, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
-                context.getCoreLibrary().digestShape,
+                context.getCoreLibrary().digestClass,
+                RubyLanguage.digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
         allocateNode.trace(instance, rubyContextSourceNode);

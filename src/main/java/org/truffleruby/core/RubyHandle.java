@@ -10,14 +10,15 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyHandle extends RubyDynamicObject {
 
     public final Object object;
 
-    public RubyHandle(Shape shape, Object object) {
-        super(shape);
+    public RubyHandle(RubyClass rubyClass, Shape shape, Object object) {
+        super(rubyClass, shape);
         this.object = object;
     }
 

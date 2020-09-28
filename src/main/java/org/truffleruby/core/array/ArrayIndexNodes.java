@@ -13,6 +13,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -129,8 +130,10 @@ public abstract class ArrayIndexNodes {
         }
 
         protected RubyArray createArrayOfSameClass(RubyArray array, Object store, int size) {
+            final RubyClass logicalClass = array.getLogicalClass();
             RubyArray newArray = new RubyArray(
-                    helperNode.getCachedShape(array.getLogicalClass()),
+                    logicalClass,
+                    helperNode.getCachedShape(logicalClass),
                     store,
                     size);
             helperNode.trace(newArray, this);

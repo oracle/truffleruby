@@ -11,6 +11,7 @@ package org.truffleruby.core.method;
 
 import java.util.Set;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.methods.InternalMethod;
@@ -29,8 +30,8 @@ public class RubyUnboundMethod extends RubyDynamicObject implements ObjectGraphN
     final RubyModule origin;
     public final InternalMethod method;
 
-    public RubyUnboundMethod(Shape shape, RubyModule origin, InternalMethod method) {
-        super(shape);
+    public RubyUnboundMethod(RubyClass rubyClass, Shape shape, RubyModule origin, InternalMethod method) {
+        super(rubyClass, shape);
         this.origin = origin;
         this.method = method;
     }

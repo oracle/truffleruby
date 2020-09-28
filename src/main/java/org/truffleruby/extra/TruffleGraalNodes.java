@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -158,7 +159,8 @@ public abstract class TruffleGraalNodes {
                     .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
 
             return new RubyProc(
-                    coreLibrary().procShape,
+                    coreLibrary().procClass,
+                    RubyLanguage.procShape,
                     proc.type,
                     proc.sharedMethodInfo,
                     newCallTarget,

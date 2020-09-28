@@ -157,7 +157,7 @@ public abstract class EncodingConverterNodes {
         @Specialization
         protected RubyEncodingConverter allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyEncodingConverter instance = new RubyEncodingConverter(shape, null);
+            final RubyEncodingConverter instance = new RubyEncodingConverter(rubyClass, shape, null);
             allocateNode.trace(instance, this);
             return instance;
         }

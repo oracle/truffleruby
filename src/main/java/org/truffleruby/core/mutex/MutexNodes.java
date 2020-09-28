@@ -49,7 +49,7 @@ public abstract class MutexNodes {
             final ReentrantLock lock = MutexOperations.newReentrantLock();
 
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyMutex instance = new RubyMutex(shape, lock);
+            final RubyMutex instance = new RubyMutex(rubyClass, shape, lock);
             allocateNode.trace(instance, this);
             return instance;
         }

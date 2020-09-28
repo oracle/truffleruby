@@ -72,9 +72,9 @@ public abstract class RegexpNodes {
         regexp.cachedEncodings = new EncodingCache();
     }
 
-    public static RubyRegexp createRubyRegexp(Shape shape, Regex regex, Rope source, RegexpOptions options,
-            EncodingCache cache) {
-        return new RubyRegexp(shape, regex, source, options, cache);
+    public static RubyRegexp createRubyRegexp(RubyClass rubyClass, Shape shape, Regex regex, Rope source,
+            RegexpOptions options, EncodingCache cache) {
+        return new RubyRegexp(rubyClass, shape, regex, source, options, cache);
     }
 
     @CoreMethod(names = "hash")
@@ -227,6 +227,7 @@ public abstract class RegexpNodes {
         @Specialization
         protected RubyRegexp allocate(RubyClass rubyClass) {
             RubyRegexp regexp = new RubyRegexp(
+                    rubyClass,
                     allocateNode.getCachedShape(rubyClass),
                     null,
                     null,

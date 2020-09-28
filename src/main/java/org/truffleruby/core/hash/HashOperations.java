@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -20,7 +21,17 @@ public abstract class HashOperations {
 
     public static RubyHash newEmptyHash(RubyContext context) {
         final Object nil = Nil.INSTANCE;
-        return new RubyHash(context.getCoreLibrary().hashShape, context, null, 0, null, null, nil, nil, false);
+        return new RubyHash(
+                context.getCoreLibrary().hashClass,
+                RubyLanguage.hashShape,
+                context,
+                null,
+                0,
+                null,
+                null,
+                nil,
+                nil,
+                false);
     }
 
     public static boolean verifyStore(RubyContext context, RubyHash hash) {
@@ -49,11 +60,9 @@ public abstract class HashOperations {
 
                 while (entry != null) {
                     assert SharedObjects.assertPropagateSharing(
-                            context,
                             hash,
                             entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
                     assert SharedObjects.assertPropagateSharing(
-                            context,
                             hash,
                             entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
 
@@ -109,8 +118,8 @@ public abstract class HashOperations {
                 final Object key = PackedArrayStrategy.getKey(packedStore, n);
                 final Object value = PackedArrayStrategy.getValue(packedStore, n);
 
-                assert SharedObjects.assertPropagateSharing(context, hash, key) : "unshared key in shared Hash: " + key;
-                assert SharedObjects.assertPropagateSharing(context, hash, value) : "unshared value in shared Hash: " +
+                assert SharedObjects.assertPropagateSharing(hash, key) : "unshared key in shared Hash: " + key;
+                assert SharedObjects.assertPropagateSharing(hash, value) : "unshared value in shared Hash: " +
                         value;
             }
 

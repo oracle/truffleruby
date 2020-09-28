@@ -111,7 +111,8 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
-                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
+                    RubyLanguage.arrayShape,
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
             builder.appendArray(state, 0, otherStore);
@@ -125,7 +126,8 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
-                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
+                    RubyLanguage.arrayShape,
                     new int[10],
                     10);
             builder.appendArray(state, 0, otherStore);
@@ -139,7 +141,8 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
-                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
+                    RubyLanguage.arrayShape,
                     new long[10],
                     10);
             builder.appendArray(state, 0, otherStore);
@@ -153,7 +156,8 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
-                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
+                    RubyLanguage.arrayShape,
                     new double[10],
                     10);
             builder.appendArray(state, 0, otherStore);
@@ -167,7 +171,8 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
-                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
+                    RubyLanguage.arrayShape,
                     new Object[10],
                     10);
             builder.appendArray(state, 0, otherStore);

@@ -52,7 +52,7 @@ public abstract class ConditionVariableNodes {
             final Condition condition = MutexOperations.newCondition(condLock);
 
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyConditionVariable instance = new RubyConditionVariable(shape, condLock, condition);
+            final RubyConditionVariable instance = new RubyConditionVariable(rubyClass, shape, condLock, condition);
             allocateNode.trace(instance, this);
             return instance;
         }

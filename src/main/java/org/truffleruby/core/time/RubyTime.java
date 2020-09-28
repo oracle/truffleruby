@@ -10,6 +10,7 @@
 package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -25,13 +26,14 @@ public class RubyTime extends RubyDynamicObject {
     boolean isUtc;
 
     public RubyTime(
+            RubyClass rubyClass,
             Shape shape,
             ZonedDateTime dateTime,
             Object zone,
             Object offset,
             boolean relativeOffset,
             boolean isUtc) {
-        super(shape);
+        super(rubyClass, shape);
         assert zone instanceof RubyString || zone == Nil.INSTANCE;
         this.dateTime = dateTime;
         this.offset = offset;

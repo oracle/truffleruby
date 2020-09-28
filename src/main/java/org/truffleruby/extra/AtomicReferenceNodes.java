@@ -36,7 +36,7 @@ public abstract class AtomicReferenceNodes {
         @Specialization
         protected RubyAtomicReference allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyAtomicReference instance = new RubyAtomicReference(shape, new AtomicReference<>(nil));
+            final RubyAtomicReference instance = new RubyAtomicReference(rubyClass, shape, new AtomicReference<>(nil));
             allocateNode.trace(instance, this);
             return instance;
         }

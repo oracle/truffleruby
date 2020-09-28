@@ -42,7 +42,7 @@ public abstract class SizedQueueNodes {
         @Specialization
         protected RubySizedQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubySizedQueue instance = new RubySizedQueue(shape, null);
+            final RubySizedQueue instance = new RubySizedQueue(rubyClass, shape, null);
             allocateNode.trace(instance, this);
             return instance;
         }

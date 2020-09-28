@@ -11,7 +11,6 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -19,15 +18,11 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 
 @GenerateUncached
-@ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
 public abstract class LogicalClassNode extends RubyBaseNode {
 
     public static LogicalClassNode create() {
@@ -84,23 +79,8 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return context.getCoreLibrary().symbolClass;
     }
 
-    @Specialization(
-            guards = "object.getShape() == cachedShape",
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "getCacheLimit()")
-    protected RubyClass logicalClassCached(RubyDynamicObject object,
-            @Cached("object.getShape()") Shape cachedShape,
-            @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass) {
-        return logicalClass;
-    }
-
-    @Specialization(guards = "updateShape(object)")
-    protected RubyClass updateShapeAndLogicalClass(RubyDynamicObject object) {
-        return executeLogicalClass(object);
-    }
-
-    @Specialization(replaces = { "logicalClassCached", "updateShapeAndLogicalClass" })
-    protected RubyClass logicalClassUncached(RubyDynamicObject object) {
+    @Specialization
+    protected RubyClass logicalClassObject(RubyDynamicObject object) {
         return object.getLogicalClass();
     }
 

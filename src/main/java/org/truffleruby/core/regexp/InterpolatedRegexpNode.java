@@ -15,6 +15,7 @@ import java.util.Arrays;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.joni.Regex;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -112,7 +113,8 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
             // constructing the final regexp.
             final RubyRegexp regexp = new RubyRegexp(
-                    coreLibrary().regexpShape,
+                    coreLibrary().regexpClass,
+                    RubyLanguage.regexpShape,
                     regexp1,
                     (Rope) regexp1.getUserObject(),
                     options,

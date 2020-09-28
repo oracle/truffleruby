@@ -310,7 +310,8 @@ public class Backtrace {
         final Object[] locations = new Object[locationsLength];
         for (int i = 0; i < locationsLength; i++) {
             final RubyBacktraceLocation instance = new RubyBacktraceLocation(
-                    context.getCoreLibrary().threadBacktraceLocationShape,
+                    context.getCoreLibrary().threadBacktraceLocationClass,
+                    RubyLanguage.threadBacktraceLocationShape,
                     this,
                     i);
             allocateHelperNode.trace(context.getLanguage(), context, instance);

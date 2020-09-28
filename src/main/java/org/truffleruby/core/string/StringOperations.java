@@ -40,6 +40,7 @@ import java.nio.charset.Charset;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -53,20 +54,35 @@ public abstract class StringOperations {
 
     public static RubyString createString(RubyContext context, AllocateHelperNode allocateHelperNode,
             RubyContextSourceNode rubyContextSourceNode, Rope rope) {
-        final RubyString instance = new RubyString(context.getCoreLibrary().stringShape, false, false, rope);
+        final RubyString instance = new RubyString(
+                context.getCoreLibrary().stringClass,
+                RubyLanguage.stringShape,
+                false,
+                false,
+                rope);
         allocateHelperNode.trace(instance, rubyContextSourceNode);
         return instance;
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
     public static RubyString createString(RubyContext context, Rope rope) {
-        final RubyString instance = new RubyString(context.getCoreLibrary().stringShape, false, false, rope);
+        final RubyString instance = new RubyString(
+                context.getCoreLibrary().stringClass,
+                RubyLanguage.stringShape,
+                false,
+                false,
+                rope);
         return instance;
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
     public static RubyString createFrozenString(RubyContext context, Rope rope) {
-        final RubyString instance = new RubyString(context.getCoreLibrary().stringShape, true, false, rope);
+        final RubyString instance = new RubyString(
+                context.getCoreLibrary().stringClass,
+                RubyLanguage.stringShape,
+                true,
+                false,
+                rope);
         return instance;
     }
 

@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -18,8 +19,8 @@ public class RubyBacktraceLocation extends RubyDynamicObject {
     final Backtrace backtrace;
     final int activationIndex;
 
-    public RubyBacktraceLocation(Shape shape, Backtrace backtrace, int activationIndex) {
-        super(shape);
+    public RubyBacktraceLocation(RubyClass rubyClass, Shape shape, Backtrace backtrace, int activationIndex) {
+        super(rubyClass, shape);
         this.backtrace = backtrace;
         this.activationIndex = activationIndex;
     }

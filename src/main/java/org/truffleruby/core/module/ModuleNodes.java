@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -130,14 +131,18 @@ public abstract class ModuleNodes {
     @TruffleBoundary
     public static RubyModule createModule(RubyContext context, SourceSection sourceSection, RubyClass selfClass,
             RubyModule lexicalParent, String name, Node currentNode) {
-        final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
-        final RubyModule module = new RubyModule(selfClass.instanceShape, fields);
-        fields.rubyModule = module;
+        final RubyModule module = new RubyModule(
+                selfClass,
+                selfClass.instanceShape,
+                context,
+                sourceSection,
+                lexicalParent,
+                name);
 
         if (lexicalParent != null) {
-            fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
-        } else if (fields.givenBaseName != null) { // bootstrap module
-            fields.setFullName(fields.givenBaseName);
+            module.fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
+        } else if (name != null) { // bootstrap module
+            module.fields.setFullName(name);
         }
         return module;
     }
@@ -1595,7 +1600,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
-            final RubyUnboundMethod instance = new RubyUnboundMethod(coreLibrary().unboundMethodShape, module, method);
+            final RubyUnboundMethod instance = new RubyUnboundMethod(
+                    coreLibrary().unboundMethodClass,
+                    RubyLanguage.unboundMethodShape,
+                    module,
+                    method);
             allocateHelperNode.trace(instance, this);
             return instance;
         }
@@ -1748,7 +1757,11 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
-            final RubyUnboundMethod instance = new RubyUnboundMethod(coreLibrary().unboundMethodShape, module, method);
+            final RubyUnboundMethod instance = new RubyUnboundMethod(
+                    coreLibrary().unboundMethodClass,
+                    RubyLanguage.unboundMethodShape,
+                    module,
+                    method);
             allocateHelperNode.trace(instance, this);
             return instance;
         }

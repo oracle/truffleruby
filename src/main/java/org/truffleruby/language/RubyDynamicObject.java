@@ -14,7 +14,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
@@ -53,22 +52,37 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.TriState;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 /** All Ruby DynamicObjects extend this. */
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
 
-    public RubyDynamicObject(Shape shape) {
+    private RubyClass metaClass;
+
+    public RubyDynamicObject(RubyClass metaClass, Shape shape) {
         super(shape);
+        assert metaClass != null;
+        this.metaClass = metaClass;
     }
 
-    public final RubyClass getLogicalClass() {
-        return BasicObjectType.getLogicalClass(getShape());
+    protected RubyDynamicObject(Shape shape, String constructorOnlyForClassClass) {
+        super(shape);
+        this.metaClass = (RubyClass) this;
     }
 
     public final RubyClass getMetaClass() {
-        return BasicObjectType.getMetaClass(getShape());
+        return metaClass;
+    }
+
+    public void setMetaClass(RubyClass metaClass) {
+        SharedObjects.assertPropagateSharing(this, metaClass);
+        this.metaClass = metaClass;
+    }
+
+    public final RubyClass getLogicalClass() {
+        return metaClass.nonSingletonClass;
     }
 
     @Override

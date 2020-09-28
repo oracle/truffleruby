@@ -17,6 +17,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -53,13 +54,21 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     public abstract RubyBigDecimal executeCreate(Object value, Object digits, boolean strict);
 
     private RubyBigDecimal createNormalBigDecimal(BigDecimal value) {
-        final RubyBigDecimal instance = new RubyBigDecimal(coreLibrary().bigDecimalShape, value, BigDecimalType.NORMAL);
+        final RubyBigDecimal instance = new RubyBigDecimal(
+                coreLibrary().bigDecimalClass,
+                RubyLanguage.bigDecimalShape,
+                value,
+                BigDecimalType.NORMAL);
         allocateNode.trace(instance, this);
         return instance;
     }
 
     private RubyBigDecimal createSpecialBigDecimal(BigDecimalType type) {
-        final RubyBigDecimal instance = new RubyBigDecimal(coreLibrary().bigDecimalShape, BigDecimal.ZERO, type);
+        final RubyBigDecimal instance = new RubyBigDecimal(
+                coreLibrary().bigDecimalClass,
+                RubyLanguage.bigDecimalShape,
+                BigDecimal.ZERO,
+                type);
         allocateNode.trace(instance, this);
         return instance;
     }

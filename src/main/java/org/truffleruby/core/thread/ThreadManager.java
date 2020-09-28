@@ -193,30 +193,46 @@ public class ThreadManager {
         fiberPool.submit(task);
     }
 
+    @TruffleBoundary
     public boolean isRubyManagedThread(Thread thread) {
         return rubyManagedThreads.contains(thread);
     }
 
+    @TruffleBoundary
     public RubyThread createBootThread(String info) {
-        return createThread(context.getCoreLibrary().threadShape, Nil.INSTANCE, info);
+        return createThread(
+                context.getCoreLibrary().threadClass,
+                RubyLanguage.threadShape,
+                context.getLanguage(),
+                Nil.INSTANCE,
+                info);
     }
 
-    public RubyThread createThread(Shape shape) {
+    public RubyThread createThread(RubyClass rubyClass, Shape shape, RubyLanguage language) {
         final Object currentGroup = getCurrentThread().threadGroup;
         assert currentGroup != null;
-        return createThread(shape, currentGroup, "<uninitialized>");
+        return createThread(rubyClass, shape, language, currentGroup, "<uninitialized>");
     }
 
+    @TruffleBoundary
     public RubyThread createForeignThread() {
         final Object currentGroup = rootThread.threadGroup;
         assert currentGroup != null;
-        return createThread(context.getCoreLibrary().threadShape, currentGroup, "<foreign thread>");
+        return createThread(
+                context.getCoreLibrary().threadClass,
+                RubyLanguage.threadShape,
+                context.getLanguage(),
+                currentGroup,
+                "<foreign thread>");
     }
 
-    private RubyThread createThread(Shape shape, Object currentGroup, String info) {
+    private RubyThread createThread(RubyClass rubyClass, Shape shape, RubyLanguage language, Object currentGroup,
+            String info) {
         return new RubyThread(
+                rubyClass,
                 shape,
                 context,
+                language,
                 getGlobalReportOnException(),
                 getGlobalAbortOnException(),
                 currentGroup,
@@ -409,6 +425,7 @@ public class ThreadManager {
         return rootJavaThread;
     }
 
+    @TruffleBoundary
     public synchronized Thread getOrInitializeRootJavaThread() {
         // rootJavaThread can be null with a pre-initialized context.
         // In such a case, the first Thread in is considered the root Thread.

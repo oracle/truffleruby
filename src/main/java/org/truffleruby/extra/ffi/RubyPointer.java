@@ -11,6 +11,7 @@ package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.library.ExportMessage;
@@ -21,8 +22,8 @@ public class RubyPointer extends RubyDynamicObject {
 
     public Pointer pointer;
 
-    public RubyPointer(Shape shape, Pointer pointer) {
-        super(shape);
+    public RubyPointer(RubyClass rubyClass, Shape shape, Pointer pointer) {
+        super(rubyClass, shape);
         this.pointer = pointer;
     }
 

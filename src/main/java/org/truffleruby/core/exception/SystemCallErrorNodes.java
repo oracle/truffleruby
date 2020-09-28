@@ -32,7 +32,7 @@ public abstract class SystemCallErrorNodes {
         @Specialization
         protected RubySystemCallError allocateNameError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubySystemCallError instance = new RubySystemCallError(shape, nil, null, nil, nil);
+            final RubySystemCallError instance = new RubySystemCallError(rubyClass, shape, nil, null, nil, nil);
             allocateNode.trace(instance, this);
             return instance;
         }

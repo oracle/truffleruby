@@ -17,6 +17,7 @@ import java.util.EnumSet;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -737,7 +738,8 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNameError(
-                context.getCoreLibrary().nameErrorShape,
+                context.getCoreLibrary().nameErrorClass,
+                RubyLanguage.nameErrorShape,
                 messageString,
                 backtrace,
                 cause,
@@ -751,7 +753,8 @@ public class CoreExceptions {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         final RubyNameError exception = new RubyNameError(
-                context.getCoreLibrary().nameErrorShape,
+                context.getCoreLibrary().nameErrorClass,
+                RubyLanguage.nameErrorShape,
                 null,
                 backtrace,
                 cause,
@@ -774,7 +777,8 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNoMethodError(
-                context.getCoreLibrary().noMethodErrorShape,
+                context.getCoreLibrary().noMethodErrorClass,
+                RubyLanguage.noMethodErrorShape,
                 messageString,
                 backtrace,
                 cause,
@@ -791,7 +795,8 @@ public class CoreExceptions {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         final RubyNoMethodError exception = new RubyNoMethodError(
-                context.getCoreLibrary().noMethodErrorShape,
+                context.getCoreLibrary().noMethodErrorClass,
+                RubyLanguage.noMethodErrorShape,
                 null,
                 backtrace,
                 cause,
@@ -814,7 +819,8 @@ public class CoreExceptions {
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         return new RubyNoMethodError(
-                context.getCoreLibrary().noMethodErrorShape,
+                context.getCoreLibrary().noMethodErrorClass,
+                RubyLanguage.noMethodErrorShape,
                 messageString,
                 backtrace,
                 cause,

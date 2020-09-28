@@ -11,6 +11,7 @@ package org.truffleruby.core.array;
 
 import java.util.Set;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -36,8 +37,8 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
     public Object store;
     public int size;
 
-    public RubyArray(Shape shape, Object store, int size) {
-        super(shape);
+    public RubyArray(RubyClass rubyClass, Shape shape, Object store, int size) {
+        super(rubyClass, shape);
         this.store = store;
         this.size = size;
     }

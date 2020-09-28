@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -38,7 +39,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -443,7 +443,7 @@ public abstract class KernelNodes {
 
     }
 
-    @ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
+    @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
         public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
@@ -460,10 +460,10 @@ public abstract class KernelNodes {
         @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
         protected RubyDynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
-                @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createWriteFieldNodes(properties)") DynamicObjectLibrary[] writeFieldNodes) {
-            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(logicalClass, "__allocate__");
+            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode
+                    .call(self.getLogicalClass(), "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
                 final Property property = properties[i];
@@ -1103,7 +1103,7 @@ public abstract class KernelNodes {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Object value = DynamicObjectLibrary.getUncached().getOrDefault(object, ivar, nil);
 
-            if (SharedObjects.isShared(getContext(), object)) {
+            if (SharedObjects.isShared(object)) {
                 synchronized (object) {
                     removeField(object, name);
                 }
@@ -1294,7 +1294,11 @@ public abstract class KernelNodes {
                                     this));
                 }
             }
-            final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
+            final RubyMethod instance = new RubyMethod(
+                    coreLibrary().methodClass,
+                    RubyLanguage.methodShape,
+                    self,
+                    method);
             allocateNode.trace(getContext().getLanguage(), getContext(), instance);
             return instance;
         }
@@ -1707,7 +1711,11 @@ public abstract class KernelNodes {
             if (singletonProfile.profile(metaClass.isSingleton)) {
                 final InternalMethod method = metaClass.fields.getMethod(name);
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
-                    final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
+                    final RubyMethod instance = new RubyMethod(
+                            coreLibrary().methodClass,
+                            RubyLanguage.methodShape,
+                            self,
+                            method);
                     allocateNode.trace(instance, this);
                     return instance;
                 }

@@ -43,7 +43,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape cachedShape,
             @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
-            @Cached("isShared(cachedContext, cachedShape)") boolean shared) {
+            @Cached("cachedShape.isShared()") boolean shared) {
         return shared;
     }
 
@@ -55,11 +55,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
     protected boolean isSharedUncached(RubyDynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return SharedObjects.isShared(context, object);
-    }
-
-    protected boolean isShared(RubyContext context, Shape shape) {
-        return SharedObjects.isShared(context, shape);
+        return context.getOptions().SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
     }
 
 }

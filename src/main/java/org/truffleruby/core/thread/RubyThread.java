@@ -17,11 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.support.RandomizerNodes;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
@@ -58,13 +60,15 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     Object name;
 
     public RubyThread(
+            RubyClass rubyClass,
             Shape shape,
             RubyContext context,
+            RubyLanguage language,
             boolean reportOnException,
             boolean abortOnException,
             Object threadGroup,
             String sourceLocation) {
-        super(shape);
+        super(rubyClass, shape);
         this.threadLocalGlobals = new ThreadLocalGlobals();
         this.interruptMode = InterruptMode.IMMEDIATE;
         this.status = ThreadStatus.RUN;
@@ -86,7 +90,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         this.sourceLocation = sourceLocation;
         this.name = Nil.INSTANCE;
         // Initialized last as it captures `this`
-        this.fiberManager = new FiberManager(context, this);
+        this.fiberManager = new FiberManager(language, context, this);
     }
 
     @Override

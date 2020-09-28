@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -29,8 +30,8 @@ public final class RubyBasicObject extends RubyDynamicObject {
     @DynamicField private Object object3;
     @DynamicField private Object object4;
 
-    public RubyBasicObject(Shape shape) {
-        super(shape);
+    public RubyBasicObject(RubyClass rubyClass, Shape shape) {
+        super(rubyClass, shape);
     }
 
 }

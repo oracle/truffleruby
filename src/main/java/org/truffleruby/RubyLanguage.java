@@ -15,23 +15,62 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.object.Shape;
 import org.graalvm.options.OptionDescriptors;
+import org.truffleruby.core.RubyHandle;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.RubyBasicObject;
+import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.RubyEncodingConverter;
+import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.exception.RubyNameError;
+import org.truffleruby.core.exception.RubyNoMethodError;
+import org.truffleruby.core.exception.RubySystemCallError;
+import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.mutex.RubyConditionVariable;
+import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.queue.RubyQueue;
+import org.truffleruby.core.queue.RubySizedQueue;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.range.RubyObjectRange;
+import org.truffleruby.core.regexp.RubyMatchData;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.RubyByteArray;
+import org.truffleruby.core.support.RubyIO;
+import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.core.thread.RubyBacktraceLocation;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.core.time.RubyTime;
+import org.truffleruby.core.tracepoint.RubyTracePoint;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
+import org.truffleruby.extra.RubyAtomicReference;
+import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
+import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
@@ -53,6 +92,8 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
+import org.truffleruby.stdlib.digest.RubyDigest;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -102,6 +143,54 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal private AllocationReporter allocationReporter;
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
+
+    private static final RubyObjectType objectType = new RubyObjectType();
+
+    public final Shape basicObjectShape = createShape(RubyBasicObject.class);
+    public final Shape moduleShape = createShape(RubyModule.class);
+    public final Shape classShape = createShape(RubyClass.class);
+
+    // TODO (eregon, 25 Sep 2020): These Shapes should ideally be stored in the language instance,
+    // so different Engines/RubyLanguage instances can have different type profiles.
+    // However that requires passing the language instance around a lot which is inconvenient
+    // and does not seem worth it currently. Also these builtin types are rather unlikely to have
+    // instance variables.
+    public static final Shape arrayShape = createShape(RubyArray.class);
+    public static final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
+    public static final Shape bigDecimalShape = createShape(RubyBigDecimal.class);
+    public static final Shape bindingShape = createShape(RubyBinding.class);
+    public static final Shape byteArrayShape = createShape(RubyByteArray.class);
+    public static final Shape conditionVariableShape = createShape(RubyConditionVariable.class);
+    public static final Shape digestShape = createShape(RubyDigest.class);
+    public static final Shape encodingConverterShape = createShape(RubyEncodingConverter.class);
+    public static final Shape encodingShape = createShape(RubyEncoding.class);
+    public static final Shape exceptionShape = createShape(RubyException.class);
+    public static final Shape fiberShape = createShape(RubyFiber.class);
+    public static final Shape handleShape = createShape(RubyHandle.class);
+    public static final Shape hashShape = createShape(RubyHash.class);
+    public static final Shape intRangeShape = createShape(RubyIntRange.class);
+    public static final Shape ioShape = createShape(RubyIO.class);
+    public static final Shape longRangeShape = createShape(RubyLongRange.class);
+    public static final Shape matchDataShape = createShape(RubyMatchData.class);
+    public static final Shape methodShape = createShape(RubyMethod.class);
+    public static final Shape mutexShape = createShape(RubyMutex.class);
+    public static final Shape nameErrorShape = createShape(RubyNameError.class);
+    public static final Shape noMethodErrorShape = createShape(RubyNoMethodError.class);
+    public static final Shape objectRangeShape = createShape(RubyObjectRange.class);
+    public static final Shape procShape = createShape(RubyProc.class);
+    public static final Shape queueShape = createShape(RubyQueue.class);
+    public static final Shape randomizerShape = createShape(RubyRandomizer.class);
+    public static final Shape regexpShape = createShape(RubyRegexp.class);
+    public static final Shape sizedQueueShape = createShape(RubySizedQueue.class);
+    public static final Shape stringShape = createShape(RubyString.class);
+    public static final Shape systemCallErrorShape = createShape(RubySystemCallError.class);
+    public static final Shape threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class);
+    public static final Shape threadShape = createShape(RubyThread.class);
+    public static final Shape timeShape = createShape(RubyTime.class);
+    public static final Shape tracePointShape = createShape(RubyTracePoint.class);
+    public static final Shape truffleFFIPointerShape = createShape(RubyPointer.class);
+    public static final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
+    public static final Shape weakMapShape = createShape(RubyWeakMap.class);
 
     public RubyLanguage() {
         coreStrings = new CoreStrings(this);
@@ -195,6 +284,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static RubyContext getCurrentContext() {
         return getCurrentContext(RubyLanguage.class);
+    }
+
+    public static RubyLanguage getCurrentLanguage() {
+        return getCurrentLanguage(RubyLanguage.class);
     }
 
     @Override
@@ -312,6 +405,15 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         return id;
+    }
+
+    private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass) {
+        return Shape
+                .newBuilder()
+                .allowImplicitCastIntToLong(true)
+                .layout(layoutClass)
+                .dynamicType(RubyLanguage.objectType)
+                .build();
     }
 
 }

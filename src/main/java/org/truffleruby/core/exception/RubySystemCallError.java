@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.object.Shape;
@@ -18,8 +19,14 @@ public final class RubySystemCallError extends RubyException {
 
     public Object errno;
 
-    public RubySystemCallError(Shape shape, Object message, Backtrace backtrace, Object cause, Object errno) {
-        super(shape, message, backtrace, cause);
+    public RubySystemCallError(
+            RubyClass rubyClass,
+            Shape shape,
+            Object message,
+            Backtrace backtrace,
+            Object cause,
+            Object errno) {
+        super(rubyClass, shape, message, backtrace, cause);
         assert errno != null;
         this.errno = errno;
     }

@@ -10,14 +10,15 @@
 package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 public abstract class RubyRange extends RubyDynamicObject {
 
     public boolean excludedEnd;
 
-    public RubyRange(Shape shape, boolean excludedEnd) {
-        super(shape);
+    public RubyRange(RubyClass rubyClass, Shape shape, boolean excludedEnd) {
+        super(rubyClass, shape);
         this.excludedEnd = excludedEnd;
     }
 

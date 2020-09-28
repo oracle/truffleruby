@@ -83,7 +83,7 @@ public abstract class ExceptionOperations {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         final Shape shape = rubyClass.instanceShape;
-        return new RubyException(shape, message, backtrace, cause);
+        return new RubyException(rubyClass, shape, message, backtrace, cause);
     }
 
     @TruffleBoundary
@@ -92,7 +92,7 @@ public abstract class ExceptionOperations {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         final Shape shape = rubyClass.instanceShape;
-        return new RubySystemCallError(shape, message, backtrace, cause, errno);
+        return new RubySystemCallError(rubyClass, shape, message, backtrace, cause, errno);
     }
 
     @TruffleBoundary // Exception#initCause is blacklisted in TruffleFeature
