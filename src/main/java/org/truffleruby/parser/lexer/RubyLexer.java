@@ -3668,8 +3668,15 @@ public class RubyLexer implements MagicCommentHandler {
     /** Encoding-aware (including multi-byte encodings) check of first codepoint of a given rope, usually to determine
      * if it is a constant */
     private boolean isFirstCodepointUppercase(Rope rope) {
-        byte[] ropeBytes = rope.getBytes();
-        int firstCharacter = rope.encoding.mbcToCode(ropeBytes, 0, ropeBytes.length);
-        return rope.encoding.isUpper(firstCharacter);
+        Encoding ropeEncoding = rope.encoding;
+        int firstByte = rope.get(0) & 0xFF;
+
+        if (ropeEncoding.isAsciiCompatible() && isASCII(firstByte)) {
+            return StringSupport.isAsciiUppercase((byte) firstByte);
+        } else {
+            byte[] ropeBytes = rope.getBytes();
+            int firstCharacter = ropeEncoding.mbcToCode(ropeBytes, 0, ropeBytes.length);
+            return ropeEncoding.isUpper(firstCharacter);
+        }
     }
 }
