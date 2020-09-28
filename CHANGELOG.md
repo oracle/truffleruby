@@ -40,6 +40,7 @@ Compatibility:
 * Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
 * Fix arity for `Proc` (#2098, @ssnickolay)
 * Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known. 
+* Implement negative line numbers for eval (#1482).
 
 Performance:
 

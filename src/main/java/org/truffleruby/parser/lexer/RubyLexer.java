@@ -2932,6 +2932,10 @@ public class RubyLexer implements MagicCommentHandler {
         return src.getSourcePath();
     }
 
+    public int getLineOffset() {
+        return src.getLineOffset();
+    }
+
     public int getHeredocIndent() {
         return heredoc_indent;
     }

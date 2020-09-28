@@ -11,6 +11,7 @@ package org.truffleruby.parser;
 
 import java.util.Objects;
 
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 
@@ -25,6 +26,7 @@ public class RubySource {
     private final String sourcePath;
     private final Rope sourceRope;
     private final boolean isEval;
+    private final int lineOffset;
 
     public RubySource(Source source, String sourcePath) {
         this(source, sourcePath, null, false);
@@ -35,12 +37,17 @@ public class RubySource {
     }
 
     public RubySource(Source source, String sourcePath, Rope sourceRope, boolean isEval) {
+        this(source, sourcePath, sourceRope, isEval, 0);
+    }
+
+    public RubySource(Source source, String sourcePath, Rope sourceRope, boolean isEval, int lineOffset) {
         assert RubyContext.getPath(source).equals(sourcePath) : RubyContext.getPath(source) + " vs " + sourcePath;
         this.source = Objects.requireNonNull(source);
         //intern() to improve footprint
         this.sourcePath = Objects.requireNonNull(sourcePath).intern();
         this.sourceRope = sourceRope;
         this.isEval = isEval;
+        this.lineOffset = lineOffset;
     }
 
     public Source getSource() {
@@ -58,4 +65,18 @@ public class RubySource {
     public boolean isEval() {
         return isEval;
     }
+
+    public int getLineOffset() {
+        return lineOffset;
+    }
+
+    public static int getStartLineAdjusted(RubyContext context, SourceSection sourceSection) {
+        final Integer lineOffset = context.getSourceLineOffsets().get(sourceSection.getSource());
+        if (lineOffset != null) {
+            return sourceSection.getStartLine() + lineOffset;
+        } else {
+            return sourceSection.getStartLine();
+        }
+    }
+
 }

@@ -3348,7 +3348,7 @@ states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
+    yyVal = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine() + lexer.getLineOffset());
     return yyVal;
 };
 states[529] = (support, lexer, yyVal, yyVals, yyTop) -> {

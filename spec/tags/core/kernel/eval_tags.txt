@@ -3,5 +3,4 @@ fails:Kernel#eval returns from the scope calling #eval when evaluating 'return'
 fails:Kernel#eval unwinds through a Proc-style closure and returns from a lambda-style closure in the closure chain
 slow:Kernel#eval raises a LocalJumpError if there is no lambda-style closure in the chain
 slow:Kernel#eval does not share locals across eval scopes
-fails:Kernel#eval evaluates string with given filename and negative linenumber
 fails(cannot store constant with name in binary encoding):Kernel#eval with a magic encoding comment ignores the magic encoding comment if it is after a frozen_string_literal magic comment

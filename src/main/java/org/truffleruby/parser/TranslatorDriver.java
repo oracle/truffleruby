@@ -403,7 +403,7 @@ public class TranslatorDriver {
                 default:
                     StringBuilder buffer = new StringBuilder(100);
                     buffer.append(e.getFile()).append(':');
-                    buffer.append(e.getLine()).append(": ");
+                    buffer.append(e.getLine() + rubySource.getLineOffset()).append(": ");
                     buffer.append(e.getMessage());
 
                     if (context != null) {
