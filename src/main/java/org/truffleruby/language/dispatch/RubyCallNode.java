@@ -21,7 +21,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -189,8 +188,6 @@ public class RubyCallNode extends RubyContextSourceNode {
         private final BranchProfile allArgumentsDefinedProfile = BranchProfile.create();
         private final BranchProfile receiverExceptionProfile = BranchProfile.create();
         private final ConditionProfile methodNotFoundProfile = ConditionProfile.create();
-        private final ConditionProfile methodUndefinedProfile = ConditionProfile.create();
-        private final ConditionProfile methodNotVisibleProfile = ConditionProfile.create();
 
         @ExplodeLoop
         public Object isDefined(VirtualFrame frame, RubyContext context) {
@@ -217,7 +214,6 @@ public class RubyCallNode extends RubyContextSourceNode {
             }
 
             final InternalMethod method = lookupMethodNode.lookup(frame, receiverObject, methodName, dispatchConfig);
-            final Object self = RubyArguments.getSelf(frame);
 
             if (methodNotFoundProfile.profile(method == null)) {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
@@ -225,18 +221,9 @@ public class RubyCallNode extends RubyContextSourceNode {
                 if (r != DispatchNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
                     return nil;
                 }
-            } else if (methodUndefinedProfile.profile(method.isUndefined())) {
-                return nil;
-            } else if (methodNotVisibleProfile
-                    .profile(!dispatchConfig.ignoreVisibility && !isVisibleTo(method, self))) {
-                return nil;
             }
 
             return coreStrings().METHOD.createInstance(context);
-        }
-
-        private boolean isVisibleTo(InternalMethod method, Object self) {
-            return method.isVisibleTo(coreLibrary().getMetaClass(self));
         }
     }
 }
