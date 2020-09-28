@@ -100,7 +100,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.DispatchRespondToNode;
+import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -1544,9 +1544,9 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeProtectedAndPrivate", type = RubyNode.class)
     public abstract static class RespondToNode extends CoreMethodNode {
 
-        @Child private DispatchRespondToNode dispatch;
-        @Child private DispatchRespondToNode dispatchIgnoreVisibility;
-        @Child private DispatchRespondToNode dispatchRespondToMissing;
+        @Child private InternalRespondToNode dispatch;
+        @Child private InternalRespondToNode dispatchIgnoreVisibility;
+        @Child private InternalRespondToNode dispatchRespondToMissing;
         @Child private DispatchNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
@@ -1554,9 +1554,9 @@ public abstract class KernelNodes {
         private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
-            dispatch = DispatchRespondToNode.create(PUBLIC);
-            dispatchIgnoreVisibility = DispatchRespondToNode.create();
-            dispatchRespondToMissing = DispatchRespondToNode.create();
+            dispatch = InternalRespondToNode.create(PUBLIC);
+            dispatchIgnoreVisibility = InternalRespondToNode.create();
+            dispatchRespondToMissing = InternalRespondToNode.create();
         }
 
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,

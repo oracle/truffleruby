@@ -26,24 +26,24 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
  * This does NOT call <code>respond_to_missing?</code> on the object, and as such is not a substitute for
  * {@link KernelNodes.RespondToNode} which implements the Ruby <code>Object#respond_to?</code>, and should be used in
  * almost all cases, especially when implementing Ruby methods with Java nodes. */
-public class DispatchRespondToNode extends RubyBaseNode {
+public class InternalRespondToNode extends RubyBaseNode {
 
     // NOTE(norswap): cf. comment above static fields in DispatchNode to see why we need this field
     public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC;
 
-    public static DispatchRespondToNode create(DispatchConfiguration config) {
-        return new DispatchRespondToNode(config);
+    public static InternalRespondToNode create(DispatchConfiguration config) {
+        return new InternalRespondToNode(config);
     }
 
-    public static DispatchRespondToNode create() {
-        return new DispatchRespondToNode(DispatchConfiguration.PRIVATE);
+    public static InternalRespondToNode create() {
+        return new InternalRespondToNode(DispatchConfiguration.PRIVATE);
     }
 
-    public static DispatchRespondToNode getUncached(DispatchConfiguration config) {
+    public static InternalRespondToNode getUncached(DispatchConfiguration config) {
         return Uncached.UNCACHED_NODES[config.ordinal()];
     }
 
-    public static DispatchRespondToNode getUncached() {
+    public static InternalRespondToNode getUncached() {
         return getUncached(DispatchConfiguration.PRIVATE);
     }
 
@@ -51,7 +51,7 @@ public class DispatchRespondToNode extends RubyBaseNode {
     @Child protected MetaClassNode metaclassNode;
     @Child protected LookupMethodNode methodLookup;
 
-    protected DispatchRespondToNode(
+    protected InternalRespondToNode(
             DispatchConfiguration config,
             MetaClassNode metaclassNode,
             LookupMethodNode methodLookup) {
@@ -60,7 +60,7 @@ public class DispatchRespondToNode extends RubyBaseNode {
         this.methodLookup = methodLookup;
     }
 
-    protected DispatchRespondToNode(DispatchConfiguration config) {
+    protected InternalRespondToNode(DispatchConfiguration config) {
         this(config, MetaClassNode.create(), LookupMethodNode.create());
     }
 
@@ -70,7 +70,7 @@ public class DispatchRespondToNode extends RubyBaseNode {
         return method != null && method.isDefined() && method.isImplemented();
     }
 
-    private static class Uncached extends DispatchRespondToNode {
+    private static class Uncached extends InternalRespondToNode {
 
         static final Uncached[] UNCACHED_NODES = new Uncached[DispatchConfiguration.values().length];
         static {

@@ -15,12 +15,12 @@ import org.truffleruby.language.RubyGuards;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.language.dispatch.DispatchRespondToNode;
+import org.truffleruby.language.dispatch.InternalRespondToNode;
 
 
 public class ShouldDestructureNode extends RubyContextSourceNode {
 
-    @Child private DispatchRespondToNode respondToToAry;
+    @Child private InternalRespondToNode respondToToAry;
 
     private final BranchProfile checkIsArrayProfile = BranchProfile.create();
 
@@ -40,7 +40,7 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
         if (respondToToAry == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToAry = insert(DispatchRespondToNode.create());
+            respondToToAry = insert(InternalRespondToNode.create());
         }
 
         // TODO(cseaton): check this is actually a static "find if there is such method" and not a

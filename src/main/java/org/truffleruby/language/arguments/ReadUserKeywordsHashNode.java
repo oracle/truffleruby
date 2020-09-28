@@ -17,13 +17,13 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.dispatch.DispatchRespondToNode;
+import org.truffleruby.language.dispatch.InternalRespondToNode;
 
 public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
 
     private final int minArgumentCount;
 
-    @Child private DispatchRespondToNode respondToToHashNode;
+    @Child private InternalRespondToNode respondToToHashNode;
     @Child private DispatchNode callToHashNode;
 
     private final ConditionProfile notEnoughArgumentsProfile = ConditionProfile.create();
@@ -68,7 +68,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(DispatchRespondToNode.create());
+            respondToToHashNode = insert(InternalRespondToNode.create());
         }
         return respondToToHashNode.execute(frame, lastArgument, "to_hash");
     }
