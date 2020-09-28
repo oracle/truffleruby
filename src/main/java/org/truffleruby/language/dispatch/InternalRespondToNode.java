@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
+import org.truffleruby.core.kernel.KernelNodes.RespondToNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -24,8 +25,8 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
  *
  * <p>
  * This does NOT call <code>respond_to_missing?</code> on the object, and as such is not a substitute for
- * {@link KernelNodes.RespondToNode} which implements the Ruby <code>Object#respond_to?</code>, and should be used in
- * almost all cases, especially when implementing Ruby methods with Java nodes. */
+ * {@link RespondToNode} which implements the Ruby <code>Object#respond_to?</code>, and should be used in almost all
+ * cases, especially when implementing Ruby methods with Java nodes. */
 public class InternalRespondToNode extends RubyBaseNode {
 
     // NOTE(norswap): cf. comment above static fields in DispatchNode to see why we need this field
