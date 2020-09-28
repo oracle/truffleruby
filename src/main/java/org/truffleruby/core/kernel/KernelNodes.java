@@ -1577,15 +1577,15 @@ public abstract class KernelNodes {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
             } else {
-                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatch.execute(frame, object, toJavaString.executeToJavaString(name));
             }
 
             if (isTrueProfile.profile(ret)) {
                 return true;
             } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object))) {
+                    .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
                 return respondToMissing(
                         frame,
                         object,
@@ -1606,15 +1606,15 @@ public abstract class KernelNodes {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
             } else {
-                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatch.execute(frame, object, toJavaString.executeToJavaString(name));
             }
 
             if (isTrueProfile.profile(ret)) {
                 return true;
             } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object))) {
+                    .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
                 return respondToMissing(frame, object, name, includeProtectedAndPrivate);
             } else {
                 return false;

@@ -113,7 +113,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public boolean isMemberReadable(String name,
             @Cached @Shared("definedNode") DispatchRespondToNode definedNode) {
-        return definedNode.doesRespondTo(null, name, this);
+        return definedNode.execute(null, this, name);
     }
 
     @ExportMessage
@@ -123,7 +123,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             @Cached @Exclusive DispatchNode dispatch,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
-        if (definedNode.doesRespondTo(null, name, this)) {
+        if (definedNode.execute(null, this, name)) {
             Object rubyName = nameToRubyNode.executeConvert(name);
             return dispatch.call(this, "method", rubyName);
         } else {
@@ -135,7 +135,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public boolean isMemberInvocable(String name,
             @Cached @Shared("definedNode") DispatchRespondToNode definedNode) {
-        return definedNode.doesRespondTo(null, name, this);
+        return definedNode.execute(null, this, name);
     }
 
     @ExportMessage
@@ -158,8 +158,8 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             @Cached @Shared("definedNode") DispatchRespondToNode definedNode,
             @Exclusive @Cached(parameters = "PUBLIC") DispatchRespondToNode definedPublicNode) {
         // defined but not publicly
-        return definedNode.doesRespondTo(null, name, this) &&
-                !definedPublicNode.doesRespondTo(null, name, this);
+        return definedNode.execute(null, this, name) &&
+                !definedPublicNode.execute(null, this, name);
     }
     // endregion
     // endregion

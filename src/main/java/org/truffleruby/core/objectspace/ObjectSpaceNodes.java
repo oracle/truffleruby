@@ -202,7 +202,7 @@ public abstract class ObjectSpaceNodes {
         protected RubyArray defineFinalizer(VirtualFrame frame, RubyDynamicObject object, Object finalizer,
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
-            if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
+            if (respondToCallNode.execute(frame, finalizer, "call")) {
                 if (getContext().getSharedObjects().isSharing()) {
                     // Share the finalizer, as it might run on a different Thread
                     writeBarrierNode.executeWriteBarrier(finalizer);

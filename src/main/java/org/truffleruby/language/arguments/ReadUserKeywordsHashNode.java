@@ -70,7 +70,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             respondToToHashNode = insert(DispatchRespondToNode.create());
         }
-        return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
+        return respondToToHashNode.execute(frame, lastArgument, "to_hash");
     }
 
     private Object callToHash(VirtualFrame frame, Object lastArgument) {

@@ -12,7 +12,6 @@ package org.truffleruby.language.dispatch;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -20,6 +19,13 @@ import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 
+/** Determines if an objects "responds to" a method, meaning the method can be looked up and is
+ * {@link InternalMethod#isDefined() defined} and {@link InternalMethod#isImplemented() implemented}.
+ *
+ * <p>
+ * This does NOT call <code>respond_to_missing?</code> on the object, and as such is not a substitute for
+ * {@link KernelNodes.RespondToNode} which implements the Ruby <code>Object#respond_to?</code>, and should be used in
+ * almost all cases, especially when implementing Ruby methods with Java nodes. */
 public class DispatchRespondToNode extends RubyBaseNode {
 
     // NOTE(norswap): cf. comment above static fields in DispatchNode to see why we need this field
@@ -58,11 +64,7 @@ public class DispatchRespondToNode extends RubyBaseNode {
         this(config, MetaClassNode.create(), LookupMethodNode.create());
     }
 
-    public boolean doesRespondTo(VirtualFrame frame, String methodName, Object receiver) {
-        return (boolean) execute(frame, receiver, methodName, null, EMPTY_ARGUMENTS);
-    }
-
-    public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
+    public boolean execute(VirtualFrame frame, Object receiver, String methodName) {
         final RubyClass metaclass = metaclassNode.execute(receiver);
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
         return method != null && method.isDefined() && method.isImplemented();
@@ -82,9 +84,8 @@ public class DispatchRespondToNode extends RubyBaseNode {
         }
 
         @Override
-        public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block,
-                Object[] arguments) {
-            return super.execute(null, receiver, methodName, block, arguments);
+        public boolean execute(VirtualFrame frame, Object receiver, String methodName) {
+            return super.execute(null, receiver, methodName);
         }
 
         @Override

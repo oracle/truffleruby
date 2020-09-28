@@ -45,7 +45,7 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
         // TODO(cseaton): check this is actually a static "find if there is such method" and not a
         // dynamic call to respond_to?
-        return respondToToAry.doesRespondTo(frame, "to_ary", firstArgument);
+        return respondToToAry.execute(frame, firstArgument, "to_ary");
     }
 
 }

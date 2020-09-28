@@ -396,7 +396,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             Object iVar = objectLibrary.getOrDefault(this, name, null);
             if (ivarFoundProfile.profile(iVar != null)) {
                 return iVar;
-            } else if (definedNode.doesRespondTo(null, name, this)) {
+            } else if (definedNode.execute(null, this, name)) {
                 return dispatch.call(this, "method", rubyName);
             } else {
                 errorProfile.enter();
@@ -519,7 +519,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (ivarFoundProfile.profile(objectLibrary.containsKey(this, name))) {
                 return true;
             } else {
-                return definedNode.doesRespondTo(null, name, this);
+                return definedNode.execute(null, this, name);
             }
         } else {
             return booleanCastNode.executeToBoolean(dynamic);
@@ -618,7 +618,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (ivarFoundProfile.profile(iVar != null)) {
                 return false;
             } else {
-                return definedNode.doesRespondTo(null, name, this);
+                return definedNode.execute(null, this, name);
             }
         } else {
             return booleanCastNode.executeToBoolean(dynamic);
@@ -643,8 +643,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
                 return true;
             } else {
                 // defined but not publicly
-                return definedNode.doesRespondTo(null, name, this) &&
-                        !definedPublicNode.doesRespondTo(null, name, this);
+                return definedNode.execute(null, this, name) &&
+                        !definedPublicNode.execute(null, this, name);
             }
         } else {
             return booleanCastNode.executeToBoolean(dynamic);
@@ -686,7 +686,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public boolean isInstantiable(
             @Exclusive @Cached(parameters = "PUBLIC") DispatchRespondToNode doesRespond) {
-        return doesRespond.doesRespondTo(null, "new", this);
+        return doesRespond.execute(null, this, "new");
     }
 
     @ExportMessage
