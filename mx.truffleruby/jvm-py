@@ -1,2 +1,2 @@
 DYNAMIC_IMPORTS=/tools,graalpython
-COMPONENTS=TruffleRuby,Graal.Python,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage
+COMPONENTS=TruffleRuby,Graal.Python,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage,VisualVM

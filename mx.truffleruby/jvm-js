@@ -1,2 +1,2 @@
 DYNAMIC_IMPORTS=/tools,/graal-js
-COMPONENTS=TruffleRuby,Graal.js,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage
+COMPONENTS=TruffleRuby,Graal.js,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage,VisualVM
