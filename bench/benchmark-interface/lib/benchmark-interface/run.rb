@@ -30,6 +30,8 @@ module BenchmarkInterface
       '--freq' => 1,
       '--elapsed' => false,
       '--iterations' => false,
+      '--ips' => false,
+      '--fixed-iterations' => [],
       '--log' => nil,
       '--tag' => [],
       '--prop' => {}
@@ -49,6 +51,9 @@ module BenchmarkInterface
             backend = BenchmarkInterface::Backends::Simple
           when '--stable'
             backend = BenchmarkInterface::Backends::Stable
+          when '--fixed-iterations'
+            backend = BenchmarkInterface::Backends::FixedIterations
+            options[arg] = args[n += 1].split(',').map { |iter| Integer(iter) }
           when '--bips'
             backend = BenchmarkInterface::Backends::Bips
           when '--bm'
@@ -71,6 +76,8 @@ module BenchmarkInterface
             options[arg] = Float(args[n + 1])
             n += 1
           when '--elapsed'
+            options[arg] = true
+          when '--ips'
             options[arg] = true
           when '--log'
             options[arg] = args[n + 1]
@@ -148,9 +155,10 @@ module BenchmarkInterface
     puts '  list      list benchmarks available in the files'
     puts
     puts 'Backends:'
-    puts '  --simple'
+    puts '  --simple (default)'
     puts '  --stable'
-    puts '  --bips (default)'
+    puts '  --fixed-iterations ITERS1,ITERS2,...'
+    puts '  --bips'
     puts '  --bm'
     puts '  --bmbm'
     puts '  --bench9000'

@@ -1,0 +1,48 @@
+# Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 2.0, or
+# GNU General Public License version 2, or
+# GNU Lesser General Public License version 2.1.
+
+module BenchmarkInterface
+  module Backends
+    module FixedIterations
+
+      def self.get_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
+      def self.run(benchmark_set, names, options)
+        print_iterations = options['--iterations']
+        elapsed = options['--elapsed']
+        print_ips = options['--ips']
+
+        fixed_iterations = options['--fixed-iterations'].sort
+        total_iterations = fixed_iterations.last
+
+        benchmark_set.benchmarks(names).each do |benchmark|
+          puts benchmark.name
+          block = benchmark.block
+
+          next_iter = fixed_iterations.shift
+          start_time = get_time
+          (1..total_iterations).each do |iter|
+            block.call
+
+            if iter == next_iter
+              since_start = get_time - start_time
+              puts iter if print_iterations
+              puts since_start if elapsed
+              puts iter / since_start if print_ips
+
+              next_iter = fixed_iterations.shift
+            end
+          end
+        end
+      end
+
+    end
+  end
+end
