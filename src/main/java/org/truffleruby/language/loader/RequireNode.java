@@ -23,7 +23,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
@@ -63,7 +62,7 @@ public abstract class RequireNode extends RubyContextNode {
 
     @Specialization
     protected boolean require(String feature, RubyString expandedPathString) {
-        final String expandedPath = StringOperations.getString(expandedPathString);
+        final String expandedPath = expandedPathString.getJavaString();
         return requireWithMetrics(feature, expandedPath, expandedPathString);
     }
 

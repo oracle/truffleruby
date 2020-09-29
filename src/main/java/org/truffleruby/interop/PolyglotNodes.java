@@ -63,8 +63,8 @@ public abstract class PolyglotNodes {
 
         @TruffleBoundary
         protected CallTarget parse(RubyString id, RubyString code) {
-            final String idString = StringOperations.getString(id);
-            final String codeString = StringOperations.getString(code);
+            final String idString = id.getJavaString();
+            final String codeString = code.getJavaString();
             final Source source = Source.newBuilder(idString, codeString, "(eval)").build();
             try {
                 return getContext().getEnv().parsePublic(source);
@@ -92,7 +92,7 @@ public abstract class PolyglotNodes {
         protected Object evalFile(RubyString fileName, NotProvided id) {
             final Source source;
             //intern() to improve footprint
-            final String path = StringOperations.getString(fileName).intern();
+            final String path = fileName.getJavaString().intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
@@ -112,7 +112,7 @@ public abstract class PolyglotNodes {
         @TruffleBoundary
         @Specialization
         protected Object evalFile(RubyString id, RubyString fileName) {
-            final String idString = StringOperations.getString(id);
+            final String idString = id.getJavaString();
             final Source source = getSource(idString, fileName);
             return eval(source);
         }
@@ -129,7 +129,7 @@ public abstract class PolyglotNodes {
 
         private Source getSource(String language, RubyString fileName) {
             //intern() to improve footprint
-            final String path = StringOperations.getString(fileName).intern();
+            final String path = fileName.getJavaString().intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 return Source.newBuilder(language, file).build();

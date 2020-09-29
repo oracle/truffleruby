@@ -114,7 +114,7 @@ public class BacktraceFormatter {
                 context.getCoreLibrary().truffleExceptionOperationsModule,
                 "get_formatted_backtrace",
                 rubyException);
-        final String formatted = StringOperations.getString((RubyString) fullMessage);
+        final String formatted = ((RubyString) fullMessage).getJavaString();
         if (formatted.endsWith("\n")) {
             printer.print(formatted);
         } else {

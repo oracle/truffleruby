@@ -1338,7 +1338,7 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString forceEncodingString(RubyString string, RubyString encoding,
                 @Cached BranchProfile errorProfile) {
-            final String stringName = StringOperations.getString(encoding);
+            final String stringName = encoding.getJavaString();
             final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
@@ -2785,7 +2785,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         protected RootCallTarget compileFormat(RubyString format) {
-            return new UnpackCompiler(getContext(), this).compile(StringOperations.getString(format));
+            return new UnpackCompiler(getContext(), this).compile(format.getJavaString());
         }
 
         protected int getCacheLimit() {
@@ -3824,7 +3824,7 @@ public abstract class StringNodes {
             if (rope.isEmpty()) {
                 return nil;
             }
-            final String javaString = StringOperations.getString(string);
+            final String javaString = string.getJavaString();
             if (javaString.startsWith("0x")) {
                 try {
                     return Double.parseDouble(javaString);

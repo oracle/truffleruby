@@ -47,7 +47,7 @@ public abstract class ToJavaStringNode extends RubySourceNode {
             limit = "getLimit()")
     protected String stringCached(RubyString value,
             @Cached("privatizeRope(value)") Rope cachedRope,
-            @Cached("getString(value)") String convertedString,
+            @Cached("value.getJavaString()") String convertedString,
             @Cached RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }

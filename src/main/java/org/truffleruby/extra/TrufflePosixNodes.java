@@ -13,7 +13,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.time.GetTimeZoneNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -35,7 +34,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString invalidate(RubyString envVar) {
-            invalidateENV(StringOperations.getString(envVar));
+            invalidateENV(envVar.getJavaString());
             return envVar;
         }
 

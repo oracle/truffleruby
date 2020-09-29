@@ -86,10 +86,6 @@ public abstract class StringOperations {
         return instance;
     }
 
-    public static String getString(RubyString string) {
-        return RopeOperations.decodeRope(string.rope);
-    }
-
     public static int clampExclusiveIndex(int length, int index) {
         return ArrayOperations.clampExclusiveIndex(length, index);
     }

@@ -12,7 +12,6 @@ package org.truffleruby.language;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -24,7 +23,7 @@ public class AutoloadConstant {
 
     AutoloadConstant(RubyString feature) {
         this.feature = feature;
-        this.autoloadPath = StringOperations.getString(this.feature);
+        this.autoloadPath = this.feature.getJavaString();
     }
 
     public String getAutoloadPath() {

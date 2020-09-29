@@ -42,7 +42,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
@@ -104,7 +103,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected RubyHandle setBreak(RubyString file, int line, RubyProc block) {
-            final String fileString = StringOperations.getString(file);
+            final String fileString = file.getJavaString();
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
@@ -423,7 +422,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object throwJavaException(RubyString message) {
-            callingMethod(StringOperations.getString(message));
+            callingMethod(message.getJavaString());
             return nil;
         }
 
@@ -446,7 +445,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object throwJavaExceptionWithCause(RubyString message) {
             throw new RuntimeException(
-                    StringOperations.getString(message),
+                    message.getJavaString(),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
@@ -458,7 +457,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object throwAssertionError(RubyString message) {
-            throw new AssertionError(StringOperations.getString(message));
+            throw new AssertionError(message.getJavaString());
         }
 
     }
@@ -836,7 +835,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object foreignString(RubyString string) {
-            return new ForeignString(StringOperations.getString(string));
+            return new ForeignString(string.getJavaString());
         }
 
     }

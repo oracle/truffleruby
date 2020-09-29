@@ -1142,7 +1142,7 @@ public class CExtNodes {
 
                     representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
                 } else if (RubyGuards.isRubyValue(object)) {
-                    representation = object.toString() + " (" + StringOperations.getString(callToS(object)) + ")";
+                    representation = object.toString() + " (" + callToS(object).getJavaString() + ")";
                 } else {
                     representation = object.toString();
                 }
