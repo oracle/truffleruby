@@ -61,8 +61,8 @@ module BenchmarkInterface
               # can print an ips and adjust for the next round to try to make
               # it take a second.
               ips = iterations / round_time
-              puts get_time - start_time if elapsed
               puts iterations if print_iterations
+              puts get_time - start_time if elapsed
               puts ips * inner_iterations
               iterations = (ips * freq).to_i
             end

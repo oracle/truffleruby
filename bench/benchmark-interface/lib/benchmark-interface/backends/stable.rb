@@ -30,8 +30,8 @@ module BenchmarkInterface
             round_time = Time.now - start_round_time
             
             ips = 1 / round_time
-            puts Time.now - start_time if elapsed
             puts 1 if print_iterations
+            puts Time.now - start_time if elapsed
             puts ips * inner_iterations
           end
         end
