@@ -2497,6 +2497,10 @@ EOS
     require_relative 'docker'
     JT::Docker.new.docker(*args)
   end
+
+  def visualvm
+    raw_sh "#{graalvm_home}/bin/jvisualvm"
+  end
 end
 
 class JT
