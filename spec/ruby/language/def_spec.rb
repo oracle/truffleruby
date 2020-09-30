@@ -97,7 +97,7 @@ describe "An instance method" do
         def foo; end
       end
     }.should raise_error(FrozenError) { |e|
-      e.message.should == "can't modify frozen module"
+      e.message.should.start_with? "can't modify frozen module"
     }
 
     -> {
@@ -106,7 +106,7 @@ describe "An instance method" do
         def foo; end
       end
     }.should raise_error(FrozenError){ |e|
-      e.message.should == "can't modify frozen class"
+      e.message.should.start_with? "can't modify frozen class"
     }
   end
 end
@@ -291,18 +291,18 @@ describe "A singleton method definition" do
     obj = Object.new
     obj.freeze
     -> { def obj.foo; end }.should raise_error(FrozenError){ |e|
-      e.message.should == "can't modify frozen object"
+      e.message.should.start_with? "can't modify frozen object"
     }
 
     c = obj.singleton_class
     -> { def c.foo; end }.should raise_error(FrozenError){ |e|
-      e.message.should == "can't modify frozen Class"
+      e.message.should.start_with? "can't modify frozen Class"
     }
 
     m = Module.new
     m.freeze
     -> { def m.foo; end }.should raise_error(FrozenError){ |e|
-      e.message.should == "can't modify frozen Module"
+      e.message.should.start_with? "can't modify frozen Module"
     }
   end
 end

@@ -122,11 +122,11 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     protected void ambiguousOperator(String op, String syn) {
-        warnings.warn(
+        warnings.warning(
                 getFile(),
                 getPosition().toSourceSection(src.getSource()).getStartLine(),
                 "`" + op + "' after local variable or literal is interpreted as binary operator");
-        warnings.warn(
+        warnings.warning(
                 getFile(),
                 getPosition().toSourceSection(src.getSource()).getStartLine(),
                 "even though it seems like " + syn);

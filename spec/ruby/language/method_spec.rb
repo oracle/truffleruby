@@ -596,7 +596,9 @@ describe "A method" do
       m(a: 1, b: 2).should == { a: 1, b: 2 }
       m(*[]).should == {}
       m(**{}).should == {}
-      m(**{a: 1, b: 2}, **{a: 4, c: 7}).should == { a: 4, b: 2, c: 7 }
+      suppress_warning {
+        eval "m(**{a: 1, b: 2}, **{a: 4, c: 7})"
+      }.should == { a: 4, b: 2, c: 7 }
       -> { m(2) }.should raise_error(ArgumentError)
     end
 
@@ -733,7 +735,7 @@ describe "A method" do
       end
     end
 
-    ruby_version_is ""..."2.8" do
+    ruby_version_is ""..."3.0" do
       evaluate <<-ruby do
           def m(a, b: 1) [a, b] end
         ruby
@@ -768,7 +770,7 @@ describe "A method" do
       end
     end
 
-    ruby_version_is "2.8" do
+    ruby_version_is "3.0" do
       evaluate <<-ruby do
           def m(a, b: 1) [a, b] end
         ruby
@@ -905,7 +907,7 @@ describe "A method" do
       result.should == [[1, 2, 3], 4, [5, 6], 7, [], 8]
     end
 
-    ruby_version_is ""..."2.8" do
+    ruby_version_is ""..."3.0" do
       evaluate <<-ruby do
           def m(a=1, b:) [a, b] end
         ruby
@@ -930,7 +932,7 @@ describe "A method" do
       end
     end
 
-    ruby_version_is "2.8" do
+    ruby_version_is "3.0" do
       evaluate <<-ruby do
           def m(a=1, b:) [a, b] end
         ruby
@@ -1167,7 +1169,7 @@ describe "A method" do
       end
     end
 
-    ruby_version_is "2.7"...'2.8' do
+    ruby_version_is "2.7"...'3.0' do
       evaluate <<-ruby do
           def m(*, a:) a end
         ruby
@@ -1626,7 +1628,7 @@ describe "A method" do
       result.should == [1, 1, [], 2, 3, 2, 4, { h: 5, i: 6 }, l]
     end
 
-    ruby_version_is ''...'2.8' do
+    ruby_version_is ''...'3.0' do
       evaluate <<-ruby do
           def m(a, b = nil, c = nil, d, e: nil, **f)
             [a, b, c, d, e, f]
@@ -1646,7 +1648,7 @@ describe "A method" do
       end
     end
 
-    ruby_version_is '2.8' do
+    ruby_version_is '3.0' do
       evaluate <<-ruby do
           def m(a, b = nil, c = nil, d, e: nil, **f)
             [a, b, c, d, e, f]
@@ -1665,7 +1667,7 @@ describe "A method" do
     end
   end
 
-  ruby_version_is ''...'2.8' do
+  ruby_version_is ''...'3.0' do
     context "assigns keyword arguments from a passed Hash without modifying it" do
       evaluate <<-ruby do
           def m(a: nil); a; end
@@ -1682,7 +1684,7 @@ describe "A method" do
     end
   end
 
-  ruby_version_is '2.8' do
+  ruby_version_is '3.0' do
     context "raises ArgumentError if passing hash as keyword arguments" do
       evaluate <<-ruby do
           def m(a: nil); a; end
@@ -1787,7 +1789,7 @@ describe "An array-dereference method ([])" do
   end
 end
 
-ruby_version_is '2.8' do
+ruby_version_is '3.0' do
   describe "An endless method definition" do
     evaluate <<-ruby do
       def m(a) = a
