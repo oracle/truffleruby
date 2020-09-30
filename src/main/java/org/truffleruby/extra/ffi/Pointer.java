@@ -97,6 +97,7 @@ public class Pointer implements AutoCloseable {
         writeByte(offset + length, (byte) 0);
     }
 
+    @TruffleBoundary
     public void writeBytes(long offset, long size, byte value) {
         assert address + offset != 0 || size == 0;
         UNSAFE.setMemory(address + offset, size, value);
