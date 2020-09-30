@@ -134,6 +134,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
+    public final Assumption singleContextAssumption = Truffle
+            .getRuntime()
+            .createAssumption("single RubyContext per RubyLanguage instance");
 
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
@@ -223,6 +226,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected void initializeMultipleContexts() {
         // TODO Make Symbol.all_symbols per context, by having a SymbolTable per context and creating new symbols with
         //  the per-language SymbolTable.
+        singleContextAssumption.invalidate();
     }
 
     @Override

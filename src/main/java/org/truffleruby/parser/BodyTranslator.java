@@ -3157,11 +3157,10 @@ public class BodyTranslator extends Translator {
                 return node;
             }
 
-            if (context.getCoverageManager().isEnabled()) {
+            if (language.singleContextAssumption.isValid() && context.getCoverageManager().isEnabled()) {
                 node.unsafeSetIsCoverageLine();
                 context.getCoverageManager().setLineHasCode(source, current.toSourceSection(source).getStartLine());
             }
-
             node.unsafeSetIsNewLine();
         }
 
