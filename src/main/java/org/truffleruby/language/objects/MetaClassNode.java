@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
@@ -24,7 +23,6 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-@ReportPolymorphism
 @GenerateUncached
 public abstract class MetaClassNode extends RubyBaseNode {
 
