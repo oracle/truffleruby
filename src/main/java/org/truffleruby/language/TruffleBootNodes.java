@@ -26,7 +26,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -118,8 +117,8 @@ public abstract class TruffleBootNodes {
                 // Need to set $0 before loading required libraries
                 // Also, a non-existing main script file errors out before loading required libraries
                 final RubySource source = loadMainSourceSettingDollarZero(
-                        StringOperations.getString(kind),
-                        StringOperations.getString(toExecute).intern()); //intern() to improve footprint
+                        kind.getJavaString(),
+                        toExecute.getJavaString().intern()); //intern() to improve footprint
 
                 // Load libraries required from the command line (-r LIBRARY)
                 for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
@@ -312,7 +311,7 @@ public abstract class TruffleBootNodes {
                                 this));
             }
 
-            final String optionNameString = StringOperations.getString(optionName);
+            final String optionNameString = optionName.getJavaString();
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
 
             if (descriptor == null) {

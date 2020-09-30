@@ -619,7 +619,7 @@ public abstract class RubyDateFormatter {
 
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
         if (zone instanceof RubyString) {
-            return StringOperations.getString((RubyString) zone);
+            return ((RubyString) zone).getJavaString();
         } else {
             return "";
         }

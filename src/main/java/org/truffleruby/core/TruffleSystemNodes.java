@@ -59,7 +59,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -131,7 +130,7 @@ public abstract class TruffleSystemNodes {
         @TruffleBoundary
         @Specialization
         protected Object setTruffleWorkingDir(RubyString dir) {
-            TruffleFile truffleFile = getContext().getEnv().getPublicTruffleFile(StringOperations.getString(dir));
+            TruffleFile truffleFile = getContext().getEnv().getPublicTruffleFile(dir.getJavaString());
             final TruffleFile canonicalFile;
             try {
                 canonicalFile = truffleFile.getCanonicalFile();
@@ -154,7 +153,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         protected Object getJavaProperty(RubyString property) {
-            String value = getProperty(StringOperations.getString(property));
+            String value = getProperty(property.getJavaString());
             if (value == null) {
                 return nil;
             } else {
@@ -211,13 +210,13 @@ public abstract class TruffleSystemNodes {
         protected Object logCached(RubySymbol level, RubyString message,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            log(javaLevel, StringOperations.getString(message));
+            log(javaLevel, message.getJavaString());
             return nil;
         }
 
         @Specialization(replaces = "logCached")
         protected Object log(RubySymbol level, RubyString message) {
-            log(getLevel(level), StringOperations.getString(message));
+            log(getLevel(level), message.getJavaString());
             return nil;
         }
 
@@ -246,7 +245,7 @@ public abstract class TruffleSystemNodes {
         @Specialization
         protected RubyString setProcessTitle(RubyString name) {
             if (TruffleOptions.AOT) {
-                ProcessProperties.setArgumentVectorProgramName(StringOperations.getString(name));
+                ProcessProperties.setArgumentVectorProgramName(name.getJavaString());
             } else {
                 // already checked in the caller
                 throw CompilerDirectives.shouldNotReachHere();

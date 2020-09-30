@@ -260,7 +260,7 @@ public abstract class KernelNodes {
         protected Object findFile(RubyString featureString,
                 @Cached BranchProfile notFoundProfile,
                 @Cached MakeStringNode makeStringNode) {
-            String feature = StringOperations.getString(featureString);
+            String feature = featureString.getJavaString();
             return findFileString(feature, notFoundProfile, makeStringNode);
         }
 
@@ -286,7 +286,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         protected RubyString getCallerPath(RubyString feature,
                 @Cached MakeStringNode makeStringNode) {
-            final String featureString = StringOperations.getString(feature);
+            final String featureString = feature.getJavaString();
             final String featurePath;
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
@@ -328,7 +328,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean loadFeature(RubyString featureString, RubyString expandedPathString) {
-            return requireNode.executeRequire(StringOperations.getString(featureString), expandedPathString);
+            return requireNode.executeRequire(featureString.getJavaString(), expandedPathString);
         }
 
     }

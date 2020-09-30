@@ -91,7 +91,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
         }
 
         if (RubyGuards.isRubyString(coerced)) {
-            return StringOperations.getString((RubyString) coerced);
+            return ((RubyString) coerced).getJavaString();
         } else {
             errorProfile.enter();
             throw new RaiseException(context, context.getCoreExceptions().typeErrorBadCoercion(

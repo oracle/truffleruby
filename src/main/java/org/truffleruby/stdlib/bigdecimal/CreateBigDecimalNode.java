@@ -22,7 +22,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -209,7 +208,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @TruffleBoundary
     @Specialization
     protected RubyBigDecimal createString(RubyString value, int digits, boolean strict) {
-        return executeCreate(getValueFromString(StringOperations.getString(value), digits, strict), digits, strict);
+        return executeCreate(getValueFromString(value.getJavaString(), digits, strict), digits, strict);
     }
 
     @Specialization(guards = { "!isRubyBignum(value)", "!isRubyBigDecimal(value)", "!isRubyString(value)" })

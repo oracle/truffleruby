@@ -25,7 +25,6 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyNode;
@@ -79,7 +78,7 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected boolean load(RubyString file, boolean wrap,
                 @Cached IndirectCallNode callNode) {
-            final String feature = StringOperations.getString(file);
+            final String feature = file.getJavaString();
             final RubySource source;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext());

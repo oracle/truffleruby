@@ -44,7 +44,6 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
@@ -565,7 +564,7 @@ public abstract class EncodingNodes {
         @TruffleBoundary
         @Specialization
         protected Object getDefaultEncoding(RubyString name) {
-            final Encoding encoding = getEncoding(StringOperations.getString(name));
+            final Encoding encoding = getEncoding(name.getJavaString());
             if (encoding == null) {
                 return nil;
             } else {
@@ -629,7 +628,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected int encodingFindIndex(RubyString nameObject) {
-            final String name = StringOperations.getString(nameObject);
+            final String name = nameObject.getJavaString();
             final RubyEncoding encodingObject = getContext().getEncodingManager().getRubyEncoding(name);
             return encodingObject != null ? encodingObject.encoding.getIndex() : -1;
         }
@@ -696,7 +695,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyArray encodingReplicate(RubyEncoding object, RubyString nameObject) {
-            final String name = StringOperations.getString(nameObject);
+            final String name = nameObject.getJavaString();
             final Encoding encoding = object.encoding;
 
             final RubyEncoding newEncoding = replicate(name, encoding);
@@ -715,7 +714,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyArray createDummyEncoding(RubyString nameObject) {
-            final String name = StringOperations.getString(nameObject);
+            final String name = nameObject.getJavaString();
 
             final RubyEncoding newEncoding = createDummy(name);
             return setIndexOrRaiseError(name, newEncoding);

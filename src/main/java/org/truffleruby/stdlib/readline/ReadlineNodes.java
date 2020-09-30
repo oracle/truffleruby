@@ -80,7 +80,7 @@ public abstract class ReadlineNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString setBasicWordBreakCharacters(RubyString characters) {
-            final String delimiters = StringOperations.getString(characters);
+            final String delimiters = characters.getJavaString();
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
         }
@@ -293,7 +293,7 @@ public abstract class ReadlineNodes {
                     .createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             RubyArray completions = (RubyArray) context.send(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
-                final String completion = StringOperations.getString((RubyString) element);
+                final String completion = ((RubyString) element).getJavaString();
                 candidates.add(new Candidate(completion + after, completion, null, null, null, null, complete));
             }
         }

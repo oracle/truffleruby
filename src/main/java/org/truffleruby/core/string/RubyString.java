@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
@@ -50,7 +51,7 @@ public class RubyString extends RubyDynamicObject {
     }
 
     public String getJavaString() {
-        return StringOperations.getString(this);
+        return RopeOperations.decodeRope(rope);
     }
 
     // region RubyLibrary messages

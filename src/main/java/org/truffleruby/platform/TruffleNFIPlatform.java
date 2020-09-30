@@ -11,7 +11,6 @@ package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 
@@ -85,7 +84,7 @@ public class TruffleNFIPlatform {
 
     public String resolveType(NativeConfiguration nativeConfiguration, String type) {
         final Object typedef = resolveTypeRaw(nativeConfiguration, type);
-        return toNFIType(StringOperations.getString((RubyString) typedef));
+        return toNFIType(((RubyString) typedef).getJavaString());
     }
 
     private String toNFIType(String type) {

@@ -62,7 +62,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyDynamicObject;
@@ -234,8 +233,8 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected boolean restoreDefault(RubyString signalString, RubyString action) {
-            final String actionString = StringOperations.getString(action);
-            final String signalName = StringOperations.getString(signalString);
+            final String actionString = action.getJavaString();
+            final String signalName = signalString.getJavaString();
 
             switch (actionString) {
                 case "DEFAULT":
@@ -259,7 +258,7 @@ public abstract class VMPrimitiveNodes {
 
             final RubyContext context = getContext();
 
-            String signalName = StringOperations.getString(signalString);
+            String signalName = signalString.getJavaString();
             return registerHandler(signalName, signal -> {
                 if (context.getOptions().SINGLE_THREADED) {
                     RubyLanguage.LOGGER.severe(
@@ -378,7 +377,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected Object get(RubyString key) {
-            final Object value = getContext().getNativeConfiguration().get(StringOperations.getString(key));
+            final Object value = getContext().getNativeConfiguration().get(key.getJavaString());
 
             if (value == null) {
                 return nil;
@@ -399,7 +398,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
-                    .getSection(StringOperations.getString(section))) {
+                    .getSection(section.getJavaString())) {
                 final RubyString key = makeStringNode
                         .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, key, entry.getValue());

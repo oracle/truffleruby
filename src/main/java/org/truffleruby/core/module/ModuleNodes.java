@@ -596,7 +596,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object isAutoloadString(RubyModule module, RubyString name) {
-            return isAutoload(module, StringOperations.getString(name));
+            return isAutoload(module, name.getJavaString());
         }
 
         private Object isAutoload(RubyModule module, String name) {
@@ -646,7 +646,7 @@ public abstract class ModuleNodes {
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
-            return classEvalSource(frame, module, code, StringOperations.getString(file), callNode);
+            return classEvalSource(frame, module, code, file.getJavaString(), callNode);
         }
 
         @Specialization
@@ -662,7 +662,7 @@ public abstract class ModuleNodes {
                     frame,
                     module,
                     code,
-                    StringOperations.getString(file),
+                    file.getJavaString(),
                     line);
             return deferredCall.call(callNode);
         }
@@ -688,7 +688,7 @@ public abstract class ModuleNodes {
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
-            return classEvalSource(frame, module, code, StringOperations.getString(toStr(frame, file)), callNode);
+            return classEvalSource(frame, module, code, toStr(frame, file).getJavaString(), callNode);
         }
 
         private Object classEvalSource(VirtualFrame frame, RubyModule module, RubyString code, String file,
@@ -973,7 +973,7 @@ public abstract class ModuleNodes {
                 limit = "getLimit()")
         protected Object getConstantStringCached(RubyModule module, RubyString name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
-                @Cached("getString(name)") String cachedString,
+                @Cached("name.getJavaString()") String cachedString,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
             return getConstant(module, cachedString);
@@ -983,12 +983,12 @@ public abstract class ModuleNodes {
                 guards = { "inherit", "!isScoped(name)" },
                 replaces = "getConstantStringCached")
         protected Object getConstantString(RubyModule module, RubyString name, boolean inherit) {
-            return getConstant(module, StringOperations.getString(name));
+            return getConstant(module, name.getJavaString());
         }
 
         @Specialization(guards = { "!inherit", "!isScoped(name)" })
         protected Object getConstantNoInheritString(RubyModule module, RubyString name, boolean inherit) {
-            return getConstantNoInherit(module, StringOperations.getString(name));
+            return getConstantNoInherit(module, name.getJavaString());
         }
 
         // Scoped String
@@ -1015,7 +1015,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         boolean isScoped(RubyString name) {
             // TODO (eregon, 27 May 2015): Any way to make this efficient?
-            return StringOperations.getString(name).contains("::");
+            return name.getJavaString().contains("::");
         }
 
         boolean isScoped(String name) {
@@ -1932,7 +1932,7 @@ public abstract class ModuleNodes {
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
-                    attachedName = StringOperations.getString((RubyString) inspectResult);
+                    attachedName = ((RubyString) inspectResult).getJavaString();
                 }
                 moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {

@@ -99,7 +99,7 @@ public abstract class InteropNodes {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
-                        .getPublicTruffleFile(StringOperations.getString(fileName).intern());
+                        .getPublicTruffleFile(fileName.getJavaString().intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
@@ -1029,7 +1029,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization
         protected boolean isMimeTypeSupported(RubyString mimeType) {
-            return getContext().getEnv().isMimeTypeSupported(StringOperations.getString(mimeType));
+            return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
         }
 
     }
@@ -1090,8 +1090,8 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         protected CallTarget parse(RubyString mimeType, RubyString code) {
-            final String mimeTypeString = StringOperations.getString(mimeType);
-            final String codeString = StringOperations.getString(code);
+            final String mimeTypeString = mimeType.getJavaString();
+            final String codeString = code.getJavaString();
             String language = Source.findLanguage(mimeTypeString);
             if (language == null) {
                 // Give the original string to get the nice exception from Truffle
@@ -1122,7 +1122,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         protected CallTarget parse(RubyString code) {
-            final String codeString = StringOperations.getString(code);
+            final String codeString = code.getJavaString();
             final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
 
             try {
@@ -1355,7 +1355,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization
         protected Object javaTypeString(RubyString name) {
-            return javaType(StringOperations.getString(name));
+            return javaType(name.getJavaString());
         }
 
         private Object javaType(String name) {

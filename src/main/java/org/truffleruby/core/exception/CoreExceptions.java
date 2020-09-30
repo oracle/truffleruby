@@ -198,7 +198,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException argumentErrorInvalidStringToInteger(RubyString object, Node currentNode) {
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
-        final String formattedObject = StringOperations.getString((RubyString) context.send(object, "inspect"));
+        final String formattedObject = ((RubyString) context.send(object, "inspect")).getJavaString();
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
     }
 
@@ -578,7 +578,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         RubyArray rubyArray = createArray(context, exception.getSuppliedValues());
-        String formattedValues = StringOperations.getString((RubyString) context.send(rubyArray, "inspect"));
+        String formattedValues = ((RubyString) context.send(rubyArray, "inspect")).getJavaString();
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 
