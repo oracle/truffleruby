@@ -10,9 +10,7 @@
 package org.truffleruby.core.kernel;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DOES_RESPOND;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -102,6 +100,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -1549,9 +1548,9 @@ public abstract class KernelNodes {
     @NodeChild(value = "includeProtectedAndPrivate", type = RubyNode.class)
     public abstract static class RespondToNode extends CoreMethodNode {
 
-        @Child private DispatchNode dispatch;
-        @Child private DispatchNode dispatchIgnoreVisibility;
-        @Child private DispatchNode dispatchRespondToMissing;
+        @Child private InternalRespondToNode dispatch;
+        @Child private InternalRespondToNode dispatchIgnoreVisibility;
+        @Child private InternalRespondToNode dispatchRespondToMissing;
         @Child private DispatchNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
@@ -1559,9 +1558,9 @@ public abstract class KernelNodes {
         private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
-            dispatch = DispatchNode.create(PUBLIC_DOES_RESPOND);
-            dispatchIgnoreVisibility = DispatchNode.create(PRIVATE_DOES_RESPOND);
-            dispatchRespondToMissing = DispatchNode.create(PRIVATE_DOES_RESPOND);
+            dispatch = InternalRespondToNode.create(PUBLIC);
+            dispatchIgnoreVisibility = InternalRespondToNode.create();
+            dispatchRespondToMissing = InternalRespondToNode.create();
         }
 
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,
@@ -1582,15 +1581,15 @@ public abstract class KernelNodes {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
             } else {
-                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatch.execute(frame, object, toJavaString.executeToJavaString(name));
             }
 
             if (isTrueProfile.profile(ret)) {
                 return true;
             } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object))) {
+                    .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
                 return respondToMissing(
                         frame,
                         object,
@@ -1611,15 +1610,15 @@ public abstract class KernelNodes {
             final boolean ret;
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
             } else {
-                ret = dispatch.doesRespondTo(frame, toJavaString.executeToJavaString(name), object);
+                ret = dispatch.execute(frame, object, toJavaString.executeToJavaString(name));
             }
 
             if (isTrueProfile.profile(ret)) {
                 return true;
             } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.doesRespondTo(frame, "respond_to_missing?", object))) {
+                    .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
                 return respondToMissing(frame, object, name, includeProtectedAndPrivate);
             } else {
                 return false;

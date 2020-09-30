@@ -26,6 +26,7 @@ import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.TranslateInteropRubyExceptionNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -235,7 +236,6 @@ public abstract class RubyDynamicObject extends DynamicObject {
     }
 
     @ExportMessage
-    @SuppressWarnings("unused") // because of throws in ArrayMessages
     public Object readArrayElement(long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
@@ -254,7 +254,6 @@ public abstract class RubyDynamicObject extends DynamicObject {
     }
 
     @ExportMessage
-    @SuppressWarnings("unused") // because of throws in ArrayMessages
     public void writeArrayElement(long index, Object value,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
@@ -390,7 +389,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public Object readMember(String name,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
+            @Cached @Shared("definedNode") InternalRespondToNode definedNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Cached @Exclusive DispatchNode dispatch,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
@@ -411,7 +410,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             Object iVar = objectLibrary.getOrDefault(this, name, null);
             if (ivarFoundProfile.profile(iVar != null)) {
                 return iVar;
-            } else if (definedNode.doesRespondTo(null, name, this)) {
+            } else if (definedNode.execute(null, this, name)) {
                 return dispatch.call(this, "method", rubyName);
             } else {
                 errorProfile.enter();
@@ -522,7 +521,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public boolean isMemberReadable(String name,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
+            @Cached @Shared("definedNode") InternalRespondToNode definedNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -534,7 +533,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (ivarFoundProfile.profile(objectLibrary.containsKey(this, name))) {
                 return true;
             } else {
-                return definedNode.doesRespondTo(null, name, this);
+                return definedNode.execute(null, this, name);
             }
         } else {
             return booleanCastNode.executeToBoolean(dynamic);
@@ -620,7 +619,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public boolean isMemberInvocable(String name,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
+            @Cached @Shared("definedNode") InternalRespondToNode definedNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -633,7 +632,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (ivarFoundProfile.profile(iVar != null)) {
                 return false;
             } else {
-                return definedNode.doesRespondTo(null, name, this);
+                return definedNode.execute(null, this, name);
             }
         } else {
             return booleanCastNode.executeToBoolean(dynamic);
@@ -643,8 +642,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public boolean isMemberInternal(String name,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
-            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") DispatchNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchNode definedPublicNode,
+            @Cached @Shared("definedNode") InternalRespondToNode definedNode,
+            @Exclusive @Cached(parameters = "PUBLIC") InternalRespondToNode definedPublicNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -658,8 +657,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
                 return true;
             } else {
                 // defined but not publicly
-                return definedNode.doesRespondTo(null, name, this) &&
-                        !definedPublicNode.doesRespondTo(null, name, this);
+                return definedNode.execute(null, this, name) &&
+                        !definedPublicNode.execute(null, this, name);
             }
         } else {
             return booleanCastNode.executeToBoolean(dynamic);
@@ -700,8 +699,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
     // region Instantiable
     @ExportMessage
     public boolean isInstantiable(
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DispatchNode doesRespond) {
-        return doesRespond.doesRespondTo(null, "new", this);
+            @Exclusive @Cached(parameters = "PUBLIC") InternalRespondToNode doesRespond) {
+        return doesRespond.execute(null, this, "new");
     }
 
     @ExportMessage

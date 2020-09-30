@@ -11,27 +11,22 @@ package org.truffleruby.language.dispatch;
 
 
 public enum DispatchConfiguration {
-    PUBLIC(false, true, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD),
-    PRIVATE(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD),
-    PROTECTED(false, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD),
-    PUBLIC_RETURN_MISSING(false, true, MissingBehavior.RETURN_MISSING, DispatchAction.CALL_METHOD),
-    PRIVATE_RETURN_MISSING(true, false, MissingBehavior.RETURN_MISSING, DispatchAction.CALL_METHOD),
-    PUBLIC_DOES_RESPOND(false, true, MissingBehavior.RETURN_MISSING, DispatchAction.RESPOND_TO_METHOD),
-    PRIVATE_DOES_RESPOND(true, false, MissingBehavior.RETURN_MISSING, DispatchAction.RESPOND_TO_METHOD);
+    PUBLIC(false, true, MissingBehavior.CALL_METHOD_MISSING),
+    PRIVATE(true, false, MissingBehavior.CALL_METHOD_MISSING),
+    PROTECTED(false, false, MissingBehavior.CALL_METHOD_MISSING),
+    PUBLIC_RETURN_MISSING(false, true, MissingBehavior.RETURN_MISSING),
+    PRIVATE_RETURN_MISSING(true, false, MissingBehavior.RETURN_MISSING);
 
     public final boolean ignoreVisibility;
     public final boolean onlyLookupPublic;
     public final MissingBehavior missingBehavior;
-    public final DispatchAction dispatchAction;
 
     DispatchConfiguration(
             boolean ignoreVisibility,
             boolean onlyLookupPublic,
-            MissingBehavior missingBehavior,
-            DispatchAction dispatchAction) {
+            MissingBehavior missingBehavior) {
         this.ignoreVisibility = ignoreVisibility;
         this.onlyLookupPublic = onlyLookupPublic;
         this.missingBehavior = missingBehavior;
-        this.dispatchAction = dispatchAction;
     }
 }
