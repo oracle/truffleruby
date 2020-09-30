@@ -287,7 +287,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
             lines = out.data.split('\n')[1:-1]
 
             data = self.filterLines(lines)
-            elapsed = [d for n, d in enumerate(data) if n % 3 == 0]
+            elapsed = [d for n, d in enumerate(data) if n % 3 == 1]
             samples = [d for n, d in enumerate(data) if n % 3 == 2]
 
             if lines[-1] == 'optimised away':
