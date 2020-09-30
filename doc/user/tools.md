@@ -14,6 +14,20 @@ c = a.compose(b, 0, 0)
 c.save('c.png')
 ```
 
+## VisualVM
+
+You need to use the `--jvm` runtime configuration and [install GraalVM](installing-graalvm.md) to use VisualVM.
+
+VisualVM is a GUI with many tools:
+
+* Monitoring such as CPU usage, heap size, time spent in GC etc (tab: Monitor)
+* Capturing and exploring heap dumps (tab: Monitor)
+* A list of threads and their status, and thread dumps (tab: Threads)
+* CPU and Memory sampling profilers at the Java level (tab: Sampler)
+* A CPU sampling profiler at the **Ruby** level (tab: Polyglot Sampler)
+
+There is more documentation about VisualVM on the [GraalVM website](https://www.graalvm.org/tools/visualvm/).
+
 ## Profiling
 
 ### CPU Tracer

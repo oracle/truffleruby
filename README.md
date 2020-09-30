@@ -58,11 +58,15 @@ Please report any issue you might find on [GitHub](https://github.com/oracle/tru
 TruffleRuby aims to:
 
 * Run idiomatic Ruby code faster
+  * TruffleRuby is the fastest Ruby implementation for many CPU-intensive benchmarks.
 * Run Ruby code in parallel
-* Boot Ruby applications in less time
-* Execute C extensions in a managed environment
+  * TruffleRuby does not have a global interpreter lock and runs Ruby code in parallel.
+* Support C extensions
+  * Many C extensions work out of the box, including database drivers.
 * Add fast and low-overhead interoperability with languages like Java, JavaScript, Python and R
+  * Provided by GraalVM, see the [Polyglot documentation](doc/user/polyglot.md).
 * Provide new tooling such as debuggers and monitoring that work across languages
+  * Includes a profiler, debugger, VisualVM, and more, see the [Tools documentation](doc/user/tools.md).
 * All while maintaining very high compatibility with the standard implementation of Ruby
 
 ## TruffleRuby Runtime Configurations
@@ -118,10 +122,16 @@ See the [contributor workflow](doc/contributor/workflow.md) document if you wish
 We recommend that people trying TruffleRuby on their gems and applications
 [get in touch with us](#contact) for help.
 
-TruffleRuby is progressing fast but is currently probably not ready for you to
-try running your full Rails application on. However it is ready for
-experimentation and curious end-users to try on their gems and smaller
-applications, and to send us reports of issues they find.
+TruffleRuby can run Rails and is compatible with many gems, including C extensions.
+TruffleRuby is not 100% compatible with MRI 2.6 yet though, please report any compatibility issue you might find.
+TruffleRuby [passes around 97% of ruby/spec](https://eregon.me/blog/2020/06/27/ruby-spec-compatibility-report.html),
+more than any other alternative Ruby implementation.
+
+TruffleRuby might not be fast yet on Rails applications and large programs.
+Notably, large programs currently take a long time to warmup on TruffleRuby and
+this is something the TruffleRuby team is currently working on.
+Large programs often involve more performance-critical code and
+so there is a higher chance to hit an area of TruffleRuby which has not been optimized yet.
 
 ## Releases
 
