@@ -2308,6 +2308,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         if (!environment.isBlock() && !translatingWhile) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().syntaxError(
@@ -2725,6 +2726,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitRedoNode(RedoParseNode node) {
         if (!environment.isBlock() && !translatingWhile) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().syntaxError(
