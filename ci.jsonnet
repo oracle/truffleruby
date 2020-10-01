@@ -519,7 +519,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     jruby: $.use.jruby + $.cap.bench + $.cap.weekly,
   },
   local graal_configurations = {
-    local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
+    local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
 
     "graal-core": shared + $.env.jvm_ce,
     "graal-enterprise": shared + $.env.jvm_ee,
