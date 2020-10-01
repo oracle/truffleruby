@@ -11,18 +11,30 @@ package org.truffleruby.language;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.interop.NodeLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.debug.RubyScope;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.stdlib.CoverageManager;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -36,11 +48,14 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.debug.RubyScope.RECEIVER_MEMBER;
+
 /** RubyNode has source, execute, and is instrument-able. However, it does not have any fields which would prevent
  * using @GenerateUncached. It should never be subclassed directly, either use {@link RubyContextSourceNode} or
  * {@link RubySourceNode}. SourceRubyNode is not defined since there was no use for it for now. Nodes having context are
  * described by {@link WithContext}. There is also {@link RubyContextNode} if context is needed but source is not. */
 @GenerateWrapper
+@ExportLibrary(NodeLibrary.class)
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
@@ -323,4 +338,63 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     public RubyNode simplifyAsTailExpression() {
         return this;
     }
+
+
+    // NodeLibrary
+
+    @ExportMessage
+    boolean accepts(
+            @Cached(value = "this", adopt = false) RubyNode cachedNode) {
+        return this == cachedNode;
+    }
+
+    @ExportMessage
+    final boolean hasScope(Frame frame) {
+        // hasScope == isAdoptable(), getParent() != null is a fast way to check if adoptable.
+        return this.getParent() != null;
+    }
+
+    @ExportMessage
+    final Object getScope(Frame frame, boolean nodeEnter,
+            @CachedContext(RubyLanguage.class) RubyContext context) throws UnsupportedMessageException {
+        if (hasScope(frame)) {
+            return new RubyScope(context, frame.materialize(), this);
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    final boolean hasReceiverMember(Frame frame) {
+        return frame != null;
+    }
+
+    @ExportMessage
+    final Object getReceiverMember(Frame frame) throws UnsupportedMessageException {
+        if (frame == null) {
+            throw UnsupportedMessageException.create();
+        }
+        return RECEIVER_MEMBER;
+    }
+
+    @ExportMessage
+    boolean hasRootInstance(Frame frame) {
+        return frame != null;
+    }
+
+    @ExportMessage
+    Object getRootInstance(Frame frame,
+            @CachedContext(RubyLanguage.class) RubyContext context) throws UnsupportedMessageException {
+        if (frame == null) {
+            throw UnsupportedMessageException.create();
+        }
+        final Object self = RubyArguments.getSelf(frame);
+        final InternalMethod method = RubyArguments.getMethod(frame);
+        return new RubyMethod(
+                context.getCoreLibrary().methodClass,
+                RubyLanguage.methodShape,
+                self,
+                method);
+    }
+
 }

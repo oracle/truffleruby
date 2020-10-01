@@ -72,12 +72,12 @@ public abstract class ProcNodes {
 
         @Specialization
         protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, NotProvided block,
-                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
+                @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ReadCallerFrameNode readCaller,
                 @Cached ProcNewNode recurseNode) {
             final MaterializedFrame parentFrame = readCaller.execute(frame);
 
-            Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
+            Object parentBlock = readNode.execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil);
 
             if (parentBlock == nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));

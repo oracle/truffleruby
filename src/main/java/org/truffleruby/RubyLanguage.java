@@ -64,8 +64,6 @@ import org.truffleruby.core.thread.RubyBacktraceLocation;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.time.RubyTime;
 import org.truffleruby.core.tracepoint.RubyTracePoint;
-import org.truffleruby.debug.GlobalScope;
-import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.NotProvided;
@@ -85,16 +83,13 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 import org.truffleruby.stdlib.digest.RubyDigest;
@@ -398,15 +393,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected Iterable<Scope> findLocalScopes(RubyContext context, Node node, Frame frame) {
-        return LexicalScope.getLexicalScopeFor(context, node, frame == null ? null : frame.materialize());
-    }
-
-    @Override
-    protected Iterable<Scope> findTopScopes(RubyContext context) {
-        return Arrays.asList(
-                GlobalScope.getGlobalScope(context.getCoreLibrary().globalVariables),
-                Scope.newBuilder("main", context.getCoreLibrary().mainObject).build());
+    protected Object getScope(RubyContext context) {
+        return context.getTopScopeObject();
     }
 
     public String getTruffleLanguageHome() {
