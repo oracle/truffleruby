@@ -91,17 +91,22 @@ TruffleRuby needs the `truffle` and `sulong` suites from the `graal` repository.
 When running `jt build`, you might see an early warning:
 ```
 $ jt build
-$ mx --env jvm scheckimports --ignore-uncommitted --warn-only
-WARNING: imported version of sulong in truffleruby (89aaf87268) does not match parent (aa6d8e07a6)
-You might want to run "mx sforceimports" to use the imported version or update the import with "mx scheckimports"
+...
+NOTE: Set env variable JT_IMPORTS_DONT_ASK to always answer 'no' to this prompt.
+
+WARNING: imported version of sulong in truffleruby (ae65c10142907329e03ad8e3fa17b88aca42058d) does not match parent (1bf42ddef0e4961cbb92ebc31019747fd1c15f1a)
+Do you want to checkout the supported version of graal as specified in truffleruby's suite.py? (runs `mx sforceimports`) [y/n]
+...
 ```
 
 This warning is important.
-If you did not create new commits  in `graal`, you will typically need to run `jt mx sforceimports`
-so that a known compatible commit of `graal` is used (that commit is recorded in `mx.truffleruby/suite.py`).
 
-This is not done automatically, because sometimes you might want to have changes in `graal`,
-and because developers of the Truffle or Sulong team typically want to use a different commit of `graal` to test their changes.
+- If you did not create new commits in `graal`, this means the graal import was bumped in `suite.py` and you need
+  to answer `y` to this prompt, which will be equivalent to running `jt mx sforceimports` before proceeding.
+- If you did create new `graal` commits, you should answer `n` or set `JT_IMPORTS_DONT_ASK` (to any value) to
+  automatically do so.
+- If you want to set the `suite.py` import to that checked out in `graal` (unlikely), you should run 
+  jt mx scheckimports` beforehand.
 
 ### Building C Extensions more quickly
 
