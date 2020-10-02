@@ -55,7 +55,7 @@ public class CommandLineParser {
 
     private final List<String> arguments;
     private int argumentIndex;
-    private boolean processArgv;
+    private final boolean processArgv;
     private final boolean rubyOpts;
     final CommandLineOptions config;
     private int lastInterpreterArgumentIndex;
@@ -94,10 +94,6 @@ public class CommandLineParser {
         if (processArgv) {
             processArgv();
         }
-    }
-
-    public int getLastInterpreterArgumentIndex() {
-        return lastInterpreterArgumentIndex;
     }
 
     private boolean endOfInterpreterArguments() {
