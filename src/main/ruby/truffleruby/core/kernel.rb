@@ -643,7 +643,7 @@ module Kernel
   def warn(*messages, uplevel: undefined)
     if !Primitive.nil?($VERBOSE) && !messages.empty?
       prefix = if Primitive.undefined?(uplevel)
-                 +''
+                 ''
                else
                  uplevel = Primitive.rb_to_int(uplevel)
                  raise ArgumentError, "negative level (#{uplevel})" unless uplevel >= 0
@@ -662,13 +662,22 @@ module Kernel
                  if caller
                    "#{caller.path}:#{caller.lineno}: warning: "
                  else
-                   +'warning: '
+                   'warning: '
                  end
                end
 
-      stringio = Truffle::StringOperations::SimpleStringIO.new(prefix)
+      stringio = Truffle::StringOperations::SimpleStringIO.new(+prefix)
       Truffle::IOOperations.puts(stringio, *messages)
-      Warning.warn(stringio.string)
+      message = stringio.string
+
+      if Primitive.object_equal(self, Warning) # avoid recursion when redefining Warning#warn
+        unless message.encoding.ascii_compatible?
+          raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
+        end
+        $stderr.write message
+      else
+        Warning.warn(message)
+      end
     end
     nil
   end

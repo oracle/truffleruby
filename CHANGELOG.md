@@ -41,6 +41,7 @@ Compatibility:
 * Fix arity for `Proc` (#2098, @ssnickolay)
 * Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known. 
 * Implement negative line numbers for eval (#1482).
+* Avoid infinite recursion when redefining `Warning#warn` and calling `Kernel#warn` (#2109).
 
 Performance:
 
