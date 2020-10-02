@@ -78,26 +78,18 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             argumentCommandLineParser.processArguments();
 
             if (config.readRubyOptEnv) {
+                /* Calling processArguments() here will also add any unrecognized arguments such as
+                 * --jvm/--native/--vm.* arguments and polyglot options to `config.getUnknownArguments()`, which will
+                 * then be processed by AbstractLanguageLauncher and Launcher. If we are going to run Native, Launcher
+                 * will apply VM options to the current process. If we are going to run on JVM, Launcher will collect
+                 * them and pass them when execve()'ing to bin/java. Polyglot options are parsed by
+                 * AbstractLanguageLauncher in the final process. */
                 // Process RUBYOPT
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
                 new CommandLineParser(rubyoptArgs, config, false, true).processArguments();
                 // Process TRUFFLERUBYOPT
                 final List<String> trufflerubyoptArgs = getArgsFromEnvVariable("TRUFFLERUBYOPT");
                 new CommandLineParser(trufflerubyoptArgs, config, false, false).processArguments();
-
-                if (isAOT()) {
-                    /* Append options from ENV variables to args after the last interpreter option, which makes sure
-                     * that maybeExec() processes the --vm.* options. These options are removed and are not passed to
-                     * the new process if exec() is being called as these options need to be passed when starting the
-                     * new VM process. The new process gets all arguments and options including those from ENV
-                     * variables. To avoid processing options from ENV variables twice, --disable-rubyopt is passed.
-                     * Only the native launcher can apply native and jvm options (it is too late for the running JVM to
-                     * apply --vm options), therefore this is not done on JVM. */
-                    final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
-                    args.add(index, "--disable-rubyopt");
-                    args.addAll(index + 1, rubyoptArgs);
-                    args.addAll(index + 1 + rubyoptArgs.size(), trufflerubyoptArgs);
-                }
             }
 
             // Process RUBYLIB, must be after arguments and RUBYOPT
