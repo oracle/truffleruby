@@ -31,7 +31,6 @@ package org.truffleruby.launcher;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,24 +57,15 @@ public class CommandLineOptions {
     /** A thing to be executed: a file, inline script, etc. Used by executionAction when applicable. */
     String toExecute = "";
 
-    /** This should not be modified, as otherwise when exec()-ing to JVM from a native launcher, these options would be
-     * passed on the command line, which fails if they are experimental. This would also cause parsing the options twice
-     * with the current Launcher design. */
-    private final Map<String, String> polyglotOptions;
     private final Map<String, String> options;
     private String[] arguments;
     private final List<String> unknownArguments;
     private Boolean gemOrBundle = null;
 
-    public CommandLineOptions(Map<String, String> polyglotOptions) {
-        this.polyglotOptions = Collections.unmodifiableMap(polyglotOptions);
+    public CommandLineOptions() {
         this.options = new HashMap<>();
         this.arguments = EMPTY_STRING_ARRAY;
         this.unknownArguments = new ArrayList<>();
-    }
-
-    boolean isSetInPolyglotOptions(String optionName) {
-        return polyglotOptions.containsKey(optionName);
     }
 
     public Map<String, String> getOptions() {

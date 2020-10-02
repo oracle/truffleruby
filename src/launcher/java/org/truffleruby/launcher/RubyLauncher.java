@@ -61,7 +61,15 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected List<String> preprocessArguments(List<String> args, Map<String, String> polyglotOptions) {
-        config = new CommandLineOptions(polyglotOptions);
+        // Set default options for the launcher which don't match the OptionKey's default.
+        // These options can still be overridden if set explicitly.
+        polyglotOptions.put(OptionsCatalog.EMBEDDED.getName(), "false");
+        if (isAOT()) {
+            final String launcher = ProcessProperties.getExecutableName();
+            polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
+        }
+
+        config = new CommandLineOptions();
 
         try {
             config.executionAction = ExecutionAction.UNSET;
@@ -236,15 +244,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
-        if (isAOT() && !config.isSetInPolyglotOptions(OptionsCatalog.LAUNCHER.getName())) {
-            final String launcher = ProcessProperties.getExecutableName();
-            builder.option(OptionsCatalog.LAUNCHER.getName(), launcher);
-        }
-
-        if (!config.isSetInPolyglotOptions(OptionsCatalog.EMBEDDED.getName())) {
-            builder.option(OptionsCatalog.EMBEDDED.getName(), "false");
-        }
-
         if (config.isGemOrBundle() && getImplementationNameFromEngine().contains("Graal")) {
             // Apply options to run gem/bundle more efficiently
             builder.option("engine.Mode", "latency");
