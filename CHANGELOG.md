@@ -41,7 +41,7 @@ Compatibility:
 * Fix arity for `Proc` (#2098, @ssnickolay)
 * Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known. 
 * Implement negative line numbers for eval (#1482).
-* Support refinements for `String#to_s` (#2110, @ssnickolay)
+* Support refinements for `#to_s` called by string interpolation (#2110, @ssnickolay)
 
 Performance:
 
