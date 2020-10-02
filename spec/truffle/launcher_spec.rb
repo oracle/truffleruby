@@ -145,14 +145,6 @@ describe "The launcher" do
     end
   end
 
-  ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
-    it "should recognize ruby --vm options in #{var}" do
-      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" }, args: @redirect)
-      check_status_and_empty_stderr
-      out.should == 'bar'
-    end
-  end
-
   def should_print_full_java_command(options, env: {})
     out = ruby_exe(nil, options: options, env: env, args: @redirect)
     check_status_and_empty_stderr
@@ -410,4 +402,49 @@ describe "The launcher" do
     end
   end
 
+  ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
+    it "should recognize ruby --vm options in #{var}" do
+      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" }, args: @redirect)
+      check_status_and_empty_stderr
+      out.should == 'bar'
+    end
+  end
+
+  guard -> {
+    # GraalVM with both --jvm and --native
+    TruffleRuby.graalvm_home and TruffleRuby.native?
+  } do
+    describe "runtime configuration flags" do
+      ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
+        it "should recognize ruby --vm options in #{var} when switching to JVM" do
+          out = ruby_exe('puts RUBY_DESCRIPTION; puts Truffle::System.get_java_property("foo")', env: { var => "--jvm --vm.Dfoo=bar" }, args: @redirect)
+          check_status_and_empty_stderr
+          out = out.lines.map(&:chomp)
+          out[0].should =~ /GraalVM (CE|EE) JVM/
+          out[1].should == 'bar'
+        end
+      end
+
+      it "uses --native by default" do
+        out = ruby_exe(nil, options: "--version", args: @redirect)
+        check_status_and_empty_stderr
+        out.should =~ /GraalVM (CE|EE) Native/
+      end
+
+      it "switches to JVM with --jvm as a Ruby argument" do
+        out = ruby_exe(nil, options: "--jvm --version", args: @redirect)
+        check_status_and_empty_stderr
+        out.should =~ /GraalVM (CE|EE) JVM/
+      end
+
+      it "keeps --jvm as an application argument if given as an application argument" do
+        script = fixture(__FILE__, "argv.rb")
+        out = ruby_exe(nil, options: "-v", args: "#{script} --jvm 1 2 #{@redirect}")
+        check_status_and_empty_stderr
+        out = out.lines.map(&:chomp)
+        out[0].should =~ /GraalVM (CE|EE) Native/
+        out.should.include?('["--jvm", "1", "2"]')
+      end
+    end
+  end
 end
