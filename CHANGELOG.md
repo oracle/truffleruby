@@ -17,6 +17,7 @@ Bug fixes:
 * Use expanded load paths for feature matching (#1501).
 * Fixed `SystemStackError` sometimes replaced by an internal Java `NoClassDefFoundError` on JVM (#1743).
 * Fixed constant/identifier detection in lexer for non-ASCII encodings (#2079, #2102, @ivoanjo).
+* Fixed parsing of `--jvm` as an application argument (#2108).
 
 Compatibility:
 
