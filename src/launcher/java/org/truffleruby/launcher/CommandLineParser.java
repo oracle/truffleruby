@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
@@ -62,19 +61,14 @@ public class CommandLineParser {
     private int lastInterpreterArgumentIndex;
     private int characterIndex;
 
-    public CommandLineParser(
-            List<String> arguments,
-            CommandLineOptions config,
-            boolean processArgv,
-            boolean rubyOpts) {
-
+    public CommandLineParser(List<String> arguments, CommandLineOptions config, boolean processArgv, boolean rubyOpts) {
         this.argumentIndex = 0;
         this.characterIndex = 0;
         this.lastInterpreterArgumentIndex = -1;
         this.config = config;
         this.processArgv = processArgv;
         this.rubyOpts = rubyOpts;
-        this.arguments = Objects.requireNonNull(arguments);
+        this.arguments = Collections.unmodifiableList(arguments);
     }
 
     public void processArguments() throws CommandLineException {
