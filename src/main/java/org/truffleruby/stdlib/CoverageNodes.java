@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -80,7 +79,7 @@ public abstract class CoverageNodes {
                     }
                 }
 
-                final String path = RubyContext.getPath(source.getKey());
+                final String path = getContext().getSourcePath(source.getKey());
                 assert !results.containsKey(path) : "path already exists in coverage results";
                 results.put(path, createArray(new Object[]{
                         makeStringNode.executeMake(

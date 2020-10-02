@@ -384,7 +384,7 @@ public abstract class BindingNodes {
                 return nil;
             } else {
                 final RubyString file = makeStringNode.executeMake(
-                        RubyContext.getPath(sourceSection.getSource()),
+                        getContext().getSourcePath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });

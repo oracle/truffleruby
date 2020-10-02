@@ -35,7 +35,7 @@ public class PathToRopeCache {
 
     @TruffleBoundary
     public Rope getCachedPath(Source source) {
-        final String path = RubyContext.getPath(source);
+        final String path = context.getSourcePath(source);
 
         final Lock readLock = lock.readLock();
         readLock.lock();

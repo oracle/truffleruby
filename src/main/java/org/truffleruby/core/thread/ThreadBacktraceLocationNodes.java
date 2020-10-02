@@ -20,7 +20,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTraceElement;
@@ -56,8 +55,8 @@ public class ThreadBacktraceLocationNodes {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Source source = sourceSection.getSource();
-                final String path = RubyContext.getPath(source);
                 if (source.getPath() != null) { // A normal file
+                    final String path = getContext().getSourcePath(source);
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                     final Rope cachedRope = getContext()
                             .getRopeCache()
@@ -84,15 +83,7 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
-                final Rope path;
-                if (BacktraceFormatter.isCore(getContext(), sourceSection)) {
-                    path = StringOperations.encodeRope(
-                            BacktraceFormatter.formatCorePath(getContext(), sourceSection),
-                            UTF8Encoding.INSTANCE);
-                } else {
-                    path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
-                }
-
+                final Rope path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
                 return makeStringNode.fromRope(path);
             }
         }

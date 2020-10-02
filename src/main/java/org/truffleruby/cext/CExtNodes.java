@@ -18,7 +18,6 @@ import org.jcodings.IntHolder;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -785,7 +784,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
-            final String file = RubyContext.getPath(sourceSection.getSource());
+            final String file = getContext().getSourcePath(sourceSection.getSource());
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }

@@ -83,7 +83,7 @@ public class BacktraceFormatter {
     /** For debug purposes. */
     public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
         return isUserSourceSection(context, sourceSection) &&
-                !RubyContext.getPath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
+                !context.getSourcePath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
     }
 
     public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
@@ -239,11 +239,7 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                if (isRubyCore(context, reportedSourceSection.getSource())) {
-                    builder.append(formatCorePath(context, reportedSourceSection));
-                } else {
-                    builder.append(RubyContext.getPath(reportedSourceSection.getSource()));
-                }
+                builder.append(context.getSourcePath(reportedSourceSection.getSource()));
                 builder.append(":");
                 builder.append(RubySource.getStartLineAdjusted(context, reportedSourceSection));
             }
@@ -273,7 +269,7 @@ public class BacktraceFormatter {
 
         if (sourceSection != null) {
             final Source source = sourceSection.getSource();
-            final String path = RubyContext.getPath(source);
+            final String path = context.getSourcePath(source);
 
             builder.append(path);
             if (sourceSection.isAvailable()) {
@@ -345,24 +341,13 @@ public class BacktraceFormatter {
         return sourceSection != null && sourceSection.isAvailable();
     }
 
-    public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        assert isAvailable(sourceSection);
-        return isRubyCore(context, sourceSection.getSource());
-    }
-
-    public static String formatCorePath(RubyContext context, SourceSection sourceSection) {
-        assert isCore(context, sourceSection);
-        final String path = RubyContext.getPath(sourceSection.getSource());
-        return "<internal:core> " + path.substring(context.getCoreLibrary().coreLoadPath.length() + 1);
+    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
+        return isAvailable(sourceSection) && !isRubyCore(context, sourceSection.getSource());
     }
 
     private static boolean isRubyCore(RubyContext context, Source source) {
         final String path = RubyContext.getPath(source);
-        return path.startsWith(context.getOptions().CORE_LOAD_PATH);
-    }
-
-    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
-        return isAvailable(sourceSection) && !isCore(context, sourceSection);
+        return path.startsWith(context.getCoreLibrary().coreLoadPath);
     }
 
     private Node getRootOrTopmostNode(Node node) {
