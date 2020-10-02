@@ -1225,13 +1225,13 @@ module Commands
           unless actual == expected
             abort <<~EOS
               C extension #{dir} didn't work as expected
-              
+
               Actual:
               #{actual}
-              
+
               Expected:
               #{expected}
-              
+
               Diff:
               #{diff(expected_file, output_file)}
             EOS
