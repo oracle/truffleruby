@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -24,8 +24,8 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "binding";
 
-    public InlinedBindingNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedBindingNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

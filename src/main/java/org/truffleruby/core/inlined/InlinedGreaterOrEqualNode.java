@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -17,11 +17,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public abstract class InlinedGreaterOrEqualNode extends BinaryInlinedOperationNode {
 
-    public InlinedGreaterOrEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedGreaterOrEqualNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerGreaterOrEqualAssumption);
+                language.coreMethodAssumptions.integerGreaterOrEqualAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

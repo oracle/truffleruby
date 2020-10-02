@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -22,8 +22,8 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "bytesize";
 
-    public InlinedByteSizeNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedByteSizeNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

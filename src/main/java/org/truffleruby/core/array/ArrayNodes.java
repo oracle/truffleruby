@@ -2176,8 +2176,8 @@ public abstract class ArrayNodes {
                         "!isSmall(array)",
                         "stores.isPrimitive(array.store)" },
                 assumptions = {
-                        "getContext().getCoreMethods().integerCmpAssumption",
-                        "getContext().getCoreMethods().floatCmpAssumption" },
+                        "getContext().getLanguageSlow().coreMethodAssumptions.integerCmpAssumption",
+                        "getContext().getLanguageSlow().coreMethodAssumptions.floatCmpAssumption" },
                 limit = "storageStrategyLimit()")
         protected Object sortPrimitiveArrayNoBlock(RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,

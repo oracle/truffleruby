@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.FloatNodes;
 import org.truffleruby.core.numeric.IntegerNodes.ModNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.ModNodeFactory;
@@ -24,12 +24,12 @@ public abstract class InlinedModNode extends BinaryInlinedOperationNode {
 
     @Child ModNode fixnumMod;
 
-    public InlinedModNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedModNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerModAssumption,
-                context.getCoreMethods().floatModAssumption);
+                language.coreMethodAssumptions.integerModAssumption,
+                language.coreMethodAssumptions.floatModAssumption);
     }
 
     // We need to avoid the % 0 case as it would give a wrong Ruby backtrace.

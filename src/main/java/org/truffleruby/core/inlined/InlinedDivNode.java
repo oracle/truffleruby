@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -17,12 +17,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public abstract class InlinedDivNode extends BinaryInlinedOperationNode {
 
-    public InlinedDivNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedDivNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerDivAssumption,
-                context.getCoreMethods().floatDivAssumption);
+                language.coreMethodAssumptions.integerDivAssumption,
+                language.coreMethodAssumptions.floatDivAssumption);
     }
 
     // We only handle the simplest and most common case for integer division.

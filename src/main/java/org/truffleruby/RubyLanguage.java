@@ -30,6 +30,7 @@ import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.RubyHash;
 import org.graalvm.options.OptionValues;
+import org.truffleruby.core.inlined.CoreMethodAssumptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
@@ -139,7 +140,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Assumption singleContextAssumption = Truffle
             .getRuntime()
             .createAssumption("single RubyContext per RubyLanguage instance");
+    public final CyclicAssumption traceFuncUnusedAssumption = new CyclicAssumption("set_trace_func is not used");
 
+    public final CoreMethodAssumptions coreMethodAssumptions;
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
     public final RopeCache ropeCache;
@@ -199,6 +202,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final Shape weakMapShape = createShape(RubyWeakMap.class);
 
     public RubyLanguage() {
+        coreMethodAssumptions = new CoreMethodAssumptions(this);
         coreStrings = new CoreStrings(this);
         coreSymbols = new CoreSymbols();
         ropeCache = new RopeCache(coreSymbols);

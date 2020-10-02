@@ -10,7 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.dsl.Bind;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayWriteNormalizedNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -25,8 +25,8 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode {
 
     protected static final String METHOD = "[]=";
 
-    public InlinedIndexSetNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedIndexSetNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

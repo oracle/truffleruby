@@ -609,7 +609,7 @@ public class BodyTranslator extends Translator {
                 isAttrAssign);
         RubyNode translated = Translator.withSourceSection(
                 enclosingSourceSection,
-                context.getCoreMethods().createCallNode(callParameters, environment));
+                language.coreMethodAssumptions.createCallNode(callParameters, environment));
 
         translated = wrapCallWithLiteralBlock(argumentsAndBlock, translated);
 
@@ -791,7 +791,8 @@ public class BodyTranslator extends Translator {
                         arguments,
                         false,
                         true);
-                final RubyNode conditionNode = context.getCoreMethods().createCallNode(callParameters, environment);
+                final RubyNode conditionNode = language.coreMethodAssumptions
+                        .createCallNode(callParameters, environment);
 
                 // Create the if node
                 final RubyNode thenNode = translateNodeOrNil(sourceSection, when.getBodyNode());
@@ -2405,7 +2406,7 @@ public class BodyTranslator extends Translator {
                         new RubyNode[]{ rhs },
                         false,
                         true);
-                final RubyNode opNode = context.getCoreMethods().createCallNode(callParameters, environment);
+                final RubyNode opNode = language.coreMethodAssumptions.createCallNode(callParameters, environment);
                 final RubyNode ret = ((ReadConstantNode) lhs).makeWriteNode(opNode);
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);

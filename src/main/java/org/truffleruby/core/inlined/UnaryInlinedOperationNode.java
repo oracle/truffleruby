@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -20,10 +20,10 @@ import com.oracle.truffle.api.dsl.NodeChild;
 public abstract class UnaryInlinedOperationNode extends InlinedOperationNode {
 
     public UnaryInlinedOperationNode(
-            RubyContext context,
+            RubyLanguage language,
             RubyCallNodeParameters callNodeParameters,
             Assumption... assumptions) {
-        super(context, callNodeParameters, assumptions);
+        super(language, callNodeParameters, assumptions);
     }
 
     protected abstract RubyNode getSelf();

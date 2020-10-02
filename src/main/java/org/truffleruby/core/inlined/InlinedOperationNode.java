@@ -10,6 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -31,13 +32,13 @@ public abstract class InlinedOperationNode extends RubyContextSourceNode {
     private RubyCallNode replacedBy = null;
 
     public InlinedOperationNode(
-            RubyContext context,
+            RubyLanguage language,
             RubyCallNodeParameters callNodeParameters,
             Assumption... assumptions) {
         this.callNodeParameters = callNodeParameters;
 
         this.assumptions = new Assumption[1 + assumptions.length];
-        this.assumptions[0] = context.getTraceManager().getUnusedAssumption();
+        this.assumptions[0] = language.traceFuncUnusedAssumption.getAssumption();
         ArrayUtils.arraycopy(assumptions, 0, this.assumptions, 1, assumptions.length);
     }
 

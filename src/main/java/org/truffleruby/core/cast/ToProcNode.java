@@ -46,7 +46,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     // No need to guard the refinements here since refinements are always the same in a given source location
     @Specialization(
             guards = "symbol == cachedSymbol",
-            assumptions = "getContext().getCoreMethods().symbolToProcAssumption",
+            assumptions = "getContext().getLanguageSlow().coreMethodAssumptions.symbolToProcAssumption",
             limit = "1")
     protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
             @Cached("symbol") RubySymbol cachedSymbol,

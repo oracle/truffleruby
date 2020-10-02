@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -22,8 +22,8 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "!";
 
-    public InlinedNotNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedNotNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

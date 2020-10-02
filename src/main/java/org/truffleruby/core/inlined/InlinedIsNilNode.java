@@ -10,7 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.dsl.Cached;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -22,11 +22,11 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
 
     protected static final String METHOD = "nil?";
 
-    public InlinedIsNilNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedIsNilNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().nilClassIsNilAssumption);
+                language.coreMethodAssumptions.nilClassIsNilAssumption);
     }
 
     @Specialization(assumptions = "assumptions")
