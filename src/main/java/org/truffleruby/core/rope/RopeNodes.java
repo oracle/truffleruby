@@ -19,9 +19,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -425,8 +423,6 @@ public abstract class RopeNodes {
             return RopeNodesFactory.ConcatNodeGen.create();
         }
 
-        @Child private FlattenNode flattenNode;
-
         public abstract Rope executeConcat(Rope left, Rope right, Encoding encoding);
 
         @Specialization
@@ -467,8 +463,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "!isCodeRangeBroken(left, right)" })
         protected Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached ConditionProfile sameCodeRangeProfile,
-                @Cached ConditionProfile brokenCodeRangeProfile,
-                @Cached ConditionProfile shouldRebalanceProfile) {
+                @Cached ConditionProfile brokenCodeRangeProfile) {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
             } catch (ArithmeticException e) {
@@ -477,18 +472,7 @@ public abstract class RopeNodes {
                         getContext().getCoreExceptions().argumentErrorTooLargeString(this));
             }
 
-            if (shouldRebalanceProfile.profile(
-                    left.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD && left instanceof ConcatRope)) {
-                left = rebalance((ConcatRope) left, getContext().getOptions().ROPE_DEPTH_THRESHOLD, getFlattenNode());
-            }
-
-            if (shouldRebalanceProfile.profile(
-                    right.depth() >= getContext().getOptions().ROPE_DEPTH_THRESHOLD && right instanceof ConcatRope)) {
-                right = rebalance((ConcatRope) right, getContext().getOptions().ROPE_DEPTH_THRESHOLD, getFlattenNode());
-            }
-
             int depth = depth(left, right);
-            /* if (depth >= 10) { System.out.println("ConcatRope depth: " + depth); } */
 
             return new ConcatRope(
                     left,
@@ -501,14 +485,6 @@ public abstract class RopeNodes {
                             brokenCodeRangeProfile),
                     depth,
                     isBalanced(left, right));
-        }
-
-        private FlattenNode getFlattenNode() {
-            if (flattenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                flattenNode = insert(FlattenNode.create());
-            }
-            return flattenNode;
         }
 
         private boolean isBalanced(Rope left, Rope right) {
@@ -532,81 +508,6 @@ public abstract class RopeNodes {
             }
         }
 
-        @TruffleBoundary
-        private ManagedRope rebalance(ConcatRope rope, int depthThreshold, FlattenNode flattenNode) {
-            Deque<ManagedRope> currentRopeQueue = new ArrayDeque<>();
-            Deque<ManagedRope> nextLevelQueue = new ArrayDeque<>();
-
-            linearizeTree(rope.getLeft(), currentRopeQueue);
-            linearizeTree(rope.getRight(), currentRopeQueue);
-
-            final int flattenThreshold = depthThreshold / 2;
-
-            ManagedRope root = null;
-            while (!currentRopeQueue.isEmpty()) {
-                ManagedRope left = currentRopeQueue.pop();
-
-                if (left.depth() >= flattenThreshold) {
-                    // TODO (eregon, 15 June 2020): should this cache the resulting bytes by using getBytes()?
-                    left = flattenNode.executeFlatten(left);
-                }
-
-                if (currentRopeQueue.isEmpty()) {
-                    if (nextLevelQueue.isEmpty()) {
-                        root = left;
-                    } else {
-                        // If a rope can't be paired with another rope at the current level (i.e., odd numbers of ropes),
-                        // it needs to be promoted to the next level where it will be tried again. Since by definition
-                        // every rope already present in the next level must have occurred before this rope in the current
-                        // level, this rope must be added to the end of the list in the next level to maintain proper
-                        // position.
-                        nextLevelQueue.add(left);
-                    }
-                } else {
-                    ManagedRope right = currentRopeQueue.pop();
-
-                    if (right.depth() >= flattenThreshold) {
-                        // TODO (eregon, 15 June 2020): should this cache the resulting bytes by using getBytes()?
-                        right = flattenNode.executeFlatten(right);
-                    }
-
-                    final ManagedRope child = new ConcatRope(
-                            left,
-                            right,
-                            rope.getEncoding(),
-                            commonCodeRange(left.getCodeRange(), right.getCodeRange()),
-                            depth(left, right),
-                            isBalanced(left, right));
-
-                    nextLevelQueue.add(child);
-                }
-
-                if (currentRopeQueue.isEmpty() && !nextLevelQueue.isEmpty()) {
-                    currentRopeQueue = nextLevelQueue;
-                    nextLevelQueue = new ArrayDeque<>();
-                }
-            }
-
-            return root;
-        }
-
-        @TruffleBoundary
-        private void linearizeTree(ManagedRope rope, Deque<ManagedRope> ropeQueue) {
-            if (rope instanceof ConcatRope) {
-                final ConcatRope concatRope = (ConcatRope) rope;
-
-                // If a rope is known to be balanced, there's no need to rebalance it.
-                if (concatRope.isBalanced()) {
-                    ropeQueue.add(concatRope);
-                } else {
-                    linearizeTree(concatRope.getLeft(), ropeQueue);
-                    linearizeTree(concatRope.getRight(), ropeQueue);
-                }
-            } else {
-                // We never rebalance non-ConcatRopes since that requires per-rope type logic with likely minimal benefit.
-                ropeQueue.add(rope);
-            }
-        }
 
         @SuppressFBWarnings("RV")
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
