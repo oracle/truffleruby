@@ -105,10 +105,10 @@ public class CommandLineParser {
     }
 
     private void processArgv() {
+        boolean argvGlobalsOn = config.getOption(OptionsCatalog.ARGV_GLOBALS);
         ArrayList<String> arglist = new ArrayList<>();
         for (; argumentIndex < arguments.size(); argumentIndex++) {
             String arg = getCurrentArgument();
-            boolean argvGlobalsOn = config.getOption(OptionsCatalog.ARGV_GLOBALS);
             if (argvGlobalsOn && arg.startsWith("-")) {
                 arg = arg.substring(1);
                 int split = arg.indexOf('=');
