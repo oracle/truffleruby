@@ -9,6 +9,7 @@
  */
 package org.truffleruby.builtins;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,6 +18,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
+import org.truffleruby.options.LanguageOptions;
 
 /** Manages the available primitive calls. */
 public class PrimitiveManager {
@@ -57,4 +59,26 @@ public class PrimitiveManager {
                 annotation.name(),
                 k -> new PrimitiveNodeConstructor(annotation, nodeFactory));
     }
+
+    public void loadCoreMethodNodes(LanguageOptions languageOptions) {
+        if (!TruffleOptions.AOT && languageOptions.LAZY_BUILTINS) {
+            BuiltinsClasses.setupBuiltinsLazyPrimitives(this);
+        } else {
+            for (List<? extends NodeFactory<? extends RubyNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
+                registerPrimitives(factory);
+            }
+        }
+    }
+
+    private void registerPrimitives(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
+        for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
+            final Class<?> nodeClass = nodeFactory.getNodeClass();
+            final Primitive primitiveAnnotation = nodeClass.getAnnotation(Primitive.class);
+            if (primitiveAnnotation != null) {
+                addPrimitive(nodeFactory, primitiveAnnotation);
+            }
+        }
+    }
+
+
 }

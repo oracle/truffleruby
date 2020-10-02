@@ -26,7 +26,6 @@ import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
-import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.CoreLibrary;
@@ -105,7 +104,6 @@ public class RubyContext {
     @CompilationFinal private TruffleFile rubyHomeTruffleFile;
     @CompilationFinal private boolean hadHome;
 
-    private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
     private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader = new CodeLoader(this);
@@ -232,7 +230,7 @@ public class RubyContext {
         // Load the nodes
 
         Metrics.printTime("before-load-nodes");
-        coreLibrary.loadCoreNodes(primitiveManager);
+        coreLibrary.loadCoreNodes();
         Metrics.printTime("after-load-nodes");
 
         // Capture known builtin methods
@@ -593,10 +591,6 @@ public class RubyContext {
 
     public LexicalScope getRootLexicalScope() {
         return rootLexicalScope;
-    }
-
-    public PrimitiveManager getPrimitiveManager() {
-        return primitiveManager;
     }
 
     public CoverageManager getCoverageManager() {

@@ -17,6 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.object.Shape;
 import org.graalvm.options.OptionDescriptors;
+import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -145,6 +146,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreMethodAssumptions coreMethodAssumptions;
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
+    public final PrimitiveManager primitiveManager;
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
     @CompilationFinal public LanguageOptions options;
@@ -205,6 +207,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
         coreStrings = new CoreStrings(this);
         coreSymbols = new CoreSymbols();
+        primitiveManager = new PrimitiveManager();
         ropeCache = new RopeCache(coreSymbols);
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
     }
@@ -247,6 +250,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
             if (this.options == null) {
                 this.options = new LanguageOptions(env, env.getOptions());
+                primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
 

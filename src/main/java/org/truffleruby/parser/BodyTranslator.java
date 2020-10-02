@@ -552,7 +552,7 @@ public class BodyTranslator extends Translator {
 
         final String primitiveName = node.getName();
 
-        final PrimitiveNodeConstructor primitive = context.getPrimitiveManager().getPrimitive(primitiveName);
+        final PrimitiveNodeConstructor primitive = language.primitiveManager.getPrimitive(primitiveName);
 
         final ArrayParseNode args = (ArrayParseNode) node.getArgsNode();
         final int size = args != null ? args.size() : 0;
