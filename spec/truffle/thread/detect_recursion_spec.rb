@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 module TruffleThreadDetectRecursionSpecFixtures
   def self.check_recursion_to_depth(obj, depth)
     # checks that obj recurses to a given depth
-    return false unless obj.class.method_defined? :each
+    return false unless obj.respond_to?(:each)
     Thread.detect_recursion(obj) do 
       if depth > 1
         obj.each do |el|
@@ -28,7 +28,7 @@ module TruffleThreadDetectRecursionSpecFixtures
     # (because detect_recursion on two objects is only used during object comparison,
     # and aborts after inequality is discovered)
     return false unless obj1.class == obj2.class
-    return false unless obj1.class.method_defined? :each
+    return false unless obj1.respond_to?(:each)
     return false unless obj1.size == obj2.size
 
     Thread.detect_recursion(obj1, obj2) do
