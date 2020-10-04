@@ -54,6 +54,24 @@ end
 
 describe "Thread#detect_recursion" do
 
+  describe "for empty arrays" do
+    it "returns false" do
+      a = []
+      10.times do |i|
+        TruffleThreadDetectRecursionSpecFixtures.check_recursion_to_depth(a, i).should be_false
+      end
+    end
+  end
+
+  describe "for empty hashes" do
+    it "returns false" do
+      a = {}
+      10.times do |i|
+        TruffleThreadDetectRecursionSpecFixtures.check_recursion_to_depth(a, i).should be_false
+      end
+    end
+  end
+
   describe "for single arrays" do
     it "for non-recursive arrays returns false" do
       a = [1,[2,[3], 4],[[[5,6,7]]]]
