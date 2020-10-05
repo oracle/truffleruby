@@ -123,11 +123,11 @@ module Truffle::ThreadOperations
   class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
 
   # Similar to detect_recursion, but will short circuit all inner recursion levels
-  def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
+  def self.detect_outermost_recursion(obj, &block)
     rec = Primitive.thread_recursive_objects
 
     if rec[:__detect_outermost_recursion__]
-      if detect_recursion(obj, paired_obj, &block)
+      if detect_recursion(obj, &block)
         raise InnerRecursionDetected
       end
       false
@@ -135,7 +135,7 @@ module Truffle::ThreadOperations
       rec[:__detect_outermost_recursion__] = true
       begin
         begin
-          detect_recursion(obj, paired_obj, &block)
+          detect_recursion(obj, &block)
         rescue InnerRecursionDetected
           return true
         end
