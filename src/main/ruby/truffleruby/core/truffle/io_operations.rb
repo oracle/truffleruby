@@ -32,13 +32,16 @@ module Truffle
           elsif arg.kind_of?(String)
             # might be a Foreign String we need to convert
             str = arg.to_str
-          elsif Thread.guarding? arg
-            str = '[...]'
           elsif (ary = Truffle::Type.rb_check_convert_type(arg, Array, :to_ary))
-            Thread.recursion_guard arg do
+            recursive = Truffle::ThreadOperations.detect_recursion(arg) do
               ary.each { |a| puts(io, a) }
             end
-            str = nil
+
+            if recursive
+              str = '[...]'
+            else
+              str = nil
+            end
           else
             str = arg.to_s
             str = Truffle::Type.rb_any_to_s(arg) unless Primitive.object_kind_of?(str, String)

@@ -6,15 +6,15 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-example "Thread.detect_recursion(Object.new) { }", false
-example "Thread.detect_recursion([]) { }", false
-example "Thread.detect_recursion({}) { }", false
+example "Truffle::ThreadOperations.detect_recursion(Object.new) { }", false
+example "Truffle::ThreadOperations.detect_recursion([]) { }", false
+example "Truffle::ThreadOperations.detect_recursion({}) { }", false
 
-example "y = nil; Thread.detect_recursion(Object.new) { y = Thread.detect_recursion(Object.new) { } }; y", false
-example "x = Object.new; y = nil; Thread.detect_recursion(x) { y = Thread.detect_recursion(x) { } }; y", true
+example "y = nil; Truffle::ThreadOperations.detect_recursion(Object.new) { y = Truffle::ThreadOperations.detect_recursion(Object.new) { } }; y", false
+example "x = Object.new; y = nil; Truffle::ThreadOperations.detect_recursion(x) { y = Truffle::ThreadOperations.detect_recursion(x) { } }; y", true
 
 def detect_recursion_recursive(method, object)
-  Thread.detect_recursion(object) do
+  Truffle::ThreadOperations.detect_recursion(object) do
     object.send(method) do |child|
       return detect_recursion_recursive(method, child)
     end

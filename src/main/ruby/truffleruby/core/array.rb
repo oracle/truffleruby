@@ -89,7 +89,7 @@ class Array
 
     total = other.size
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_recursion self, other do
       i = 0
       count = Primitive.min(total, size)
 
@@ -132,7 +132,7 @@ class Array
 
     return false unless size == other.size
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_recursion self, other do
       i = 0
       total = size
 
@@ -325,7 +325,7 @@ class Array
     return false unless other.kind_of?(Array)
     return false if size != other.size
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_recursion self, other do
       i = 0
       each do |x|
         return false unless x.eql? other[i]
@@ -484,7 +484,7 @@ class Array
 
       # If we've seen self, unwind back to the outer version
       if objects.key? id
-        raise Thread::InnerRecursionDetected
+        raise Truffle::ThreadOperations::InnerRecursionDetected
       end
 
       # .. or compute the hash value like normal
@@ -508,13 +508,13 @@ class Array
         # An inner version will raise to return back here, indicating that
         # the whole structure is recursive. In which case, abandon most of
         # the work and return a simple hash value.
-      rescue Thread::InnerRecursionDetected
-        return size
+      rescue Truffle::ThreadOperations::InnerRecursionDetected
+      return size
       ensure
         objects.delete :__detect_outermost_recursion__
         objects.delete id
-      end
     end
+  end
 
     hash_val
   end
@@ -549,7 +549,7 @@ class Array
     comma = ', '
     result = +'['
 
-    return +'[...]' if Thread.detect_recursion self do
+    return +'[...]' if Truffle::ThreadOperations.detect_recursion self do
       each_with_index do |element, index|
         temp = Truffle::Type.rb_inspect(element)
         result.force_encoding(temp.encoding) if index == 0
@@ -568,7 +568,7 @@ class Array
     return ''.encode(Encoding::US_ASCII) if size == 0
 
     out = +''
-    raise ArgumentError, 'recursive array join' if Thread.detect_recursion self do
+    raise ArgumentError, 'recursive array join' if Truffle::ThreadOperations.detect_recursion self do
       sep = Primitive.nil?(sep) ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
@@ -1263,7 +1263,7 @@ class Array
     end
 
     max_levels -= 1
-    recursion = Thread.detect_recursion(array) do
+    recursion = Truffle::ThreadOperations.detect_recursion(array) do
       array = Truffle::Type.coerce_to(array, Array, :to_ary)
 
       i = 0

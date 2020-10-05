@@ -1585,7 +1585,7 @@ class String
       return Primitive.string_cmp self, other
     end
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_recursion self, other do
       if other.respond_to?(:<=>) && !other.respond_to?(:to_str)
         return nil unless tmp = (other <=> self)
       elsif other.respond_to?(:to_str)

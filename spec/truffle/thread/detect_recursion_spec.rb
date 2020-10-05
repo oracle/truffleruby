@@ -12,7 +12,7 @@ module TruffleThreadDetectRecursionSpecFixtures
   def self.check_recursion_to_depth(obj, depth)
     # checks that obj recurses to a given depth
     return false unless obj.respond_to?(:each)
-    Thread.detect_recursion(obj) do 
+    Truffle::ThreadOperations.detect_recursion(obj) do 
       if depth > 1
         obj.each do |el|
           if check_recursion_to_depth(el, depth-1)
@@ -31,7 +31,7 @@ module TruffleThreadDetectRecursionSpecFixtures
     return false unless obj1.respond_to?(:each)
     return false unless obj1.size == obj2.size
 
-    Thread.detect_recursion(obj1, obj2) do
+    Truffle::ThreadOperations.detect_recursion(obj1, obj2) do
       if depth > 1
         if obj1.class == Hash
           obj1.each do |key, val|
