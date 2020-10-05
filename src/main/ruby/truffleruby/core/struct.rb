@@ -147,7 +147,7 @@ class Struct
       end
     end
 
-    return +'[...]'
+    +'[...]'
   end
   alias_method :inspect, :to_s
 

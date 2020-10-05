@@ -509,12 +509,12 @@ class Array
         # the whole structure is recursive. In which case, abandon most of
         # the work and return a simple hash value.
       rescue Truffle::ThreadOperations::InnerRecursionDetected
-      return size
+        return size
       ensure
         objects.delete :__detect_outermost_recursion__
         objects.delete id
+      end
     end
-  end
 
     hash_val
   end
