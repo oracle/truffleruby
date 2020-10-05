@@ -10,7 +10,6 @@
 package org.truffleruby.core.proc;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -239,12 +238,12 @@ public abstract class ProcNodes {
         protected Object sourceLocation(RubyProc proc) {
             SourceSection sourceSection = proc.sharedMethodInfo.getSourceSection();
 
-            if (!sourceSection.isAvailable() ||
-                    RubyContext.getPath(sourceSection.getSource()).endsWith("/lib/truffle/truffle/cext.rb")) {
+            final String sourcePath = getContext().getSourcePath(sourceSection.getSource());
+            if (!sourceSection.isAvailable() || sourcePath.endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {
                 final RubyString file = makeStringNode.executeMake(
-                        RubyContext.getPath(sourceSection.getSource()),
+                        sourcePath,
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
 

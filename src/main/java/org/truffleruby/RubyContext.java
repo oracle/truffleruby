@@ -495,7 +495,7 @@ public class RubyContext {
         }
 
         if (options.COVERAGE_GLOBAL) {
-            coverageManager.print(System.out);
+            coverageManager.print(this, System.out);
         }
     }
 
@@ -792,7 +792,9 @@ public class RubyContext {
         return regexpCache;
     }
 
-    /** Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
+    /** {@link #getSourcePath(Source)} should be used instead whenever possible (i.e., when we can access the context).
+     *
+     * Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
      * that the path of {@code eval(code, nil, filename)} is just {@code filename} and might not be absolute. */
     public static String getPath(Source source) {
         final String path = source.getPath();
@@ -803,6 +805,18 @@ public class RubyContext {
             final String name = source.getName();
             assert name != null;
             return name;
+        }
+    }
+
+    /** {@link RubyContext#getPath(Source)} but also handles core library sources. Ideally this method would be static
+     * but for now the core load path is an option and it also depends on the current working directory. Once we have
+     * Source metadata in Truffle we could use that to identify core library sources without needing the context. */
+    public String getSourcePath(Source source) {
+        final String path = RubyContext.getPath(source);
+        if (path.startsWith(coreLibrary.coreLoadPath)) {
+            return "<internal:core> " + path.substring(coreLibrary.coreLoadPath.length() + 1);
+        } else {
+            return RubyContext.getPath(source);
         }
     }
 

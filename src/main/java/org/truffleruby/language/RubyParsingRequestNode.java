@@ -43,7 +43,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         final TranslatorDriver translator = new TranslatorDriver(context);
 
         final RubyRootNode rootNode = translator.parse(
-                new RubySource(source, RubyContext.getPath(source)),
+                new RubySource(source, context.getSourcePath(source)),
                 ParserContext.TOP_LEVEL,
                 argumentNames,
                 null,

@@ -74,7 +74,7 @@ public abstract class AllocationTracing {
                 object,
                 string(context, className),
                 context.getSymbol(allocatingMethod),
-                string(context, RubyContext.getPath(allocatingSourceSection.getSource())),
+                string(context, context.getSourcePath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
                 ObjectSpaceManager.getCollectionCount());
     }

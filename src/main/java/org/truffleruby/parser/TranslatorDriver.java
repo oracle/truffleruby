@@ -455,7 +455,7 @@ public class TranslatorDriver {
     public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
         if (Metrics.getMetricsTime()) {
             if (context.getOptions().METRICS_TIME_PARSING_FILE) {
-                String name = RubyContext.getPath(source);
+                String name = context.getSourcePath(source);
                 int lastSlash = name.lastIndexOf('/');
                 int lastDot = name.lastIndexOf('.');
                 if (lastSlash >= 0 && lastDot >= 0 && lastSlash + 1 < lastDot) {
