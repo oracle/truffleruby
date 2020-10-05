@@ -101,6 +101,9 @@ SUBPROCESSES = []
 # Forward signals to sub-processes, so they get notified when sending a signal to jt
 [:SIGINT, :SIGTERM].each do |signal|
   trap(signal) do
+    # Enables command line signals (e.g. Ctrl+C) when waiting for input if there are no subprocesses.
+    raise Interrupt if SUBPROCESSES.empty?
+
     SUBPROCESSES.each do |pid|
       Utilities.send_signal(signal, pid)
     end
