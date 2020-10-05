@@ -42,6 +42,7 @@ Compatibility:
 * Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known. 
 * Implement negative line numbers for eval (#1482).
 * Support refinements for `#to_s` called by string interpolation (#2110, @ssnickolay)
+* Module#using raises error in method scope (#2112, @ssnickolay)
 
 Performance:
 

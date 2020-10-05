@@ -2163,10 +2163,21 @@ public abstract class ModuleNodes {
                         getContext(),
                         coreExceptions().runtimeError("Module#using is not called on self", this));
             }
+            if (!isCalledFromClassOrModule(callerFrame)) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError("Module#using is not permitted in methods", this));
+            }
             usingNode.executeUsing(refinementModule);
             return self;
         }
 
+        @TruffleBoundary
+        private boolean isCalledFromClassOrModule(Frame callerFrame) {
+            final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getName();
+            // Handles cases: <main> | <top | <class: | <module: | <singleton
+            return name.startsWith("<");
+        }
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
