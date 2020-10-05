@@ -577,6 +577,31 @@ module Utilities
     return [args, []] unless delimiter_index
     [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
   end
+
+  def with_color(color_code, &block)
+    print color_code if STDOUT.tty?
+    begin
+      result = yield block
+    ensure
+      print TERM_COLOR_DEFAULT if STDOUT.tty?
+    end
+    result
+  end
+
+  def boxed(&block)
+    puts ''
+    puts '============================================================'
+    puts ''
+    result = yield block
+    puts ''
+    puts '============================================================'
+    puts ''
+    result
+  end
+
+  # https://misc.flogisoft.com/bash/tip_colors_and_formatting
+  TERM_COLOR_RED = "\e[31m"
+  TERM_COLOR_DEFAULT = "\e[39m"
 end
 
 module Commands
@@ -609,7 +634,7 @@ module Commands
                                               GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
-              --sforceimports                 run sforceimports before building (default: false)
+              --sforceimports                 run `mx sforceimports` before building (default: false)
               --env|-e                        mx env file used to build the GraalVM, default is "jvm"
               --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
                                               it is also linked in your ruby manager (if found) under the same name,
@@ -1978,6 +2003,41 @@ EOS
     destination
   end
 
+  private def sforceimports? (mx_base_args)
+    scheckimports_output = mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only', capture: :both)
+
+    unless scheckimports_output.empty?
+      # Don't ask to update, just warn.
+      if ENV['JT_IMPORTS_DONT_ASK'] || !STDIN.tty?
+        with_color(TERM_COLOR_RED) do
+          boxed do
+            puts scheckimports_output
+            puts <<~MESSAGE
+              You might want to:
+              * use the version of graal in suite.py, then use "jt build --sforceimports", useful when building TruffleRuby and not changing graal at the same time (most common)
+              * update the graal version in suite.py, then use "mx scheckimports", useful when explicitly updating the default graal version of TruffleRuby (rare)
+              * test TruffleRuby with a different graal version with your own changes in graal, then you can ignore this warning
+            MESSAGE
+          end
+        end
+        false
+      else
+        # Ask to update imports.
+        with_color(TERM_COLOR_RED) do
+          puts "\nNOTE: Set env variable JT_IMPORTS_DONT_ASK to always answer 'no' to this prompt.\n\n"
+          puts scheckimports_output
+          input = ''
+          until %w(y n).include? input
+            print 'Do you want to checkout the supported version of graal as specified in truffleruby\'s suite.py? (runs `mx sforceimports`) [y/n] '
+            input = STDIN.gets.chomp
+          end
+          puts ''
+          input == 'y'
+        end
+      end
+    end
+  end
+
   private def build_graalvm(*options)
     raise 'use --env jvm-ce instead' if options.delete('--graal')
     raise 'use --env native instead' if options.delete('--native')
@@ -2003,18 +2063,17 @@ EOS
                  end
 
     name = "truffleruby-#{@ruby_name}"
+    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
 
+    # Must clone enterprise before running `mx scheckimports` in `sforceimports?`
     cloned = env.include?('ee') && clone_enterprise
 
-    if options.delete('--sforceimports')
+    if options.delete('--sforceimports') || sforceimports?(mx_base_args)
       mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
       checkout_enterprise_revision(env) if env.include?('ee')
-    else
-      checkout_enterprise_revision(env) if cloned
+    elsif cloned
+      checkout_enterprise_revision(env)
     end
-
-    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
-    mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only')
 
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options
