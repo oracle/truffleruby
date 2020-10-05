@@ -64,7 +64,8 @@ public abstract class HashNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyHash allocate(RubyClass rubyClass) {
+        protected RubyHash allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             RubyHash hash = new RubyHash(
                     rubyClass,
                     helperNode.getCachedShape(rubyClass),
@@ -76,7 +77,7 @@ public abstract class HashNodes {
                     nil,
                     nil,
                     false);
-            helperNode.trace(hash, this);
+            helperNode.trace(hash, this, language);
             return hash;
         }
 

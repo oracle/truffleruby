@@ -1591,7 +1591,8 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
                 @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @CachedLanguage RubyLanguage language) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1608,7 +1609,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 
@@ -1751,7 +1752,8 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
                 @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @CachedLanguage RubyLanguage language) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1765,7 +1767,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 

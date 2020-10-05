@@ -1706,7 +1706,8 @@ public abstract class KernelNodes {
         protected RubyMethod singletonMethod(Object self, String name,
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile singletonProfile,
-                @Cached ConditionProfile methodProfile) {
+                @Cached ConditionProfile methodProfile,
+                @CachedLanguage RubyLanguage language) {
             final RubyClass metaClass = metaClassNode.execute(self);
 
             if (singletonProfile.profile(metaClass.isSingleton)) {
@@ -1717,7 +1718,7 @@ public abstract class KernelNodes {
                             RubyLanguage.methodShape,
                             self,
                             method);
-                    allocateNode.trace(instance, this);
+                    allocateNode.trace(instance, this, language);
                     return instance;
                 }
             }

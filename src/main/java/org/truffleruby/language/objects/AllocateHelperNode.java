@@ -41,10 +41,11 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
     protected abstract Shape execute(RubyClass classToAllocate);
 
     // Convenience method when the context is guaranteed PE constant
-    public void trace(RubyDynamicObject instance, RubyNode.WithContext contextNode) {
+    public void trace(RubyDynamicObject instance, RubyNode.WithContext contextNode, RubyLanguage language) {
         final RubyContext context = contextNode.getContext();
         CompilerAsserts.partialEvaluationConstant(context);
-        AllocationTracing.trace(context.getLanguageSlow(), context, instance, (Node) contextNode);
+        CompilerAsserts.partialEvaluationConstant(language);
+        AllocationTracing.trace(language, context, instance, (Node) contextNode);
     }
 
     public void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance) {

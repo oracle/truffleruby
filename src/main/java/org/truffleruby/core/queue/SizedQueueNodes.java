@@ -11,11 +11,13 @@ package org.truffleruby.core.queue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -40,10 +42,11 @@ public abstract class SizedQueueNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubySizedQueue allocate(RubyClass rubyClass) {
+        protected RubySizedQueue allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySizedQueue instance = new RubySizedQueue(rubyClass, shape, null);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

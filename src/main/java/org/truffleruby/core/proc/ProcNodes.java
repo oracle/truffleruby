@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.proc;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -99,7 +100,8 @@ public abstract class ProcNodes {
         @Specialization(guards = "procClass != metaClass(block)")
         protected RubyProc procSpecial(RubyClass procClass, Object[] args, RubyProc block,
                 @Cached AllocateHelperNode allocateHelper,
-                @Cached DispatchNode initialize) {
+                @Cached DispatchNode initialize,
+                @CachedLanguage RubyLanguage language) {
             // Instantiate a new instance of procClass as classes do not correspond
 
             final RubyProc proc = new RubyProc(
@@ -115,7 +117,7 @@ public abstract class ProcNodes {
                     block.frameOnStackMarker,
                     block.declarationContext);
 
-            allocateHelper.trace(proc, this);
+            allocateHelper.trace(proc, this, language);
             initialize.callWithBlock(proc, "initialize", block, args);
             return proc;
         }
@@ -138,7 +140,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected RubyProc dup(RubyProc proc,
-                @Cached AllocateHelperNode allocateHelper) {
+                @Cached AllocateHelperNode allocateHelper,
+                @CachedLanguage RubyLanguage language) {
             final RubyClass logicalClass = proc.getLogicalClass();
             final RubyProc copy = new RubyProc(
                     logicalClass,
@@ -153,7 +156,7 @@ public abstract class ProcNodes {
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 
-            allocateHelper.trace(copy, this);
+            allocateHelper.trace(copy, this, language);
             return copy;
         }
     }
@@ -259,7 +262,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block,
-                @Cached AllocateHelperNode allocateHelper) {
+                @Cached AllocateHelperNode allocateHelper,
+                @CachedLanguage RubyLanguage language) {
             final RubyProc composedProc = new RubyProc(
                     coreLibrary().procClass,
                     RubyLanguage.procShape,
@@ -272,7 +276,7 @@ public abstract class ProcNodes {
                     block.block,
                     block.frameOnStackMarker,
                     block.declarationContext);
-            allocateHelper.trace(composedProc, this);
+            allocateHelper.trace(composedProc, this, language);
             return composedProc;
         }
     }

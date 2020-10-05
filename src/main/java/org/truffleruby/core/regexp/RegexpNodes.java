@@ -21,11 +21,13 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -225,7 +227,8 @@ public abstract class RegexpNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyRegexp allocate(RubyClass rubyClass) {
+        protected RubyRegexp allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             RubyRegexp regexp = new RubyRegexp(
                     rubyClass,
                     allocateNode.getCachedShape(rubyClass),
@@ -233,7 +236,7 @@ public abstract class RegexpNodes {
                     null,
                     RegexpOptions.NULL_OPTIONS,
                     null);
-            allocateNode.trace(regexp, this);
+            allocateNode.trace(regexp, this, language);
             return regexp;
         }
 

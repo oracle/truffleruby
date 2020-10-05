@@ -12,11 +12,13 @@ package org.truffleruby.core.time;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -63,10 +65,11 @@ public abstract class TimeNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyTime allocate(RubyClass rubyClass) {
+        protected RubyTime allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTime instance = new RubyTime(rubyClass, shape, ZERO, nil, 0, false, false);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 
@@ -180,13 +183,14 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected RubyTime timeNow(RubyClass timeClass) {
+        protected RubyTime timeNow(RubyClass timeClass,
+                @CachedLanguage RubyLanguage language) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
             final Shape shape = allocateNode.getCachedShape(timeClass);
             final RubyTime instance = new RubyTime(timeClass, shape, dt, zone, nil, false, false);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
 
         }
@@ -206,7 +210,8 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
+        protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds,
+                @CachedLanguage RubyLanguage language) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
@@ -220,7 +225,7 @@ public abstract class TimeNodes {
                     nil,
                     false,
                     false);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 
@@ -486,8 +491,9 @@ public abstract class TimeNodes {
                 int nsec,
                 int isdst,
                 boolean isutc,
-                Object utcoffset) {
-            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
+                Object utcoffset,
+                @CachedLanguage RubyLanguage language) {
+            return buildTime(language, timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
@@ -507,7 +513,8 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        private RubyTime buildTime(RubyClass timeClass, int sec, int min, int hour, int mday, int month,
+        private RubyTime buildTime(RubyLanguage language, RubyClass timeClass, int sec, int min, int hour, int mday,
+                int month,
                 int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
@@ -591,7 +598,7 @@ public abstract class TimeNodes {
                     utcoffset,
                     relativeOffset,
                     isutc);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

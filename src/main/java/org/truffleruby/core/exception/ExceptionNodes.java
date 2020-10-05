@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -43,10 +45,11 @@ public abstract class ExceptionNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyException allocateException(RubyClass rubyClass) {
+        protected RubyException allocateException(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyException instance = new RubyException(rubyClass, shape, nil, null, nil);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

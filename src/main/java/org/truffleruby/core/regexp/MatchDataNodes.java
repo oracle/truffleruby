@@ -12,6 +12,7 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -184,7 +185,8 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object create(RubyString regexp, RubyString string, int start, int end,
-                @Cached AllocateHelperNode allocateNode) {
+                @Cached AllocateHelperNode allocateNode,
+                @CachedLanguage RubyLanguage language) {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -193,7 +195,7 @@ public abstract class MatchDataNodes {
                     string,
                     region,
                     null);
-            allocateNode.trace(matchData, this);
+            allocateNode.trace(matchData, this, language);
             return matchData;
         }
 
@@ -206,7 +208,8 @@ public abstract class MatchDataNodes {
         protected Object create(RubyDynamicObject regexp, RubyString string, RubyArray starts, RubyArray ends,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode,
-                @Cached AllocateHelperNode allocateNode) {
+                @Cached AllocateHelperNode allocateNode,
+                @CachedLanguage RubyLanguage language) {
             final Region region = new Region(starts.size);
             for (int i = 0; i < region.numRegs; i++) {
                 region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
@@ -220,7 +223,7 @@ public abstract class MatchDataNodes {
                     string,
                     region,
                     null);
-            allocateNode.trace(matchData, this);
+            allocateNode.trace(matchData, this, language);
             return matchData;
         }
 
@@ -250,7 +253,8 @@ public abstract class MatchDataNodes {
         protected Object getIndex(RubyMatchData matchData, int index, NotProvided length,
                 @Cached ConditionProfile normalizedIndexProfile,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
-                @Cached ConditionProfile hasValueProfile) {
+                @Cached ConditionProfile hasValueProfile,
+                @CachedLanguage RubyLanguage language) {
             final RubyString source = matchData.source;
             final Rope sourceRope = source.rope;
             final Region region = matchData.region;
@@ -268,7 +272,7 @@ public abstract class MatchDataNodes {
                     final RubyClass logicalClass = source.getLogicalClass();
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
                     final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
-                    allocateHelperNode.trace(string, this);
+                    allocateHelperNode.trace(string, this, language);
                     return string;
                 } else {
                     return nil;
@@ -461,7 +465,8 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization
         protected Object[] getValuesSlow(RubyMatchData matchData,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @CachedLanguage RubyLanguage language) {
             final RubyString source = matchData.source;
             final Rope sourceRope = source.rope;
             final Region region = matchData.region;
@@ -477,7 +482,7 @@ public abstract class MatchDataNodes {
                     final RubyClass logicalClass = source.getLogicalClass();
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
                     final RubyString string = new RubyString(logicalClass, shape, false, isTainted, rope);
-                    allocateHelperNode.trace(string, this);
+                    allocateHelperNode.trace(string, this, language);
                     values[n] = string;
                 } else {
                     values[n] = nil;
@@ -584,7 +589,8 @@ public abstract class MatchDataNodes {
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected RubyString preMatch(RubyMatchData matchData) {
+        protected RubyString preMatch(RubyMatchData matchData,
+                @CachedLanguage RubyLanguage language) {
             RubyString source = matchData.source;
             Rope sourceRope = source.rope;
             Region region = matchData.region;
@@ -594,7 +600,7 @@ public abstract class MatchDataNodes {
             final RubyClass logicalClass = source.getLogicalClass();
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
-            allocateHelperNode.trace(string, this);
+            allocateHelperNode.trace(string, this, language);
             return string;
         }
     }
@@ -608,7 +614,8 @@ public abstract class MatchDataNodes {
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected RubyString postMatch(RubyMatchData matchData) {
+        protected RubyString postMatch(RubyMatchData matchData,
+                @CachedLanguage RubyLanguage language) {
             RubyString source = matchData.source;
             Rope sourceRope = source.rope;
             Region region = matchData.region;
@@ -618,7 +625,7 @@ public abstract class MatchDataNodes {
             final RubyClass logicalClass = source.getLogicalClass();
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
-            allocateHelperNode.trace(string, this);
+            allocateHelperNode.trace(string, this, language);
             return string;
         }
     }
@@ -672,7 +679,8 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected RubyMatchData allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateNode) {
+                @Cached AllocateHelperNode allocateNode,
+                @CachedLanguage RubyLanguage language) {
             RubyMatchData matchData = new RubyMatchData(
                     rubyClass,
                     allocateNode.getCachedShape(rubyClass),
@@ -680,7 +688,7 @@ public abstract class MatchDataNodes {
                     null,
                     null,
                     null);
-            allocateNode.trace(matchData, this);
+            allocateNode.trace(matchData, this, language);
             return matchData;
         }
 

@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -43,7 +45,8 @@ public abstract class ConditionVariableNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyConditionVariable allocate(RubyClass rubyClass) {
+        protected RubyConditionVariable allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             // condLock is only held for a short number of non-blocking instructions,
             // so there is no need to poll for safepoints while locking it.
             // It is an internal lock and so locking should be done with condLock.lock()
@@ -53,7 +56,7 @@ public abstract class ConditionVariableNodes {
 
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyConditionVariable instance = new RubyConditionVariable(rubyClass, shape, condLock, condition);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
     }

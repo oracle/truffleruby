@@ -52,7 +52,8 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 
 public abstract class StringOperations {
 
-    public static RubyString createString(RubyContext context, AllocateHelperNode allocateHelperNode,
+    public static RubyString createString(RubyLanguage language, RubyContext context,
+            AllocateHelperNode allocateHelperNode,
             RubyContextSourceNode rubyContextSourceNode, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
@@ -60,7 +61,7 @@ public abstract class StringOperations {
                 false,
                 false,
                 rope);
-        allocateHelperNode.trace(instance, rubyContextSourceNode);
+        allocateHelperNode.trace(instance, rubyContextSourceNode, language);
         return instance;
     }
 

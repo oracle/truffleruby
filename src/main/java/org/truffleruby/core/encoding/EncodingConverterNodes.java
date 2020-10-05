@@ -16,6 +16,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.specific.ASCIIEncoding;
@@ -24,6 +25,7 @@ import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscoderDB;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -155,10 +157,11 @@ public abstract class EncodingConverterNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyEncodingConverter allocate(RubyClass rubyClass) {
+        protected RubyEncodingConverter allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyEncodingConverter instance = new RubyEncodingConverter(rubyClass, shape, null);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

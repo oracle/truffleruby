@@ -15,8 +15,10 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -108,13 +110,14 @@ public abstract class ArrayNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyArray allocate(RubyClass rubyClass) {
+        protected RubyArray allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             RubyArray array = new RubyArray(
                     rubyClass,
                     helperNode.getCachedShape(rubyClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
-            helperNode.trace(array, this);
+            helperNode.trace(array, this, language);
             return array;
         }
 

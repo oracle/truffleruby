@@ -612,10 +612,11 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected RubyBasicObject allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateHelperNode) {
+                @Cached AllocateHelperNode allocateHelperNode,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, shape);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 
