@@ -63,10 +63,37 @@
 module Truffle::ThreadOperations
 
   # detect_recursion will return if there's a recursion
-  # on obj (or the pair obj+paired_obj).
+  # on obj.
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
-  def self.detect_recursion(obj, paired_obj=nil)
+  def self.detect_recursion(obj)
+    unless Primitive.object_can_contain_object obj
+      yield
+      return false
+    end
+
+    id = obj.object_id
+    objects = Primitive.thread_recursive_objects
+
+    if objects[id]
+      true
+    else
+      objects[id] = true
+      begin
+        yield
+      ensure
+        objects.delete id
+      end
+      false
+    end
+  end
+  Truffle::Graal.always_split method(:detect_recursion)
+
+  # detect_recursion will return if there's a recursion
+  # on the pair obj+paired_obj.
+  # If there is one, it returns true.
+  # Otherwise, it will yield once and return false.
+  def self.detect_pair_recursion(obj, paired_obj)
     unless Primitive.object_can_contain_object obj
       yield
       return false
@@ -118,7 +145,7 @@ module Truffle::ThreadOperations
 
     false
   end
-  Truffle::Graal.always_split method(:detect_recursion)
+  Truffle::Graal.always_split method(:detect_pair_recursion)
 
   class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
 

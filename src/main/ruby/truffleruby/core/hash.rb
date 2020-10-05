@@ -137,7 +137,7 @@ class Hash
 
     return false unless other.size == size
 
-    Truffle::ThreadOperations.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       each_pair do |key, value|
         other_value = other._get_or_undefined(key)
 

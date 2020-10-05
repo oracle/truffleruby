@@ -89,7 +89,7 @@ class Array
 
     total = other.size
 
-    Truffle::ThreadOperations.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       i = 0
       count = Primitive.min(total, size)
 
@@ -132,7 +132,7 @@ class Array
 
     return false unless size == other.size
 
-    Truffle::ThreadOperations.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       i = 0
       total = size
 
@@ -325,7 +325,7 @@ class Array
     return false unless other.kind_of?(Array)
     return false if size != other.size
 
-    Truffle::ThreadOperations.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       i = 0
       each do |x|
         return false unless x.eql? other[i]

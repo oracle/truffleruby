@@ -188,7 +188,7 @@ class Struct
   def ==(other)
     return false if self.class != other.class
 
-    Truffle::ThreadOperations.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       return self.values == other.values
     end
 
@@ -270,7 +270,7 @@ class Struct
     return true if equal? other
     return false if self.class != other.class
 
-    Truffle::ThreadOperations.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       _attrs.each do |var|
         mine =   Primitive.object_hidden_var_get(self, var)
         theirs = Primitive.object_hidden_var_get(other, var)

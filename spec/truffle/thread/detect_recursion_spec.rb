@@ -25,13 +25,13 @@ module TruffleThreadDetectRecursionSpecFixtures
 
   def self.check_double_recursion_equality_to_depth(obj1, obj2, depth)
     # checks that obj1 and obj2 are both recursive and equal structurally
-    # (because detect_recursion on two objects is only used during object comparison,
+    # (because detect_pair_recursion on two objects is only used during object comparison,
     # and aborts after inequality is discovered)
     return false unless obj1.class == obj2.class
     return false unless obj1.respond_to?(:each)
     return false unless obj1.size == obj2.size
 
-    Truffle::ThreadOperations.detect_recursion(obj1, obj2) do
+    Truffle::ThreadOperations.detect_pair_recursion(obj1, obj2) do
       if depth > 1
         if obj1.class == Hash
           obj1.each do |key, val|
