@@ -345,7 +345,7 @@ public class BacktraceFormatter {
         return isAvailable(sourceSection) && !isRubyCore(context, sourceSection.getSource());
     }
 
-    private static boolean isRubyCore(RubyContext context, Source source) {
+    public static boolean isRubyCore(RubyContext context, Source source) {
         final String path = RubyContext.getPath(source);
         return path.startsWith(context.getCoreLibrary().coreLoadPath);
     }

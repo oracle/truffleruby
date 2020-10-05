@@ -27,6 +27,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 
 @CoreModule(value = "Thread::Backtrace::Location", isClass = true)
 public class ThreadBacktraceLocationNodes {
@@ -47,7 +48,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyString absolutePath(RubyBacktraceLocation threadBacktraceLocation,
+        protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
@@ -55,7 +56,9 @@ public class ThreadBacktraceLocationNodes {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Source source = sourceSection.getSource();
-                if (source.getPath() != null) { // A normal file
+                if (BacktraceFormatter.isRubyCore(getContext(), source)) {
+                    return nil;
+                } else if (source.getPath() != null) { // A normal file
                     final String path = getContext().getSourcePath(source);
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                     final Rope cachedRope = getContext()
