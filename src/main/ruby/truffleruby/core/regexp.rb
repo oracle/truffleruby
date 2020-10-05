@@ -72,7 +72,7 @@ class Regexp
     encodings = patterns.map { |r| convert(r).encoding }
     last_enc = encodings.pop
     encodings.each do |encoding|
-      raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Encoding.compatible?(last_enc, encoding)
+      raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Primitive.encoding_compatible?(last_enc, encoding)
       last_enc = encoding
     end
   end

@@ -523,7 +523,7 @@ module Truffle
     end
 
     def self.compatible_encoding(a, b)
-      enc = Encoding.compatible? a, b
+      enc = Primitive.encoding_compatible? a, b
 
       unless enc
         enc_a = Primitive.encoding_get_object_encoding a
