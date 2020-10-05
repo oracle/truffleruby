@@ -2069,12 +2069,11 @@ module Commands
 
     # Must clone enterprise before running `mx scheckimports` in `sforceimports?`
     cloned = env.include?('ee') && clone_enterprise
+    checkout_enterprise_revision(env) if cloned
 
     if options.delete('--sforceimports') || sforceimports?(mx_base_args)
       mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
-      checkout_enterprise_revision(env) if env.include?('ee')
-    elsif cloned
-      checkout_enterprise_revision(env)
+      checkout_enterprise_revision(env) if env.include?('ee') && !cloned
     end
 
     mx_options, mx_build_options = args_split(options)
