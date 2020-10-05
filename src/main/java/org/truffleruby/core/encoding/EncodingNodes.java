@@ -197,7 +197,6 @@ public abstract class EncodingNodes {
 
     }
 
-    @ReportPolymorphism
     public static abstract class NegotiateCompatibleEncodingNode extends RubyContextNode {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
@@ -366,7 +365,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @CoreMethod(names = "compatible?", onSingleton = true, required = 2)
+    @Primitive(name = "encoding_compatible?")
     public abstract static class CompatibleQueryNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();

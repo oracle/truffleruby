@@ -171,6 +171,10 @@ class Encoding
     end
   end
 
+  def self.compatible?(first, second)
+    Primitive.encoding_compatible? first, second
+  end
+
   def inspect
     "#<Encoding:#{name}#{" (dummy)" if dummy?}>"
   end
