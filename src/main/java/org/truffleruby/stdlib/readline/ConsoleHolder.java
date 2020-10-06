@@ -42,18 +42,15 @@ package org.truffleruby.stdlib.readline;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.graalvm.shadowed.org.jline.builtins.Completers;
-import org.graalvm.shadowed.org.jline.reader.Candidate;
 import org.graalvm.shadowed.org.jline.reader.Completer;
 import org.graalvm.shadowed.org.jline.reader.LineReader;
 import org.graalvm.shadowed.org.jline.reader.LineReader.Option;
-import org.graalvm.shadowed.org.jline.reader.LineReaderBuilder;
-import org.graalvm.shadowed.org.jline.reader.ParsedLine;
+import org.graalvm.shadowed.org.jline.reader.impl.LineReaderImpl;
 import org.graalvm.shadowed.org.jline.terminal.Size;
 import org.graalvm.shadowed.org.jline.terminal.Terminal;
 import org.graalvm.shadowed.org.jline.terminal.impl.DumbTerminal;
@@ -64,7 +61,7 @@ import org.truffleruby.core.support.RubyIO;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class ConsoleHolder implements Completer {
+public class ConsoleHolder {
 
     // Set to true to print logging messages from JLine
     private static final boolean DEBUG_JLINE = false;
@@ -81,10 +78,9 @@ public class ConsoleHolder implements Completer {
     }
 
     private final RubyContext context;
-    private final LineReader readline;
+    private final LineReaderImpl readline;
     private final IoStream in;
     private final IoStream out;
-    private Completer currentCompleter;
 
     public static ConsoleHolder create(RubyContext context) {
         final RubyIO stdin = (RubyIO) context.getCoreLibrary().getStdin();
@@ -141,13 +137,10 @@ public class ConsoleHolder implements Completer {
             throw new UnsupportedOperationException("Couldn't initialize readline", e);
         }
 
-        readline = LineReaderBuilder
-                .builder()
-                .terminal(terminal)
-                .history(history)
-                .parser(parser)
-                .completer(this)
-                .build();
+        readline = new LineReaderImpl(terminal, null, null);
+        readline.setHistory(history);
+        readline.setParser(parser);
+        readline.setCompleter(completer);
 
         readline.option(Option.DISABLE_EVENT_EXPANSION, true);
         readline.option(Option.HISTORY_BEEP, true);
@@ -155,8 +148,6 @@ public class ConsoleHolder implements Completer {
         if (!system) {
             readline.option(Option.BRACKETED_PASTE, false);
         }
-
-        this.currentCompleter = completer;
     }
 
     private String getType() {
@@ -188,7 +179,7 @@ public class ConsoleHolder implements Completer {
     }
 
     public void setCompleter(Completer completer) {
-        this.currentCompleter = completer;
+        readline.setCompleter(completer);
     }
 
     public ConsoleHolder updateIn(int fd, RubyIO io) {
@@ -202,7 +193,7 @@ public class ConsoleHolder implements Completer {
                 io,
                 out.getFd(),
                 out.getIo(),
-                currentCompleter,
+                readline.getCompleter(),
                 getHistory(),
                 getParser());
     }
@@ -218,13 +209,9 @@ public class ConsoleHolder implements Completer {
                 in.getIo(),
                 fd,
                 io,
-                currentCompleter,
+                readline.getCompleter(),
                 getHistory(),
                 getParser());
     }
 
-    @Override
-    public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
-        currentCompleter.complete(lineReader, parsedLine, list);
-    }
 }
