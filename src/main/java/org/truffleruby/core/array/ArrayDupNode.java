@@ -47,7 +47,9 @@ public abstract class ArrayDupNode extends RubyContextNode {
     }
 
     @ExplodeLoop
-    private RubyArray copyArraySmall(RubyLanguage language, ArrayStoreLibrary fromStores, ArrayStoreLibrary toStores,
+    private RubyArray copyArraySmall(RubyLanguage language,
+            ArrayStoreLibrary fromStores,
+            ArrayStoreLibrary toStores,
             RubyArray from,
             int cachedSize) {
         final Object original = from.store;
