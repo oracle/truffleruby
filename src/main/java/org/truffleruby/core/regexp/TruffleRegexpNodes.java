@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -318,7 +319,8 @@ public class TruffleRegexpNodes {
                 int startPos,
                 int range,
                 boolean onlyMatchAtStart,
-                @Cached ConditionProfile matchesProfile) {
+                @Cached ConditionProfile matchesProfile,
+                @CachedLanguage RubyLanguage language) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
                 instrument(regexp, string, onlyMatchAtStart);
             }
@@ -340,7 +342,7 @@ public class TruffleRegexpNodes {
                     dupedString,
                     region,
                     null);
-            allocateNode.trace(result, this);
+            allocateNode.trace(result, this, language);
             return taintResultNode.maybeTaint(string, result);
         }
 

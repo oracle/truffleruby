@@ -42,7 +42,7 @@ public abstract class ClassNodes {
     /** Special constructor for class Class */
     @TruffleBoundary
     public static RubyClass createClassClass(RubyContext context) {
-        final RubyClass rubyClass = new RubyClass(context, context.getLanguage().classShape);
+        final RubyClass rubyClass = new RubyClass(context, context.getLanguageSlow().classShape);
 
         assert rubyClass.getLogicalClass() == rubyClass;
         assert rubyClass.getMetaClass() == rubyClass;

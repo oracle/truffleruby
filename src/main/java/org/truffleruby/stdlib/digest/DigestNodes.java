@@ -11,6 +11,7 @@ package org.truffleruby.stdlib.digest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -42,14 +43,14 @@ public abstract class DigestNodes {
         }
     }
 
-    private static RubyDigest createDigest(RubyContext context, AllocateHelperNode allocateNode,
+    private static RubyDigest createDigest(RubyLanguage language, RubyContext context, AllocateHelperNode allocateNode,
             RubyContextSourceNode rubyContextSourceNode, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
                 context.getCoreLibrary().digestClass,
                 RubyLanguage.digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
-        allocateNode.trace(instance, rubyContextSourceNode);
+        allocateNode.trace(instance, rubyContextSourceNode, language);
         return instance;
     }
 
@@ -59,8 +60,9 @@ public abstract class DigestNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyDigest md5() {
-            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.MD5);
+        protected RubyDigest md5(
+                @CachedLanguage RubyLanguage language) {
+            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.MD5);
         }
 
     }
@@ -71,8 +73,9 @@ public abstract class DigestNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyDigest sha1() {
-            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA1);
+        protected RubyDigest sha1(
+                @CachedLanguage RubyLanguage language) {
+            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA1);
         }
 
     }
@@ -83,8 +86,9 @@ public abstract class DigestNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyDigest sha256() {
-            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA256);
+        protected RubyDigest sha256(
+                @CachedLanguage RubyLanguage language) {
+            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA256);
         }
 
     }
@@ -95,8 +99,9 @@ public abstract class DigestNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyDigest sha384() {
-            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA384);
+        protected RubyDigest sha384(
+                @CachedLanguage RubyLanguage language) {
+            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA384);
         }
 
     }
@@ -107,8 +112,9 @@ public abstract class DigestNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyDigest sha512() {
-            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA512);
+        protected RubyDigest sha512(
+                @CachedLanguage RubyLanguage language) {
+            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA512);
         }
 
     }

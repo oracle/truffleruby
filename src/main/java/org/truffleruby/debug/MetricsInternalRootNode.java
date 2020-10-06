@@ -30,11 +30,8 @@ class MetricsInternalRootNode extends RubyBaseRootNode implements InternalRootNo
 
     @Child private RubyNode body;
 
-    public MetricsInternalRootNode(
-            RubyContext context,
-            String name,
-            RubyNode body) {
-        super(context.getLanguage(), context.getCoreLibrary().emptyDescriptor, REQUIRE_METRICS_SOURCE_SECTION);
+    public MetricsInternalRootNode(RubyContext context, String name, RubyNode body) {
+        super(context.getLanguageSlow(), context.getCoreLibrary().emptyDescriptor, REQUIRE_METRICS_SOURCE_SECTION);
         assert body != null;
 
         this.name = name;

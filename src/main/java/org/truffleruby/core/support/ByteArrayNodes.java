@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -43,10 +44,11 @@ public abstract class ByteArrayNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyByteArray allocate(RubyClass rubyClass) {
+        protected RubyByteArray allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyByteArray instance = new RubyByteArray(rubyClass, shape, RopeConstants.EMPTY_BYTES);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 
@@ -81,7 +83,8 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected RubyByteArray prepend(RubyByteArray byteArray, RubyString string,
-                @Cached RopeNodes.BytesNode bytesNode) {
+                @Cached RopeNodes.BytesNode bytesNode,
+                @CachedLanguage RubyLanguage language) {
             final byte[] bytes = byteArray.bytes;
 
             final Rope rope = string.rope;
@@ -95,7 +98,7 @@ public abstract class ByteArrayNodes {
                     coreLibrary().byteArrayClass,
                     RubyLanguage.byteArrayShape,
                     prependedBytes);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

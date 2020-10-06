@@ -41,19 +41,23 @@ public abstract class ArrayDupNode extends RubyContextNode {
     protected RubyArray dupProfiledSize(RubyArray from,
             @CachedLibrary("from.store") ArrayStoreLibrary fromStores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
-            @Cached("from.size") int cachedSize) {
-        return copyArraySmall(fromStores, toStores, from, cachedSize);
+            @Cached("from.size") int cachedSize,
+            @CachedLanguage RubyLanguage language) {
+        return copyArraySmall(language, fromStores, toStores, from, cachedSize);
     }
 
     @ExplodeLoop
-    private RubyArray copyArraySmall(ArrayStoreLibrary fromStores, ArrayStoreLibrary toStores, RubyArray from,
+    private RubyArray copyArraySmall(RubyLanguage language,
+            ArrayStoreLibrary fromStores,
+            ArrayStoreLibrary toStores,
+            RubyArray from,
             int cachedSize) {
         final Object original = from.store;
         final Object copy = fromStores.allocator(original).allocate(cachedSize);
         for (int i = 0; i < cachedSize; i++) {
             toStores.write(copy, i, fromStores.read(original, i));
         }
-        return allocateArray(coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, cachedSize);
+        return allocateArray(language, coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, cachedSize);
     }
 
     @Specialization(replaces = "dupProfiledSize")
@@ -62,16 +66,17 @@ public abstract class ArrayDupNode extends RubyContextNode {
             @CachedLanguage RubyLanguage language) {
         final int size = from.size;
         final Object copy = cowNode.execute(from, 0, from.size);
-        return allocateArray(coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, size);
+        return allocateArray(language, coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, size);
     }
 
-    private RubyArray allocateArray(RubyClass rubyClass, Shape arrayShape, Object store, int size) {
+    private RubyArray allocateArray(RubyLanguage language, RubyClass rubyClass, Shape arrayShape, Object store,
+            int size) {
         if (helperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             helperNode = insert(AllocateHelperNode.create());
         }
         RubyArray array = new RubyArray(rubyClass, arrayShape, store, size);
-        helperNode.trace(array, this);
+        helperNode.trace(array, this, language);
         return array;
     }
 

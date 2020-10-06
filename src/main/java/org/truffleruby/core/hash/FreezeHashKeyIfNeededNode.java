@@ -18,7 +18,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
-
 public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
     @Child private DispatchNode dupNode;

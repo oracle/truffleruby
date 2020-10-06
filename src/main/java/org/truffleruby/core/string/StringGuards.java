@@ -15,7 +15,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 
-
 public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;

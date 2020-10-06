@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.method;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -204,7 +205,8 @@ public abstract class MethodNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
-        protected Object superMethod(RubyMethod method) {
+        protected Object superMethod(RubyMethod method,
+                @CachedLanguage RubyLanguage language) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
             RubyClass selfMetaClass = metaClassNode.execute(receiver);
@@ -217,7 +219,7 @@ public abstract class MethodNodes {
                         RubyLanguage.methodShape,
                         receiver,
                         superMethod.getMethod());
-                allocateNode.trace(instance, this);
+                allocateNode.trace(instance, this, language);
                 return instance;
             }
         }
@@ -231,14 +233,15 @@ public abstract class MethodNodes {
 
         @Specialization
         protected RubyUnboundMethod unbind(RubyMethod method,
-                @Cached AllocateHelperNode allocateHelperNode) {
+                @Cached AllocateHelperNode allocateHelperNode,
+                @CachedLanguage RubyLanguage language) {
             final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
                     RubyLanguage.unboundMethodShape,
                     receiverClass,
                     method.method);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 

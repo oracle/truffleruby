@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.pack;
 
-
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatRootNode;

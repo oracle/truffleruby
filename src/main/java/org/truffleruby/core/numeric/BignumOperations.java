@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.numeric;
 
-
 import java.math.BigInteger;
 
 public class BignumOperations {

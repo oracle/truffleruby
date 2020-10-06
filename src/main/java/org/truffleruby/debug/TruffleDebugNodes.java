@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -102,7 +103,8 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyHandle setBreak(RubyString file, int line, RubyProc block) {
+        protected RubyHandle setBreak(RubyString file, int line, RubyProc block,
+                @CachedLanguage RubyLanguage language) {
             final String fileString = file.getJavaString();
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -135,7 +137,7 @@ public abstract class TruffleDebugNodes {
                     coreLibrary().handleClass,
                     RubyLanguage.handleShape,
                     breakpoint);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

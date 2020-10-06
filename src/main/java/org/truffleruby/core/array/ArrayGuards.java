@@ -11,7 +11,6 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.RubyLanguage;
 
-
 public class ArrayGuards {
 
     // Partial Escape Analysis only considers < 32 elements

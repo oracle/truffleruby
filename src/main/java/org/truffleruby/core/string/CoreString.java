@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.string;
 
-
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;

@@ -80,10 +80,11 @@ public abstract class TracePointNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyTracePoint allocate(RubyClass rubyClass) {
+        protected RubyTracePoint allocate(RubyClass rubyClass,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTracePoint instance = new RubyTracePoint(rubyClass, shape, null, null);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

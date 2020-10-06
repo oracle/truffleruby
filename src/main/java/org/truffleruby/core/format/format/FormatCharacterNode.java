@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.format;
 
-
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.convert.ToIntegerNode;

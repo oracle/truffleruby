@@ -31,7 +31,7 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
     @CompilationFinal private int expectedLength;
 
     public UnpackRootNode(RubyContext context, SourceSection sourceSection, FormatNode child) {
-        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
+        super(context.getLanguageSlow(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
         this.context = context;
         this.child = child;
         expectedLength = context.getOptions().ARRAY_UNINITIALIZED_SIZE;

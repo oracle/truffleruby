@@ -18,7 +18,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.object.Shape;
 
-
 public class RubyNameError extends RubyException implements ObjectGraphNode {
 
     public Object receiver;

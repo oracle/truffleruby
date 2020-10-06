@@ -23,7 +23,6 @@ import org.truffleruby.core.format.exceptions.RangeException;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.language.control.RaiseException;
 
-
 public abstract class FormatExceptionTranslator {
 
     @TruffleBoundary

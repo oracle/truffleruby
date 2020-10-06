@@ -203,7 +203,7 @@ public class ThreadManager {
         return createThread(
                 context.getCoreLibrary().threadClass,
                 RubyLanguage.threadShape,
-                context.getLanguage(),
+                context.getLanguageSlow(),
                 Nil.INSTANCE,
                 info);
     }
@@ -221,7 +221,7 @@ public class ThreadManager {
         return createThread(
                 context.getCoreLibrary().threadClass,
                 RubyLanguage.threadShape,
-                context.getLanguage(),
+                context.getLanguageSlow(),
                 currentGroup,
                 "<foreign thread>");
     }

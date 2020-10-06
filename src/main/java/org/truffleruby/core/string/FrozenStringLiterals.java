@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.string;
 
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.Rope;

@@ -41,7 +41,6 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
-
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
 

@@ -322,7 +322,7 @@ public class CoreLibrary {
         this.sourceSection = initCoreSourceSection(context);
         this.node = new CoreLibraryNode();
 
-        final RubyLanguage language = context.getLanguage();
+        final RubyLanguage language = context.getLanguageSlow();
 
         // Nothing in this constructor can use RubyContext.getCoreLibrary() as we are building it!
         // Therefore, only initialize the core classes and modules here.

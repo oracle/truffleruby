@@ -23,7 +23,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 public abstract class InitializeClassNode extends RubyContextNode {
 
     private final boolean callInherited;

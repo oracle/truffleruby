@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -248,11 +249,11 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = "!isNil(object)")
         protected long objectIDImmutable(ImmutableRubyObject object,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @CachedLanguage RubyLanguage language) {
             final long id = object.getObjectId();
 
             if (id == 0) {
-                final long newId = context.getLanguage().getNextObjectID();
+                final long newId = language.getNextObjectID();
                 object.setObjectId(newId);
                 return newId;
             }
@@ -611,10 +612,11 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected RubyBasicObject allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateHelperNode) {
+                @Cached AllocateHelperNode allocateHelperNode,
+                @CachedLanguage RubyLanguage language) {
             final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, shape);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 

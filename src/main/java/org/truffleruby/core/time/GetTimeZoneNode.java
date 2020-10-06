@@ -46,7 +46,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
-
 public abstract class GetTimeZoneNode extends RubyContextNode {
 
     public static final ZoneId UTC = ZoneId.of("UTC");

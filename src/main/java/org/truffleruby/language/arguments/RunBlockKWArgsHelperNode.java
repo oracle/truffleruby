@@ -22,7 +22,6 @@ import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-
 public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
 
     @Child private ReadFrameSlotNode readArrayNode;

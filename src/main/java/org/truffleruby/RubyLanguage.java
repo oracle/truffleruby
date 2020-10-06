@@ -29,6 +29,7 @@ import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.RubyHash;
+import org.graalvm.options.OptionValues;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
@@ -71,6 +72,7 @@ import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.language.objects.RubyObjectType;
+import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
@@ -142,6 +144,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreSymbols coreSymbols;
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
+    @CompilationFinal public LanguageOptions options;
 
     @CompilationFinal private AllocationReporter allocationReporter;
 
@@ -234,8 +237,13 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         // We need to initialize the Metrics class of the language classloader
         Metrics.initializeOption();
 
-        if (allocationReporter == null) {
-            allocationReporter = env.lookup(AllocationReporter.class);
+        synchronized (this) {
+            if (allocationReporter == null) {
+                allocationReporter = env.lookup(AllocationReporter.class);
+            }
+            if (this.options == null) {
+                this.options = new LanguageOptions(env, env.getOptions());
+            }
         }
 
         LOGGER.fine("createContext()");
@@ -418,6 +426,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
                 .layout(layoutClass)
                 .dynamicType(RubyLanguage.objectType)
                 .build();
+    }
+
+    @Override
+    protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
+        return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
     }
 
 }

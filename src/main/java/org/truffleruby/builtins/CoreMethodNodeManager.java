@@ -63,7 +63,7 @@ public class CoreMethodNodeManager {
             SingletonClassNode singletonClassNode,
             PrimitiveManager primitiveManager) {
         this.context = context;
-        this.language = context.getLanguage();
+        this.language = context.getLanguageSlow();
         this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
     }
@@ -167,7 +167,7 @@ public class CoreMethodNodeManager {
         final RubyModule module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
-        Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(context, () -> {
+        Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(language, () -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod methodAnnotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
@@ -266,7 +266,7 @@ public class CoreMethodNodeManager {
         final boolean needsSelf = needsSelf(method);
 
         if (needsSelf) {
-            RubyNode readSelfNode = Translator.profileArgument(context, new ReadSelfNode());
+            RubyNode readSelfNode = Translator.profileArgument(language, new ReadSelfNode());
             argumentsNodes[i++] = transformArgument(method, readSelfNode, 0);
         }
 
@@ -276,7 +276,7 @@ public class CoreMethodNodeManager {
 
         for (int n = 0; n < nArgs; n++) {
             RubyNode readArgumentNode = Translator
-                    .profileArgument(context, new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
+                    .profileArgument(language, new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }
 

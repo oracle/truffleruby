@@ -40,6 +40,7 @@ package org.truffleruby.core;
 import java.io.PrintStream;
 import java.util.Map.Entry;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -165,7 +166,8 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached LookupMethodOnSelfNode lookupMethodNode) {
+                @Cached LookupMethodOnSelfNode lookupMethodNode,
+                @CachedLanguage RubyLanguage language) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
@@ -177,7 +179,7 @@ public abstract class VMPrimitiveNodes {
                     RubyLanguage.methodShape,
                     receiver,
                     method);
-            allocateNode.trace(instance, this);
+            allocateNode.trace(instance, this, language);
             return instance;
         }
 

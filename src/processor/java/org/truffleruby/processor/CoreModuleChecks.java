@@ -18,6 +18,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.builtins.CoreMethod;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -153,7 +154,8 @@ public class CoreModuleChecks {
         while (n >= 0 &&
                 (parameters.get(n).getAnnotation(Cached.class) != null ||
                         parameters.get(n).getAnnotation(CachedLibrary.class) != null ||
-                        parameters.get(n).getAnnotation(CachedContext.class) != null)) {
+                        parameters.get(n).getAnnotation(CachedContext.class) != null ||
+                        parameters.get(n).getAnnotation(CachedLanguage.class) != null)) {
             n--;
         }
 

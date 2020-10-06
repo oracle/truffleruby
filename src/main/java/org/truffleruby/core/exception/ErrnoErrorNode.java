@@ -20,7 +20,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.ErrnoDescriptions;
 
-
 public abstract class ErrnoErrorNode extends RubyContextNode {
 
     public static ErrnoErrorNode create() {

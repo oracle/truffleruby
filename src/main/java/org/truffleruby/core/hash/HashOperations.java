@@ -9,13 +9,12 @@
  */
 package org.truffleruby.core.hash;
 
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.objects.shared.SharedObjects;
-
 
 public abstract class HashOperations {
 
@@ -34,6 +33,7 @@ public abstract class HashOperations {
                 false);
     }
 
+    @TruffleBoundary
     public static boolean verifyStore(RubyContext context, RubyHash hash) {
         final Object store = hash.store;
         final int size = hash.size;
@@ -105,7 +105,7 @@ public abstract class HashOperations {
 
             assert foundSizeSequence == size : StringUtils.format("%d %d", foundSizeSequence, size);
         } else if (store.getClass() == Object[].class) {
-            assert ((Object[]) store).length == context.getOptions().HASH_PACKED_ARRAY_MAX *
+            assert ((Object[]) store).length == context.getLanguageSlow().options.HASH_PACKED_ARRAY_MAX *
                     PackedArrayStrategy.ELEMENTS_PER_ENTRY : ((Object[]) store).length;
 
             final Object[] packedStore = (Object[]) store;

@@ -23,19 +23,21 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
-    public static ArrayLiteralNode create(RubyNode[] values) {
-        return new UninitialisedArrayLiteralNode(values);
+    public static ArrayLiteralNode create(RubyLanguage language, RubyNode[] values) {
+        return new UninitialisedArrayLiteralNode(language, values);
     }
 
     @Children protected final RubyNode[] values;
     @Child private AllocateHelperNode allocateHelperNode;
+    protected final RubyLanguage language;
 
-    public ArrayLiteralNode(RubyNode[] values) {
+    public ArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+        this.language = language;
         this.values = values;
     }
 
     protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
-        final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(values);
+        final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(language, values);
         newNode.unsafeSetSourceSection(getSourceIndexLength());
         replace(newNode);
 
@@ -58,7 +60,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             allocateHelperNode = insert(AllocateHelperNode.create());
         }
         final RubyArray array = new RubyArray(coreLibrary().arrayClass, RubyLanguage.arrayShape, store, size);
-        allocateHelperNode.trace(array, this);
+        allocateHelperNode.trace(array, this, language);
         return array;
     }
 
@@ -98,8 +100,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     private static class EmptyArrayLiteralNode extends ArrayLiteralNode {
 
-        public EmptyArrayLiteralNode(RubyNode[] values) {
-            super(values);
+        public EmptyArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+            super(language, values);
         }
 
         @Override
@@ -111,8 +113,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     private static class FloatArrayLiteralNode extends ArrayLiteralNode {
 
-        public FloatArrayLiteralNode(RubyNode[] values) {
-            super(values);
+        public FloatArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+            super(language, values);
         }
 
         @ExplodeLoop
@@ -148,8 +150,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     private static class IntegerArrayLiteralNode extends ArrayLiteralNode {
 
-        public IntegerArrayLiteralNode(RubyNode[] values) {
-            super(values);
+        public IntegerArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+            super(language, values);
         }
 
         @ExplodeLoop
@@ -185,8 +187,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     private static class LongArrayLiteralNode extends ArrayLiteralNode {
 
-        public LongArrayLiteralNode(RubyNode[] values) {
-            super(values);
+        public LongArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+            super(language, values);
         }
 
         @ExplodeLoop
@@ -222,8 +224,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     private static class ObjectArrayLiteralNode extends ArrayLiteralNode {
 
-        public ObjectArrayLiteralNode(RubyNode[] values) {
-            super(values);
+        public ObjectArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+            super(language, values);
         }
 
         @ExplodeLoop
@@ -242,8 +244,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     private static class UninitialisedArrayLiteralNode extends ArrayLiteralNode {
 
-        public UninitialisedArrayLiteralNode(RubyNode[] values) {
-            super(values);
+        public UninitialisedArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
+            super(language, values);
         }
 
         @Override
@@ -264,15 +266,15 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             final RubyNode newNode;
 
             if (store == ArrayStoreLibrary.INITIAL_STORE) {
-                newNode = new EmptyArrayLiteralNode(values);
+                newNode = new EmptyArrayLiteralNode(language, values);
             } else if (store instanceof int[]) {
-                newNode = new IntegerArrayLiteralNode(values);
+                newNode = new IntegerArrayLiteralNode(language, values);
             } else if (store instanceof long[]) {
-                newNode = new LongArrayLiteralNode(values);
+                newNode = new LongArrayLiteralNode(language, values);
             } else if (store instanceof double[]) {
-                newNode = new FloatArrayLiteralNode(values);
+                newNode = new FloatArrayLiteralNode(language, values);
             } else {
-                newNode = new ObjectArrayLiteralNode(values);
+                newNode = new ObjectArrayLiteralNode(language, values);
             }
 
             newNode.unsafeSetSourceSection(getSourceIndexLength());

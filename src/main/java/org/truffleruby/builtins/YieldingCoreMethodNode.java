@@ -12,7 +12,6 @@ package org.truffleruby.builtins;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.yield.YieldNode;
 
-
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
     @Child private YieldNode dispatchNode = YieldNode.create();

@@ -24,7 +24,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
 
-
 public class RubyException extends RubyDynamicObject implements ObjectGraphNode {
 
     public Object message;

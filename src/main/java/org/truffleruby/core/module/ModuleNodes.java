@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -394,14 +395,16 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object generateAccessor(VirtualFrame frame, RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached ReadCallerFrameNode readCallerFrame) {
+                @Cached ReadCallerFrameNode readCallerFrame,
+                @CachedLanguage RubyLanguage language) {
             final String name = nameToJavaStringNode.execute(nameObject);
-            createAccessor(module, name, readCallerFrame.execute(frame));
+            createAccessor(module, name, readCallerFrame.execute(frame), language);
             return nil;
         }
 
         @TruffleBoundary
-        private void createAccessor(RubyModule module, String name, MaterializedFrame callerFrame) {
+        private void createAccessor(RubyModule module, String name, MaterializedFrame callerFrame,
+                RubyLanguage language) {
             final SourceSection sourceSection = getContext()
                     .getCallStack()
                     .getCallerNodeIgnoringSend()
@@ -427,13 +430,13 @@ public abstract class ModuleNodes {
                 accessInstanceVariable = new ReadInstanceVariableNode(ivar, new ReadSelfNode());
             } else {
                 RubyNode readArgument = Translator.profileArgument(
-                        getContext(),
+                        language,
                         new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
                 accessInstanceVariable = new WriteInstanceVariableNode(ivar, new ReadSelfNode(), readArgument);
             }
 
             final RubyNode body = Translator
-                    .createCheckArityNode(getContext().getLanguage(), arity, accessInstanceVariable);
+                    .createCheckArityNode(language, arity, accessInstanceVariable);
             final RubyRootNode rootNode = new RubyRootNode(
                     getContext(),
                     sourceSection,
@@ -1588,7 +1591,8 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
                 @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @CachedLanguage RubyLanguage language) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1605,7 +1609,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 
@@ -1748,7 +1752,8 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
                 @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @CachedLanguage RubyLanguage language) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1762,7 +1767,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this);
+            allocateHelperNode.trace(instance, this, language);
             return instance;
         }
 

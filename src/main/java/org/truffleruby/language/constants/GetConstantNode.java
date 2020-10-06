@@ -30,7 +30,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-
 public abstract class GetConstantNode extends RubyContextNode {
 
     private final boolean callConstMissing;

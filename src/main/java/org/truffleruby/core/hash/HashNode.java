@@ -18,7 +18,6 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-
 public class HashNode extends RubyContextNode {
 
     @Child private DispatchNode hashNode;

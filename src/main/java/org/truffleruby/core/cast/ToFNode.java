@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 public abstract class ToFNode extends RubyContextNode {
 
     @Child private DispatchNode toFNode;

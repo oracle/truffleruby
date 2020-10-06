@@ -20,7 +20,6 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import java.util.Set;
 
-
 public final class RubyNoMethodError extends RubyNameError implements ObjectGraphNode {
 
     public Object args;

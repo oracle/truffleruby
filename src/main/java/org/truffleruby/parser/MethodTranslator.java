@@ -80,9 +80,9 @@ public class MethodTranslator extends BodyTranslator {
         if (parserContext == ParserContext.EVAL || context.getCoverageManager().isEnabled()) {
             shouldLazyTranslate = false;
         } else if (context.getSourcePath(source).startsWith(context.getCoreLibrary().coreLoadPath)) {
-            shouldLazyTranslate = context.getOptions().LAZY_TRANSLATION_CORE;
+            shouldLazyTranslate = language.options.LAZY_TRANSLATION_CORE;
         } else {
-            shouldLazyTranslate = context.getOptions().LAZY_TRANSLATION_USER;
+            shouldLazyTranslate = language.options.LAZY_TRANSLATION_USER;
         }
     }
 
@@ -118,7 +118,7 @@ public class MethodTranslator extends BodyTranslator {
         final RubyNode preludeProc;
         if (shouldConsiderDestructuringArrayArg(arity)) {
             final RubyNode readArrayNode = profileArgument(
-                    context,
+                    language,
                     new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
             final RubyNode castArrayNode = ArrayCastNodeGen.create(readArrayNode);
 
@@ -299,7 +299,7 @@ public class MethodTranslator extends BodyTranslator {
         if (shouldLazyTranslate) {
             final TranslatorState state = getCurrentState();
 
-            body = new LazyRubyNode(context, () -> {
+            body = new LazyRubyNode(language, () -> {
                 restoreState(state);
                 return compileMethodBody(sourceSection, bodyNode);
             });

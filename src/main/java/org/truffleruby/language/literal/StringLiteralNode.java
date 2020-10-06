@@ -31,8 +31,10 @@ public class StringLiteralNode extends RubyContextSourceNode {
     @Child AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
     private final Rope rope;
+    private final RubyLanguage language;
 
-    public StringLiteralNode(Rope rope) {
+    public StringLiteralNode(RubyLanguage language, Rope rope) {
+        this.language = language;
         this.rope = rope;
     }
 
@@ -44,7 +46,7 @@ public class StringLiteralNode extends RubyContextSourceNode {
                 false,
                 false,
                 rope);
-        allocateNode.trace(string, this);
+        allocateNode.trace(string, this, language);
         return string;
     }
 

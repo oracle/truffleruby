@@ -130,7 +130,7 @@ public class LoadArgumentsTranslator extends Translator {
         final List<RubyNode> sequence = new ArrayList<>();
 
         //if (!arraySlotStack.isEmpty()) {
-        sequence.add(loadSelf(context, methodBodyTranslator.getEnvironment()));
+        sequence.add(loadSelf(language, methodBodyTranslator.getEnvironment()));
         //}
 
         final ParseNode[] args = argsNode.getArgs();
@@ -321,7 +321,7 @@ public class LoadArgumentsTranslator extends Translator {
         } else {
             if (state == State.PRE) {
                 return profileArgument(
-                        context,
+                        language,
                         new ReadPreArgumentNode(
                                 index,
                                 isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
@@ -563,13 +563,14 @@ public class LoadArgumentsTranslator extends Translator {
                                     .getEnvironment()
                                     .findOrAddLocalVarNodeDangerous(name, sourceSection)
                                     .makeWriteNode(
-                                            ArrayLiteralNode.create(new RubyNode[]{ new NilLiteralNode(true) })));
+                                            ArrayLiteralNode
+                                                    .create(language, new RubyNode[]{ new NilLiteralNode(true) })));
                 } else {
                     nilSequence.add(
                             methodBodyTranslator
                                     .getEnvironment()
                                     .findOrAddLocalVarNodeDangerous(name, sourceSection)
-                                    .makeWriteNode(ArrayLiteralNode.create(null)));
+                                    .makeWriteNode(ArrayLiteralNode.create(language, null)));
                 }
             } else if (node.getRest() instanceof StarParseNode) {
                 // Don't think we need to do anything

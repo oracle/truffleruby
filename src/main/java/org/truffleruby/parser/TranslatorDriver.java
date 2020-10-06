@@ -42,6 +42,7 @@ import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.kernel.AutoSplitNode;
@@ -91,10 +92,12 @@ public class TranslatorDriver {
 
     /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;
+    private final RubyLanguage language;
     private final ParseEnvironment parseEnvironment;
 
     public TranslatorDriver(RubyContext context) {
         this.context = context;
+        this.language = context.getLanguageSlow();
         parseEnvironment = new ParseEnvironment(context);
     }
 
@@ -172,7 +175,7 @@ public class TranslatorDriver {
             node = context.getMetricsProfiler().callWithMetrics(
                     "parsing",
                     source.getName(),
-                    () -> parseToJRubyAST(rubySource, staticScope, parserConfiguration));
+                    () -> parseToJRubyAST(context, rubySource, staticScope, parserConfiguration));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -271,7 +274,9 @@ public class TranslatorDriver {
             for (int n = 0; n < argumentNames.length; n++) {
                 final String name = argumentNames[n];
                 final RubyNode readNode = Translator
-                        .profileArgument(context, new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
+                        .profileArgument(
+                                language,
+                                new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
                 final FrameSlot slot = environment.getFrameDescriptor().findFrameSlot(name);
                 sequence.add(new WriteLocalVariableNode(slot, readNode));
             }
@@ -314,7 +319,7 @@ public class TranslatorDriver {
                     Arrays.asList(beginNode, truffleNode));
         }
 
-        final RubyNode writeSelfNode = Translator.loadSelf(context, environment);
+        final RubyNode writeSelfNode = Translator.loadSelf(language, environment);
         truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
 
         // Catch next
@@ -375,7 +380,7 @@ public class TranslatorDriver {
         }
     }
 
-    public RootParseNode parseToJRubyAST(RubySource rubySource, StaticScope blockScope,
+    public static RootParseNode parseToJRubyAST(RubyContext context, RubySource rubySource, StaticScope blockScope,
             ParserConfiguration configuration) {
         LexerSource lexerSource = new LexerSource(rubySource, configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
