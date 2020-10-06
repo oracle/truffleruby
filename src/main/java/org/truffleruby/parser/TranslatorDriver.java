@@ -175,7 +175,7 @@ public class TranslatorDriver {
             node = context.getMetricsProfiler().callWithMetrics(
                     "parsing",
                     source.getName(),
-                    () -> parseToJRubyAST(rubySource, staticScope, parserConfiguration));
+                    () -> parseToJRubyAST(context, rubySource, staticScope, parserConfiguration));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -380,7 +380,7 @@ public class TranslatorDriver {
         }
     }
 
-    public RootParseNode parseToJRubyAST(RubySource rubySource, StaticScope blockScope,
+    public static RootParseNode parseToJRubyAST(RubyContext context, RubySource rubySource, StaticScope blockScope,
             ParserConfiguration configuration) {
         LexerSource lexerSource = new LexerSource(rubySource, configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which

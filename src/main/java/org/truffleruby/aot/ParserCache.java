@@ -57,11 +57,10 @@ public class ParserCache {
     }
 
     private static RootParseNode parse(RubySource source) {
-        final TranslatorDriver driver = new TranslatorDriver(null);
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
         final ParserConfiguration parserConfiguration = new ParserConfiguration(null, false, true, false);
 
-        return driver.parseToJRubyAST(source, staticScope, parserConfiguration);
+        return TranslatorDriver.parseToJRubyAST(null, source, staticScope, parserConfiguration);
     }
 
 }
