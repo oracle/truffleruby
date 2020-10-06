@@ -10,7 +10,7 @@
 
 class Method
   def inspect
-    Truffle::MethodOperations.inspect_method(self, receiver.class, owner)
+    Truffle::MethodOperations.inspect_method(self, receiver.class, owner, receiver)
   end
   alias_method :to_s, :inspect
 

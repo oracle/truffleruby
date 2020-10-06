@@ -10,20 +10,23 @@
 
 module Truffle
   module MethodOperations
-    def self.inspect_method(meth, origin, owner)
+    def self.inspect_method(meth, origin, owner, receiver = undefined)
       extra = ''
       if Primitive.method_unimplemented? meth
         extra = ' (not-implemented)'
       else
         file, line = meth.source_location
-
         if file && line
           extra = " #{file}:#{line}"
         end
       end
 
-      origin_owner = origin == owner ? origin : "#{origin}(#{owner})"
-      "#<#{meth.class}: #{origin_owner}##{meth.name}#{extra}>"
+      if !Primitive.undefined?(receiver) && owner.singleton_class?
+        "#<#{meth.class}: #{receiver.inspect}.#{meth.name}#{extra}>"
+      else
+        origin_owner = origin == owner ? origin : "#{origin}(#{owner})"
+        "#<#{meth.class}: #{origin_owner}##{meth.name}#{extra}>"
+      end
     end
   end
 end
