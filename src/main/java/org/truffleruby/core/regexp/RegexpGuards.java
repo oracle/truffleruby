@@ -14,7 +14,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 
-
 public class RegexpGuards {
 
     public static boolean isInitialized(RubyRegexp regexp) {

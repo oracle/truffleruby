@@ -22,7 +22,6 @@ import org.truffleruby.utils.Utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-
 public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
 
     @Child private CreateBigDecimalNode createBigDecimal;

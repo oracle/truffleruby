@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.eval;
 
-
 import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;

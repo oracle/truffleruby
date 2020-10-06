@@ -17,7 +17,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-
 public class ConcatHashLiteralNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] children;

@@ -16,7 +16,6 @@ import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
 
-
 public class AutoSplitNode extends RubyContextSourceNode {
 
     @Child private DispatchNode callSplitNode = DispatchNode.create();

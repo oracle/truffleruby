@@ -31,7 +31,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;

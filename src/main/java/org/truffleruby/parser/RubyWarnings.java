@@ -42,7 +42,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 
-
 public class RubyWarnings implements WarnCallback {
 
     private final RubyContext context;

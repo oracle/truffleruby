@@ -17,7 +17,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 
-
 public class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Child private InternalRespondToNode respondToToAry;

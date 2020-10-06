@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.loader;
 
-
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;

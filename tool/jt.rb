@@ -2324,6 +2324,14 @@ EOS
       end
     end
 
+    def format_imports
+      each_file do |content|
+        content
+          .sub(/\n{3,}import /, "\n\nimport ")
+          .sub(/^(import .+;)\n{3,}public/, "\\1\n\npublic")
+      end
+    end
+
     private
 
     def split_arguments(line)
@@ -2369,11 +2377,23 @@ EOS
       segments.map { |segment| segment.gsub(/\A,?\s+|\s+,?\Z/, '') }
     end
 
-    def iterate(&update)
+    def each_file
       changed = false
-
       Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', '**', '*.java')) do |file|
         content = File.read file
+        new_content = yield content
+
+        if content != new_content
+          puts "#{file} updated"
+          changed = true
+          File.write file, new_content
+        end
+      end
+      changed
+    end
+
+    def iterate(&update)
+      each_file do |content|
         new_content = ''
         lines = content.lines.to_a
 
@@ -2418,14 +2438,8 @@ EOS
           declaration.each { |l| new_content << l }
         end
 
-        if content != new_content
-          puts "#{file} updated"
-          changed = true
-          File.write file, new_content
-        end
+        new_content
       end
-
-      changed
     end
 
     def count_braces(line, brackets = '()')
@@ -2444,6 +2458,7 @@ EOS
   def format_specializations_check
     abort 'Some Specializations were not protected.' if format_specializations_visibility
     abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
+    abort 'There were extra blank lines around imports.' if Formatting.format_imports
   end
 
   def lint(*args)
@@ -2467,7 +2482,7 @@ EOS
     sh 'tool/lint.sh' if changed['.c']
     if fast
       checkstyle if changed['.java']
-      command_format if changed['.java']
+      command_format if changed['.java'] # includes #format_specializations_check
     else
       mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
       format_specializations_check

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.format;
 
-
 import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

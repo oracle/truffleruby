@@ -19,7 +19,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-
 public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
     public static class ReadNthMatchNode extends RubyContextSourceNode {

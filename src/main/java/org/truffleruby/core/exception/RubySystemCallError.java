@@ -14,7 +14,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.object.Shape;
 
-
 public final class RubySystemCallError extends RubyException {
 
     public Object errno;

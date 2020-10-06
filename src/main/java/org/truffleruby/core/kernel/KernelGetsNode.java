@@ -15,7 +15,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-
 public class KernelGetsNode extends RubyContextSourceNode {
 
     @Child private DispatchNode callGetsNode;
