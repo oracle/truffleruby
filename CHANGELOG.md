@@ -43,6 +43,7 @@ Compatibility:
 * Implement negative line numbers for eval (#1482).
 * Support refinements for `#to_s` called by string interpolation (#2110, @ssnickolay)
 * Module#using raises error in method scope (#2112, @ssnickolay)
+* `File#path` now returns a new mutable String on every call like MRI (#2115).
 
 Performance:
 

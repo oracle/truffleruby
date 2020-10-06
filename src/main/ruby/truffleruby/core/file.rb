@@ -108,8 +108,6 @@ class File < IO
   PATH_SEPARATOR = ':'
   POSIX = Truffle::POSIX
 
-  attr_reader :path
-
   # The mode_t type is 2 bytes (ushort). Instead of getting whatever
   # value happens to be in the least significant 16 bits, just set
   # the value to 0 if it is greater than 0xffff. Also, negative values
@@ -1238,6 +1236,9 @@ class File < IO
     Stat.fstat Primitive.io_fd(self)
   end
 
+  def path
+    @path.dup
+  end
   alias_method :to_path, :path
 
   def truncate(length)
