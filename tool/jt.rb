@@ -681,6 +681,7 @@ module Commands
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
       jt test spec/ruby/language/while_spec.rb       run specs in this file
+      jt test ... -- --jdebug                        run specs with the Java debugger
       jt test compiler                               run compiler tests
       jt test integration [TESTS]                    run integration tests
       jt test bundle [--jdebug]                      tests using bundler
