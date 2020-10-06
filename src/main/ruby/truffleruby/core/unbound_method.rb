@@ -9,11 +9,9 @@
 # GNU Lesser General Public License version 2.1.
 
 class UnboundMethod
-
   def inspect
-    "#<#{self.class}: #{origin}(#{owner})##{name}>"
+    Truffle::MethodOperations.inspect_method(self, origin, owner)
   end
-
   alias_method :to_s, :inspect
 
   def bind_call(recv, *args, &block)

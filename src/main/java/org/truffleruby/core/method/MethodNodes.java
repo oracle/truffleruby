@@ -320,22 +320,33 @@ public abstract class MethodNodes {
     public abstract static class MethodUnimplementNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object methodUnimplement(RubyMethod rubyMethod) {
-            final InternalMethod method = rubyMethod.method;
-            method.getDeclaringModule().fields.addMethod(
-                    getContext(),
-                    this,
-                    method.unimplemented());
+        protected Object bound(RubyMethod rubyMethod) {
+            unimplement(rubyMethod.method);
             return nil;
         }
 
+        @Specialization
+        protected Object unbound(RubyUnboundMethod rubyMethod) {
+            unimplement(rubyMethod.method);
+            return nil;
+        }
+
+        @TruffleBoundary
+        private void unimplement(InternalMethod method) {
+            method.getDeclaringModule().fields.addMethod(getContext(), this, method.unimplemented());
+        }
     }
 
     @Primitive(name = "method_unimplemented?")
-    public abstract static class MethodUnimplementedQueryNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class MethodIsUnimplementedNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean isMethodUnimplemented(RubyMethod rubyMethod) {
+        protected boolean bound(RubyMethod rubyMethod) {
+            return rubyMethod.method.isUnimplemented();
+        }
+
+        @Specialization
+        protected boolean unbound(RubyUnboundMethod rubyMethod) {
             return rubyMethod.method.isUnimplemented();
         }
 
