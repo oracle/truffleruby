@@ -1131,6 +1131,7 @@ public class CoreLibrary {
             "/core/class.rb",
             "/core/binding.rb",
             "/core/math.rb",
+            "/core/truffle/method_operations.rb",
             "/core/method.rb",
             "/core/unbound_method.rb",
             "/core/warning.rb",

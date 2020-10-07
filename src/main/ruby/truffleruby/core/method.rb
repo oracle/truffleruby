@@ -9,22 +9,10 @@
 # GNU Lesser General Public License version 2.1.
 
 class Method
-
   def inspect
-    extra = ''
-
-    if Primitive.method_unimplemented? self
-      extra = ' (not-implemented)'
-    else
-      file, line = source_location
-
-      if file && line
-        extra = " #{file}:#{line}"
-      end
-    end
-
-    "#<#{self.class}: #{receiver.class}(#{owner})##{name}#{extra}>"
+    Truffle::MethodOperations.inspect_method(self, receiver.class, owner, receiver)
   end
+  alias_method :to_s, :inspect
 
   def curry(curried_arity = nil)
     self.to_proc.curry(curried_arity)
@@ -37,7 +25,4 @@ class Method
   def <<(other)
     self.to_proc << other
   end
-
-  alias_method :to_s, :inspect
-
 end
