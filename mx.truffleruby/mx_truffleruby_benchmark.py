@@ -629,6 +629,19 @@ class RubykonBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def time(self):
         return 120
 
+class LiquidBenchmarkSuite(AllBenchmarksBenchmarkSuite):
+    def name(self):
+        return 'liquid'
+
+    def directory(self):
+        return 'liquid'
+
+    def benchmarkList(self, bmSuiteArgs):
+        return ['liquid-cart-parse', 'liquid-cart-render', 'liquid-middleware']
+
+    def time(self):
+        return 60
+
 mx_benchmark.add_bm_suite(BuildStatsBenchmarkSuite())
 mx_benchmark.add_bm_suite(AllocationBenchmarkSuite())
 mx_benchmark.add_bm_suite(InstructionsBenchmarkSuite())
@@ -646,3 +659,4 @@ mx_benchmark.add_bm_suite(MicroBenchmarkSuite())
 mx_benchmark.add_bm_suite(SavinaBenchmarkSuite())
 mx_benchmark.add_bm_suite(ServerBenchmarkSuite())
 mx_benchmark.add_bm_suite(RubykonBenchmarkSuite())
+mx_benchmark.add_bm_suite(LiquidBenchmarkSuite())
