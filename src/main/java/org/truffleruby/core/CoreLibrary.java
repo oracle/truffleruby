@@ -50,7 +50,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
@@ -294,33 +293,14 @@ public class CoreLibrary {
 
     private State state = State.INITIALIZING;
 
-    private static class CoreLibraryNode extends RubyContextNode {
-
-        @Child SingletonClassNode singletonClassNode;
-
-        public CoreLibraryNode() {
-            this.singletonClassNode = SingletonClassNode.create();
-            adoptChildren();
-        }
-
-        public SingletonClassNode getSingletonClassNode() {
-            return singletonClassNode;
-        }
-
-        public RubyClass getSingletonClass(Object object) {
-            return singletonClassNode.executeSingletonClass(object);
-        }
-
-    }
-
-    private final CoreLibraryNode node;
+    private final SingletonClassNode node;
 
     public CoreLibrary(RubyContext context) {
         this.context = context;
         this.coreLoadPath = buildCoreLoadPath();
         this.corePath = coreLoadPath + File.separator + "core" + File.separator;
         this.sourceSection = initCoreSourceSection(context);
-        this.node = new CoreLibraryNode();
+        this.node = SingletonClassNode.getUncached();
 
         final RubyLanguage language = context.getLanguageSlow();
 
@@ -660,14 +640,13 @@ public class CoreLibrary {
     public void loadCoreNodes(PrimitiveManager primitiveManager) {
         final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(
                 context,
-                node.getSingletonClassNode(),
                 primitiveManager);
 
         coreMethodNodeManager.loadCoreMethodNodes();
 
         basicObjectSendInfo = getMethod(basicObjectClass, "__send__").getSharedMethodInfo();
         kernelPublicSendInfo = getMethod(kernelModule, "public_send").getSharedMethodInfo();
-        truffleBootMainInfo = getMethod(node.getSingletonClass(truffleBootModule), "main").getSharedMethodInfo();
+        truffleBootMainInfo = getMethod(node.executeSingletonClass(truffleBootModule), "main").getSharedMethodInfo();
     }
 
     private InternalMethod getMethod(RubyModule module, String name) {

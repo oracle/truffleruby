@@ -54,17 +54,14 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 public class CoreMethodNodeManager {
 
     private final RubyContext context;
-    private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
     private final RubyLanguage language;
 
     public CoreMethodNodeManager(
             RubyContext context,
-            SingletonClassNode singletonClassNode,
             PrimitiveManager primitiveManager) {
         this.context = context;
         this.language = context.getLanguageSlow();
-        this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
     }
 
@@ -128,7 +125,7 @@ public class CoreMethodNodeManager {
     }
 
     private RubyClass getSingletonClass(Object object) {
-        return singletonClassNode.executeSingletonClass(object);
+        return SingletonClassNode.getUncached().executeSingletonClass(object);
     }
 
     private void addCoreMethod(RubyModule module, MethodDetails methodDetails) {
