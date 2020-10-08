@@ -147,8 +147,6 @@ public class Options {
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --preinit=true */
     public final boolean PREINITIALIZATION;
-    /** --lazy-builtins=DEFAULT_LAZY */
-    public final boolean LAZY_BUILTINS;
     /** --default-cache=8 */
     public final int DEFAULT_CACHE;
     /** --method-lookup-cache=DEFAULT_CACHE */
@@ -325,7 +323,6 @@ public class Options {
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
-        LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : languageOptions.DEFAULT_LAZY;
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
         METHOD_LOOKUP_CACHE = options.hasBeenSet(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) ? options.get(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) : DEFAULT_CACHE;
         DISPATCH_CACHE = options.hasBeenSet(OptionsCatalog.DISPATCH_CACHE_KEY) ? options.get(OptionsCatalog.DISPATCH_CACHE_KEY) : DEFAULT_CACHE;
@@ -510,8 +507,6 @@ public class Options {
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
                 return PREINITIALIZATION;
-            case "ruby.lazy-builtins":
-                return LAZY_BUILTINS;
             case "ruby.default-cache":
                 return DEFAULT_CACHE;
             case "ruby.method-lookup-cache":

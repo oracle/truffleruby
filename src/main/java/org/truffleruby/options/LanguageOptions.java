@@ -31,6 +31,8 @@ public class LanguageOptions {
     public final boolean LAZY_TRANSLATION_LOG;
     /** --constant-dynamic-lookup-log=false */
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
+    /** --lazy-builtins=DEFAULT_LAZY */
+    public final boolean LAZY_BUILTINS;
     /** --lazy-translation-core=DEFAULT_LAZY */
     public final boolean LAZY_TRANSLATION_CORE;
     /** --basic-ops-inline=true */
@@ -46,6 +48,7 @@ public class LanguageOptions {
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
         LAZY_TRANSLATION_LOG = options.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY);
         LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
+        LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : DEFAULT_LAZY;
         LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : DEFAULT_LAZY;
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
@@ -64,6 +67,8 @@ public class LanguageOptions {
                 return LAZY_TRANSLATION_LOG;
             case "ruby.constant-dynamic-lookup-log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
+            case "ruby.lazy-builtins":
+                return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
             case "ruby.basic-ops-inline":
@@ -83,6 +88,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY).equals(two.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY)) &&
                one.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY).equals(two.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY)) &&
+               one.get(OptionsCatalog.LAZY_BUILTINS_KEY).equals(two.get(OptionsCatalog.LAZY_BUILTINS_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY)) &&
                one.get(OptionsCatalog.BASICOPS_INLINE_KEY).equals(two.get(OptionsCatalog.BASICOPS_INLINE_KEY)) &&
                one.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY).equals(two.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY)) &&

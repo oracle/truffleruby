@@ -170,7 +170,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 stream.println("public class " + coreModuleElement.getSimpleName() + SUFFIX + " {");
                 stream.println();
                 stream.println(
-                        "    public static void setup(CoreMethodNodeManager coreMethodManager, PrimitiveManager primitiveManager) {");
+                        "    public static void setup(CoreMethodNodeManager coreMethodManager) {");
 
                 rubyStream.println("raise 'this file is a stub file for development and should never be loaded'");
                 rubyStream.println();
@@ -197,7 +197,18 @@ public class CoreModuleProcessor extends AbstractProcessor {
                             CoreModuleChecks.checks(this, coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
+                    }
+                }
 
+                stream.println("    }");
+                stream.println();
+
+                stream.println(
+                        "    public static void setupPrimitives(PrimitiveManager primitiveManager) {");
+
+                for (Element e : enclosedElements) {
+                    if (e instanceof TypeElement) {
+                        final TypeElement klass = (TypeElement) e;
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);

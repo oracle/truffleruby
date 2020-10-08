@@ -31,7 +31,6 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
-import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -637,11 +636,8 @@ public class CoreLibrary {
         initializeConstants();
     }
 
-    public void loadCoreNodes(PrimitiveManager primitiveManager) {
-        final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(
-                context,
-                primitiveManager);
-
+    public void loadCoreNodes() {
+        final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(context);
         coreMethodNodeManager.loadCoreMethodNodes();
 
         basicObjectSendInfo = getMethod(basicObjectClass, "__send__").getSharedMethodInfo();

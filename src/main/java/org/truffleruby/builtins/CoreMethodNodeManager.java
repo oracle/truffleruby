@@ -54,20 +54,16 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 public class CoreMethodNodeManager {
 
     private final RubyContext context;
-    private final PrimitiveManager primitiveManager;
     private final RubyLanguage language;
 
-    public CoreMethodNodeManager(
-            RubyContext context,
-            PrimitiveManager primitiveManager) {
+    public CoreMethodNodeManager(RubyContext context) {
         this.context = context;
         this.language = context.getLanguageSlow();
-        this.primitiveManager = primitiveManager;
     }
 
     public void loadCoreMethodNodes() {
-        if (!TruffleOptions.AOT && context.getOptions().LAZY_BUILTINS) {
-            BuiltinsClasses.setupBuiltinsLazy(this, primitiveManager);
+        if (!TruffleOptions.AOT && language.options.LAZY_BUILTINS) {
+            BuiltinsClasses.setupBuiltinsLazy(this);
         } else {
             for (List<? extends NodeFactory<? extends RubyNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
                 addCoreMethodNodes(factory);
@@ -82,8 +78,6 @@ public class CoreMethodNodeManager {
         for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
             final Class<?> nodeClass = nodeFactory.getNodeClass();
             final CoreMethod methodAnnotation = nodeClass.getAnnotation(CoreMethod.class);
-            Primitive primitiveAnnotation;
-
             if (methodAnnotation != null) {
                 if (module == null) {
                     CoreModule coreModule = nodeClass.getEnclosingClass().getAnnotation(CoreModule.class);
@@ -94,8 +88,6 @@ public class CoreMethodNodeManager {
                     module = getModule(moduleName, coreModule.isClass());
                 }
                 addCoreMethod(module, new MethodDetails(moduleName, methodAnnotation, nodeFactory));
-            } else if ((primitiveAnnotation = nodeClass.getAnnotation(Primitive.class)) != null) {
-                primitiveManager.addPrimitive(nodeFactory, primitiveAnnotation);
             }
         }
     }
