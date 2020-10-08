@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -22,7 +23,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -32,7 +32,6 @@ import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 public class TraceManager {
     public static class LineTag extends Tag {
@@ -49,20 +48,16 @@ public class TraceManager {
     }
 
     private final RubyContext context;
+    private final RubyLanguage language;
     private final Instrumenter instrumenter;
-    private final CyclicAssumption unusedAssumption;
 
     private Collection<EventBinding<?>> instruments;
     private boolean isInTraceFunc = false;
 
-    public TraceManager(RubyContext context, Instrumenter instrumenter) {
+    public TraceManager(RubyLanguage language, RubyContext context, Instrumenter instrumenter) {
+        this.language = language;
         this.context = context;
         this.instrumenter = instrumenter;
-        this.unusedAssumption = new CyclicAssumption("set_trace_func is not used");
-    }
-
-    public Assumption getUnusedAssumption() {
-        return unusedAssumption.getAssumption();
     }
 
     @TruffleBoundary
@@ -76,13 +71,13 @@ public class TraceManager {
 
         if (traceFunc == null) {
             // Update to a new valid assumption
-            unusedAssumption.invalidate();
+            language.traceFuncUnusedAssumption.invalidate();
             instruments = null;
             return;
         }
 
         // Invalidate current assumption
-        unusedAssumption.getAssumption().invalidate();
+        language.traceFuncUnusedAssumption.getAssumption().invalidate();
 
         instruments = new ArrayList<>();
 
