@@ -37,7 +37,6 @@ public class TaintResultNode extends RubyContextSourceNode {
         this.taintFromSelf = taintFromSelf;
         this.taintFromParameter = taintFromParameter;
         this.method = method;
-        this.rubyLibrarySource = RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit());
     }
 
     public TaintResultNode() {
@@ -45,7 +44,7 @@ public class TaintResultNode extends RubyContextSourceNode {
     }
 
     public Object maybeTaint(Object source, Object result) {
-        if (taintProfile.profile(rubyLibrarySource.isTainted(source))) {
+        if (taintProfile.profile(isTainted(source))) {
             if (rubyLibraryResult == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 rubyLibraryResult = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
@@ -54,6 +53,14 @@ public class TaintResultNode extends RubyContextSourceNode {
         }
 
         return result;
+    }
+
+    private boolean isTainted(Object result) {
+        if (rubyLibrarySource == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            rubyLibrarySource = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
+        }
+        return rubyLibrarySource.isTainted(result);
     }
 
     @Override
