@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -16,9 +20,9 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -28,8 +32,13 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
+@GenerateUncached
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class SingletonClassNode extends RubyContextSourceNode {
+public abstract class SingletonClassNode extends RubySourceNode {
+
+    public static SingletonClassNode getUncached() {
+        return SingletonClassNodeGen.getUncached();
+    }
 
     public static SingletonClassNode create() {
         return SingletonClassNodeGen.create(null);
@@ -38,43 +47,51 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     public abstract RubyClass executeSingletonClass(Object value);
 
     @Specialization(guards = "value")
-    protected RubyClass singletonClassTrue(boolean value) {
-        return coreLibrary().trueClass;
+    protected RubyClass singletonClassTrue(boolean value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected RubyClass singletonClassFalse(boolean value) {
-        return coreLibrary().falseClass;
+    protected RubyClass singletonClassFalse(boolean value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().falseClass;
     }
 
     @Specialization
-    protected RubyClass singletonClassNil(Nil value) {
-        return coreLibrary().nilClass;
+    protected RubyClass singletonClassNil(Nil value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().nilClass;
     }
 
     @Specialization
-    protected RubyClass singletonClass(int value) {
-        return noSingletonClass();
+    protected RubyClass singletonClass(int value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return noSingletonClass(context);
     }
 
     @Specialization
-    protected RubyClass singletonClass(long value) {
-        return noSingletonClass();
+    protected RubyClass singletonClass(long value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return noSingletonClass(context);
     }
 
     @Specialization
-    protected RubyClass singletonClass(double value) {
-        return noSingletonClass();
+    protected RubyClass singletonClass(double value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return noSingletonClass(context);
     }
 
     @Specialization
-    protected RubyClass singletonClassBignum(RubyBignum value) {
-        return noSingletonClass();
+    protected RubyClass singletonClassBignum(RubyBignum value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return noSingletonClass(context);
     }
 
     @Specialization
-    protected RubyClass singletonClassSymbol(RubySymbol value) {
-        return noSingletonClass();
+    protected RubyClass singletonClassSymbol(RubySymbol value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return noSingletonClass(context);
     }
 
     @Specialization(
@@ -87,8 +104,9 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     }
 
     @Specialization(replaces = "singletonClassClassCached")
-    protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
-        return ClassNodes.getSingletonClass(getContext(), rubyClass);
+    protected RubyClass singletonClassClassUncached(RubyClass rubyClass,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return ClassNodes.getSingletonClass(context, rubyClass);
     }
 
     @Specialization(
@@ -105,12 +123,12 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
         return getSingletonClassForInstance(object);
     }
 
-    private RubyClass noSingletonClass() {
-        throw new RaiseException(getContext(), coreExceptions().typeErrorCantDefineSingleton(this));
+    private RubyClass noSingletonClass(RubyContext context) {
+        throw new RaiseException(context, context.getCoreExceptions().typeErrorCantDefineSingleton(this));
     }
 
     protected RubyClass getSingletonClassOrNull(RubyClass rubyClass) {
-        return ClassNodes.getSingletonClassOrNull(getContext(), rubyClass);
+        return ClassNodes.getSingletonClassOrNull(rubyClass.fields.getContext(), rubyClass);
     }
 
     @TruffleBoundary
@@ -120,6 +138,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
             if (metaClass.isSingleton) {
                 return metaClass;
             }
+            final RubyContext context = metaClass.fields.getContext();
 
             final RubyClass logicalClass = object.getLogicalClass();
 
@@ -129,7 +148,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
                     ObjectIDNode.getUncached().execute(object));
 
             final RubyClass singletonClass = ClassNodes.createSingletonClassOfObject(
-                    getContext(),
+                    context,
                     getEncapsulatingSourceSection(),
                     logicalClass,
                     object,
@@ -139,7 +158,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
                 RubyLibrary.getUncached().freeze(singletonClass);
             }
 
-            SharedObjects.propagate(getContext(), object, singletonClass);
+            SharedObjects.propagate(context, object, singletonClass);
             object.setMetaClass(singletonClass);
 
             return singletonClass;
@@ -147,7 +166,11 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().CLASS_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().CLASS_CACHE;
+    }
+
+    protected int getIdentityCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().IDENTITY_CACHE;
     }
 
 }
