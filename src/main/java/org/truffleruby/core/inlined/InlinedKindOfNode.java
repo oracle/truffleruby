@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -23,8 +23,8 @@ public abstract class InlinedKindOfNode extends BinaryInlinedOperationNode {
 
     protected static final String METHOD = "kind_of?";
 
-    public InlinedKindOfNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedKindOfNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

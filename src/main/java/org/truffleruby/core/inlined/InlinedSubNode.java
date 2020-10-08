@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.SubNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.SubNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -22,12 +22,12 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
 
     @Child SubNode fixnumSub;
 
-    public InlinedSubNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedSubNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerSubAssumption,
-                context.getCoreMethods().floatSubAssumption);
+                language.coreMethodAssumptions.integerSubAssumption,
+                language.coreMethodAssumptions.floatSubAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.NegNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.NegNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -22,12 +22,12 @@ public abstract class InlinedNegNode extends UnaryInlinedOperationNode {
 
     @Child NegNode fixnumNeg;
 
-    public InlinedNegNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedNegNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerNegAssumption,
-                context.getCoreMethods().floatNegAssumption);
+                language.coreMethodAssumptions.integerNegAssumption,
+                language.coreMethodAssumptions.floatNegAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

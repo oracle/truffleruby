@@ -236,8 +236,7 @@ public class RubyContext {
         Metrics.printTime("after-load-nodes");
 
         // Capture known builtin methods
-
-        coreMethods = new CoreMethods(this);
+        coreMethods = new CoreMethods(language, this);
 
         // Load the part of the core library defined in Ruby
 

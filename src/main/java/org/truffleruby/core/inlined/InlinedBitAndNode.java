@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.BitAndNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.BitAndNodeFactory;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -25,11 +25,11 @@ public abstract class InlinedBitAndNode extends BinaryInlinedOperationNode {
 
     @Child BitAndNode fixnumBitAnd;
 
-    public InlinedBitAndNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedBitAndNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerBitAndAssumption);
+                language.coreMethodAssumptions.integerBitAndAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

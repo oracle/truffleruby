@@ -33,6 +33,8 @@ public class LanguageOptions {
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
     /** --lazy-translation-core=DEFAULT_LAZY */
     public final boolean LAZY_TRANSLATION_CORE;
+    /** --basic-ops-inline=true */
+    public final boolean BASICOPS_INLINE;
     /** --profile-arguments=true */
     public final boolean PROFILE_ARGUMENTS;
     /** --hash-packed-array-max=3 */
@@ -45,6 +47,7 @@ public class LanguageOptions {
         LAZY_TRANSLATION_LOG = options.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY);
         LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
         LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : DEFAULT_LAZY;
+        BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
     }
@@ -63,6 +66,8 @@ public class LanguageOptions {
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
+            case "ruby.basic-ops-inline":
+                return BASICOPS_INLINE;
             case "ruby.profile-arguments":
                 return PROFILE_ARGUMENTS;
             case "ruby.hash-packed-array-max":
@@ -79,6 +84,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY)) &&
                one.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY).equals(two.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY)) &&
+               one.get(OptionsCatalog.BASICOPS_INLINE_KEY).equals(two.get(OptionsCatalog.BASICOPS_INLINE_KEY)) &&
                one.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY).equals(two.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY)) &&
                one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY));
     }

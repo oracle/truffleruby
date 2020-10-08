@@ -10,7 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.dsl.Cached;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -23,8 +23,8 @@ public abstract class InlinedIsANode extends BinaryInlinedOperationNode {
 
     protected static final String METHOD = "is_a?";
 
-    public InlinedIsANode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedIsANode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

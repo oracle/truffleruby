@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.IntegerNodes.RightShiftNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -22,11 +22,11 @@ public abstract class InlinedRightShiftNode extends BinaryInlinedOperationNode {
 
     @Child RightShiftNode fixnumRightShift;
 
-    public InlinedRightShiftNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
+    public InlinedRightShiftNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(
-                context,
+                language,
                 callNodeParameters,
-                context.getCoreMethods().integerRightShiftAssumption);
+                language.coreMethodAssumptions.integerRightShiftAssumption);
     }
 
     @Specialization(assumptions = "assumptions")

@@ -11,7 +11,7 @@ package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
@@ -26,9 +26,9 @@ public abstract class InlinedCaseEqualNode extends BinaryInlinedOperationNode {
 
     final Assumption integerCaseEqualAssumption;
 
-    public InlinedCaseEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
-        this.integerCaseEqualAssumption = context.getCoreMethods().integerCaseEqualAssumption;
+    public InlinedCaseEqualNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
+        this.integerCaseEqualAssumption = language.coreMethodAssumptions.integerCaseEqualAssumption;
     }
 
     @Specialization(assumptions = { "assumptions", "integerCaseEqualAssumption" })

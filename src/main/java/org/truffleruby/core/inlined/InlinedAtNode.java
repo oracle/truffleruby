@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -24,8 +24,8 @@ public abstract class InlinedAtNode extends BinaryInlinedOperationNode {
 
     protected static final String METHOD = "at";
 
-    public InlinedAtNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedAtNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(

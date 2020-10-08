@@ -45,7 +45,6 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
@@ -811,12 +810,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     /** Registers an Assumption for a given method name, which is invalidated when a method with same name is defined or
      * undefined in this class or when a module is prepended to this class. This does not check re-definitions in
      * subclasses. */
-    public Assumption registerAssumption(String methodName) {
+    public void registerAssumption(String methodName, Assumption assumption) {
         assert context.getCoreLibrary().isInitializing();
-        Assumption assumption = Truffle.getRuntime().createAssumption("inlined " + getName() + "#" + methodName);
         Assumption old = inlinedBuiltinsAssumptions.put(methodName, assumption);
         assert old == null;
-        return assumption;
     }
 
     private void changedMethod(String name) {

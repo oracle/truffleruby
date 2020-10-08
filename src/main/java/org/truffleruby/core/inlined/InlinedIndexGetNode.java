@@ -10,7 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -24,8 +24,8 @@ public abstract class InlinedIndexGetNode extends BinaryInlinedOperationNode {
 
     protected static final String METHOD = "[]";
 
-    public InlinedIndexGetNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(context, callNodeParameters);
+    public InlinedIndexGetNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
+        super(language, callNodeParameters);
     }
 
     @Specialization(
