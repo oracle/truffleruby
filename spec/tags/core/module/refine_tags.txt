@@ -1,2 +1,1 @@
-fails:Module#refine for methods accessed indirectly is honored by Kernel#respond_to?
 slow:Module#refine method lookup looks in the included modules for builtin methods

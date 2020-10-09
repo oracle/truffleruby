@@ -1559,6 +1559,7 @@ public abstract class KernelNodes {
         @Child private InternalRespondToNode dispatch;
         @Child private InternalRespondToNode dispatchIgnoreVisibility;
         @Child private InternalRespondToNode dispatchRespondToMissing;
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
         @Child private DispatchNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
@@ -1587,6 +1588,7 @@ public abstract class KernelNodes {
                 boolean includeProtectedAndPrivate,
                 @Cached ToJavaStringNode toJavaString) {
             final boolean ret;
+            useCallerRefinements(frame);
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
                 ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
@@ -1616,6 +1618,7 @@ public abstract class KernelNodes {
                 boolean includeProtectedAndPrivate,
                 @Cached ToJavaStringNode toJavaString) {
             final boolean ret;
+            useCallerRefinements(frame);
 
             if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
                 ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
@@ -1647,6 +1650,13 @@ public abstract class KernelNodes {
 
             return booleanCastNode.executeToBoolean(
                     respondToMissingNode.call(object, "respond_to_missing?", name, includeProtectedAndPrivate));
+        }
+
+        private void useCallerRefinements(VirtualFrame frame) {
+            if (frame != null) {
+                DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
+                RubyArguments.setDeclarationContext(frame, context);
+            }
         }
     }
 
