@@ -77,11 +77,6 @@ public class ConcatRope extends ManagedRope {
                 balanced);
     }
 
-    @Override
-    public byte getByteSlow(int index) {
-        return RopeOperations.getByteSlow(this, index);
-    }
-
     public ManagedRope getLeft() {
         return left;
     }
