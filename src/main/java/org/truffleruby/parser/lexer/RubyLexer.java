@@ -1802,7 +1802,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
             tempVal = createTokenRope();
 
-            if (result == 0 && Character.isUpperCase(tempVal.get(0) & 0xFF)) {
+            if (result == 0 && isFirstCodepointUppercase(tempVal)) {
                 result = RubyParser.tCONSTANT;
             } else {
                 result = RubyParser.tIDENTIFIER;
@@ -3503,11 +3503,11 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public void validateFormalIdentifier(Rope identifier) {
-        int first = identifier.get(0) & 0xFF;
-
-        if (Character.isUpperCase(first)) {
+        if (isFirstCodepointUppercase(identifier)) {
             compile_error("formal argument cannot be a constant");
         }
+
+        int first = identifier.get(0) & 0xFF;
 
         switch (first) {
             case '@':
@@ -3675,4 +3675,18 @@ public class RubyLexer implements MagicCommentHandler {
         return isARG() && spaceSeen && !Character.isWhitespace(c);
     }
 
+    /** Encoding-aware (including multi-byte encodings) check of first codepoint of a given rope, usually to determine
+     * if it is a constant */
+    private boolean isFirstCodepointUppercase(Rope rope) {
+        Encoding ropeEncoding = rope.encoding;
+        int firstByte = rope.get(0) & 0xFF;
+
+        if (ropeEncoding.isAsciiCompatible() && isASCII(firstByte)) {
+            return StringSupport.isAsciiUppercase((byte) firstByte);
+        } else {
+            byte[] ropeBytes = rope.getBytes();
+            int firstCharacter = ropeEncoding.mbcToCode(ropeBytes, 0, ropeBytes.length);
+            return ropeEncoding.isUpper(firstCharacter);
+        }
+    }
 }

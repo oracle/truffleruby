@@ -16,6 +16,7 @@ Bug fixes:
 * Fixed `coverage` issue when `*eval` is used (#2078).
 * Use expanded load paths for feature matching (#1501).
 * Fixed `SystemStackError` sometimes replaced by an internal Java `NoClassDefFoundError` on JVM (#1743).
+* Fixed constant/identifier detection in lexer for non-ASCII encodings (#2079, #2102, @ivoanjo).
 
 Compatibility:
 
