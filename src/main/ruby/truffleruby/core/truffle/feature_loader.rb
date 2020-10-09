@@ -279,7 +279,7 @@ module Truffle
 
     def self.get_expanded_load_path
       unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH)
-        @expanded_load_path = $LOAD_PATH.map { |path| Primitive.canonicalize_path(path) }
+        @expanded_load_path = $LOAD_PATH.map { |path| Primitive.canonicalize_path(Truffle::Type.coerce_to_path(path)) }
         @loaded_features_copy = $LOAD_PATH.dup
       end
       @expanded_load_path
