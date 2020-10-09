@@ -519,20 +519,7 @@ module Truffle
     end
 
     def self.ascii_compatible_encoding(string)
-      compatible_encoding string, Encoding::US_ASCII
-    end
-
-    def self.compatible_encoding(a, b)
-      enc = Primitive.encoding_compatible? a, b
-
-      unless enc
-        enc_a = Primitive.encoding_get_object_encoding a
-        enc_b = Primitive.encoding_get_object_encoding b
-
-        raise Encoding::CompatibilityError, "incompatible character encodings: #{enc_a} and #{enc_b}"
-      end
-
-      enc
+      Primitive.encoding_ensure_compatible string, Encoding::US_ASCII
     end
 
     # Misc

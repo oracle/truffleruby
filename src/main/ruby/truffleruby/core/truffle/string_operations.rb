@@ -285,7 +285,7 @@ module Truffle
 
       return start if str == ''
 
-      Truffle::Type.compatible_encoding src, str
+      Primitive.encoding_ensure_compatible src, str
 
       Primitive.string_byte_index(src, str, start)
     end

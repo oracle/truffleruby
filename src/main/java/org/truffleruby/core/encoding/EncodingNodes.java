@@ -389,6 +389,22 @@ public abstract class EncodingNodes {
         }
     }
 
+    @Primitive(name = "encoding_ensure_compatible")
+    public abstract static class EnsureCompatibleNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private CheckEncodingNode checkEncodingNode = CheckEncodingNode.create();
+        @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
+
+        public static EnsureCompatibleNode create() {
+            return EncodingNodesFactory.EnsureCompatibleNodeFactory.create(null);
+        }
+
+        @Specialization
+        protected Object ensureCompatible(Object first, Object second) {
+            return getRubyEncodingNode.executeGetRubyEncoding(checkEncodingNode.executeCheckEncoding(first, second));
+        }
+    }
+
     @CoreMethod(names = "list", onSingleton = true)
     public abstract static class ListNode extends CoreMethodArrayArgumentsNode {
 
