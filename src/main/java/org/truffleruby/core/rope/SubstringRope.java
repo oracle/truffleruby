@@ -82,7 +82,7 @@ public class SubstringRope extends ManagedRope {
 
     @Override
     public byte getByteSlow(int index) {
-        return child.getByteSlow(index + byteOffset);
+        return RopeOperations.getByteSlow(this, index);
     }
 
     public ManagedRope getChild() {
