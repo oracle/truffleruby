@@ -192,10 +192,10 @@ public abstract class TruffleKernelNodes {
                 assumptions = "frameAssumption")
         protected SpecialVariableStorage executeGetStorage(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("frame.getFrameDescriptor().findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
+                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
                 @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
             Object storage = FrameUtil.getObjectSafe(frame, slot);
-            if (storage == Nil.INSTANCE) {
+            if (storage == nil) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 storage = new SpecialVariableStorage();
                 frame.setObject(slot, storage);
@@ -209,18 +209,14 @@ public abstract class TruffleKernelNodes {
                 limit = "1")
         protected SpecialVariableStorage executeGetStorageDeclarationFrame(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("frame.getFrameDescriptor().findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
+                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth,
                 @Cached("declarationSlot(frame)") FrameSlot declarationFrameSlot,
                 @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
-            VirtualFrame storageFrame = frame;
-
-            for (int i = 0; i < declarationFrameDepth; i++) {
-                storageFrame = RubyArguments.getDeclarationFrame(storageFrame);
-            }
+            VirtualFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
 
             Object storage = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);
-            if (storage == Nil.INSTANCE) {
+            if (storage == nil) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 storage = new SpecialVariableStorage();
                 storageFrame.setObject(declarationFrameSlot, storage);
@@ -234,7 +230,7 @@ public abstract class TruffleKernelNodes {
                 limit = "1")
         protected SpecialVariableStorage executeGetStorageDeclarationFrame(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("frame.getFrameDescriptor().findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
+                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
                 @Cached("declarationSlot(frame)") FrameSlot declarationFrameSlot,
                 @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
             return getSlow(frame.materialize());
@@ -331,10 +327,7 @@ public abstract class TruffleKernelNodes {
         }
 
         private static FrameSlot getVariableSlot(MaterializedFrame frame) {
-            final FrameDescriptor descriptor = frame.getFrameDescriptor();
-            synchronized (descriptor) {
-                return descriptor.findFrameSlot(Layouts.SPECIAL_VARIABLLE_STORAGE);
-            }
+            return frame.getFrameDescriptor().findFrameSlot(Layouts.SPECIAL_VARIABLLE_STORAGE);
         }
 
         public static GetSpecialVariableStorage create() {
