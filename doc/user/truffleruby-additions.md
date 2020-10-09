@@ -33,6 +33,8 @@ standard `RUBY_ENGINE_VERSION` constant.
 TruffleRuby provides these non-standard methods and classes that provide
 additional functionality in the `TruffleRuby` module.
 
+`TruffleRuby.graalvm_home` returns the GraalVM home or `nil` if running outside of GraalVM (e.g., TruffleRuby standalone).
+
 `TruffleRuby.jit?` reports if the GraalVM Compiler is available and will be
 used.
 

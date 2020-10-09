@@ -9,12 +9,16 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.dsl.Cached;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -24,6 +28,27 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreModule("TruffleRuby")
 public abstract class TruffleRubyNodes {
+
+    @CoreMethod(names = "graalvm_home", onSingleton = true)
+    public abstract static class GraalvmHomeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object graalvmHome(
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            String value = getProperty("org.graalvm.home");
+            if (value == null) {
+                return nil;
+            } else {
+                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
+        }
+
+        @TruffleBoundary
+        private static String getProperty(String key) {
+            return System.getProperty(key);
+        }
+
+    }
 
     @CoreMethod(names = "jit?", onSingleton = true)
     public abstract static class GraalNode extends CoreMethodArrayArgumentsNode {
