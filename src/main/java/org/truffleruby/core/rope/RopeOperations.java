@@ -538,74 +538,92 @@ public class RopeOperations {
 
     @TruffleBoundary
     public static int hashForRange(Rope rope, int startingHashCode, int offset, int length) {
-        if (rope instanceof LeafRope) {
-            return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
-        } else if (rope instanceof SubstringRope) {
-            final SubstringRope substringRope = (SubstringRope) rope;
+        class Params {
+            final Rope rope;
+            final int startingHashCode;
+            final int offset;
+            final int length;
+            final boolean readResult;
+            final int repeatCount;
 
-            return hashForRange(
-                    substringRope.getChild(),
-                    startingHashCode,
-                    offset + substringRope.getByteOffset(),
-                    length);
-        } else if (rope instanceof ConcatRope) {
-            final ConcatRope concatRope = (ConcatRope) rope;
-            final Rope left = concatRope.getLeft();
-            final Rope right = concatRope.getRight();
-
-            int hash = startingHashCode;
-            final int leftLength = left.byteLength();
-
-            if (offset < leftLength) {
-                // The left branch might not be large enough to extract the full hash code we want. In that case,
-                // we'll extract what we can and extract the difference from the right side.
-                if (offset + length > leftLength) {
-                    final int coveredByLeft = leftLength - offset;
-                    hash = hashForRange(left, hash, offset, coveredByLeft);
-                    hash = hashForRange(right, hash, 0, length - coveredByLeft);
-
-                    return hash;
-                } else {
-                    return hashForRange(left, hash, offset, length);
-                }
+            Params(Rope rope, int startingHashCode, int offset, int length, boolean readResult, int repeatCount) {
+                this.rope = rope;
+                this.startingHashCode = startingHashCode;
+                this.offset = offset;
+                this.length = length;
+                this.readResult = readResult;
+                this.repeatCount = repeatCount;
             }
-
-            return hashForRange(right, hash, offset - leftLength, length);
-        } else if (rope instanceof RepeatingRope) {
-            final RepeatingRope repeatingRope = (RepeatingRope) rope;
-            final Rope child = repeatingRope.getChild();
-
-            int bytesToHash = length;
-            final int patternLength = child.byteLength();
-
-            // Fix the offset to be appropriate for a given child. The offset is reset the first time it is
-            // consumed, so there's no need to worry about adversely affecting anything by adjusting it here.
-            offset %= child.byteLength();
-
-            final int loopCount = computeLoopCount(offset, repeatingRope.getTimes(), bytesToHash, patternLength);
-
-            int hash = startingHashCode;
-            for (int i = 0; i < loopCount; i++) {
-                final int bytesToHashThisPass = bytesToHash + offset > patternLength
-                        ? patternLength - offset
-                        : bytesToHash;
-                hash = hashForRange(
-                        child,
-                        hash,
-                        offset,
-                        bytesToHashThisPass);
-                offset = 0;
-                bytesToHash -= bytesToHashThisPass;
-            }
-
-            return hash;
-        } else if (rope instanceof LazyIntRope) {
-            return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
-        } else if (rope instanceof NativeRope) {
-            return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
-        } else {
-            throw new RuntimeException("Hash code not supported for rope of type: " + rope.getClass().getName());
         }
+
+        final Deque<Params> workStack = new ArrayDeque<>();
+        workStack.push(new Params(rope, startingHashCode, offset, length, false, -1));
+        int resultHash = 0;
+
+        while (!workStack.isEmpty()) {
+            final Params params = workStack.pop();
+            rope = params.rope;
+            startingHashCode = params.readResult ? resultHash : params.startingHashCode;
+            offset = params.offset;
+            length = params.length;
+            final byte[] bytes = rope.getRawBytes();
+
+            if (bytes != null) {
+                resultHash = Hashing.stringHash(bytes, startingHashCode, offset, length);
+            } else if (rope instanceof SubstringRope) {
+                final SubstringRope substringRope = (SubstringRope) rope;
+                workStack.push(
+                        new Params(
+                                substringRope.getChild(),
+                                startingHashCode,
+                                offset + substringRope.getByteOffset(),
+                                length,
+                                false,
+                                -1));
+            } else if (rope instanceof ConcatRope) {
+                final ConcatRope concatRope = (ConcatRope) rope;
+                final Rope left = concatRope.getLeft();
+                final Rope right = concatRope.getRight();
+                final int leftLength = left.byteLength();
+
+                if (offset >= leftLength) {
+                    // range fully contained in right child
+                    workStack.push(new Params(right, startingHashCode, offset - leftLength, length, false, -1));
+                } else if (offset + length <= leftLength) {
+                    // range fully contained in left child
+                    workStack.push(new Params(left, startingHashCode, offset, length, false, -1));
+                } else {
+                    final int coveredByLeft = leftLength - offset;
+                    // push right node first, starting hash is the result from the left node
+                    workStack.push(new Params(right, 0, 0, length - coveredByLeft, true, -1));
+                    workStack.push(new Params(left, startingHashCode, offset, coveredByLeft, false, -1));
+                }
+            } else if (rope instanceof RepeatingRope) {
+                final RepeatingRope repeatingRope = (RepeatingRope) rope;
+                final Rope child = repeatingRope.getChild();
+                final int patternLength = child.byteLength();
+
+                int count = params.repeatCount;
+                assert count != 0;
+                if (count < 0) {
+                    offset %= patternLength; // the offset is always 0 when count > 0
+                    count = computeLoopCount(offset, repeatingRope.getTimes(), length, patternLength);
+                }
+
+                if (count > 1) {
+                    // loop - 1 iteration, reset offset to 0, starting hash is the result from previous iteration
+                    workStack.push(new Params(rope, 0, 0, length - patternLength, true, count - 1));
+                }
+                // one iteration
+                final int bytesToHashThisPass = length + offset > patternLength
+                        ? patternLength - offset
+                        : length;
+                workStack.push(new Params(child, startingHashCode, offset, bytesToHashThisPass, false, -1));
+            } else {
+                resultHash = Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
+            }
+        }
+        return resultHash;
     }
 
     public static RopeBuilder toRopeBuilderCopy(Rope rope) {
