@@ -95,7 +95,7 @@ class String
     case pattern
     when Regexp
       match_data = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, true)
-      Primitive.regexp_last_match_set(Primitive.caller_special_variable, match_data)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
     when String
       raise TypeError, 'type mismatch: String given'
@@ -200,7 +200,7 @@ class String
 
     if pattern.kind_of? Regexp
       if m = Truffle::RegexpOperations.match(pattern, self)
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, m)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m.to_s, m.post_match]
       end
     else
@@ -223,7 +223,7 @@ class String
   def rpartition(pattern)
     if pattern.kind_of? Regexp
       if m = Truffle::RegexpOperations.search_region(pattern, self, 0, size, false)
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, m)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         [m.pre_match, m[0], m.post_match]
       end
     else
@@ -274,14 +274,14 @@ class String
       val.taint if taint
 
       if block
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, match)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
         yield(val)
       else
         ret << val
       end
     end
 
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, last_match)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, last_match)
     ret
   end
 
@@ -684,7 +684,7 @@ class String
   def sub(pattern, replacement=undefined, &block)
     s = dup
     s.sub!(pattern, replacement, &block)
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, $~)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     s
   end
 
@@ -720,8 +720,8 @@ class String
     pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     match = pattern.match_from(self, 0)
 
-    Primitive.regexp_last_match_set(Primitive.proc_special_variable(block), match) if block
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, match)
+    Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), match) if block
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
 
     if match
       ret = match.pre_match
@@ -771,7 +771,7 @@ class String
       if one.kind_of? Regexp
         lm = $~
         self[one] = '' if result
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, lm)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, lm)
       else
         self[one] = '' if result
       end
@@ -781,7 +781,7 @@ class String
       if one.kind_of? Regexp
         lm = $~
         self[one, two] = '' if result
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, lm)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, lm)
       else
         self[one, two] = '' if result
       end
@@ -984,7 +984,7 @@ class String
     else
       ret, match_data = Truffle::StringOperations.gsub_internal(s, pattern, replacement)
     end
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, match_data)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
     s.replace(ret) if ret
     s
   end
@@ -999,7 +999,7 @@ class String
     else
       ret, match_data = Truffle::StringOperations.gsub_internal(self, pattern, replacement)
     end
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, match_data)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
     if ret
       replace(ret)
       self
@@ -1018,7 +1018,7 @@ class String
              else
                pattern.match self, pos
              end
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, $~)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     result
   end
 
@@ -1346,7 +1346,7 @@ class String
 
       start += size if start < 0
       if start < 0 or start > size
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, nil) if str.kind_of? Regexp
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if str.kind_of? Regexp
         return
       end
     end
@@ -1356,10 +1356,10 @@ class String
 
       start = Primitive.string_byte_index_from_char_index(self, start)
       if match = str.match_from(self, start)
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, match)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
         return match.begin(0)
       else
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, nil)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
         return
       end
     end
@@ -1416,7 +1416,7 @@ class String
       Primitive.encoding_ensure_compatible self, sub
 
       match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false)
-      Primitive.regexp_last_match_set(Primitive.caller_special_variable, match_data)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
 
     else
@@ -1444,7 +1444,7 @@ class String
     end
 
     # This is the workaround because `Primitive.caller_binding` doesn't work inside blocks yet.
-    storage = Primitive.caller_special_variable if prefixes.any?(Regexp)
+    storage = Primitive.caller_special_variables if prefixes.any?(Regexp)
 
     prefixes.each do |original_prefix|
       case original_prefix

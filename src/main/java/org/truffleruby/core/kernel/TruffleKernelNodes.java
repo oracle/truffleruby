@@ -342,7 +342,7 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    @Primitive(name = "caller_special_variable")
+    @Primitive(name = "caller_special_variables")
     public abstract static class GetCallerSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Child ReadCallerStorageNode callerStorageNode = new ReadCallerStorageNode();
@@ -353,7 +353,7 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    @Primitive(name = "proc_special_variable")
+    @Primitive(name = "proc_special_variables")
     public abstract static class GetProcSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Specialization

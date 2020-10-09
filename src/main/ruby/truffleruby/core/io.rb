@@ -1637,7 +1637,7 @@ class IO
       line = l
       break
     end
-    Primitive.io_last_line_set(Primitive.caller_special_variable, line) if line
+    Primitive.io_last_line_set(Primitive.caller_special_variables, line) if line
     line
   end
 
@@ -1746,7 +1746,7 @@ class IO
   # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
   # nil.
   def print(*args)
-    Truffle::IOOperations.print self, args, Primitive.caller_special_variable
+    Truffle::IOOperations.print self, args, Primitive.caller_special_variables
   end
 
   ##

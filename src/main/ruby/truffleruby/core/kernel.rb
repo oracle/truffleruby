@@ -188,7 +188,7 @@ module Kernel
 
   def !~(other)
     r = self =~ other ? false : true
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, $~)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     r
   end
 
@@ -366,7 +366,7 @@ module Kernel
 
   def gets(*args)
     line = ARGF.gets(*args)
-    Primitive.io_last_line_set(Primitive.caller_special_variable, line) if line
+    Primitive.io_last_line_set(Primitive.caller_special_variables, line) if line
     line
   end
   module_function :gets
@@ -769,17 +769,17 @@ module Kernel
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('gets-loop')
       def chomp(separator=$/)
-        last_line = Primitive.io_last_line_get(Primitive.caller_special_variable)
+        last_line = Primitive.io_last_line_get(Primitive.caller_special_variables)
         result = Truffle::KernelOperations.check_last_line(last_line).chomp(separator)
-        Primitive.io_last_line_set(Primitive.caller_special_variable, result)
+        Primitive.io_last_line_set(Primitive.caller_special_variables, result)
         result
       end
       module_function :chomp
 
       def chop
-        last_line = Primitive.io_last_line_get(Primitive.caller_special_variable)
+        last_line = Primitive.io_last_line_get(Primitive.caller_special_variables)
         result = Truffle::KernelOperations.check_last_line(last_line).chop
-        Primitive.io_last_line_set(Primitive.caller_special_variable, result)
+        Primitive.io_last_line_set(Primitive.caller_special_variables, result)
         result
       end
       module_function :chop

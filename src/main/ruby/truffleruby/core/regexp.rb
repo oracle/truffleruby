@@ -78,7 +78,7 @@ class Regexp
   end
 
   def self.last_match(index=nil)
-    match = Primitive.regexp_last_match_get(Primitive.caller_special_variable)
+    match = Primitive.regexp_last_match_get(Primitive.caller_special_variables)
     if index
       index = Primitive.rb_to_int index
       match[index] if match
@@ -146,18 +146,18 @@ class Regexp
 
   def =~(str)
     result = str ? Truffle::RegexpOperations.match(self, str, 0) : nil
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, result)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, result)
 
     result.begin(0) if result
   end
 
   def match(str, pos=0)
     unless str
-      Primitive.regexp_last_match_set(Primitive.caller_special_variable, nil)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       return nil
     end
     result = Truffle::RegexpOperations.match(self, str, pos)
-    Primitive.regexp_last_match_set(Primitive.caller_special_variable, result)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, result)
 
     if result && block_given?
       yield result
@@ -176,16 +176,16 @@ class Regexp
     elsif !other.kind_of? String
       other = Truffle::Type.rb_check_convert_type other, String, :to_str
       unless other
-        Primitive.regexp_last_match_set(Primitive.caller_special_variable, nil)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
         return false
       end
     end
 
     if match = match_from(other, 0)
-      Primitive.regexp_last_match_set(Primitive.caller_special_variable, match)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
       true
     else
-      Primitive.regexp_last_match_set(Primitive.caller_special_variable, nil)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       false
     end
   end
@@ -211,10 +211,10 @@ class Regexp
   end
 
   def ~
-    line = Primitive.io_last_line_get(Primitive.caller_special_variable)
+    line = Primitive.io_last_line_get(Primitive.caller_special_variables)
 
     unless line.kind_of?(String)
-      Primitive.regexp_last_match_set(Primitive.caller_special_variable, nil)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       return nil
     end
 

@@ -1700,7 +1700,7 @@ module Truffle::CExt
   end
 
   def rb_backref_get
-    Primitive.regexp_last_match_get(Truffle::ThreadOperations.ruby_caller_special_variable([Truffle::CExt, Truffle::Interop.singleton_class]))
+    Primitive.regexp_last_match_get(Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]))
   end
 
   def rb_gv_set(name, value)
@@ -1718,7 +1718,7 @@ module Truffle::CExt
 
   def rb_reg_match(re, str)
     result = str ? Truffle::RegexpOperations.match(re, str, 0) : nil
-    Primitive.regexp_last_match_set(Truffle::ThreadOperations.ruby_caller_special_variable([Truffle::CExt, Truffle::Interop.singleton_class]), result)
+    Primitive.regexp_last_match_set(Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]), result)
 
     result.begin(0) if result
   end

@@ -386,7 +386,7 @@ class Enumerator
     end
 
     def grep(pattern, &block)
-      s = block ? Primitive.proc_special_variable(block) : Primitive.caller_special_variable
+      s = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
@@ -404,7 +404,7 @@ class Enumerator
     end
 
     def grep_v(pattern, &block)
-      s = block ? Primitive.proc_special_variable(block) : Primitive.caller_special_variable
+      s = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first

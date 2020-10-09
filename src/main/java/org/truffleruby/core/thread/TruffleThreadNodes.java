@@ -51,7 +51,7 @@ public class TruffleThreadNodes {
 
     }
 
-    @CoreMethod(names = "ruby_caller_special_variable", onSingleton = true, required = 1)
+    @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
     public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode {
 
