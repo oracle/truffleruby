@@ -518,10 +518,6 @@ module Truffle
       string.force_encoding enc
     end
 
-    def self.ascii_compatible_encoding(string)
-      Primitive.encoding_ensure_compatible string, Encoding::US_ASCII
-    end
-
     # Misc
 
     def self.rb_inspect(val)
