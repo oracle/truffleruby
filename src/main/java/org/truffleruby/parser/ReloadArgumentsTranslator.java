@@ -89,12 +89,11 @@ public class ReloadArgumentsTranslator extends Translator {
         int postCount = node.getPostCount();
 
         if (postCount > 0) {
-            index = -1;
-
+            index = -postCount;
             int postIndex = node.getPostIndex();
-            for (int i = postCount - 1; i >= 0; i--) {
+            for (int i = 0; i < postCount; i++) {
                 sequence.add(args[postIndex + i].accept(this));
-                index--;
+                index++;
             }
         }
 
