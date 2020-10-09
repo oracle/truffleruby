@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
@@ -60,15 +61,15 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
 
     // Context
 
-    @CompilationFinal private RubyContext context;
+    @CompilationFinal private ContextReference<RubyContext> contextReference;
 
     @Override
     public RubyContext getContext() {
-        if (context == null) {
+        if (contextReference == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            context = RubyLanguage.getCurrentContext();
+            contextReference = lookupContextReference(RubyLanguage.class);
         }
 
-        return context;
+        return contextReference.get();
     }
 }

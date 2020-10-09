@@ -270,7 +270,7 @@ public abstract class VMPrimitiveNodes {
 
                 final RubyThread rootThread = context.getThreadManager().getRootThread();
                 final FiberManager fiberManager = rootThread.fiberManager;
-                final ThreadManager threadManager = getContext().getThreadManager();
+                final ThreadManager threadManager = context.getThreadManager();
 
                 // Workaround: we need to register with Truffle (which means going multithreaded),
                 // so that NFI can get its context to call pthread_kill() (GR-7405).
