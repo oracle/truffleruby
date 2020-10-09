@@ -193,7 +193,7 @@ public abstract class TruffleKernelNodes {
         protected SpecialVariableStorage executeGetStorage(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
-                @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
+                @Cached("descriptor.getVersion()") Assumption frameAssumption) {
             Object storage = FrameUtil.getObjectSafe(frame, slot);
             if (storage == nil) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
