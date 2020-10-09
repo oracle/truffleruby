@@ -46,6 +46,7 @@ Compatibility:
 * Module#using raises error in method scope (#2112, @ssnickolay)
 * `File#path` now returns a new mutable String on every call like MRI (#2115).
 * Avoid infinite recursion when redefining `Warning#warn` and calling `Kernel#warn` (#2109).
+* Convert objects with `#to_path` in `$LOAD_PATH` (#2119).
 
 Performance:
 
