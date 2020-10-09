@@ -214,7 +214,7 @@ public class RubyContext {
 
         Metrics.printTime("before-instruments");
         final Instrumenter instrumenter = env.lookup(Instrumenter.class);
-        traceManager = new TraceManager(this, instrumenter);
+        traceManager = new TraceManager(language, this, instrumenter);
         coverageManager = new CoverageManager(this, instrumenter);
         Metrics.printTime("after-instruments");
 
