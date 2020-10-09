@@ -1193,7 +1193,7 @@ module Commands
     env = {}
     env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions-print-java=true'].join(' ')
 
-    select_tests('test/truffle/compiler', args).each do |test_script|
+    run_tests('test/truffle/compiler', args) do |test_script|
       sh env, test_script
     end
   end
@@ -1291,7 +1291,7 @@ module Commands
     end
   end
 
-  private def select_tests(tests_path, tests)
+  private def run_tests(tests_path, tests)
     tests_path = "#{TRUFFLERUBY_DIR}/#{tests_path}"
     test_names = tests.empty? ? '*' : '{' + tests.join(',') + '}'
 
@@ -1303,11 +1303,22 @@ module Commands
       exit 1
     end
 
-    candidates
+    STDERR.puts
+    candidates.each do |test_script|
+      STDERR.puts "[jt] Running #{test_script} ..."
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      begin
+        yield test_script
+      ensure
+        finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        duration = finish - start
+        STDERR.puts "[jt] #{test_script} took #{'%.1f' % duration}s\n\n\n"
+      end
+    end
   end
 
   private def test_integration(*args)
-    select_tests('test/truffle/integration', args).each do |test_script|
+    run_tests('test/truffle/integration', args) do |test_script|
       sh test_script
     end
   end
@@ -1315,7 +1326,7 @@ module Commands
   private def test_gems(*args)
     gem_test_pack
 
-    select_tests('test/truffle/gems', args).each do |test_script|
+    run_tests('test/truffle/gems', args) do |test_script|
       sh test_script
     end
   end
@@ -1323,7 +1334,7 @@ module Commands
   private def test_ecosystem(*args)
     gem_test_pack if gem_test_pack?
 
-    select_tests('test/truffle/ecosystem', args).each do |test_script|
+    run_tests('test/truffle/ecosystem', args) do |test_script|
       sh test_script, *(gem_test_pack if gem_test_pack?)
     end
   end
