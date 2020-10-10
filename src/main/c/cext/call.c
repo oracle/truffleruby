@@ -105,11 +105,41 @@ void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_with_gvl", function, data1);
 }
 
+struct gvl_call_data {
+  gvl_call function;
+  void* data;
+};
+
+struct unblock_function_data {
+  rb_unblock_function_t* function;
+  void* data;
+};
+
+static void* call_gvl_call_function(void *data) {
+  struct gvl_call_data* s = (struct gvl_call_data*) data;
+  return s->function(s->data);
+}
+
+static void call_unblock_function(void *data) {
+  struct unblock_function_data* s = (struct unblock_function_data*) data;
+  s->function(s->data);
+}
+
 void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
+  // wrap functions to handle native functions
+  struct gvl_call_data call_struct = { function, data1 };
+  struct unblock_function_data unblock_struct = { unblock_function, data2 };
+
+  rb_unblock_function_t *wrapped_unblock_function;
   if (unblock_function == RUBY_UBF_IO) {
-    unblock_function = (rb_unblock_function_t*) rb_tr_unwrap(Qnil);
+    wrapped_unblock_function = (rb_unblock_function_t*) rb_tr_unwrap(Qnil);
+  } else {
+    wrapped_unblock_function = call_unblock_function;
   }
-  return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
+
+  return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl",
+    call_gvl_call_function, &call_struct,
+    wrapped_unblock_function, &unblock_struct);
 }
 
 ID rb_frame_this_func(void) {
