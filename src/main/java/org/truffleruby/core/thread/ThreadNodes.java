@@ -531,7 +531,6 @@ public abstract class ThreadNodes {
             } finally {
                 thread.status = status;
                 actionHolder.restore(oldAction);
-
             }
         }
 
