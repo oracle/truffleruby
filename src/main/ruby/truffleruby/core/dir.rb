@@ -256,7 +256,7 @@ class Dir
 
       patterns.each do |pat|
         pat = Truffle::Type.coerce_to_path pat
-        enc = Truffle::Type.ascii_compatible_encoding pat
+        enc = Primitive.encoding_ensure_compatible pat, Encoding::US_ASCII
         Dir::Glob.glob normalized_base, pat, flags, matches
 
         total = matches.size

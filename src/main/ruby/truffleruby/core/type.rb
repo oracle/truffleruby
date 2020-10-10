@@ -518,23 +518,6 @@ module Truffle
       string.force_encoding enc
     end
 
-    def self.ascii_compatible_encoding(string)
-      compatible_encoding string, Encoding::US_ASCII
-    end
-
-    def self.compatible_encoding(a, b)
-      enc = Encoding.compatible? a, b
-
-      unless enc
-        enc_a = Primitive.encoding_get_object_encoding a
-        enc_b = Primitive.encoding_get_object_encoding b
-
-        raise Encoding::CompatibilityError, "incompatible character encodings: #{enc_a} and #{enc_b}"
-      end
-
-      enc
-    end
-
     # Misc
 
     def self.rb_inspect(val)

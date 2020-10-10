@@ -497,13 +497,13 @@ class String
 
   def end_with?(*suffixes)
     if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
-      Truffle::Type.compatible_encoding self, suffix
+      Primitive.encoding_ensure_compatible self, suffix
       return self[-suffix.length, suffix.length] == suffix
     end
 
     suffixes.each do |original_suffix|
       suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
-      Truffle::Type.compatible_encoding self, suffix
+      Primitive.encoding_ensure_compatible self, suffix
 
       return true if self[-suffix.length, suffix.length] == suffix
     end
@@ -648,7 +648,7 @@ class String
     stop = StringValue(stop)
 
     if stop.size == 1 && size == 1
-      enc = Truffle::Type.compatible_encoding(self.encoding, stop.encoding)
+      enc = Primitive.encoding_ensure_compatible(self.encoding, stop.encoding)
 
       return self if self > stop
       after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
@@ -1137,7 +1137,7 @@ class String
     end
 
     replacement = StringValue replacement
-    enc = Truffle::Type.compatible_encoding self, replacement
+    enc = Primitive.encoding_ensure_compatible self, replacement
 
     Primitive.string_splice(self, replacement, bi, bs, enc)
   end
@@ -1148,7 +1148,7 @@ class String
     end
 
     replacement = StringValue replacement
-    enc = Truffle::Type.compatible_encoding self, replacement
+    enc = Primitive.encoding_ensure_compatible self, replacement
 
     Primitive.string_splice(self, replacement, start, index.bytesize, enc)
   end
@@ -1179,7 +1179,7 @@ class String
     end
 
     replacement = StringValue replacement
-    enc = Truffle::Type.compatible_encoding self, replacement
+    enc = Primitive.encoding_ensure_compatible self, replacement
 
     Primitive.string_splice(self, replacement, bi, bs, enc)
   end
@@ -1207,7 +1207,7 @@ class String
     end
 
     replacement = StringValue replacement
-    enc = Truffle::Type.compatible_encoding self, replacement
+    enc = Primitive.encoding_ensure_compatible self, replacement
 
     bi = Primitive.string_byte_index_from_char_index(self, match.begin(count))
     bs = Primitive.string_byte_index_from_char_index(self, match.end(count)) - bi
@@ -1221,7 +1221,7 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Truffle::Type.compatible_encoding self, padding
+    enc = Primitive.encoding_ensure_compatible self, padding
 
     width = Primitive.rb_to_int width
     return dup if width <= size
@@ -1266,7 +1266,7 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Truffle::Type.compatible_encoding self, padding
+    enc = Primitive.encoding_ensure_compatible self, padding
 
     width = Primitive.rb_to_int width
     return dup if width <= size
@@ -1310,7 +1310,7 @@ class String
     padding = StringValue(padding)
     raise ArgumentError, 'zero width padding' if padding.empty?
 
-    enc = Truffle::Type.compatible_encoding self, padding
+    enc = Primitive.encoding_ensure_compatible self, padding
 
     width = Primitive.rb_to_int width
     return dup if width <= size
@@ -1352,7 +1352,7 @@ class String
     end
 
     if str.kind_of? Regexp
-      Truffle::Type.compatible_encoding self, str
+      Primitive.encoding_ensure_compatible self, str
 
       start = Primitive.string_byte_index_from_char_index(self, start)
       if match = str.match_from(self, start)
@@ -1367,7 +1367,7 @@ class String
     str = StringValue(str)
     return start if str == ''
 
-    Truffle::Type.compatible_encoding self, str
+    Primitive.encoding_ensure_compatible self, str
 
     return if str.size > size
 
@@ -1413,7 +1413,7 @@ class String
       end
 
     when Regexp
-      Truffle::Type.compatible_encoding self, sub
+      Primitive.encoding_ensure_compatible self, sub
 
       match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false)
       Primitive.frame_local_variable_set(:$~, match_data, Primitive.caller_binding)
@@ -1429,7 +1429,7 @@ class String
       # Boundary case
       return finish if needle.empty?
 
-      Truffle::Type.compatible_encoding self, needle
+      Primitive.encoding_ensure_compatible self, needle
       if byte_index = Primitive.find_string_reverse(self, needle, byte_finish)
         return Primitive.string_byte_character_index(self, byte_index)
       end
@@ -1449,7 +1449,7 @@ class String
     prefixes.each do |original_prefix|
       case original_prefix
       when Regexp
-        Truffle::Type.compatible_encoding(self, original_prefix)
+        Primitive.encoding_ensure_compatible(self, original_prefix)
         match_data = Truffle::RegexpOperations.match_onwards(original_prefix, self, 0, true)
         Primitive.frame_local_variable_set(:$~, match_data, binding)
         return true if match_data
@@ -1550,7 +1550,7 @@ class String
     other = Truffle::Type.rb_check_convert_type(other , String, :to_str)
     return nil if Primitive.nil? other
 
-    enc = Encoding.compatible?(encoding, other.encoding)
+    enc = Primitive.encoding_compatible?(encoding, other.encoding)
     if Primitive.nil? enc
       return nil
     end
