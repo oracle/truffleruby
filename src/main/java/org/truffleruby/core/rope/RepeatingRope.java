@@ -68,11 +68,6 @@ public class RepeatingRope extends ManagedRope {
         return super.getBytesSlow();
     }
 
-    @Override
-    protected byte getByteSlow(int index) {
-        return child.getByteSlow(index % child.byteLength());
-    }
-
     public ManagedRope getChild() {
         return child;
     }

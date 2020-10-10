@@ -12,8 +12,6 @@ package org.truffleruby.core.rope;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 public class ConcatRope extends ManagedRope {
 
     private final ManagedRope left;
@@ -77,16 +75,6 @@ public class ConcatRope extends ManagedRope {
                 depth(),
                 getRawBytes(),
                 balanced);
-    }
-
-    @Override
-    @TruffleBoundary
-    public byte getByteSlow(int index) {
-        if (index < left.byteLength()) {
-            return left.getByteSlow(index);
-        }
-
-        return right.getByteSlow(index - left.byteLength());
     }
 
     public ManagedRope getLeft() {

@@ -40,6 +40,11 @@ public abstract class ManagedRope extends Rope {
     }
 
     @Override
+    protected byte getByteSlow(int index) {
+        return RopeOperations.getByteSlow(this, index);
+    }
+
+    @Override
     public final byte[] getBytes() {
         if (bytes == null) {
             bytes = getBytesSlow();
