@@ -798,9 +798,8 @@ public abstract class KernelNodes {
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
-            if (assignsNewUserVariables(descriptor)) {
-                binding.setFrame(frame);
-            }
+            binding.setFrame(frame);
+
             return getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL,
                     declarationContext,

@@ -1,4 +1,4 @@
-exclude :test_eval_with_binding_scoping, "needs investigation"
+exclude :test_eval_scoping, "needs investigation"
 exclude :test_include_refinement, "needs investigation"
 exclude :test_prepend_after_refine, "needs investigation"
 exclude :test_refine_prepended_class, "needs investigation"

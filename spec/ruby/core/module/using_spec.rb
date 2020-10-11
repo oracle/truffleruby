@@ -373,5 +373,53 @@ describe "Module#using" do
 
       result.should == ["hello from refinement", "1"]
     end
+
+    it "is active for eval with binding scoping" do
+      result = []
+      refinement = Module.new do
+        refine String do
+          def upcase
+            reverse
+          end
+        end
+      end
+
+      result << "hello world".upcase
+
+      Module.new do
+        b = binding
+
+        eval(%{using refinement; result << "hello world".upcase}, b)
+        eval(%{result << "hello world".upcase}, b)
+      end
+
+      result.should == [
+        "HELLO WORLD",
+        "dlrow olleh",
+        "dlrow olleh",
+      ]
+    end
+
+    it "is active for eval with binding scope (main)" do
+      result = ruby_exe(<<-RUBY)
+        result = []
+        refinement = Module.new do
+          refine String do
+            def upcase
+              reverse
+            end
+          end
+        end
+        b = binding
+
+        result << "hello world".upcase
+        eval(%{using refinement; result << "hello world".upcase}, b)
+        eval(%{result << "hello world".upcase}, b)
+
+        print result.join(" | ")
+      RUBY
+
+      result.should == "HELLO WORLD | dlrow olleh | dlrow olleh"
+    end
   end
 end

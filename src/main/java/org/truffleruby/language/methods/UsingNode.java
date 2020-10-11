@@ -39,6 +39,16 @@ public abstract class UsingNode extends RubyContextNode {
         }
 
         final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_WRITE);
+        using(module, callerFrame);
+
+        if (RubyArguments.getMethod(callerFrame).toString().contains("(eval)")) {
+            final Frame evalFrame = RubyArguments.getDeclarationFrame(callerFrame);
+            using(module, evalFrame);
+        }
+    }
+
+    @TruffleBoundary
+    private void using(RubyModule module, Frame callerFrame) {
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
         final Map<RubyModule, RubyModule[]> newRefinements = usingModule(declarationContext, module);
         if (!newRefinements.isEmpty()) {
