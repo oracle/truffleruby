@@ -26,11 +26,11 @@ public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (frameAssumption == null) {
+        if (frameAssumption == null || !frameAssumption.isValid()) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             frameAssumption = descriptor.getVersion();
-            storageSlot = descriptor.findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+            storageSlot = descriptor.findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         }
 
         if (storageSlot != null) {
