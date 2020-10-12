@@ -205,7 +205,7 @@ class << ENV
   end
 
   def index(value)
-    warn 'warning: ENV.index is deprecated; use ENV.key'
+    warn 'ENV.index is deprecated; use ENV.key', uplevel: 1
     key(value)
   end
 
