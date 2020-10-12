@@ -21,6 +21,10 @@ module ConstantFixtures
     ConstantFixtures.const_get(name)
   end
 
+  def self.const_get_inherit_false(name)
+    ConstantFixtures.const_get(name, false)
+  end
+
   module Nested
     def self.get_nested
       A
@@ -50,9 +54,12 @@ end
 
 example "ConstantFixtures.get_existing", Proc
 example "ConstantFixtures.get", 1
-example "ConstantFixtures.const_get_in_scope(:A)", 1
 
+example "ConstantFixtures.const_get_in_scope(:A)", 1
 example "ConstantFixtures.const_get_in_scope('A')", 1
+
+counter example "ConstantFixtures.const_get_inherit_false(:A)"
+counter example "ConstantFixtures.const_get_inherit_false('A')"
 
 example "ConstantFixtures::Nested.get_nested", 1
 example "ConstantFixtures::Child.get_inherited", 2

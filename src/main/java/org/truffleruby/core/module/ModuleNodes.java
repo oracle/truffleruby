@@ -1009,6 +1009,7 @@ public abstract class ModuleNodes {
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookup);
         }
 
+        @TruffleBoundary
         private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, RubyModule module, String name) {
             return ModuleOperations
                     .lookupConstantWithInherit(getContext(), module, name, false, this)
