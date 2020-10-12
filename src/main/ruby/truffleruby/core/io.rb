@@ -724,7 +724,6 @@ class IO
     when ?t
       ret &= ~BINARY
     when ?:
-      warn 'encoding options not supported in 1.8', uplevel: 1
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -741,7 +740,6 @@ class IO
     when ?t
       ret &= ~BINARY
     when ?:
-      warn 'encoding options not supported in 1.8', uplevel: 1
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
