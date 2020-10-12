@@ -1251,40 +1251,42 @@ class Array
     end
   end
 
-  # Helper to recurse through flattening since the method
-  # is not allowed to recurse itself. Detects recursive structures.
+  # Helper to "recurse" through flattening. Detects recursive structures.
+  # Does not actually recurse, but uses a worklist instead.
   def recursively_flatten(array, out, max_levels = -1)
     modified = false
+    visited = {}.compare_by_identity
+    worklist = [[array, 0]]
 
-    # Strict equality since < 0 means 'infinite'
-    if max_levels == 0
-      out.concat(array)
-      return false
-    end
+    until worklist.empty?
+      array, i = worklist.pop
 
-    max_levels -= 1
-    recursion = Truffle::ThreadOperations.detect_recursion(array) do
-      array = Truffle::Type.coerce_to(array, Array, :to_ary)
+      if i == 0
+        raise ArgumentError, 'tried to flatten recursive array' if visited.key?(array)
+        if max_levels == worklist.size
+          out.concat(array)
+          next
+        end
+        visited[array] = true
+      end
 
-      i = 0
       size = array.size
-
       while i < size
         o = array.at i
-
         tmp = Truffle::Type.rb_check_convert_type(o, Array, :to_ary)
         if Primitive.nil? tmp
           out << o
         else
           modified = true
-          recursively_flatten tmp, out, max_levels
+          worklist.push([array, i + 1], [tmp, 0])
+          break
         end
-
         i += 1
       end
+
+      visited.delete array if i == size
     end
 
-    raise ArgumentError, 'tried to flatten recursive array' if recursion
     modified
   end
   private :recursively_flatten
