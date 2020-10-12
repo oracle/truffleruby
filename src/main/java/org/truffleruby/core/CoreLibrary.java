@@ -227,8 +227,8 @@ public class CoreLibrary {
 
     public final FrameDescriptor emptyDescriptor;
     /* Some things (such as procs created from symbols) require a declaration frame, and this should include a slot for
-     * special variable storage. This frame descriptor should be used for those frames to provide a constant frame shape
-     * in those cases. */
+     * special variable storage. This frame descriptor should be used for those frames to provide a constant frame
+     * descriptor in those cases. */
     public final FrameDescriptor emptyDeclarationDescriptor;
     public final FrameSlot emptyDeclarationSpecialVariableSlot;
 
@@ -594,7 +594,7 @@ public class CoreLibrary {
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
         emptyDeclarationDescriptor = new FrameDescriptor(Nil.INSTANCE);
         emptyDeclarationSpecialVariableSlot = emptyDeclarationDescriptor
-                .addFrameSlot(Layouts.SPECIAL_VARIABLLE_STORAGE);
+                .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         argv = new RubyArray(arrayClass, RubyLanguage.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();

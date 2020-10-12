@@ -83,8 +83,7 @@ public class TranslatorEnvironment {
     }
 
     public static FrameDescriptor newFrameDescriptor() {
-        FrameDescriptor descriptor = new FrameDescriptor(Nil.INSTANCE);
-        return descriptor;
+        return new FrameDescriptor(Nil.INSTANCE);
     }
 
     public boolean isDynamicConstantLookup() {

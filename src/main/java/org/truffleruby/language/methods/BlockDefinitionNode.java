@@ -42,7 +42,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     private final BreakID breakID;
 
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
-    @Child private GetSpecialVariableStorage readSpecialVariableSotrageNode;
+    @Child private GetSpecialVariableStorage readSpecialVariableStorageNode;
     @Child private WithoutVisibilityNode withoutVisibilityNode;
 
     public BlockDefinitionNode(
@@ -64,7 +64,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         } else {
             readFrameOnStackMarkerNode = ReadFrameSlotNodeGen.create(frameOnStackMarkerSlot);
         }
-        readSpecialVariableSotrageNode = GetSpecialVariableStorage.create();
+        readSpecialVariableStorageNode = GetSpecialVariableStorage.create();
     }
 
     public BreakID getBreakID() {
@@ -95,7 +95,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
                 callTargetForProcs,
                 callTargetForLambdas,
                 frame.materialize(),
-                readSpecialVariableSotrageNode.execute(frame),
+                readSpecialVariableStorageNode.execute(frame),
                 RubyArguments.getMethod(frame),
                 RubyArguments.getBlock(frame),
                 frameOnStackMarker,

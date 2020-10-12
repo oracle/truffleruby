@@ -235,10 +235,6 @@ public class TranslatorDriver {
             }
         }
 
-        if (parserContext.isTopLevel()) {
-            //            environment.declareSpecialStorage();
-        }
-
         // Translate to Ruby Truffle nodes
 
         // Like MRI, do not track coverage of eval's. This also avoids having to merge multiple Sources with the same RubyContext.getPath().

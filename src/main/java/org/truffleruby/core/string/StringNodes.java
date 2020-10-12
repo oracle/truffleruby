@@ -708,7 +708,7 @@ public abstract class StringNodes {
         // region Regexp Slice Specializations
 
         @Specialization
-        protected Object slice1(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
+        protected Object sliceCapture0(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
                 @Cached DispatchNode callNode,
                 @Cached ReadCallerStorageNode readCallerNode,
                 @Cached ConditionProfile unsetProfile,
@@ -734,11 +734,11 @@ public abstract class StringNodes {
 
             final SpecialVariableStorage storage = readCallerStorageNode.execute(frame);
             if (matchStrPair == nil) {
-                storage.setRegexpResult(nil, getContext(), unsetProfile, sameThreadProfile);
+                storage.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
                 return nil;
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
-                storage.setRegexpResult(array[0], getContext(), unsetProfile, sameThreadProfile);
+                storage.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
                 return array[1];
             }
         }

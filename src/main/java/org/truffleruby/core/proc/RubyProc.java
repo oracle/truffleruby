@@ -30,7 +30,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.object.dsl.Nullable;
 import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(InteropLibrary.class)
@@ -55,37 +54,10 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             RootCallTarget callTargetForType,
             RootCallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
-            @Nullable InternalMethod method,
-            @Nullable RubyProc block,
-            @Nullable FrameOnStackMarker frameOnStackMarker,
-            DeclarationContext declarationContext) {
-        this(
-                rubyClass,
-                shape,
-                type,
-                sharedMethodInfo,
-                callTargetForType,
-                callTargetForLambdas,
-                declarationFrame,
-                null,
-                method,
-                block,
-                frameOnStackMarker,
-                declarationContext);
-    }
-
-    public RubyProc(
-            RubyClass rubyClass,
-            Shape shape,
-            ProcType type,
-            SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTargetForType,
-            RootCallTarget callTargetForLambdas,
-            MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationStorage,
-            @Nullable InternalMethod method,
-            @Nullable RubyProc block,
-            @Nullable FrameOnStackMarker frameOnStackMarker,
+            InternalMethod method,
+            RubyProc block,
+            FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
         this.type = type;

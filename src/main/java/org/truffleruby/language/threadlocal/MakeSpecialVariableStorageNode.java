@@ -12,20 +12,14 @@ package org.truffleruby.language.threadlocal;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.RubyContextSourceNode;
 
-public class MakeSpecialVariableStorageNode extends RubyNode {
-
-    private int sourceCharIndex = NO_SOURCE;
-    private int sourceLength;
-    private byte flags;
+public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
 
     @CompilationFinal protected FrameSlot storageSlot;
     @CompilationFinal protected Assumption frameAssumption;
@@ -34,8 +28,9 @@ public class MakeSpecialVariableStorageNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         if (frameAssumption == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            frameAssumption = frame.getFrameDescriptor().getVersion();
-            storageSlot = frame.getFrameDescriptor().findOrAddFrameSlot(Layouts.SPECIAL_VARIABLLE_STORAGE);
+            final FrameDescriptor descriptor = frame.getFrameDescriptor();
+            frameAssumption = descriptor.getVersion();
+            storageSlot = descriptor.findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         }
 
         if (storageSlot != null) {
@@ -43,46 +38,6 @@ public class MakeSpecialVariableStorageNode extends RubyNode {
         }
 
         return nil;
-    }
-
-    @TruffleBoundary
-    private static void debug(InternalMethod method) {
-        System.err.printf("Starting to send foe %s.\n", method);
-    }
-
-    @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return RubyNode.defaultIsDefined(context, this);
-    }
-
-    @Override
-    protected byte getFlags() {
-        return flags;
-    }
-
-    @Override
-    protected void setFlags(byte flags) {
-        this.flags = flags;
-    }
-
-    @Override
-    protected int getSourceCharIndex() {
-        return sourceCharIndex;
-    }
-
-    @Override
-    protected void setSourceCharIndex(int sourceCharIndex) {
-        this.sourceCharIndex = sourceCharIndex;
-    }
-
-    @Override
-    protected int getSourceLength() {
-        return sourceLength;
-    }
-
-    @Override
-    protected void setSourceLength(int sourceLength) {
-        this.sourceLength = sourceLength;
     }
 
 }

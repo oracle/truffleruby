@@ -187,12 +187,12 @@ public abstract class TruffleKernelNodes {
         public abstract SpecialVariableStorage execute(VirtualFrame frame);
 
         @Specialization(
-                guards = { "descriptor == frame.getFrameDescriptor()", "slot != null" },
-                limit = "1",
-                assumptions = "frameAssumption")
-        protected SpecialVariableStorage executeGetStorage(VirtualFrame frame,
+                guards = { "frame.getFrameDescriptor() == descriptor", "slot != null" },
+                assumptions = "frameAssumption",
+                limit = "1")
+        protected SpecialVariableStorage sameFrame(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
+                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLES_STORAGE)") FrameSlot slot,
                 @Cached("descriptor.getVersion()") Assumption frameAssumption) {
             Object storage = FrameUtil.getObjectSafe(frame, slot);
             if (storage == nil) {
@@ -204,16 +204,16 @@ public abstract class TruffleKernelNodes {
         }
 
         @Specialization(
-                guards = { "descriptor == frame.getFrameDescriptor()", "slot == null", "declarationFrameSlot != null" },
+                guards = { "frame.getFrameDescriptor() == descriptor", "slot == null", "declarationFrameSlot != null" },
                 assumptions = "frameAssumption",
                 limit = "1")
-        protected SpecialVariableStorage executeGetStorageDeclarationFrame(VirtualFrame frame,
+        protected SpecialVariableStorage declarationFrame(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
+                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLES_STORAGE)") FrameSlot slot,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth,
                 @Cached("declarationSlot(frame)") FrameSlot declarationFrameSlot,
                 @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
-            VirtualFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+            MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
 
             Object storage = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);
             if (storage == nil) {
@@ -225,19 +225,19 @@ public abstract class TruffleKernelNodes {
         }
 
         @Specialization(
-                guards = { "descriptor == frame.getFrameDescriptor()", "slot == null", "declarationFrameSlot == null" },
+                guards = { "frame.getFrameDescriptor() == descriptor", "slot == null", "declarationFrameSlot == null" },
                 assumptions = "frameAssumption",
                 limit = "1")
-        protected SpecialVariableStorage executeGetStorageDeclarationFrame(VirtualFrame frame,
+        protected SpecialVariableStorage unset(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLLE_STORAGE)") FrameSlot slot,
+                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLES_STORAGE)") FrameSlot slot,
                 @Cached("declarationSlot(frame)") FrameSlot declarationFrameSlot,
                 @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
             return getSlow(frame.materialize());
         }
 
-        @Specialization
-        protected SpecialVariableStorage executeSlow(VirtualFrame frame) {
+        @Specialization(replaces = { "sameFrame", "declarationFrame", "unset" })
+        protected SpecialVariableStorage slowPath(VirtualFrame frame) {
             return getSlow(frame.materialize());
         }
 
@@ -262,7 +262,7 @@ public abstract class TruffleKernelNodes {
                 } else {
                     FrameSlot newSlot = frame
                             .getFrameDescriptor()
-                            .findOrAddFrameSlot(Layouts.SPECIAL_VARIABLLE_STORAGE);
+                            .findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
                     SpecialVariableStorage storage = new SpecialVariableStorage();
                     frame.setObject(newSlot, storage);
                     return storage;
@@ -327,7 +327,7 @@ public abstract class TruffleKernelNodes {
         }
 
         private static FrameSlot getVariableSlot(MaterializedFrame frame) {
-            return frame.getFrameDescriptor().findFrameSlot(Layouts.SPECIAL_VARIABLLE_STORAGE);
+            return frame.getFrameDescriptor().findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         }
 
         public static GetSpecialVariableStorage create() {
@@ -362,7 +362,7 @@ public abstract class TruffleKernelNodes {
         protected Object executeSetRegexpMatch(SpecialVariableStorage storage, Object lastMatch,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
-            storage.setRegexpResult(lastMatch, getContext(), unsetProfile, sameThreadProfile);
+            storage.setLastMatch(lastMatch, getContext(), unsetProfile, sameThreadProfile);
             return lastMatch;
         }
     }
@@ -374,7 +374,7 @@ public abstract class TruffleKernelNodes {
         protected Object executeSetRegexpMatch(SpecialVariableStorage storage,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
-            return storage.getRegexpResult(unsetProfile, sameThreadProfile);
+            return storage.getLastMatch(unsetProfile, sameThreadProfile);
         }
     }
 
@@ -385,19 +385,19 @@ public abstract class TruffleKernelNodes {
         protected Object executeSetRegexpMatch(SpecialVariableStorage storage, Object lastIO,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
-            storage.setIOResult(lastIO, getContext(), unsetProfile, sameThreadProfile);
+            storage.setLastLine(lastIO, getContext(), unsetProfile, sameThreadProfile);
             return lastIO;
         }
     }
 
     @Primitive(name = "io_last_line_get")
-    public abstract static class GETLastIO extends PrimitiveArrayArgumentsNode {
+    public abstract static class GetLastIO extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object executeSetRegexpMatch(SpecialVariableStorage storage,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
-            return storage.getIOResult(unsetProfile, sameThreadProfile);
+            return storage.getLastLine(unsetProfile, sameThreadProfile);
         }
     }
 }

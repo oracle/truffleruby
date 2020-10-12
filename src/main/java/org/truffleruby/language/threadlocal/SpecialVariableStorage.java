@@ -24,69 +24,75 @@ import org.truffleruby.language.Nil;
 @ExportLibrary(InteropLibrary.class)
 public class SpecialVariableStorage implements TruffleObject {
 
-    private ThreadAndFrameLocalStorage regexpResult;
-    private ThreadAndFrameLocalStorage ioResult;
+    /** $~ */
+    private ThreadAndFrameLocalStorage lastMatch;
+    /** $_ */
+    private ThreadAndFrameLocalStorage lastLine;
 
-    public Object getRegexpResult(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
-        if (unsetProfile.profile(regexpResult == null)) {
+    public Object getLastMatch(ConditionProfile unsetProfile, ConditionProfile sameThreadProfile) {
+        if (unsetProfile.profile(lastMatch == null)) {
             return Nil.INSTANCE;
         } else {
-            return regexpResult.get(sameThreadProfilew);
+            return lastMatch.get(sameThreadProfile);
         }
     }
 
-    public void setRegexpResult(Object lastMatch, RubyContext context, ConditionProfile unsetProfile,
+    public void setLastMatch(Object value, RubyContext context, ConditionProfile unsetProfile,
             ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(this.regexpResult == null)) {
-            this.regexpResult = new ThreadAndFrameLocalStorage(context);
+        if (unsetProfile.profile(lastMatch == null)) {
+            lastMatch = new ThreadAndFrameLocalStorage(context);
         }
-        this.regexpResult.set(lastMatch, sameThreadProfile);
+        lastMatch.set(value, sameThreadProfile);
     }
 
-    public Object getIOResult(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
-        if (unsetProfile.profile(ioResult == null)) {
+    public Object getLastLine(ConditionProfile unsetProfile, ConditionProfile sameThreadProfilew) {
+        if (unsetProfile.profile(lastLine == null)) {
             return Nil.INSTANCE;
         } else {
-            return ioResult.get(sameThreadProfilew);
+            return lastLine.get(sameThreadProfilew);
         }
     }
 
-    public void setIOResult(Object lastMatch, RubyContext context, ConditionProfile unsetProfile,
+    public void setLastLine(Object value, RubyContext context, ConditionProfile unsetProfile,
             ConditionProfile sameThreadProfile) {
-        if (unsetProfile.profile(this.ioResult == null)) {
-            this.ioResult = new ThreadAndFrameLocalStorage(context);
+        if (unsetProfile.profile(lastLine == null)) {
+            lastLine = new ThreadAndFrameLocalStorage(context);
         }
-        this.ioResult.set(lastMatch, sameThreadProfile);
+        lastLine.set(value, sameThreadProfile);
     }
 
     @TruffleBoundary
     @ExportMessage
     protected String toDisplayString(boolean allowSideEffects) {
-        String result = "";
-        if (regexpResult != null) {
-            final InteropLibrary interop = InteropLibrary.getUncached();
+        final InteropLibrary interop = InteropLibrary.getUncached();
+        final ConditionProfile profile = ConditionProfile.getUncached();
+        String result = "$~: ";
+        if (lastMatch != null) {
             try {
-                result = result + "$~: " + interop.asString(
-                        interop.toDisplayString(regexpResult.get(ConditionProfile.getUncached()), allowSideEffects)) +
-                        ", ";
+                result += interop.asString(interop.toDisplayString(lastMatch.get(profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
                 throw TranslateInteropExceptionNode.getUncached().execute(e);
             }
         } else {
-            result = result + "$~: nil, ";
+            result += "nil";
         }
 
-        if (regexpResult != null) {
-            final InteropLibrary interop = InteropLibrary.getUncached();
+        result += ", $_: ";
+        if (lastLine != null) {
             try {
-                result = result + "$_: " + interop.asString(
-                        interop.toDisplayString(ioResult.get(ConditionProfile.getUncached()), allowSideEffects));
+                result += interop.asString(interop.toDisplayString(lastLine.get(profile), allowSideEffects));
             } catch (UnsupportedMessageException e) {
                 throw TranslateInteropExceptionNode.getUncached().execute(e);
             }
         } else {
-            result = result + "$_: nil";
+            result += "nil";
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return toDisplayString(false);
+    }
+
 }

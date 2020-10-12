@@ -28,7 +28,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 /** Some Ruby methods need access to the caller frame (the frame active when the method call was made) or to the storage
- * of special varaibles within that frame: see usages of {@link ReadCallerFrameNode} and {@link ReadCallerStorageNode} .
+ * of special variables within that frame: see usages of {@link ReadCallerFrameNode} and {@link ReadCallerStorageNode} .
  * This is notably used to get hold of instances of {@link DeclarationContext} and {@link RubyBinding} and methods which
  * need to access the last regexp match or the last io line.
  *
