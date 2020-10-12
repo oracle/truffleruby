@@ -64,7 +64,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     public static class SmallHashLiteralNode extends HashLiteralNode {
 
-        @Child private HashNode hashNode;
+        @Child private HashingNodes.ToHashByHashCode hashNode;
         @Child private DispatchNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
         @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
@@ -124,9 +124,9 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         private int hash(Object key) {
             if (hashNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                hashNode = insert(new HashNode());
+                hashNode = insert(HashingNodes.ToHashByHashCode.create());
             }
-            return hashNode.hash(key, false);
+            return hashNode.execute(key);
         }
 
         private boolean callEqual(Object receiver, Object key) {

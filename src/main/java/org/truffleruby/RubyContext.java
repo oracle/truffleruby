@@ -62,7 +62,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -524,7 +524,7 @@ public class RubyContext {
     }
 
     /** Hashing for a RubyNode, the seed should only be used for a Ruby-level #hash method */
-    public Hashing getHashing(RubyNode node) {
+    public Hashing getHashing(RubyBaseNode node) {
         return hashing;
     }
 

@@ -38,7 +38,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.hash.HashNode;
+import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
@@ -945,16 +945,10 @@ public class CExtNodes {
     @CoreMethod(names = "rb_hash", onSingleton = true, required = 1)
     public abstract static class RbHashNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private HashNode hash;
-
         @Specialization
-        protected Object rbHash(Object object) {
-            if (hash == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                hash = insert(new HashNode());
-            }
-
-            return hash.hash(object, false);
+        protected int rbHash(Object object,
+                @Cached HashingNodes.ToHashByHashCode toHashByHashCode) {
+            return toHashByHashCode.execute(object);
         }
     }
 

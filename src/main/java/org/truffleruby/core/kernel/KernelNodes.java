@@ -52,6 +52,7 @@ import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
+import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
@@ -902,31 +903,36 @@ public abstract class KernelNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        private static final int CLASS_SALT = 55927484; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+
+        public static HashNode create() {
+            return KernelNodesFactory.HashNodeFactory.create(null);
+        }
+
+        public abstract Object execute(Object value);
 
         @Specialization
         protected long hash(int value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, value);
+            return HashOperations.hashLong(value, getContext(), this);
         }
 
         @Specialization
         protected long hash(long value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, value);
+            return HashOperations.hashLong(value, getContext(), this);
         }
 
         @Specialization
         protected long hash(double value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, Double.doubleToRawLongBits(value));
+            return HashOperations.hashDouble(value, getContext(), this);
         }
 
         @Specialization
         protected long hash(boolean value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, Boolean.valueOf(value).hashCode());
+            return HashOperations.hashBoolean(value, getContext(), this);
         }
 
         @Specialization
         protected long hashBignum(RubyBignum value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, BigIntegerOps.hashCode(value));
+            return HashOperations.hashBignum(value, getContext(), this);
         }
 
         @TruffleBoundary

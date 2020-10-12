@@ -76,6 +76,12 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
+        public static HashNode create() {
+            return SymbolNodesFactory.HashNodeFactory.create(null);
+        }
+
+        public abstract long execute(RubySymbol rubySymbol);
+
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
         @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
         protected long hashCached(RubySymbol symbol,

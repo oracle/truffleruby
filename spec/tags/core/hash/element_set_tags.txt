@@ -1,0 +1,1 @@
+slow:Hash#[]= does not dispatch to hash for Boolean, Integer, Float, String, or Symbol

@@ -87,14 +87,14 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ConstructNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private HashNode hashNode = new HashNode();
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
         @Child private DispatchNode fallbackNode = DispatchNode.create();
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args, language)")
         protected Object construct(RubyClass hashClass, Object[] args,
-                @CachedLanguage RubyLanguage language) {
+                @CachedLanguage RubyLanguage language,
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final RubyArray array = (RubyArray) args[0];
 
             final Object[] store = (Object[]) array.store;
@@ -123,7 +123,7 @@ public abstract class HashNodes {
                     final Object key = pairObjectStore[0];
                     final Object value = pairObjectStore[1];
 
-                    final int hashed = hashNode.hash(key, false);
+                    final int hashed = hashNode.execute(key);
 
                     PackedArrayStrategy.setHashedKeyValue(newStore, n, hashed, key, value);
                 }
@@ -195,10 +195,8 @@ public abstract class HashNodes {
         @Specialization(guards = "isPackedHash(hash)")
         protected Object getPackedArray(VirtualFrame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
-                @Cached("new()") HashNode hashNode,
-                @Cached ConditionProfile byIdentityProfile) {
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-            int hashed = hashNode.hash(key, compareByIdentity); // Call key.hash only once
+                @Cached HashingNodes.ToHash hashNode) {
+            int hashed = hashNode.execute(key, hash.compareByIdentity); // Call key.hash only once
             return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultValueNode);
         }
 
@@ -348,7 +346,7 @@ public abstract class HashNodes {
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
-        @Child private HashNode hashNode = new HashNode();
+        @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
         @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
         @Child private YieldNode yieldNode = YieldNode.create();
 
@@ -372,7 +370,7 @@ public abstract class HashNodes {
                 @CachedLanguage RubyLanguage language) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-            final int hashed = hashNode.hash(key, compareByIdentity);
+            final int hashed = hashNode.execute(key, compareByIdentity);
 
             final Object[] store = (Object[]) hash.store;
             final int size = hash.size;
@@ -876,7 +874,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class InternalRehashNode extends RubyContextNode {
 
-        @Child private HashNode hashNode = new HashNode();
+        @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
 
         public static InternalRehashNode create() {
             return InternalRehashNodeGen.create();
@@ -904,7 +902,7 @@ public abstract class HashNodes {
                     PackedArrayStrategy.setHashed(
                             store,
                             n,
-                            hashNode.hash(PackedArrayStrategy.getKey(store, n), compareByIdentity));
+                            hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity));
                 }
             }
 
@@ -925,7 +923,7 @@ public abstract class HashNodes {
             Entry entry = hash.firstInSequence;
 
             while (entry != null) {
-                final int newHash = hashNode.hash(entry.getKey(), compareByIdentity);
+                final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
                 entry.setHashed(newHash);
                 entry.setNextInLookup(null);
                 final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
