@@ -59,7 +59,7 @@ module RbConfig
   libs = ''
 
   prefix = ruby_home
-  graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+  graalvm_home = TruffleRuby.graalvm_home
   extra_bindirs = if graalvm_home
                     jre_bin = "#{graalvm_home}/jre/bin"
                     ["#{graalvm_home}/bin", *(jre_bin if File.directory?(jre_bin))]

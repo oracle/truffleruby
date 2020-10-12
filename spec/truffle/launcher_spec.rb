@@ -328,7 +328,7 @@ describe "The launcher" do
       out.should include("--jvm")
     end
 
-    if Truffle::System.get_java_property 'org.graalvm.home'
+    if TruffleRuby.graalvm_home
       # These options are only shown in GraalVM, as they are not available in a standalone distribution
       out.should include("--polyglot")
     end
