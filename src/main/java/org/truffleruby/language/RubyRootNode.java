@@ -123,6 +123,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     public Node copy() {
         RubyRootNode root = (RubyRootNode) super.copy();
         root.needsCallerAssumption = new CyclicAssumption("needs caller frame");
+        root.needsStorageAssumption = new CyclicAssumption("needs caller special variables");
         return root;
     }
 
