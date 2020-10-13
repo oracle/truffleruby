@@ -245,7 +245,7 @@ public class SafepointManager {
     }
 
     @TruffleBoundary
-    public void pauseAllThreadsAndExecute(Node currentNode, boolean deferred, SafepointAction action) {
+    public void pauseAllThreadsAndExecute(String reason, Node currentNode, boolean deferred, SafepointAction action) {
         if (lock.isHeldByCurrentThread()) {
             throw new IllegalStateException("Re-entered SafepointManager");
         }
@@ -256,7 +256,7 @@ public class SafepointManager {
         }
 
         try {
-            pauseAllThreadsAndExecute(currentNode, action, deferred);
+            pauseAllThreadsAndExecute(reason, currentNode, action, deferred);
         } finally {
             lock.unlock();
         }
@@ -268,7 +268,7 @@ public class SafepointManager {
     }
 
     @TruffleBoundary
-    public void pauseAllThreadsAndExecuteFromNonRubyThread(boolean deferred, SafepointAction action) {
+    public void pauseAllThreadsAndExecuteFromNonRubyThread(String reason, boolean deferred, SafepointAction action) {
         if (lock.isHeldByCurrentThread()) {
             throw new IllegalStateException("Re-entered SafepointManager");
         }
@@ -282,7 +282,7 @@ public class SafepointManager {
         try {
             enterThread();
             try {
-                pauseAllThreadsAndExecute(null, action, deferred);
+                pauseAllThreadsAndExecute(reason, null, action, deferred);
             } finally {
                 leaveThread();
             }
@@ -294,7 +294,8 @@ public class SafepointManager {
     // Variant for a single thread
 
     @TruffleBoundary
-    public void pauseRubyThreadAndExecute(RubyThread rubyThread, Node currentNode, SafepointAction action) {
+    public void pauseRubyThreadAndExecute(String reason, RubyThread rubyThread, Node currentNode,
+            SafepointAction action) {
         final ThreadManager threadManager = context.getThreadManager();
         final RubyThread currentThread = threadManager.getCurrentThread();
         final FiberManager fiberManager = rubyThread.fiberManager;
@@ -307,7 +308,7 @@ public class SafepointManager {
             // fast path if we are already the right thread
             action.accept(rubyThread, currentNode);
         } else {
-            pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
+            pauseAllThreadsAndExecute(reason, currentNode, false, (thread, currentNode1) -> {
                 if (thread == rubyThread &&
                         threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
                     action.accept(thread, currentNode1);
@@ -316,13 +317,13 @@ public class SafepointManager {
         }
     }
 
-    private void pauseAllThreadsAndExecute(Node currentNode, SafepointAction action, boolean deferred) {
+    private void pauseAllThreadsAndExecute(String reason, Node currentNode, SafepointAction action, boolean deferred) {
         this.action = action;
         this.deferred = deferred;
 
         /* We need to invalidate first so the interrupted threads see the invalidation in poll() in their
          * catch(InterruptedException) clause and wait on the Phaser instead of retrying their blocking action. */
-        assumption.invalidate();
+        assumption.invalidate(reason);
         interruptOtherThreads();
 
         step(currentNode, true);

@@ -75,7 +75,7 @@ public abstract class ObjectSpaceNodes {
         protected Object id2Ref(long id) {
             final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
 
-            for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace._id2ref", getContext(), this)) {
                 assert ObjectGraph.isSymbolOrDynamicObject(object);
 
                 long objectID = 0L;
@@ -128,7 +128,7 @@ public abstract class ObjectSpaceNodes {
         protected int eachObject(NotProvided ofClass, RubyProc block) {
             int count = 0;
 
-            for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace.each_object", getContext(), this)) {
                 if (include(object)) {
                     yield(block, object);
                     count++;
@@ -144,7 +144,8 @@ public abstract class ObjectSpaceNodes {
                 @Cached IsANode isANode) {
             int count = 0;
 
-            for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            final String reason = "ObjectSpace.each_object(" + ofClass + ")";
+            for (Object object : ObjectGraph.stopAndGetAllObjects(reason, getContext(), this)) {
                 if (include(object) && isANode.executeIsA(object, ofClass)) {
                     yield(block, object);
                     count++;
