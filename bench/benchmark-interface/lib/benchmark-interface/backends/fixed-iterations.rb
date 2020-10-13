@@ -18,15 +18,16 @@ module BenchmarkInterface
         print_iterations = options['--iterations']
         elapsed = options['--elapsed']
         print_ips = options['--ips']
-
-        fixed_iterations = options['--fixed-iterations'].sort
-        total_iterations = fixed_iterations.last
+        fixed_iterations = options['--fixed-iterations'].sort.freeze
 
         benchmark_set.benchmarks(names).each do |benchmark|
           puts benchmark.name
           block = benchmark.block
 
-          next_iter = fixed_iterations.shift
+          iterations = fixed_iterations.dup
+          total_iterations = fixed_iterations.last
+
+          next_iter = iterations.shift
           start_time = get_time
           (1..total_iterations).each do |iter|
             block.call
@@ -37,7 +38,7 @@ module BenchmarkInterface
               puts since_start if elapsed
               puts iter / since_start if print_ips
 
-              next_iter = fixed_iterations.shift
+              next_iter = iterations.shift
             end
           end
         end
