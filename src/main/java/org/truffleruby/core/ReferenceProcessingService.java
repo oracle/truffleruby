@@ -19,6 +19,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
 
@@ -138,6 +139,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     public static class ReferenceProcessor {
         protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
 
+        private volatile boolean shutdown = false;
         protected RubyThread processingThread;
         protected final RubyContext context;
 
@@ -178,11 +180,41 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             threadManager.initialize(newThread, null, threadName(), sharingReason, () -> {
                 while (true) {
                     final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager
-                            .runUntilResult(null, processingQueue::remove);
+                            .runUntilResult(null, () -> {
+                                try {
+                                    return processingQueue.remove();
+                                } catch (InterruptedException interrupted) {
+                                    if (shutdown) {
+                                        throw new KillException();
+                                    } else {
+                                        throw interrupted;
+                                    }
+                                }
+                            });
 
                     reference.service().processReference(reference);
                 }
             });
+        }
+
+        public boolean shutdownProcessingThread() {
+            final Thread javaThread = processingThread.thread;
+            if (javaThread == null) {
+                return false;
+            }
+
+            shutdown = true;
+            javaThread.interrupt();
+
+            context.getThreadManager().runUntilResultKeepStatus(null, () -> {
+                javaThread.join(1000);
+                return ThreadManager.BlockingAction.SUCCESS;
+            });
+            return true;
+        }
+
+        public RubyThread getProcessingThread() {
+            return processingThread;
         }
 
         protected final String threadName() {
