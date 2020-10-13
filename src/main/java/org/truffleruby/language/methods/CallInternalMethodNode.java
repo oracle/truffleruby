@@ -40,7 +40,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
-            @Cached("createCall(cachedMethod, cachedCallTarget)") DirectCallNode callNode) {
+            @Cached("createCall(cachedMethod.getName(), cachedCallTarget)") DirectCallNode callNode) {
         return callNode.call(frameArguments);
     }
 
@@ -58,11 +58,11 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
     }
 
-    protected DirectCallNode createCall(InternalMethod method, RootCallTarget callTarget) {
+    protected DirectCallNode createCall(String methodName, RootCallTarget callTarget) {
         DirectCallNode callNode = DirectCallNode.create(callTarget);
         final DispatchNode dispatch = NodeUtil.findParent(this, DispatchNode.class);
         if (dispatch != null) {
-            dispatch.applySplittingInliningStrategy(method, callNode);
+            dispatch.applySplittingInliningStrategy(callTarget, methodName, callNode);
         }
         return callNode;
     }
