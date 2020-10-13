@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -199,17 +200,19 @@ public class DispatchNode extends FrameSendingNode {
 
     /** This will be called from the {@link CallInternalMethodNode} child whenever it creates a new
      * {@link DirectCallNode}. */
-    public final void applySplittingInliningStrategy(InternalMethod method, DirectCallNode callNode) {
+    public final void applySplittingInliningStrategy(RootCallTarget callTarget, String methodName,
+            DirectCallNode callNode) {
+
 
         final Options options = getContext().getOptions();
 
         // The way that #method_missing is used is usually as an indirection to call some other method, and possibly to
         // modify the arguments. In both cases, but especially the latter, it makes a lot of sense to manually clone the
         // call target and to inline it.
-        final boolean isMethodMissing = method.getName().equals("method_missing");
+        final boolean isMethodMissing = methodName.equals("method_missing");
 
         if (callNode.isCallTargetCloningAllowed() &&
-                (((RubyRootNode) method.getCallTarget().getRootNode()).shouldAlwaysClone() ||
+                (((RubyRootNode) callTarget.getRootNode()).shouldAlwaysClone() ||
                         isMethodMissing && options.METHODMISSING_ALWAYS_CLONE)) {
             callNode.cloneCallTarget();
         }
