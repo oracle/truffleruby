@@ -143,11 +143,15 @@ public abstract class ThreadNodes {
         protected Object backtrace(RubyThread rubyThread, int omit, int length) {
             final Memo<Backtrace> backtraceMemo = new Memo<>(null);
 
-            getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread1, currentNode) -> {
-                final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
-                backtrace.getStackTrace(); // must be done on the thread
-                backtraceMemo.set(backtrace);
-            });
+            getContext().getSafepointManager().pauseRubyThreadAndExecute(
+                    "Thread#backtrace",
+                    rubyThread,
+                    this,
+                    (thread, currentNode) -> {
+                        final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
+                        backtrace.getStackTrace(); // must be done on the thread
+                        backtraceMemo.set(backtrace);
+                    });
 
             final Backtrace backtrace = backtraceMemo.get();
 
@@ -194,7 +198,7 @@ public abstract class ThreadNodes {
 
             getContext()
                     .getSafepointManager()
-                    .pauseRubyThreadAndExecute(rubyThread, this, safepointAction);
+                    .pauseRubyThreadAndExecute("Thread#backtrace_locations", rubyThread, this, safepointAction);
 
             // If the thread is dead or aborting the SafepointAction will not run.
             return backtraceLocationsMemo.get() == null
@@ -233,14 +237,18 @@ public abstract class ThreadNodes {
             final ThreadManager threadManager = getContext().getThreadManager();
             final RubyThread rootThread = threadManager.getRootThread();
 
-            getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread, currentNode) -> {
-                if (thread == rootThread) {
-                    throw new RaiseException(getContext(), coreExceptions().systemExit(0, currentNode));
-                } else {
-                    thread.status = ThreadStatus.ABORTING;
-                    throw new KillException();
-                }
-            });
+            getContext().getSafepointManager().pauseRubyThreadAndExecute(
+                    "Thread#kill",
+                    rubyThread,
+                    this,
+                    (thread, currentNode) -> {
+                        if (thread == rootThread) {
+                            throw new RaiseException(getContext(), coreExceptions().systemExit(0, currentNode));
+                        } else {
+                            thread.status = ThreadStatus.ABORTING;
+                            throw new KillException();
+                        }
+                    });
 
             return rubyThread;
         }
@@ -650,6 +658,7 @@ public abstract class ThreadNodes {
             SharedObjects.writeBarrier(context, exception);
 
             context.getSafepointManager().pauseRubyThreadAndExecute(
+                    "Thread#raise",
                     rubyThread,
                     currentNode,
                     (currentThread, currentNode1) -> {

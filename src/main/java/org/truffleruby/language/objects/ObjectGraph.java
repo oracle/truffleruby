@@ -37,13 +37,13 @@ public abstract class ObjectGraph {
     }
 
     @TruffleBoundary
-    public static Set<Object> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
+    public static Set<Object> stopAndGetAllObjects(String reason, RubyContext context, Node currentNode) {
         context.getMarkingService().queueMarking();
         final Set<Object> visited = newObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
+        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, currentNode1) -> {
             synchronized (visited) {
                 final Set<Object> reachable = newObjectSet();
                 // Thread.current
@@ -79,12 +79,12 @@ public abstract class ObjectGraph {
     }
 
     @TruffleBoundary
-    public static Set<Object> stopAndGetRootObjects(Node currentNode, final RubyContext context) {
+    public static Set<Object> stopAndGetRootObjects(String reason, RubyContext context, Node currentNode) {
         final Set<Object> visited = newObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
+        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, currentNode1) -> {
             synchronized (visited) {
                 visited.add(thread);
 

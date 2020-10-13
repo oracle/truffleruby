@@ -325,6 +325,7 @@ public class ThreadManager {
 
     private void rethrowOnMainThread(Node currentNode, RuntimeException e) {
         context.getSafepointManager().pauseRubyThreadAndExecute(
+                "rethrow " + e.getClass() + " to main thread",
                 getRootThread(),
                 currentNode,
                 (rubyThread, actionCurrentNode) -> {
@@ -611,7 +612,29 @@ public class ThreadManager {
         fiberPool.shutdown();
 
         // Kill all Ruby Threads and Fibers
-        if (runningRubyThreads.size() > 1) {
+
+        // The logic below avoids using the SafepointManager if there is
+        // only the root thread and the reference processing thread.
+        boolean otherThreads = false;
+        RubyThread referenceProcessingThread = null;
+        for (RubyThread thread : runningRubyThreads) {
+            if (thread == rootThread) {
+                // clean up later in #cleanupMainThread
+            } else if (thread == context.getReferenceProcessor().getProcessingThread()) {
+                referenceProcessingThread = thread;
+            } else {
+                otherThreads = true;
+                break;
+            }
+        }
+
+        if (!otherThreads && referenceProcessingThread != null) {
+            if (!context.getReferenceProcessor().shutdownProcessingThread()) {
+                otherThreads = true;
+            }
+        }
+
+        if (otherThreads) {
             doKillOtherThreads();
         }
         rootThread.fiberManager.killOtherFibers();
@@ -640,7 +663,8 @@ public class ThreadManager {
 
         while (true) {
             try {
-                context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
+                final String reason = "kill other threads for shutdown";
+                context.getSafepointManager().pauseAllThreadsAndExecute(reason, null, false, (thread, currentNode) -> {
                     if (Thread.currentThread() != initiatingJavaThread) {
                         final FiberManager fiberManager = thread.fiberManager;
                         final RubyFiber fiber = getRubyFiberFromCurrentJavaThread();

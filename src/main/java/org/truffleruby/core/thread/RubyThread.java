@@ -49,7 +49,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public final TracePointState tracePointState;
     boolean reportOnException;
     boolean abortOnException;
-    volatile Thread thread;
+    public volatile Thread thread;
     volatile RubyException exception;
     volatile Object value;
     public final AtomicBoolean wakeUp;

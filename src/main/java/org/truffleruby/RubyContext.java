@@ -557,6 +557,10 @@ public class RubyContext {
         return featureLoader;
     }
 
+    public ReferenceProcessor getReferenceProcessor() {
+        return referenceProcessor;
+    }
+
     public FinalizationService getFinalizationService() {
         return finalizationService;
     }

@@ -93,7 +93,8 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray rootObjects() {
-            final Set<Object> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
+            final Set<Object> objects = ObjectGraph
+                    .stopAndGetRootObjects("ObjectSpace.reachable_objects_from_root", getContext(), this);
             return createArray(objects.toArray());
         }
 
