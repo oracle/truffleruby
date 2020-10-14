@@ -692,6 +692,11 @@ warmup_benchmarks = [
     'rubykon/rubykon',
 ]
 
+blog6_benchmarks = [
+    'rails/blog6-bundle-install',
+    'rails/blog6-rails-routes',
+]
+
 class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def config(self):
         iterations = {
@@ -699,6 +704,8 @@ class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
             'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'rubykon':                 {1:'startup', 10:'early-warmup', 30:'late-warmup'},
+            'blog6-bundle-install':    {1:'single-shot'},
+            'blog6-rails-routes':      {1:'single-shot'},
         }
         return {'kind': 'fixed-iterations', 'iterations': iterations}
 
@@ -709,7 +716,10 @@ class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
         return None
 
     def benchmarkList(self, bmSuiteArgs):
-        return warmup_benchmarks
+        benchmarks = warmup_benchmarks[:]
+        if os.environ.get('GUEST_VM') != "jruby":
+            benchmarks.extend(blog6_benchmarks)
+        return benchmarks
 
 mx_benchmark.add_bm_suite(BuildStatsBenchmarkSuite())
 mx_benchmark.add_bm_suite(AllocationBenchmarkSuite())
