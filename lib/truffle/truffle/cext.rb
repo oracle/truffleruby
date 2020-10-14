@@ -1508,7 +1508,7 @@ module Truffle::CExt
   def rb_exec_recursive(func, obj, arg)
     result = nil
 
-    recursive = Thread.detect_recursion(obj) do
+    recursive = Truffle::ThreadOperations.detect_recursion(obj) do
       result = Primitive.cext_unwrap(Primitive.call_with_c_mutex(func, [Primitive.cext_wrap(obj), Primitive.cext_wrap(arg), 0]))
     end
 

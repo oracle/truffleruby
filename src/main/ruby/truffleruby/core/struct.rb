@@ -130,9 +130,7 @@ class Struct
   end
 
   def to_s
-    return +'[...]' if Thread.guarding? self
-
-    Thread.recursion_guard self do
+    Truffle::ThreadOperations.detect_recursion(self) do
       values = []
 
       _attrs.each do |var|
@@ -143,11 +141,13 @@ class Struct
       name = self.class.name
 
       if Primitive.nil?(name) || name.empty?
-        "#<struct #{values.join(', ')}>"
+        return "#<struct #{values.join(', ')}>"
       else
-        "#<struct #{self.class.name} #{values.join(', ')}>"
+        return "#<struct #{self.class.name} #{values.join(', ')}>"
       end
     end
+
+    +'[...]'
   end
   alias_method :inspect, :to_s
 
@@ -188,7 +188,7 @@ class Struct
   def ==(other)
     return false if self.class != other.class
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       return self.values == other.values
     end
 
@@ -270,7 +270,7 @@ class Struct
     return true if equal? other
     return false if self.class != other.class
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       _attrs.each do |var|
         mine =   Primitive.object_hidden_var_get(self, var)
         theirs = Primitive.object_hidden_var_get(other, var)
@@ -308,7 +308,7 @@ class Struct
   def hash
     val = Primitive.vm_hash_start(CLASS_SALT)
     val = Primitive.vm_hash_update(val, size)
-    return val if Thread.detect_outermost_recursion self do
+    return val if Truffle::ThreadOperations.detect_outermost_recursion self do
       _attrs.each do |var|
         val = Primitive.vm_hash_update(val, Primitive.object_hidden_var_get(self, var).hash)
       end
@@ -414,7 +414,7 @@ class Struct
         hash = Primitive.vm_hash_start CLASS_SALT
         hash = Primitive.vm_hash_update hash, #{hashes.size}
 
-        return hash if Thread.detect_outermost_recursion(self) do
+        return hash if Truffle::ThreadOperations.detect_outermost_recursion(self) do
           #{hash_calculation}
         end
 

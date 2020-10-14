@@ -317,7 +317,7 @@ module Truffle
     end
 
     def self.foreign_inspect(object)
-      return recursive_string_for(object) if Thread.detect_recursion self do
+      return recursive_string_for(object) if Truffle::ThreadOperations.detect_recursion self do
         return foreign_inspect_nonrecursive(object)
       end
     end

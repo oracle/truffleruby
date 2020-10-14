@@ -380,18 +380,17 @@ module Kernel
       return Primitive.infect "#{prefix}>", self
     end
 
-    # If it's already been inspected, return the ...
-    return "#{prefix} ...>" if Thread.guarding? self
-
-    parts = Thread.recursion_guard self do
-      ivars.map do |var|
+    Truffle::ThreadOperations.detect_recursion(self) do
+      parts = ivars.map do |var|
         value = Primitive.object_ivar_get self, var
         "#{var}=#{value.inspect}"
       end
+      str = "#{prefix} #{parts.join(', ')}>"
+      return Primitive.infect str, self
     end
 
-    str = "#{prefix} #{parts.join(', ')}>"
-    Primitive.infect str, self
+    # If it's already been inspected, return the ...
+    "#{prefix} ...>"
   end
 
   def load(filename, wrap = false)

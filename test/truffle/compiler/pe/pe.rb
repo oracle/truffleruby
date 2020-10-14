@@ -88,6 +88,7 @@ else
   require_relative 'core/encoding_pe'
   require_relative 'interop/interop_pe'
   require_relative 'truffle/engine_pe.rb'
+  require_relative 'truffle/thread_pe.rb'
   require_relative 'macro/pushing_pixels_pe.rb'
 
   if Truffle::Interop.mime_type_supported?('application/javascript')

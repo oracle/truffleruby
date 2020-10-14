@@ -62,114 +62,6 @@
 
 class Thread
 
-  # Utilities
-
-  # Implementation note: ideally, the recursive_objects
-  # lookup table would be different per method call.
-  # Currently it doesn't cause problems, but if ever
-  # a method :foo calls a method :bar which could
-  # recurse back to :foo, it could require making
-  # the tables independent.
-  def self.recursion_guard(obj)
-    id = obj.object_id
-    objects = Primitive.thread_recursive_objects
-
-    objects[id] = true
-    begin
-      yield
-    ensure
-      objects.delete id
-    end
-  end
-
-  def self.guarding?(obj)
-    Primitive.thread_recursive_objects[obj.object_id]
-  end
-
-  # detect_recursion will return if there's a recursion
-  # on obj (or the pair obj+paired_obj).
-  # If there is one, it returns true.
-  # Otherwise, it will yield once and return false.
-  def self.detect_recursion(obj, paired_obj=nil)
-    unless Primitive.object_can_contain_object obj
-      yield
-      return false
-    end
-
-    id = obj.object_id
-    pair_id = paired_obj.object_id
-    objects = Primitive.thread_recursive_objects
-
-    case objects[id]
-
-    # Default case, we haven't seen +obj+ yet, so we add it and run the block.
-    when nil
-      objects[id] = pair_id
-      begin
-        yield
-      ensure
-        objects.delete id
-      end
-
-    # We've seen +obj+ before and it's got multiple paired objects associated
-    # with it, so check the pair and yield if there is no recursion.
-    when Hash
-      return true if objects[id][pair_id]
-
-      objects[id][pair_id] = true
-      begin
-        yield
-      ensure
-        objects[id].delete pair_id
-      end
-
-    # We've seen +obj+ with one paired object, so check the stored one for
-    # recursion.
-    #
-    # This promotes the value to a Hash since there is another new paired
-    # object.
-    else
-      previous = objects[id]
-      return true if previous == pair_id
-
-      objects[id] = { previous => true, pair_id => true }
-      begin
-        yield
-      ensure
-        objects[id] = previous
-      end
-    end
-
-    false
-  end
-  Truffle::Graal.always_split method(:detect_recursion)
-
-  class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
-
-  # Similar to detect_recursion, but will short circuit all inner recursion levels
-  def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
-    rec = Primitive.thread_recursive_objects
-
-    if rec[:__detect_outermost_recursion__]
-      if detect_recursion(obj, paired_obj, &block)
-        raise InnerRecursionDetected
-      end
-      false
-    else
-      rec[:__detect_outermost_recursion__] = true
-      begin
-        begin
-          detect_recursion(obj, paired_obj, &block)
-        rescue InnerRecursionDetected
-          return true
-        end
-        return nil
-      ensure
-        rec.delete :__detect_outermost_recursion__
-      end
-    end
-  end
-
   # Class methods
 
   def self.exit
@@ -474,13 +366,6 @@ class ConditionVariable
 
   def marshal_dump
     raise TypeError, "can't dump #{self.class}"
-  end
-end
-
-module Truffle::ThreadOperations
-  def self.report_exception(thread, exception)
-    message = "#{thread.inspect} terminated with exception:\n#{exception.full_message}"
-    $stderr.write message
   end
 end
 

@@ -733,7 +733,7 @@ class File < IO
     when String
       first = first.dup
     when Array
-      recursion = Thread.detect_recursion(first) do
+      recursion = Truffle::ThreadOperations.detect_recursion(first) do
         first = join(*first)
       end
 
@@ -754,7 +754,7 @@ class File < IO
       when String
         value = el
       when Array
-        recursion = Thread.detect_recursion(el) do
+        recursion = Truffle::ThreadOperations.detect_recursion(el) do
           value = join(*el)
         end
 

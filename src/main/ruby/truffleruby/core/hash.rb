@@ -137,7 +137,7 @@ class Hash
 
     return false unless other.size == size
 
-    Thread.detect_recursion self, other do
+    Truffle::ThreadOperations.detect_pair_recursion self, other do
       each_pair do |key, value|
         other_value = other._get_or_undefined(key)
 
@@ -361,7 +361,7 @@ class Hash
   def hash
     val = Primitive.vm_hash_start CLASS_SALT
     val = Primitive.vm_hash_update val, size
-    Thread.detect_outermost_recursion self do
+    Truffle::ThreadOperations.detect_outermost_recursion self do
       each_pair do |key,value|
         entry_val = Primitive.vm_hash_start key.hash
         entry_val = Primitive.vm_hash_update entry_val, value.hash
@@ -406,7 +406,7 @@ class Hash
 
   def inspect
     out = []
-    return +'{...}' if Thread.detect_recursion self do
+    return +'{...}' if Truffle::ThreadOperations.detect_recursion self do
       each_pair do |key,value|
         str =  Truffle::Type.rb_inspect(key)
         str << '=>'

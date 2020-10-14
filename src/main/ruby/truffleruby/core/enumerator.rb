@@ -704,7 +704,7 @@ class Enumerator::Chain < Enumerator
   end
 
   def inspect
-    return "#<#{self.class.name}: ...>" if Thread.detect_recursion(self) do
+    return "#<#{self.class.name}: ...>" if Truffle::ThreadOperations.detect_recursion(self) do
       return "#<#{self.class.name}: #{@enums}>"
     end
   end
