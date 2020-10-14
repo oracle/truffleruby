@@ -480,31 +480,8 @@ public abstract class RopeNodes {
                             left.getCodeRange(),
                             right.getCodeRange(),
                             sameCodeRangeProfile,
-                            brokenCodeRangeProfile),
-                    isBalanced(left, right));
+                            brokenCodeRangeProfile));
         }
-
-        private boolean isBalanced(Rope left, Rope right) {
-            // Our definition of balanced is centered around the notion of rebalancing. We could have a simple structure
-            // such as ConcatRope(ConcatRope(LeafRope, LeafRope), LeafRope) that is balanced on its own but may contribute
-            // to an unbalanced rope when combined with another rope of similar structure. To keep things simple, we only
-            // consider ConcatRopes that consist of two non-ConcatRopes balanced as the base case and ConcatRopes that
-            // have balanced ConcatRopes for both children are balanced by induction.
-            if (left instanceof ConcatRope) {
-                if (right instanceof ConcatRope) {
-                    return ((ConcatRope) left).isBalanced() && ((ConcatRope) right).isBalanced();
-                }
-
-                return false;
-            } else {
-                // We treat the concatenation of two non-ConcatRopes as balanced, even if their children not balanced.
-                // E.g., a SubstringRope whose child is an unbalanced ConcatRope arguable isn't balanced. However,
-                // the code is much simpler by handling it this way. Balanced ConcatRopes will never rebalance, but
-                // if they become part of a larger subtree that exceeds the depth threshold, they may be flattened.
-                return !(right instanceof ConcatRope);
-            }
-        }
-
 
         @SuppressFBWarnings("RV")
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
