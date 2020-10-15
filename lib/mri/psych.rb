@@ -10,11 +10,12 @@ when 'jruby'
     org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
   end
 else
-  begin
-    require "#{RUBY_VERSION[/\d+\.\d+/]}/psych.so"
-  rescue LoadError
+  # TruffleRuby: avoid requiring a non-existing file, which would trigger loading RubyGems
+  # begin
+  #   require "#{RUBY_VERSION[/\d+\.\d+/]}/psych.so"
+  # rescue LoadError
     require 'psych.so'
-  end
+  # end
 end
 require 'psych/nodes'
 require 'psych/streaming'
