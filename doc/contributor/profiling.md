@@ -82,7 +82,7 @@ The `--metrics-profile-require` option can be used to profile the time used for 
 
 For example, the `summary` view provides an overview of where time is spent:
 ```
-$ jt ruby --experimental-options --cpusampler --cpusampler.Mode=roots --metrics-profile-require=summary -e 'require "rubygems"' |& grep "metrics "
+$ jt ruby --experimental-options --cpusampler --metrics-profile-require=summary -e 'require "rubygems"' |& grep "metrics "
  metrics execute                                                      |       1122ms  99.6% |   0.0% ||        212ms  18.8% |   0.0% | (metrics)~1:0 
  metrics parsing                                                      |         71ms   6.3% |   0.0% ||         71ms   6.3% |   0.0% | (metrics)~1:0 
  metrics translating                                                  |         60ms   5.3% |   0.0% ||         60ms   5.3% |   0.0% | (metrics)~1:0 
@@ -92,4 +92,4 @@ $ jt ruby --experimental-options --cpusampler --cpusampler.Mode=roots --metrics-
 
 This feature can also be used to generate a flame graph with detailed require timings:
 
-`$ jt profile --experimental-options --cpusampler --cpusampler.Mode=roots --metrics-profile-require=detail -e 'require "rubygems"'`
+`$ jt profile --metrics-profile-require=detail -e 'require "rubygems"'`
