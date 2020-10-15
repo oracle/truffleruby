@@ -20,6 +20,7 @@ describe "Truffle Rope complex structure" do
       [(('ab'*4)+'0123456789')[1..-2]+'cd', 'bababab012345678cd']
   ].each_with_index do |(a, b), i|
     it format('%d: %s', i, b) do
+      a.hash.should == b.hash
       a.should == b
     end
   end
