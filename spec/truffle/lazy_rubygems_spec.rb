@@ -15,6 +15,33 @@ describe "RubyGems" do
     ruby_exe('p autoload? :Gem').should == "\"rubygems\"\n"
   end
 
+  # This spec needs no upgraded gems installed
+  it "is not loaded for default gems if there is no upgraded default gem" do
+    default_gems = Truffle::GemUtil::DEFAULT_GEMS.keys
+    default_gems -= [
+      'bundler', # explicitly requires RubyGems
+      'dbm', 'gdbm', 'sdbm', # not available
+      'rss', # rss/xmlparser.rb requires non-existing "xml/parser"
+    ]
+    default_gems.delete('io')
+    default_gems << 'io/console'
+    default_gems.delete('rexml')
+    default_gems << 'rexml/document'
+
+    code = <<-RUBY
+    #{default_gems.inspect}.each do |name|
+      require name
+      unless autoload?(:Gem) == "rubygems"
+        puts $LOADED_FEATURES
+        abort "\#{name} loaded RubyGems"
+      end
+    end
+    puts 'OK'
+    RUBY
+    ruby_exe(code, args: "2>&1").should == "OK\n"
+    $?.success?.should == true
+  end
+
   it "is loaded when accessing Gem" do
     ruby_exe('Gem; puts $"').should include('/rubygems.rb')
     ruby_exe('Gem; p autoload? :Gem').should == "nil\n"

@@ -4,3 +4,4 @@ slow:RubyGems is loaded by a failing require
 slow:Lazy RubyGems defines StringIO like RubyGems which requires it eagerly
 slow:Lazy RubyGems works for require 'rubygems/package'
 slow:Lazy RubyGems works for require 'rubygems/specification'
+slow:RubyGems is not loaded for default gems if there is no upgraded default gem
