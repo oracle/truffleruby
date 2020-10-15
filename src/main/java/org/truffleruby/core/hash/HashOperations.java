@@ -133,22 +133,25 @@ public abstract class HashOperations {
         return true;
     }
 
-    public static final int CLASS_SALT = 55927484; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+    // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+    public static final int BOOLEAN_CLASS_SALT = 55927484;
+    public static final int INTEGER_CLASS_SALT = 1028093337;
+    public static final int DOUBLE_CLASS_SALT = -1611229937;
 
     public static long hashBoolean(boolean value, RubyContext context, RubyBaseNode node) {
-        return context.getHashing(node).hash(CLASS_SALT, Boolean.hashCode(value));
+        return context.getHashing(node).hash(BOOLEAN_CLASS_SALT, Boolean.hashCode(value));
     }
 
     public static long hashLong(long value, RubyContext context, RubyBaseNode node) {
-        return context.getHashing(node).hash(CLASS_SALT, value);
+        return context.getHashing(node).hash(INTEGER_CLASS_SALT, value);
     }
 
     public static long hashDouble(double value, RubyContext context, RubyBaseNode node) {
-        return context.getHashing(node).hash(CLASS_SALT, Double.doubleToRawLongBits(value));
+        return context.getHashing(node).hash(DOUBLE_CLASS_SALT, Double.doubleToRawLongBits(value));
     }
 
     public static long hashBignum(RubyBignum value, RubyContext context, RubyBaseNode node) {
-        return context.getHashing(node).hash(CLASS_SALT, BigIntegerOps.hashCode(value));
+        return context.getHashing(node).hash(INTEGER_CLASS_SALT, BigIntegerOps.hashCode(value));
     }
 
 }

@@ -315,7 +315,7 @@ describe "The launcher" do
     out = ruby_exe("puts 14.hash", options: "--experimental-options --hashing-deterministic", args: "2>&1")
     check_status_or_print(out)
     out.should include("SEVERE: deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
-    out.should include("7141275149799654099")
+    out.should include("3412061130696242594")
   end
 
   it "prints help containing runtime options" do
