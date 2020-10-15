@@ -1409,6 +1409,12 @@ public abstract class StringNodes {
 
         protected static final int CLASS_SALT = 54008340; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
+        public static HashNode create() {
+            return StringNodesFactory.HashNodeFactory.create(null);
+        }
+
+        public abstract long execute(RubyString string);
+
         @Specialization
         protected long hash(RubyString string,
                 @Cached RopeNodes.HashNode hashNode) {

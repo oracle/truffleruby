@@ -174,8 +174,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
     }
 
     // region Identity
-    /** Like {@link org.truffleruby.core.hash.HashNode} but simplified since {@link ObjectIDNode} for RubyDynamicObject
-     * can only return long. */
+    /** Like {@link org.truffleruby.core.hash.HashingNodes} but simplified since {@link ObjectIDNode} for
+     * RubyDynamicObject can only return long. */
     @ExportMessage
     public int identityHashCode(
             @Cached ObjectIDNode objectIDNode) {

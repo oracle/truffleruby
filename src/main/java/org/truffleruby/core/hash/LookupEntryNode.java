@@ -15,14 +15,14 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class LookupEntryNode extends RubyContextNode {
 
-    @Child HashNode hashNode = new HashNode();
+    @Child HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
 
     private final ConditionProfile byIdentityProfile = ConditionProfile.create();
 
     public HashLookupResult lookup(RubyHash hash, Object key) {
         final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-        int hashed = hashNode.hash(key, compareByIdentity);
+        int hashed = hashNode.execute(key, compareByIdentity);
 
         final Entry[] entries = (Entry[]) hash.store;
         final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);

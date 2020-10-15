@@ -12,8 +12,11 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 public abstract class HashOperations {
@@ -129,4 +132,26 @@ public abstract class HashOperations {
 
         return true;
     }
+
+    // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+    public static final int BOOLEAN_CLASS_SALT = 55927484;
+    public static final int INTEGER_CLASS_SALT = 1028093337;
+    public static final int DOUBLE_CLASS_SALT = -1611229937;
+
+    public static long hashBoolean(boolean value, RubyContext context, RubyBaseNode node) {
+        return context.getHashing(node).hash(BOOLEAN_CLASS_SALT, Boolean.hashCode(value));
+    }
+
+    public static long hashLong(long value, RubyContext context, RubyBaseNode node) {
+        return context.getHashing(node).hash(INTEGER_CLASS_SALT, value);
+    }
+
+    public static long hashDouble(double value, RubyContext context, RubyBaseNode node) {
+        return context.getHashing(node).hash(DOUBLE_CLASS_SALT, Double.doubleToRawLongBits(value));
+    }
+
+    public static long hashBignum(RubyBignum value, RubyContext context, RubyBaseNode node) {
+        return context.getHashing(node).hash(INTEGER_CLASS_SALT, BigIntegerOps.hashCode(value));
+    }
+
 }

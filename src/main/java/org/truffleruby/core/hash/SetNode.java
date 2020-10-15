@@ -25,7 +25,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ImportStatic(HashGuards.class)
 public abstract class SetNode extends RubyContextNode {
 
-    @Child private HashNode hashNode = new HashNode();
+    @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
     @Child private LookupEntryNode lookupEntryNode;
     @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
@@ -46,7 +46,7 @@ public abstract class SetNode extends RubyContextNode {
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
-        final int hashed = hashNode.hash(key, compareByIdentity);
+        final int hashed = hashNode.execute(key, compareByIdentity);
 
         propagateSharingKeyNode.executePropagate(hash, key);
         propagateSharingValueNode.executePropagate(hash, value);
@@ -70,7 +70,7 @@ public abstract class SetNode extends RubyContextNode {
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
-        final int hashed = hashNode.hash(key, compareByIdentity);
+        final int hashed = hashNode.execute(key, compareByIdentity);
 
         propagateSharingKeyNode.executePropagate(hash, key);
         propagateSharingValueNode.executePropagate(hash, value);
