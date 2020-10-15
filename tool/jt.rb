@@ -1886,7 +1886,8 @@ module Commands
       }
     end
     raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file, out: flamegraph_data_file
-    raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file, out: svg_filename
+    unit = args.any?(/^--cpusampler\.Period=/) ? [] : ['--countname', 'ms']
+    raw_sh "#{repo}/flamegraph.pl", *unit, flamegraph_data_file, out: svg_filename
 
     app_open svg_filename
   end
