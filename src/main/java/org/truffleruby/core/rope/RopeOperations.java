@@ -612,7 +612,7 @@ public class RopeOperations {
 
                 if (count > 1) {
                     // loop - 1 iteration, reset offset to 0, starting hash is the result from previous iteration
-                    workStack.push(new Params(rope, 0, 0, length - patternLength, true, count - 1));
+                    workStack.push(new Params(rope, 0, 0, length - (patternLength - offset), true, count - 1));
                 }
                 // one iteration
                 final int bytesToHashThisPass = length + offset > patternLength
