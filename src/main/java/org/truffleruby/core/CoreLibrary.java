@@ -1049,6 +1049,7 @@ public class CoreLibrary {
             "/core/truffle/internal.rb",
             "/core/kernel.rb",
             "/core/lazy_rubygems.rb",
+            "/core/truffle/array_operations.rb",
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
             "/core/truffle/encoding_operations.rb",
