@@ -36,7 +36,7 @@ public class NativeRope extends Rope {
     }
 
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
-        super(encoding, byteLength, 1, null);
+        super(encoding, byteLength, null);
 
         assert (codeRange == CodeRange.CR_UNKNOWN) == (characterLength == UNKNOWN_CHARACTER_LENGTH);
         this.codeRange = codeRange;

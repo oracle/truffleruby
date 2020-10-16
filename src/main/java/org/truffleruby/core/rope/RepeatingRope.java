@@ -25,7 +25,6 @@ public class RepeatingRope extends ManagedRope {
                 child.getCodeRange(),
                 byteLength,
                 child.characterLength() * times,
-                child.depth() + 1,
                 null);
         this.child = child;
         this.times = times;

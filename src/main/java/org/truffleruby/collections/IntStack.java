@@ -9,12 +9,18 @@
  */
 package org.truffleruby.collections;
 
-public final class BoundedIntStack {
+import org.truffleruby.core.array.ArrayUtils;
 
-    final int[] storage;
+public final class IntStack {
+
+    int[] storage;
     int index = -1;
 
-    public BoundedIntStack(int length) {
+    public IntStack() {
+        this(16);
+    }
+
+    public IntStack(int length) {
         this.storage = new int[length];
     }
 
@@ -23,7 +29,10 @@ public final class BoundedIntStack {
     }
 
     public void push(int value) {
-        storage[++index] = value;
+        if (++index == storage.length) {
+            storage = ArrayUtils.grow(storage, storage.length * 2);
+        }
+        storage[index] = value;
     }
 
     public int peek() {
@@ -33,5 +42,4 @@ public final class BoundedIntStack {
     public int pop() {
         return storage[index--];
     }
-
 }

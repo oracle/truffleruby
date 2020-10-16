@@ -23,9 +23,8 @@ public class ConcatRope extends ManagedRope {
             ManagedRope right,
             Encoding encoding,
             CodeRange codeRange,
-            int depth,
             boolean balanced) {
-        this(left, right, encoding, codeRange, left.characterLength() + right.characterLength(), depth, null, balanced);
+        this(left, right, encoding, codeRange, left.characterLength() + right.characterLength(), null, balanced);
     }
 
     private ConcatRope(
@@ -34,7 +33,6 @@ public class ConcatRope extends ManagedRope {
             Encoding encoding,
             CodeRange codeRange,
             int characterLength,
-            int depth,
             byte[] bytes,
             boolean balanced) {
         super(
@@ -42,7 +40,6 @@ public class ConcatRope extends ManagedRope {
                 codeRange,
                 left.byteLength() + right.byteLength(),
                 characterLength,
-                depth,
                 bytes);
         this.left = left;
         this.right = right;
@@ -58,7 +55,6 @@ public class ConcatRope extends ManagedRope {
                 newEncoding,
                 CodeRange.CR_7BIT,
                 characterLength(),
-                depth(),
                 getRawBytes(),
                 balanced);
     }
@@ -72,7 +68,6 @@ public class ConcatRope extends ManagedRope {
                 ASCIIEncoding.INSTANCE,
                 CodeRange.CR_VALID,
                 byteLength(),
-                depth(),
                 getRawBytes(),
                 balanced);
     }
