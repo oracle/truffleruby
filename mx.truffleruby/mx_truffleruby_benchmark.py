@@ -272,6 +272,10 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         return data
 
     def runBenchmark(self, benchmark, bmSuiteArgs):
+        directory = self.directory()
+        if directory is None:
+            directory, benchmark = benchmark.split('/')
+
         arguments = ['benchmark']
         if self.config()['kind'] == 'simple':
             arguments.extend(['--simple', '--elapsed', '--iterations'])
@@ -298,7 +302,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         else:
             benchmark_file = benchmark
             benchmark_names = []
-        arguments.extend(['bench/' + self.directory() + '/' + benchmark_file + '.rb'])
+        arguments.extend(['bench/' + directory + '/' + benchmark_file + '.rb'])
         arguments.extend(benchmark_names)
         arguments.extend(bmSuiteArgs)
         out = mx.OutputCapture()
@@ -507,7 +511,12 @@ asciidoctor_benchmarks = [
     'asciidoctor-load-string'
 ]
 
-asciidoctor_benchmark_time = {'asciidoctor-convert':400, 'asciidoctor-load-file':400, 'asciidoctor-load-string':400, 'default': 120}
+asciidoctor_benchmark_time = {
+    'asciidoctor-convert': 400,
+    'asciidoctor-load-file': 400,
+    'asciidoctor-load-string': 400,
+    'default': 120
+}
 
 class AsciidoctorBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def name(self):
@@ -672,27 +681,29 @@ class LiquidBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def time(self):
         return 60
 
-asciidoctor_warmup_benchmarks = [
-    'asciidoctor-convert',
-    'asciidoctor-load-file',
-    'asciidoctor-load-string'
+warmup_benchmarks = [
+    'asciidoctor/asciidoctor-convert',
+    'asciidoctor/asciidoctor-load-file',
+    'asciidoctor/asciidoctor-load-string'
 ]
 
-class AsciidoctorWarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
+class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def config(self):
-        iterations = {'asciidoctor-convert':     {10:'startup', 20:'early-warmup', 100:'late-warmup'},
-                      'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},
-                      'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'}}
+        iterations = {
+            'asciidoctor-convert':     {10:'startup', 20:'early-warmup', 100:'late-warmup'},
+            'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},
+            'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'}
+        }
         return {'kind': 'fixed-iterations', 'iterations': iterations}
 
     def name(self):
-        return 'asciidoctor-warmup'
+        return 'ruby-warmup'
 
     def directory(self):
-        return 'asciidoctor'
+        return None
 
     def benchmarkList(self, bmSuiteArgs):
-        return asciidoctor_warmup_benchmarks
+        return warmup_benchmarks
 
 mx_benchmark.add_bm_suite(BuildStatsBenchmarkSuite())
 mx_benchmark.add_bm_suite(AllocationBenchmarkSuite())
@@ -712,4 +723,4 @@ mx_benchmark.add_bm_suite(SavinaBenchmarkSuite())
 mx_benchmark.add_bm_suite(ServerBenchmarkSuite())
 mx_benchmark.add_bm_suite(RubykonBenchmarkSuite())
 mx_benchmark.add_bm_suite(LiquidBenchmarkSuite())
-mx_benchmark.add_bm_suite(AsciidoctorWarmupBenchmarkSuite())
+mx_benchmark.add_bm_suite(WarmupBenchmarkSuite())
