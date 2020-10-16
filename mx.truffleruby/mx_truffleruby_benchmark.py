@@ -264,9 +264,12 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         data = []
         for line in lines:
             try:
-                data.append(float(line))
+                data.append(int(line))
             except ValueError:
-                mx.log_error(line)
+                try:
+                    data.append(float(line))
+                except ValueError:
+                    mx.log_error(line)
         if len(data) % 3 != 0:
             raise AssertionError("Number of values not a multiple of 3")
         return data
@@ -341,6 +344,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                 return [{
                     'benchmark': benchmark,
                     'metric.name': iteration_config[iteration],
+                    'metric.iteration': iteration,
                     'metric.value': e,
                     'metric.unit': 's',
                     'metric.better': 'lower'
