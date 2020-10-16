@@ -690,7 +690,7 @@ warmup_benchmarks = [
 class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def config(self):
         iterations = {
-            'asciidoctor-convert':     {10:'startup', 20:'early-warmup', 100:'late-warmup'},
+            'asciidoctor-convert':     {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'}
         }
