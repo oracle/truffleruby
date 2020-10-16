@@ -684,7 +684,8 @@ class LiquidBenchmarkSuite(AllBenchmarksBenchmarkSuite):
 warmup_benchmarks = [
     'asciidoctor/asciidoctor-convert',
     'asciidoctor/asciidoctor-load-file',
-    'asciidoctor/asciidoctor-load-string'
+    'asciidoctor/asciidoctor-load-string',
+    'rubykon/rubykon',
 ]
 
 class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
@@ -692,7 +693,8 @@ class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
         iterations = {
             'asciidoctor-convert':     {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},
-            'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'}
+            'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'},
+            'rubykon':                 {1:'startup', 10:'early-warmup', 30:'late-warmup'},
         }
         return {'kind': 'fixed-iterations', 'iterations': iterations}
 
