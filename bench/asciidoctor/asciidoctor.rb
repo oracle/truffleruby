@@ -28,15 +28,6 @@ benchmark 'restore-line' do
   end
 end
 
-benchmark 'load-string' do
-  Asciidoctor.load sample_file_text
-end
-
-benchmark 'load-file' do
-  Asciidoctor.load sample_file_io
-  sample_file_io.seek 0
-end
-
 document = Asciidoctor.load(sample_file_text)
 converted = document.convert
 lines = converted.split('\n')
@@ -80,8 +71,4 @@ end
 
 benchmark 'join-lines' do
   lines * '\n'
-end
-
-benchmark 'convert' do
-  document.convert
 end

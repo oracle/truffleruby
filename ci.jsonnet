@@ -440,6 +440,7 @@ local part_definitions = {
     asciidoctor: { benchmarks+:: ["asciidoctor"] },
     other_extra: { benchmarks+:: ["savina"] },
     other: { benchmarks+:: ["micro", "image-demo", "optcarrot", "synthetic", "rubykon", "liquid"] },
+    warmup: { benchmarks+:: ["ruby-warmup"] },
 
     server: {
       local build = self,
@@ -608,6 +609,17 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-asciidoctor-svm-graal-core-multi-tier": shared + asciidoctor + svm_configurations["svm-graal-core"] + $.use.multi_tier,
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"],
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise-multi-tier": shared + asciidoctor + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      local warmup = $.benchmark.runner + $.benchmark.warmup + { timelimit: "00:55:00" },
+      "ruby-benchmarks-warmup-mri": shared + warmup + other_rubies.mri,
+      "ruby-benchmarks-warmup-jruby": shared + warmup + other_rubies.jruby,
+      "ruby-benchmarks-warmup-graal-core": shared + warmup + graal_configurations["graal-core"],
+      "ruby-benchmarks-warmup-graal-core-multi-tier": shared + warmup + graal_configurations["graal-core"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-graal-enterprise": shared + warmup + graal_configurations["graal-enterprise"],
+      "ruby-benchmarks-warmup-graal-enterprise-multi-tier": shared + warmup + graal_configurations["graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-svm-graal-core": shared + warmup + svm_configurations["svm-graal-core"],
+      "ruby-benchmarks-warmup-svm-graal-core-multi-tier": shared + warmup + svm_configurations["svm-graal-core"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-svm-graal-enterprise": shared + warmup + svm_configurations["svm-graal-enterprise"],
+      "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
 
       local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "00:40:00" },
       local svm_other = $.benchmark.runner + $.benchmark.other + { timelimit: "01:00:00" },
