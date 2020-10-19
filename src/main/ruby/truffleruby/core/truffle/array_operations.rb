@@ -20,6 +20,10 @@ module Truffle::ArrayOperations
       array, i = worklist.pop
 
       if i == 0
+        unless Primitive.object_can_contain_object array
+          out.concat(array)
+          next
+        end
         raise ArgumentError, 'tried to flatten recursive array' if visited.key?(array)
         if max_levels == worklist.size
           out.concat(array)
