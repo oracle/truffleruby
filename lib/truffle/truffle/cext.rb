@@ -412,8 +412,12 @@ module Truffle::CExt
     ruby_class
   end
 
-  def rb_obj_respond_to(object, id, priv)
-    Primitive.object_respond_to?(object, id, priv != 0)
+  def rb_obj_respond_to(object, name, priv)
+    object.respond_to?(name, priv != 0)
+  end
+
+  def rb_respond_to(object, name)
+    object.respond_to?(name, false)
   end
 
   def rb_check_convert_type(obj, type_name, method)
@@ -840,10 +844,6 @@ module Truffle::CExt
 
   def rb_funcall_with_block(recv, meth, args, block)
     recv.public_send(meth, *args, &block)
-  end
-
-  def rb_respond_to(object, name)
-    object.respond_to?(name)
   end
 
   def rb_funcallv_public(recv, meth, args)

@@ -15,8 +15,8 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
  */
 int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   if (!rb_obj_is_kind_of(range, rb_cRange)) {
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse;
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse;
+    if (!rb_respond_to(range, rb_intern("begin"))) return Qfalse;
+    if (!rb_respond_to(range, rb_intern("end"))) return Qfalse;
   }
 
   *begp = RUBY_INVOKE(range, "begin");

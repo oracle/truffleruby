@@ -48,6 +48,7 @@ Compatibility:
 * Avoid infinite recursion when redefining `Warning#warn` and calling `Kernel#warn` (#2109).
 * Convert objects with `#to_path` in `$LOAD_PATH` (#2119).
 * Handle the functions being native for `rb_thread_call_without_gvl()` (#2090).
+* Support refinements for Kernel#respond_to? (#2120, @ssnickolay)
 
 Performance:
 
