@@ -53,6 +53,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -187,56 +188,37 @@ public abstract class TruffleKernelNodes {
         public abstract SpecialVariableStorage execute(VirtualFrame frame);
 
         @Specialization(
-                guards = { "frame.getFrameDescriptor() == descriptor", "slot != null" },
+                guards = { "frame.getFrameDescriptor() == descriptor", "declarationFrameSlot != null" },
                 assumptions = "frameAssumption",
                 limit = "1")
-        protected SpecialVariableStorage sameFrame(VirtualFrame frame,
+        protected SpecialVariableStorage getFromKnownFrameDescriptor(VirtualFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLES_STORAGE)") FrameSlot slot,
-                @Cached("descriptor.getVersion()") Assumption frameAssumption) {
-            Object storage = FrameUtil.getObjectSafe(frame, slot);
-            if (storage == nil) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                storage = new SpecialVariableStorage();
-                frame.setObject(slot, storage);
-            }
-            return (SpecialVariableStorage) storage;
-        }
-
-        @Specialization(
-                guards = { "frame.getFrameDescriptor() == descriptor", "slot == null", "declarationFrameSlot != null" },
-                assumptions = "frameAssumption",
-                limit = "1")
-        protected SpecialVariableStorage declarationFrame(VirtualFrame frame,
-                @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLES_STORAGE)") FrameSlot slot,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth,
-                @Cached("declarationSlot(frame)") FrameSlot declarationFrameSlot,
-                @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
-            MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+                @Cached("declarationDescriptor(frame, declarationFrameDepth)") FrameDescriptor declarationFrameDescriptor,
+                @Cached("declarationSlot(declarationFrameDescriptor)") FrameSlot declarationFrameSlot,
+                @Cached("declarationFrameDescriptor.getVersion()") Assumption frameAssumption) {
+            Object storage;
+            if (declarationFrameDepth == 0) {
+                storage = FrameUtil.getObjectSafe(frame, declarationFrameSlot);
+                if (storage == nil) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    storage = new SpecialVariableStorage();
+                    frame.setObject(declarationFrameSlot, storage);
+                }
+            } else {
+                MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
 
-            Object storage = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);
-            if (storage == nil) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                storage = new SpecialVariableStorage();
-                storageFrame.setObject(declarationFrameSlot, storage);
+                storage = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);
+                if (storage == nil) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    storage = new SpecialVariableStorage();
+                    storageFrame.setObject(declarationFrameSlot, storage);
+                }
             }
             return (SpecialVariableStorage) storage;
         }
 
-        @Specialization(
-                guards = { "frame.getFrameDescriptor() == descriptor", "slot == null", "declarationFrameSlot == null" },
-                assumptions = "frameAssumption",
-                limit = "1")
-        protected SpecialVariableStorage unset(VirtualFrame frame,
-                @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
-                @Cached("descriptor.findFrameSlot(SPECIAL_VARIABLES_STORAGE)") FrameSlot slot,
-                @Cached("declarationSlot(frame)") FrameSlot declarationFrameSlot,
-                @Cached("declarationDescriptor(frame).getVersion()") Assumption frameAssumption) {
-            return getSlow(frame.materialize());
-        }
-
-        @Specialization(replaces = { "sameFrame", "declarationFrame", "unset" })
+        @Specialization(replaces = "getFromKnownFrameDescriptor")
         protected SpecialVariableStorage slowPath(VirtualFrame frame) {
             return getSlow(frame.materialize());
         }
@@ -290,40 +272,19 @@ public abstract class TruffleKernelNodes {
             }
         }
 
-        protected FrameDescriptor declarationDescriptor(VirtualFrame topFrame) {
-            MaterializedFrame frame = topFrame.materialize();
-
-            while (true) {
-                final FrameSlot slot = getVariableSlot(frame);
-                if (slot != null) {
-                    return frame.getFrameDescriptor();
-                }
-
-                final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
-                if (nextFrame != null) {
-                    frame = nextFrame;
-                } else {
-                    return frame.getFrameDescriptor();
-                }
+        protected FrameDescriptor declarationDescriptor(VirtualFrame topFrame, int depth) {
+            MaterializedFrame frame;
+            if (depth == 0) {
+                frame = topFrame.materialize();
+            } else {
+                frame = RubyArguments.getDeclarationFrame(topFrame, depth);
             }
+            return frame.getFrameDescriptor();
         }
 
-        protected FrameSlot declarationSlot(VirtualFrame topFrame) {
-            MaterializedFrame frame = topFrame.materialize();
-
-            while (true) {
-                final FrameSlot slot = getVariableSlot(frame);
-                if (slot != null) {
-                    return slot;
-                }
-
-                final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
-                if (nextFrame != null) {
-                    frame = nextFrame;
-                } else {
-                    return null;
-                }
-            }
+        @TruffleBoundary
+        protected FrameSlot declarationSlot(FrameDescriptor descriptor) {
+            return descriptor.findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE, FrameSlotKind.Object);
         }
 
         private static FrameSlot getVariableSlot(MaterializedFrame frame) {
