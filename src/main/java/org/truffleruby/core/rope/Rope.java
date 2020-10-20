@@ -25,16 +25,14 @@ public abstract class Rope implements Comparable<Rope> {
 
     public final Encoding encoding;
     private final int byteLength;
-    private final int ropeDepth;
     private int hashCode = 0;
     protected byte[] bytes;
 
-    protected Rope(Encoding encoding, int byteLength, int ropeDepth, byte[] bytes) {
+    protected Rope(Encoding encoding, int byteLength, byte[] bytes) {
         assert encoding != null;
 
         this.encoding = encoding;
         this.byteLength = byteLength;
-        this.ropeDepth = ropeDepth;
         this.bytes = bytes;
     }
 
@@ -85,10 +83,6 @@ public abstract class Rope implements Comparable<Rope> {
 
     public final boolean isAsciiOnly() {
         return getCodeRange() == CodeRange.CR_7BIT;
-    }
-
-    public final int depth() {
-        return ropeDepth;
     }
 
     @Override

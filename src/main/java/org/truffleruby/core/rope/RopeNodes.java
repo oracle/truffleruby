@@ -472,8 +472,6 @@ public abstract class RopeNodes {
                         getContext().getCoreExceptions().argumentErrorTooLargeString(this));
             }
 
-            int depth = depth(left, right);
-
             return new ConcatRope(
                     left,
                     right,
@@ -482,32 +480,8 @@ public abstract class RopeNodes {
                             left.getCodeRange(),
                             right.getCodeRange(),
                             sameCodeRangeProfile,
-                            brokenCodeRangeProfile),
-                    depth,
-                    isBalanced(left, right));
+                            brokenCodeRangeProfile));
         }
-
-        private boolean isBalanced(Rope left, Rope right) {
-            // Our definition of balanced is centered around the notion of rebalancing. We could have a simple structure
-            // such as ConcatRope(ConcatRope(LeafRope, LeafRope), LeafRope) that is balanced on its own but may contribute
-            // to an unbalanced rope when combined with another rope of similar structure. To keep things simple, we only
-            // consider ConcatRopes that consist of two non-ConcatRopes balanced as the base case and ConcatRopes that
-            // have balanced ConcatRopes for both children are balanced by induction.
-            if (left instanceof ConcatRope) {
-                if (right instanceof ConcatRope) {
-                    return ((ConcatRope) left).isBalanced() && ((ConcatRope) right).isBalanced();
-                }
-
-                return false;
-            } else {
-                // We treat the concatenation of two non-ConcatRopes as balanced, even if their children not balanced.
-                // E.g., a SubstringRope whose child is an unbalanced ConcatRope arguable isn't balanced. However,
-                // the code is much simpler by handling it this way. Balanced ConcatRopes will never rebalance, but
-                // if they become part of a larger subtree that exceeds the depth threshold, they may be flattened.
-                return !(right instanceof ConcatRope);
-            }
-        }
-
 
         @SuppressFBWarnings("RV")
         @Specialization(guards = { "!left.isEmpty()", "!right.isEmpty()", "isCodeRangeBroken(left, right)" })
@@ -559,10 +533,6 @@ public abstract class RopeNodes {
 
             // If we get this far, one must be CR_7BIT and the other must be CR_VALID, so promote to the more general code range.
             return CR_VALID;
-        }
-
-        private int depth(Rope left, Rope right) {
-            return Math.max(left.depth(), right.depth()) + 1;
         }
 
         protected static boolean isCodeRangeBroken(ManagedRope first, ManagedRope second) {
@@ -836,14 +806,13 @@ public abstract class RopeNodes {
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
             System.err.println(StringUtils.format(
-                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; D: %d; E: %s)",
+                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                     printString ? rope.toString() : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
                     rope.characterLength(),
                     rope.getCodeRange(),
-                    rope.depth(),
                     rope.getEncoding()));
 
             return nil;
@@ -858,7 +827,7 @@ public abstract class RopeNodes {
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
             System.err.println(StringUtils.format(
-                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; O: %d; D: %d; E: %s)",
+                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; O: %d; E: %s)",
                     printString ? rope.toString() : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
@@ -866,7 +835,6 @@ public abstract class RopeNodes {
                     rope.characterLength(),
                     rope.getCodeRange(),
                     rope.getByteOffset(),
-                    rope.depth(),
                     rope.getEncoding()));
 
             executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
@@ -884,16 +852,13 @@ public abstract class RopeNodes {
 
             System.err
                     .println(StringUtils.format(
-                            "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; D: %d; LD: %d; RD: %d; E: %s)",
+                            "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                             printString ? rope.toString() : "<skipped>",
                             rope.getClass().getSimpleName(),
                             bytesAreNull,
                             rope.byteLength(),
                             rope.characterLength(),
                             rope.getCodeRange(),
-                            rope.depth(),
-                            rope.getLeft().depth(),
-                            rope.getRight().depth(),
                             rope.getEncoding()));
 
             executeDebugPrint(rope.getLeft(), currentLevel + 1, printString);
@@ -919,7 +884,6 @@ public abstract class RopeNodes {
                     rope.characterLength(),
                     rope.getCodeRange(),
                     rope.getTimes(),
-                    rope.depth(),
                     rope.getEncoding()));
 
             executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
@@ -944,7 +908,6 @@ public abstract class RopeNodes {
                     rope.characterLength(),
                     rope.getCodeRange(),
                     rope.getValue(),
-                    rope.depth(),
                     rope.getEncoding()));
 
             return nil;

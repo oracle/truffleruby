@@ -16,16 +16,13 @@ public class ConcatRope extends ManagedRope {
 
     private final ManagedRope left;
     private final ManagedRope right;
-    private final boolean balanced;
 
     public ConcatRope(
             ManagedRope left,
             ManagedRope right,
             Encoding encoding,
-            CodeRange codeRange,
-            int depth,
-            boolean balanced) {
-        this(left, right, encoding, codeRange, left.characterLength() + right.characterLength(), depth, null, balanced);
+            CodeRange codeRange) {
+        this(left, right, encoding, codeRange, left.characterLength() + right.characterLength(), null);
     }
 
     private ConcatRope(
@@ -34,19 +31,15 @@ public class ConcatRope extends ManagedRope {
             Encoding encoding,
             CodeRange codeRange,
             int characterLength,
-            int depth,
-            byte[] bytes,
-            boolean balanced) {
+            byte[] bytes) {
         super(
                 encoding,
                 codeRange,
                 left.byteLength() + right.byteLength(),
                 characterLength,
-                depth,
                 bytes);
         this.left = left;
         this.right = right;
-        this.balanced = balanced;
     }
 
     @Override
@@ -58,9 +51,7 @@ public class ConcatRope extends ManagedRope {
                 newEncoding,
                 CodeRange.CR_7BIT,
                 characterLength(),
-                depth(),
-                getRawBytes(),
-                balanced);
+                getRawBytes());
     }
 
     @Override
@@ -72,9 +63,7 @@ public class ConcatRope extends ManagedRope {
                 ASCIIEncoding.INSTANCE,
                 CodeRange.CR_VALID,
                 byteLength(),
-                depth(),
-                getRawBytes(),
-                balanced);
+                getRawBytes());
     }
 
     public ManagedRope getLeft() {
@@ -84,9 +73,4 @@ public class ConcatRope extends ManagedRope {
     public ManagedRope getRight() {
         return right;
     }
-
-    public boolean isBalanced() {
-        return balanced;
-    }
-
 }
