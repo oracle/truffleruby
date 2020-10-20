@@ -267,7 +267,6 @@ import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
@@ -1291,11 +1290,13 @@ public class BodyTranslator extends Translator {
                 parserContext,
                 currentNode,
                 argsNode);
-        final RootCallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, defNode, bodyNode);
 
-        return withSourceSection(
-                sourceSection,
-                new LiteralMethodDefinitionNode(moduleNode, methodName, sharedMethodInfo, callTarget, isDefs));
+        return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(
+                moduleNode,
+                methodName,
+                sharedMethodInfo,
+                isDefs,
+                methodCompiler.buildMethodNodeCompiler(sourceSection, defNode, bodyNode)));
     }
 
     @Override

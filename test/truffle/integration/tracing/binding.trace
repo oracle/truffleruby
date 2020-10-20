@@ -1,7 +1,7 @@
 ["line", "/binding.rb", 23, nil, {:captured_in_scope=>2, :inside_trace=>nil, :modified=>3, :outside_trace=>1, :result=>nil}, nil]
 ["line", "/binding.rb", 24, nil, {:captured_in_scope=>2, :inside_trace=>4, :modified=>3, :outside_trace=>1, :result=>nil}, nil]
 ["line", "/binding.rb", 26, nil, {:captured_in_scope=>2, :inside_trace=>4, :modified=>5, :outside_trace=>1, :result=>nil}, nil]
-["call", "/binding.rb", 13, :add, {}, Object]
+["call", "/binding.rb", 13, :add, {:a=>nil}, Object]
 ["line", "/binding.rb", 14, nil, {:a=>14}, nil]
 ["call", "/binding.rb", 26, :"<main>", {:captured_in_scope=>2, :inside_trace=>4, :modified=>5, :outside_trace=>1, :result=>nil}, Object]
 ["line", "/binding.rb", 27, nil, {:captured_in_scope=>2, :inside_trace=>4, :modified=>5, :outside_trace=>1, :result=>nil}, nil]
