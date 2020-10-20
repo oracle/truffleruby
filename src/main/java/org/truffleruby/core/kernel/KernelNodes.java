@@ -1572,6 +1572,8 @@ public abstract class KernelNodes {
             dispatchRespondToMissing = InternalRespondToNode.create();
         }
 
+        /** Callers should pass null for the frame here, unless they want to use refinements and can ensure the direct
+         * caller is a Ruby method */
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,
                 boolean includeProtectedAndPrivate);
 
