@@ -1602,11 +1602,7 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(
-                        frame,
-                        object,
-                        getSymbol(name.rope),
-                        includeProtectedAndPrivate);
+                return respondToMissing(object, getSymbol(name.rope), includeProtectedAndPrivate);
             } else {
                 return false;
             }
@@ -1632,14 +1628,13 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(frame, object, name, includeProtectedAndPrivate);
+                return respondToMissing(object, name, includeProtectedAndPrivate);
             } else {
                 return false;
             }
         }
 
-        private boolean respondToMissing(VirtualFrame frame, Object object, RubySymbol name,
-                boolean includeProtectedAndPrivate) {
+        private boolean respondToMissing(Object object, RubySymbol name, boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToMissingNode = insert(DispatchNode.create());
