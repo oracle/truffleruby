@@ -1559,7 +1559,7 @@ public abstract class KernelNodes {
         @Child private InternalRespondToNode dispatch;
         @Child private InternalRespondToNode dispatchIgnoreVisibility;
         @Child private InternalRespondToNode dispatchRespondToMissing;
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        @Child private ReadCallerFrameNode readCallerFrame;
         @Child private DispatchNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
@@ -1572,6 +1572,8 @@ public abstract class KernelNodes {
             dispatchRespondToMissing = InternalRespondToNode.create();
         }
 
+        /** Callers should pass null for the frame here, unless they want to use refinements and can ensure the direct
+         * caller is a Ruby method */
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,
                 boolean includeProtectedAndPrivate);
 
@@ -1600,11 +1602,7 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(
-                        frame,
-                        object,
-                        getSymbol(name.rope),
-                        includeProtectedAndPrivate);
+                return respondToMissing(object, getSymbol(name.rope), includeProtectedAndPrivate);
             } else {
                 return false;
             }
@@ -1630,14 +1628,13 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(frame, object, name, includeProtectedAndPrivate);
+                return respondToMissing(object, name, includeProtectedAndPrivate);
             } else {
                 return false;
             }
         }
 
-        private boolean respondToMissing(VirtualFrame frame, Object object, RubySymbol name,
-                boolean includeProtectedAndPrivate) {
+        private boolean respondToMissing(Object object, RubySymbol name, boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToMissingNode = insert(DispatchNode.create());
@@ -1654,6 +1651,10 @@ public abstract class KernelNodes {
 
         private void useCallerRefinements(VirtualFrame frame) {
             if (frame != null) {
+                if (readCallerFrame == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    readCallerFrame = insert(ReadCallerFrameNode.create());
+                }
                 DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
                 RubyArguments.setDeclarationContext(frame, context);
             }

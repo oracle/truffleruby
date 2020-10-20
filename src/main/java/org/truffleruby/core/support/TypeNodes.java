@@ -55,7 +55,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.HiddenKey;
@@ -83,8 +82,9 @@ public abstract class TypeNodes {
                 .create(null, null, null);
 
         @Specialization
-        protected boolean objectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
-            return respondToNode.executeDoesRespondTo(frame, object, name, includePrivate);
+        protected boolean objectRespondTo(Object object, Object name, boolean includePrivate) {
+            // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
+            return respondToNode.executeDoesRespondTo(null, object, name, includePrivate);
         }
 
     }
