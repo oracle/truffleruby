@@ -1559,7 +1559,7 @@ public abstract class KernelNodes {
         @Child private InternalRespondToNode dispatch;
         @Child private InternalRespondToNode dispatchIgnoreVisibility;
         @Child private InternalRespondToNode dispatchRespondToMissing;
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
+        @Child private ReadCallerFrameNode readCallerFrame;
         @Child private DispatchNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
@@ -1656,6 +1656,10 @@ public abstract class KernelNodes {
 
         private void useCallerRefinements(VirtualFrame frame) {
             if (frame != null) {
+                if (readCallerFrame == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    readCallerFrame = insert(ReadCallerFrameNode.create());
+                }
                 DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
                 RubyArguments.setDeclarationContext(frame, context);
             }
