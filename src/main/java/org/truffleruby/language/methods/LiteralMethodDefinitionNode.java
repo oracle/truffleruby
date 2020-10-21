@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
+import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -18,14 +22,16 @@ import org.truffleruby.language.arguments.RubyArguments;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import java.util.Set;
+
 /** Define a method from a method literal (def mymethod ... end). That is, create an InternalMethod and add it to the
  * current module (default definee). */
 public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;
-    private final RootCallTarget callTarget;
     private final boolean isDefSingleton;
+    private final CachedSupplier<RootCallTarget> callTargetSupplier;
 
     @Child private RubyNode moduleNode;
     @Child private GetCurrentVisibilityNode visibilityNode;
@@ -36,12 +42,12 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
             RubyNode moduleNode,
             String name,
             SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTarget,
-            boolean isDefSingleton) {
+            boolean isDefSingleton,
+            CachedSupplier<RootCallTarget> callTargetSupplier) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
-        this.callTarget = callTarget;
         this.isDefSingleton = isDefSingleton;
+        this.callTargetSupplier = callTargetSupplier;
         this.moduleNode = moduleNode;
         if (!isDefSingleton) {
             this.visibilityNode = new GetCurrentVisibilityNode();
@@ -75,7 +81,8 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
                 visibility,
                 false,
                 null,
-                callTarget,
+                null,
+                callTargetSupplier,
                 null);
 
         addMethodNode.executeAddMethod(module, method, visibility);
@@ -83,4 +90,15 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
         return getSymbol(name);
     }
 
+    /** When the debugger is searching for a node at a given file:line to put a breakpoint, it needs to look at nodes of
+     * the method CallTarget, therefore we compute the method CallTarget here when instrumentation requests it. */
+    @Override
+    public InstrumentableNode materializeInstrumentableNodes(Set<Class<? extends Tag>> materializedTags) {
+        for (Class<? extends Tag> tag : materializedTags) {
+            if (tag == StandardTags.StatementTag.class) {
+                callTargetSupplier.get(); // force computation of the call target
+            }
+        }
+        return this;
+    }
 }

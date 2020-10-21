@@ -78,6 +78,7 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
                 false,
                 null,
                 callTarget,
+                null,
                 capturedBlock);
     }
 

@@ -31,6 +31,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
+import java.util.Map;
+
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
@@ -171,6 +173,13 @@ public class RubyCallNode extends RubyContextSourceNode {
 
     public boolean hasLiteralBlock() {
         return hasLiteralBlock;
+    }
+
+    @Override
+    public Map<String, Object> getDebugProperties() {
+        final Map<String, Object> map = super.getDebugProperties();
+        map.put("methodName", methodName);
+        return map;
     }
 
     private class DefinedNode extends RubyBaseNode {
