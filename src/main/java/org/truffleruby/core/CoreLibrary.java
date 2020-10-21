@@ -46,6 +46,8 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.debug.GlobalVariablesObject;
+import org.truffleruby.debug.TopScopeObject;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -242,6 +244,7 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableReader stderrReader;
 
     @CompilationFinal public RubyBinding topLevelBinding;
+    @CompilationFinal public TopScopeObject topScopeObject;
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
@@ -588,6 +591,8 @@ public class CoreLibrary {
         argv = new RubyArray(arrayClass, RubyLanguage.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();
+        topScopeObject = new TopScopeObject(
+                new Object[]{ new GlobalVariablesObject(globalVariables), mainObject });
 
         patchFiles = initializePatching(context);
     }

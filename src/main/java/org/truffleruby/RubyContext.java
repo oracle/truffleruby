@@ -828,6 +828,10 @@ public class RubyContext {
         }
     }
 
+    public Object getTopScopeObject() {
+        return coreLibrary.topScopeObject;
+    }
+
     @TruffleBoundary
     public static String fileLine(SourceSection section) {
         if (section == null) {

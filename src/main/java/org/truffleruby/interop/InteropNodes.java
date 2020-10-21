@@ -12,7 +12,11 @@ package org.truffleruby.interop;
 import java.io.IOException;
 import java.util.Map;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.NodeLibrary;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1423,6 +1427,52 @@ public abstract class InteropNodes {
             return getContext().getEnv().isPolyglotBindingsAccessAllowed();
         }
 
+    }
+
+    @Primitive(name = "current_scope")
+    public abstract static class GetCurrentScopeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object getScope(VirtualFrame frame,
+                @CachedLibrary(limit = "1") NodeLibrary nodeLibrary,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return nodeLibrary.getScope(this, frame, true);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @Primitive(name = "top_scope")
+    public abstract static class GetTopScopeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object getTopScope(
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getTopScopeObject();
+        }
+
+    }
+
+    @CoreMethod(names = "scope_parent", onSingleton = true, required = 1)
+    public abstract static class GetScopeParentNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getScope(Object scope,
+                @CachedLibrary("scope") InteropLibrary interopLibrary,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            if (interopLibrary.hasScopeParent(scope)) {
+                try {
+                    return interopLibrary.getScopeParent(scope);
+                } catch (UnsupportedMessageException e) {
+                    throw translateInteropException.execute(e);
+                }
+            } else {
+                return nil;
+            }
+        }
     }
 
 }

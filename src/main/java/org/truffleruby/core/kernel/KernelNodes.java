@@ -378,11 +378,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean blockGiven(VirtualFrame frame,
-                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
+                @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             return blockProfile
-                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil);
+                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }
     }
 
@@ -1165,13 +1165,13 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyProc lambda(NotProvided block,
-                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode) {
+                @Cached FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext()
                     .getCallStack()
                     .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
                     .materialize();
             Object parentBlock = readNode
-                    .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
+                    .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil);
 
             if (parentBlock == nil) {
                 throw new RaiseException(
