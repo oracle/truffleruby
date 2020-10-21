@@ -188,7 +188,7 @@ public abstract class TruffleKernelNodes {
         public abstract SpecialVariableStorage execute(VirtualFrame frame);
 
         @Specialization(
-                guards = { "frame.getFrameDescriptor() == descriptor", "declarationFrameSlot != null" },
+                guards = "frame.getFrameDescriptor() == descriptor",
                 assumptions = "frameAssumption",
                 limit = "1")
         protected SpecialVariableStorage getFromKnownFrameDescriptor(VirtualFrame frame,
@@ -273,13 +273,11 @@ public abstract class TruffleKernelNodes {
         }
 
         protected FrameDescriptor declarationDescriptor(VirtualFrame topFrame, int depth) {
-            MaterializedFrame frame;
             if (depth == 0) {
-                frame = topFrame.materialize();
+                return topFrame.getFrameDescriptor();
             } else {
-                frame = RubyArguments.getDeclarationFrame(topFrame, depth);
+                return RubyArguments.getDeclarationFrame(topFrame, depth).getFrameDescriptor();
             }
-            return frame.getFrameDescriptor();
         }
 
         @TruffleBoundary
