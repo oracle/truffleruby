@@ -132,7 +132,7 @@ local part_definitions = {
       },
 
       environment+: {
-        HOST_VM: "server",
+        HOST_VM: "jruby",
         HOST_VM_CONFIG: "default",
         GUEST_VM: "jruby",
         GUEST_VM_CONFIG: "indy",
