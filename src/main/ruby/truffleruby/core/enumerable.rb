@@ -356,7 +356,7 @@ module Enumerable
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Primitive.frame_local_variable_set(:$~, $~, block.binding)
+        Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), $~)
         if matches
           ary << yield(o)
         end
@@ -369,7 +369,7 @@ module Enumerable
         end
       end
 
-      Primitive.frame_local_variable_set(:$~, $~, Primitive.caller_binding)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     end
 
     ary
@@ -382,7 +382,7 @@ module Enumerable
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Primitive.frame_local_variable_set(:$~, $~, block.binding)
+        Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), $~)
         unless matches
           ary << yield(o)
         end
@@ -395,7 +395,7 @@ module Enumerable
         end
       end
 
-      Primitive.frame_local_variable_set(:$~, $~, Primitive.caller_binding)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     end
 
     ary

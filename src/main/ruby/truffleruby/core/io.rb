@@ -1637,7 +1637,7 @@ class IO
       line = l
       break
     end
-    Primitive.frame_local_variable_set(:$_, line, Primitive.caller_binding) if line
+    Primitive.io_last_line_set(Primitive.caller_special_variables, line) if line
     line
   end
 
@@ -1746,7 +1746,7 @@ class IO
   # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
   # nil.
   def print(*args)
-    Truffle::IOOperations.print self, args, Primitive.caller_binding
+    Truffle::IOOperations.print self, args, Primitive.caller_special_variables
   end
 
   ##
@@ -2541,5 +2541,5 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :$_,
-  -> b { Primitive.frame_local_variable_get(:$_, b) },
-  -> v, b { Primitive.frame_local_variable_set(:$_, v, b) })
+  -> s { Primitive.io_last_line_get(s) },
+  -> v, s { Primitive.io_last_line_set(s, v) })

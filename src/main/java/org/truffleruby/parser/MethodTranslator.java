@@ -43,6 +43,7 @@ import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
+import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.MethodDefParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -274,7 +275,10 @@ public class MethodTranslator extends BodyTranslator {
                 language,
                 arity,
                 sequence(bodySourceSection, Arrays.asList(loadArguments, body)));
+
         body.unsafeSetSourceSection(sourceSection);
+
+        body = sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), body));
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));

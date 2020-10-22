@@ -36,6 +36,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.SymbolProcNode;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -161,13 +162,16 @@ public abstract class SymbolNodes {
                     "proc",
                     ArgumentDescriptor.ANON_REST);
             final Object[] args = RubyArguments
-                    .pack(null, null, method, declarationContext, null, nil, null, EMPTY_ARGUMENTS);
+                    .pack(null, null, null, method, declarationContext, null, nil, null, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, context.getCoreLibrary().emptyDescriptor);
+                    .createMaterializedFrame(args, context.getCoreLibrary().emptyDeclarationDescriptor);
+            SpecialVariableStorage storage = new SpecialVariableStorage();
+            declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, storage);
+
             final RubyRootNode rootNode = new RubyRootNode(
                     context,
                     sourceSection,
@@ -186,6 +190,7 @@ public abstract class SymbolNodes {
                     callTarget,
                     callTarget,
                     declarationFrame,
+                    storage,
                     method,
                     null,
                     null,

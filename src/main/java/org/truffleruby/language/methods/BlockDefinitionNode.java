@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
@@ -41,6 +42,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     private final BreakID breakID;
 
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
+    @Child private GetSpecialVariableStorage readSpecialVariableStorageNode;
     @Child private WithoutVisibilityNode withoutVisibilityNode;
 
     public BlockDefinitionNode(
@@ -62,6 +64,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         } else {
             readFrameOnStackMarkerNode = ReadFrameSlotNodeGen.create(frameOnStackMarkerSlot);
         }
+        readSpecialVariableStorageNode = GetSpecialVariableStorage.create();
     }
 
     public BreakID getBreakID() {
@@ -92,6 +95,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
                 callTargetForProcs,
                 callTargetForLambdas,
                 frame.materialize(),
+                readSpecialVariableStorageNode.execute(frame),
                 RubyArguments.getMethod(frame),
                 RubyArguments.getBlock(frame),
                 frameOnStackMarker,

@@ -424,7 +424,7 @@ public class RubyContext {
 
         return IndirectCallNode.getUncached().call(
                 method.getCallTarget(),
-                RubyArguments.pack(null, null, method, null, object, null, arguments));
+                RubyArguments.pack(null, null, null, method, null, object, null, arguments));
     }
 
     @TruffleBoundary

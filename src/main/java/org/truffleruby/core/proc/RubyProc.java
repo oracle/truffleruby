@@ -20,6 +20,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -29,7 +30,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.object.dsl.Nullable;
 import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(InteropLibrary.class)
@@ -40,6 +40,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public final RootCallTarget callTargetForType;
     public final RootCallTarget callTargetForLambdas;
     public final MaterializedFrame declarationFrame;
+    public final SpecialVariableStorage declarationStorage;
     public final InternalMethod method;
     public final RubyProc block;
     public final FrameOnStackMarker frameOnStackMarker;
@@ -53,9 +54,10 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             RootCallTarget callTargetForType,
             RootCallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
-            @Nullable InternalMethod method,
-            @Nullable RubyProc block,
-            @Nullable FrameOnStackMarker frameOnStackMarker,
+            SpecialVariableStorage declarationStorage,
+            InternalMethod method,
+            RubyProc block,
+            FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
         this.type = type;
@@ -63,6 +65,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         this.callTargetForType = callTargetForType;
         this.callTargetForLambdas = callTargetForLambdas;
         this.declarationFrame = declarationFrame;
+        this.declarationStorage = declarationStorage;
         this.method = method;
         this.block = block;
         this.frameOnStackMarker = frameOnStackMarker;

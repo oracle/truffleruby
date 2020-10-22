@@ -10,7 +10,7 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -47,14 +47,15 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 2" }, assumptions = "storage.getValidAssumption()")
-    protected Object writeHooksWithBinding(VirtualFrame frame, Object value,
+    protected Object writeHooksWithStorage(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("setterArity(storage)") int arity,
-            @Cached YieldNode yieldNode) {
+            @Cached YieldNode yieldNode,
+            @Cached GetSpecialVariableStorage storageNode) {
         yieldNode.executeDispatch(
                 storage.getSetter(),
                 value,
-                BindingNodes.createBinding(getContext(), frame.materialize()));
+                storageNode.execute(frame));
         return value;
     }
 

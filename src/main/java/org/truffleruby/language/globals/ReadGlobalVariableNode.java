@@ -10,7 +10,7 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -44,12 +44,13 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = { "storage.hasHooks()", "arity == 1" }, assumptions = "storage.getValidAssumption()")
-    protected Object readHooksWithBinding(VirtualFrame frame,
+    protected Object readHooksWithStorage(VirtualFrame frame,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("getterArity(storage)") int arity,
-            @Cached YieldNode yieldNode) {
+            @Cached YieldNode yieldNode,
+            @Cached GetSpecialVariableStorage storageNode) {
         return yieldNode
-                .executeDispatch(storage.getGetter(), BindingNodes.createBinding(getContext(), frame.materialize()));
+                .executeDispatch(storage.getGetter(), storageNode.execute(frame));
     }
 
     protected int getterArity(GlobalVariableStorage storage) {

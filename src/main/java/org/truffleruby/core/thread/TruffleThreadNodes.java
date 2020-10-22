@@ -15,9 +15,10 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -27,14 +28,15 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @CoreModule("Truffle::ThreadOperations")
 public class TruffleThreadNodes {
 
-    @CoreMethod(names = "ruby_caller", onSingleton = true, required = 1)
+    @CoreMethod(names = "ruby_caller_special_variables", onSingleton = true, required = 1)
     @ImportStatic(ArrayGuards.class)
-    public abstract static class FindRubyCaller extends CoreMethodArrayArgumentsNode {
+    public abstract static class FindRubyCallerSpecialStorage extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
         protected Object findRubyCaller(RubyArray modules,
-                @CachedLibrary("modules.store") ArrayStoreLibrary stores) {
+                @CachedLibrary("modules.store") ArrayStoreLibrary stores,
+                @Cached GetSpecialVariableStorage storageNode) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(modules.store, 0, modulesSize);
             Frame rubyCaller = getContext()
@@ -43,7 +45,7 @@ public class TruffleThreadNodes {
             if (rubyCaller == null) {
                 return nil;
             } else {
-                return BindingNodes.createBinding(getContext(), rubyCaller.materialize());
+                return storageNode.execute(rubyCaller.materialize());
             }
         }
 

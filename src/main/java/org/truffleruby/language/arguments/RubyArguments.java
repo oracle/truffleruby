@@ -14,6 +14,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -25,11 +26,12 @@ public final class RubyArguments {
     private enum ArgumentIndicies {
         DECLARATION_FRAME, // 0
         CALLER_FRAME, // 1
-        METHOD, // 2
-        DECLARATION_CONTEXT, // 3
-        FRAME_ON_STACK_MARKER, // 4
-        SELF, // 5
-        BLOCK // 6
+        CALLER_SPECIAL_VARIABLE_STORAGE, // 2
+        METHOD, // 3
+        DECLARATION_CONTEXT, // 4
+        FRAME_ON_STACK_MARKER, // 5
+        SELF, // 6
+        BLOCK // 7
     }
 
     private final static int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
@@ -38,6 +40,7 @@ public final class RubyArguments {
     public static Object[] pack(
             MaterializedFrame declarationFrame,
             MaterializedFrame callerFrame,
+            SpecialVariableStorage storage,
             InternalMethod method,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
@@ -46,6 +49,7 @@ public final class RubyArguments {
         return pack(
                 declarationFrame,
                 callerFrame,
+                storage,
                 method,
                 method.getDeclarationContext(),
                 frameOnStackMarker,
@@ -57,6 +61,7 @@ public final class RubyArguments {
     public static Object[] pack(
             MaterializedFrame declarationFrame,
             MaterializedFrame callerFrame,
+            SpecialVariableStorage storage,
             InternalMethod method,
             DeclarationContext declarationContext,
             FrameOnStackMarker frameOnStackMarker,
@@ -72,6 +77,7 @@ public final class RubyArguments {
 
         packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
         packed[ArgumentIndicies.CALLER_FRAME.ordinal()] = callerFrame;
+        packed[ArgumentIndicies.CALLER_SPECIAL_VARIABLE_STORAGE.ordinal()] = storage;
         packed[ArgumentIndicies.METHOD.ordinal()] = method;
         packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
@@ -91,6 +97,11 @@ public final class RubyArguments {
 
     public static MaterializedFrame getCallerFrame(Frame frame) {
         return (MaterializedFrame) frame.getArguments()[ArgumentIndicies.CALLER_FRAME.ordinal()];
+    }
+
+    public static SpecialVariableStorage getCallerStorage(Frame frame) {
+        return (SpecialVariableStorage) frame.getArguments()[ArgumentIndicies.CALLER_SPECIAL_VARIABLE_STORAGE
+                .ordinal()];
     }
 
     public static InternalMethod getMethod(Frame frame) {

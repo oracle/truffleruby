@@ -78,7 +78,7 @@ class Regexp
   end
 
   def self.last_match(index=nil)
-    match = Primitive.frame_local_variable_get(:$~, Primitive.caller_binding)
+    match = Primitive.regexp_last_match_get(Primitive.caller_special_variables)
     if index
       index = Primitive.rb_to_int index
       match[index] if match
@@ -146,18 +146,18 @@ class Regexp
 
   def =~(str)
     result = str ? Truffle::RegexpOperations.match(self, str, 0) : nil
-    Primitive.frame_local_variable_set(:$~, result, Primitive.caller_binding)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, result)
 
     result.begin(0) if result
   end
 
   def match(str, pos=0)
     unless str
-      Primitive.frame_local_variable_set(:$~, nil, Primitive.caller_binding)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       return nil
     end
     result = Truffle::RegexpOperations.match(self, str, pos)
-    Primitive.frame_local_variable_set(:$~, result, Primitive.caller_binding)
+    Primitive.regexp_last_match_set(Primitive.caller_special_variables, result)
 
     if result && block_given?
       yield result
@@ -176,16 +176,16 @@ class Regexp
     elsif !other.kind_of? String
       other = Truffle::Type.rb_check_convert_type other, String, :to_str
       unless other
-        Primitive.frame_local_variable_set(:$~, nil, Primitive.caller_binding)
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
         return false
       end
     end
 
     if match = match_from(other, 0)
-      Primitive.frame_local_variable_set(:$~, match, Primitive.caller_binding)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
       true
     else
-      Primitive.frame_local_variable_set(:$~, nil, Primitive.caller_binding)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       false
     end
   end
@@ -211,10 +211,10 @@ class Regexp
   end
 
   def ~
-    line = Primitive.frame_local_variable_get(:$_, Primitive.caller_binding)
+    line = Primitive.io_last_line_get(Primitive.caller_special_variables)
 
     unless line.kind_of?(String)
-      Primitive.frame_local_variable_set(:$~, nil, Primitive.caller_binding)
+      Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       return nil
     end
 
@@ -365,38 +365,38 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :$~,
-  -> b { Primitive.frame_local_variable_get(:$~, b) },
-  -> v, b {
+  -> s { Primitive.regexp_last_match_get(s) },
+  -> v, s {
     unless Primitive.nil?(v) || Primitive.object_kind_of?(v, MatchData)
       raise TypeError, "Wrong argument type #{v} (expected MatchData)"
     end
-    Primitive.frame_local_variable_set(:$~, v, b)
+    Primitive.regexp_last_match_set(s, v)
   })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$`',
-  -> b { match = Primitive.frame_local_variable_get(:$~, b)
+  -> s { match = Primitive.regexp_last_match_get(s)
          match.pre_match if match },
   -> { raise SyntaxError, "Can't set variable $`" },
-  -> b { 'global-variable' if Primitive.frame_local_variable_get(:$~, b) })
+  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :"$'",
-  -> b { match = Primitive.frame_local_variable_get(:$~, b)
+  -> s { match = Primitive.regexp_last_match_get(s)
          match.post_match if match },
   -> { raise SyntaxError, "Can't set variable $'" },
-  -> b { 'global-variable' if Primitive.frame_local_variable_get(:$~, b) })
+  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$&',
-  -> b { match = Primitive.frame_local_variable_get(:$~, b)
+  -> s { match = Primitive.regexp_last_match_get(s)
          match[0] if match },
   -> { raise SyntaxError, "Can't set variable $&" },
-  -> b { 'global-variable' if Primitive.frame_local_variable_get(:$~, b) })
+  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$+',
-  -> b { match = Primitive.frame_local_variable_get(:$~, b)
+  -> s { match = Primitive.regexp_last_match_get(s)
          match.captures.reverse.find { |m| !Primitive.nil?(m) } if match },
   -> { raise SyntaxError, "Can't set variable $+" },
-  -> b { 'global-variable' if Primitive.frame_local_variable_get(:$~, b) })
+  -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })

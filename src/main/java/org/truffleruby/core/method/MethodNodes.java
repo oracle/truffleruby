@@ -43,6 +43,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.parser.ArgumentDescriptor;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -276,10 +277,13 @@ public abstract class MethodNodes {
         }
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
-            final Object[] packedArgs = RubyArguments.pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
+            final Object[] packedArgs = RubyArguments
+                    .pack(null, null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(packedArgs, coreLibrary().emptyDescriptor);
+                    .createMaterializedFrame(packedArgs, coreLibrary().emptyDeclarationDescriptor);
+            SpecialVariableStorage storage = new SpecialVariableStorage();
+            declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, storage);
             return ProcOperations.createRubyProc(
                     coreLibrary().procClass,
                     RubyLanguage.procShape,
@@ -288,6 +292,7 @@ public abstract class MethodNodes {
                     callTarget,
                     callTarget,
                     declarationFrame,
+                    storage,
                     method,
                     null,
                     null,

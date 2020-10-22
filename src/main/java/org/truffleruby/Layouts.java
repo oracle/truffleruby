@@ -11,6 +11,8 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
+import org.truffleruby.parser.TranslatorEnvironment;
+
 public abstract class Layouts {
 
     // Standard identifiers
@@ -22,5 +24,9 @@ public abstract class Layouts {
     public static final HiddenKey FINALIZER_REF_IDENTIFIER = new HiddenKey("finalizerRef"); // FinalizerReference
     public static final HiddenKey MARKED_OBJECTS_IDENTIFIER = new HiddenKey("marked_objects"); // Object[]
     public static final HiddenKey VALUE_WRAPPER_IDENTIFIER = new HiddenKey("value_wrapper"); // ValueWrapper
+
+    // Frame slot name for special variable storage.
+
+    public static final String SPECIAL_VARIABLES_STORAGE = TranslatorEnvironment.TEMP_PREFIX + "$~_";
 
 }

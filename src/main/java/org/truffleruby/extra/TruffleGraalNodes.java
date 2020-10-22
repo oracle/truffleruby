@@ -24,6 +24,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.Split;
+import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.literal.ObjectLiteralNode;
@@ -149,14 +150,26 @@ public abstract class TruffleGraalNodes {
                     ? newCallTarget
                     : proc.callTargetForLambdas;
 
+            SpecialVariableStorage storage = proc.declarationStorage;
+
             final Object[] args = RubyArguments
-                    .pack(null, null, RubyArguments.getMethod(proc.declarationFrame), null, nil, null, EMPTY_ARGUMENTS);
+                    .pack(
+                            null,
+                            null,
+                            null,
+                            RubyArguments.getMethod(proc.declarationFrame),
+                            null,
+                            nil,
+                            null,
+                            EMPTY_ARGUMENTS);
 
             // The Proc no longer needs the original declaration frame. However, all procs must have a
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
             final MaterializedFrame newDeclarationFrame = Truffle
                     .getRuntime()
-                    .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
+                    .createMaterializedFrame(args, coreLibrary().emptyDeclarationDescriptor);
+
+            newDeclarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, storage);
 
             return new RubyProc(
                     coreLibrary().procClass,
@@ -166,6 +179,7 @@ public abstract class TruffleGraalNodes {
                     newCallTarget,
                     callTargetForLambdas,
                     newDeclarationFrame,
+                    storage,
                     proc.method,
                     proc.block,
                     proc.frameOnStackMarker,

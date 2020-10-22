@@ -14,24 +14,24 @@ import org.truffleruby.language.Nil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.utilities.TruffleWeakReference;
 
 public class ThreadAndFrameLocalStorage {
 
-    private static final TruffleWeakReference<Thread> EMPTY_WEAK_REF = newTruffleWeakReference(null);
-
-    private final TruffleWeakReference<Thread> originalThread;
+    // We store a thread id rather than the thread itself. Although
+    // this id can theoretically be reused the implementation simply
+    // increments a long and has 48 bits that it can use.
+    private final long originalThreadId;
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
     public ThreadAndFrameLocalStorage(RubyContext context) {
-        // Cannot store a Thread instance while pre-initializing
-        originalThread = context.isPreInitializing() ? EMPTY_WEAK_REF : newTruffleWeakReference(Thread.currentThread());
+        // Cannot store a Thread id while pre-initializing
+        originalThreadId = context.isPreInitializing() ? 0 : Thread.currentThread().getId();
         originalThreadValue = Nil.INSTANCE;
     }
 
     public Object get(ConditionProfile sameThreadProfile) {
-        if (sameThreadProfile.profile(Thread.currentThread() == originalThread.get())) {
+        if (sameThreadProfile.profile(Thread.currentThread().getId() == originalThreadId)) {
             return originalThreadValue;
         } else {
             return fallbackGet();
@@ -60,7 +60,7 @@ public class ThreadAndFrameLocalStorage {
     }
 
     public void set(Object value, ConditionProfile sameThreadProfile) {
-        if (sameThreadProfile.profile(Thread.currentThread() == originalThread.get())) {
+        if (sameThreadProfile.profile(Thread.currentThread().getId() == originalThreadId)) {
             originalThreadValue = value;
         } else {
             fallbackSet(value);
@@ -70,11 +70,6 @@ public class ThreadAndFrameLocalStorage {
     @TruffleBoundary
     private void fallbackSet(Object value) {
         getOtherThreadValues().set(value);
-    }
-
-    @TruffleBoundary // GR-25356
-    private static TruffleWeakReference<Thread> newTruffleWeakReference(Thread thread) {
-        return new TruffleWeakReference<>(thread);
     }
 
 }

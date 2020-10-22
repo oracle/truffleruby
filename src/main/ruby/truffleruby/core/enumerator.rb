@@ -386,12 +386,12 @@ class Enumerator
     end
 
     def grep(pattern, &block)
-      binding = block ? block.binding : Primitive.caller_binding
+      s = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
         matches = pattern === val
-        Primitive.frame_local_variable_set(:$~, $~, binding)
+        Primitive.regexp_last_match_set(s, $~)
 
         if matches
           if block
@@ -404,12 +404,12 @@ class Enumerator
     end
 
     def grep_v(pattern, &block)
-      binding = block ? block.binding : Primitive.caller_binding
+      s = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
         matches = pattern === val
-        Primitive.frame_local_variable_set(:$~, $~, binding)
+        Primitive.regexp_last_match_set(s, $~)
 
         unless matches
           if block
