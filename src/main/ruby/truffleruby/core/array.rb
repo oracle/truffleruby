@@ -444,7 +444,7 @@ class Array
     return self.dup if level == 0
 
     out = self.class.allocate # new_reserved size
-    Truffle::ArrayOperations.flatten_helper(self, out, level)
+    Primitive.array_flatten_helper(self, out, level)
     Primitive.infect(out, self)
     out
   end
@@ -456,7 +456,7 @@ class Array
     return nil if level == 0
 
     out = self.class.allocate # new_reserved size
-    if Truffle::ArrayOperations.flatten_helper(self, out, level)
+    if Primitive.array_flatten_helper(self, out, level)
       Primitive.steal_array_storage(self, out)
       return self
     end

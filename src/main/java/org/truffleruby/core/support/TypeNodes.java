@@ -261,6 +261,12 @@ public abstract class TypeNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
 
+        public static CanContainObjectNode create() {
+            return TypeNodesFactory.CanContainObjectNodeFactory.create(null);
+        }
+
+        abstract public boolean execute(RubyArray array);
+
         @Specialization(
                 guards = {
                         "stores.accepts(array.store)",
