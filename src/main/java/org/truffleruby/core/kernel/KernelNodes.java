@@ -696,45 +696,14 @@ public abstract class KernelNodes {
         public abstract Object execute(VirtualFrame frame, Object target, RubyString source, RubyBinding binding,
                 RubyString file, int line);
 
-        // If the source defines new local variables, those should be set in the Binding.
-        // So we have 2 specializations for whether or not the code defines new local variables.
-
         @Specialization(
                 guards = {
                         "equalNode.execute(source.rope, cachedSource)",
                         "equalNode.execute(file.rope, cachedFile)",
                         "line == cachedLine",
-                        "!assignsNewUserVariables(getDescriptor(cachedRootNode))",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
-        protected Object evalBindingNoAddsVarsCached(
-                Object target,
-                RubyString source,
-                RubyBinding binding,
-                RubyString file,
-                int line,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("privatizeRope(file)") Rope cachedFile,
-                @Cached("line") int cachedLine,
-                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
-                @Cached("createCallTarget(cachedRootNode)") RootCallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = binding.getFrame();
-            return eval(target, cachedRootNode, cachedCallTarget, callNode, parentFrame);
-        }
-
-        @Specialization(
-                guards = {
-                        "equalNode.execute(source.rope, cachedSource)",
-                        "equalNode.execute(file.rope, cachedFile)",
-                        "line == cachedLine",
-                        "assignsNewUserVariables(getDescriptor(cachedRootNode))",
-                        "!assignsNewUserVariables(getDescriptor(rootNodeToEval))",
-                        "bindingDescriptor == getBindingDescriptor(binding)" },
-                limit = "getCacheLimit()")
-        protected Object evalBindingAddsVarsCached(
+        protected Object evalBindingCached(
                 Object target,
                 RubyString source,
                 RubyBinding binding,
