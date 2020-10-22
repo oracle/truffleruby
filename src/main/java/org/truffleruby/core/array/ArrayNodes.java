@@ -17,6 +17,8 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.graalvm.collections.EconomicSet;
+import org.graalvm.collections.Equivalence;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -26,6 +28,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.SimpleStack;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
@@ -2336,6 +2339,100 @@ public abstract class ArrayNodes {
         protected boolean isStoreNative(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             return stores.isNative(array.store);
+        }
+    }
+
+    @Primitive(name = "array_flatten_helper", lowerFixnum = 2)
+    public abstract static class FlattenHelperNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "!canContainObject.execute(array)")
+        protected boolean flattenHelperPrimitive(RubyArray array, RubyArray out, int maxLevels,
+                @Cached ArrayAppendManyNode concat,
+                @Cached TypeNodes.CanContainObjectNode canContainObject) {
+            concat.executeAppendMany(out, array);
+            return false;
+        }
+
+        @Specialization(replaces = "flattenHelperPrimitive")
+        protected boolean flattenHelper(RubyArray array, RubyArray out, int maxLevels,
+                @CachedLanguage RubyLanguage language,
+                @Cached TypeNodes.CanContainObjectNode canContainObject,
+                @Cached ArrayAppendManyNode concat,
+                @Cached AtNode at,
+                @Cached DispatchNode convert,
+                @Cached ArrayAppendOneNode append) {
+
+            boolean modified = false;
+            final EconomicSet<RubyArray> visited = EconomicSet.create(Equivalence.IDENTITY);
+            class Entry {
+                final RubyArray array;
+                final int index;
+
+                Entry(RubyArray array, int index) {
+                    this.array = array;
+                    this.index = index;
+                }
+            }
+            final SimpleStack<Entry> workStack = new SimpleStack<>();
+            workStack.push(new Entry(array, 0));
+
+            while (!workStack.isEmpty()) {
+                final Entry e = workStack.pop();
+
+                if (e.index == 0) {
+                    if (!canContainObject.execute(e.array)) {
+                        concat.executeAppendMany(out, e.array);
+                        continue;
+                    } else if (contains(visited, e.array)) {
+                        throw new RaiseException(
+                                getContext(),
+                                coreExceptions().argumentError("tried to flatten recursive array", this));
+                    } else if (maxLevels == workStack.size()) {
+                        concat.executeAppendMany(out, e.array);
+                        continue;
+                    }
+                    add(visited, e.array);
+                }
+
+                int i = e.index;
+                for (; i < e.array.size; ++i) {
+                    final Object obj = at.executeAt(e.array, i);
+                    final Object converted = convert.call(
+                            coreLibrary().truffleTypeModule,
+                            "rb_check_convert_type",
+                            obj,
+                            coreLibrary().arrayClass,
+                            language.coreSymbols.TO_ARY);
+                    if (converted == nil) {
+                        append.executeAppendOne(out, obj);
+                    } else {
+                        modified = true;
+                        workStack.push(new Entry(e.array, i + 1));
+                        workStack.push(new Entry((RubyArray) converted, 0));
+                        break;
+                    }
+                }
+                if (i == e.array.size) {
+                    remove(visited, e.array);
+                }
+            }
+
+            return modified;
+        }
+
+        @TruffleBoundary
+        private static boolean contains(EconomicSet<RubyArray> set, RubyArray array) {
+            return set.contains(array);
+        }
+
+        @TruffleBoundary
+        private static void remove(EconomicSet<RubyArray> set, RubyArray array) {
+            set.remove(array);
+        }
+
+        @TruffleBoundary
+        private static void add(EconomicSet<RubyArray> set, RubyArray array) {
+            set.add(array);
         }
     }
 }

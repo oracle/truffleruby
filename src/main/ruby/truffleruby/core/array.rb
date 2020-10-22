@@ -444,7 +444,7 @@ class Array
     return self.dup if level == 0
 
     out = self.class.allocate # new_reserved size
-    recursively_flatten(self, out, level)
+    Primitive.array_flatten_helper(self, out, level)
     Primitive.infect(out, self)
     out
   end
@@ -456,7 +456,7 @@ class Array
     return nil if level == 0
 
     out = self.class.allocate # new_reserved size
-    if recursively_flatten(self, out, level)
+    if Primitive.array_flatten_helper(self, out, level)
       Primitive.steal_array_storage(self, out)
       return self
     end
@@ -1250,44 +1250,6 @@ class Array
       out
     end
   end
-
-  # Helper to recurse through flattening since the method
-  # is not allowed to recurse itself. Detects recursive structures.
-  def recursively_flatten(array, out, max_levels = -1)
-    modified = false
-
-    # Strict equality since < 0 means 'infinite'
-    if max_levels == 0
-      out.concat(array)
-      return false
-    end
-
-    max_levels -= 1
-    recursion = Truffle::ThreadOperations.detect_recursion(array) do
-      array = Truffle::Type.coerce_to(array, Array, :to_ary)
-
-      i = 0
-      size = array.size
-
-      while i < size
-        o = array.at i
-
-        tmp = Truffle::Type.rb_check_convert_type(o, Array, :to_ary)
-        if Primitive.nil? tmp
-          out << o
-        else
-          modified = true
-          recursively_flatten tmp, out, max_levels
-        end
-
-        i += 1
-      end
-    end
-
-    raise ArgumentError, 'tried to flatten recursive array' if recursion
-    modified
-  end
-  private :recursively_flatten
 
   private def sort_fallback(&block)
     # Use this instead of #dup as we want an instance of Array
