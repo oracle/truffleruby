@@ -79,8 +79,6 @@ brew services start mysql
 brew services stop mysql
 ```
 
-PostgreSQL will not work on TruffleRuby yet.
-
 ## Comparison to JRuby
 
 JRuby does not support C extensions, so the gems `sqlite3`, `mysql2` and `pg`
