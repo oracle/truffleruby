@@ -319,7 +319,7 @@ module Kernel
       receiver = a_binding.receiver
     else
       receiver = self
-      a_binding = Primitive.caller_binding
+      a_binding = Primitive.caller_binding_with_new_frame
     end
 
     Primitive.kernel_eval(receiver, str, a_binding, file, line)

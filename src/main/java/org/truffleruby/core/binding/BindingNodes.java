@@ -414,4 +414,16 @@ public abstract class BindingNodes {
             return BindingNodes.createBinding(getContext(), callerFrame);
         }
     }
+
+    @Primitive(name = "caller_binding_with_new_frame")
+    public abstract static class CallerBindingWithNewFrameNode extends PrimitiveArrayArgumentsNode {
+
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
+
+        @Specialization
+        protected RubyBinding binding(VirtualFrame frame) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+            return BindingNodes.createBinding(getContext(), newFrame(callerFrame));
+        }
+    }
 }
