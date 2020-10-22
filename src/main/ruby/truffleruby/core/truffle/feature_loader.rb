@@ -21,12 +21,14 @@ module Truffle
     @expanded_load_path = []
     # A snapshot of $LOAD_PATH, to check if the @expanded_load_path cache is up to date.
     @load_path_copy = []
+    @working_directory_copy = ''
 
     def self.clear_cache
       @loaded_features_index.clear
       @loaded_features_copy.clear
       @expanded_load_path.clear
       @load_path_copy.clear
+      @working_directory_copy.clear
     end
 
     class FeatureEntry
@@ -278,9 +280,10 @@ module Truffle
     end
 
     def self.get_expanded_load_path
-      unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH)
+      unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH) && Primitive.working_directory == @working_directory_copy
         @expanded_load_path = $LOAD_PATH.map { |path| Primitive.canonicalize_path(Truffle::Type.coerce_to_path(path)) }
-        @loaded_features_copy = $LOAD_PATH.dup
+        @load_path_copy = $LOAD_PATH.dup
+        @working_directory_copy = Primitive.working_directory
       end
       @expanded_load_path
     end
