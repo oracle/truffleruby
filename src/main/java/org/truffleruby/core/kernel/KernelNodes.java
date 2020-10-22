@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -749,8 +750,12 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
+            final MaterializedFrame originalFrame = binding.getFrame();
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(target, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            final Object result = eval(target, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            syncOriginalFrame(originalFrame, parentFrame);
+
+            return result;
         }
 
         @Specialization
@@ -761,13 +766,19 @@ public abstract class KernelNodes {
                 RubyString file,
                 int line,
                 @Cached IndirectCallNode callNode) {
+            final MaterializedFrame originalFrame = binding.getFrame();
+            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding.getFrame());
             final CodeLoader.DeferredCall deferredCall = doEvalX(
                     target,
                     source.rope,
                     binding,
                     file.rope,
+                    parentFrame,
                     line);
-            return deferredCall.call(callNode);
+            final Object result = deferredCall.call(callNode);
+            syncOriginalFrame(originalFrame, parentFrame);
+
+            return result;
         }
 
         private Object eval(Object target, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
@@ -793,8 +804,8 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(Object target, Rope source, RubyBinding binding, Rope file, int line) {
-            final MaterializedFrame frame = BindingNodes.newFrame(binding.getFrame());
+        private CodeLoader.DeferredCall doEvalX(Object target, Rope source, RubyBinding binding, Rope file,
+                MaterializedFrame frame, int line) {
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
@@ -854,6 +865,15 @@ public abstract class KernelNodes {
 
         protected int getCacheLimit() {
             return getContext().getOptions().EVAL_CACHE;
+        }
+
+        protected void syncOriginalFrame(MaterializedFrame originalFrame, MaterializedFrame currentFrame) {
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(originalFrame);
+            final Map<RubyModule, RubyModule[]> newRefinements = RubyArguments
+                    .getDeclarationContext(currentFrame)
+                    .getRefinements();
+
+            DeclarationContext.setRefinements(originalFrame, declarationContext, newRefinements);
         }
     }
 
