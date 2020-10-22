@@ -38,7 +38,7 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isStaticSymbol(value)")
-    protected Object unwrapStaticUncached(long value,
+    protected Object unwrapStaticSymbol(long value,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile) {
@@ -56,7 +56,7 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!isStaticSymbol(value)")
-    protected Object unwrapObject(Object value,
+    protected Object unwrapDynamicSymbol(Object value,
             @Cached UnwrapNode unwrapNode) {
         return unwrapNode.execute(value);
     }
