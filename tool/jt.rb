@@ -2596,6 +2596,15 @@ end
 class JT
   include Commands
 
+  def self.ruby(*args)
+    jt = JT.new
+    jt.send(:run_ruby, *args)
+  end
+
+  def self.gem_test_pack
+    JT.new.gem_test_pack
+  end
+
   def main(args)
     args = args.dup
 
