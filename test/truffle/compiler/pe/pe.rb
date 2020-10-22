@@ -24,7 +24,7 @@
 #
 # Run with:
 #
-#   jt --env jvm-ce ruby --experimental-options --engine.TraceCompilation --check-compilation --engine.IterativePartialEscape test.rb
+#   jt --env jvm-ce ruby --experimental-options --engine.TraceCompilation --check-compilation --engine.IterativePartialEscape --engine.MultiTier=false test.rb
 
 require_relative 'pe_harness'
 

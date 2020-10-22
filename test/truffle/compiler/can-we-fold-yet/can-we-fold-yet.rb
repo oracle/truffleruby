@@ -6,7 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# Use --experimental-options --engine.IterativePartialEscape
+# Use --experimental-options --engine.IterativePartialEscape --engine.MultiTier=false
 
 require 'readline'
 
