@@ -13,7 +13,6 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -29,6 +28,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.SimpleStack;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
@@ -2364,7 +2364,6 @@ public abstract class ArrayNodes {
 
             boolean modified = false;
             final EconomicSet<RubyArray> visited = EconomicSet.create(Equivalence.IDENTITY);
-            // final HashSet<RubyArray> visited = new HashSet<>();
             class Entry {
                 final RubyArray array;
                 final int index;
@@ -2374,7 +2373,7 @@ public abstract class ArrayNodes {
                     this.index = index;
                 }
             }
-            final ArrayDeque<Entry> workStack = new ArrayDeque<>();
+            final SimpleStack<Entry> workStack = new SimpleStack<>();
             workStack.push(new Entry(array, 0));
 
             while (!workStack.isEmpty()) {
