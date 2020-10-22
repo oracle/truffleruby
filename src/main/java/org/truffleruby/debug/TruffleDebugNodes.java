@@ -43,7 +43,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -287,16 +286,6 @@ public abstract class TruffleDebugNodes {
             NodeUtil.printCompactTree(System.err, callTarget.getRootNode());
         }
 
-    }
-
-    @CoreMethod(names = "object_type_of", onSingleton = true, required = 1)
-    public abstract static class ObjectTypeOfNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected RubySymbol objectTypeOf(RubyDynamicObject value) {
-            return getSymbol(value.getShape().getObjectType().getClass().getSimpleName());
-        }
     }
 
     @CoreMethod(names = "shape", onSingleton = true, required = 1)

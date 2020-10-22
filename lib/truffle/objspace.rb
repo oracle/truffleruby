@@ -76,9 +76,9 @@ module ObjectSpace
 
   def count_tdata_objects(hash = {})
     ObjectSpace.each_object do |object|
-      object_type = Truffle.object_type_of(object)
-      hash[object_type] ||= 0
-      hash[object_type] += 1
+      klass = object.class
+      hash[klass] ||= 0
+      hash[klass] += 1
     end
     hash
   end

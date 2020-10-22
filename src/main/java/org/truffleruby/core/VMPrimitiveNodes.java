@@ -277,7 +277,7 @@ public abstract class VMPrimitiveNodes {
                 final TruffleContext truffleContext = context.getEnv().getContext();
                 final Object prev;
                 try {
-                    prev = truffleContext.enter();
+                    prev = truffleContext.enter(this);
                 } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
                     // Not in a context, so we cannot use TruffleLogger
                     final PrintStream printStream = BacktraceFormatter.printStreamFor(context.getEnv().err());
@@ -304,7 +304,7 @@ public abstract class VMPrimitiveNodes {
                                 }
                             });
                 } finally {
-                    truffleContext.leave(prev);
+                    truffleContext.leave(this, prev);
                 }
             });
         }
