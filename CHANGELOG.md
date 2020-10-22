@@ -50,6 +50,8 @@ Compatibility:
 * Convert objects with `#to_path` in `$LOAD_PATH` (#2119).
 * Handle the functions being native for `rb_thread_call_without_gvl()` (#2090).
 * Support refinements for Kernel#respond_to? (#2120, @ssnickolay)
+* JCodings has been updated from 1.0.45 to 1.0.55.
+* Joni has been updated from 2.1.30 to 2.1.40.
 
 Performance:
 
