@@ -455,7 +455,6 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)
-    @ReportPolymorphism
     public abstract static class ClearNode extends ArrayCoreMethodNode {
 
         @Specialization
