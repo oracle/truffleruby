@@ -41,7 +41,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SU
 ================================================================================
 
-JONI 2.1.30
+JONI 2.1.40
 
 /*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -365,7 +365,7 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 ================================================================================
 
-JCodings 1.0.45
+JCodings 1.0.55
 
 /*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
