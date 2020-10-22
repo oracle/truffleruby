@@ -54,7 +54,7 @@ suite = {
                 "version": "2.1.40"
             },
             "sha1": "18766fa1b624d615d3a1cac513bf729adfd6b38f",
-            "sourceSha1": "a1444342fc0c275613d43ca3d0a71ce919d85b18",
+            "sourceSha1": "85bb9546e4c63f00f02531eeab795685566baf7b",
             "license": ["MIT"],
         },
 
@@ -65,7 +65,7 @@ suite = {
                 "version": "1.0.55"
             },
             "sha1": "57169ef6964f44aef67b247cb87f053d93182488",
-            "sourceSha1": "702693ea01e006385f2834ad56dad54b7a4ca248",
+            "sourceSha1": "071891163f601416a5426d8f05b7d46139217ff1",
             "license": ["MIT"],
         },
     },
