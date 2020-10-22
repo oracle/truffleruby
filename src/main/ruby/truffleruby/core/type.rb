@@ -385,14 +385,6 @@ module Truffle
     INT_MIN = -2147483648
     INT_MAX = 2147483647
 
-    def self.clamp_to_int(n)
-      if Primitive.integer_fits_into_int(n)
-        Primitive.integer_lower(n)
-      else
-        n > 0 ? INT_MAX : INT_MIN
-      end
-    end
-
     def self.coerce_to_float(obj)
       case obj
       when Float
