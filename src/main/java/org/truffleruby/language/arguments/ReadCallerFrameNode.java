@@ -27,7 +27,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public class ReadCallerFrameNode extends RubyContextNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.create();
-    @CompilationFinal private volatile boolean deoptWhenNotPassedCallerFrame = true;
     @Child private NotOptimizedWarningNode notOptimizedNode = null;
 
     public static ReadCallerFrameNode create() {
@@ -40,12 +39,6 @@ public class ReadCallerFrameNode extends RubyContextNode {
         if (callerFrameProfile.profile(callerFrame != null)) {
             return callerFrame;
         } else {
-            // Every time the caller of the method using ReadCallerFrameNode changes,
-            // we need to notify the caller's CachedDispatchNode to pass us the frame next time.
-            if (deoptWhenNotPassedCallerFrame) {
-                // Invalidate because deoptWhenNotPassedCallerFrame might change and require recompilation
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-            }
             return getCallerFrame();
         }
     }
@@ -56,7 +49,6 @@ public class ReadCallerFrameNode extends RubyContextNode {
             // If we fail to notify the call node (e.g., because it is a UncachedDispatchNode which is not handled yet),
             // we don't want to deoptimize this CallTarget on every call.
             getNotOptimizedNode().warn("Unoptimized reading of caller frame.");
-            deoptWhenNotPassedCallerFrame = false;
         }
         return getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
     }
