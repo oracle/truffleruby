@@ -170,6 +170,7 @@ public class FeatureLoader {
         this.cwd = cwd;
     }
 
+    @TruffleBoundary
     public String getWorkingDirectory() {
         if (cwd != null) {
             return cwd;

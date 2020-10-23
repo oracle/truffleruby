@@ -146,6 +146,17 @@ public abstract class TruffleSystemNodes {
         }
     }
 
+    @Primitive(name = "working_directory")
+    public abstract static class GetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyString getTruffleWorkingDir(
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final String cwd = getContext().getFeatureLoader().getWorkingDirectory();
+            final Encoding externalEncoding = getContext().getEncodingManager().getDefaultExternalEncoding();
+            return makeStringNode.executeMake(cwd, externalEncoding, CodeRange.CR_UNKNOWN);
+        }
+    }
+
     @CoreMethod(names = "get_java_property", onSingleton = true, required = 1)
     public abstract static class GetJavaPropertyNode extends CoreMethodArrayArgumentsNode {
 
