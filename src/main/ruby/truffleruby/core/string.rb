@@ -41,21 +41,6 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
-  private def range_begin(range, size)
-    first = Primitive.rb_num2int range.begin
-    first += size if first < 0
-    first
-  end
-
-  private def range_end(range, size)
-    last = range.end
-    return size - 1 if last.equal? nil
-    last = Primitive.rb_num2int last
-    last += size if last < 0
-    last -= 1 if range.exclude_end?
-    last
-  end
-
   def byteslice(index_or_range, length=undefined)
     # Handles the (int index) and (int index, int length) forms.
     str = Primitive.string_byte_substring self, index_or_range, length
@@ -63,10 +48,8 @@ class String
 
     # Convert to (int index, int length) form.
     if Range === index_or_range && Primitive.undefined?(length)
-      index = range_begin(index_or_range, bytesize)
+      index, length = Primitive.range_normalized_start_length(index_or_range, bytesize)
       return if index < 0 or index > bytesize
-      finish = range_end(index_or_range, bytesize)
-      length = finish + 1 - index
       return byteslice 0, 0 if length < 0
     else
       index = Primitive.rb_num2long(index_or_range)
