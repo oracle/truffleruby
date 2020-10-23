@@ -208,7 +208,7 @@ public abstract class RegexpNodes {
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
 
                 final Rope rope = language.ropeCache.getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                final RubySymbol name = getContext().getSymbol(rope);
+                final RubySymbol name = getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final RubyArray backrefsRubyArray = createArray(backrefs);
