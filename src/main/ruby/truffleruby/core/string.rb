@@ -1137,21 +1137,13 @@ class String
   end
 
   def assign_range(index, replacement)
-    start = Primitive.rb_to_int index.first
+    start, length = Primitive.range_normalized_start_length(index, size)
+    stop = start + length - 1
 
-    start += size if start < 0
+    raise RangeError, "#{index.first} is out of range" if start < 0 or start > size
 
-    if start < 0 or start > size
-      raise RangeError, "#{index.first} is out of range"
-    end
-
-    unless bi = Primitive.string_byte_index_from_char_index(self, start)
-      raise IndexError, "unable to find character at: #{start}"
-    end
-
-    stop = Primitive.rb_to_int index.last
-    stop += size if stop < 0
-    stop -= 1 if index.exclude_end?
+    bi = Primitive.string_byte_index_from_char_index(self, start)
+    raise IndexError, "unable to find character at: #{start}" unless bi
 
     if stop < start
       bs = 0
