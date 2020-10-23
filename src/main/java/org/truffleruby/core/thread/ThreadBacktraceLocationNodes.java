@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -49,11 +51,12 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode,
+                @CachedLanguage RubyLanguage language) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
-                return coreStrings().UNKNOWN.createInstance(getContext());
+                return language.coreStrings.UNKNOWN.createInstance(getContext());
             } else {
                 final Source source = sourceSection.getSource();
                 if (BacktraceFormatter.isRubyCore(getContext(), source)) {
@@ -80,11 +83,12 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString path(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached StringNodes.MakeStringNode makeStringNode,
+                @CachedLanguage RubyLanguage language) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
-                return coreStrings().UNKNOWN.createInstance(getContext());
+                return language.coreStrings.UNKNOWN.createInstance(getContext());
             } else {
                 final Rope path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
                 return makeStringNode.fromRope(path);

@@ -1218,9 +1218,10 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
+        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block,
+                @CachedLanguage RubyLanguage language) {
             RubyArray copy = null;
-            if (respondToToAry(object)) {
+            if (respondToToAry(language, object)) {
                 Object toAryResult = callToAry(object);
                 if (toAryResult instanceof RubyArray) {
                     copy = (RubyArray) toAryResult;
@@ -1235,13 +1236,13 @@ public abstract class ArrayNodes {
             }
         }
 
-        public boolean respondToToAry(Object object) {
+        public boolean respondToToAry(RubyLanguage language, Object object) {
             if (respondToToAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
             return respondToToAryNode
-                    .executeDoesRespondTo(null, object, coreStrings().TO_ARY.createInstance(getContext()), true);
+                    .executeDoesRespondTo(null, object, language.coreStrings.TO_ARY.createInstance(getContext()), true);
         }
 
         protected Object callToAry(Object object) {

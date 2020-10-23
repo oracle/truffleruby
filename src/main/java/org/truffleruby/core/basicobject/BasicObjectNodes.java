@@ -373,14 +373,15 @@ public abstract class BasicObjectNodes {
                 NotProvided line,
                 NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
-                @Cached IndirectCallNode callNode) {
+                @Cached IndirectCallNode callNode,
+                @CachedLanguage RubyLanguage language) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return instanceEvalHelper(
                     callerFrame,
                     receiver,
                     string,
-                    coreStrings().EVAL_FILENAME_STRING.createInstance(getContext()),
+                    language.coreStrings.EVAL_FILENAME_STRING.createInstance(getContext()),
                     1,
                     callNode);
         }

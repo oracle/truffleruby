@@ -439,11 +439,12 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "count < 0")
-        protected RubyString negativeCount(int count) {
+        protected RubyString negativeCount(int count,
+                @CachedLanguage RubyLanguage language) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(
-                            getContext().getCoreStrings().NEGATIVE_STRING_SIZE.getRope(),
+                            language.coreStrings.NEGATIVE_STRING_SIZE.getRope(),
                             this));
         }
 

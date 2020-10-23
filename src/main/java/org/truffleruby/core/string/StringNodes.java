@@ -463,14 +463,15 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isRubyString(b)")
-        protected boolean equal(RubyString a, Object b) {
+        protected boolean equal(RubyString a, Object b,
+                @CachedLanguage RubyLanguage language) {
             if (respondToNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
 
             if (respondToNode
-                    .executeDoesRespondTo(null, b, coreStrings().TO_STR.createInstance(getContext()), false)) {
+                    .executeDoesRespondTo(null, b, language.coreStrings.TO_STR.createInstance(getContext()), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(DispatchNode.create());
