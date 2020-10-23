@@ -21,14 +21,15 @@ module Truffle
     @expanded_load_path = []
     # A snapshot of $LOAD_PATH, to check if the @expanded_load_path cache is up to date.
     @load_path_copy = []
-    @working_directory_copy = ''
+    @relative_path_in_load_path = false
+    @working_directory_copy = nil
 
     def self.clear_cache
       @loaded_features_index.clear
       @loaded_features_copy.clear
       @expanded_load_path.clear
       @load_path_copy.clear
-      @working_directory_copy.clear
+      @working_directory_copy = nil
     end
 
     class FeatureEntry
@@ -280,13 +281,33 @@ module Truffle
     end
 
     def self.get_expanded_load_path
-      unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH) && Primitive.working_directory == @working_directory_copy
-        @expanded_load_path = $LOAD_PATH.map { |path| Primitive.canonicalize_path(Truffle::Type.coerce_to_path(path)) }
+      unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH) && same_working_directory_for_load_path?
+        @expanded_load_path = $LOAD_PATH.map do |path|
+          path = Truffle::Type.coerce_to_path(path)
+          unless @relative_path_in_load_path
+            unless File.absolute_path?(path)
+              @working_directory_copy = Primitive.working_directory
+              @relative_path_in_load_path = true
+            end
+          end
+          Primitive.canonicalize_path(path)
+        end
         @load_path_copy = $LOAD_PATH.dup
-        @working_directory_copy = Primitive.working_directory
       end
       @expanded_load_path
     end
 
+    def self.same_working_directory_for_load_path?
+      if @relative_path_in_load_path
+        if Primitive.working_directory == @working_directory_copy
+          true
+        else
+          @working_directory_copy = Primitive.working_directory
+          false
+        end
+      else
+        true # no relative path in $LOAD_PATH, no need to check the working directory
+      end
+    end
   end
 end
