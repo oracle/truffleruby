@@ -29,7 +29,6 @@ public abstract class ProcOperations {
         return RubyArguments.pack(
                 proc.declarationFrame,
                 null,
-                null,
                 proc.method,
                 proc.frameOnStackMarker,
                 getSelf(proc),

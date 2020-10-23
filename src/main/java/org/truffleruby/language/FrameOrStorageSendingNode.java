@@ -150,23 +150,14 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
     private synchronized void resetNeedsCallerAssumption() {
         Node root = getRootNode();
-        if (root instanceof RubyRootNode && !sendingFrames()) {
+        if (root instanceof RubyRootNode && (!sendingFrames() || !sendingStorage())) {
             needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
         } else {
             needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
         }
     }
 
-    private synchronized void resetNeedsStorageAssumption() {
-        Node root = getRootNode();
-        if (root instanceof RubyRootNode && !sendingStorage()) {
-            needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
-        } else {
-            needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
-        }
-    }
-
-    public MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
+    public Object getFrameOrStorageIfRequired(VirtualFrame frame) {
         if (frame == null) { // the frame should be proved null or non-null at PE time
             return null;
         }
@@ -180,41 +171,38 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
         } catch (InvalidAssumptionException e) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             resetNeedsCallerAssumption();
+        }
+
+        SpecialVariableStorage storage;
+        MaterializedFrame sendFrame;
+
+        switch (sendsStorage) {
+            case MY_FRAME:
+                storage = readMyStorage.execute(frame);
+                break;
+            case CALLER_FRAME:
+                storage = readCallerStorage.execute(frame);
+                break;
+            default:
+                storage = null;
         }
 
         switch (sendsFrame) {
             case MY_FRAME:
-                return frame.materialize();
+                sendFrame = frame.materialize();
+                break;
             case CALLER_FRAME:
-                return readCaller.execute(frame);
+                sendFrame = readCaller.execute(frame);
+                break;
             default:
-                return null;
+                sendFrame = null;
+        }
+
+        if (frame != null && storage != null) {
+            return new FrameOrStorage(storage, sendFrame);
+        } else {
+            return sendFrame != null ? sendFrame : storage;
         }
     }
 
-    public SpecialVariableStorage getStorageIfRequired(VirtualFrame frame) {
-        if (frame == null) { // the frame should be proved null or non-null at PE time
-            return null;
-        }
-
-        if (needsCallerAssumption == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            resetNeedsStorageAssumption();
-        }
-        try {
-            needsCallerAssumption.check();
-        } catch (InvalidAssumptionException e) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            resetNeedsStorageAssumption();
-        }
-
-        switch (sendsStorage) {
-            case MY_FRAME:
-                return readMyStorage.execute(frame);
-            case CALLER_FRAME:
-                return readCallerStorage.execute(frame);
-            default:
-                return null;
-        }
-    }
 }

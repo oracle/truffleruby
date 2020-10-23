@@ -11,7 +11,6 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -36,7 +35,6 @@ import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
-import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.options.Options;
 
 public class DispatchNode extends FrameOrStorageSendingNode {
@@ -142,10 +140,9 @@ public class DispatchNode extends FrameOrStorageSendingNode {
             }
         }
 
-        final MaterializedFrame callerFrame = getFrameIfRequired(frame);
-        final SpecialVariableStorage callerStorage = getStorageIfRequired(frame);
+        final Object callerFrameOrStorage = getFrameOrStorageIfRequired(frame);
         final Object[] frameArguments = RubyArguments
-                .pack(null, callerFrame, callerStorage, method, null, receiver, block, arguments);
+                .pack(null, callerFrameOrStorage, method, null, receiver, block, arguments);
 
         return callNode.execute(method, frameArguments);
     }

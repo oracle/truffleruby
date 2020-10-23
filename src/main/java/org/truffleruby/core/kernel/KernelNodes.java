@@ -784,7 +784,6 @@ public abstract class KernelNodes {
             return callNode.call(RubyArguments.pack(
                     parentFrame,
                     null,
-                    null,
                     method,
                     null,
                     target,

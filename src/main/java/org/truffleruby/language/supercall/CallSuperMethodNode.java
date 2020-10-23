@@ -52,8 +52,7 @@ public class CallSuperMethodNode extends FrameOrStorageSendingNode {
         final Object[] frameArguments = RubyArguments
                 .pack(
                         null,
-                        getFrameIfRequired(frame),
-                        getStorageIfRequired(frame),
+                        getFrameOrStorageIfRequired(frame),
                         superMethod,
                         null,
                         self,

@@ -80,7 +80,6 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
         final Object[] arguments = RubyArguments.pack(
                 frame.materialize(),
                 null,
-                null,
                 method,
                 null,
                 RubyArguments.getSelf(frame),

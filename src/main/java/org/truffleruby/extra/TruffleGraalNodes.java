@@ -156,7 +156,6 @@ public abstract class TruffleGraalNodes {
                     .pack(
                             null,
                             null,
-                            null,
                             RubyArguments.getMethod(proc.declarationFrame),
                             null,
                             nil,

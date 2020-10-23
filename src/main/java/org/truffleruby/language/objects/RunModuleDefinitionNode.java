@@ -46,7 +46,6 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
         return callModuleDefinitionNode.call(definition.getCallTarget(), RubyArguments.pack(
                 null,
                 null,
-                null,
                 definition,
                 null,
                 module,

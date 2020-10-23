@@ -45,7 +45,6 @@ public abstract class DebugHelpers {
         final Object[] packedArguments = RubyArguments.pack(
                 null,
                 null,
-                null,
                 RubyArguments.getMethod(currentFrame),
                 declarationContext,
                 null,
