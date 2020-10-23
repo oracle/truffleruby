@@ -6,11 +6,14 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+from __future__ import print_function
+
 import os
 import pipes
 from os.path import join, exists, basename
 
 import mx
+import mx_gate
 import mx_sdk
 import mx_subst
 import mx_spotbugs
@@ -128,6 +131,10 @@ def ruby_run_ruby(args):
 def ruby_run_specs(ruby, args):
     with VerboseMx():
         jt('--use', ruby, 'test', 'specs', *args)
+
+def ruby_jacoco_args(args):
+    mx_gate.add_jacoco_whitelisted_packages(['org.truffleruby'])
+    print(' '.join(mx_gate.get_jacoco_agent_args('append')))
 
 def ruby_testdownstream_hello(args):
     """Run a minimal Hello World test"""
@@ -255,4 +262,5 @@ mx.update_commands(_suite, {
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
     'ruby_spotbugs': [ruby_spotbugs, ''],
     'verify-ci' : [verify_ci, '[options]'],
+    'ruby_jacoco_args': [ruby_jacoco_args, ''],
 })

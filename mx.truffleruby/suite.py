@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.258.2",
+    "mxversion": "5.275.3",
     "name": "truffleruby",
 
     "imports": {
@@ -108,6 +108,7 @@ suite = {
         "org.truffleruby.annotations": {
             "dir": "src/annotations",
             "sourceDirs": ["java"],
+            "jacoco": "include",
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
@@ -125,6 +126,7 @@ suite = {
             "annotationProcessors": [
                 "TRUFFLERUBY-PROCESSOR",
             ],
+            "jacoco": "include",
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
@@ -139,6 +141,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffle:TRUFFLE_API",
             ],
+            "jacoco": "include",
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
@@ -152,6 +155,7 @@ suite = {
             "dependencies": [
                 "sdk:GRAAL_SDK",
             ],
+            "jacoco": "include",
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
@@ -175,6 +179,7 @@ suite = {
                 "truffle:TRUFFLE_DSL_PROCESSOR",
                 "TRUFFLERUBY-PROCESSOR",
             ],
+            "jacoco": "include",
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
@@ -215,6 +220,7 @@ suite = {
                 "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
+            "jacoco": "include",
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",

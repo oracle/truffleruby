@@ -847,6 +847,8 @@ module Commands
         args.unshift '--check-compilation'
       when '--asm'
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
+      when '--jacoco'
+        vm_args << jacoco_args
       when '--jdebug'
         vm_args << JDEBUG
       when '--jexception', '--jexceptions'
@@ -1196,6 +1198,11 @@ module Commands
     run_tests('test/truffle/compiler', args) do |test_script|
       sh env, test_script
     end
+  end
+
+  private def jacoco_args
+    out = mx('ruby_jacoco_args', '--quiet', '--no-warning', capture: :out).lines.last.chomp
+    out.sub('-', '--vm.')
   end
 
   private def test_cexts(*args)
