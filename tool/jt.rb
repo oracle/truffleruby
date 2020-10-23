@@ -631,7 +631,7 @@ module Commands
             parser                            build the parser
             options                           build the options
             core-symbols                      build the core symbols
-        jt build graalvm [options] [mx_options] [-- mx_build_options]
+        jt build graalvm [options] [mx options] [-- mx build options]
             graalvm                           build a GraalVM based on the given env file, the default is a minimal
                                               GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
                                               the Ruby is symlinked into rbenv or chruby if available
@@ -642,8 +642,8 @@ module Commands
                                               it is also linked in your ruby manager (if found) under the same name,
                                               by default it is the name of the mx env file,
                                               the named build stays until it is rebuilt or deleted manually
-            mx_options                        options passed directly to mx
-            mx_build_options                  options passed to the build command of mx
+            mx options                        options passed directly to mx
+            mx build options                  options passed to the 'build' command of mx
 
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
@@ -689,7 +689,7 @@ module Commands
       jt test ecosystem [TESTS] [options]            tests using the wider ecosystem such as bundler, Rails, etc
       jt test cexts [--no-openssl] [--no-gems] [test_names...]
                                                      run C extension tests (set GEM_HOME)
-      jt test unit                                   run Java unittests
+      jt test unit [unittest flags] [-- mx options]  run Java unittests
       jt test tck                                    run tck tests
       jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
       jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
