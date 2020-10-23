@@ -194,7 +194,8 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray regexpNames(RubyRegexp regexp) {
+        protected RubyArray regexpNames(RubyRegexp regexp,
+                @CachedLanguage RubyLanguage language) {
             final int size = regexp.regex.numberOfNames();
             if (size == 0) {
                 return ArrayHelpers.createEmptyArray(getContext());
@@ -206,9 +207,7 @@ public abstract class RegexpNodes {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
 
-                final Rope rope = getContext()
-                        .getRopeCache()
-                        .getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final Rope rope = language.ropeCache.getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                 final RubySymbol name = getContext().getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
