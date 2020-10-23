@@ -72,7 +72,6 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
     @CompilationFinal protected SendsFrame sendsFrame = SendsFrame.NO_FRAME;
     @CompilationFinal protected Assumption needsCallerAssumption;
     @CompilationFinal protected SendsFrame sendsStorage = SendsFrame.NO_FRAME;
-    @CompilationFinal protected Assumption needsStorageAssumption;
 
     @Child protected ReadCallerFrameNode readCaller;
     @Child protected ReadCallerStorageNode readCallerStorage;
@@ -133,7 +132,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
         // We'd only get AlwaysValidAssumption if the root node isn't Ruby (in which case this shouldn't be called),
         // or when we already know to send the frame (in which case we'd have exited above).
-        assert needsStorageAssumption != AlwaysValidAssumption.INSTANCE;
+        assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
 
         this.sendsStorage = storageToSend;
         if (storageToSend == SendsFrame.CALLER_FRAME) {
@@ -161,9 +160,9 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
     private synchronized void resetNeedsStorageAssumption() {
         Node root = getRootNode();
         if (root instanceof RubyRootNode && !sendingStorage()) {
-            needsStorageAssumption = ((RubyRootNode) root).getNeedsStorageAssumption();
+            needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
         } else {
-            needsStorageAssumption = AlwaysValidAssumption.INSTANCE;
+            needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
         }
     }
 
@@ -198,12 +197,12 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
             return null;
         }
 
-        if (needsStorageAssumption == null) {
+        if (needsCallerAssumption == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             resetNeedsStorageAssumption();
         }
         try {
-            needsStorageAssumption.check();
+            needsCallerAssumption.check();
         } catch (InvalidAssumptionException e) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             resetNeedsStorageAssumption();

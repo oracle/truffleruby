@@ -30,7 +30,6 @@ public class RubyRootNode extends RubyBaseRootNode {
     @Child private RubyNode body;
 
     private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller frame");
-    private CyclicAssumption needsStorageAssumption = new CyclicAssumption("needs caller special variables");
 
     public RubyRootNode(
             RubyContext context,
@@ -108,22 +107,18 @@ public class RubyRootNode extends RubyBaseRootNode {
     }
 
     public void invalidateNeedsCallerAssumption() {
-        needsCallerAssumption.invalidate();
-    }
-
-    public Assumption getNeedsStorageAssumption() {
-        return needsStorageAssumption.getAssumption();
+        needsCallerAssumption.invalidate("needs caller frame");
     }
 
     public synchronized void invalidateNeedsStorageAssumption() {
-        needsStorageAssumption.invalidate();
+        needsCallerAssumption.invalidate("needs caller special variable storage");
     }
 
     @Override
     public Node copy() {
         RubyRootNode root = (RubyRootNode) super.copy();
         root.needsCallerAssumption = new CyclicAssumption("needs caller frame");
-        root.needsStorageAssumption = new CyclicAssumption("needs caller special variables");
+        root.needsCallerAssumption = new CyclicAssumption("needs caller special variables");
         return root;
     }
 
