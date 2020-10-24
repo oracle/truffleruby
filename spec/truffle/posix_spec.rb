@@ -10,6 +10,18 @@
 
 require_relative '../ruby/spec_helper'
 
+describe "Truffle::POSIX" do
+  it "marks a method as unimplemented if the native function is not available on the current platform" do
+    Truffle::POSIX.should.respond_to?(:chdir)
+
+    Truffle::POSIX.attach_function :test_missing_function, [], :int
+
+    Truffle::POSIX.should.respond_to?(:test_missing_function) # not ideal but cannot be fixed while remaining lazy
+    -> { Truffle::POSIX.test_missing_function(0) }.should raise_error(NotImplementedError)
+    Truffle::POSIX.should_not.respond_to?(:test_missing_function)
+  end
+end
+
 describe "Truffle::POSIX returns the correct value for an identity function returning" do
   before :all do
     src = fixture __FILE__, "libtestnfi.c"
