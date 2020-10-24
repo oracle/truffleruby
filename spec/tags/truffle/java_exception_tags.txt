@@ -1,1 +1,3 @@
 slow:Java exceptions AssertionError in another Thread is rethrown on the main Ruby Thread
+slow:Java exceptions formats to include the source information
+slow:Java exceptions formats to include the source information including cause

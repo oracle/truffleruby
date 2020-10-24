@@ -13,6 +13,7 @@ import java.util.EnumSet;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.array.RubyArray;
@@ -50,7 +51,17 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
     public static void logJavaException(RubyContext context, Node currentNode, Throwable exception) {
         if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
-            exception.printStackTrace();
+            printStackTrace(exception);
+
+            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(currentNode);
+            }
+        }
+    }
+
+    public static void logUncaughtJavaException(RubyContext context, Node currentNode, Throwable exception) {
+        if (context.getOptions().EXCEPTIONS_PRINT_JAVA || context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
+            printStackTrace(exception);
 
             if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
                 context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(currentNode);
@@ -98,7 +109,15 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             throw exception;
         } catch (Throwable exception) {
             errorProfile.enter();
-            return new RaiseException(context, translateThrowable(context, exception), true);
+            if (exception instanceof TruffleException && !((TruffleException) exception).isInternalError()) {
+                // A foreign exception
+                return new RaiseException(context, translateTruffleException(context, exception), true);
+            } else {
+                // An internal exception
+                CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
+                logUncaughtJavaException(context, this, exception);
+                throw ExceptionOperations.rethrow(exception);
+            }
         }
     }
 
@@ -218,21 +237,10 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private RubyException translateThrowable(RubyContext context, Throwable throwable) {
-        if (throwable instanceof AssertionError) {
-            throw (AssertionError) throwable;
-        }
+    private RubyException translateTruffleException(RubyContext context, Throwable exception) {
+        assert exception instanceof TruffleException;
 
-        final boolean truffleException = throwable instanceof TruffleException;
-
-        if (context.getOptions().EXCEPTIONS_PRINT_JAVA ||
-                (!truffleException && context.getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA)) {
-            throwable.printStackTrace();
-
-            if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
-                context.getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            }
-        }
+        logJavaException(context, this, exception);
 
         // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
         // a Ruby one and linking them with Ruby Exception#cause.
@@ -241,7 +249,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         final StringBuilder builder = new StringBuilder();
         boolean firstException = true;
         Backtrace lastBacktrace = null;
-        Throwable t = throwable;
+        Throwable t = exception;
 
         while (t != null) {
             if (t.getClass().getSimpleName().equals("LazyStackTrace")) {
@@ -295,7 +303,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         if (lastBacktrace != null) {
             return context.getCoreExceptions().runtimeError(builder.toString(), lastBacktrace);
         } else {
-            return context.getCoreExceptions().runtimeError(builder.toString(), this, throwable);
+            return context.getCoreExceptions().runtimeError(builder.toString(), this, exception);
         }
     }
 
@@ -313,6 +321,11 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 break;
             }
         }
+    }
+
+    @TruffleBoundary
+    private static void printStackTrace(Throwable exception) {
+        exception.printStackTrace();
     }
 
 }
