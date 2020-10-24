@@ -24,6 +24,21 @@ describe :method_to_s, shared: true do
     @string.should =~ /\#bar/
   end
 
+  ruby_version_is "2.7" do
+    it "returns a String containing method arguments" do
+      obj = MethodSpecs::Methods.new
+      obj.method(:zero).send(@method).should.include?("()")
+      obj.method(:one_req).send(@method).should.include?("(a)")
+      obj.method(:one_req_named).send(@method).should.include?("(a:)")
+      obj.method(:zero_with_block).send(@method).should.include?("(&blk)")
+      obj.method(:one_opt).send(@method).should.include?("(a=...)")
+      obj.method(:one_opt_named).send(@method).should.include?("(a: ...)")
+      obj.method(:zero_with_splat).send(@method).should.include?("(*a)")
+      obj.method(:zero_with_double_splat).send(@method).should.include?("(**a)")
+      obj.method(:one_req_one_opt_with_splat_and_block).send(@method).should.include?("(a, b=..., *c, &blk)")
+    end
+  end
+
   it "returns a String containing the Module the method is defined in" do
     @string.should =~ /MethodSpecs::MyMod/
   end
