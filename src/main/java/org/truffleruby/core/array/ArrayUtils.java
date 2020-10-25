@@ -222,6 +222,15 @@ public abstract class ArrayUtils {
         return 0;
     }
 
+    public static int memchr(byte[] array, int start, byte find, int size) {
+        for (int i = start; i < start + size; i++) {
+            if (array[i] == find) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     @TruffleBoundary
     public static void sort(Object[] elements, int length) {
         Arrays.sort(elements, 0, length);

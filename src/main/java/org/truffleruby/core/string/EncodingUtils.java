@@ -180,8 +180,8 @@ public class EncodingUtils {
     }
 
     // rb_enc_mbcput
-    public static void encMbcput(int c, byte[] buf, int p, Encoding enc) {
-        enc.codeToMbc(c, buf, p);
+    public static int encMbcput(int c, byte[] buf, int p, Encoding enc) {
+        return enc.codeToMbc(c, buf, p);
     }
 
 }

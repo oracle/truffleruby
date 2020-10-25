@@ -9,6 +9,7 @@ Bug fixes:
 
 Compatibility:
 
+* Implement `String#undump` (#2131, @kustosz)
 
 Performance:
 
