@@ -218,7 +218,7 @@ describe "Kernel#warn" do
     # RubyGems redefines Kernel#warn so we need to use a subprocess and disable RubyGems here
     code = <<-RUBY
     module Warning
-      def warn(*args)
+      def warn(*args, **kwargs)
         super
       end
     end
