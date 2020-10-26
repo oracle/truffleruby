@@ -371,13 +371,21 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context, rubyModule, value);
 
+        final String autoloadPath = autoload ? ((RubyString) value).getJavaString() : null;
         RubyConstant previous;
         RubyConstant newConstant;
         do {
             previous = constants.get(name);
-            if (autoload && previous != null && previous.hasValue()) {
-                // abort, do not set an autoload constant, the constant already has a value
-                return null;
+            if (autoload && previous != null) {
+                if (previous.hasValue()) {
+                    // abort, do not set an autoload constant, the constant already has a value
+                    return null;
+                } else if (previous.isAutoload() &&
+                        previous.getAutoloadConstant().getAutoloadPath().equals(autoloadPath)) {
+                    // already an autoload constant with the same path,
+                    // do nothing so we don't replace the AutoloadConstant#autoloadLock which might be already acquired
+                    return null;
+                }
             }
             newConstant = newConstant(currentNode, name, value, autoload, previous);
         } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
