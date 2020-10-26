@@ -315,6 +315,8 @@ public class ThreadManager {
             final String message = StringUtils
                     .format("%s terminated with internal error:", Thread.currentThread().getName());
             final RuntimeException runtimeException = new RuntimeException(message, e);
+            // Immediately print internal exceptions, in case they would cause a deadlock
+            runtimeException.printStackTrace();
             rethrowOnMainThread(currentNode, runtimeException);
             setThreadValue(context, thread, Nil.INSTANCE);
         } finally {
