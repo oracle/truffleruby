@@ -54,12 +54,14 @@ public abstract class ManagedRope extends Rope {
 
     @Override
     public final String toString() {
-        assert ALLOW_TO_STRING;
-
-        final byte[] bytesBefore = bytes;
-        final String string = RopeOperations.decodeOrEscapeBinaryRope(this, RopeOperations.flattenBytes(this));
-        assert bytes == bytesBefore : "bytes should not be modified by Rope#toString() as otherwise inspecting a Rope would have a side effect";
-        return string;
+        if (DEBUG_ROPE_BYTES) {
+            final byte[] bytesBefore = bytes;
+            final String string = RopeOperations.decodeOrEscapeBinaryRope(this, RopeOperations.flattenBytes(this));
+            assert bytes == bytesBefore : "bytes should not be modified by Rope#toString() as otherwise inspecting a Rope would have a side effect";
+            return string;
+        } else {
+            return RopeOperations.decodeRope(this);
+        }
     }
 
 }
