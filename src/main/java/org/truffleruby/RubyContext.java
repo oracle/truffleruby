@@ -54,7 +54,6 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
@@ -607,10 +606,6 @@ public class RubyContext {
 
     public PathToRopeCache getPathToRopeCache() {
         return pathToRopeCache;
-    }
-
-    public SymbolTable getSymbolTable() {
-        return language.symbolTable;
     }
 
     @TruffleBoundary

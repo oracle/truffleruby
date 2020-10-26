@@ -59,7 +59,7 @@ public abstract class SymbolNodes {
 
         @Specialization
         protected RubyArray allSymbols() {
-            return createArray(getContext().getSymbolTable().allSymbols());
+            return createArray(getLanguage().symbolTable.allSymbols());
         }
 
     }

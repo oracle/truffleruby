@@ -1594,9 +1594,8 @@ public class CExtNodes {
 
         @Specialization
         protected Object checkSymbolCStr(RubyString str) {
-            final RubySymbol sym = getContext().getSymbolTable().getSymbolIfExists(str.rope);
+            final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(str.rope);
             return sym == null ? nil : sym;
         }
-
     }
 }
