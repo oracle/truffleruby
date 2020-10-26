@@ -372,20 +372,20 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        public static RubyArray listLocalVariables(RubyContext context, MaterializedFrame frame) {
+        public RubyArray listLocalVariables(RubyContext context, MaterializedFrame frame) {
             final Set<Object> names = new LinkedHashSet<>();
             while (frame != null) {
-                addNamesFromFrame(context, frame, names);
+                addNamesFromFrame(frame, names);
 
                 frame = RubyArguments.getDeclarationFrame(frame);
             }
             return ArrayHelpers.createArray(context, names.toArray());
         }
 
-        private static void addNamesFromFrame(RubyContext context, Frame frame, final Set<Object> names) {
+        private void addNamesFromFrame(Frame frame, final Set<Object> names) {
             for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
                 if (!isHiddenVariable(slot.getIdentifier())) {
-                    names.add(context.getSymbol((String) slot.getIdentifier()));
+                    names.add(getSymbol((String) slot.getIdentifier()));
                 }
             }
         }

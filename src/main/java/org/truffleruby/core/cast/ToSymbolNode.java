@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
@@ -50,8 +51,8 @@ public abstract class ToSymbolNode extends RubyBaseNode {
 
     @Specialization(replaces = "toSymbolJavaString")
     protected RubySymbol toSymbolJavaStringUncached(String str,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbol(str);
+            @CachedLanguage RubyLanguage language) {
+        return language.getSymbol(str);
     }
 
     @Specialization(guards = "equals.execute(str.rope, cachedRope)", limit = "getCacheLimit()")
@@ -65,8 +66,8 @@ public abstract class ToSymbolNode extends RubyBaseNode {
 
     @Specialization(replaces = "toSymbolRubyString")
     protected RubySymbol toSymbolRubyStringUncached(RubyString str,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbol(str.rope);
+            @CachedLanguage RubyLanguage language) {
+        return language.getSymbol(str.rope);
     }
 
     protected int getCacheLimit() {
