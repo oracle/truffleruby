@@ -78,7 +78,7 @@ class Enumerator
     "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
   end
 
-  def each(*args)
+  def each(*args, &block)
     enumerator = self
     new_args = @args
 
@@ -89,20 +89,34 @@ class Enumerator
 
     enumerator.__send__ :args=, new_args
 
-    if block_given?
-      enumerator.__send__(:each_with_block) { |*yield_args| yield(*yield_args) }
+    if block
+      sv = Primitive.proc_special_variables(block)
+      enumerator.__send__(:each_with_block) { |*yield_args|
+        Primitive.regexp_last_match_set(sv, $~) if $~
+        Primitive.io_last_line_set(sv, $_) if $_
+        res = yield(*yield_args)
+        $~ = nil
+        $_ = nil
+        res
+      }
+
     else
       enumerator
     end
   end
 
-  def each_with_block
+  def each_with_block & block
+    sv = Primitive.proc_special_variables(block)
     @object.__send__ @iter, *@args do |*args|
+      Primitive.regexp_last_match_set(sv, $~) if $~
+      Primitive.io_last_line_set(sv, $_) if $_
       ret = yield(*args)
       unless Primitive.nil? @feedvalue
         ret = @feedvalue
         @feedvalue = nil
       end
+      $~ = nil
+      $_ = nil
       ret
     end
   end

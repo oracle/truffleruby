@@ -100,7 +100,15 @@ module Enumerable
   def map(&block)
     if block
       ary = []
-      b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
+      sv = Primitive.proc_special_variables(block)
+      b = Primitive.proc_create_same_arity(block, -> *o {
+                                             Primitive.regexp_last_match_set(sv, $~) if $~
+                                             Primitive.io_last_line_set(sv, $_) if $_
+                                             res = ary << yield(*o)
+                                             $~ = nil
+                                             $_ = nil
+                                             res
+                                           })
       each(&b)
       ary
     else
