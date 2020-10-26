@@ -355,7 +355,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     filename));
         }
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
-        final ReentrantLock lock = fileLocks.get(filename.toString());
+        final ReentrantLock lock = fileLocks.get(filename.getJavaString());
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
             // if Object.autoload(name, filename) is executed from filename.rb
