@@ -389,11 +389,11 @@ public abstract class MatchDataNodes {
                         0,
                         value.byteLength(),
                         matchData.region);
-            } catch (final ValueException e) {
+            } catch (ValueException e) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().indexError(
-                                StringUtils.format("undefined group name reference: %s", index.toString()),
+                                StringUtils.format("undefined group name reference: %s", index),
                                 this));
             }
         }
