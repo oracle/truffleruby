@@ -758,7 +758,6 @@ class String
       nil
     end
   end
-  Truffle::Graal.always_split instance_method(:sub!)
 
   def slice!(one, two=undefined)
     Primitive.check_frozen self
