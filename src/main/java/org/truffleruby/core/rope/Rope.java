@@ -21,7 +21,7 @@ public abstract class Rope implements Comparable<Rope> {
     public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
 
     // Useful for debugging. Setting to false allow to catch wrong usages.
-    protected static final boolean ALLOW_TO_STRING = true;
+    protected static final boolean ALLOW_TO_STRING = false;
 
     public final Encoding encoding;
     private final int byteLength;

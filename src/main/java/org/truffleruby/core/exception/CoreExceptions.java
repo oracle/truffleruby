@@ -89,6 +89,14 @@ public class CoreExceptions {
         }
     }
 
+    public String inspectReceiver(Object receiver) {
+        RubyString rubyString = (RubyString) context.send(
+                context.getCoreLibrary().truffleExceptionOperationsModule,
+                "receiver_string",
+                receiver);
+        return rubyString.getJavaString();
+    }
+
     // ArgumentError
 
     public RubyException argumentErrorOneHashRequired(Node currentNode) {
@@ -488,17 +496,17 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException typeErrorIsNotA(Object value, String expectedType, Node currentNode) {
-        return typeErrorIsNotA(value.toString(), expectedType, currentNode);
+        return typeErrorIsNotA(inspectReceiver(value), expectedType, currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorIsNotA(String value, String expectedType, Node currentNode) {
-        return typeError(StringUtils.format("%s is not a %s", value, expectedType), currentNode);
+        return typeError(value + " is not a " + expectedType, currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorIsNotAClassModule(Object value, Node currentNode) {
-        return typeError(StringUtils.format("%s is not a class/module", value), currentNode);
+        return typeError(inspectReceiver(value) + " is not a class/module", currentNode);
     }
 
     @TruffleBoundary
