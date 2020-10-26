@@ -184,7 +184,6 @@ public class NativeRope extends Rope {
 
     @Override
     public String toString() {
-        assert ALLOW_TO_STRING;
         return toLeafRope().toString();
     }
 
