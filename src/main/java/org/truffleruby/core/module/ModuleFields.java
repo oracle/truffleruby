@@ -343,6 +343,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public void setAutoloadConstant(RubyContext context, Node currentNode, String name, RubyString filename) {
         RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
+        if (autoloadConstant == null) {
+            return;
+        }
+
         if (context.getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: setting up autoload %s with %s",
@@ -371,6 +375,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         RubyConstant newConstant;
         do {
             previous = constants.get(name);
+            if (autoload && previous != null && previous.hasValue()) {
+                // abort, do not set an autoload constant, the constant already has a value
+                return null;
+            }
             newConstant = newConstant(currentNode, name, value, autoload, previous);
         } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
 

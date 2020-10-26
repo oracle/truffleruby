@@ -580,11 +580,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            final RubyConstant constant = module.fields.getConstant(name);
-            if (constant == null || !constant.hasValue()) {
-                module.fields.setAutoloadConstant(getContext(), this, name, filename);
-            }
-
+            module.fields.setAutoloadConstant(getContext(), this, name, filename);
             return nil;
         }
     }
