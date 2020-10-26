@@ -505,6 +505,14 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException typeErrorIsNotAOrB(String value, String expectedTypeA, String expectedTypeB,
+            Node currentNode) {
+        return typeError(
+                StringUtils.format("%s is not a %s nor a %s", value, expectedTypeA, expectedTypeB),
+                currentNode);
+    }
+
+    @TruffleBoundary
     public RubyException typeErrorIsNotAClassModule(Object value, Node currentNode) {
         return typeError(inspectReceiver(value) + " is not a class/module", currentNode);
     }
