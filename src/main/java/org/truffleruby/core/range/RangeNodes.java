@@ -543,11 +543,11 @@ public abstract class RangeNodes {
     }
 
     /** Returns an array containing normalized int range parameters {@code [start, length]}, such that both are 32-bits
-     * java ints (if conversion is impossible, an error is raised). The method attempts to make the value positive, by
+     * java ints (if conversion is impossible, an error is raised). The method attempts to make the values positive, by
      * adding {@code size} to them if they are negative. They may still be negative after the operation however, as
      * different core Ruby methods have different way of handling negative out-of-bound normalized values.
      * <p>
-     * The length will NOT be clamped to size!
+     * The values will NOT be clamped to represent a valid array range, excepted the length for endless ranges.
      * <p>
      * {@code size} is assumed to be normalized: fitting in an int, and positive. */
     @Primitive(name = "range_normalized_start_length", lowerFixnum = 1)

@@ -385,11 +385,10 @@ class Array
     elsif index.kind_of? Range
       raise TypeError, 'length invalid with range' unless Primitive.undefined?(length)
 
-      left = range_begin index
+      left, length = Primitive.range_normalized_start_length(index, size)
       raise RangeError, "#{index.inspect} out of range" if left < 0
-
-      right = range_end(index) + 1
-      return self if right <= left           # Nothing to modify
+      right = left + length
+      return self if right <= left # Nothing to modify
 
     elsif index
       left = Primitive.rb_num2int index
@@ -1172,29 +1171,14 @@ class Array
 
   alias_method :prepend, :unshift
 
-  private def range_begin(range)
-    first = Primitive.rb_num2int range.begin
-    first += size if first < 0
-    first
-  end
-
-  private def range_end(range)
-    last = range.end
-    return size - 1 if Primitive.nil? last
-    last = Primitive.rb_num2int last
-    last += size if last < 0
-    last -=1 if range.exclude_end?
-    last
-  end
-
   def values_at(*args)
     out = []
 
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        start = range_begin elem
-        finish = range_end elem
+        start, length = Primitive.range_normalized_start_length(elem, size)
+        finish = start + length - 1
         next if start < 0
         next if finish < start
         start.upto(finish) { |i| out << at(i) }
@@ -1476,10 +1460,12 @@ class Array
         range = start
         out = self[range]
 
-        range_start = range_begin(range)
-        range_end = range_end(range)
-        range_end = size - 1 if range_end >= size
-        range_length = range_end + 1 - range_start
+        range_start, range_length = Primitive.range_normalized_start_length(range, size)
+        range_end = range_start + range_length - 1
+        if range_end >= size
+          range_end = size - 1
+          range_length = size - range_start
+        end
 
         if range_start < size && range_start >= 0 && range_end < size && range_end >= 0 && range_length > 0
           delete_range(range_start, range_length)
