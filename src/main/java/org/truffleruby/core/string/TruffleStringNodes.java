@@ -79,4 +79,31 @@ public class TruffleStringNodes {
             return getContext().getEnv().asGuestValue(bytes);
         }
     }
+
+    @CoreMethod(names = "java_string", onSingleton = true, required = 1)
+    public abstract static class JavaStringNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected String javaString(RubyString rubyString) {
+            return rubyString.toString();
+        }
+    }
+
+    @CoreMethod(names = "code_point_index_to_code_unit_index", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class CodePointIndexToCodeUnitIndexNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected int codePointIndexToCodeUnitIndex(String javaString, int codePointIndex) {
+            return javaString.offsetByCodePoints(0, codePointIndex);
+        }
+    }
+
+    @CoreMethod(names = "code_unit_index_to_code_point_index", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class CodeUnitIndexToCodePointIndexNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected int codeUnitIndexToCodePointIndex(String javaString, int codeUnitIndex) {
+            return javaString.codePointCount(0, codeUnitIndex);
+        }
+    }
 }

@@ -13,7 +13,6 @@ module Truffle
 
     COMPARE_ENGINES = true
     USE_TRUFFLE_REGEX = true
-    USE_TRUFFLE_REGEX_EXEC_BYTES = true
 
     TREGEX = Primitive.object_hidden_var_create :tregex
     TREGEX_STICKY = Primitive.object_hidden_var_create :tregex_sticky
@@ -119,19 +118,31 @@ module Truffle
       return flags
     end
 
-    def self.encoding_to_tregex_encoding_name(encoding)
-      case encoding
-        when Encoding::ASCII
-          "LATIN-1"
-        when Encoding::UTF_8
-          "UTF-8"
-        when Encoding::UTF_16
-          "UTF-16"
+    def self.byte_index_to_code_unit_index(ruby_string, java_string, byte_index)
+      b = 0
+      code_point_index = 0
+      while b < byte_index do
+        b += ruby_string[code_point_index].bytes.length
+        code_point_index += 1
+      end
+      StringOperations::code_point_index_to_code_unit_index(java_string, code_point_index)
+    end
+
+    def self.code_unit_index_to_byte_index(ruby_string, java_string, code_unit_index)
+      if code_unit_index == -1
+        -1
+      else
+        code_point_index = StringOperations::code_unit_index_to_code_point_index(java_string, code_unit_index)
+        byte_index = 0
+        for i in 0..code_point_index-1 do
+          byte_index += ruby_string[i].bytes.length
+        end
+        byte_index
       end
     end
 
     def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-      if str.encoding != Encoding::ASCII && str.encoding != Encoding::UTF_8 && str.encoding != Encoding::UTF_16
+      if to < from || to != str.bytes.length || start != 0
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       compiled_regex_key = at_start ? TREGEX_STICKY : TREGEX
@@ -142,33 +153,28 @@ module Truffle
           else
             flags = options_to_flags(re.options)
           end
-          Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, encoding_to_tregex_encoding_name(re.encoding)))
+          Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, "UTF-16"))
         rescue => e
           $stderr.puts "Failure to compile #{re.source} using tregex - generated error #{e}."
           return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
       end
-      if to < from
-        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-      end
       tr = Primitive.object_hidden_var_get(re, compiled_regex_key)
+      java_string = StringOperations::java_string(str)
       begin
-        if USE_TRUFFLE_REGEX_EXEC_BYTES && (str.encoding == Encoding::ASCII || str.encoding == Encoding::UTF_8)
-          bytes = Truffle::StringOperations.raw_bytes(str)
-          tr_match = tr.execBytes(bytes, from)
-        else
-          tr_match = tr.exec(str, from)
-        end
+        tr_match = tr.exec(java_string, self.byte_index_to_code_unit_index(str, java_string, from))
       rescue => e
-        $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
+        if !("#{e}".index("UnsupportedRegexException"))
+          $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
+        end
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       if tr_match.isMatch
         starts = []
         ends = []
         tr.groupCount.times do |pos|
-          starts << tr_match.getStart(pos)
-          ends << tr_match.getEnd(pos)
+          starts << self.code_unit_index_to_byte_index(str, java_string, tr_match.getStart(pos))
+          ends << self.code_unit_index_to_byte_index(str, java_string, tr_match.getEnd(pos))
         end
         Primitive.matchdata_create(re, str, starts, ends)
       else
