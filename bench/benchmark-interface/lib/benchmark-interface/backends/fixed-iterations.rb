@@ -19,8 +19,11 @@ module BenchmarkInterface
         elapsed = options['--elapsed']
         print_ips = options['--ips']
         fixed_iterations = options['--fixed-iterations'].sort.freeze
+        option_start_time = options['--start-time']
 
-        benchmark_set.benchmarks(names).each do |benchmark|
+        benchmarks = benchmark_set.benchmarks(names)
+        raise "Can only run a single benchmark with --start-time" if option_start_time and benchmarks.size > 1
+        benchmarks.each do |benchmark|
           puts benchmark.name
           block = benchmark.block
 
@@ -28,7 +31,7 @@ module BenchmarkInterface
           total_iterations = fixed_iterations.last
 
           next_iter = iterations.shift
-          start_time = get_time
+          start_time = option_start_time || get_time
           (1..total_iterations).each do |iter|
             block.call
 

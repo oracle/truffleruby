@@ -32,9 +32,10 @@ module BenchmarkInterface
       '--iterations' => false,
       '--ips' => false,
       '--fixed-iterations' => [],
+      '--start-time' => nil,
       '--log' => nil,
       '--tag' => [],
-      '--prop' => {}
+      '--prop' => {},
     }
 
     to_load = []
@@ -77,6 +78,9 @@ module BenchmarkInterface
             n += 1
           when '--elapsed'
             options[arg] = true
+          when '--start-time'
+            options[arg] = Float(args[n + 1])
+            n += 1
           when '--ips'
             options[arg] = true
           when '--log'

@@ -292,10 +292,15 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                 time = str(self.time())
             arguments.extend(['--time', time])
         elif self.config()['kind'] == 'fixed-iterations':
-            iterations_arg = ','.join([str(i) for i in sorted(self.config()['iterations'][benchmark].keys())])
+            iterations_config = self.config()['iterations'][benchmark]
+            fixed_iterations = sorted(iterations_config.keys())
+            fixed_iterations_arg = ','.join([str(i) for i in fixed_iterations])
             arguments.extend(['--elapsed', '--iterations', '--ips'])
             arguments.extend(['--fixed-iterations'])
-            arguments.extend([iterations_arg])
+            arguments.extend([fixed_iterations_arg])
+            if iterations_config != {1:'single-shot'}:
+                # single-shot benchmarks use subprocesses so startup is already included
+                arguments.extend(['--start-time', 'START_TIME_SET_BY_JT_BENCHMARK'])
         else:
             raise AssertionError("Unknown benchmark kind: " + self.config()['kind'])
 
@@ -311,6 +316,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         out = mx.OutputCapture()
 
         if jt(arguments, out=out, nonZeroIsFatal=False) == 0:
+            mx.log(out.data)
             lines = out.data.split('\n')[1:-1]
 
             data = self.filterLines(lines)
@@ -361,7 +367,8 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     'extra.metric.elapsed-num': e
                 } for n, (e, sample) in enumerate(zip(elapsed, samples))]
         else:
-            sys.stderr.write(out.data)
+            mx.log_error("ERROR:")
+            mx.log_error(out.data)
 
             return [{
                 'benchmark': benchmark,
