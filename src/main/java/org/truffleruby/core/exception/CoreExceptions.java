@@ -99,6 +99,7 @@ public class CoreExceptions {
 
     // ArgumentError
 
+    @TruffleBoundary
     public RubyException argumentErrorOneHashRequired(Node currentNode) {
         return argumentError(coreStrings().ONE_HASH_REQUIRED.getRope(), currentNode, null);
     }
@@ -111,30 +112,37 @@ public class CoreExceptions {
         return argumentError(message, currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorProcWithoutBlock(Node currentNode) {
         return argumentError(coreStrings().PROC_WITHOUT_BLOCK.getRope(), currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorTooFewArguments(Node currentNode) {
         return argumentError(coreStrings().TOO_FEW_ARGUMENTS.getRope(), currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorTimeIntervalPositive(Node currentNode) {
         return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.getRope(), currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorXOutsideOfString(Node currentNode) {
         return argumentError(coreStrings().X_OUTSIDE_OF_STRING.getRope(), currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorCantCompressNegativeNumbers(Node currentNode) {
         return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.getRope(), currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorOutOfRange(Node currentNode) {
         return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.getRope(), currentNode, null);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorNegativeArraySize(Node currentNode) {
         return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.getRope(), currentNode, null);
     }
@@ -191,6 +199,7 @@ public class CoreExceptions {
                 required + optional), currentNode);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorEmptyVarargs(Node currentNode) {
         return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.getRope(), currentNode, null);
     }
@@ -1180,7 +1189,6 @@ public class CoreExceptions {
     // Helpers
 
     private CoreStrings coreStrings() {
-        return context.getCoreStrings();
+        return context.getLanguageSlow().coreStrings;
     }
-
 }

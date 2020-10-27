@@ -77,9 +77,9 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     // Declared abstract here so the instrumentation wrapper delegates it
     abstract public Object isDefined(VirtualFrame frame, RubyContext context);
 
-    protected static Object defaultIsDefined(RubyContext context, Node currentNode) {
+    protected static Object defaultIsDefined(RubyContext context, RubyLanguage language, Node currentNode) {
         assert !(currentNode instanceof WrapperNode);
-        return context.getCoreStrings().EXPRESSION.createInstance(context);
+        return language.coreStrings.EXPRESSION.createInstance(context);
     }
 
     // Source

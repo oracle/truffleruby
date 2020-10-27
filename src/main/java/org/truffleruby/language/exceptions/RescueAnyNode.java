@@ -28,7 +28,7 @@ public class RescueAnyNode extends RescueNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return RubyNode.defaultIsDefined(context, this);
+        return RubyNode.defaultIsDefined(context, getLanguage(), this);
     }
 
 }
