@@ -49,10 +49,12 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class CoreExceptions {
 
+    private final RubyLanguage language;
     private final RubyContext context;
     private final BacktraceFormatter debugBacktraceFormatter;
 
-    public CoreExceptions(RubyContext context) {
+    public CoreExceptions(RubyContext context, RubyLanguage language) {
+        this.language = language;
         this.context = context;
         this.debugBacktraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.OMIT_EXCEPTION));
     }
@@ -761,7 +763,7 @@ public class CoreExceptions {
                 backtrace,
                 cause,
                 receiver,
-                context.getSymbol(name));
+                language.getSymbol(name));
     }
 
     public RubyNameError nameErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
@@ -776,7 +778,7 @@ public class CoreExceptions {
                 backtrace,
                 cause,
                 receiver,
-                context.getSymbol(name));
+                language.getSymbol(name));
         exception.formatter = formatter;
         showExceptionIfDebug(exception, backtrace);
         return exception;
@@ -800,7 +802,7 @@ public class CoreExceptions {
                 backtrace,
                 cause,
                 receiver,
-                context.getSymbol(name),
+                language.getSymbol(name),
                 argsArray);
     }
 
@@ -818,7 +820,7 @@ public class CoreExceptions {
                 backtrace,
                 cause,
                 receiver,
-                context.getSymbol(name),
+                language.getSymbol(name),
                 argsArray);
         exception.formatter = formatter;
         showExceptionIfDebug(exception, backtrace);
@@ -843,7 +845,7 @@ public class CoreExceptions {
                 cause,
                 null,
                 // FIXME: the name of the method is not known in this case currently
-                context.getSymbol("<unknown>"),
+                language.getSymbol("<unknown>"),
                 Nil.INSTANCE);
     }
 

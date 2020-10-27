@@ -225,7 +225,8 @@ public abstract class ProcNodes {
         protected RubyArray parameters(RubyProc proc) {
             final ArgumentDescriptor[] argsDesc = proc.sharedMethodInfo.getArgumentDescriptors();
             final boolean isLambda = proc.type == ProcType.LAMBDA;
-            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, isLambda);
+            return ArgumentDescriptorUtils
+                    .argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, isLambda);
         }
 
     }

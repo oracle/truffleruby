@@ -17,6 +17,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -188,7 +189,7 @@ public class TraceManager {
                         event,
                         getFile(),
                         getLine(),
-                        context.getSymbol(RubyArguments.getMethod(frame).getName()),
+                        getSymbol(context, RubyArguments.getMethod(frame).getName()),
                         BindingNodes.createBinding(
                                 context,
                                 frame.materialize(),
@@ -210,4 +211,8 @@ public class TraceManager {
 
     }
 
+    @TruffleBoundary
+    private RubySymbol getSymbol(RubyContext context, String string) {
+        return context.getLanguageSlow().getSymbol(string);
+    }
 }

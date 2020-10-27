@@ -1378,7 +1378,7 @@ public abstract class KernelNodes {
             final RubyModule metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED)
+                    .filterMethodsOnObject(getLanguage(), regular, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
         }
@@ -1440,7 +1440,7 @@ public abstract class KernelNodes {
             RubyClass metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PRIVATE)
+                    .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PRIVATE)
                     .toArray();
             return createArray(objects);
         }
@@ -1476,7 +1476,7 @@ public abstract class KernelNodes {
             final RubyClass metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PROTECTED)
+                    .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PROTECTED)
                     .toArray();
             return createArray(objects);
         }
@@ -1520,7 +1520,7 @@ public abstract class KernelNodes {
             final RubyModule metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PUBLIC)
+                    .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
                     .toArray();
             return createArray(objects);
         }
@@ -1773,7 +1773,7 @@ public abstract class KernelNodes {
             }
 
             Object[] objects = metaClass.fields
-                    .filterSingletonMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
+                    .filterSingletonMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
         }

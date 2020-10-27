@@ -181,7 +181,9 @@ public class EncodingManager {
 
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final Rope cachedRope = context.getLanguageSlow().ropeCache.getRope(
-                rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
+                rope.getBytes(),
+                rope.getEncoding(),
+                rope.getCodeRange());
         final RubyString string = StringOperations.createFrozenString(context, cachedRope);
 
         final RubyEncoding instance = new RubyEncoding(

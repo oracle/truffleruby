@@ -62,7 +62,7 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode valueNode;
 
                 if (config.getNamesBytes() != null) {
-                    final RubySymbol key = context.getSymbol(RopeOperations.create(
+                    final RubySymbol key = context.getLanguageSlow().getSymbol(RopeOperations.create(
                             config.getNamesBytes(),
                             USASCIIEncoding.INSTANCE,
                             CodeRange.CR_7BIT));

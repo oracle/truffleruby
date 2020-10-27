@@ -49,10 +49,8 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
@@ -115,7 +113,7 @@ public class RubyContext {
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
-    private final CoreExceptions coreExceptions = new CoreExceptions(this);
+    private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager = new EncodingManager(this);
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
@@ -166,6 +164,8 @@ public class RubyContext {
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
 
         options = createOptions(env, language.options);
+
+        coreExceptions = new CoreExceptions(this, language);
 
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);
@@ -601,16 +601,6 @@ public class RubyContext {
 
     public PathToRopeCache getPathToRopeCache() {
         return pathToRopeCache;
-    }
-
-    @TruffleBoundary
-    public RubySymbol getSymbol(String string) {
-        return language.getSymbol(string);
-    }
-
-    @TruffleBoundary
-    public RubySymbol getSymbol(Rope rope) {
-        return language.getSymbol(rope);
     }
 
     public CodeLoader getCodeLoader() {

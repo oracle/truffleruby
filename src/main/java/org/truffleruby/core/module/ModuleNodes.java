@@ -1628,7 +1628,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         protected RubyArray getInstanceMethods(RubyModule module, boolean includeAncestors) {
             Object[] objects = module.fields
-                    .filterMethods(getContext(), includeAncestors, MethodFilter.by(visibility))
+                    .filterMethods(getLanguage(), includeAncestors, MethodFilter.by(visibility))
                     .toArray();
             return createArray(objects);
         }
@@ -1727,7 +1727,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyArray instanceMethods(RubyModule module, boolean includeAncestors) {
             Object[] objects = module.fields
-                    .filterMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
+                    .filterMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
         }
@@ -1953,7 +1953,7 @@ public abstract class ModuleNodes {
         protected RubyModule undefMethods(RubyModule module, Object[] names,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
-                module.fields.undefMethod(getContext(), this, nameToJavaStringNode.execute(name));
+                module.fields.undefMethod(getLanguage(), getContext(), this, nameToJavaStringNode.execute(name));
             }
             return module;
         }
@@ -1962,7 +1962,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyModule undefKeyword(RubyModule module, RubySymbol name) {
-            module.fields.undefMethod(getContext(), this, name.getString());
+            module.fields.undefMethod(getLanguage(), getContext(), this, name.getString());
             return module;
         }
 

@@ -38,17 +38,18 @@ public abstract class AllocationTracing {
         }
 
         if (context.getObjectSpaceManager().isTracing(language)) {
-            traceBoundary(context, instance, currentNode);
+            traceBoundary(language, context, instance, currentNode);
         }
     }
 
     @TruffleBoundary
-    private static void traceBoundary(RubyContext context, RubyDynamicObject object, Node currentNode) {
+    private static void traceBoundary(RubyLanguage language, RubyContext context, RubyDynamicObject object,
+            Node currentNode) {
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
         if (!objectSpaceManager.isTracingPaused()) {
             objectSpaceManager.setTracingPaused(true);
             try {
-                callTraceAllocation(context, object, currentNode);
+                callTraceAllocation(language, context, object, currentNode);
             } finally {
                 objectSpaceManager.setTracingPaused(false);
             }
@@ -56,7 +57,8 @@ public abstract class AllocationTracing {
     }
 
     @TruffleBoundary
-    private static void callTraceAllocation(RubyContext context, RubyDynamicObject object, Node currentNode) {
+    private static void callTraceAllocation(RubyLanguage language, RubyContext context, RubyDynamicObject object,
+            Node currentNode) {
         final SourceSection allocatingSourceSection = context
                 .getCallStack()
                 .getTopMostUserSourceSection(currentNode.getEncapsulatingSourceSection());
@@ -73,7 +75,7 @@ public abstract class AllocationTracing {
                 "trace_allocation",
                 object,
                 string(context, className),
-                context.getSymbol(allocatingMethod),
+                language.getSymbol(allocatingMethod),
                 string(context, context.getSourcePath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
                 ObjectSpaceManager.getCollectionCount());

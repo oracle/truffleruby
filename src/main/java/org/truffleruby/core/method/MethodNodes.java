@@ -160,7 +160,7 @@ public abstract class MethodNodes {
                     .getSharedMethodInfo()
                     .getArgumentDescriptors();
 
-            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, true);
+            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, true);
         }
 
     }

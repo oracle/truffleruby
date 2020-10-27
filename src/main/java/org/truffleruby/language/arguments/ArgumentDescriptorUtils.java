@@ -12,6 +12,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -22,33 +23,31 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 public class ArgumentDescriptorUtils {
 
     @TruffleBoundary
-    public static RubyArray argumentDescriptorsToParameters(RubyContext context,
-            ArgumentDescriptor[] argsDesc,
-            boolean isLambda) {
+    public static RubyArray argumentDescriptorsToParameters(RubyLanguage language, RubyContext context,
+            ArgumentDescriptor[] argsDesc, boolean isLambda) {
         final Object[] params = new Object[argsDesc.length];
-
         for (int i = 0; i < argsDesc.length; i++) {
-            params[i] = toArray(context, argsDesc[i], isLambda);
+            params[i] = toArray(language, context, argsDesc[i], isLambda);
         }
-
         return ArrayHelpers.createArray(context, params);
     }
 
-    public static RubyArray toArray(RubyContext context, ArgumentDescriptor argDesc, boolean isLambda) {
+    private static RubyArray toArray(RubyLanguage language, RubyContext context, ArgumentDescriptor argDesc,
+            boolean isLambda) {
         if ((argDesc.type == ArgumentType.req) && !isLambda) {
-            return toArray(context, ArgumentType.opt, argDesc.name);
+            return toArray(language, context, ArgumentType.opt, argDesc.name);
         }
 
-        return toArray(context, argDesc.type, argDesc.name);
+        return toArray(language, context, argDesc.type, argDesc.name);
     }
 
-    public static RubyArray toArray(RubyContext context, ArgumentType argType, String name) {
+    private static RubyArray toArray(RubyLanguage language, RubyContext context, ArgumentType argType, String name) {
         final Object[] store;
 
         if (argType.anonymous || name == null) {
-            store = new Object[]{ context.getSymbol(argType.symbolicName) };
+            store = new Object[]{ language.getSymbol(argType.symbolicName) };
         } else {
-            store = new Object[]{ context.getSymbol(argType.symbolicName), context.getSymbol(name) };
+            store = new Object[]{ language.getSymbol(argType.symbolicName), language.getSymbol(name) };
         }
 
         return ArrayHelpers.createArray(context, store);
