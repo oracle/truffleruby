@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -40,8 +38,7 @@ public abstract class SetNode extends RubyContextNode {
     public abstract Object executeSet(RubyHash hash, Object key, Object value, boolean byIdentity);
 
     @Specialization(guards = "isNullHash(hash)")
-    protected Object setNull(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
-            @CachedLanguage RubyLanguage language) {
+    protected Object setNull(RubyHash hash, Object originalKey, Object value, boolean byIdentity) {
         assert HashOperations.verifyStore(getContext(), hash);
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -51,7 +48,7 @@ public abstract class SetNode extends RubyContextNode {
         propagateSharingKeyNode.executePropagate(hash, key);
         propagateSharingValueNode.executePropagate(hash, value);
 
-        Object store = PackedArrayStrategy.createStore(language, hashed, key, value);
+        Object store = PackedArrayStrategy.createStore(getLanguage(), hashed, key, value);
         hash.store = store;
         hash.size = 1;
         hash.firstInSequence = null;
@@ -64,8 +61,7 @@ public abstract class SetNode extends RubyContextNode {
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(guards = "isPackedHash(hash)")
     protected Object setPackedArray(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
-            @Cached ConditionProfile strategyProfile,
-            @CachedLanguage RubyLanguage language) {
+            @Cached ConditionProfile strategyProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -79,7 +75,7 @@ public abstract class SetNode extends RubyContextNode {
         final int size = hash.size;
 
         // written very carefully to allow PE
-        for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+        for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);
@@ -91,7 +87,7 @@ public abstract class SetNode extends RubyContextNode {
             }
         }
 
-        if (strategyProfile.profile(size < language.options.HASH_PACKED_ARRAY_MAX)) {
+        if (strategyProfile.profile(size < getLanguage().options.HASH_PACKED_ARRAY_MAX)) {
             PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
             hash.size += 1;
             return value;

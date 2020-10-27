@@ -15,7 +15,6 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
@@ -113,14 +112,13 @@ public abstract class ArrayNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyArray allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyArray allocate(RubyClass rubyClass) {
             RubyArray array = new RubyArray(
                     rubyClass,
                     helperNode.getCachedShape(rubyClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
-            helperNode.trace(array, this, language);
+            helperNode.trace(array, this, getLanguage());
             return array;
         }
 
@@ -1218,10 +1216,9 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
             RubyArray copy = null;
-            if (respondToToAry(language, object)) {
+            if (respondToToAry(getLanguage(), object)) {
                 Object toAryResult = callToAry(object);
                 if (toAryResult instanceof RubyArray) {
                     copy = (RubyArray) toAryResult;
@@ -2356,7 +2353,6 @@ public abstract class ArrayNodes {
 
         @Specialization(replaces = "flattenHelperPrimitive")
         protected boolean flattenHelper(RubyArray array, RubyArray out, int maxLevels,
-                @CachedLanguage RubyLanguage language,
                 @Cached TypeNodes.CanContainObjectNode canContainObject,
                 @Cached ArrayAppendManyNode concat,
                 @Cached AtNode at,
@@ -2403,7 +2399,7 @@ public abstract class ArrayNodes {
                             "rb_check_convert_type",
                             obj,
                             coreLibrary().arrayClass,
-                            language.coreSymbols.TO_ARY);
+                            coreSymbols().TO_ARY);
                     if (converted == nil) {
                         append.executeAppendOne(out, obj);
                     } else {

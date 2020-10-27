@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.tracepoint;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -80,11 +79,10 @@ public abstract class TracePointNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyTracePoint allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyTracePoint allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTracePoint instance = new RubyTracePoint(rubyClass, shape, null, null);
-            allocateNode.trace(instance, this, language);
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 
@@ -95,13 +93,12 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected RubyTracePoint initialize(RubyTracePoint tracePoint, RubyArray eventsArray, RubyProc block,
-                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
             final TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
             for (int i = 0; i < eventSymbols.length; i++) {
-                events[i] = createEvents(language, (RubySymbol) eventSymbols[i]);
+                events[i] = createEvents(getLanguage(), (RubySymbol) eventSymbols[i]);
             }
 
             tracePoint.events = events;

@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -1280,8 +1279,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyMethod method(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
-                @Cached ConditionProfile respondToMissingProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
                     .lookup(frame, self, normalizedName, dispatchConfig);
@@ -1307,7 +1305,7 @@ public abstract class KernelNodes {
                     RubyLanguage.methodShape,
                     self,
                     method);
-            allocateNode.trace(language, getContext(), instance);
+            allocateNode.trace(getLanguage(), getContext(), instance);
             return instance;
         }
 
@@ -1724,8 +1722,7 @@ public abstract class KernelNodes {
         protected RubyMethod singletonMethod(Object self, String name,
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile singletonProfile,
-                @Cached ConditionProfile methodProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile methodProfile) {
             final RubyClass metaClass = metaClassNode.execute(self);
 
             if (singletonProfile.profile(metaClass.isSingleton)) {
@@ -1736,7 +1733,7 @@ public abstract class KernelNodes {
                             RubyLanguage.methodShape,
                             self,
                             method);
-                    allocateNode.trace(instance, this, language);
+                    allocateNode.trace(instance, this, getLanguage());
                     return instance;
                 }
             }

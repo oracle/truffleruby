@@ -12,7 +12,6 @@ package org.truffleruby.cext;
 import java.math.BigInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -1024,15 +1023,14 @@ public class CExtNodes {
         @Specialization
         protected RubyPointer toNative(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode,
-                @Cached AllocateHelperNode allocateNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     RubyLanguage.truffleFFIPointerShape,
                     nativeRope.getNativePointer());
-            allocateNode.trace(instance, this, language);
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 
@@ -1242,8 +1240,7 @@ public class CExtNodes {
         protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, RubyString string, Object write_p, Object p,
                 @CachedLibrary("write_p") InteropLibrary receivers,
                 @Cached AllocateHelperNode allocateNode,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
             final byte[] bytes = string.rope.getBytes();
             final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
@@ -1256,7 +1253,7 @@ public class CExtNodes {
                 System.arraycopy(to, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    language,
+                    getLanguage(),
                     getContext(),
                     allocateNode,
                     this,
@@ -1274,8 +1271,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbTrEncMbcPut(RubyEncoding enc, int code,
-                @Cached AllocateHelperNode allocateNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateNode) {
             final Encoding encoding = enc.encoding;
             final byte buf[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
             final int resultLength = encoding.codeToMbc(code, buf, 0);
@@ -1284,7 +1280,7 @@ public class CExtNodes {
                 System.arraycopy(buf, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    language,
+                    getLanguage(),
                     getContext(),
                     allocateNode,
                     this,

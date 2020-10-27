@@ -9,10 +9,8 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -51,12 +49,11 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected Object absolutePath(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
-                return language.coreStrings.UNKNOWN.createInstance(getContext());
+                return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Source source = sourceSection.getSource();
                 if (BacktraceFormatter.isRubyCore(getContext(), source)) {
@@ -64,7 +61,7 @@ public class ThreadBacktraceLocationNodes {
                 } else if (source.getPath() != null) { // A normal file
                     final String path = getContext().getSourcePath(source);
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
-                    final Rope cachedRope = language.ropeCache
+                    final Rope cachedRope = getLanguage().ropeCache
                             .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
                     return makeStringNode.fromRope(cachedRope);
                 } else { // eval()
@@ -82,12 +79,11 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString path(RubyBacktraceLocation threadBacktraceLocation,
-                @Cached StringNodes.MakeStringNode makeStringNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
-                return language.coreStrings.UNKNOWN.createInstance(getContext());
+                return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Rope path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
                 return makeStringNode.fromRope(path);

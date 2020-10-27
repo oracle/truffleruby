@@ -40,7 +40,6 @@ package org.truffleruby.core;
 import java.io.PrintStream;
 import java.util.Map.Entry;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -166,8 +165,7 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached LookupMethodOnSelfNode lookupMethodNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached LookupMethodOnSelfNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
@@ -179,7 +177,7 @@ public abstract class VMPrimitiveNodes {
                     RubyLanguage.methodShape,
                     receiver,
                     method);
-            allocateNode.trace(instance, this, language);
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 
@@ -439,12 +437,11 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "count < 0")
-        protected RubyString negativeCount(int count,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyString negativeCount(int count) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(
-                            language.coreStrings.NEGATIVE_STRING_SIZE.getRope(),
+                            coreStrings().NEGATIVE_STRING_SIZE.getRope(),
                             this));
         }
 

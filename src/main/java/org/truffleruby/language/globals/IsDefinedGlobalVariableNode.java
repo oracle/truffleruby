@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.globals;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -35,10 +33,9 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
 
     @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
     protected Object executeDefined(
-            @Cached("getStorage()") GlobalVariableStorage storage,
-            @CachedLanguage RubyLanguage language) {
+            @Cached("getStorage()") GlobalVariableStorage storage) {
         if (storage.isDefined()) {
-            return language.coreStrings.GLOBAL_VARIABLE.createInstance(getContext());
+            return coreStrings().GLOBAL_VARIABLE.createInstance(getContext());
         } else {
             return nil;
         }

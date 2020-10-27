@@ -373,15 +373,14 @@ public abstract class BasicObjectNodes {
                 NotProvided line,
                 NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
-                @Cached IndirectCallNode callNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
             return instanceEvalHelper(
                     callerFrame,
                     receiver,
                     string,
-                    language.coreStrings.EVAL_FILENAME_STRING.createInstance(getContext()),
+                    coreStrings().EVAL_FILENAME_STRING.createInstance(getContext()),
                     1,
                     callNode);
         }
@@ -613,11 +612,10 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected RubyBasicObject allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateHelperNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateHelperNode) {
             final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, shape);
-            allocateHelperNode.trace(instance, this, language);
+            allocateHelperNode.trace(instance, this, getLanguage());
             return instance;
         }
 

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.method;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -81,8 +80,7 @@ public abstract class UnboundMethodNodes {
         protected RubyMethod bind(RubyUnboundMethod unboundMethod, Object object,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
-                @Cached BranchProfile errorProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached BranchProfile errorProfile) {
             final RubyClass objectMetaClass = metaClassNode.execute(object);
 
             if (!canBindMethodToModuleNode
@@ -106,7 +104,7 @@ public abstract class UnboundMethodNodes {
                     RubyLanguage.methodShape,
                     object,
                     unboundMethod.method);
-            allocateNode.trace(instance, this, language);
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 
@@ -204,8 +202,7 @@ public abstract class UnboundMethodNodes {
 
         @Specialization
         protected Object superMethod(RubyUnboundMethod unboundMethod,
-                @Cached AllocateHelperNode allocateHelperNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateHelperNode) {
             InternalMethod internalMethod = unboundMethod.method;
             RubyModule origin = unboundMethod.origin;
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
@@ -217,7 +214,7 @@ public abstract class UnboundMethodNodes {
                         RubyLanguage.unboundMethodShape,
                         superMethod.getMethod().getDeclaringModule(),
                         superMethod.getMethod());
-                allocateHelperNode.trace(instance, this, language);
+                allocateHelperNode.trace(instance, this, getLanguage());
                 return instance;
             }
         }

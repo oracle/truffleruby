@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.objectspace;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -41,11 +39,10 @@ public abstract class WeakMapNodes {
         @Child private AllocateHelperNode allocate = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyWeakMap allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyWeakMap allocate(RubyClass rubyClass) {
             final Shape shape = allocate.getCachedShape(rubyClass);
             final RubyWeakMap weakMap = new RubyWeakMap(rubyClass, shape, new WeakMapStorage());
-            allocate.trace(weakMap, this, language);
+            allocate.trace(weakMap, this, getLanguage());
             return weakMap;
         }
     }

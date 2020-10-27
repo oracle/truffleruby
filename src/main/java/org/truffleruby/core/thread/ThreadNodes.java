@@ -42,7 +42,6 @@ package org.truffleruby.core.thread;
 
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -265,10 +264,9 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block,
-                @CachedLanguage RubyLanguage language) {
+        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
-            final InterruptMode newInterruptMode = symbolToInterruptMode(language, timing);
+            final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
 
             final InterruptMode oldInterruptMode = self.interruptMode;
             self.interruptMode = newInterruptMode;
@@ -299,11 +297,10 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected RubyThread allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateNode) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, language);
-            allocateNode.trace(instance, this, language);
+            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, getLanguage());
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 

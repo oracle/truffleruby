@@ -18,7 +18,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -395,10 +394,9 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object generateAccessor(VirtualFrame frame, RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached ReadCallerFrameNode readCallerFrame,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ReadCallerFrameNode readCallerFrame) {
             final String name = nameToJavaStringNode.execute(nameObject);
-            createAccessor(module, name, readCallerFrame.execute(frame), language);
+            createAccessor(module, name, readCallerFrame.execute(frame), getLanguage());
             return nil;
         }
 
@@ -1588,8 +1586,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
                 @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1606,7 +1603,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this, language);
+            allocateHelperNode.trace(instance, this, getLanguage());
             return instance;
         }
 
@@ -1749,8 +1746,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
                 @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1764,7 +1760,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this, language);
+            allocateHelperNode.trace(instance, this, getLanguage());
             return instance;
         }
 

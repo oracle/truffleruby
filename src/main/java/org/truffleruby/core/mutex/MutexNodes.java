@@ -11,14 +11,12 @@ package org.truffleruby.core.mutex;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -47,13 +45,12 @@ public abstract class MutexNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyMutex allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyMutex allocate(RubyClass rubyClass) {
             final ReentrantLock lock = MutexOperations.newReentrantLock();
 
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyMutex instance = new RubyMutex(rubyClass, shape, lock);
-            allocateNode.trace(instance, this, language);
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 

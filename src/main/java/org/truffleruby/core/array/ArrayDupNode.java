@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
@@ -41,9 +40,8 @@ public abstract class ArrayDupNode extends RubyContextNode {
     protected RubyArray dupProfiledSize(RubyArray from,
             @CachedLibrary("from.store") ArrayStoreLibrary fromStores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
-            @Cached("from.size") int cachedSize,
-            @CachedLanguage RubyLanguage language) {
-        return copyArraySmall(language, fromStores, toStores, from, cachedSize);
+            @Cached("from.size") int cachedSize) {
+        return copyArraySmall(getLanguage(), fromStores, toStores, from, cachedSize);
     }
 
     @ExplodeLoop
@@ -62,11 +60,10 @@ public abstract class ArrayDupNode extends RubyContextNode {
 
     @Specialization(replaces = "dupProfiledSize")
     protected RubyArray dup(RubyArray from,
-            @Cached ArrayCopyOnWriteNode cowNode,
-            @CachedLanguage RubyLanguage language) {
+            @Cached ArrayCopyOnWriteNode cowNode) {
         final int size = from.size;
         final Object copy = cowNode.execute(from, 0, from.size);
-        return allocateArray(language, coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, size);
+        return allocateArray(getLanguage(), coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, size);
     }
 
     private RubyArray allocateArray(RubyLanguage language, RubyClass rubyClass, Shape arrayShape, Object store,

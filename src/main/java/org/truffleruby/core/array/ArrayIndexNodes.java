@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
@@ -118,14 +117,13 @@ public abstract class ArrayIndexNodes {
         @Specialization(guards = { "indexInBounds(array, index)", "length >= 0" })
         protected RubyArray readInBounds(RubyArray array, int index, int length,
                 @Cached ArrayCopyOnWriteNode cowNode,
-                @Cached ConditionProfile endsInBoundsProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile endsInBoundsProfile) {
             final int size = array.size;
             final int end = endsInBoundsProfile.profile(index + length <= size)
                     ? length
                     : size - index;
             final Object slice = cowNode.execute(array, index, end);
-            return createArrayOfSameClass(language, array, slice, end);
+            return createArrayOfSameClass(getLanguage(), array, slice, end);
         }
 
         protected static boolean indexInBounds(RubyArray array, int index) {

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -32,11 +30,10 @@ public abstract class SystemCallErrorNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubySystemCallError allocateNameError(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubySystemCallError allocateNameError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySystemCallError instance = new RubySystemCallError(rubyClass, shape, nil, null, nil, nil);
-            allocateNode.trace(instance, this, language);
+            allocateNode.trace(instance, this, getLanguage());
             return instance;
         }
 
