@@ -717,7 +717,7 @@ class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
 
     def benchmarkList(self, bmSuiteArgs):
         benchmarks = warmup_benchmarks[:]
-        if os.environ.get('GUEST_VM') != "jruby":
+        if os.getenv('HOST_VM') != "jruby":
             benchmarks.extend(blog6_benchmarks)
         return benchmarks
 
