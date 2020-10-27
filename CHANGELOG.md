@@ -6,7 +6,7 @@ New features:
 Bug fixes:
 
 * Handle foreign null object as falsy value (#1902, @ssnickolay)
-* Fixed return value of `Enumerable#first` (#2056, @LillianZ).
+* Fixed return value of `Enumerable#first` with multiple yielded arguments (#2056, @LillianZ).
 * Improve reliability of the post install hook by disabling RubyGems (#2075).
 * Fixed top level exception handler to print exception cause (#2013).
 * Fixed issue when extending FFI from File (#2094).
@@ -15,8 +15,10 @@ Bug fixes:
 * Fixed issue with `spawn` when `:close` redirect is used (#2097).
 * Fixed `coverage` issue when `*eval` is used (#2078).
 * Use expanded load paths for feature matching (#1501).
+* Fixed handling of post arguments for `super()` (#2111).
 * Fixed `SystemStackError` sometimes replaced by an internal Java `NoClassDefFoundError` on JVM (#1743).
 * Fixed constant/identifier detection in lexer for non-ASCII encodings (#2079, #2102, @ivoanjo).
+* Fixed parsing of `--jvm` as an application argument (#2108).
 
 Compatibility:
 
@@ -49,6 +51,8 @@ Compatibility:
 * Convert objects with `#to_path` in `$LOAD_PATH` (#2119).
 * Handle the functions being native for `rb_thread_call_without_gvl()` (#2090).
 * Support refinements for Kernel#respond_to? (#2120, @ssnickolay)
+* JCodings has been updated from 1.0.45 to 1.0.55.
+* Joni has been updated from 2.1.30 to 2.1.40.
 
 Performance:
 
