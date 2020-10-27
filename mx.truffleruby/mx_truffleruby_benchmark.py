@@ -316,6 +316,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
         out = mx.OutputCapture()
 
         if jt(arguments, out=out, nonZeroIsFatal=False) == 0:
+            mx.log(out.data)
             lines = out.data.split('\n')[1:-1]
 
             data = self.filterLines(lines)
@@ -366,7 +367,8 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
                     'extra.metric.elapsed-num': e
                 } for n, (e, sample) in enumerate(zip(elapsed, samples))]
         else:
-            sys.stderr.write(out.data)
+            mx.log_error("ERROR:")
+            mx.log_error(out.data)
 
             return [{
                 'benchmark': benchmark,
