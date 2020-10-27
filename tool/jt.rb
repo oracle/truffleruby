@@ -1859,6 +1859,11 @@ module Commands
     end
 
     args, ruby_args = args_split(args)
+
+    if start_time_index = args.index('START_TIME_SET_BY_JT_BENCHMARK')
+      args[start_time_index] = Process.clock_gettime(Process::CLOCK_MONOTONIC).to_s
+    end
+
     run_ruby(*vm_args, *ruby_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
 
