@@ -479,10 +479,10 @@ public class RubyContext {
         safepointManager.checkNoRunningThreads();
 
         if (options.ROPE_PRINT_INTERN_STATS) {
-            RubyLanguage.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
-            RubyLanguage.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());
-            RubyLanguage.LOGGER.info("rope bytes saved: " + getRopeCache().getRopeBytesSaved());
-            RubyLanguage.LOGGER.info("total ropes interned: " + getRopeCache().totalRopes());
+            RubyLanguage.LOGGER.info("ropes re-used: " + language.ropeCache.getRopesReusedCount());
+            RubyLanguage.LOGGER.info("rope byte arrays re-used: " + language.ropeCache.getByteArrayReusedCount());
+            RubyLanguage.LOGGER.info("rope bytes saved: " + language.ropeCache.getRopeBytesSaved());
+            RubyLanguage.LOGGER.info("total ropes interned: " + language.ropeCache.totalRopes());
         }
 
         if (options.CEXTS_TONATIVE_STATS) {
@@ -597,10 +597,6 @@ public class RubyContext {
 
     public CoverageManager getCoverageManager() {
         return coverageManager;
-    }
-
-    public RopeCache getRopeCache() {
-        return language.ropeCache;
     }
 
     public PathToRopeCache getPathToRopeCache() {

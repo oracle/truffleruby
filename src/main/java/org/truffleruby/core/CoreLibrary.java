@@ -772,7 +772,7 @@ public class CoreLibrary {
     }
 
     private RubyString frozenUSASCIIString(String string) {
-        final Rope rope = context.getRopeCache().getRope(
+        final Rope rope = context.getLanguageSlow().ropeCache.getRope(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         return StringOperations.createFrozenString(context, rope);
     }
