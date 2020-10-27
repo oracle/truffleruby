@@ -20,8 +20,8 @@ public abstract class Rope implements Comparable<Rope> {
     // NativeRope, RepeatingRope, 3 LeafRope, ConcatRope, SubstringRope, 1 LazyRope
     public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
 
-    // Useful for debugging. Setting to false allow to catch wrong usages.
-    protected static final boolean ALLOW_TO_STRING = true;
+    // Useful for debugging. Setting to true avoids ManagedRope#toString to populate bytes as a side-effect of the debugger calling toString().
+    protected static final boolean DEBUG_ROPE_BYTES = false;
 
     public final Encoding encoding;
     private final int byteLength;

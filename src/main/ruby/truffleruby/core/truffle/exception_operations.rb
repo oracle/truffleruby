@@ -48,8 +48,7 @@ module Truffle
     end
 
     # MRI: name_err_mesg_to_str
-    def self.receiver_string(exception)
-      receiver = exception.receiver
+    def self.receiver_string(receiver)
       ret = begin
         if Primitive.object_respond_to?(receiver, :inspect, false)
           Truffle::Type.rb_inspect(receiver)
@@ -157,19 +156,19 @@ module Truffle
     end
 
     NO_METHOD_ERROR = Proc.new do |exception|
-      format("undefined method `%s' for %s", exception.name, receiver_string(exception))
+      format("undefined method `%s' for %s", exception.name, receiver_string(exception.receiver))
     end
 
     NO_LOCAL_VARIABLE_OR_METHOD_ERROR = Proc.new do |exception|
-      format("undefined local variable or method `%s' for %s", exception.name, receiver_string(exception))
+      format("undefined local variable or method `%s' for %s", exception.name, receiver_string(exception.receiver))
     end
 
     PRIVATE_METHOD_ERROR = Proc.new do |exception|
-      format("private method `%s' called for %s", exception.name, receiver_string(exception))
+      format("private method `%s' called for %s", exception.name, receiver_string(exception.receiver))
     end
 
     PROTECTED_METHOD_ERROR = Proc.new do |exception|
-      format("protected method `%s' called for %s", exception.name, receiver_string(exception))
+      format("protected method `%s' called for %s", exception.name, receiver_string(exception.receiver))
     end
 
     SUPER_METHOD_ERROR = Proc.new do |exception|

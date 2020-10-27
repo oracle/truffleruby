@@ -343,6 +343,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public void setAutoloadConstant(RubyContext context, Node currentNode, String name, RubyString filename) {
         RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
+        if (autoloadConstant == null) {
+            return;
+        }
+
         if (context.getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: setting up autoload %s with %s",
@@ -351,7 +355,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     filename));
         }
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
-        final ReentrantLock lock = fileLocks.get(filename.toString());
+        final ReentrantLock lock = fileLocks.get(filename.getJavaString());
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
             // if Object.autoload(name, filename) is executed from filename.rb
@@ -367,10 +371,22 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context, rubyModule, value);
 
+        final String autoloadPath = autoload ? ((RubyString) value).getJavaString() : null;
         RubyConstant previous;
         RubyConstant newConstant;
         do {
             previous = constants.get(name);
+            if (autoload && previous != null) {
+                if (previous.hasValue()) {
+                    // abort, do not set an autoload constant, the constant already has a value
+                    return null;
+                } else if (previous.isAutoload() &&
+                        previous.getAutoloadConstant().getAutoloadPath().equals(autoloadPath)) {
+                    // already an autoload constant with the same path,
+                    // do nothing so we don't replace the AutoloadConstant#autoloadLock which might be already acquired
+                    return null;
+                }
+            }
             newConstant = newConstant(currentNode, name, value, autoload, previous);
         } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
 

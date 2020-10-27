@@ -1591,7 +1591,7 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         protected RootCallTarget compileFormat(RubyString format) {
-            return new PackCompiler(getContext(), this).compile(format.toString());
+            return new PackCompiler(getContext(), this).compile(format.getJavaString());
         }
 
         protected int getCacheLimit() {
