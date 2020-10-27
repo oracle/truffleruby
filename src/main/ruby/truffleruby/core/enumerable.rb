@@ -97,18 +97,21 @@ module Enumerable
     end
   end
 
+  MARKER = Object.new
+
   def map(&block)
     if block
       ary = []
       sv = Primitive.proc_special_variables(block)
+      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
+      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
       b = Primitive.proc_create_same_arity(block, -> *o {
-                                             Primitive.regexp_last_match_set(sv, $~) if $~
-                                             Primitive.io_last_line_set(sv, $_) if $_
+                                             Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
+                                             Primitive.io_last_line_set(sv, $_) if $_ != MARKER
                                              res = ary << yield(*o)
-                                             $~ = nil
-                                             $_ = nil
-                                             res
-                                           })
+                                             Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
+                                             Primitive.io_last_line_set(Primitive.special_variables, MARKER)
+                                             res })
       each(&b)
       ary
     else
@@ -361,13 +364,19 @@ module Enumerable
     ary = []
 
     if block_given?
+      sv = Primitive.proc_special_variables(block)
+      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
+      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), $~)
+        Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
+        Primitive.io_last_line_set(sv, $_) if $_ != MARKER
         if matches
           ary << yield(o)
         end
+        Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
+        Primitive.io_last_line_set(Primitive.special_variables, MARKER)
       end
     else
       each do

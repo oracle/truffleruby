@@ -294,6 +294,17 @@ public abstract class TruffleKernelNodes {
         }
     }
 
+    @Primitive(name = "special_variables")
+    public abstract static class GetFrameSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
+
+        @Child GetSpecialVariableStorage storageNode = GetSpecialVariableStorage.create();
+
+        @Specialization
+        protected Object storage(VirtualFrame frame) {
+            return storageNode.execute(frame);
+        }
+    }
+
     @Primitive(name = "caller_special_variables")
     public abstract static class GetCallerSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
