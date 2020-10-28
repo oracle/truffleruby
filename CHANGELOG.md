@@ -5,6 +5,8 @@ New features:
 
 Bug fixes:
 
+* Fix error message when the method name is not a Symbol or String for `Kernel#respond_to?` (#2132, @ssnickolay)
+
 
 Compatibility:
 

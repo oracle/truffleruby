@@ -505,10 +505,10 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException typeErrorIsNotAOrB(String value, String expectedTypeA, String expectedTypeB,
+    public RubyException typeErrorIsNotAOrB(Object value, String expectedTypeA, String expectedTypeB,
             Node currentNode) {
         return typeError(
-                StringUtils.format("%s is not a %s nor a %s", value, expectedTypeA, expectedTypeB),
+                StringUtils.format("%s is not a %s nor a %s", inspectReceiver(value), expectedTypeA, expectedTypeB),
                 currentNode);
     }
 

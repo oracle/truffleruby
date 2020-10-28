@@ -1596,7 +1596,7 @@ public abstract class KernelNodes {
             if (notSymbolOrStringProfile.profile(!RubyGuards.isRubySymbolOrString(name))) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().typeErrorIsNotAOrB(object.toString(), "symbol", "string", this));
+                        coreExceptions().typeErrorIsNotAOrB(object, "symbol", "string", this));
             }
 
             final boolean ret;
