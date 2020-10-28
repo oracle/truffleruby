@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fixed setting of special variables in enumerators and enumerables (#1484).
 
 Compatibility:
 
