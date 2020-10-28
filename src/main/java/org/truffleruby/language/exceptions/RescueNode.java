@@ -10,6 +10,7 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.exception.RubyException;
@@ -78,6 +79,6 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
     // Declared abstract here so the instrumentation wrapper delegates it
     @Override
-    public abstract Object isDefined(VirtualFrame frame, RubyContext context);
+    public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
 
 }

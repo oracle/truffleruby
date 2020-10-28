@@ -32,8 +32,8 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
     @CompilationFinal private RubyLanguage language;
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return RubyNode.defaultIsDefined(context, getLanguage(), this);
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return RubyNode.defaultIsDefined(getLanguage(), context, this);
     }
 
     @Override

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.dsl.NodeField;
@@ -30,14 +29,8 @@ public abstract class RubySourceNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return RubyNode.defaultIsDefined(context, getLanguage(context), this);
-    }
-
-    // TODO: good idea?
-    @TruffleBoundary
-    private RubyLanguage getLanguage(RubyContext context) {
-        return context.getLanguageSlow();
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return RubyNode.defaultIsDefined(language, context, this);
     }
 
     @Override

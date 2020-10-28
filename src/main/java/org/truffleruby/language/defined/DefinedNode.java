@@ -24,7 +24,7 @@ public class DefinedNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return child.isDefined(frame, getContext());
+        return child.isDefined(frame, getLanguage(), getContext());
     }
 
 }

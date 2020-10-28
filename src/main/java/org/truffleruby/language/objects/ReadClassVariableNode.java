@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
@@ -58,7 +59,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 

@@ -77,14 +77,14 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     @ExplodeLoop
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         for (RubyNode value : values) {
-            if (value.isDefined(frame, context) == nil) {
+            if (value.isDefined(frame, language, context) == nil) {
                 return nil;
             }
         }
 
-        return super.isDefined(frame, context);
+        return super.isDefined(frame, language, context);
     }
 
     public int getSize() {
