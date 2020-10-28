@@ -29,9 +29,6 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.CoreStrings;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.RubyScope;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -254,14 +251,6 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
         // Helpers methods for terseness, keep in sync
 
-        default RubySymbol getSymbol(String name) {
-            return getContext().getSymbol(name);
-        }
-
-        default RubySymbol getSymbol(Rope name) {
-            return getContext().getSymbol(name);
-        }
-
         default Encoding getLocaleEncoding() {
             return getContext().getEncodingManager().getLocaleEncoding();
         }
@@ -284,10 +273,6 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
         default RubyBignum createBignum(BigInteger value) {
             return BignumOperations.createBignum(value);
-        }
-
-        default CoreStrings coreStrings() {
-            return getContext().getCoreStrings();
         }
 
         default CoreLibrary coreLibrary() {

@@ -16,6 +16,10 @@ import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.core.symbol.RubySymbol;
 
 /** Has both context and source methods. */
 public abstract class RubyContextSourceNode extends RubyNode implements RubyNode.WithContext {
@@ -23,6 +27,9 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
     private int sourceCharIndex = NO_SOURCE;
     private int sourceLength;
     private byte flags;
+
+    @CompilationFinal private ContextReference<RubyContext> contextReference;
+    @CompilationFinal private RubyLanguage language;
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
@@ -59,10 +66,6 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
         this.sourceLength = sourceLength;
     }
 
-    // Context
-
-    @CompilationFinal private ContextReference<RubyContext> contextReference;
-
     @Override
     public RubyContext getContext() {
         if (contextReference == null) {
@@ -73,9 +76,33 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
         return contextReference.get();
     }
 
+    public RubyLanguage getLanguage() {
+        if (language == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            language = getRootNode().getLanguage(RubyLanguage.class);
+        }
+
+        return language;
+    }
+
+    public RubySymbol getSymbol(String name) {
+        return getLanguage().getSymbol(name);
+    }
+
+    public RubySymbol getSymbol(Rope name) {
+        return getLanguage().getSymbol(name);
+    }
+
+    public CoreStrings coreStrings() {
+        return getLanguage().coreStrings;
+    }
+
+    public CoreSymbols coreSymbols() {
+        return getLanguage().coreSymbols;
+    }
+
     @Override
     public String toString() {
         return super.toString() + " at " + RubyContext.fileLine(getSourceSection());
     }
-
 }
