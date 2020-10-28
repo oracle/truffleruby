@@ -29,7 +29,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Child private RubyNode body;
 
-    private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller frame");
+    private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller data");
 
     public RubyRootNode(
             RubyContext context,
