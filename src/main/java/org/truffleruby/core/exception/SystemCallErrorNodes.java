@@ -20,6 +20,7 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "SystemCallError", isClass = true)
 public abstract class SystemCallErrorNodes {
@@ -33,7 +34,7 @@ public abstract class SystemCallErrorNodes {
         protected RubySystemCallError allocateNameError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySystemCallError instance = new RubySystemCallError(rubyClass, shape, nil, null, nil, nil);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

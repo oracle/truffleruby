@@ -93,7 +93,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -1585,7 +1585,6 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
-                @Cached AllocateHelperNode allocateHelperNode,
                 @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1603,7 +1602,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -1745,7 +1744,6 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
-                @Cached AllocateHelperNode allocateHelperNode,
                 @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1760,7 +1758,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

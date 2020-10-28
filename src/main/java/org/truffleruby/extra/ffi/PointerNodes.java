@@ -43,6 +43,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Truffle::FFI::Pointer", isClass = true)
 public abstract class PointerNodes {
@@ -81,7 +82,7 @@ public abstract class PointerNodes {
         protected RubyPointer allocate(RubyClass pointerClass) {
             final Shape shape = allocateNode.getCachedShape(pointerClass);
             final RubyPointer instance = new RubyPointer(pointerClass, shape, Pointer.NULL);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -258,8 +259,6 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_string_to_null")
     public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization(guards = "limit == 0")
         protected RubyString readNullPointer(long address, long limit) {
             final RubyString instance = new RubyString(
@@ -268,7 +267,7 @@ public abstract class PointerNodes {
                     false,
                     true,
                     RopeConstants.EMPTY_ASCII_8BIT_ROPE);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -287,7 +286,7 @@ public abstract class PointerNodes {
                     false,
                     true,
                     rope);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -306,7 +305,7 @@ public abstract class PointerNodes {
                     false,
                     true,
                     rope);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -318,8 +317,7 @@ public abstract class PointerNodes {
         @Specialization
         protected RubyString readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
-                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached AllocateHelperNode allocateNode) {
+                @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
@@ -329,7 +327,7 @@ public abstract class PointerNodes {
                         false,
                         false,
                         RopeConstants.EMPTY_ASCII_8BIT_ROPE);
-                allocateNode.trace(instance, this, getLanguage());
+                AllocationTracing.trace(instance, this);
                 return instance;
             } else {
                 checkNull(ptr);
@@ -343,7 +341,7 @@ public abstract class PointerNodes {
                         false,
                         true,
                         rope);
-                allocateNode.trace(instance, this, getLanguage());
+                AllocationTracing.trace(instance, this);
                 return instance;
             }
         }
@@ -499,8 +497,6 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_pointer")
     public static abstract class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyPointer readPointer(long address) {
             final Pointer ptr = new Pointer(address);
@@ -510,7 +506,7 @@ public abstract class PointerNodes {
                     coreLibrary().truffleFFIPointerClass,
                     RubyLanguage.truffleFFIPointerShape,
                     readPointer);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

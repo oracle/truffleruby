@@ -36,6 +36,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Fiber", isClass = true)
 public abstract class FiberNodes {
@@ -92,7 +93,7 @@ public abstract class FiberNodes {
             final Shape shape = helperNode.getCachedShape(rubyClass);
             final RubyFiber fiber = thread.fiberManager
                     .createFiber(getLanguage(), getContext(), thread, rubyClass, shape);
-            helperNode.trace(fiber, this, getLanguage());
+            AllocationTracing.trace(fiber, this);
             return fiber;
         }
 

@@ -115,7 +115,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
@@ -411,8 +411,6 @@ public abstract class KernelNodes {
     @Primitive(name = "kernel_caller_locations", lowerFixnum = { 0, 1 })
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected Object callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
@@ -427,7 +425,7 @@ public abstract class KernelNodes {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-            return backtrace.getBacktraceLocations(getContext(), allocateNode, length, this);
+            return backtrace.getBacktraceLocations(getContext(), length, this);
         }
     }
 
@@ -1263,7 +1261,6 @@ public abstract class KernelNodes {
 
         private final DispatchConfiguration dispatchConfig;
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodOnSelfNode lookupMethodNode;
         @Child private DispatchNode respondToMissingNode = DispatchNode.create();
@@ -1305,7 +1302,7 @@ public abstract class KernelNodes {
                     RubyLanguage.methodShape,
                     self,
                     method);
-            allocateNode.trace(getLanguage(), getContext(), instance);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -1710,7 +1707,6 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
@@ -1733,7 +1729,7 @@ public abstract class KernelNodes {
                             RubyLanguage.methodShape,
                             self,
                             method);
-                    allocateNode.trace(instance, this, getLanguage());
+                    AllocationTracing.trace(instance, this);
                     return instance;
                 }
             }

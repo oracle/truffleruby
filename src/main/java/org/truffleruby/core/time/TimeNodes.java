@@ -39,6 +39,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -67,7 +68,7 @@ public abstract class TimeNodes {
         protected RubyTime allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTime instance = new RubyTime(rubyClass, shape, ZERO, nil, 0, false, false);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -187,7 +188,7 @@ public abstract class TimeNodes {
             final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
             final Shape shape = allocateNode.getCachedShape(timeClass);
             final RubyTime instance = new RubyTime(timeClass, shape, dt, zone, nil, false, false);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
 
         }
@@ -221,7 +222,7 @@ public abstract class TimeNodes {
                     nil,
                     false,
                     false);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -594,7 +595,7 @@ public abstract class TimeNodes {
                     utcoffset,
                     relativeOffset,
                     isutc);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

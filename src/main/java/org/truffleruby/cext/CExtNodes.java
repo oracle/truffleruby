@@ -84,7 +84,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -1022,15 +1022,14 @@ public class CExtNodes {
 
         @Specialization
         protected RubyPointer toNative(RubyString string,
-                @Cached StringToNativeNode stringToNativeNode,
-                @Cached AllocateHelperNode allocateNode) {
+                @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     RubyLanguage.truffleFFIPointerShape,
                     nativeRope.getNativePointer());
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -1239,7 +1238,6 @@ public class CExtNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, RubyString string, Object write_p, Object p,
                 @CachedLibrary("write_p") InteropLibrary receivers,
-                @Cached AllocateHelperNode allocateNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
             final byte[] bytes = string.rope.getBytes();
             final byte[] to = new byte[bytes.length];
@@ -1253,9 +1251,7 @@ public class CExtNodes {
                 System.arraycopy(to, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    getLanguage(),
                     getContext(),
-                    allocateNode,
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
@@ -1270,8 +1266,7 @@ public class CExtNodes {
     public abstract static class RbTrMbcPutNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object rbTrEncMbcPut(RubyEncoding enc, int code,
-                @Cached AllocateHelperNode allocateNode) {
+        protected Object rbTrEncMbcPut(RubyEncoding enc, int code) {
             final Encoding encoding = enc.encoding;
             final byte buf[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
             final int resultLength = encoding.codeToMbc(code, buf, 0);
@@ -1280,9 +1275,7 @@ public class CExtNodes {
                 System.arraycopy(buf, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    getLanguage(),
                     getContext(),
-                    allocateNode,
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }

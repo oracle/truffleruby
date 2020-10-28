@@ -27,7 +27,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -36,6 +35,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @NodeChild(value = "value", type = RubyNode.class)
 @NodeChild(value = "digits", type = RubyNode.class)
@@ -48,8 +48,6 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     private static final Pattern NUMBER_PATTERN_NON_STRICT = Pattern.compile("^([+-]?\\d*\\.?\\d*" + EXPONENT + ").*");
     private static final Pattern ZERO_PATTERN = Pattern.compile("^[+-]?0*\\.?0*" + EXPONENT + "$");
 
-    @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
     public abstract RubyBigDecimal executeCreate(Object value, Object digits, boolean strict);
 
     private RubyBigDecimal createNormalBigDecimal(BigDecimal value) {
@@ -58,7 +56,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 RubyLanguage.bigDecimalShape,
                 value,
                 BigDecimalType.NORMAL);
-        allocateNode.trace(instance, this, getLanguage());
+        AllocationTracing.trace(instance, this);
         return instance;
     }
 
@@ -68,7 +66,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 RubyLanguage.bigDecimalShape,
                 BigDecimal.ZERO,
                 type);
-        allocateNode.trace(instance, this, getLanguage());
+        AllocationTracing.trace(instance, this);
         return instance;
     }
 

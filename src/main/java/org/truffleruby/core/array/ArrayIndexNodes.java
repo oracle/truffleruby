@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -26,6 +25,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
@@ -123,21 +123,21 @@ public abstract class ArrayIndexNodes {
                     ? length
                     : size - index;
             final Object slice = cowNode.execute(array, index, end);
-            return createArrayOfSameClass(getLanguage(), array, slice, end);
+            return createArrayOfSameClass(array, slice, end);
         }
 
         protected static boolean indexInBounds(RubyArray array, int index) {
             return index >= 0 && index <= array.size;
         }
 
-        protected RubyArray createArrayOfSameClass(RubyLanguage language, RubyArray array, Object store, int size) {
+        protected RubyArray createArrayOfSameClass(RubyArray array, Object store, int size) {
             final RubyClass logicalClass = array.getLogicalClass();
             RubyArray newArray = new RubyArray(
                     logicalClass,
                     helperNode.getCachedShape(logicalClass),
                     store,
                     size);
-            helperNode.trace(newArray, this, language);
+            AllocationTracing.trace(newArray, this);
             return newArray;
         }
     }

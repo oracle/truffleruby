@@ -38,6 +38,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -75,7 +76,7 @@ public abstract class HashNodes {
                     nil,
                     nil,
                     false);
-            helperNode.trace(hash, this, getLanguage());
+            AllocationTracing.trace(hash, this);
             return hash;
         }
 

@@ -22,6 +22,7 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "NoMethodError", isClass = true)
 public abstract class NoMethodErrorNodes {
@@ -35,7 +36,7 @@ public abstract class NoMethodErrorNodes {
         protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyNoMethodError instance = new RubyNoMethodError(rubyClass, shape, nil, null, nil, null, nil, nil);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

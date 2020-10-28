@@ -87,6 +87,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -174,8 +175,6 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_backtrace_locations", lowerFixnum = { 1, 2 })
     public abstract static class BacktraceLocationsNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected Object backtraceLocations(RubyThread rubyThread, int first, NotProvided second) {
             return backtraceLocationsInternal(rubyThread, first, GetBacktraceException.UNLIMITED);
@@ -192,7 +191,7 @@ public abstract class ThreadNodes {
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
-                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), allocateNode, length, this));
+                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), length, this));
             };
 
             getContext()
@@ -300,7 +299,7 @@ public abstract class ThreadNodes {
                 @Cached AllocateHelperNode allocateNode) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, getLanguage());
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

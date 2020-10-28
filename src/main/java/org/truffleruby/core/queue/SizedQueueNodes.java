@@ -27,6 +27,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 /** We do not reuse much of class Queue since we need to be able to replace the queue in this case and methods are small
@@ -43,7 +44,7 @@ public abstract class SizedQueueNodes {
         protected RubySizedQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySizedQueue instance = new RubySizedQueue(rubyClass, shape, null);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

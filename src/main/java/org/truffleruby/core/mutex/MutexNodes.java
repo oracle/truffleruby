@@ -33,6 +33,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -50,7 +51,7 @@ public abstract class MutexNodes {
 
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyMutex instance = new RubyMutex(rubyClass, shape, lock);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

@@ -78,6 +78,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -118,7 +119,7 @@ public abstract class ArrayNodes {
                     helperNode.getCachedShape(rubyClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
-            helperNode.trace(array, this, getLanguage());
+            AllocationTracing.trace(array, this);
             return array;
         }
 

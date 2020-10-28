@@ -54,6 +54,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
@@ -231,7 +232,7 @@ public abstract class RegexpNodes {
                     null,
                     RegexpOptions.NULL_OPTIONS,
                     null);
-            allocateNode.trace(regexp, this, getLanguage());
+            AllocationTracing.trace(regexp, this);
             return regexp;
         }
 

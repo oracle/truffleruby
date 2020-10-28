@@ -15,6 +15,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -27,6 +29,14 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class AllocationTracing {
+
+    public static void trace(RubyDynamicObject instance, RubyContextNode node) {
+        trace(node.getLanguage(), node.getContext(), instance, node);
+    }
+
+    public static void trace(RubyDynamicObject instance, RubyContextSourceNode node) {
+        trace(node.getLanguage(), node.getContext(), instance, node);
+    }
 
     public static void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance, Node currentNode) {
         CompilerAsserts.partialEvaluationConstant(language);

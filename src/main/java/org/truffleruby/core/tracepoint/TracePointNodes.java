@@ -42,6 +42,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "TracePoint", isClass = true)
 public abstract class TracePointNodes {
@@ -82,7 +83,7 @@ public abstract class TracePointNodes {
         protected RubyTracePoint allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTracePoint instance = new RubyTracePoint(rubyClass, shape, null, null);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

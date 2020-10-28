@@ -72,7 +72,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -160,8 +160,6 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_method_lookup")
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
@@ -177,7 +175,7 @@ public abstract class VMPrimitiveNodes {
                     RubyLanguage.methodShape,
                     receiver,
                     method);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

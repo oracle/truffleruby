@@ -15,11 +15,11 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import org.truffleruby.language.objects.AllocationTracing;
 
 public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
@@ -28,7 +28,6 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     @Children protected final RubyNode[] values;
-    @Child private AllocateHelperNode allocateHelperNode;
     protected final RubyLanguage language;
 
     public ArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
@@ -55,12 +54,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     protected RubyArray cachedCreateArray(Object store, int size) {
-        if (allocateHelperNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            allocateHelperNode = insert(AllocateHelperNode.create());
-        }
         final RubyArray array = new RubyArray(coreLibrary().arrayClass, RubyLanguage.arrayShape, store, size);
-        allocateHelperNode.trace(array, this, language);
+        AllocationTracing.trace(array, this);
         return array;
     }
 

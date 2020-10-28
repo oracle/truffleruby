@@ -13,22 +13,18 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.AllocationTracing;
 
 /** Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDupNode extends RubyContextNode {
-
-    @Child private AllocateHelperNode helperNode;
 
     public abstract RubyArray executeDup(VirtualFrame frame, RubyArray array);
 
@@ -55,7 +51,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
         for (int i = 0; i < cachedSize; i++) {
             toStores.write(copy, i, fromStores.read(original, i));
         }
-        return allocateArray(language, coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, cachedSize);
+        return allocateArray(coreLibrary().arrayClass, copy, cachedSize);
     }
 
     @Specialization(replaces = "dupProfiledSize")
@@ -63,17 +59,12 @@ public abstract class ArrayDupNode extends RubyContextNode {
             @Cached ArrayCopyOnWriteNode cowNode) {
         final int size = from.size;
         final Object copy = cowNode.execute(from, 0, from.size);
-        return allocateArray(getLanguage(), coreLibrary().arrayClass, RubyLanguage.arrayShape, copy, size);
+        return allocateArray(coreLibrary().arrayClass, copy, size);
     }
 
-    private RubyArray allocateArray(RubyLanguage language, RubyClass rubyClass, Shape arrayShape, Object store,
-            int size) {
-        if (helperNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            helperNode = insert(AllocateHelperNode.create());
-        }
-        RubyArray array = new RubyArray(rubyClass, arrayShape, store, size);
-        helperNode.trace(array, this, language);
+    private RubyArray allocateArray(RubyClass rubyClass, Object store, int size) {
+        RubyArray array = new RubyArray(rubyClass, RubyLanguage.arrayShape, store, size);
+        AllocationTracing.trace(array, this);
         return array;
     }
 

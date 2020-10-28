@@ -33,6 +33,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Truffle::ByteArray", isClass = true)
 public abstract class ByteArrayNodes {
@@ -46,7 +47,7 @@ public abstract class ByteArrayNodes {
         protected RubyByteArray allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyByteArray instance = new RubyByteArray(rubyClass, shape, RopeConstants.EMPTY_BYTES);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -77,8 +78,6 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyByteArray prepend(RubyByteArray byteArray, RubyString string,
                 @Cached RopeNodes.BytesNode bytesNode) {
@@ -95,7 +94,7 @@ public abstract class ByteArrayNodes {
                     coreLibrary().byteArrayClass,
                     RubyLanguage.byteArrayShape,
                     prependedBytes);
-            allocateNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

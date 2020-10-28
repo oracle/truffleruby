@@ -39,7 +39,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -201,7 +201,6 @@ public abstract class MethodNodes {
     @CoreMethod(names = "super_method")
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
@@ -218,7 +217,7 @@ public abstract class MethodNodes {
                         RubyLanguage.methodShape,
                         receiver,
                         superMethod.getMethod());
-                allocateNode.trace(instance, this, getLanguage());
+                AllocationTracing.trace(instance, this);
                 return instance;
             }
         }
@@ -231,15 +230,14 @@ public abstract class MethodNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected RubyUnboundMethod unbind(RubyMethod method,
-                @Cached AllocateHelperNode allocateHelperNode) {
+        protected RubyUnboundMethod unbind(RubyMethod method) {
             final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
                     RubyLanguage.unboundMethodShape,
                     receiverClass,
                     method.method);
-            allocateHelperNode.trace(instance, this, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

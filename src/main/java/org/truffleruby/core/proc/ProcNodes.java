@@ -35,6 +35,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.TranslatorEnvironment;
@@ -116,7 +117,7 @@ public abstract class ProcNodes {
                     block.frameOnStackMarker,
                     block.declarationContext);
 
-            allocateHelper.trace(proc, this, getLanguage());
+            AllocationTracing.trace(proc, this);
             initialize.callWithBlock(proc, "initialize", block, args);
             return proc;
         }
@@ -155,7 +156,7 @@ public abstract class ProcNodes {
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 
-            allocateHelper.trace(copy, this, getLanguage());
+            AllocationTracing.trace(copy, this);
             return copy;
         }
     }
@@ -261,8 +262,7 @@ public abstract class ProcNodes {
     public abstract static class ProcCreateSameArityNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block,
-                @Cached AllocateHelperNode allocateHelper) {
+        protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
             final RubyProc composedProc = new RubyProc(
                     coreLibrary().procClass,
                     RubyLanguage.procShape,
@@ -276,7 +276,7 @@ public abstract class ProcNodes {
                     block.block,
                     block.frameOnStackMarker,
                     block.declarationContext);
-            allocateHelper.trace(composedProc, this, getLanguage());
+            AllocationTracing.trace(composedProc, this);
             return composedProc;
         }
     }
