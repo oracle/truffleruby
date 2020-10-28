@@ -22,7 +22,7 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 
 @ExportLibrary(InteropLibrary.class)
-public class SpecialVariableStorage implements TruffleObject {
+public final class SpecialVariableStorage implements TruffleObject {
 
     /** $~ */
     private ThreadAndFrameLocalStorage lastMatch;

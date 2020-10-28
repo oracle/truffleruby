@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
-public class FrameOrStorage {
+public final class FrameOrStorage {
 
     public final SpecialVariableStorage storage;
     public final MaterializedFrame frame;
