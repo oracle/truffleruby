@@ -198,7 +198,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
                 sendFrame = null;
         }
 
-        if (frame != null && storage != null) {
+        if (sendsFrame != SendsFrame.NO_FRAME && sendsStorage != SendsFrame.NO_FRAME) {
             return new FrameOrStorage(storage, sendFrame);
         } else {
             return sendFrame != null ? sendFrame : storage;
