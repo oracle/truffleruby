@@ -10,6 +10,7 @@
 package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.debug.SingleMemberDescriptor;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -31,7 +32,7 @@ public abstract class WriteLocalNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance(context);
     }
 

@@ -10,10 +10,8 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -24,6 +22,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,11 +35,10 @@ public abstract class AtomicReferenceNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyAtomicReference allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyAtomicReference allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyAtomicReference instance = new RubyAtomicReference(rubyClass, shape, new AtomicReference<>(nil));
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

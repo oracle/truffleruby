@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -52,7 +51,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.shared.TruffleRuby;
@@ -98,12 +97,9 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, lowerFixnum = 2)
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @TruffleBoundary
         @Specialization
-        protected RubyHandle setBreak(RubyString file, int line, RubyProc block,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyHandle setBreak(RubyString file, int line, RubyProc block) {
             final String fileString = file.getJavaString();
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -136,7 +132,7 @@ public abstract class TruffleDebugNodes {
                     coreLibrary().handleClass,
                     RubyLanguage.handleShape,
                     breakpoint);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

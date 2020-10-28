@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.method;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -32,7 +31,7 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.utils.Utils;
@@ -75,14 +74,11 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "bind", required = 1)
     public abstract static class BindNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyMethod bind(RubyUnboundMethod unboundMethod, Object object,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
-                @Cached BranchProfile errorProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached BranchProfile errorProfile) {
             final RubyClass objectMetaClass = metaClassNode.execute(object);
 
             if (!canBindMethodToModuleNode
@@ -106,7 +102,7 @@ public abstract class UnboundMethodNodes {
                     RubyLanguage.methodShape,
                     object,
                     unboundMethod.method);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -168,7 +164,7 @@ public abstract class UnboundMethodNodes {
                     .getSharedMethodInfo()
                     .getArgumentDescriptors();
 
-            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, true);
+            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, true);
         }
 
     }
@@ -203,9 +199,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object superMethod(RubyUnboundMethod unboundMethod,
-                @Cached AllocateHelperNode allocateHelperNode,
-                @CachedLanguage RubyLanguage language) {
+        protected Object superMethod(RubyUnboundMethod unboundMethod) {
             InternalMethod internalMethod = unboundMethod.method;
             RubyModule origin = unboundMethod.origin;
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
@@ -217,7 +211,7 @@ public abstract class UnboundMethodNodes {
                         RubyLanguage.unboundMethodShape,
                         superMethod.getMethod().getDeclaringModule(),
                         superMethod.getMethod());
-                allocateHelperNode.trace(instance, this, language);
+                AllocationTracing.trace(instance, this);
                 return instance;
             }
         }

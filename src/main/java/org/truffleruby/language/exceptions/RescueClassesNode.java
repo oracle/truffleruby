@@ -10,6 +10,7 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyNode;
 
@@ -39,8 +40,8 @@ public class RescueClassesNode extends RescueNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return RubyNode.defaultIsDefined(context, this);
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return RubyNode.defaultIsDefined(getLanguage(), context, this);
     }
 
 }

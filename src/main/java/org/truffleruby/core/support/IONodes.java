@@ -66,7 +66,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -90,6 +89,7 @@ import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -109,11 +109,10 @@ public abstract class IONodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyIO allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyIO allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyIO instance = new RubyIO(rubyClass, shape, RubyIO.CLOSED_FD);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -506,19 +505,16 @@ public abstract class IONodes {
     @Primitive(name = "io_thread_buffer_allocate")
     public static abstract class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyPointer getThreadBuffer(long size,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
-                @Cached ConditionProfile sizeProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile sizeProfile) {
             RubyThread thread = currentThreadNode.execute();
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
                     RubyLanguage.truffleFFIPointerShape,
                     getBuffer(thread, size, sizeProfile));
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

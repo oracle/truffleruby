@@ -10,6 +10,7 @@
 package org.truffleruby.language.supercall;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -50,7 +51,7 @@ public class SuperCallNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         final Object self = RubyArguments.getSelf(frame);
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 

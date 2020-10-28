@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.queue;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -22,6 +20,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -41,11 +40,10 @@ public abstract class QueueNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyQueue allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyQueue instance = new RubyQueue(rubyClass, shape, new UnsizedQueue());
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

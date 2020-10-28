@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.support;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -34,6 +33,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Truffle::ByteArray", isClass = true)
 public abstract class ByteArrayNodes {
@@ -44,11 +44,10 @@ public abstract class ByteArrayNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyByteArray allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyByteArray allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyByteArray instance = new RubyByteArray(rubyClass, shape, RopeConstants.EMPTY_BYTES);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -79,12 +78,9 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyByteArray prepend(RubyByteArray byteArray, RubyString string,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 
             final Rope rope = string.rope;
@@ -98,7 +94,7 @@ public abstract class ByteArrayNodes {
                     coreLibrary().byteArrayClass,
                     RubyLanguage.byteArrayShape,
                     prependedBytes);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

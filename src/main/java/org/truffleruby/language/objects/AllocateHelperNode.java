@@ -13,17 +13,13 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 
 @ReportPolymorphism
@@ -39,18 +35,6 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
     }
 
     protected abstract Shape execute(RubyClass classToAllocate);
-
-    // Convenience method when the context is guaranteed PE constant
-    public void trace(RubyDynamicObject instance, RubyNode.WithContext contextNode, RubyLanguage language) {
-        final RubyContext context = contextNode.getContext();
-        CompilerAsserts.partialEvaluationConstant(context);
-        CompilerAsserts.partialEvaluationConstant(language);
-        AllocationTracing.trace(language, context, instance, (Node) contextNode);
-    }
-
-    public void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance) {
-        AllocationTracing.trace(language, context, instance, this);
-    }
 
     @Specialization(
             guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" },

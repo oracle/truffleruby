@@ -11,13 +11,11 @@ package org.truffleruby.core.queue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -29,6 +27,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 /** We do not reuse much of class Queue since we need to be able to replace the queue in this case and methods are small
@@ -42,11 +41,10 @@ public abstract class SizedQueueNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubySizedQueue allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubySizedQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySizedQueue instance = new RubySizedQueue(rubyClass, shape, null);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

@@ -61,8 +61,7 @@ public class ThreadBacktraceLocationNodes {
                 } else if (source.getPath() != null) { // A normal file
                     final String path = getContext().getSourcePath(source);
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
-                    final Rope cachedRope = getContext()
-                            .getRopeCache()
+                    final Rope cachedRope = getLanguage().ropeCache
                             .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
                     return makeStringNode.fromRope(cachedRope);
                 } else { // eval()

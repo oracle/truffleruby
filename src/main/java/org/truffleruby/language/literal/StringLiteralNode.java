@@ -22,19 +22,15 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.objects.AllocationTracing;
 
 public class StringLiteralNode extends RubyContextSourceNode {
 
-    @Child AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
     private final Rope rope;
-    private final RubyLanguage language;
 
-    public StringLiteralNode(RubyLanguage language, Rope rope) {
-        this.language = language;
+    public StringLiteralNode(Rope rope) {
         this.rope = rope;
     }
 
@@ -46,7 +42,7 @@ public class StringLiteralNode extends RubyContextSourceNode {
                 false,
                 false,
                 rope);
-        allocateNode.trace(string, this, language);
+        AllocationTracing.trace(string, this);
         return string;
     }
 

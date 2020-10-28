@@ -15,7 +15,6 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
@@ -79,6 +78,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -113,14 +113,13 @@ public abstract class ArrayNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyArray allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyArray allocate(RubyClass rubyClass) {
             RubyArray array = new RubyArray(
                     rubyClass,
                     helperNode.getCachedShape(rubyClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
-            helperNode.trace(array, this, language);
+            AllocationTracing.trace(array, this);
             return array;
         }
 
@@ -1220,7 +1219,7 @@ public abstract class ArrayNodes {
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
         protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
             RubyArray copy = null;
-            if (respondToToAry(object)) {
+            if (respondToToAry(getLanguage(), object)) {
                 Object toAryResult = callToAry(object);
                 if (toAryResult instanceof RubyArray) {
                     copy = (RubyArray) toAryResult;
@@ -1235,13 +1234,13 @@ public abstract class ArrayNodes {
             }
         }
 
-        public boolean respondToToAry(Object object) {
+        public boolean respondToToAry(RubyLanguage language, Object object) {
             if (respondToToAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
             return respondToToAryNode
-                    .executeDoesRespondTo(null, object, coreStrings().TO_ARY.createInstance(getContext()), true);
+                    .executeDoesRespondTo(null, object, language.coreStrings.TO_ARY.createInstance(getContext()), true);
         }
 
         protected Object callToAry(Object object) {
@@ -2355,7 +2354,6 @@ public abstract class ArrayNodes {
 
         @Specialization(replaces = "flattenHelperPrimitive")
         protected boolean flattenHelper(RubyArray array, RubyArray out, int maxLevels,
-                @CachedLanguage RubyLanguage language,
                 @Cached TypeNodes.CanContainObjectNode canContainObject,
                 @Cached ArrayAppendManyNode concat,
                 @Cached AtNode at,
@@ -2402,7 +2400,7 @@ public abstract class ArrayNodes {
                             "rb_check_convert_type",
                             obj,
                             coreLibrary().arrayClass,
-                            language.coreSymbols.TO_ARY);
+                            coreSymbols().TO_ARY);
                     if (converted == nil) {
                         append.executeAppendOne(out, obj);
                     } else {

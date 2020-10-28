@@ -42,7 +42,6 @@ package org.truffleruby.core.thread;
 
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -88,6 +87,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -175,8 +175,6 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_backtrace_locations", lowerFixnum = { 1, 2 })
     public abstract static class BacktraceLocationsNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected Object backtraceLocations(RubyThread rubyThread, int first, NotProvided second) {
             return backtraceLocationsInternal(rubyThread, first, GetBacktraceException.UNLIMITED);
@@ -193,7 +191,7 @@ public abstract class ThreadNodes {
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
-                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), allocateNode, length, this));
+                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), length, this));
             };
 
             getContext()
@@ -265,10 +263,9 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block,
-                @CachedLanguage RubyLanguage language) {
+        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
-            final InterruptMode newInterruptMode = symbolToInterruptMode(language, timing);
+            final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
 
             final InterruptMode oldInterruptMode = self.interruptMode;
             self.interruptMode = newInterruptMode;
@@ -299,11 +296,10 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected RubyThread allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateNode) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, language);
-            allocateNode.trace(instance, this, language);
+            final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, getLanguage());
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

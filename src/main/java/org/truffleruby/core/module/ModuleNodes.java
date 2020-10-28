@@ -18,7 +18,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -94,7 +93,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -395,10 +394,9 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object generateAccessor(VirtualFrame frame, RubyModule module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached ReadCallerFrameNode readCallerFrame,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ReadCallerFrameNode readCallerFrame) {
             final String name = nameToJavaStringNode.execute(nameObject);
-            createAccessor(module, name, readCallerFrame.execute(frame), language);
+            createAccessor(module, name, readCallerFrame.execute(frame), getLanguage());
             return nil;
         }
 
@@ -1587,9 +1585,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubyUnboundMethod publicInstanceMethod(RubyModule module, String name,
-                @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1606,7 +1602,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -1631,7 +1627,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         protected RubyArray getInstanceMethods(RubyModule module, boolean includeAncestors) {
             Object[] objects = module.fields
-                    .filterMethods(getContext(), includeAncestors, MethodFilter.by(visibility))
+                    .filterMethods(getLanguage(), includeAncestors, MethodFilter.by(visibility))
                     .toArray();
             return createArray(objects);
         }
@@ -1730,7 +1726,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyArray instanceMethods(RubyModule module, boolean includeAncestors) {
             Object[] objects = module.fields
-                    .filterMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
+                    .filterMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
         }
@@ -1748,9 +1744,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
-                @Cached AllocateHelperNode allocateHelperNode,
-                @Cached BranchProfile errorProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
 
@@ -1764,7 +1758,7 @@ public abstract class ModuleNodes {
                     RubyLanguage.unboundMethodShape,
                     module,
                     method);
-            allocateHelperNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -1957,7 +1951,7 @@ public abstract class ModuleNodes {
         protected RubyModule undefMethods(RubyModule module, Object[] names,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             for (Object name : names) {
-                module.fields.undefMethod(getContext(), this, nameToJavaStringNode.execute(name));
+                module.fields.undefMethod(getLanguage(), getContext(), this, nameToJavaStringNode.execute(name));
             }
             return module;
         }
@@ -1966,7 +1960,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyModule undefKeyword(RubyModule module, RubySymbol name) {
-            module.fields.undefMethod(getContext(), this, name.getString());
+            module.fields.undefMethod(getLanguage(), getContext(), this, name.getString());
             return module;
         }
 

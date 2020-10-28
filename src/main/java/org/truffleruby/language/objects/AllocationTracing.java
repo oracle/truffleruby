@@ -15,6 +15,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -28,6 +30,14 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class AllocationTracing {
 
+    public static void trace(RubyDynamicObject instance, RubyContextNode node) {
+        trace(node.getLanguage(), node.getContext(), instance, node);
+    }
+
+    public static void trace(RubyDynamicObject instance, RubyContextSourceNode node) {
+        trace(node.getLanguage(), node.getContext(), instance, node);
+    }
+
     public static void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance, Node currentNode) {
         CompilerAsserts.partialEvaluationConstant(language);
 
@@ -38,17 +48,18 @@ public abstract class AllocationTracing {
         }
 
         if (context.getObjectSpaceManager().isTracing(language)) {
-            traceBoundary(context, instance, currentNode);
+            traceBoundary(language, context, instance, currentNode);
         }
     }
 
     @TruffleBoundary
-    private static void traceBoundary(RubyContext context, RubyDynamicObject object, Node currentNode) {
+    private static void traceBoundary(RubyLanguage language, RubyContext context, RubyDynamicObject object,
+            Node currentNode) {
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
         if (!objectSpaceManager.isTracingPaused()) {
             objectSpaceManager.setTracingPaused(true);
             try {
-                callTraceAllocation(context, object, currentNode);
+                callTraceAllocation(language, context, object, currentNode);
             } finally {
                 objectSpaceManager.setTracingPaused(false);
             }
@@ -56,7 +67,8 @@ public abstract class AllocationTracing {
     }
 
     @TruffleBoundary
-    private static void callTraceAllocation(RubyContext context, RubyDynamicObject object, Node currentNode) {
+    private static void callTraceAllocation(RubyLanguage language, RubyContext context, RubyDynamicObject object,
+            Node currentNode) {
         final SourceSection allocatingSourceSection = context
                 .getCallStack()
                 .getTopMostUserSourceSection(currentNode.getEncapsulatingSourceSection());
@@ -73,7 +85,7 @@ public abstract class AllocationTracing {
                 "trace_allocation",
                 object,
                 string(context, className),
-                context.getSymbol(allocatingMethod),
+                language.getSymbol(allocatingMethod),
                 string(context, context.getSourcePath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
                 ObjectSpaceManager.getCollectionCount());

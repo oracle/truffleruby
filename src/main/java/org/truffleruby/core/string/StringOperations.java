@@ -48,20 +48,18 @@ import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 public abstract class StringOperations {
 
-    public static RubyString createString(RubyLanguage language, RubyContext context,
-            AllocateHelperNode allocateHelperNode,
-            RubyContextSourceNode rubyContextSourceNode, Rope rope) {
+    public static RubyString createString(RubyContext context, RubyContextSourceNode node, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
                 RubyLanguage.stringShape,
                 false,
                 false,
                 rope);
-        allocateHelperNode.trace(instance, rubyContextSourceNode, language);
+        AllocationTracing.trace(instance, node);
         return instance;
     }
 

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -35,6 +33,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Exception", isClass = true)
 public abstract class ExceptionNodes {
@@ -45,11 +44,10 @@ public abstract class ExceptionNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyException allocateException(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyException allocateException(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyException instance = new RubyException(rubyClass, shape, nil, null, nil);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -174,8 +172,6 @@ public abstract class ExceptionNodes {
     @CoreMethod(names = "backtrace_locations")
     public abstract static class BacktraceLocationsNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected Object backtraceLocations(RubyException exception,
                 @Cached ConditionProfile hasBacktraceProfile,
@@ -185,7 +181,7 @@ public abstract class ExceptionNodes {
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = exception.backtrace;
                     backtraceLocations = backtrace
-                            .getBacktraceLocations(getContext(), allocateNode, GetBacktraceException.UNLIMITED, null);
+                            .getBacktraceLocations(getContext(), GetBacktraceException.UNLIMITED, null);
                     exception.backtraceLocations = backtraceLocations;
                 }
                 return backtraceLocations;

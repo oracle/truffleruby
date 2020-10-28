@@ -11,7 +11,6 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -39,6 +38,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -64,8 +64,7 @@ public abstract class HashNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyHash allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyHash allocate(RubyClass rubyClass) {
             RubyHash hash = new RubyHash(
                     rubyClass,
                     helperNode.getCachedShape(rubyClass),
@@ -77,7 +76,7 @@ public abstract class HashNodes {
                     nil,
                     nil,
                     false);
-            helperNode.trace(hash, this, language);
+            AllocationTracing.trace(hash, this);
             return hash;
         }
 
@@ -91,19 +90,18 @@ public abstract class HashNodes {
         @Child private DispatchNode fallbackNode = DispatchNode.create();
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
-        @Specialization(guards = "isSmallArrayOfPairs(args, language)")
+        @Specialization(guards = "isSmallArrayOfPairs(args, getLanguage())")
         protected Object construct(RubyClass hashClass, Object[] args,
-                @CachedLanguage RubyLanguage language,
                 @Cached HashingNodes.ToHashByHashCode hashNode) {
             final RubyArray array = (RubyArray) args[0];
 
             final Object[] store = (Object[]) array.store;
 
             final int size = array.size;
-            final Object[] newStore = PackedArrayStrategy.createStore(language);
+            final Object[] newStore = PackedArrayStrategy.createStore(getLanguage());
 
             // written very carefully to allow PE
-            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
                 if (n < size) {
                     final Object pair = store[n];
 
@@ -142,9 +140,8 @@ public abstract class HashNodes {
                     false);
         }
 
-        @Specialization(guards = "!isSmallArrayOfPairs(args, language)")
-        protected Object constructFallback(RubyClass hashClass, Object[] args,
-                @CachedLanguage RubyLanguage language) {
+        @Specialization(guards = "!isSmallArrayOfPairs(args, getLanguage())")
+        protected Object constructFallback(RubyClass hashClass, Object[] args) {
             return fallbackNode.call(hashClass, "_constructor_fallback", args);
         }
 
@@ -366,8 +363,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         protected Object deletePackedArray(RubyHash hash, Object key, Object maybeBlock,
-                @Cached ConditionProfile byIdentityProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             final int hashed = hashNode.execute(key, compareByIdentity);
@@ -375,14 +371,14 @@ public abstract class HashNodes {
             final Object[] store = (Object[]) hash.store;
             final int size = hash.size;
 
-            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
                 if (n < size) {
                     final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                     final Object otherKey = PackedArrayStrategy.getKey(store, n);
 
                     if (equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed)) {
                         final Object value = PackedArrayStrategy.getValue(store, n);
-                        PackedArrayStrategy.removeEntry(language, store, n);
+                        PackedArrayStrategy.removeEntry(getLanguage(), store, n);
                         hash.size -= 1;
                         assert HashOperations.verifyStore(getContext(), hash);
                         return value;
@@ -466,18 +462,17 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        protected RubyHash eachPackedArray(RubyHash hash, RubyProc block,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyHash eachPackedArray(RubyHash hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] originalStore = (Object[]) hash.store;
 
             // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
             final int size = hash.size;
-            final Object[] storeCopy = PackedArrayStrategy.copyStore(language, originalStore);
+            final Object[] storeCopy = PackedArrayStrategy.copyStore(getLanguage(), originalStore);
 
             int n = 0;
             try {
-                for (; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+                for (; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
                     if (n < size) {
                         yieldPair(
                                 block,
@@ -606,8 +601,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isPackedHash(from)")
-        protected RubyHash replacePackedArray(RubyHash self, RubyHash from,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyHash replacePackedArray(RubyHash self, RubyHash from) {
             if (self == from) {
                 return self;
             }
@@ -615,7 +609,7 @@ public abstract class HashNodes {
             propagateSharingNode.executePropagate(self, from);
 
             final Object[] store = (Object[]) from.store;
-            Object storeCopy = PackedArrayStrategy.copyStore(language, store);
+            Object storeCopy = PackedArrayStrategy.copyStore(getLanguage(), store);
             int size = from.size;
             self.store = storeCopy;
             self.size = size;
@@ -646,7 +640,6 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(from)")
         protected RubyHash replaceCoerce(RubyHash self, Object from,
-                @CachedLanguage RubyLanguage language,
                 @Cached DispatchNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
@@ -654,7 +647,7 @@ public abstract class HashNodes {
                     "coerce_to",
                     from,
                     coreLibrary().hashClass,
-                    language.coreSymbols.TO_HASH);
+                    coreSymbols().TO_HASH);
             return initializeCopyNode.executeReplace(self, (RubyHash) otherHash);
         }
 
@@ -681,8 +674,7 @@ public abstract class HashNodes {
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
         protected RubyArray mapPackedArray(RubyHash hash, RubyProc block,
-                @Cached ArrayBuilderNode arrayBuilderNode,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Object[] store = (Object[]) hash.store;
@@ -691,7 +683,7 @@ public abstract class HashNodes {
             BuilderState state = arrayBuilderNode.start(length);
 
             try {
-                for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+                for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
                     if (n < length) {
                         final Object key = PackedArrayStrategy.getKey(store, n);
                         final Object value = PackedArrayStrategy.getValue(store, n);
@@ -790,8 +782,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isPackedHash(hash)" })
-        protected RubyArray shiftPackedArray(RubyHash hash,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyArray shiftPackedArray(RubyHash hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Object[] store = (Object[]) hash.store;
@@ -799,7 +790,7 @@ public abstract class HashNodes {
             final Object key = PackedArrayStrategy.getKey(store, 0);
             final Object value = PackedArrayStrategy.getValue(store, 0);
 
-            PackedArrayStrategy.removeEntry(language, store, 0);
+            PackedArrayStrategy.removeEntry(getLanguage(), store, 0);
 
             hash.size -= 1;
 
@@ -889,15 +880,14 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         protected RubyHash rehashPackedArray(RubyHash hash,
-                @Cached ConditionProfile byIdentityProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             final Object[] store = (Object[]) hash.store;
             final int size = hash.size;
 
-            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
                 if (n < size) {
                     PackedArrayStrategy.setHashed(
                             store,

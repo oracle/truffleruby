@@ -2947,7 +2947,7 @@ public class BodyTranslator extends Translator {
                     language.coreStrings.EXPRESSION,
                     new ObjectLiteralNode(frozenString));
         } else {
-            ret = new StringLiteralNode(language, rope);
+            ret = new StringLiteralNode(rope);
         }
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);

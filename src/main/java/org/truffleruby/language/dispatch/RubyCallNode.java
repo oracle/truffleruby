@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -154,7 +155,7 @@ public class RubyCallNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             definedNode = insert(new DefinedNode());
@@ -184,7 +185,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
     private class DefinedNode extends RubyBaseNode {
 
-        private final RubySymbol methodNameSymbol = getContext().getSymbol(methodName);
+        private final RubySymbol methodNameSymbol = getSymbol(methodName);
 
         @Child private DispatchNode respondToMissing = DispatchNode.create(PRIVATE_RETURN_MISSING);
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
@@ -200,12 +201,12 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         @ExplodeLoop
         public Object isDefined(VirtualFrame frame, RubyContext context) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame, context) == nil)) {
+            if (receiverDefinedProfile.profile(receiver.isDefined(frame, getLanguage(), context) == nil)) {
                 return nil;
             }
 
             for (RubyNode argument : arguments) {
-                if (argument.isDefined(frame, context) == nil) {
+                if (argument.isDefined(frame, getLanguage(), context) == nil) {
                     argumentNotDefinedProfile.enter();
                     return nil;
                 }

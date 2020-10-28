@@ -11,7 +11,6 @@ package org.truffleruby.stdlib.digest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -26,7 +25,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,26 +42,22 @@ public abstract class DigestNodes {
         }
     }
 
-    private static RubyDigest createDigest(RubyLanguage language, RubyContext context, AllocateHelperNode allocateNode,
-            RubyContextSourceNode rubyContextSourceNode, DigestAlgorithm algorithm) {
+    private static RubyDigest createDigest(RubyContext context, RubyContextSourceNode node, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
                 context.getCoreLibrary().digestClass,
                 RubyLanguage.digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
-        allocateNode.trace(instance, rubyContextSourceNode, language);
+        AllocationTracing.trace(instance, node);
         return instance;
     }
 
     @CoreMethod(names = "md5", onSingleton = true)
     public abstract static class MD5Node extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
-        protected RubyDigest md5(
-                @CachedLanguage RubyLanguage language) {
-            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.MD5);
+        protected RubyDigest md5() {
+            return createDigest(getContext(), this, DigestAlgorithm.MD5);
         }
 
     }
@@ -70,12 +65,9 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha1", onSingleton = true)
     public abstract static class SHA1Node extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
-        protected RubyDigest sha1(
-                @CachedLanguage RubyLanguage language) {
-            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA1);
+        protected RubyDigest sha1() {
+            return createDigest(getContext(), this, DigestAlgorithm.SHA1);
         }
 
     }
@@ -83,12 +75,9 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha256", onSingleton = true)
     public abstract static class SHA256Node extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
-        protected RubyDigest sha256(
-                @CachedLanguage RubyLanguage language) {
-            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA256);
+        protected RubyDigest sha256() {
+            return createDigest(getContext(), this, DigestAlgorithm.SHA256);
         }
 
     }
@@ -96,12 +85,9 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha384", onSingleton = true)
     public abstract static class SHA384Node extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
-        protected RubyDigest sha384(
-                @CachedLanguage RubyLanguage language) {
-            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA384);
+        protected RubyDigest sha384() {
+            return createDigest(getContext(), this, DigestAlgorithm.SHA384);
         }
 
     }
@@ -109,12 +95,9 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha512", onSingleton = true)
     public abstract static class SHA512Node extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
-        protected RubyDigest sha512(
-                @CachedLanguage RubyLanguage language) {
-            return createDigest(language, getContext(), allocateNode, this, DigestAlgorithm.SHA512);
+        protected RubyDigest sha512() {
+            return createDigest(getContext(), this, DigestAlgorithm.SHA512);
         }
 
     }

@@ -85,8 +85,8 @@ public abstract class InlinedOperationNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return rewriteToCallNode().isDefined(frame, context);
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return rewriteToCallNode().isDefined(frame, language, context);
     }
 
 }

@@ -10,6 +10,7 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -62,7 +63,7 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             definedNode = insert(IsDefinedGlobalVariableNode.create(name));

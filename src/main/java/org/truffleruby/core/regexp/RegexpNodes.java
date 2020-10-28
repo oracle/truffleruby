@@ -21,13 +21,11 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -56,6 +54,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
@@ -206,10 +205,8 @@ public abstract class RegexpNodes {
                 final NameEntry e = iter.next();
                 final byte[] bytes = Arrays.copyOfRange(e.name, e.nameP, e.nameEnd);
 
-                final Rope rope = getContext()
-                        .getRopeCache()
-                        .getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                final RubySymbol name = getContext().getSymbol(rope);
+                final Rope rope = getLanguage().ropeCache.getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                final RubySymbol name = getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final RubyArray backrefsRubyArray = createArray(backrefs);
@@ -227,8 +224,7 @@ public abstract class RegexpNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyRegexp allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyRegexp allocate(RubyClass rubyClass) {
             RubyRegexp regexp = new RubyRegexp(
                     rubyClass,
                     allocateNode.getCachedShape(rubyClass),
@@ -236,7 +232,7 @@ public abstract class RegexpNodes {
                     null,
                     RegexpOptions.NULL_OPTIONS,
                     null);
-            allocateNode.trace(regexp, this, language);
+            AllocationTracing.trace(regexp, this);
             return regexp;
         }
 

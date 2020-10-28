@@ -10,6 +10,7 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -53,7 +54,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         }
 
         @Override
-        public Object isDefined(VirtualFrame frame, RubyContext context) {
+        public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
             if (execute(frame) == nil) {
                 return nil;
             } else {

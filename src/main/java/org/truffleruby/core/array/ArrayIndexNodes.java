@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -27,6 +25,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
@@ -118,28 +117,27 @@ public abstract class ArrayIndexNodes {
         @Specialization(guards = { "indexInBounds(array, index)", "length >= 0" })
         protected RubyArray readInBounds(RubyArray array, int index, int length,
                 @Cached ArrayCopyOnWriteNode cowNode,
-                @Cached ConditionProfile endsInBoundsProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile endsInBoundsProfile) {
             final int size = array.size;
             final int end = endsInBoundsProfile.profile(index + length <= size)
                     ? length
                     : size - index;
             final Object slice = cowNode.execute(array, index, end);
-            return createArrayOfSameClass(language, array, slice, end);
+            return createArrayOfSameClass(array, slice, end);
         }
 
         protected static boolean indexInBounds(RubyArray array, int index) {
             return index >= 0 && index <= array.size;
         }
 
-        protected RubyArray createArrayOfSameClass(RubyLanguage language, RubyArray array, Object store, int size) {
+        protected RubyArray createArrayOfSameClass(RubyArray array, Object store, int size) {
             final RubyClass logicalClass = array.getLogicalClass();
             RubyArray newArray = new RubyArray(
                     logicalClass,
                     helperNode.getCachedShape(logicalClass),
                     store,
                     size);
-            helperNode.trace(newArray, this, language);
+            AllocationTracing.trace(newArray, this);
             return newArray;
         }
     }

@@ -16,9 +16,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
@@ -85,9 +83,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object addCoerced(RubyBigDecimal a, Object b,
-                @Cached DispatchNode redoCoerced,
-                @CachedLanguage RubyLanguage language) {
-            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.PLUS, b);
+                @Cached DispatchNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreSymbols().PLUS, b);
         }
     }
 
@@ -129,9 +126,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object subCoerced(RubyBigDecimal a, Object b,
-                @Cached DispatchNode redoCoerced,
-                @CachedLanguage RubyLanguage language) {
-            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.MINUS, b);
+                @Cached DispatchNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreSymbols().MINUS, b);
         }
     }
 
@@ -224,9 +220,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object multCoerced(RubyBigDecimal a, Object b,
-                @Cached DispatchNode redoCoerced,
-                @CachedLanguage RubyLanguage language) {
-            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.MULTIPLY, b);
+                @Cached DispatchNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreSymbols().MULTIPLY, b);
         }
     }
 
@@ -291,9 +286,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object divCoerced(RubyBigDecimal a, Object b,
-                @Cached DispatchNode redoCoerced,
-                @CachedLanguage RubyLanguage language) {
-            return redoCoerced.call(a, "redo_coerced", language.coreSymbols.DIVIDE, b);
+                @Cached DispatchNode redoCoerced) {
+            return redoCoerced.call(a, "redo_coerced", coreSymbols().DIVIDE, b);
         }
     }
 

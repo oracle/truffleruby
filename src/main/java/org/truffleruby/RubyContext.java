@@ -49,12 +49,8 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeCache;
-import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
@@ -117,7 +113,7 @@ public class RubyContext {
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
-    private final CoreExceptions coreExceptions = new CoreExceptions(this);
+    private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager = new EncodingManager(this);
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
@@ -168,6 +164,8 @@ public class RubyContext {
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
 
         options = createOptions(env, language.options);
+
+        coreExceptions = new CoreExceptions(this, language);
 
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);
@@ -481,10 +479,10 @@ public class RubyContext {
         safepointManager.checkNoRunningThreads();
 
         if (options.ROPE_PRINT_INTERN_STATS) {
-            RubyLanguage.LOGGER.info("ropes re-used: " + getRopeCache().getRopesReusedCount());
-            RubyLanguage.LOGGER.info("rope byte arrays re-used: " + getRopeCache().getByteArrayReusedCount());
-            RubyLanguage.LOGGER.info("rope bytes saved: " + getRopeCache().getRopeBytesSaved());
-            RubyLanguage.LOGGER.info("total ropes interned: " + getRopeCache().totalRopes());
+            RubyLanguage.LOGGER.info("ropes re-used: " + language.ropeCache.getRopesReusedCount());
+            RubyLanguage.LOGGER.info("rope byte arrays re-used: " + language.ropeCache.getByteArrayReusedCount());
+            RubyLanguage.LOGGER.info("rope bytes saved: " + language.ropeCache.getRopeBytesSaved());
+            RubyLanguage.LOGGER.info("total ropes interned: " + language.ropeCache.totalRopes());
         }
 
         if (options.CEXTS_TONATIVE_STATS) {
@@ -601,26 +599,8 @@ public class RubyContext {
         return coverageManager;
     }
 
-    public RopeCache getRopeCache() {
-        return language.ropeCache;
-    }
-
     public PathToRopeCache getPathToRopeCache() {
         return pathToRopeCache;
-    }
-
-    public SymbolTable getSymbolTable() {
-        return language.symbolTable;
-    }
-
-    @TruffleBoundary
-    public RubySymbol getSymbol(String string) {
-        return language.getSymbol(string);
-    }
-
-    @TruffleBoundary
-    public RubySymbol getSymbol(Rope rope) {
-        return language.getSymbol(rope);
     }
 
     public CodeLoader getCodeLoader() {
@@ -633,10 +613,6 @@ public class RubyContext {
 
     public CallStackManager getCallStack() {
         return callStack;
-    }
-
-    public CoreStrings getCoreStrings() {
-        return language.coreStrings;
     }
 
     public RubyString getFrozenStringLiteral(Rope rope) {

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.method;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -40,7 +39,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -161,7 +160,7 @@ public abstract class MethodNodes {
                     .getSharedMethodInfo()
                     .getArgumentDescriptors();
 
-            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, true);
+            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, true);
         }
 
     }
@@ -202,12 +201,10 @@ public abstract class MethodNodes {
     @CoreMethod(names = "super_method")
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
-        protected Object superMethod(RubyMethod method,
-                @CachedLanguage RubyLanguage language) {
+        protected Object superMethod(RubyMethod method) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
             RubyClass selfMetaClass = metaClassNode.execute(receiver);
@@ -220,7 +217,7 @@ public abstract class MethodNodes {
                         RubyLanguage.methodShape,
                         receiver,
                         superMethod.getMethod());
-                allocateNode.trace(instance, this, language);
+                AllocationTracing.trace(instance, this);
                 return instance;
             }
         }
@@ -233,16 +230,14 @@ public abstract class MethodNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected RubyUnboundMethod unbind(RubyMethod method,
-                @Cached AllocateHelperNode allocateHelperNode,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyUnboundMethod unbind(RubyMethod method) {
             final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
                     RubyLanguage.unboundMethodShape,
                     receiverClass,
                     method.method);
-            allocateHelperNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

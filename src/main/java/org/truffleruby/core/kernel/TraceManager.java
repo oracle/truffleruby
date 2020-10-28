@@ -17,6 +17,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -88,7 +89,7 @@ public class TraceManager {
                                 context,
                                 eventContext,
                                 traceFunc,
-                                context.getCoreStrings().LINE.createInstance(context))));
+                                language.coreStrings.LINE.createInstance(context))));
 
         instruments.add(
                 instrumenter.attachExecutionEventFactory(
@@ -101,7 +102,7 @@ public class TraceManager {
                                 context,
                                 eventContext,
                                 traceFunc,
-                                context.getCoreStrings().CLASS.createInstance(context))));
+                                language.coreStrings.CLASS.createInstance(context))));
 
         if (context.getOptions().TRACE_CALLS) {
             instruments.add(
@@ -116,7 +117,7 @@ public class TraceManager {
                                     context,
                                     eventContext,
                                     traceFunc,
-                                    context.getCoreStrings().CALL.createInstance(context))));
+                                    language.coreStrings.CALL.createInstance(context))));
         }
     }
 
@@ -188,7 +189,7 @@ public class TraceManager {
                         event,
                         getFile(),
                         getLine(),
-                        context.getSymbol(RubyArguments.getMethod(frame).getName()),
+                        getSymbol(context, RubyArguments.getMethod(frame).getName()),
                         BindingNodes.createBinding(
                                 context,
                                 frame.materialize(),
@@ -210,4 +211,8 @@ public class TraceManager {
 
     }
 
+    @TruffleBoundary
+    private RubySymbol getSymbol(RubyContext context, String string) {
+        return context.getLanguageSlow().getSymbol(string);
+    }
 }

@@ -442,7 +442,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
-            final RubySymbol methodSymbol = context.getSymbol(method.getName());
+            final RubySymbol methodSymbol = context.getLanguageSlow().getSymbol(method.getName());
             if (RubyGuards.isSingletonClass(rubyModule)) {
                 RubyDynamicObject receiver = ((RubyClass) rubyModule).attached;
                 context.send(currentNode, receiver, "singleton_method_added", methodSymbol);
@@ -467,7 +467,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void undefMethod(RubyContext context, Node currentNode, String methodName) {
+    public void undefMethod(RubyLanguage language, RubyContext context, Node currentNode, String methodName) {
         checkFrozen(context, currentNode);
 
         final InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModule, methodName, null);
@@ -486,7 +486,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } else {
             addMethod(context, currentNode, method.undefined());
 
-            final RubySymbol methodSymbol = context.getSymbol(methodName);
+            final RubySymbol methodSymbol = language.getSymbol(methodName);
             if (RubyGuards.isSingletonClass(rubyModule)) {
                 final RubyDynamicObject receiver = ((RubyClass) rubyModule).attached;
                 context.send(currentNode, receiver, "singleton_method_undefined", methodSymbol);
@@ -735,18 +735,18 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return () -> new IncludedModulesIterator(start, this);
     }
 
-    public Collection<RubySymbol> filterMethods(RubyContext context, boolean includeAncestors, MethodFilter filter) {
+    public Collection<RubySymbol> filterMethods(RubyLanguage language, boolean includeAncestors, MethodFilter filter) {
         final Map<String, InternalMethod> allMethods;
         if (includeAncestors) {
             allMethods = ModuleOperations.getAllMethods(rubyModule);
         } else {
             allMethods = methods;
         }
-        return filterMethods(context, allMethods, filter);
+        return filterMethods(language, allMethods, filter);
     }
 
     public Collection<RubySymbol> filterMethodsOnObject(
-            RubyContext context,
+            RubyLanguage language,
             boolean includeAncestors,
             MethodFilter filter) {
         final Map<String, InternalMethod> allMethods;
@@ -755,11 +755,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } else {
             allMethods = ModuleOperations.getMethodsUntilLogicalClass(rubyModule);
         }
-        return filterMethods(context, allMethods, filter);
+        return filterMethods(language, allMethods, filter);
     }
 
     public Collection<RubySymbol> filterSingletonMethods(
-            RubyContext context,
+            RubyLanguage language,
             boolean includeAncestors,
             MethodFilter filter) {
         final Map<String, InternalMethod> allMethods;
@@ -768,11 +768,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } else {
             allMethods = methods;
         }
-        return filterMethods(context, allMethods, filter);
+        return filterMethods(language, allMethods, filter);
     }
 
     public Collection<RubySymbol> filterMethods(
-            RubyContext context,
+            RubyLanguage language,
             Map<String, InternalMethod> allMethods,
             MethodFilter filter) {
         final Map<String, InternalMethod> methods = ModuleOperations.withoutUndefinedMethods(allMethods);
@@ -780,7 +780,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         final Set<RubySymbol> filtered = new HashSet<>();
         for (InternalMethod method : methods.values()) {
             if (filter.filter(method)) {
-                filtered.add(context.getSymbol(method.getName()));
+                filtered.add(language.getSymbol(method.getName()));
             }
         }
 

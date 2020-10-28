@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.proc;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -36,6 +35,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.TranslatorEnvironment;
@@ -100,8 +100,7 @@ public abstract class ProcNodes {
         @Specialization(guards = "procClass != metaClass(block)")
         protected RubyProc procSpecial(RubyClass procClass, Object[] args, RubyProc block,
                 @Cached AllocateHelperNode allocateHelper,
-                @Cached DispatchNode initialize,
-                @CachedLanguage RubyLanguage language) {
+                @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
             final RubyProc proc = new RubyProc(
@@ -118,7 +117,7 @@ public abstract class ProcNodes {
                     block.frameOnStackMarker,
                     block.declarationContext);
 
-            allocateHelper.trace(proc, this, language);
+            AllocationTracing.trace(proc, this);
             initialize.callWithBlock(proc, "initialize", block, args);
             return proc;
         }
@@ -141,8 +140,7 @@ public abstract class ProcNodes {
 
         @Specialization
         protected RubyProc dup(RubyProc proc,
-                @Cached AllocateHelperNode allocateHelper,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateHelper) {
             final RubyClass logicalClass = proc.getLogicalClass();
             final RubyProc copy = new RubyProc(
                     logicalClass,
@@ -158,7 +156,7 @@ public abstract class ProcNodes {
                     proc.frameOnStackMarker,
                     proc.declarationContext);
 
-            allocateHelper.trace(copy, this, language);
+            AllocationTracing.trace(copy, this);
             return copy;
         }
     }
@@ -228,7 +226,8 @@ public abstract class ProcNodes {
         protected RubyArray parameters(RubyProc proc) {
             final ArgumentDescriptor[] argsDesc = proc.sharedMethodInfo.getArgumentDescriptors();
             final boolean isLambda = proc.type == ProcType.LAMBDA;
-            return ArgumentDescriptorUtils.argumentDescriptorsToParameters(getContext(), argsDesc, isLambda);
+            return ArgumentDescriptorUtils
+                    .argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, isLambda);
         }
 
     }
@@ -263,9 +262,7 @@ public abstract class ProcNodes {
     public abstract static class ProcCreateSameArityNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block,
-                @Cached AllocateHelperNode allocateHelper,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
             final RubyProc composedProc = new RubyProc(
                     coreLibrary().procClass,
                     RubyLanguage.procShape,
@@ -279,7 +276,7 @@ public abstract class ProcNodes {
                     block.block,
                     block.frameOnStackMarker,
                     block.declarationContext);
-            allocateHelper.trace(composedProc, this, language);
+            AllocationTracing.trace(composedProc, this);
             return composedProc;
         }
     }

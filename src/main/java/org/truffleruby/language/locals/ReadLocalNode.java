@@ -10,6 +10,7 @@
 package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.debug.SingleMemberDescriptor;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -37,7 +38,7 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
     public abstract RubyNode makeWriteNode(RubyNode rhs);
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         switch (type) {
             case FRAME_LOCAL:
                 return coreStrings().LOCAL_VARIABLE.createInstance(context);

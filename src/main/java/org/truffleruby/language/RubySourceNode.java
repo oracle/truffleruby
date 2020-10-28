@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.RubyLanguage;
 
 /** Can be used as a parent of Ruby nodes which need @GenerateUncached. */
 @NodeField(name = "sourceCharIndex", type = int.class)
@@ -28,8 +29,8 @@ public abstract class RubySourceNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return RubyNode.defaultIsDefined(context, this);
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return RubyNode.defaultIsDefined(language, context, this);
     }
 
     @Override

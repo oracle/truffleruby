@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -116,7 +115,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
@@ -412,8 +411,6 @@ public abstract class KernelNodes {
     @Primitive(name = "kernel_caller_locations", lowerFixnum = { 0, 1 })
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected Object callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
@@ -428,7 +425,7 @@ public abstract class KernelNodes {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-            return backtrace.getBacktraceLocations(getContext(), allocateNode, length, this);
+            return backtrace.getBacktraceLocations(getContext(), length, this);
         }
     }
 
@@ -1264,7 +1261,6 @@ public abstract class KernelNodes {
 
         private final DispatchConfiguration dispatchConfig;
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodOnSelfNode lookupMethodNode;
         @Child private DispatchNode respondToMissingNode = DispatchNode.create();
@@ -1280,8 +1276,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyMethod method(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
-                @Cached ConditionProfile respondToMissingProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
                     .lookup(frame, self, normalizedName, dispatchConfig);
@@ -1307,7 +1302,7 @@ public abstract class KernelNodes {
                     RubyLanguage.methodShape,
                     self,
                     method);
-            allocateNode.trace(language, getContext(), instance);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -1380,7 +1375,7 @@ public abstract class KernelNodes {
             final RubyModule metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED)
+                    .filterMethodsOnObject(getLanguage(), regular, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
         }
@@ -1442,7 +1437,7 @@ public abstract class KernelNodes {
             RubyClass metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PRIVATE)
+                    .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PRIVATE)
                     .toArray();
             return createArray(objects);
         }
@@ -1478,7 +1473,7 @@ public abstract class KernelNodes {
             final RubyClass metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PROTECTED)
+                    .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PROTECTED)
                     .toArray();
             return createArray(objects);
         }
@@ -1522,7 +1517,7 @@ public abstract class KernelNodes {
             final RubyModule metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
-                    .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PUBLIC)
+                    .filterMethodsOnObject(getLanguage(), includeAncestors, MethodFilter.PUBLIC)
                     .toArray();
             return createArray(objects);
         }
@@ -1712,7 +1707,6 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
@@ -1724,8 +1718,7 @@ public abstract class KernelNodes {
         protected RubyMethod singletonMethod(Object self, String name,
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile singletonProfile,
-                @Cached ConditionProfile methodProfile,
-                @CachedLanguage RubyLanguage language) {
+                @Cached ConditionProfile methodProfile) {
             final RubyClass metaClass = metaClassNode.execute(self);
 
             if (singletonProfile.profile(metaClass.isSingleton)) {
@@ -1736,7 +1729,7 @@ public abstract class KernelNodes {
                             RubyLanguage.methodShape,
                             self,
                             method);
-                    allocateNode.trace(instance, this, language);
+                    AllocationTracing.trace(instance, this);
                     return instance;
                 }
             }
@@ -1776,7 +1769,7 @@ public abstract class KernelNodes {
             }
 
             Object[] objects = metaClass.fields
-                    .filterSingletonMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
+                    .filterSingletonMethods(getLanguage(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
         }

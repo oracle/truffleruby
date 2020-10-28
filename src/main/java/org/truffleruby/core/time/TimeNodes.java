@@ -12,7 +12,6 @@ package org.truffleruby.core.time;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -40,6 +39,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -65,11 +65,10 @@ public abstract class TimeNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyTime allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyTime allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTime instance = new RubyTime(rubyClass, shape, ZERO, nil, 0, false, false);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -183,14 +182,13 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected RubyTime timeNow(RubyClass timeClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyTime timeNow(RubyClass timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
             final Shape shape = allocateNode.getCachedShape(timeClass);
             final RubyTime instance = new RubyTime(timeClass, shape, dt, zone, nil, false, false);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
 
         }
@@ -210,8 +208,7 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyTime timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
@@ -225,7 +222,7 @@ public abstract class TimeNodes {
                     nil,
                     false,
                     false);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 
@@ -491,8 +488,8 @@ public abstract class TimeNodes {
                 int nsec,
                 int isdst,
                 boolean isutc,
-                Object utcoffset,
-                @CachedLanguage RubyLanguage language) {
+                Object utcoffset) {
+            final RubyLanguage language = getLanguage();
             return buildTime(language, timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
@@ -532,7 +529,7 @@ public abstract class TimeNodes {
             if (isutc) {
                 zone = GetTimeZoneNode.UTC;
                 relativeOffset = false;
-                zoneToStore = coreStrings().UTC.createInstance(getContext());
+                zoneToStore = language.coreStrings.UTC.createInstance(getContext());
             } else if (utcoffset == nil) {
                 if (makeStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -598,7 +595,7 @@ public abstract class TimeNodes {
                     utcoffset,
                     relativeOffset,
                     isutc);
-            allocateNode.trace(instance, this, language);
+            AllocationTracing.trace(instance, this);
             return instance;
         }
 

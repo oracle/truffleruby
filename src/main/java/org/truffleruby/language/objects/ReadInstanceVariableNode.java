@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -65,7 +66,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         final Object receiverObject = receiver.execute(frame);
 
         if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {

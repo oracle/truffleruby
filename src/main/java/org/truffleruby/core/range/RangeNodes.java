@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.range;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -36,6 +35,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -198,14 +198,11 @@ public abstract class RangeNodes {
     @CoreMethod(names = { "dup", "clone" })
     public abstract static class DupNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
-
         // NOTE(norswap): This is a hack, as it doesn't copy the ivars.
         //   We do copy the logical class (but not the singleton class, to be MRI compatible).
 
         @Specialization
-        protected RubyIntRange dupIntRange(RubyIntRange range,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyIntRange dupIntRange(RubyIntRange range) {
             // RubyIntRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
             final Shape shape = RubyLanguage.intRangeShape;
             final RubyIntRange copy = new RubyIntRange(
@@ -214,13 +211,12 @@ public abstract class RangeNodes {
                     range.excludedEnd,
                     range.begin,
                     range.end);
-            allocateHelper.trace(copy, this, language);
+            AllocationTracing.trace(copy, this);
             return copy;
         }
 
         @Specialization
-        protected RubyLongRange dupLongRange(RubyLongRange range,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyLongRange dupLongRange(RubyLongRange range) {
             // RubyLongRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
             final Shape shape = RubyLanguage.longRangeShape;
             final RubyLongRange copy = new RubyLongRange(
@@ -229,22 +225,22 @@ public abstract class RangeNodes {
                     range.excludedEnd,
                     range.begin,
                     range.end);
-            allocateHelper.trace(copy, this, language);
+            AllocationTracing.trace(copy, this);
             return copy;
         }
 
         @Specialization
         protected RubyObjectRange dup(RubyObjectRange range,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateHelperNode) {
             final RubyClass logicalClass = range.getLogicalClass();
-            final Shape shape = allocateHelper.getCachedShape(logicalClass);
+            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyObjectRange copy = new RubyObjectRange(
                     logicalClass,
                     shape,
                     range.excludedEnd,
                     range.begin,
                     range.end);
-            allocateHelper.trace(copy, this, language);
+            AllocationTracing.trace(copy, this);
             return copy;
         }
     }
@@ -453,16 +449,13 @@ public abstract class RangeNodes {
     @NodeChild(value = "excludeEnd", type = RubyNode.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
-
         @CreateCast("excludeEnd")
         protected RubyNode coerceToBoolean(RubyNode excludeEnd) {
             return BooleanCastWithDefaultNodeGen.create(false, excludeEnd);
         }
 
         @Specialization(guards = "rubyClass == getRangeClass()")
-        protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final RubyIntRange range = new RubyIntRange(
                     coreLibrary().rangeClass,
@@ -470,13 +463,12 @@ public abstract class RangeNodes {
                     excludeEnd,
                     begin,
                     end);
-            allocateHelper.trace(range, this, language);
+            AllocationTracing.trace(range, this);
             return range;
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
-        protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final Shape shape = RubyLanguage.intRangeShape;
             final RubyIntRange range = new RubyIntRange(
@@ -485,13 +477,12 @@ public abstract class RangeNodes {
                     excludeEnd,
                     (int) begin,
                     (int) end);
-            allocateHelper.trace(range, this, language);
+            AllocationTracing.trace(range, this);
             return range;
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
-        protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final RubyLongRange range = new RubyLongRange(
                     coreLibrary().rangeClass,
@@ -499,22 +490,22 @@ public abstract class RangeNodes {
                     excludeEnd,
                     begin,
                     end);
-            allocateHelper.trace(range, this, language);
+            AllocationTracing.trace(range, this);
             return range;
         }
 
         @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached DispatchNode compare,
-                @CachedLanguage RubyLanguage language) {
+                @Cached AllocateHelperNode allocateHelperNode,
+                @Cached DispatchNode compare) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
-            final Shape shape = allocateHelper.getCachedShape(rubyClass);
+            final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end);
-            allocateHelper.trace(range, this, language);
+            AllocationTracing.trace(range, this);
             return range;
         }
 
@@ -526,18 +517,15 @@ public abstract class RangeNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
-
         @Specialization
-        protected RubyObjectRange allocate(RubyClass rubyClass,
-                @CachedLanguage RubyLanguage language) {
+        protected RubyObjectRange allocate(RubyClass rubyClass) {
             final RubyObjectRange range = new RubyObjectRange(
                     rubyClass,
                     RubyLanguage.objectRangeShape,
                     false,
                     nil,
                     nil);
-            allocateHelper.trace(range, this, language);
+            AllocationTracing.trace(range, this);
             return range;
         }
     }
