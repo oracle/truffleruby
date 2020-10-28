@@ -39,7 +39,7 @@ public final class RubyArguments {
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
             MaterializedFrame declarationFrame,
-            Object callerOrStorage,
+            Object callerFrameOrVariables,
             InternalMethod method,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
@@ -47,7 +47,7 @@ public final class RubyArguments {
             Object[] arguments) {
         return pack(
                 declarationFrame,
-                callerOrStorage,
+                callerFrameOrVariables,
                 method,
                 method.getDeclarationContext(),
                 frameOnStackMarker,
@@ -58,7 +58,7 @@ public final class RubyArguments {
 
     public static Object[] pack(
             MaterializedFrame declarationFrame,
-            Object callerOrStorage,
+            Object callerFrameOrVariables,
             InternalMethod method,
             DeclarationContext declarationContext,
             FrameOnStackMarker frameOnStackMarker,
@@ -69,11 +69,14 @@ public final class RubyArguments {
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
+        assert callerFrameOrVariables instanceof MaterializedFrame ||
+                callerFrameOrVariables instanceof SpecialVariableStorage ||
+                callerFrameOrVariables instanceof FrameOrStorage;
 
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
         packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
-        packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerOrStorage;
+        packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
         packed[ArgumentIndicies.METHOD.ordinal()] = method;
         packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
