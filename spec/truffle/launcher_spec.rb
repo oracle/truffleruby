@@ -415,9 +415,20 @@ describe "The launcher" do
     TruffleRuby.graalvm_home and TruffleRuby.native?
   } do
     describe "runtime configuration flags" do
+      before :each do
+        @trufflerubyopt = ENV['TRUFFLERUBYOPT']
+        # remove --native/--jvm from $TRUFFLERUBYOPT as they can conflict with command line arguments for these specs
+        ENV['TRUFFLERUBYOPT'] = @trufflerubyopt.to_s.gsub(/--(native|jvm)\b/, '')
+      end
+
+      after :each do
+        ENV['TRUFFLERUBYOPT'] = @trufflerubyopt
+      end
+
       ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
         it "should recognize ruby --vm options in #{var} when switching to JVM" do
-          out = ruby_exe('puts RUBY_DESCRIPTION; puts Truffle::System.get_java_property("foo")', env: { var => "--jvm --vm.Dfoo=bar" }, args: @redirect)
+          env = { var => "--jvm --vm.Dfoo=bar" }
+          out = ruby_exe('puts RUBY_DESCRIPTION; puts Truffle::System.get_java_property("foo")', env: env, args: @redirect)
           check_status_and_empty_stderr
           out = out.lines.map(&:chomp)
           out[0].should =~ /GraalVM (CE|EE) JVM/
