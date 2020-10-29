@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.klass;
 
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -53,8 +54,18 @@ public abstract class ClassNodes {
     /** This constructor supports initialization and solves boot-order problems and should not normally be used from
      * outside this class. */
     @TruffleBoundary
-    public static RubyClass createBootClass(RubyContext context, RubyClass classClass, Object superclass, String name) {
-        final RubyClass rubyClass = new RubyClass(classClass, context, null, null, name, false, null, superclass);
+    public static RubyClass createBootClass(RubyContext context, RubyClass classClass, Object superclass, String name,
+            Shape instanceShape) {
+        final RubyClass rubyClass = new RubyClass(
+                classClass,
+                context,
+                null,
+                null,
+                name,
+                false,
+                null,
+                superclass,
+                instanceShape);
         rubyClass.fields.setFullName(name);
 
         if (superclass != Nil.INSTANCE) {
@@ -81,12 +92,13 @@ public abstract class ClassNodes {
                         superclass,
                         name,
                         true,
-                        attached));
+                        attached,
+                        null));
     }
 
     @TruffleBoundary
     public static RubyClass createInitializedRubyClass(RubyContext context, SourceSection sourceSection,
-            RubyModule lexicalParent, RubyClass superclass, String name) {
+            RubyModule lexicalParent, RubyClass superclass, String name, Shape instanceShape) {
         assert superclass != null;
         final RubyClass rubyClass = createRubyClass(
                 context,
@@ -96,7 +108,8 @@ public abstract class ClassNodes {
                 superclass,
                 name,
                 false,
-                null);
+                null,
+                instanceShape);
         ensureItHasSingletonClassCreated(context, rubyClass);
         return rubyClass;
     }
@@ -109,7 +122,8 @@ public abstract class ClassNodes {
             RubyClass superclass,
             String name,
             boolean isSingleton,
-            RubyDynamicObject attached) {
+            RubyDynamicObject attached,
+            Shape instanceShape) {
         assert superclass != null;
         final RubyClass rubyClass = new RubyClass(
                 classClass,
@@ -119,7 +133,8 @@ public abstract class ClassNodes {
                 name,
                 isSingleton,
                 attached,
-                superclass);
+                superclass,
+                instanceShape);
 
         if (lexicalParent != null) {
             rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, null);
@@ -128,11 +143,6 @@ public abstract class ClassNodes {
         }
 
         rubyClass.setSuperClass(superclass);
-
-        // Singleton classes cannot be instantiated
-        if (!isSingleton) {
-            setInstanceShape(rubyClass, superclass);
-        }
 
         return rubyClass;
     }
@@ -145,12 +155,19 @@ public abstract class ClassNodes {
             throw CompilerDirectives.shouldNotReachHere("Subclasses of class Class are forbidden in Ruby");
         }
 
-        final RubyClass rubyClass = new RubyClass(classClass, context, sourceSection, null, null, false, null, null);
+        final RubyClass rubyClass = new RubyClass(
+                classClass,
+                context,
+                sourceSection,
+                null,
+                null,
+                false,
+                null,
+                null,
+                context.getCoreLibrary().objectClass.instanceShape);
 
         // For Class.allocate, set it in the fields but not in RubyClass#superclass to mark as not yet initialized
         rubyClass.fields.setSuperClass(context.getCoreLibrary().objectClass);
-
-        setInstanceShape(rubyClass, context.getCoreLibrary().objectClass);
 
         assert !rubyClass.isInitialized();
         return rubyClass;
@@ -161,15 +178,9 @@ public abstract class ClassNodes {
         assert !rubyClass.isSingleton : "Singleton classes can only be created internally";
 
         rubyClass.setSuperClass(superclass);
+        rubyClass.instanceShape = superclass.instanceShape;
 
         ensureItHasSingletonClassCreated(context, rubyClass);
-
-        setInstanceShape(rubyClass, superclass);
-    }
-
-    public static void setInstanceShape(RubyClass rubyClass, RubyClass baseClass) {
-        assert !rubyClass.isSingleton : "Singleton classes cannot be instantiated";
-        rubyClass.instanceShape = baseClass.instanceShape;
     }
 
     private static RubyClass ensureItHasSingletonClassCreated(RubyContext context, RubyClass rubyClass) {
@@ -223,7 +234,8 @@ public abstract class ClassNodes {
                 singletonSuperclass,
                 name,
                 true,
-                rubyClass);
+                rubyClass,
+                null);
         SharedObjects.propagate(context, rubyClass, metaClass);
         rubyClass.setMetaClass(metaClass);
 

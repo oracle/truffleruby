@@ -32,7 +32,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     /** If this is an object's metaclass, then nonSingletonClass is the logical class of the object. */
     public final RubyClass nonSingletonClass;
     public final RubyDynamicObject attached;
-    public Shape instanceShape = null;
+    public Shape instanceShape;
     /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
     public Object superclass;
 
@@ -44,21 +44,25 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             String givenBaseName,
             boolean isSingleton,
             RubyDynamicObject attached,
-            Object superclass) {
+            Object superclass,
+            Shape instanceShape) {
         super(classClass, classClass.instanceShape, context, sourceSection, lexicalParent, givenBaseName);
+        assert isSingleton == (instanceShape == null);
         this.isSingleton = isSingleton;
         this.attached = attached;
         this.superclass = superclass;
+        this.instanceShape = instanceShape;
 
         this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
     }
 
     /** Special constructor to build the 'Class' RubyClass itself */
-    RubyClass(RubyContext context, Shape tempShape) {
-        super(context, tempShape, "constructor only for the class Class");
+    RubyClass(RubyContext context, Shape classShape) {
+        super(context, classShape, "constructor only for the class Class");
         this.isSingleton = false;
         this.attached = null;
         this.superclass = null;
+        this.instanceShape = classShape;
 
         this.nonSingletonClass = this;
     }

@@ -195,11 +195,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (rubyModule instanceof RubyClass) {
-            // Singleton classes cannot be instantiated
-            if (!((RubyClass) from).isSingleton) {
-                ClassNodes.setInstanceShape((RubyClass) rubyModule, (RubyClass) from);
-            }
-
+            ((RubyClass) rubyModule).instanceShape = ((RubyClass) from).instanceShape;
             ((RubyClass) rubyModule).superclass = ((RubyClass) from).superclass;
         }
     }

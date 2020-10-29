@@ -68,8 +68,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
         this.metaClass = metaClass;
     }
 
-    protected RubyDynamicObject(Shape shape, String constructorOnlyForClassClass) {
-        super(shape);
+    protected RubyDynamicObject(Shape classShape, String constructorOnlyForClassClass) {
+        super(classShape);
         this.metaClass = (RubyClass) this;
     }
 
