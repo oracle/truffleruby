@@ -519,13 +519,11 @@ asciidoctor_benchmarks = [
     'asciidoctor:join-lines',
     'asciidoctor-convert',
     'asciidoctor-load-file',
-    'asciidoctor-load-string'
 ]
 
 asciidoctor_benchmark_time = {
     'asciidoctor-convert': 400,
     'asciidoctor-load-file': 400,
-    'asciidoctor-load-string': 400,
     'default': 120
 }
 
@@ -695,7 +693,6 @@ class LiquidBenchmarkSuite(AllBenchmarksBenchmarkSuite):
 warmup_benchmarks = [
     'asciidoctor/asciidoctor-convert',
     'asciidoctor/asciidoctor-load-file',
-    'asciidoctor/asciidoctor-load-string',
     'rubykon/rubykon',
 ]
 
@@ -709,7 +706,6 @@ class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
         iterations = {
             'asciidoctor-convert':     {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},
-            'asciidoctor-load-string': {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'rubykon':                 {1:'startup', 10:'early-warmup', 30:'late-warmup'},
             'blog6-bundle-install':    {1:'single-shot'},
             'blog6-rails-routes':      {1:'single-shot'},
