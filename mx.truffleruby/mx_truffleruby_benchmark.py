@@ -703,6 +703,7 @@ blog6_benchmarks = [
 
 class WarmupBenchmarkSuite(AllBenchmarksBenchmarkSuite):
     def config(self):
+        # NOTE: also update mx.truffleruby/warmup-fork-counts.json when updating this list
         iterations = {
             'asciidoctor-convert':     {10:'startup', 100:'early-warmup', 500:'late-warmup'},
             'asciidoctor-load-file':   {10:'startup', 100:'early-warmup', 500:'late-warmup'},

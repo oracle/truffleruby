@@ -436,7 +436,11 @@ local part_definitions = {
     asciidoctor: { benchmarks+:: ["asciidoctor"] },
     other_extra: { benchmarks+:: ["savina"] },
     other: { benchmarks+:: ["micro", "image-demo", "optcarrot", "synthetic", "rubykon", "liquid"] },
-    warmup: { benchmarks+:: ["ruby-warmup"] },
+    warmup: {
+      benchmarks+:: [
+        ["--fork-count-file", "mx.truffleruby/warmup-fork-counts.json", "ruby-warmup:*"],
+      ],
+    },
 
     server: {
       local build = self,
