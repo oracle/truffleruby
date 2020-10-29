@@ -392,11 +392,7 @@ local part_definitions = {
 
     runner: {
       local benchmarks_to_run = self.benchmarks,
-      run+: std.join(
-              post_process_and_upload_results_wait,
-              std.map(mx_benchmark, benchmarks_to_run)
-            ) +
-            post_process_and_upload_results,
+      run+: benchmark(benchmarks_to_run),
     },
 
     interpreter_metrics: {
