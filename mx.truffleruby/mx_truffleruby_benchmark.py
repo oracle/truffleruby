@@ -64,7 +64,7 @@ class RubyBenchmarkSuite(mx_benchmark.BenchmarkSuite):
         return 'Graal'
 
     def subgroup(self):
-        return 'jrubytruffle'
+        return 'truffleruby'
 
     def vmArgs(self, bmSuiteArgs):
         return mx_benchmark.splitArgs(bmSuiteArgs, bmSuiteArgs)[0]
