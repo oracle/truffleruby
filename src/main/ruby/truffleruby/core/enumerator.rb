@@ -78,8 +78,6 @@ class Enumerator
     "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
   end
 
-  MARKER = Object.new
-
   def each(*args, &block)
     enumerator = self
     new_args = @args
@@ -92,37 +90,22 @@ class Enumerator
     enumerator.__send__ :args=, new_args
 
     if block
-      sv = Primitive.proc_special_variables(block)
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
-      enumerator.__send__(:each_with_block) do |*yield_args|
-        Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-        Primitive.io_last_line_set(sv, $_) if $_ != MARKER
-        res = yield(*yield_args)
-        Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-        Primitive.io_last_line_set(Primitive.special_variables, MARKER)
-        res
-      end
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
+      enumerator.__send__(:each_with_block) { |*yield_args| yield(*yield_args) }
 
     else
       enumerator
     end
   end
 
-  def each_with_block & block
-    sv = Primitive.proc_special_variables(block)
-    Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-    Primitive.io_last_line_set(Primitive.special_variables, MARKER)
+  def each_with_block(&block)
+    Primitive.share_special_variables(Primitive.proc_special_variables(block))
     @object.__send__ @iter, *@args do |*args|
-      Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-      Primitive.io_last_line_set(sv, $_) if $_ != MARKER
       ret = yield(*args)
       unless Primitive.nil? @feedvalue
         ret = @feedvalue
         @feedvalue = nil
       end
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
       ret
     end
   end
@@ -266,17 +249,9 @@ class Enumerator
     private :initialize
 
     def each(*args, &block)
-      sv = Primitive.caller_special_variables
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
-      enclosed_yield = Proc.new do |*enclosed_args|
-        Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-        Primitive.io_last_line_set(sv, $_) if $_ != MARKER
-        res = yield(*enclosed_args)
-        Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-        Primitive.io_last_line_set(Primitive.special_variables, MARKER)
-        res
-      end
+      raise LocalJumpError unless block
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
+      enclosed_yield = Proc.new { |*enclosed_args| yield(*enclosed_args) }
 
       @proc.call Yielder.new(&enclosed_yield), *args
     end
@@ -417,26 +392,19 @@ class Enumerator
 
     def grep(pattern, &block)
       sv = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
 
       Lazy.new(self, nil) do |yielder, *args|
+        Primitive.share_special_variables(sv)
         val = args.length >= 2 ? args : args.first
         matches = pattern === val
 
         if matches
-          Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-
           if block
-            res = yielder.yield yield(val)
+            yielder.yield yield(val)
           else
-            res = yielder.yield val
+            yielder.yield val
           end
-        else
-          Primitive.regexp_last_match_set(sv, nil)
         end
-
-        Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-        res
       end
     end
 
@@ -682,17 +650,11 @@ class Enumerator::ArithmeticSequence < Enumerator
 
   def each(&block)
     return self if Primitive.nil? block
-    sv = Primitive.proc_special_variables(block)
-    Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-    Primitive.io_last_line_set(Primitive.special_variables, MARKER)
+    Primitive.share_special_variables(Primitive.proc_special_variables(block))
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
     from.step(to: to, by: step) do |val|
-      Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-      Primitive.io_last_line_set(sv, $_) if $_ != MARKER
       break if exclude_end && (step.negative? ? val <= to : val >= to)
       yield val
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
     end
     self
   end

@@ -97,21 +97,11 @@ module Enumerable
     end
   end
 
-  MARKER = Object.new
-
   def map(&block)
     if block
       ary = []
-      sv = Primitive.proc_special_variables(block)
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
-      b = Primitive.proc_create_same_arity(block, -> *o {
-                                             Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-                                             Primitive.io_last_line_set(sv, $_) if $_ != MARKER
-                                             res = ary << yield(*o)
-                                             Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-                                             Primitive.io_last_line_set(Primitive.special_variables, MARKER)
-                                             res })
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
+      b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
       each(&b)
       ary
     else
@@ -364,19 +354,13 @@ module Enumerable
     ary = []
 
     if block_given?
-      sv = Primitive.proc_special_variables(block)
-      Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-      Primitive.io_last_line_set(Primitive.special_variables, MARKER)
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Primitive.regexp_last_match_set(sv, $~) if $~ != MARKER
-        Primitive.io_last_line_set(sv, $_) if $_ != MARKER
         if matches
           ary << yield(o)
         end
-        Primitive.regexp_last_match_set(Primitive.special_variables, MARKER)
-        Primitive.io_last_line_set(Primitive.special_variables, MARKER)
       end
     else
       each do
