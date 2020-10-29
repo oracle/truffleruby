@@ -45,6 +45,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -1579,12 +1580,20 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected boolean doesRespondToString(
+        protected boolean doesRespondTo(
                 VirtualFrame frame,
                 Object object,
-                RubyString name,
+                Object name,
                 boolean includeProtectedAndPrivate,
-                @Cached ToJavaStringNode toJavaString) {
+                @Cached ConditionProfile notSymbolOrStringProfile,
+                @Cached ToJavaStringNode toJavaString,
+                @Cached ToSymbolNode toSymbolNode) {
+            if (notSymbolOrStringProfile.profile(!RubyGuards.isRubySymbolOrString(name))) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().typeErrorIsNotAOrB(object, "symbol", "string", this));
+            }
+
             final boolean ret;
             useCallerRefinements(frame);
 
@@ -1598,33 +1607,7 @@ public abstract class KernelNodes {
                 return true;
             } else if (respondToMissingProfile
                     .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(object, getSymbol(name.rope), includeProtectedAndPrivate);
-            } else {
-                return false;
-            }
-        }
-
-        @Specialization
-        protected boolean doesRespondToSymbol(
-                VirtualFrame frame,
-                Object object,
-                RubySymbol name,
-                boolean includeProtectedAndPrivate,
-                @Cached ToJavaStringNode toJavaString) {
-            final boolean ret;
-            useCallerRefinements(frame);
-
-            if (ignoreVisibilityProfile.profile(includeProtectedAndPrivate)) {
-                ret = dispatchIgnoreVisibility.execute(frame, object, toJavaString.executeToJavaString(name));
-            } else {
-                ret = dispatch.execute(frame, object, toJavaString.executeToJavaString(name));
-            }
-
-            if (isTrueProfile.profile(ret)) {
-                return true;
-            } else if (respondToMissingProfile
-                    .profile(dispatchRespondToMissing.execute(frame, object, "respond_to_missing?"))) {
-                return respondToMissing(object, name, includeProtectedAndPrivate);
+                return respondToMissing(object, toSymbolNode.execute(name), includeProtectedAndPrivate);
             } else {
                 return false;
             }
