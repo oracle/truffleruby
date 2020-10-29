@@ -57,9 +57,9 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  *
  * <p>
  * This class is the sole consumer of {@link RubyRootNode#getNeedsCallerAssumption()}, which is used to optimize
- * {@link #getFrameIfRequired(VirtualFrame)} (called by subclasses in order to pass down the frame or not). Starting to
- * send the frame invalidates the assumption. In other words, the assumption guards the fact that {@link #sendsFrame} is
- * a compilation constant, and is invalidated whenever it needs to change. */
+ * {@link #getFrameOrStorageIfRequired(VirtualFrame)} (called by subclasses in order to pass down the frame or not).
+ * Starting to send the frame invalidates the assumption. In other words, the assumption guards the fact that
+ * {@link #sendsFrame} is a compilation constant, and is invalidated whenever it needs to change. */
 @SuppressFBWarnings("IS")
 public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
