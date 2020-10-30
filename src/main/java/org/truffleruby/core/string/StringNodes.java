@@ -2166,7 +2166,7 @@ public abstract class StringNodes {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().encodingCompatibilityError(
-                            "ASCII incompatible encoding: " + string.rope.encoding,
+                            Utils.concat("ASCII incompatible encoding: ", string.rope.encoding),
                             this));
         }
 
