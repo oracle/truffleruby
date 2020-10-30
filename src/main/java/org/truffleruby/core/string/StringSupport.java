@@ -33,21 +33,26 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.jcodings.ascii.AsciiTables;
 import org.jcodings.constants.CharacterType;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.util.IntHash;
+import org.truffleruby.RubyContext;
 import org.truffleruby.collections.IntHashMap;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.utils.Utils;
 
 public final class StringSupport {
@@ -1641,4 +1646,301 @@ public final class StringSupport {
     }
 
     //endregion
+    //region undump helpers
+
+    private static final byte[] FORCE_ENCODING_BYTES = RopeOperations.encodeAsciiBytes(".force_encoding(\"");
+    private static final byte[] HEXDIGIT = RopeOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEF");
+    private static final String INVALID_FORMAT_MESSAGE = "invalid dumped string; not wrapped with '\"' nor '\"...\".force_encoding(\"...\")' form";
+
+    @TruffleBoundary
+    public static RopeBuilder undump(Rope rope, RubyContext context, Node currentNode) {
+        byte[] bytes = rope.getBytes();
+        int start = 0;
+        int length = bytes.length;
+        Encoding[] enc = { rope.getEncoding() };
+        boolean[] utf8 = { false };
+        boolean[] binary = { false };
+        RopeBuilder undumped = new RopeBuilder();
+        undumped.setEncoding(enc[0]);
+
+        CodeRange cr = rope.getCodeRange();
+        if (cr != CR_7BIT) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError("non-ASCII character detected", currentNode));
+        }
+
+        if (ArrayUtils.memchr(bytes, start, (byte) '\0', bytes.length) != -1) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError("string contains null byte", currentNode));
+        }
+        if (length < 2) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+        }
+        if (bytes[start] != '"') {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+        }
+        /* strip '"' at the start */
+        start++;
+
+        for (;;) {
+            if (start >= length) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().runtimeError("unterminated dumped string", currentNode));
+            }
+
+            if (bytes[start] == '"') {
+                /* epilogue */
+                start++;
+                if (start == length) {
+                    /* ascii compatible dumped string */
+                    break;
+                } else {
+                    int size;
+
+                    if (utf8[0]) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(
+                                        "dumped string contained Unicode escape but used force_encoding",
+                                        currentNode));
+                    }
+
+                    size = FORCE_ENCODING_BYTES.length;
+                    if (length - start <= size) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+                    }
+                    if (ArrayUtils.memcmp(bytes, start, FORCE_ENCODING_BYTES, 0, size) != 0) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+                    }
+                    start += size;
+
+                    int encname = start;
+                    start = ArrayUtils.memchr(bytes, start, (byte) '"', length - start);
+                    size = start - encname;
+                    if (start == -1) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+                    }
+                    if (length - start != 2) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+                    }
+                    if (bytes[start] != '"' || bytes[start + 1] != ')') {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
+                    }
+                    String encnameString = new String(bytes, encname, size, rope.encoding.getCharset());
+                    RubyEncoding enc2 = context.getEncodingManager().getRubyEncoding(encnameString);
+                    if (enc2 == null) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError(
+                                        "dumped string has unknown encoding name",
+                                        currentNode));
+                    }
+                    undumped.setEncoding(enc2.encoding);
+                }
+                break;
+            }
+
+            if (bytes[start] == '\\') {
+                start++;
+                if (start >= length) {
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().runtimeError("invalid escape", currentNode));
+                }
+                start = undumpAfterBackslash(undumped, bytes, start, length, enc, utf8, binary, context, currentNode);
+            } else {
+                undumped.append(bytes, start++, 1);
+            }
+        }
+
+        return undumped;
+    }
+
+    private static int undumpAfterBackslash(RopeBuilder out, byte[] bytes, int start, int length, Encoding[] enc,
+            boolean[] utf8, boolean[] binary, RubyContext context, Node currentNode) {
+        long c;
+        int codelen;
+        int[] hexlen = { 0 };
+        byte[] buf = new byte[6];
+
+        switch (bytes[start]) {
+            case '\\':
+            case '"':
+            case '#':
+                out.append(bytes, start, 1); /* cat itself */
+                start++;
+                break;
+            case 'n':
+            case 'r':
+            case 't':
+            case 'f':
+            case 'v':
+            case 'b':
+            case 'a':
+            case 'e':
+                buf[0] = unescapeAscii(bytes[start]);
+                out.append(buf, 0, 1);
+                start++;
+                break;
+            case 'u':
+                if (binary[0]) {
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().runtimeError(
+                                    "hex escape and Unicode escape are mixed",
+                                    currentNode));
+                }
+                utf8[0] = true;
+                if (++start >= length) {
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().runtimeError("invalid Unicode escape", currentNode));
+                }
+                if (enc[0] != UTF8Encoding.INSTANCE) {
+                    enc[0] = UTF8Encoding.INSTANCE;
+                    out.setEncoding(UTF8Encoding.INSTANCE);
+                }
+                if (bytes[start] == '{') { /* handle u{...} form */
+                    start++;
+                    for (;;) {
+                        if (start >= length) {
+                            throw new RaiseException(
+                                    context,
+                                    context.getCoreExceptions().runtimeError(
+                                            "unterminated Unicode escape",
+                                            currentNode));
+                        }
+                        if (bytes[start] == '}') {
+                            start++;
+                            break;
+                        }
+                        if (Character.isSpaceChar(bytes[start])) {
+                            start++;
+                            continue;
+                        }
+                        c = scanHex(bytes, start, length - start, hexlen);
+                        if (hexlen[0] == 0 || hexlen[0] > 6) {
+                            throw new RaiseException(
+                                    context,
+                                    context.getCoreExceptions().runtimeError("invalid Unicode escape", currentNode));
+                        }
+                        if (c > 0x10ffff) {
+                            throw new RaiseException(
+                                    context,
+                                    context.getCoreExceptions().runtimeError(
+                                            "invalid Unicode codepoint (too large)",
+                                            currentNode));
+                        }
+                        if (0xd800 <= c && c <= 0xdfff) {
+                            throw new RaiseException(
+                                    context,
+                                    context.getCoreExceptions().runtimeError("invalid Unicode codepoint", currentNode));
+                        }
+                        codelen = EncodingUtils.encMbcput((int) c, buf, 0, enc[0]);
+                        out.append(buf, 0, codelen);
+                        start += hexlen[0];
+                    }
+                } else { /* handle uXXXX form */
+                    c = scanHex(bytes, start, 4, hexlen);
+                    if (hexlen[0] != 4) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError("invalid Unicode escape", currentNode));
+                    }
+                    if (0xd800 <= c && c <= 0xdfff) {
+                        throw new RaiseException(
+                                context,
+                                context.getCoreExceptions().runtimeError("invalid Unicode codepoint", currentNode));
+                    }
+                    codelen = EncodingUtils.encMbcput((int) c, buf, 0, enc[0]);
+                    out.append(buf, 0, codelen);
+                    start += hexlen[0];
+                }
+                break;
+            case 'x':
+                if (utf8[0]) {
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().runtimeError(
+                                    "hex escape and Unicode escape are mixed",
+                                    currentNode));
+                }
+                binary[0] = true;
+                if (++start >= length) {
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().runtimeError("invalid hex escape", currentNode));
+                }
+                buf[0] = (byte) scanHex(bytes, start, 2, hexlen);
+                if (hexlen[0] != 2) {
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().runtimeError("invalid hex escape", currentNode));
+                }
+                out.append(buf, 0, 1);
+                start += hexlen[0];
+                break;
+            default:
+                out.append(bytes, start - 1, 2);
+                start++;
+        }
+
+        return start;
+    }
+
+    private static long scanHex(byte[] bytes, int start, int len, int[] retlen) {
+        int s = start;
+        long retval = 0;
+        int tmp;
+
+        while ((len--) > 0 && s < bytes.length &&
+                (tmp = ArrayUtils.memchr(HEXDIGIT, 0, bytes[s], HEXDIGIT.length)) != -1) {
+            retval <<= 4;
+            retval |= tmp & 15;
+            s++;
+        }
+        retlen[0] = (s - start); /* less than len */
+        return retval;
+    }
+
+    private static byte unescapeAscii(byte c) {
+        switch (c) {
+            case 'n':
+                return '\n';
+            case 'r':
+                return '\r';
+            case 't':
+                return '\t';
+            case 'f':
+                return '\f';
+            case 'v':
+                return '\13';
+            case 'b':
+                return '\010';
+            case 'a':
+                return '\007';
+            case 'e':
+                return 033;
+            default:
+                // not reached
+                return -1;
+        }
+    }
 }

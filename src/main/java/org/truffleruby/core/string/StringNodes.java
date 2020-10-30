@@ -2149,6 +2149,29 @@ public abstract class StringNodes {
         }
     }
 
+    @CoreMethod(names = "undump", taintFrom = 0)
+    @ImportStatic(StringGuards.class)
+    public abstract static class UndumpNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "isAsciiCompatible(string)")
+        protected RubyString undumpAsciiCompatible(RubyString string,
+                @CachedLanguage RubyLanguage language,
+                @Cached MakeStringNode makeStringNode) {
+            // Taken from org.jruby.RubyString#undump
+            RopeBuilder outputBytes = StringSupport.undump(string.rope, getContext(), this);
+            return makeStringNode.fromBuilder(outputBytes, CR_UNKNOWN);
+        }
+
+        @Specialization(guards = "!isAsciiCompatible(string)")
+        protected RubyString undumpNonAsciiCompatible(RubyString string) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().encodingCompatibilityError(
+                            Utils.concat("ASCII incompatible encoding: ", string.rope.encoding),
+                            this));
+        }
+
+    }
+
     @CoreMethod(names = "setbyte", required = 2, raiseIfFrozenSelf = true, lowerFixnum = { 1, 2 })
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "index", type = RubyNode.class)
