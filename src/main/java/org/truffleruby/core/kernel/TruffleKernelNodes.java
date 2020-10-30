@@ -30,7 +30,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.arguments.ReadCallerStorageNode;
+import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -297,7 +297,7 @@ public abstract class TruffleKernelNodes {
     @Primitive(name = "caller_special_variables")
     public abstract static class GetCallerSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
-        @Child ReadCallerStorageNode callerStorageNode = new ReadCallerStorageNode();
+        @Child ReadCallerVariablesNode callerStorageNode = new ReadCallerVariablesNode();
 
         @Specialization
         protected Object storage(VirtualFrame frame) {

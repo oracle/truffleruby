@@ -25,13 +25,13 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadCallerStorageNode extends RubyContextNode {
+public class ReadCallerVariablesNode extends RubyContextNode {
 
     private final ConditionProfile callerStorageProfile = ConditionProfile.create();
     @Child private NotOptimizedWarningNode notOptimizedNode = null;
 
-    public static ReadCallerStorageNode create() {
-        return new ReadCallerStorageNode();
+    public static ReadCallerVariablesNode create() {
+        return new ReadCallerVariablesNode();
     }
 
     public SpecialVariableStorage execute(VirtualFrame frame) {

@@ -16,7 +16,7 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
-import org.truffleruby.language.arguments.ReadCallerStorageNode;
+import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -28,7 +28,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 /** Some Ruby methods need access to the caller frame (the frame active when the method call was made) or to the storage
- * of special variables within that frame: see usages of {@link ReadCallerFrameNode} and {@link ReadCallerStorageNode} .
+ * of special variables within that frame: see usages of {@link ReadCallerFrameNode} and {@link ReadCallerVariablesNode} .
  * This is notably used to get hold of instances of {@link DeclarationContext} and {@link RubyBinding} and methods which
  * need to access the last regexp match or the last io line.
  *
@@ -51,7 +51,7 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  * If the callee needs it, it will de-optimize and walk the stack to retrieve it (slow). It will also call
  * {@link #startSendingOwnFrame()}}, so that the next time the method is called, the frame will be passed down and the
  * method does not need further de-optimizations. (Note in the case of {@code #send} calls, we need to recursively call
- * {@link ReadCallerFrameNode} to get the parent frame!) {@link ReadCallerStorageNode} is used similarly to access
+ * {@link ReadCallerFrameNode} to get the parent frame!) {@link ReadCallerVariablesNode} is used similarly to access
  * special variable storage, but for child nodes that only require access to this storage ensures they receive an object
  * that will not require node splitting to be accessed efficiently.
  *
@@ -74,7 +74,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
     @CompilationFinal protected SendsFrame sendsStorage = SendsFrame.NO_FRAME;
 
     @Child protected ReadCallerFrameNode readCaller;
-    @Child protected ReadCallerStorageNode readCallerStorage;
+    @Child protected ReadCallerVariablesNode readCallerStorage;
     @Child protected GetSpecialVariableStorage readMyStorage;
 
     /** Whether we are sending down the frame (because the called method reads it). */
@@ -136,7 +136,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
         this.sendsStorage = storageToSend;
         if (storageToSend == SendsFrame.CALLER_FRAME) {
-            this.readCallerStorage = insert(new ReadCallerStorageNode());
+            this.readCallerStorage = insert(new ReadCallerVariablesNode());
         } else {
             this.readMyStorage = insert(GetSpecialVariableStorage.create());
         }

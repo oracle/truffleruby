@@ -164,7 +164,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerStorageNode;
+import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -700,7 +700,7 @@ public abstract class StringNodes {
         @Specialization
         protected Object sliceCapture0(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
                 @Cached DispatchNode callNode,
-                @Cached ReadCallerStorageNode readCallerNode,
+                @Cached ReadCallerVariablesNode readCallerNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             return sliceCapture(
@@ -717,7 +717,7 @@ public abstract class StringNodes {
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
                 @Cached DispatchNode callNode,
-                @Cached ReadCallerStorageNode readCallerStorageNode,
+                @Cached ReadCallerVariablesNode readCallerStorageNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
