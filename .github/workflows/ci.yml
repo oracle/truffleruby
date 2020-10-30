@@ -1,0 +1,52 @@
+# NOTE: This is only a small subset of the CI which runs on GitHub Actions.
+# Most of the CI is defined in ci.jsonnet.
+name: CI
+on: [push, pull_request]
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Clone TruffleRuby
+      uses: actions/checkout@v2
+    - name: Setup system Ruby
+      uses: ruby/setup-ruby@v1
+
+    - name: Restore ~/.mx/cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.mx/cache
+        key: mx-cache-${{ runner.os }}-${{ hashFiles('common.json') }}
+
+    - name: Install Eclipse
+      run: tool/jt.rb install eclipse
+    - name: Install JVMCI
+      run: tool/jt.rb install jvmci
+    - name: Set JAVA_HOME
+      run: echo "JAVA_HOME=$(tool/jt.rb install jvmci)" >> $GITHUB_ENV
+    - name: Clone mx
+      run: tool/jt.rb mx --version
+    - name: Clone Graal
+      run: tool/jt.rb mx sforceimports
+
+    - name: Build TruffleRuby
+      run: tool/jt.rb build
+
+    - name: Install RuboCop
+      run: gem install --no-document rubocop:0.66.0
+    - run: tool/jt.rb lint
+
+  mri_specs:
+    name: Run ruby/spec on CRuby ${{ matrix.ruby }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [2.5, 2.6]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler: none
+      - run: CHECK_LEAKS=true tool/jt.rb -u ruby mspec -fdot spec/ruby
