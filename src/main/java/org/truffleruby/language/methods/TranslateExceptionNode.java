@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -28,7 +29,6 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -109,9 +109,11 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             throw exception;
         } catch (Throwable exception) {
             errorProfile.enter();
-            if (exception instanceof TruffleException && !((TruffleException) exception).isInternalError()) {
+            if (exception instanceof AbstractTruffleException) {
                 // A foreign exception
-                return new RaiseException(context, translateTruffleException(context, exception), true);
+                return new RaiseException(
+                        context,
+                        translateForeignException(context, (AbstractTruffleException) exception));
             } else {
                 // An internal exception
                 CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
@@ -237,9 +239,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private RubyException translateTruffleException(RubyContext context, Throwable exception) {
-        assert exception instanceof TruffleException;
-
+    private RubyException translateForeignException(RubyContext context, AbstractTruffleException exception) {
         logJavaException(context, this, exception);
 
         // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
@@ -282,8 +282,8 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                 // Java exception, print it formatted like a Ruby exception
                 builder.append(BacktraceFormatter.formatJavaThrowableMessage(t)).append('\n');
 
-                if (t instanceof TruffleException) {
-                    lastBacktrace = new Backtrace((TruffleException) t);
+                if (t instanceof AbstractTruffleException) {
+                    lastBacktrace = new Backtrace((AbstractTruffleException) t);
                 } else {
                     appendJavaStackTrace(t, builder);
 

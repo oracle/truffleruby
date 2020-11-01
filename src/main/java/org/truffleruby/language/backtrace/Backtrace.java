@@ -12,6 +12,10 @@ package org.truffleruby.language.backtrace;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -24,7 +28,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
@@ -90,16 +93,21 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
-    /** Creates a backtrace for the given Truffle exception, setting the {@link #getLocation() location} and
+    /** Creates a backtrace for the given foreign exception, setting the {@link #getLocation() location} and
      * {@link #getSourceLocation() source location} accordingly, and computing the activations eagerly (since the
      * exception itself is not retained). */
-    public Backtrace(TruffleException exception) {
+    public Backtrace(AbstractTruffleException exception) {
         assert !(exception instanceof RaiseException);
         this.location = exception.getLocation();
-        this.sourceLocation = exception.getSourceLocation();
+        try {
+            final InteropLibrary interop = InteropLibrary.getUncached();
+            this.sourceLocation = interop.hasSourceLocation(exception) ? interop.getSourceLocation(exception) : null;
+        } catch (UnsupportedMessageException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
         this.omitted = 0;
         this.javaThrowable = null;
-        this.stackTrace = getStackTrace((Throwable) exception);
+        this.stackTrace = getStackTrace(exception);
     }
 
     /** Creates a backtrace for the given throwable, in which only the activations and the backtrace locations may be
@@ -186,15 +194,8 @@ public class Backtrace {
     public Backtrace copy(RubyContext context, RubyException exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
-        RaiseException newRaiseException = new RaiseException(
-                context,
-                exception,
-                this.raiseException.isInternalError());
-        // Copy the TruffleStackTrace
-        //noinspection ThrowableNotThrown
-        TruffleStackTrace.fillIn(this.raiseException);
-        assert this.raiseException.getCause() != null;
-        newRaiseException.initCause(this.raiseException.getCause());
+        // Copy the RaiseException
+        RaiseException newRaiseException = new RaiseException(this.raiseException, exception);
         // Another way would be to copy the activations (copy.activations = getActivations()), but
         // then the TruffleStrackTrace would be inconsistent.
         copy.setRaiseException(newRaiseException);
