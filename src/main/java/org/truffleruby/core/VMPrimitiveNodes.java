@@ -202,7 +202,7 @@ public abstract class VMPrimitiveNodes {
             }
         }
 
-        public static void reRaiseException(RubyContext context, RubyException exception) {
+        public static RaiseException reRaiseException(RubyContext context, RubyException exception) {
             final Backtrace backtrace = exception.backtrace;
             if (backtrace != null && backtrace.getRaiseException() != null) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the

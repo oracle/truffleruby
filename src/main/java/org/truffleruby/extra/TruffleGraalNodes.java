@@ -205,7 +205,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         private void notConstantBoundary() {
-            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertConstantNotConstant(this), true);
+            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertConstantNotConstant(this));
         }
     }
 
@@ -223,7 +223,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         private void compiledBoundary() {
-            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertNotCompiledCompiled(this), true);
+            throw new RaiseException(getContext(), coreExceptions().graalErrorAssertNotCompiledCompiled(this));
         }
     }
 

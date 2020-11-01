@@ -9,39 +9,17 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.SuppressFBWarnings;
 
-@SuppressFBWarnings("Se")
-public class GetBacktraceException extends RuntimeException implements TruffleException {
+public class GetBacktraceException extends AbstractTruffleException {
 
     private static final long serialVersionUID = 2633487517169337464L;
 
-    public static final int UNLIMITED = -1;
-
-    private final Node location;
-    private final int limit;
+    public static final int UNLIMITED = AbstractTruffleException.UNLIMITED_STACK_TRACE;
 
     public GetBacktraceException(Node location, int limit) {
-        this.location = location;
-        this.limit = limit;
-    }
-
-    @SuppressWarnings("sync-override")
-    @Override
-    public final Throwable fillInStackTrace() {
-        return null;
-    }
-
-    @Override
-    public Node getLocation() {
-        return location;
-    }
-
-    @Override
-    public int getStackTraceElementLimit() {
-        return limit;
+        super("<GetBacktraceException>", null, limit, location);
     }
 
 }

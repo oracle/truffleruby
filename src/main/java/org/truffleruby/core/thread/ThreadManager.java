@@ -45,7 +45,6 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
@@ -349,9 +348,9 @@ public class ThreadManager {
 
         // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
         // to capture the backtrace from this thread.
-        final TruffleException truffleException = exception.backtrace.getRaiseException();
+        final RaiseException truffleException = exception.backtrace.getRaiseException();
         if (truffleException != null) {
-            TruffleStackTrace.fillIn((Throwable) truffleException);
+            TruffleStackTrace.fillIn(truffleException);
         }
 
         final RubyThread mainThread = context.getThreadManager().getRootThread();

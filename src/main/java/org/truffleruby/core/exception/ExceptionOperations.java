@@ -19,7 +19,6 @@ import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -92,11 +91,6 @@ public abstract class ExceptionOperations {
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         final Shape shape = rubyClass.instanceShape;
         return new RubySystemCallError(rubyClass, shape, message, backtrace, cause, errno);
-    }
-
-    @TruffleBoundary // Exception#initCause is blacklisted in TruffleFeature
-    public static void initCause(RaiseException exception, Throwable cause) {
-        exception.initCause(cause);
     }
 
     public static RubyProc getFormatter(String name, RubyContext context) {

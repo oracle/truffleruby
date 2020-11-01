@@ -11,7 +11,6 @@ package org.truffleruby.interop;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -54,11 +53,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object receiver,
             Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        RaiseException raiseException = new RaiseException(
+        return new RaiseException(
                 context,
-                context.getCoreExceptions().unsupportedMessageError(exception.getMessage(), this));
-        ExceptionOperations.initCause(raiseException, exception);
-        return raiseException;
+                context.getCoreExceptions().unsupportedMessageError(exception.getMessage(), this),
+                exception);
     }
 
     @Specialization
@@ -68,12 +66,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object receiver,
             Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        RaiseException raiseException = new RaiseException(
+        return new RaiseException(
                 context,
-                context.getCoreExceptions().indexErrorInvalidArrayIndexException(exception, this));
-        ExceptionOperations.initCause(raiseException, exception);
-        return raiseException;
+                context.getCoreExceptions().indexErrorInvalidArrayIndexException(exception, this),
+                exception);
     }
 
     @Specialization
@@ -83,25 +79,22 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object receiver,
             Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        final RaiseException raiseException;
         if (inInvokeMember) {
-            raiseException = new RaiseException(
+            return new RaiseException(
                     context,
                     context.getCoreExceptions().noMethodErrorUnknownIdentifier(
                             receiver,
                             exception.getUnknownIdentifier(),
                             args,
                             exception,
-                            this));
+                            this),
+                    exception);
         } else {
-            raiseException = new RaiseException(
+            return new RaiseException(
                     context,
-                    context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this));
+                    context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this),
+                    exception);
         }
-
-        ExceptionOperations.initCause(raiseException, exception);
-        return raiseException;
     }
 
     @TruffleBoundary // Throwable#initCause
@@ -112,26 +105,22 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object receiver,
             Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        RaiseException raiseException = new RaiseException(
+        return new RaiseException(
                 context,
-                context.getCoreExceptions().typeErrorUnsupportedTypeException(exception, this));
-        ExceptionOperations.initCause(raiseException, exception);
-        return raiseException;
+                context.getCoreExceptions().typeErrorUnsupportedTypeException(exception, this),
+                exception);
     }
 
     @Specialization
     protected RuntimeException handle(ArityException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        RaiseException raiseException = new RaiseException(
+        return new RaiseException(
                 context,
                 context.getCoreExceptions().argumentError(
                         exception.getActualArity(),
                         exception.getExpectedArity(),
-                        this));
-        ExceptionOperations.initCause(raiseException, exception);
-        return raiseException;
+                        this),
+                exception);
     }
 
 }
