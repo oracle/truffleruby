@@ -20,6 +20,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.language.objects.IsANodeGen;
 
 public class TopLevelRaiseHandler extends RubyContextNode {
 
@@ -66,7 +67,7 @@ public class TopLevelRaiseHandler extends RubyContextNode {
     }
 
     private int statusFromException(RubyException exception) {
-        if (exception.getLogicalClass() == coreLibrary().systemExitClass) {
+        if (IsANodeGen.getUncached().executeIsA(exception, coreLibrary().systemExitClass)) {
             final Object status = DynamicObjectLibrary.getUncached().getOrDefault(exception, "@status", null);
             return IntegerCastNodeGen.getUncached().executeCastInt(status);
         } else {
