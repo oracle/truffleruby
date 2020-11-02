@@ -722,13 +722,13 @@ public abstract class StringNodes {
                 @Cached ConditionProfile sameThreadProfile) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
-            final SpecialVariableStorage storage = readCallerStorageNode.execute(frame);
+            final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
             if (matchStrPair == nil) {
-                storage.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
+                variables.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
                 return nil;
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
-                storage.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
+                variables.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
                 return array[1];
             }
         }

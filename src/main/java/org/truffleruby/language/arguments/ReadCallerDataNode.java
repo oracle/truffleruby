@@ -19,7 +19,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.language.FrameOrStorageSendingNode;
+import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 
@@ -61,8 +61,8 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
         if (callerNode instanceof DirectCallNode || callerNode instanceof IndirectCallNode) {
             Node parent = callerNode.getParent();
             while (parent != null) {
-                if (parent instanceof FrameOrStorageSendingNode) {
-                    startSending((FrameOrStorageSendingNode) parent);
+                if (parent instanceof FrameAndVariablesSendingNode) {
+                    startSending((FrameAndVariablesSendingNode) parent);
                     return true;
                 }
                 if (parent instanceof RubyContextNode) {
@@ -75,7 +75,7 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
         return false;
     }
 
-    protected abstract void startSending(FrameOrStorageSendingNode node);
+    protected abstract void startSending(FrameAndVariablesSendingNode node);
 
     private NotOptimizedWarningNode getNotOptimizedNode() {
         if (notOptimizedNode == null) {

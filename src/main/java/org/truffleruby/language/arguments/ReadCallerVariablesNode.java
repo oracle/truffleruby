@@ -11,7 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.core.kernel.TruffleKernelNodes;
-import org.truffleruby.language.FrameOrStorageSendingNode;
+import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -31,8 +31,8 @@ public class ReadCallerVariablesNode extends ReadCallerDataNode {
         return RubyArguments.getCallerStorage(frame);
     }
 
-    protected void startSending(FrameOrStorageSendingNode node) {
-        node.startSendingOwnStorage();
+    protected void startSending(FrameAndVariablesSendingNode node) {
+        node.startSendingOwnVariables();
     }
 
     protected Object getDataFromFrame(MaterializedFrame frame) {

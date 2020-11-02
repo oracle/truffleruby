@@ -23,7 +23,7 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.FrameOrStorageSendingNode;
+import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -37,7 +37,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.options.Options;
 
-public class DispatchNode extends FrameOrStorageSendingNode {
+public class DispatchNode extends FrameAndVariablesSendingNode {
 
     private static final class Missing implements TruffleObject {
     }

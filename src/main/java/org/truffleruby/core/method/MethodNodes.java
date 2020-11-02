@@ -277,8 +277,8 @@ public abstract class MethodNodes {
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, coreLibrary().emptyDeclarationDescriptor);
-            SpecialVariableStorage storage = new SpecialVariableStorage();
-            declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, storage);
+            SpecialVariableStorage variables = new SpecialVariableStorage();
+            declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, variables);
             return ProcOperations.createRubyProc(
                     coreLibrary().procClass,
                     RubyLanguage.procShape,
@@ -287,7 +287,7 @@ public abstract class MethodNodes {
                     callTarget,
                     callTarget,
                     declarationFrame,
-                    storage,
+                    variables,
                     method,
                     null,
                     null,

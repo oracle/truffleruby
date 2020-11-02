@@ -22,7 +22,6 @@ import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
@@ -63,7 +62,7 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  * Starting to send the frame invalidates the assumption. In other words, the assumption guards the fact that
  * {@link #sendsFrame} is a compilation constant, and is invalidated whenever it needs to change. */
 @SuppressFBWarnings("IS")
-public abstract class FrameOrStorageSendingNode extends RubyContextNode {
+public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
     private enum SendsFrame {
         NO_FRAME,       // callees don't need to read the frame
@@ -73,18 +72,18 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
     @CompilationFinal protected SendsFrame sendsFrame = SendsFrame.NO_FRAME;
     @CompilationFinal protected Assumption needsCallerAssumption;
-    @CompilationFinal protected SendsFrame sendsStorage = SendsFrame.NO_FRAME;
+    @CompilationFinal protected SendsFrame sendsVariables = SendsFrame.NO_FRAME;
 
     @Child protected ReadCallerDataNode readCaller;
-    @Child protected GetSpecialVariableStorage readMyStorage;
+    @Child protected GetSpecialVariableStorage readMyVariables;
 
     /** Whether we are sending down the frame (because the called method reads it). */
     protected boolean sendingFrames() {
         return sendsFrame != SendsFrame.NO_FRAME;
     }
 
-    protected boolean sendingStorage() {
-        return sendsStorage != SendsFrame.NO_FRAME;
+    protected boolean sendingVariables() {
+        return sendsVariables != SendsFrame.NO_FRAME;
     }
 
     public void startSendingOwnFrame() {
@@ -95,11 +94,11 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
         }
     }
 
-    public void startSendingOwnStorage() {
+    public void startSendingOwnVariables() {
         if (getContext().getCallStack().callerIsSend()) {
-            startSendingStorage(SendsFrame.CALLER_FRAME);
+            startSendingVariables(SendsFrame.CALLER_FRAME);
         } else {
-            startSendingStorage(SendsFrame.MY_FRAME);
+            startSendingVariables(SendsFrame.MY_FRAME);
         }
     }
 
@@ -117,8 +116,8 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
             return;
         }
 
-        if (sendingStorage()) {
-            assert sendsStorage == frameToSend;
+        if (sendingVariables()) {
+            assert sendsVariables == frameToSend;
         }
 
         // We'd only get AlwaysValidAssumption if the root node isn't Ruby (in which case this shouldn't be called),
@@ -127,7 +126,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
         this.sendsFrame = frameToSend;
         if (frameToSend == SendsFrame.CALLER_FRAME) {
-            if (!sendingStorage()) {
+            if (!sendingVariables()) {
                 this.readCaller = insert(new ReadCallerFrameNode());
             } else {
                 this.readCaller = readCaller.replace(new ReadCallerFrameAndVariablesNode());
@@ -141,13 +140,13 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
         }
     }
 
-    private synchronized void startSendingStorage(SendsFrame storageToSend) {
+    private synchronized void startSendingVariables(SendsFrame variablesToSend) {
         if (sendingFrames()) {
-            assert sendsFrame == storageToSend;
+            assert sendsFrame == variablesToSend;
         }
 
-        if (sendingStorage()) {
-            assert sendsStorage == storageToSend;
+        if (sendingVariables()) {
+            assert sendsVariables == variablesToSend;
             return;
         }
 
@@ -155,19 +154,19 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
         // or when we already know to send the frame (in which case we'd have exited above).
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
 
-        this.sendsStorage = storageToSend;
-        if (storageToSend == SendsFrame.CALLER_FRAME) {
+        this.sendsVariables = variablesToSend;
+        if (variablesToSend == SendsFrame.CALLER_FRAME) {
             if (!sendingFrames()) {
                 this.readCaller = insert(new ReadCallerVariablesNode());
             } else {
                 this.readCaller = readCaller.replace(new ReadCallerFrameAndVariablesNode());
             }
         } else {
-            this.readMyStorage = insert(GetSpecialVariableStorage.create());
+            this.readMyVariables = insert(GetSpecialVariableStorage.create());
         }
         Node root = getRootNode();
         if (root instanceof RubyRootNode) {
-            ((RubyRootNode) root).invalidateNeedsStorageAssumption();
+            ((RubyRootNode) root).invalidateNeedsVariablesAssumption();
         } else {
             throw new Error();
         }
@@ -179,7 +178,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
             return;
         }
 
-        if (sendingStorage()) {
+        if (sendingVariables()) {
             assert sendsFrame == dataToSend;
             return;
         }
@@ -189,9 +188,9 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
 
         this.sendsFrame = dataToSend;
-        this.sendsStorage = dataToSend;
+        this.sendsVariables = dataToSend;
         if (dataToSend == SendsFrame.CALLER_FRAME) {
-            if (sendingFrames() || sendingStorage()) {
+            if (sendingFrames() || sendingVariables()) {
                 this.readCaller = readCaller.replace(new ReadCallerFrameAndVariablesNode());
             } else {
                 this.readCaller = insert(new ReadCallerFrameNode());
@@ -207,7 +206,7 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
 
     private synchronized void resetNeedsCallerAssumption() {
         Node root = getRootNode();
-        if (root instanceof RubyRootNode && (!sendingFrames() || !sendingStorage())) {
+        if (root instanceof RubyRootNode && (!sendingFrames() || !sendingVariables())) {
             needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
         } else {
             needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
@@ -230,17 +229,17 @@ public abstract class FrameOrStorageSendingNode extends RubyContextNode {
             resetNeedsCallerAssumption();
         }
 
-        if (sendsStorage == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
-            return new FrameOrStorage(readMyStorage.execute(frame), frame.materialize());
-        } else if ((sendsStorage == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.CALLER_FRAME) ||
-                   (sendsStorage == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.NO_FRAME) ||
-                   (sendsStorage == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.CALLER_FRAME)) {
+        if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
+            return new FrameAndVariables(readMyVariables.execute(frame), frame.materialize());
+        } else if ((sendsVariables == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.CALLER_FRAME) ||
+                (sendsVariables == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.NO_FRAME) ||
+                (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.CALLER_FRAME)) {
             return readCaller.execute(frame);
-        } else if (sendsStorage == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
-            return readMyStorage.execute(frame);
-        } else if (sendsStorage == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
+        } else if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
+            return readMyVariables.execute(frame);
+        } else if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
             return frame.materialize();
-        } else if (sendsStorage == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
+        } else if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
             return null;
         } else {
             CompilerDirectives.transferToInterpreterAndInvalidate();

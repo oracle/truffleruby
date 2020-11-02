@@ -110,7 +110,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         needsCallerAssumption.invalidate("needs caller frame");
     }
 
-    public synchronized void invalidateNeedsStorageAssumption() {
+    public synchronized void invalidateNeedsVariablesAssumption() {
         needsCallerAssumption.invalidate("needs caller special variable storage");
     }
 

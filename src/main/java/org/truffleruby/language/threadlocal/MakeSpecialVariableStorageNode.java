@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
 
-    @CompilationFinal protected FrameSlot storageSlot;
+    @CompilationFinal protected FrameSlot variablesSlot;
     @CompilationFinal protected Assumption frameAssumption;
 
     @Override
@@ -30,11 +30,11 @@ public class MakeSpecialVariableStorageNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             frameAssumption = descriptor.getVersion();
-            storageSlot = descriptor.findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+            variablesSlot = descriptor.findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         }
 
-        if (storageSlot != null) {
-            frame.setObject(storageSlot, new SpecialVariableStorage());
+        if (variablesSlot != null) {
+            frame.setObject(variablesSlot, new SpecialVariableStorage());
         }
 
         return nil;

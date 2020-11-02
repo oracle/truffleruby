@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.FrameOrStorageSendingNode;
+import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -29,7 +29,7 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
         return RubyArguments.getCallerFrame(frame);
     }
 
-    protected void startSending(FrameOrStorageSendingNode node) {
+    protected void startSending(FrameAndVariablesSendingNode node) {
         node.startSendingOwnFrame();
     }
 

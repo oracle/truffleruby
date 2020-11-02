@@ -11,13 +11,11 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.FrameOrStorage;
+import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
-
-import sun.awt.AWTAccessor.FrameAccessor;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -74,7 +72,7 @@ public final class RubyArguments {
         assert callerFrameOrVariables == null ||
                 callerFrameOrVariables instanceof MaterializedFrame ||
                 callerFrameOrVariables instanceof SpecialVariableStorage ||
-                callerFrameOrVariables instanceof FrameOrStorage;
+                callerFrameOrVariables instanceof FrameAndVariables;
 
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
@@ -98,35 +96,35 @@ public final class RubyArguments {
     }
 
     public static MaterializedFrame getCallerFrame(Frame frame) {
-        Object frameOrStorage = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
-        if (frameOrStorage == null) {
+        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrVariables == null) {
             return null;
-        } else if (frameOrStorage instanceof FrameOrStorage) {
-            return ((FrameOrStorage) frameOrStorage).frame;
-        } else if (frameOrStorage instanceof SpecialVariableStorage) {
+        } else if (frameOrVariables instanceof FrameAndVariables) {
+            return ((FrameAndVariables) frameOrVariables).frame;
+        } else if (frameOrVariables instanceof SpecialVariableStorage) {
             return null;
         } else {
-            return (MaterializedFrame) frameOrStorage;
+            return (MaterializedFrame) frameOrVariables;
         }
     }
 
     public static SpecialVariableStorage getCallerStorage(Frame frame) {
-        Object frameOrStorage = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
-        if (frameOrStorage == null) {
+        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrVariables == null) {
             return null;
-        } else if (frameOrStorage instanceof FrameOrStorage) {
-            return ((FrameOrStorage) frameOrStorage).storage;
-        } else if (frameOrStorage instanceof SpecialVariableStorage) {
-            return (SpecialVariableStorage) frameOrStorage;
+        } else if (frameOrVariables instanceof FrameAndVariables) {
+            return ((FrameAndVariables) frameOrVariables).variables;
+        } else if (frameOrVariables instanceof SpecialVariableStorage) {
+            return (SpecialVariableStorage) frameOrVariables;
         } else {
             return null;
         }
     }
 
-    public static FrameOrStorage getCallerFrameAndVariables(Frame frame) {
-        Object frameOrStorage = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
-        if (frameOrStorage instanceof FrameOrStorage) {
-            return (FrameOrStorage)frameOrStorage;
+    public static FrameAndVariables getCallerFrameAndVariables(Frame frame) {
+        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrVariables instanceof FrameAndVariables) {
+            return (FrameAndVariables) frameOrVariables;
         } else {
             return null;
         }

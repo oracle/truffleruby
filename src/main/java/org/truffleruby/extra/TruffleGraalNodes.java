@@ -150,7 +150,7 @@ public abstract class TruffleGraalNodes {
                     ? newCallTarget
                     : proc.callTargetForLambdas;
 
-            SpecialVariableStorage storage = proc.declarationStorage;
+            SpecialVariableStorage variables = proc.declarationVariables;
 
             final Object[] args = RubyArguments
                     .pack(
@@ -168,7 +168,7 @@ public abstract class TruffleGraalNodes {
                     .getRuntime()
                     .createMaterializedFrame(args, coreLibrary().emptyDeclarationDescriptor);
 
-            newDeclarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, storage);
+            newDeclarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, variables);
 
             return new RubyProc(
                     coreLibrary().procClass,
@@ -178,7 +178,7 @@ public abstract class TruffleGraalNodes {
                     newCallTarget,
                     callTargetForLambdas,
                     newDeclarationFrame,
-                    storage,
+                    variables,
                     proc.method,
                     proc.block,
                     proc.frameOnStackMarker,

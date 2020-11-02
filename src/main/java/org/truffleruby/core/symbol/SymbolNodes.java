@@ -169,8 +169,8 @@ public abstract class SymbolNodes {
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(args, context.getCoreLibrary().emptyDeclarationDescriptor);
-            SpecialVariableStorage storage = new SpecialVariableStorage();
-            declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, storage);
+            SpecialVariableStorage variables = new SpecialVariableStorage();
+            declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, variables);
 
             final RubyRootNode rootNode = new RubyRootNode(
                     context,
@@ -190,7 +190,7 @@ public abstract class SymbolNodes {
                     callTarget,
                     callTarget,
                     declarationFrame,
-                    storage,
+                    variables,
                     method,
                     null,
                     null,

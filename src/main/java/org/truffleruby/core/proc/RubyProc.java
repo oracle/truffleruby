@@ -40,7 +40,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public final RootCallTarget callTargetForType;
     public final RootCallTarget callTargetForLambdas;
     public final MaterializedFrame declarationFrame;
-    public final SpecialVariableStorage declarationStorage;
+    public final SpecialVariableStorage declarationVariables;
     public final InternalMethod method;
     public final RubyProc block;
     public final FrameOnStackMarker frameOnStackMarker;
@@ -54,7 +54,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             RootCallTarget callTargetForType,
             RootCallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
-            SpecialVariableStorage declarationStorage,
+            SpecialVariableStorage declarationVariables,
             InternalMethod method,
             RubyProc block,
             FrameOnStackMarker frameOnStackMarker,
@@ -65,7 +65,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         this.callTargetForType = callTargetForType;
         this.callTargetForLambdas = callTargetForLambdas;
         this.declarationFrame = declarationFrame;
-        this.declarationStorage = declarationStorage;
+        this.declarationVariables = declarationVariables;
         this.method = method;
         this.block = block;
         this.frameOnStackMarker = frameOnStackMarker;
