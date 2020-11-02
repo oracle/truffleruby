@@ -16,13 +16,13 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.objects.IsANode;
 
 public class AtExitManager {
 
@@ -83,9 +83,9 @@ public class AtExitManager {
     }
 
     public static boolean isSilentException(RubyContext context, RubyException rubyException) {
-        final RubyClass logicalClass = rubyException.getLogicalClass();
-        return logicalClass == context.getCoreLibrary().systemExitClass ||
-                logicalClass == context.getCoreLibrary().signalExceptionClass;
+        final IsANode isANode = IsANode.getUncached();
+        return isANode.executeIsA(rubyException, context.getCoreLibrary().systemExitClass) ||
+                isANode.executeIsA(rubyException, context.getCoreLibrary().signalExceptionClass);
     }
 
     private static void handleAtExitException(RubyContext context, RubyException rubyException) {
