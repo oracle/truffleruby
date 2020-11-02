@@ -182,7 +182,44 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @ImportStatic(Layouts.class)
+    public static int declarationDepth(VirtualFrame topFrame) {
+        MaterializedFrame frame = topFrame.materialize();
+        int count = 0;
+
+        while (true) {
+            final FrameSlot slot = getVariableSlot(frame);
+            if (slot != null) {
+                return count;
+            }
+
+            final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
+            if (nextFrame != null) {
+                frame = nextFrame;
+                count++;
+            } else {
+                return count;
+            }
+        }
+    }
+
+    public static FrameDescriptor declarationDescriptor(VirtualFrame topFrame, int depth) {
+        if (depth == 0) {
+            return topFrame.getFrameDescriptor();
+        } else {
+            return RubyArguments.getDeclarationFrame(topFrame, depth).getFrameDescriptor();
+        }
+    }
+
+    @TruffleBoundary
+    public static FrameSlot declarationSlot(FrameDescriptor descriptor) {
+        return descriptor.findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE, FrameSlotKind.Object);
+    }
+
+    private static FrameSlot getVariableSlot(MaterializedFrame frame) {
+        return frame.getFrameDescriptor().findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+    }
+
+    @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
     public abstract static class GetSpecialVariableStorage extends RubyContextNode {
 
         public abstract SpecialVariableStorage execute(VirtualFrame frame);
@@ -252,43 +289,6 @@ public abstract class TruffleKernelNodes {
             }
         }
 
-        protected int declarationDepth(VirtualFrame topFrame) {
-            MaterializedFrame frame = topFrame.materialize();
-            int count = 0;
-
-            while (true) {
-                final FrameSlot slot = getVariableSlot(frame);
-                if (slot != null) {
-                    return count;
-                }
-
-                final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
-                if (nextFrame != null) {
-                    frame = nextFrame;
-                    count++;
-                } else {
-                    return count;
-                }
-            }
-        }
-
-        protected FrameDescriptor declarationDescriptor(VirtualFrame topFrame, int depth) {
-            if (depth == 0) {
-                return topFrame.getFrameDescriptor();
-            } else {
-                return RubyArguments.getDeclarationFrame(topFrame, depth).getFrameDescriptor();
-            }
-        }
-
-        @TruffleBoundary
-        protected FrameSlot declarationSlot(FrameDescriptor descriptor) {
-            return descriptor.findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE, FrameSlotKind.Object);
-        }
-
-        private static FrameSlot getVariableSlot(MaterializedFrame frame) {
-            return frame.getFrameDescriptor().findFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
-        }
-
         public static GetSpecialVariableStorage create() {
             return GetSpecialVariableStorageNodeGen.create();
         }
@@ -311,6 +311,64 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected Object storage(VirtualFrame frame, RubyProc proc) {
             return proc.declarationStorage;
+        }
+    }
+
+    @Primitive(name = "share_special_variables")
+    @ImportStatic(TruffleKernelNodes.class)
+    public abstract static class ShareSpecialVariableStoage extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(
+                guards = "frame.getFrameDescriptor() == descriptor",
+                assumptions = "frameAssumption",
+                limit = "1")
+        protected Object shareSpecialVariable(VirtualFrame frame, SpecialVariableStorage storage,
+                @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
+                @Cached("declarationDepth(frame)") int declarationFrameDepth,
+                @Cached("declarationDescriptor(frame, declarationFrameDepth)") FrameDescriptor declarationFrameDescriptor,
+                @Cached("declarationSlot(declarationFrameDescriptor)") FrameSlot declarationFrameSlot,
+                @Cached("declarationFrameDescriptor.getVersion()") Assumption frameAssumption) {
+            if (declarationFrameDepth == 0) {
+                frame.setObject(declarationFrameSlot, storage);
+            } else {
+                MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+
+                storageFrame.setObject(declarationFrameSlot, storage);
+            }
+            return nil;
+        }
+
+        @Specialization(replaces = "shareSpecialVariable")
+        protected Object slowPath(VirtualFrame frame, SpecialVariableStorage storage) {
+            return shareSlow(frame.materialize(), storage);
+        }
+
+        @TruffleBoundary
+        public Object shareSlow(MaterializedFrame aFrame, SpecialVariableStorage storage) {
+            MaterializedFrame frame = aFrame;
+
+            while (true) {
+                final FrameSlot slot = getVariableSlot(frame);
+                if (slot != null) {
+                    frame.setObject(slot, storage);
+                    return nil;
+                }
+
+                final MaterializedFrame nextFrame = RubyArguments.getDeclarationFrame(frame);
+                if (nextFrame != null) {
+                    frame = nextFrame;
+                } else {
+                    FrameSlot newSlot = frame
+                            .getFrameDescriptor()
+                            .findOrAddFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
+                    frame.setObject(newSlot, storage);
+                    return nil;
+                }
+            }
+        }
+
+        public static GetSpecialVariableStorage create() {
+            return GetSpecialVariableStorageNodeGen.create();
         }
     }
 

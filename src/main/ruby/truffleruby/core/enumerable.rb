@@ -100,6 +100,7 @@ module Enumerable
   def map(&block)
     if block
       ary = []
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
       b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
       each(&b)
       ary
@@ -353,10 +354,10 @@ module Enumerable
     ary = []
 
     if block_given?
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
       each do
         o = Primitive.single_block_arg
         matches = pattern === o
-        Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), $~)
         if matches
           ary << yield(o)
         end

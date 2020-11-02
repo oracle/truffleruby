@@ -78,7 +78,7 @@ class Enumerator
     "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
   end
 
-  def each(*args)
+  def each(*args, &block)
     enumerator = self
     new_args = @args
 
@@ -89,14 +89,17 @@ class Enumerator
 
     enumerator.__send__ :args=, new_args
 
-    if block_given?
+    if block
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
       enumerator.__send__(:each_with_block) { |*yield_args| yield(*yield_args) }
+
     else
       enumerator
     end
   end
 
-  def each_with_block
+  def each_with_block(&block)
+    Primitive.share_special_variables(Primitive.proc_special_variables(block))
     @object.__send__ @iter, *@args do |*args|
       ret = yield(*args)
       unless Primitive.nil? @feedvalue
@@ -245,7 +248,9 @@ class Enumerator
     end
     private :initialize
 
-    def each(*args)
+    def each(*args, &block)
+      raise LocalJumpError unless block
+      Primitive.share_special_variables(Primitive.proc_special_variables(block))
       enclosed_yield = Proc.new { |*enclosed_args| yield(*enclosed_args) }
 
       @proc.call Yielder.new(&enclosed_yield), *args
@@ -386,12 +391,12 @@ class Enumerator
     end
 
     def grep(pattern, &block)
-      s = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
+      sv = block ? Primitive.proc_special_variables(block) : Primitive.caller_special_variables
 
       Lazy.new(self, nil) do |yielder, *args|
+        Primitive.share_special_variables(sv)
         val = args.length >= 2 ? args : args.first
         matches = pattern === val
-        Primitive.regexp_last_match_set(s, $~)
 
         if matches
           if block
@@ -645,6 +650,7 @@ class Enumerator::ArithmeticSequence < Enumerator
 
   def each(&block)
     return self if Primitive.nil? block
+    Primitive.share_special_variables(Primitive.proc_special_variables(block))
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
     from.step(to: to, by: step) do |val|
       break if exclude_end && (step.negative? ? val <= to : val >= to)
