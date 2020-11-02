@@ -28,6 +28,10 @@ public abstract class IsANode extends RubyBaseNode {
         return IsANodeGen.create();
     }
 
+    public static IsANode getUncached() {
+        return IsANodeGen.getUncached();
+    }
+
     public abstract boolean executeIsA(Object self, RubyModule module);
 
     @Specialization(
