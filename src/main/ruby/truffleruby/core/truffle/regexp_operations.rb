@@ -59,15 +59,31 @@ module Truffle
       search_region(re, str, pos, str.bytesize, true)
     end
 
+    def self.results_match(md1, md2)
+      if md1 == nil then
+        return md2 == nil
+      elsif md2 == nil then
+        return false
+      else
+        if md1.size != md2.size then
+          return false
+        end
+        md1.size.times do |x|
+          if md1.begin(x) != md2.begin(x) || md1.end(x) != md2.end(x)
+            return false
+          end
+        end
+        return true
+      end
+    end
+
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if COMPARE_ENGINES
         begin
           md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
           md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-          if md1 == nil && md2 == nil
-            return nil
-          elsif md1 != nil && md2 != nil && md1.captures == md2.captures
-            return md2
+          if self.results_match(md1, md2) then
+            return md1
           else
             $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
             if md1 == nil
