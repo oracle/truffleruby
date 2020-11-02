@@ -10,7 +10,7 @@ array = []
 current_array = array
 100.times do
   next_array = []
-  current_array.append(0, 1, next_array, 3, 4)
+  current_array.concat [0, 1, next_array, 3 , 4]
   current_array = next_array
 end
 
