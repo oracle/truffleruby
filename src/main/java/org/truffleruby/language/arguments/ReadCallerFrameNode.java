@@ -25,14 +25,17 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
         return (MaterializedFrame) super.execute(frame);
     }
 
+    @Override
     protected MaterializedFrame getData(VirtualFrame frame) {
         return RubyArguments.getCallerFrame(frame);
     }
 
+    @Override
     protected void startSending(FrameAndVariablesSendingNode node) {
         node.startSendingOwnFrame();
     }
 
+    @Override
     protected Object getDataFromFrame(MaterializedFrame frame) {
         return frame;
     }

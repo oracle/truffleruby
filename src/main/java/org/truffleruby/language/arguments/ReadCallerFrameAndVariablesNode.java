@@ -27,14 +27,17 @@ public class ReadCallerFrameAndVariablesNode extends ReadCallerDataNode {
         return (FrameAndVariables) super.execute(frame);
     }
 
+    @Override
     protected FrameAndVariables getData(VirtualFrame frame) {
         return RubyArguments.getCallerFrameAndVariables(frame);
     }
 
+    @Override
     protected void startSending(FrameAndVariablesSendingNode node) {
         node.startSendingOwnFrame();
     }
 
+    @Override
     protected Object getDataFromFrame(MaterializedFrame frame) {
         return new FrameAndVariables(TruffleKernelNodes.GetSpecialVariableStorage.getSlow(frame), frame);
     }
