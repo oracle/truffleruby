@@ -17,6 +17,8 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
+import sun.awt.AWTAccessor.FrameAccessor;
+
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -69,7 +71,8 @@ public final class RubyArguments {
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
-        assert callerFrameOrVariables instanceof MaterializedFrame ||
+        assert callerFrameOrVariables == null ||
+                callerFrameOrVariables instanceof MaterializedFrame ||
                 callerFrameOrVariables instanceof SpecialVariableStorage ||
                 callerFrameOrVariables instanceof FrameOrStorage;
 
@@ -115,6 +118,15 @@ public final class RubyArguments {
             return ((FrameOrStorage) frameOrStorage).storage;
         } else if (frameOrStorage instanceof SpecialVariableStorage) {
             return (SpecialVariableStorage) frameOrStorage;
+        } else {
+            return null;
+        }
+    }
+
+    public static FrameOrStorage getCallerFrameAndVariables(Frame frame) {
+        Object frameOrStorage = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrStorage instanceof FrameOrStorage) {
+            return (FrameOrStorage)frameOrStorage;
         } else {
             return null;
         }
