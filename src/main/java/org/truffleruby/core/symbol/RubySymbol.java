@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.symbol;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.Hashing;
@@ -75,6 +76,7 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
         return hashing.hash(CLASS_SALT, javaStringHashCode);
     }
 
+    @TruffleBoundary
     @Override
     public String toString() {
         return ":" + string;
