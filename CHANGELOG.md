@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix error message when the method name is not a Symbol or String for `Kernel#respond_to?` (#2132, @ssnickolay)
 * Fixed setting of special variables in enumerators and enumerables (#1484).
+* Fix `String#{chomp, chomp!}` issue with invalid encoded strings (#2133).
 
 Compatibility:
 
