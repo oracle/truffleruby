@@ -64,6 +64,10 @@ module Truffle
         return md2 == nil
       elsif md2 == nil then
         return false
+      elsif md1.instance_of?(RegexpError) then
+        return md2.instance_of?(RegexpError)
+      elsif md2.instance_of?(RegexpError) then
+        return false
       else
         if md1.size != md2.size then
           return false
@@ -77,41 +81,49 @@ module Truffle
       end
     end
 
+    def self.print_match_data(md)
+      if md == nil
+        $stderr.puts "    NO MATCH"
+      elsif md.instance_of?(RegexpError) then
+        $stderr.puts "    EXCEPTION - #{md}"
+      else
+        md.size.times do |x|
+          $stderr.puts "    #{md.begin(x)} - #{md.end(x)}"
+        end
+        md.captures.each do |c|
+          $stderr.puts "    #{c}"
+        end
+      end
+    end
+
+    def self.return_match_data(md)
+      if md.instance_of?(RegexpError) then
+        raise md
+      else
+        return md
+      end
+    end
+
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if COMPARE_ENGINES
         begin
           md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-          md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-          if self.results_match(md1, md2) then
-            return md1
-          else
-            $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
-            if md1 == nil
-              $stderr.puts "    NO MATCH"
-            else
-              md1.size.times do |x|
-                $stderr.puts "    #{md1.begin(x)} - #{md1.end(x)}"
-              end
-              md1.captures.each do |c|
-                $stderr.puts "    #{c}"
-              end
-            end
-            $stderr.puts "but we expected"
-            if md2 == nil
-              $stderr.puts "    NO MATCH"
-            else
-              md2.size.times do |x|
-                $stderr.puts "    #{md2.begin(x)} - #{md2.end(x)}"
-              end
-              md2.captures.each do |c|
-                $stderr.puts "    #{c}"
-              end
-            end
-            return md2
-          end
         rescue => e
-          $stderr.puts "match_in_region(#{re}, str, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) raised #{e}"
-          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+          md1 = e
+        end
+        begin
+          md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        rescue => e
+          md2 = e
+        end
+        if self.results_match(md1, md2) then
+          return self.return_match_data(md1)
+        else
+          $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
+          self.print_match_data(md1)
+          $stderr.puts "but we expected"
+          self.print_match_data(md2)
+          return self.return_match_data(md2)
         end
       elsif USE_TRUFFLE_REGEX
         match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
