@@ -1211,7 +1211,6 @@ public class CExtNodes {
                 System.arraycopy(to, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    getContext(),
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
@@ -1235,7 +1234,6 @@ public class CExtNodes {
                 System.arraycopy(buf, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    getContext(),
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }

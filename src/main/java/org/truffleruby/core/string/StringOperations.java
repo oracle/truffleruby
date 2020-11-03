@@ -52,10 +52,10 @@ import org.truffleruby.language.objects.AllocationTracing;
 
 public abstract class StringOperations {
 
-    public static RubyString createString(RubyContext context, RubyContextSourceNode node, Rope rope) {
+    public static RubyString createString(RubyContextSourceNode node, Rope rope) {
         final RubyString instance = new RubyString(
-                context.getCoreLibrary().stringClass,
-                RubyLanguage.stringShape,
+                node.getContext().getCoreLibrary().stringClass,
+                node.getLanguage().stringShape,
                 false,
                 false,
                 rope);
@@ -64,10 +64,10 @@ public abstract class StringOperations {
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
-    public static RubyString createString(RubyContext context, Rope rope) {
+    public static RubyString createString(RubyContext context, RubyLanguage language, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
-                RubyLanguage.stringShape,
+                language.stringShape,
                 false,
                 false,
                 rope);
@@ -75,10 +75,10 @@ public abstract class StringOperations {
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
-    public static RubyString createFrozenString(RubyContext context, Rope rope) {
+    public static RubyString createFrozenString(RubyContext context, RubyLanguage language, Rope rope) {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
-                RubyLanguage.stringShape,
+                language.stringShape,
                 true,
                 false,
                 rope);
