@@ -14,8 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -42,10 +40,10 @@ public abstract class DigestNodes {
         }
     }
 
-    private static RubyDigest createDigest(RubyContext context, RubyContextSourceNode node, DigestAlgorithm algorithm) {
+    private static RubyDigest createDigest(RubyContextSourceNode node, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
-                context.getCoreLibrary().digestClass,
-                RubyLanguage.digestShape,
+                node.coreLibrary().digestClass,
+                node.getLanguage().digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
         AllocationTracing.trace(instance, node);
@@ -57,7 +55,7 @@ public abstract class DigestNodes {
 
         @Specialization
         protected RubyDigest md5() {
-            return createDigest(getContext(), this, DigestAlgorithm.MD5);
+            return createDigest(this, DigestAlgorithm.MD5);
         }
 
     }
@@ -67,7 +65,7 @@ public abstract class DigestNodes {
 
         @Specialization
         protected RubyDigest sha1() {
-            return createDigest(getContext(), this, DigestAlgorithm.SHA1);
+            return createDigest(this, DigestAlgorithm.SHA1);
         }
 
     }
@@ -77,7 +75,7 @@ public abstract class DigestNodes {
 
         @Specialization
         protected RubyDigest sha256() {
-            return createDigest(getContext(), this, DigestAlgorithm.SHA256);
+            return createDigest(this, DigestAlgorithm.SHA256);
         }
 
     }
@@ -87,7 +85,7 @@ public abstract class DigestNodes {
 
         @Specialization
         protected RubyDigest sha384() {
-            return createDigest(getContext(), this, DigestAlgorithm.SHA384);
+            return createDigest(this, DigestAlgorithm.SHA384);
         }
 
     }
@@ -97,7 +95,7 @@ public abstract class DigestNodes {
 
         @Specialization
         protected RubyDigest sha512() {
-            return createDigest(getContext(), this, DigestAlgorithm.SHA512);
+            return createDigest(this, DigestAlgorithm.SHA512);
         }
 
     }

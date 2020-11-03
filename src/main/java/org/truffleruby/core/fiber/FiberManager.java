@@ -86,7 +86,7 @@ public class FiberManager {
     }
 
     private RubyFiber createRootFiber(RubyLanguage language, RubyContext context, RubyThread thread) {
-        return createFiber(language, context, thread, context.getCoreLibrary().fiberClass, RubyLanguage.fiberShape);
+        return createFiber(language, context, thread, context.getCoreLibrary().fiberClass, language.fiberShape);
     }
 
     public RubyFiber createFiber(RubyLanguage language, RubyContext context, RubyThread thread, RubyClass rubyClass,

@@ -757,7 +757,7 @@ public class CoreExceptions {
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNameError(
                 context.getCoreLibrary().nameErrorClass,
-                RubyLanguage.nameErrorShape,
+                language.nameErrorShape,
                 messageString,
                 backtrace,
                 cause,
@@ -772,7 +772,7 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         final RubyNameError exception = new RubyNameError(
                 context.getCoreLibrary().nameErrorClass,
-                RubyLanguage.nameErrorShape,
+                language.nameErrorShape,
                 null,
                 backtrace,
                 cause,
@@ -796,7 +796,7 @@ public class CoreExceptions {
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNoMethodError(
                 context.getCoreLibrary().noMethodErrorClass,
-                RubyLanguage.noMethodErrorShape,
+                language.noMethodErrorShape,
                 messageString,
                 backtrace,
                 cause,
@@ -814,7 +814,7 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         final RubyNoMethodError exception = new RubyNoMethodError(
                 context.getCoreLibrary().noMethodErrorClass,
-                RubyLanguage.noMethodErrorShape,
+                language.noMethodErrorShape,
                 null,
                 backtrace,
                 cause,
@@ -838,7 +838,7 @@ public class CoreExceptions {
         // TODO BJF Jul 21, 2016 Review to add receiver
         return new RubyNoMethodError(
                 context.getCoreLibrary().noMethodErrorClass,
-                RubyLanguage.noMethodErrorShape,
+                language.noMethodErrorShape,
                 messageString,
                 backtrace,
                 cause,
