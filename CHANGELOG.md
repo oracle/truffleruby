@@ -19,6 +19,7 @@ Bug fixes:
 * Fixed `SystemStackError` sometimes replaced by an internal Java `NoClassDefFoundError` on JVM (#1743).
 * Fixed constant/identifier detection in lexer for non-ASCII encodings (#2079, #2102, @ivoanjo).
 * Fixed parsing of `--jvm` as an application argument (#2108).
+* Fix `rb_rescue2` to ignore the end marker `(VALUE)0` (#2127, #2130).
 
 Compatibility:
 
