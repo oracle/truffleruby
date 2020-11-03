@@ -15,7 +15,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -504,7 +503,7 @@ public abstract class PointerNodes {
             final Pointer readPointer = ptr.readPointer(0);
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
-                    RubyLanguage.truffleFFIPointerShape,
+                    getLanguage().truffleFFIPointerShape,
                     readPointer);
             AllocationTracing.trace(instance, this);
             return instance;

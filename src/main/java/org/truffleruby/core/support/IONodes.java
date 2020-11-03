@@ -67,7 +67,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -512,7 +511,7 @@ public abstract class IONodes {
             RubyThread thread = currentThreadNode.execute();
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
-                    RubyLanguage.truffleFFIPointerShape,
+                    getLanguage().truffleFFIPointerShape,
                     getBuffer(thread, size, sizeProfile));
             AllocationTracing.trace(instance, this);
             return instance;

@@ -1027,7 +1027,7 @@ public class CExtNodes {
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
-                    RubyLanguage.truffleFFIPointerShape,
+                    getLanguage().truffleFFIPointerShape,
                     nativeRope.getNativePointer());
             AllocationTracing.trace(instance, this);
             return instance;
