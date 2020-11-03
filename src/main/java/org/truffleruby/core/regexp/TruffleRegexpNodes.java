@@ -178,7 +178,7 @@ public class TruffleRegexpNodes {
 
             return new RubyRegexp(
                     getContext().getCoreLibrary().regexpClass,
-                    RubyLanguage.regexpShape,
+                    getLanguage().regexpShape,
                     regex,
                     (Rope) regex.getUserObject(),
                     regexpOptions,
@@ -334,7 +334,7 @@ public class TruffleRegexpNodes {
             final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
             RubyMatchData result = new RubyMatchData(
                     coreLibrary().matchDataClass,
-                    RubyLanguage.matchDataShape,
+                    getLanguage().matchDataShape,
                     regexp,
                     dupedString,
                     region,

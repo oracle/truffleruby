@@ -17,7 +17,6 @@ import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
 import org.joni.exception.ValueException;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -188,7 +187,7 @@ public abstract class MatchDataNodes {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
-                    RubyLanguage.matchDataShape,
+                    getLanguage().matchDataShape,
                     regexp,
                     string,
                     region,
@@ -214,7 +213,7 @@ public abstract class MatchDataNodes {
 
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
-                    RubyLanguage.matchDataShape,
+                    getLanguage().matchDataShape,
                     regexp,
                     string,
                     region,
