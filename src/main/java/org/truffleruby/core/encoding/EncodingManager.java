@@ -57,14 +57,16 @@ public class EncodingManager {
     private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     @CompilationFinal private Encoding localeEncoding;
     private Encoding defaultExternalEncoding;
     private Encoding defaultInternalEncoding;
 
 
-    public EncodingManager(RubyContext context) {
+    public EncodingManager(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     public void defineEncodings() {
@@ -174,7 +176,7 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    private static RubyEncoding newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end) {
+    private RubyEncoding newRubyEncoding(Encoding encoding, byte[] name, int p, int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
                 "; name.length = " + name.length + ")";
@@ -184,11 +186,11 @@ public class EncodingManager {
                 rope.getBytes(),
                 rope.getEncoding(),
                 rope.getCodeRange());
-        final RubyString string = StringOperations.createFrozenString(context, cachedRope);
+        final RubyString string = StringOperations.createFrozenString(context, language, cachedRope);
 
         final RubyEncoding instance = new RubyEncoding(
                 context.getCoreLibrary().encodingClass,
-                RubyLanguage.encodingShape,
+                language.encodingShape,
                 encoding,
                 string);
         // TODO BJF Jul-29-2020 Add allocation tracing
@@ -254,7 +256,7 @@ public class EncodingManager {
     public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
         final Encoding encoding = encodingEntry.getEncoding();
         final int encodingIndex = encoding.getIndex();
-        final RubyEncoding rubyEncoding = newRubyEncoding(context, encoding, name, p, end);
+        final RubyEncoding rubyEncoding = newRubyEncoding(encoding, name, p, end);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() ||
                 ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;

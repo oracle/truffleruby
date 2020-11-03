@@ -114,7 +114,7 @@ public class RubyContext {
     private final CallStackManager callStack = new CallStackManager(this);
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
     private final CoreExceptions coreExceptions;
-    private final EncodingManager encodingManager = new EncodingManager(this);
+    private final EncodingManager encodingManager;
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
@@ -166,6 +166,7 @@ public class RubyContext {
         options = createOptions(env, language.options);
 
         coreExceptions = new CoreExceptions(this, language);
+        encodingManager = new EncodingManager(this, language);
 
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);
