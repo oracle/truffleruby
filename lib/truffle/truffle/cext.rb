@@ -346,26 +346,12 @@ module Truffle::CExt
       end
     end
 
-    ary = begin
-      y.coerce(x)
-    rescue
-      if raise_error
-        raise TypeError, "#{y.class} can't be coerced to #{x.class}"
-      else
-        warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
-        warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
-      end
+    ary = y.coerce(x)
+    if Primitive.nil?(ary) && !raise_error
       return nil
     end
-
     if !ary.is_a?(Array) || ary.size != 2
-      if raise_error
-        raise TypeError, 'coerce must return [x, y]'
-      else
-        warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
-        warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
-      end
-      return nil
+      raise TypeError, 'coerce must return [x, y]'
     end
     ary
   end
@@ -1069,10 +1055,6 @@ module Truffle::CExt
 
   def rb_errinfo
     $!
-  end
-
-  def rb_check_arity(arg_count, min, max)
-    Truffle::Type.check_arity arg_count, min, max
   end
 
   def rb_arity_error_string(arg_count, min, max)

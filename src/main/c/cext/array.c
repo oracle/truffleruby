@@ -49,6 +49,10 @@ VALUE rb_ary_new_from_values(long n, const VALUE *values) {
   return array;
 }
 
+VALUE rb_assoc_new(VALUE a, VALUE b) {
+  return rb_ary_new3(2, a, b);
+}
+
 VALUE rb_ary_push(VALUE array, VALUE value) {
   RUBY_INVOKE_NO_WRAP(array, "push", value);
   return array;
@@ -146,4 +150,12 @@ VALUE rb_ary_rotate(VALUE array, long n) {
 
 VALUE rb_ary_tmp_new(long capa) {
   return rb_ary_new_capa(capa);
+}
+
+VALUE rb_ary_freeze(VALUE array) {
+  return rb_obj_freeze(array);
+}
+
+VALUE rb_ary_dup(VALUE array) {
+  return rb_obj_dup(array);
 }

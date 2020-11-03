@@ -33,22 +33,6 @@ char *RSTRING_END_IMPL(VALUE string) {
   return NATIVE_RSTRING_PTR(string) + RSTRING_LEN(string);
 }
 
-int MBCLEN_NEEDMORE_P(int r) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "MBCLEN_NEEDMORE_P", r));
-}
-
-int MBCLEN_NEEDMORE_LEN(int r) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "MBCLEN_NEEDMORE_LEN", r));
-}
-
-int MBCLEN_CHARFOUND_P(int r) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "MBCLEN_CHARFOUND_P", r));
-}
-
-int MBCLEN_CHARFOUND_LEN(int r) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "MBCLEN_CHARFOUND_LEN", r));
-}
-
 int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(string), "bytesize"));
 }
@@ -91,6 +75,22 @@ VALUE rb_tainted_str_new_cstr(const char *ptr) {
 
     OBJ_TAINT(str);
     return str;
+}
+
+VALUE rb_str_dup(VALUE string) {
+  return rb_obj_dup(string);
+}
+
+VALUE rb_str_resurrect(VALUE string) {
+  return rb_obj_dup(string);
+}
+
+VALUE rb_str_freeze(VALUE string) {
+  return rb_obj_freeze(string);
+}
+
+VALUE rb_str_inspect(VALUE string) {
+  return rb_inspect(string);
 }
 
 ID rb_intern_str(VALUE string) {
@@ -178,10 +178,6 @@ VALUE rb_str_buf_new_cstr(const char *string) {
 
 int rb_str_cmp(VALUE a, VALUE b) {
   return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(a, "<=>", b));
-}
-
-VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
-  return rb_str_cat(string, to_concat, length);
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {

@@ -5,9 +5,16 @@
 set -x
 set -e
 
-RUBY_BUILD_DIR=$HOME/src/ruby-2.6.6
-
 topdir=$(cd ../ruby && pwd -P)
+
+tag=$(cd "$topdir" && git describe --tags)
+version=$(echo "$tag" | tr -d v | tr '_' '.')
+
+RUBY_BUILD_DIR=$HOME/src/ruby-$version
+if [ ! -d "$RUBY_BUILD_DIR" ]; then
+    echo "$RUBY_BUILD_DIR does not exist!"
+    exit 1
+fi
 
 # Generate ext/rbconfig/sizeof/sizes.c and limits.c
 (
