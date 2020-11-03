@@ -56,6 +56,7 @@ import org.graalvm.shadowed.org.jline.terminal.Terminal;
 import org.graalvm.shadowed.org.jline.terminal.impl.DumbTerminal;
 import org.graalvm.shadowed.org.jline.terminal.impl.ExecPty;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.support.RubyIO;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -78,14 +79,16 @@ public class ConsoleHolder {
     }
 
     private final RubyContext context;
+    private final RubyLanguage language;
     private final LineReaderImpl readline;
     private final IoStream in;
     private final IoStream out;
 
-    public static ConsoleHolder create(RubyContext context) {
+    public static ConsoleHolder create(RubyContext context, RubyLanguage language) {
         final RubyIO stdin = (RubyIO) context.getCoreLibrary().getStdin();
         return new ConsoleHolder(
                 context,
+                language,
                 0,
                 stdin,
                 1,
@@ -99,6 +102,7 @@ public class ConsoleHolder {
     @TruffleBoundary
     private ConsoleHolder(
             RubyContext context,
+            RubyLanguage language,
             int inFd,
             RubyIO inIo,
             int outFd,
@@ -107,8 +111,9 @@ public class ConsoleHolder {
             MemoryHistory history,
             ParserWithCustomDelimiters parser) {
         this.context = context;
-        this.in = new IoStream(context, inFd, inIo);
-        this.out = new IoStream(context, outFd, outIo);
+        this.language = language;
+        this.in = new IoStream(context, language, inFd, inIo);
+        this.out = new IoStream(context, language, outFd, outIo);
 
         boolean isTTY = System.console() != null;
         boolean system = isTTY && inFd == 0 && outFd == 1;
@@ -194,6 +199,7 @@ public class ConsoleHolder {
 
         return new ConsoleHolder(
                 context,
+                language,
                 fd,
                 io,
                 out.getFd(),
@@ -210,6 +216,7 @@ public class ConsoleHolder {
 
         return new ConsoleHolder(
                 context,
+                language,
                 in.getFd(),
                 in.getIo(),
                 fd,

@@ -666,7 +666,7 @@ public class RubyContext {
         if (consoleHolder == null) {
             synchronized (this) {
                 if (consoleHolder == null) {
-                    consoleHolder = ConsoleHolder.create(this);
+                    consoleHolder = ConsoleHolder.create(this, language);
                 }
             }
         }
