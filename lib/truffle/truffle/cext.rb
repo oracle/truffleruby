@@ -1057,10 +1057,6 @@ module Truffle::CExt
     $!
   end
 
-  def rb_check_arity(arg_count, min, max)
-    Truffle::Type.check_arity arg_count, min, max
-  end
-
   def rb_arity_error_string(arg_count, min, max)
     Truffle::Type.arity_error_string(arg_count, min, max)
   end

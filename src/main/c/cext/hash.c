@@ -101,3 +101,7 @@ size_t rb_hash_size_num(VALUE hash) {
 st_index_t rb_hash_start(st_index_t h) {
   return (st_index_t) polyglot_as_i64(polyglot_invoke(RUBY_CEXT, "rb_hash_start", h));
 }
+
+VALUE rb_hash_freeze(VALUE hash) {
+  return rb_obj_freeze(hash);
+}

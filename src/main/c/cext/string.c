@@ -77,6 +77,22 @@ VALUE rb_tainted_str_new_cstr(const char *ptr) {
     return str;
 }
 
+VALUE rb_str_dup(VALUE string) {
+  return rb_obj_dup(string);
+}
+
+VALUE rb_str_resurrect(VALUE string) {
+  return rb_obj_dup(string);
+}
+
+VALUE rb_str_freeze(VALUE string) {
+  return rb_obj_freeze(string);
+}
+
+VALUE rb_str_inspect(VALUE string) {
+  return rb_inspect(string);
+}
+
 ID rb_intern_str(VALUE string) {
   return SYM2ID(RUBY_CEXT_INVOKE("rb_intern_str", string));
 }
@@ -162,10 +178,6 @@ VALUE rb_str_buf_new_cstr(const char *string) {
 
 int rb_str_cmp(VALUE a, VALUE b) {
   return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(a, "<=>", b));
-}
-
-VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
-  return rb_str_cat(string, to_concat, length);
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
