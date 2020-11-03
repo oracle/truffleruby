@@ -20,6 +20,7 @@ import org.graalvm.shadowed.org.jline.reader.ParsedLine;
 import org.graalvm.shadowed.org.jline.reader.UserInterruptException;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -93,7 +94,7 @@ public abstract class ReadlineNodes {
         @TruffleBoundary
         @Specialization
         protected RubyProc setCompletionProc(RubyProc proc) {
-            final ProcCompleter completer = new ProcCompleter(getContext(), proc);
+            final ProcCompleter completer = new ProcCompleter(getContext(), getLanguage(), proc);
             getContext().getConsoleHolder().setCompleter(completer);
             return proc;
         }
@@ -112,7 +113,7 @@ public abstract class ReadlineNodes {
                     readline.getTerminal().getWidth()
             };
 
-            return ArrayHelpers.createArray(getContext(), store);
+            return ArrayHelpers.createArray(getContext(), getLanguage(), store);
         }
 
     }
@@ -276,10 +277,12 @@ public abstract class ReadlineNodes {
     private static class ProcCompleter implements Completer {
 
         private final RubyContext context;
+        private final RubyLanguage language;
         private final RubyProc proc;
 
-        public ProcCompleter(RubyContext context, RubyProc proc) {
+        public ProcCompleter(RubyContext context, RubyLanguage language, RubyProc proc) {
             this.context = context;
+            this.language = language;
             this.proc = proc;
         }
 
@@ -290,7 +293,7 @@ public abstract class ReadlineNodes {
             boolean complete = lineReader.getBuffer().cursor() == lineReader.getBuffer().length();
 
             RubyString string = StringOperations
-                    .createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+                    .createString(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             RubyArray completions = (RubyArray) context.send(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 final String completion = ((RubyString) element).getJavaString();
