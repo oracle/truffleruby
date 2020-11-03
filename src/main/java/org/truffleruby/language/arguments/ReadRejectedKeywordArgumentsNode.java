@@ -29,7 +29,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
     private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
     public RubyHash extractRejectedKwargs(VirtualFrame frame, RubyHash kwargsHash) {
-        final RubyHash rejectedKwargs = HashOperations.newEmptyHash(getContext());
+        final RubyHash rejectedKwargs = HashOperations.newEmptyHash(getContext(), getLanguage());
         eachKeyNode.executeEachKeyValue(frame, kwargsHash, this, rejectedKwargs);
         return rejectedKwargs;
     }

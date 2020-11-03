@@ -21,11 +21,11 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 
 public abstract class HashOperations {
 
-    public static RubyHash newEmptyHash(RubyContext context) {
+    public static RubyHash newEmptyHash(RubyContext context, RubyLanguage language) {
         final Object nil = Nil.INSTANCE;
         return new RubyHash(
                 context.getCoreLibrary().hashClass,
-                RubyLanguage.hashShape,
+                language.hashShape,
                 context,
                 null,
                 0,

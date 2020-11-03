@@ -30,7 +30,7 @@ public class ConcatHashLiteralNode extends RubyContextSourceNode {
     @Override
     @ExplodeLoop
     public Object execute(VirtualFrame frame) {
-        final RubyHash hash = HashOperations.newEmptyHash(getContext());
+        final RubyHash hash = HashOperations.newEmptyHash(getContext(), getLanguage());
         if (hashMergeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             hashMergeNode = insert(DispatchNode.create());

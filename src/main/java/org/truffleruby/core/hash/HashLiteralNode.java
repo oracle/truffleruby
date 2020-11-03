@@ -57,7 +57,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return HashOperations.newEmptyHash(getContext());
+            return HashOperations.newEmptyHash(getContext(), getLanguage());
         }
 
     }
@@ -110,7 +110,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
             return new RubyHash(
                     coreLibrary().hashClass,
-                    RubyLanguage.hashShape,
+                    language.hashShape,
                     getContext(),
                     store,
                     size,
@@ -167,7 +167,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
             final Entry[] newEntries = new Entry[bucketsCount];
             final RubyHash hash = new RubyHash(
                     coreLibrary().hashClass,
-                    RubyLanguage.hashShape,
+                    language.hashShape,
                     getContext(),
                     newEntries,
                     0,
