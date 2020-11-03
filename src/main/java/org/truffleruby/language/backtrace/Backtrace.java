@@ -313,7 +313,7 @@ public class Backtrace {
                     language.threadBacktraceLocationShape,
                     this,
                     i);
-            AllocationTracing.trace(context.getLanguageSlow(), context, instance, node);
+            AllocationTracing.trace(language, context, instance, node);
             locations[i] = instance;
         }
         return ArrayHelpers.createArray(context, language, locations);

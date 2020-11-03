@@ -84,17 +84,18 @@ public abstract class AllocationTracing {
                 context.getCoreLibrary().objectSpaceModule,
                 "trace_allocation",
                 object,
-                string(context, className),
+                string(context, language, className),
                 language.getSymbol(allocatingMethod),
-                string(context, context.getSourcePath(allocatingSourceSection.getSource())),
+                string(context, language, context.getSourcePath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
                 ObjectSpaceManager.getCollectionCount());
     }
 
-    private static RubyString string(RubyContext context, String value) {
+    private static RubyString string(RubyContext context, RubyLanguage language, String value) {
         // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
         // trace the allocation of Strings used for tracing allocations.
-        return StringOperations.createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+        return StringOperations
+                .createString(context, language, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
     }
 
 }
