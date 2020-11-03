@@ -18,6 +18,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -51,26 +52,28 @@ public class BacktraceFormatter {
             .of(FormattingFlags.OMIT_FROM_PREFIX, FormattingFlags.OMIT_EXCEPTION);
 
     private final RubyContext context;
+    private final RubyLanguage language;
     private final EnumSet<FormattingFlags> flags;
 
     @TruffleBoundary
-    public static BacktraceFormatter createDefaultFormatter(RubyContext context) {
+    public static BacktraceFormatter createDefaultFormatter(RubyContext context, RubyLanguage language) {
         final EnumSet<FormattingFlags> flags = EnumSet.noneOf(FormattingFlags.class);
 
         if (context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
             flags.add(FormattingFlags.INTERLEAVE_JAVA);
         }
 
-        return new BacktraceFormatter(context, flags);
+        return new BacktraceFormatter(context, language, flags);
     }
 
     // For debugging:
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(getContext(), this)
     // When outside a Ruby node:
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(RubyLanguage.getCurrentContext(), null)
-    public static String printableRubyBacktrace(RubyContext context, Node node) {
+    public static String printableRubyBacktrace(RubyContext context, RubyLanguage language, Node node) {
         final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(
                 context,
+                language,
                 EnumSet.noneOf(FormattingFlags.class));
         final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
         if (backtrace.isEmpty()) {
@@ -86,8 +89,9 @@ public class BacktraceFormatter {
                 !context.getSourcePath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
     }
 
-    public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
+    public BacktraceFormatter(RubyContext context, RubyLanguage language, EnumSet<FormattingFlags> flags) {
         this.context = context;
+        this.language = language;
         this.flags = flags;
     }
 
@@ -162,10 +166,11 @@ public class BacktraceFormatter {
         for (int n = 0; n < lines.length; n++) {
             array[n] = StringOperations.createString(
                     context,
+                    language,
                     StringOperations.encodeRope(lines[n], UTF8Encoding.INSTANCE));
         }
 
-        return ArrayHelpers.createArray(context, array);
+        return ArrayHelpers.createArray(context, language, array);
     }
 
     @TruffleBoundary

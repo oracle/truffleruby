@@ -426,7 +426,7 @@ public abstract class KernelNodes {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-            return backtrace.getBacktraceLocations(getContext(), length, this);
+            return backtrace.getBacktraceLocations(getContext(), getLanguage(), length, this);
         }
     }
 

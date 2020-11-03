@@ -151,37 +151,37 @@ public abstract class TypeNodes {
 
         @Specialization
         protected RubyArray instanceVariables(int object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
         @Specialization
         protected RubyArray instanceVariables(long object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
         @Specialization
         protected RubyArray instanceVariables(double object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
         @Specialization
         protected RubyArray instanceVariables(boolean object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
         @Specialization
         protected RubyArray instanceVariablesNil(Nil object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
         @Specialization
         protected RubyArray instanceVariablesSymbol(RubySymbol object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
         @Specialization(guards = "isForeignObject(object)")
         protected RubyArray instanceVariablesForeign(Object object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
     }

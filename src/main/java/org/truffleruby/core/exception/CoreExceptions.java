@@ -56,7 +56,10 @@ public class CoreExceptions {
     public CoreExceptions(RubyContext context, RubyLanguage language) {
         this.language = language;
         this.context = context;
-        this.debugBacktraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.OMIT_EXCEPTION));
+        this.debugBacktraceFormatter = new BacktraceFormatter(
+                context,
+                language,
+                EnumSet.of(FormattingFlags.OMIT_EXCEPTION));
     }
 
     public void showExceptionIfDebug(RubyException exception) {

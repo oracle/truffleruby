@@ -179,8 +179,8 @@ public class RubyContext {
 
         hashing = new Hashing(generateHashingSeed());
 
-        defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
-        userBacktraceFormatter = new BacktraceFormatter(this, BacktraceFormatter.USER_BACKTRACE_FLAGS);
+        defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
+        userBacktraceFormatter = new BacktraceFormatter(this, language, BacktraceFormatter.USER_BACKTRACE_FLAGS);
 
         rubyHome = findRubyHome(options);
         rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
@@ -288,7 +288,7 @@ public class RubyContext {
         random = createRandomInstance();
         hashing.patchSeed(generateHashingSeed());
 
-        this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
+        this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
 
         this.truffleNFIPlatform = createNativePlatform();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
