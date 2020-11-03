@@ -188,7 +188,7 @@ public class RubyContext {
         // Load the core library classes
 
         Metrics.printTime("before-create-core-library");
-        coreLibrary = new CoreLibrary(this);
+        coreLibrary = new CoreLibrary(this, language);
         nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
         valueWrapperManager = new ValueWrapperManager(this);

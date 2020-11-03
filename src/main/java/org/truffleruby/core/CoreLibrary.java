@@ -121,6 +121,7 @@ public class CoreLibrary {
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     public final SourceSection sourceSection;
 
@@ -305,14 +306,13 @@ public class CoreLibrary {
 
     private final SingletonClassNode node;
 
-    public CoreLibrary(RubyContext context) {
+    public CoreLibrary(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
         this.coreLoadPath = buildCoreLoadPath();
         this.corePath = coreLoadPath + File.separator + "core" + File.separator;
         this.sourceSection = initCoreSourceSection(context);
         this.node = SingletonClassNode.getUncached();
-
-        final RubyLanguage language = context.getLanguageSlow();
 
         // Nothing in this constructor can use RubyContext.getCoreLibrary() as we are building it!
         // Therefore, only initialize the core classes and modules here.
@@ -747,9 +747,10 @@ public class CoreLibrary {
     }
 
     private RubyString frozenUSASCIIString(String string) {
-        final Rope rope = context.getLanguageSlow().ropeCache.getRope(
+        // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
+        final Rope rope = language.ropeCache.getRope(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        return StringOperations.createFrozenString(context, rope);
+        return StringOperations.createFrozenString(context, language, rope);
     }
 
     private RubyClass defineClass(String name) {
@@ -855,8 +856,11 @@ public class CoreLibrary {
         findGlobalVariableStorage();
 
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
-        RubyString dollarZeroValue = StringOperations
-                .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+        // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
+        RubyString dollarZeroValue = StringOperations.createString(
+                context,
+                language,
+                StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
 
         topLevelBinding = (RubyBinding) objectClass.fields
