@@ -247,7 +247,7 @@ public class ValueWrapperManager {
         }
     }
 
-    protected static class HandleBlockWeakReference extends WeakReference<HandleBlock> {
+    protected static final class HandleBlockWeakReference extends WeakReference<HandleBlock> {
         HandleBlockWeakReference(HandleBlock referent) {
             super(referent);
         }
