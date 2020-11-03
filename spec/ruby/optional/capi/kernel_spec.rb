@@ -396,12 +396,12 @@ describe "C-API Kernel function" do
       proc = -> x { x }
       arg_error_proc = -> *_ { raise ArgumentError, '' }
       run_error_proc = -> *_ { raise RuntimeError, '' }
-      type_error_proc = -> *_ { raise TypeError, '' }
+      type_error_proc = -> *_ { raise Exception, 'custom error' }
       @s.rb_rescue2(arg_error_proc, :no_exc, proc, :exc, ArgumentError, RuntimeError).should == :exc
       @s.rb_rescue2(run_error_proc, :no_exc, proc, :exc, ArgumentError, RuntimeError).should == :exc
       -> {
         @s.rb_rescue2(type_error_proc, :no_exc, proc, :exc, ArgumentError, RuntimeError)
-      }.should raise_error(TypeError)
+      }.should raise_error(Exception, 'custom error')
     end
   end
 
