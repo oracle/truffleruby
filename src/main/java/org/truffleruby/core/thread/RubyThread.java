@@ -76,7 +76,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         this.finishedLatch = new CountDownLatch(1);
         this.threadLocalVariables = HashOperations.newEmptyHash(context, language);
         this.recursiveObjects = HashOperations.newEmptyHash(context, language);
-        this.randomizer = RandomizerNodes.newRandomizer(context);
+        this.randomizer = RandomizerNodes.newRandomizer(context, language);
         this.tracePointState = new TracePointState();
         this.reportOnException = reportOnException;
         this.abortOnException = abortOnException;
