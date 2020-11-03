@@ -156,47 +156,42 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape moduleShape = createShape(RubyModule.class);
     public final Shape classShape = createShape(RubyClass.class);
 
-    // TODO (eregon, 25 Sep 2020): These Shapes should ideally be stored in the language instance,
-    // so different Engines/RubyLanguage instances can have different type profiles.
-    // However that requires passing the language instance around a lot which is inconvenient
-    // and does not seem worth it currently. Also these builtin types are rather unlikely to have
-    // instance variables.
-    public static final Shape arrayShape = createShape(RubyArray.class);
-    public static final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
-    public static final Shape bigDecimalShape = createShape(RubyBigDecimal.class);
-    public static final Shape bindingShape = createShape(RubyBinding.class);
-    public static final Shape byteArrayShape = createShape(RubyByteArray.class);
-    public static final Shape conditionVariableShape = createShape(RubyConditionVariable.class);
-    public static final Shape digestShape = createShape(RubyDigest.class);
-    public static final Shape encodingConverterShape = createShape(RubyEncodingConverter.class);
-    public static final Shape encodingShape = createShape(RubyEncoding.class);
-    public static final Shape exceptionShape = createShape(RubyException.class);
-    public static final Shape fiberShape = createShape(RubyFiber.class);
-    public static final Shape handleShape = createShape(RubyHandle.class);
-    public static final Shape hashShape = createShape(RubyHash.class);
-    public static final Shape intRangeShape = createShape(RubyIntRange.class);
-    public static final Shape ioShape = createShape(RubyIO.class);
-    public static final Shape longRangeShape = createShape(RubyLongRange.class);
-    public static final Shape matchDataShape = createShape(RubyMatchData.class);
-    public static final Shape methodShape = createShape(RubyMethod.class);
-    public static final Shape mutexShape = createShape(RubyMutex.class);
-    public static final Shape nameErrorShape = createShape(RubyNameError.class);
-    public static final Shape noMethodErrorShape = createShape(RubyNoMethodError.class);
-    public static final Shape objectRangeShape = createShape(RubyObjectRange.class);
-    public static final Shape procShape = createShape(RubyProc.class);
-    public static final Shape queueShape = createShape(RubyQueue.class);
-    public static final Shape randomizerShape = createShape(RubyRandomizer.class);
-    public static final Shape regexpShape = createShape(RubyRegexp.class);
-    public static final Shape sizedQueueShape = createShape(RubySizedQueue.class);
-    public static final Shape stringShape = createShape(RubyString.class);
-    public static final Shape systemCallErrorShape = createShape(RubySystemCallError.class);
-    public static final Shape threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class);
-    public static final Shape threadShape = createShape(RubyThread.class);
-    public static final Shape timeShape = createShape(RubyTime.class);
-    public static final Shape tracePointShape = createShape(RubyTracePoint.class);
-    public static final Shape truffleFFIPointerShape = createShape(RubyPointer.class);
-    public static final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
-    public static final Shape weakMapShape = createShape(RubyWeakMap.class);
+    public final Shape arrayShape = createShape(RubyArray.class);
+    public final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
+    public final Shape bigDecimalShape = createShape(RubyBigDecimal.class);
+    public final Shape bindingShape = createShape(RubyBinding.class);
+    public final Shape byteArrayShape = createShape(RubyByteArray.class);
+    public final Shape conditionVariableShape = createShape(RubyConditionVariable.class);
+    public final Shape digestShape = createShape(RubyDigest.class);
+    public final Shape encodingConverterShape = createShape(RubyEncodingConverter.class);
+    public final Shape encodingShape = createShape(RubyEncoding.class);
+    public final Shape exceptionShape = createShape(RubyException.class);
+    public final Shape fiberShape = createShape(RubyFiber.class);
+    public final Shape handleShape = createShape(RubyHandle.class);
+    public final Shape hashShape = createShape(RubyHash.class);
+    public final Shape intRangeShape = createShape(RubyIntRange.class);
+    public final Shape ioShape = createShape(RubyIO.class);
+    public final Shape longRangeShape = createShape(RubyLongRange.class);
+    public final Shape matchDataShape = createShape(RubyMatchData.class);
+    public final Shape methodShape = createShape(RubyMethod.class);
+    public final Shape mutexShape = createShape(RubyMutex.class);
+    public final Shape nameErrorShape = createShape(RubyNameError.class);
+    public final Shape noMethodErrorShape = createShape(RubyNoMethodError.class);
+    public final Shape objectRangeShape = createShape(RubyObjectRange.class);
+    public final Shape procShape = createShape(RubyProc.class);
+    public final Shape queueShape = createShape(RubyQueue.class);
+    public final Shape randomizerShape = createShape(RubyRandomizer.class);
+    public final Shape regexpShape = createShape(RubyRegexp.class);
+    public final Shape sizedQueueShape = createShape(RubySizedQueue.class);
+    public final Shape stringShape = createShape(RubyString.class);
+    public final Shape systemCallErrorShape = createShape(RubySystemCallError.class);
+    public final Shape threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class);
+    public final Shape threadShape = createShape(RubyThread.class);
+    public final Shape timeShape = createShape(RubyTime.class);
+    public final Shape tracePointShape = createShape(RubyTracePoint.class);
+    public final Shape truffleFFIPointerShape = createShape(RubyPointer.class);
+    public final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
+    public final Shape weakMapShape = createShape(RubyWeakMap.class);
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
