@@ -64,9 +64,9 @@ module Truffle
         return md2 == nil
       elsif md2 == nil then
         return false
-      elsif md1.instance_of?(RegexpError) then
-        return md2.instance_of?(RegexpError)
-      elsif md2.instance_of?(RegexpError) then
+      elsif md1.kind_of?(Exception) then
+        return md1.class == md2.class
+      elsif md2.kind_of?(Exception) then
         return false
       else
         if md1.size != md2.size then
@@ -84,7 +84,7 @@ module Truffle
     def self.print_match_data(md)
       if md == nil
         $stderr.puts "    NO MATCH"
-      elsif md.instance_of?(RegexpError) then
+      elsif md.kind_of?(Exception) then
         $stderr.puts "    EXCEPTION - #{md}"
       else
         md.size.times do |x|
@@ -97,7 +97,7 @@ module Truffle
     end
 
     def self.return_match_data(md)
-      if md.instance_of?(RegexpError) then
+      if md.kind_of?(Exception) then
         raise md
       else
         return md
@@ -173,26 +173,33 @@ module Truffle
       if to < from || to != str.bytes.length || start != 0
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
+      begin
+        java_string = StringOperations::java_string(str)
+      rescue => e
+        # Some strings might contain invalid (non-Unicode) characters, e.g. values higher than 127 in ASCII strings.
+        # These strings can then throw CannotConvertBinaryRubyStringToJavaString exception.
+        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      end
       compiled_regex_key = at_start ? TREGEX_STICKY : TREGEX
       if (nil == Primitive.object_hidden_var_get(re, compiled_regex_key))
+        if at_start
+          flags = options_to_flags(re.options) + "y"
+        else
+          flags = options_to_flags(re.options)
+        end
         begin
-          if at_start
-            flags = options_to_flags(re.options) + "y"
-          else
-            flags = options_to_flags(re.options)
-          end
           Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, "UTF-16"))
         rescue => e
-          $stderr.puts "Failure to compile #{re.source} using tregex - generated error #{e}."
+          # Some strings might contain invalid (non-Unicode) characters, e.g. values higher than 127 in ASCII strings.
+          # These strings can then throw CannotConvertBinaryRubyStringToJavaString exception.
           return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
       end
       tr = Primitive.object_hidden_var_get(re, compiled_regex_key)
-      java_string = StringOperations::java_string(str)
       begin
         tr_match = tr.exec(java_string, self.byte_index_to_code_unit_index(str, java_string, from))
       rescue => e
-        if !("#{e}".index("UnsupportedRegexException"))
+        if !("#{e.message}".index("UnsupportedRegexException"))
           $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
         end
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
