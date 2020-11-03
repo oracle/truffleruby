@@ -45,6 +45,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     public abstract Object executeCall(Object receiver, String name, Object[] args);
 
     protected final static String INDEX_READ = "[]";
+    protected final static String AT = "at";    
     protected final static String INDEX_WRITE = "[]=";
     protected final static String CALL = "call";
     protected final static String NEW = "new";
@@ -58,6 +59,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected final static String EQUAL = "equal?";
     protected final static String DELETE = "delete";
     protected final static String SIZE = "size";
+    protected final static String LENGTH = "length";
     protected final static String KEYS = "keys";
     protected final static String CLASS = "class";
     protected final static String INSPECT = "inspect";
@@ -296,6 +298,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case TO_A:
             case TO_ARY:
             case SIZE:
+            case LENGTH:
             case KEYS:
             case INSPECT:
             case CLASS:
@@ -329,6 +332,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case TO_ARY:
                 return "to_array";
             case SIZE:
+                return "array_size";
+            case LENGTH:
                 return "array_size";
             case KEYS:
                 return "members";

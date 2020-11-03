@@ -28,6 +28,23 @@ describe "Foreign arrays" do
       p foreign
     }.should output_to_fd("#{foreign.inspect}\n")
   end
+
+  it "can call #size" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.size.should == 3
+  end
+
+  it "can call #length" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.length.should == 3
+  end
+
+  it "can access elements by indexing" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign[0].should == 1
+    foreign[2].should == 3
+  end
+  
 end
 
 describe "Foreign arrays that are also pointers" do
