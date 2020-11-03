@@ -33,11 +33,8 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-# Uses TracePoint.new(:call), and we have a more efficient --cpusampler
-rm lib/mri/profiler.rb
 # Uses RubyVM
 rm lib/mri/debug.rb
-rm lib/mri/profile.rb
 # Files not actually installed in MRI
 find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
