@@ -331,6 +331,7 @@ int enc_is_unicode(const OnigEncodingType *enc);
 #define ONIGENC_IS_UNICODE(enc)        ((enc)->flags & ONIGENC_FLAG_UNICODE)
 #endif
 
+
 #define ONIGENC_NAME(enc)                      ((enc)->name)
 
 #ifdef TRUFFLERUBY
