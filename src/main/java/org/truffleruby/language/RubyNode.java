@@ -23,8 +23,6 @@ import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
@@ -254,22 +252,6 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
         default Encoding getLocaleEncoding() {
             return getContext().getEncodingManager().getLocaleEncoding();
-        }
-
-        default RubyArray createArray(Object store, int size) {
-            return ArrayHelpers.createArray(getContext(), store, size);
-        }
-
-        default RubyArray createArray(int[] store) {
-            return ArrayHelpers.createArray(getContext(), store);
-        }
-
-        default RubyArray createArray(long[] store) {
-            return ArrayHelpers.createArray(getContext(), store);
-        }
-
-        default RubyArray createArray(Object[] store) {
-            return ArrayHelpers.createArray(getContext(), store);
         }
 
         default RubyBignum createBignum(BigInteger value) {
