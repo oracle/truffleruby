@@ -10,16 +10,19 @@
 package org.truffleruby.core.string;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.Rope;
 
 public class FrozenStringLiterals {
 
     private final RubyContext context;
+    private final RubyLanguage language;
     private final WeakValueCache<Rope, RubyString> values = new WeakValueCache<>();
 
-    public FrozenStringLiterals(RubyContext context) {
+    public FrozenStringLiterals(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     public RubyString getFrozenStringLiteral(Rope rope) {
@@ -27,7 +30,7 @@ public class FrozenStringLiterals {
         if (string != null) {
             return string;
         } else {
-            return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(context, rope));
+            return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(context, language, rope));
         }
     }
 

@@ -112,7 +112,7 @@ public class RubyContext {
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
-    private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
+    private final FrozenStringLiterals frozenStringLiterals;
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
@@ -165,6 +165,7 @@ public class RubyContext {
 
         options = createOptions(env, language.options);
 
+        frozenStringLiterals = new FrozenStringLiterals(this, language);
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
