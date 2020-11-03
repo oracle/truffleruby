@@ -1192,46 +1192,6 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "MBCLEN_NEEDMORE_P", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class MBCLEN_NEEDMORE_PNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object mbclenNeedMoreP(int r) {
-            return StringSupport.MBCLEN_NEEDMORE_P(r);
-        }
-
-    }
-
-    @CoreMethod(names = "MBCLEN_NEEDMORE_LEN", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class MBCLEN_NEEDMORE_LENNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object mbclenNeedMoreLen(int r) {
-            return StringSupport.MBCLEN_NEEDMORE_LEN(r);
-        }
-
-    }
-
-    @CoreMethod(names = "MBCLEN_CHARFOUND_P", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class MBCLEN_CHARFOUND_PNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object mbclenCharFoundP(int r) {
-            return StringSupport.MBCLEN_CHARFOUND_P(r);
-        }
-
-    }
-
-    @CoreMethod(names = "MBCLEN_CHARFOUND_LEN", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class MBCLEN_CHARFOUND_LENNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object mbclenCharFoundLen(int r) {
-            return StringSupport.MBCLEN_CHARFOUND_LEN(r);
-        }
-
-    }
-
     @CoreMethod(names = "rb_tr_enc_mbc_case_fold", onSingleton = true, required = 5, lowerFixnum = 2)
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
