@@ -29,28 +29,28 @@ public abstract class ArrayHelpers {
         array.size = size;
     }
 
-    public static RubyArray createArray(RubyContext context, Object store, int size) {
+    public static RubyArray createArray(RubyContext context, RubyLanguage language, Object store, int size) {
         assert !(store instanceof Object[]) || store.getClass() == Object[].class;
-        return new RubyArray(context.getCoreLibrary().arrayClass, RubyLanguage.arrayShape, store, size);
+        return new RubyArray(context.getCoreLibrary().arrayClass, language.arrayShape, store, size);
     }
 
-    public static RubyArray createArray(RubyContext context, int[] store) {
-        return createArray(context, store, store.length);
+    public static RubyArray createArray(RubyContext context, RubyLanguage language, int[] store) {
+        return createArray(context, language, store, store.length);
     }
 
-    public static RubyArray createArray(RubyContext context, long[] store) {
-        return createArray(context, store, store.length);
+    public static RubyArray createArray(RubyContext context, RubyLanguage language, long[] store) {
+        return createArray(context, language, store, store.length);
     }
 
-    public static RubyArray createArray(RubyContext context, Object[] store) {
+    public static RubyArray createArray(RubyContext context, RubyLanguage language, Object[] store) {
         assert store.getClass() == Object[].class;
-        return createArray(context, store, store.length);
+        return createArray(context, language, store, store.length);
     }
 
-    public static RubyArray createEmptyArray(RubyContext context) {
+    public static RubyArray createEmptyArray(RubyContext context, RubyLanguage language) {
         return new RubyArray(
                 context.getCoreLibrary().arrayClass,
-                RubyLanguage.arrayShape,
+                language.arrayShape,
                 ArrayStoreLibrary.INITIAL_STORE,
                 0);
     }
@@ -72,14 +72,15 @@ public abstract class ArrayHelpers {
     }
 
     /** Returns a Ruby array backed by a store of the narrowest possible type, holding {@code object}. */
-    public static RubyArray specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder, Object object) {
-        return createArray(context, specializedJavaArrayOf(builder, object), 1);
+    public static RubyArray specializedRubyArrayOf(RubyContext context, RubyLanguage language, ArrayBuilderNode builder,
+            Object object) {
+        return createArray(context, language, specializedJavaArrayOf(builder, object), 1);
     }
 
     /** Returns a Ruby array backed by a store of the narrowest possible type, holding the {@code objects}. */
-    public static RubyArray specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder,
+    public static RubyArray specializedRubyArrayOf(RubyContext context, RubyLanguage language, ArrayBuilderNode builder,
             Object... objects) {
-        return createArray(context, specializedJavaArrayOf(builder, objects), objects.length);
+        return createArray(context, language, specializedJavaArrayOf(builder, objects), objects.length);
     }
 
 }
