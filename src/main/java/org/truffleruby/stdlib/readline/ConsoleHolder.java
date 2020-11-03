@@ -160,7 +160,12 @@ public class ConsoleHolder {
 
     public void close() {
         try {
-            readline.getTerminal().close();
+            final Terminal terminal = readline.getTerminal();
+            if (terminal instanceof PosixSysTerminalKeepSignalHandlers) {
+                ((PosixSysTerminalKeepSignalHandlers) terminal).customClose();
+            } else {
+                terminal.close();
+            }
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }

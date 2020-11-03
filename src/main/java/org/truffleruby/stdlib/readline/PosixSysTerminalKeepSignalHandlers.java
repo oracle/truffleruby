@@ -17,6 +17,7 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 
 import org.graalvm.shadowed.org.jline.terminal.impl.AbstractPosixTerminal;
+import org.graalvm.shadowed.org.jline.terminal.impl.AbstractTerminal;
 import org.graalvm.shadowed.org.jline.terminal.spi.Pty;
 import org.graalvm.shadowed.org.jline.utils.NonBlocking;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
@@ -65,9 +66,9 @@ public class PosixSysTerminalKeepSignalHandlers extends AbstractPosixTerminal {
     }
     // Checkstyle: start
 
-    @Override
-    public void close() throws IOException {
-        super.close();
+    /** {@link AbstractTerminal#close()} is final in JLine 3.14+ */
+    public void customClose() throws IOException {
+        close();
         // Do not call reader.close()
         reader.shutdown();
     }
