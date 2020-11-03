@@ -103,7 +103,7 @@ public class RubyContext {
     private final SafepointManager safepointManager = new SafepointManager(this);
     private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader = new CodeLoader(this);
-    private final FeatureLoader featureLoader = new FeatureLoader(this);
+    private final FeatureLoader featureLoader;
     private final TraceManager traceManager;
     private final ReferenceProcessor referenceProcessor;
     private final FinalizationService finalizationService;
@@ -169,6 +169,7 @@ public class RubyContext {
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
+        featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);
         markingService = new MarkingService(this, referenceProcessor);
