@@ -15,6 +15,7 @@ import com.oracle.truffle.api.instrumentation.ExecutionEventNodeFactory;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -36,7 +37,8 @@ public final class TracePointEvent {
 
     /** Returns whether the event was setup */
     @TruffleBoundary
-    public synchronized boolean setupEventBinding(RubyContext context, RubyTracePoint tracePoint) {
+    public synchronized boolean setupEventBinding(RubyContext context, RubyLanguage language,
+            RubyTracePoint tracePoint) {
         if (eventBinding != null) {
             return false;
         }
@@ -49,7 +51,7 @@ public final class TracePointEvent {
                 .build();
         this.eventBinding = context.getInstrumenter().attachExecutionEventFactory(
                 sourceSectionFilter,
-                eventContext -> new TracePointEventNode(context, eventContext, tracePoint, eventSymbol));
+                eventContext -> new TracePointEventNode(context, language, eventContext, tracePoint, eventSymbol));
         return true;
     }
 
