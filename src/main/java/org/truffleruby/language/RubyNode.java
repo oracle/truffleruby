@@ -13,6 +13,7 @@ import java.math.BigInteger;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -369,7 +370,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     @ExportMessage
     Object getRootInstance(Frame frame,
-            @CachedContext(RubyLanguage.class) RubyContext context) throws UnsupportedMessageException {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
         if (frame == null) {
             throw UnsupportedMessageException.create();
         }
@@ -377,7 +379,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         final InternalMethod method = RubyArguments.getMethod(frame);
         return new RubyMethod(
                 context.getCoreLibrary().methodClass,
-                RubyLanguage.methodShape,
+                language.methodShape,
                 self,
                 method);
     }

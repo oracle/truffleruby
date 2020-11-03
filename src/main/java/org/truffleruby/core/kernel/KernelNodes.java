@@ -1300,7 +1300,7 @@ public abstract class KernelNodes {
             }
             final RubyMethod instance = new RubyMethod(
                     coreLibrary().methodClass,
-                    RubyLanguage.methodShape,
+                    getLanguage().methodShape,
                     self,
                     method);
             AllocationTracing.trace(instance, this);
@@ -1709,7 +1709,7 @@ public abstract class KernelNodes {
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
                     final RubyMethod instance = new RubyMethod(
                             coreLibrary().methodClass,
-                            RubyLanguage.methodShape,
+                            getLanguage().methodShape,
                             self,
                             method);
                     AllocationTracing.trace(instance, this);

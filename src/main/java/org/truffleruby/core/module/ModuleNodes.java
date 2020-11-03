@@ -1599,7 +1599,7 @@ public abstract class ModuleNodes {
 
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
-                    RubyLanguage.unboundMethodShape,
+                    getLanguage().unboundMethodShape,
                     module,
                     method);
             AllocationTracing.trace(instance, this);
@@ -1755,7 +1755,7 @@ public abstract class ModuleNodes {
 
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
-                    RubyLanguage.unboundMethodShape,
+                    getLanguage().unboundMethodShape,
                     module,
                     method);
             AllocationTracing.trace(instance, this);

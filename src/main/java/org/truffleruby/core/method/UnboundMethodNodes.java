@@ -10,7 +10,6 @@
 package org.truffleruby.core.method;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -99,7 +98,7 @@ public abstract class UnboundMethodNodes {
             }
             final RubyMethod instance = new RubyMethod(
                     coreLibrary().methodClass,
-                    RubyLanguage.methodShape,
+                    getLanguage().methodShape,
                     object,
                     unboundMethod.method);
             AllocationTracing.trace(instance, this);
@@ -208,7 +207,7 @@ public abstract class UnboundMethodNodes {
             } else {
                 final RubyUnboundMethod instance = new RubyUnboundMethod(
                         coreLibrary().unboundMethodClass,
-                        RubyLanguage.unboundMethodShape,
+                        getLanguage().unboundMethodShape,
                         superMethod.getMethod().getDeclaringModule(),
                         superMethod.getMethod());
                 AllocationTracing.trace(instance, this);
