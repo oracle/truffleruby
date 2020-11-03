@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -54,12 +55,13 @@ public class GlobalVariablesObject implements TruffleObject {
     @TruffleBoundary
     protected Object readMember(String member,
             @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLanguage RubyLanguage language,
             @Exclusive @Cached DispatchNode evalNode) throws UnknownIdentifierException {
         if (!isMemberReadable(member)) {
             throw UnknownIdentifierException.create(member);
         } else {
             final RubyString string = StringOperations
-                    .createString(context, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
+                    .createString(context, language, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
             return evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
         }
     }
@@ -68,6 +70,7 @@ public class GlobalVariablesObject implements TruffleObject {
     @TruffleBoundary
     protected void writeMember(String member, Object value,
             @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLanguage RubyLanguage language,
             @Exclusive @Cached DispatchNode evalNode,
             @Exclusive @Cached DispatchNode callNode) throws UnknownIdentifierException {
         if (!isValidGlobalVariableName(member)) {
@@ -75,7 +78,7 @@ public class GlobalVariablesObject implements TruffleObject {
         } else {
             final String code = "-> value { " + member + " = value }";
             final RubyString string = StringOperations
-                    .createString(context, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
+                    .createString(context, language, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
             final Object lambda = evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
             callNode.call(lambda, "call", value);
         }

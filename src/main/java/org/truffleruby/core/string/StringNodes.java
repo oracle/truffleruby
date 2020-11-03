@@ -245,7 +245,7 @@ public abstract class StringNodes {
                 @CachedLanguage RubyLanguage language) {
             final RubyString string = new RubyString(
                     context.getCoreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    language.stringShape,
                     false,
                     false,
                     rope);
@@ -261,7 +261,7 @@ public abstract class StringNodes {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
             final RubyString string = new RubyString(
                     context.getCoreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    language.stringShape,
                     false,
                     false,
                     rope);
@@ -351,7 +351,7 @@ public abstract class StringNodes {
 
             final RubyString ret = new RubyString(
                     coreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    getLanguage().stringShape,
                     false,
                     eitherPartTainted,
                     concatRope);
@@ -538,7 +538,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
                 final Object argOrCopy = selfArgProfile.profile(rest[i] == string)
-                        ? createString(getContext(), rope)
+                        ? createString(getContext(), getLanguage(), rope)
                         : rest[i];
                 result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
@@ -554,7 +554,7 @@ public abstract class StringNodes {
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (Object arg : rest) {
                 if (selfArgProfile.profile(arg == string)) {
-                    Object copy = createString(getContext(), rope);
+                    Object copy = createString(getContext(), getLanguage(), rope);
                     result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
                 } else {
                     result = argConcatNode.executeConcat(string, arg, EMPTY_ARGUMENTS);
@@ -2497,7 +2497,7 @@ public abstract class StringNodes {
         protected RubyString toSOnSubclass(RubyString string) {
             final RubyString result = new RubyString(
                     coreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    getLanguage().stringShape,
                     false,
                     string.tainted,
                     string.rope);

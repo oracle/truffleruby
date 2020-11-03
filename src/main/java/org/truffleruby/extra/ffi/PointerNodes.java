@@ -262,7 +262,7 @@ public abstract class PointerNodes {
         protected RubyString readNullPointer(long address, long limit) {
             final RubyString instance = new RubyString(
                     coreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    getLanguage().stringShape,
                     false,
                     true,
                     RopeConstants.EMPTY_ASCII_8BIT_ROPE);
@@ -281,7 +281,7 @@ public abstract class PointerNodes {
 
             final RubyString instance = new RubyString(
                     coreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    getLanguage().stringShape,
                     false,
                     true,
                     rope);
@@ -300,7 +300,7 @@ public abstract class PointerNodes {
 
             final RubyString instance = new RubyString(
                     coreLibrary().stringClass,
-                    RubyLanguage.stringShape,
+                    getLanguage().stringShape,
                     false,
                     true,
                     rope);
@@ -322,7 +322,7 @@ public abstract class PointerNodes {
                 // No need to check the pointer address if we read nothing
                 final RubyString instance = new RubyString(
                         coreLibrary().stringClass,
-                        RubyLanguage.stringShape,
+                        getLanguage().stringShape,
                         false,
                         false,
                         RopeConstants.EMPTY_ASCII_8BIT_ROPE);
@@ -336,7 +336,7 @@ public abstract class PointerNodes {
                         .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
                 final RubyString instance = new RubyString(
                         coreLibrary().stringClass,
-                        RubyLanguage.stringShape,
+                        getLanguage().stringShape,
                         false,
                         true,
                         rope);

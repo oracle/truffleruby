@@ -49,7 +49,7 @@ public class CoreString {
     }
 
     public RubyString createInstance(RubyContext context) {
-        return StringOperations.createString(context, getRope());
+        return StringOperations.createString(context, language, getRope());
     }
 
     private static boolean is7Bit(String literal) {

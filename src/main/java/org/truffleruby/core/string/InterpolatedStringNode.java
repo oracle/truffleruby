@@ -45,7 +45,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
 
         // Start with an empty string to ensure the result has class String and the proper encoding.
-        RubyString builder = StringOperations.createString(getContext(), emptyRope);
+        RubyString builder = StringOperations.createString(getContext(), getLanguage(), emptyRope);
         boolean tainted = false;
 
         // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
