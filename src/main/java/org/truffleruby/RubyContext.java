@@ -205,7 +205,7 @@ public class RubyContext {
         Metrics.printTime("after-initialize-encodings");
 
         Metrics.printTime("before-thread-manager");
-        threadManager = new ThreadManager(this);
+        threadManager = new ThreadManager(this, language);
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
         threadManager.initializeMainThread(Thread.currentThread());
         Metrics.printTime("after-thread-manager");
