@@ -122,29 +122,32 @@ public abstract class SymbolNodes {
         protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getRefinements(frame)") Map<RubyModule, RubyModule[]> cachedRefinements,
-                @Cached("getOrCreateProc(getContext(), cachedRefinements, symbol)") RubyProc cachedProc) {
+                @Cached("getOrCreateProc(getContext(), getLanguage(), cachedRefinements, symbol)") RubyProc cachedProc) {
             return cachedProc;
         }
 
         @Specialization(replaces = "toProcCached")
         protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
             final Map<RubyModule, RubyModule[]> refinements = getRefinements(frame);
-            return getOrCreateProc(getContext(), refinements, symbol);
+            return getOrCreateProc(getContext(), getLanguage(), refinements, symbol);
         }
 
         @TruffleBoundary
-        public static RubyProc getOrCreateProc(RubyContext context,
+        public static RubyProc getOrCreateProc(
+                RubyContext context,
+                RubyLanguage language,
                 Map<RubyModule, RubyModule[]> refinements,
                 RubySymbol symbol) {
             // TODO (eregon, 23 Sep 2020): this should ideally cache on the refinements by comparing classes, and not by identity.
             return ConcurrentOperations.getOrCompute(
                     symbol.getCachedProcs(),
                     refinements,
-                    key -> createProc(context, key, symbol));
+                    key -> createProc(context, language, key, symbol));
         }
 
         @TruffleBoundary
-        private static RubyProc createProc(RubyContext context, Map<RubyModule, RubyModule[]> refinements,
+        private static RubyProc createProc(RubyContext context, RubyLanguage language,
+                Map<RubyModule, RubyModule[]> refinements,
                 RubySymbol symbol) {
             final InternalMethod method = context.getCoreMethods().SYMBOL_TO_PROC;
             final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
@@ -184,7 +187,7 @@ public abstract class SymbolNodes {
 
             return ProcOperations.createRubyProc(
                     context.getCoreLibrary().procClass,
-                    RubyLanguage.procShape,
+                    language.procShape,
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget,

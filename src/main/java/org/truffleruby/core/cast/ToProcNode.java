@@ -84,7 +84,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     }
 
     protected RubyProc getProcForSymbol(Map<RubyModule, RubyModule[]> refinements, RubySymbol symbol) {
-        return SymbolNodes.ToProcNode.getOrCreateProc(getContext(), refinements, symbol);
+        return SymbolNodes.ToProcNode.getOrCreateProc(getContext(), getLanguage(), refinements, symbol);
     }
 
     protected static Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {

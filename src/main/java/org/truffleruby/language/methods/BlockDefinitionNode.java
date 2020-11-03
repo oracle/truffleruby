@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
@@ -89,7 +88,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
 
         return ProcOperations.createRubyProc(
                 coreLibrary().procClass,
-                RubyLanguage.procShape,
+                getLanguage().procShape,
                 type,
                 sharedMethodInfo,
                 callTargetForProcs,

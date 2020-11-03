@@ -1190,7 +1190,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isLiteralBlock(block)")
         protected RubyProc lambdaFromBlock(RubyProc block) {
-            return ProcOperations.createLambdaFromBlock(getContext(), block);
+            return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")

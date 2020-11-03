@@ -10,7 +10,6 @@
 package org.truffleruby.core.proc;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -127,7 +126,7 @@ public abstract class ProcNodes {
         }
 
         protected Shape getProcShape() {
-            return RubyLanguage.procShape;
+            return getLanguage().procShape;
         }
 
         protected RubyClass metaClass(RubyProc object) {
@@ -265,7 +264,7 @@ public abstract class ProcNodes {
         protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
             final RubyProc composedProc = new RubyProc(
                     coreLibrary().procClass,
-                    RubyLanguage.procShape,
+                    getLanguage().procShape,
                     block.type,
                     userProc.sharedMethodInfo,
                     block.callTargetForType,

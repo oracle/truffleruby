@@ -281,7 +281,7 @@ public abstract class MethodNodes {
             declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, storage);
             return ProcOperations.createRubyProc(
                     coreLibrary().procClass,
-                    RubyLanguage.procShape,
+                    getLanguage().procShape,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,
