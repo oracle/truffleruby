@@ -176,7 +176,7 @@ public abstract class ProcNodes {
         protected RubyBinding binding(RubyProc proc) {
             final MaterializedFrame frame = proc.declarationFrame;
             final SourceSection sourceSection = proc.sharedMethodInfo.getSourceSection();
-            return BindingNodes.createBinding(getContext(), frame, sourceSection);
+            return BindingNodes.createBinding(getContext(), getLanguage(), frame, sourceSection);
         }
     }
 

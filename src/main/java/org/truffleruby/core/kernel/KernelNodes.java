@@ -361,7 +361,7 @@ public abstract class KernelNodes {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             final SourceSection sourceSection = getCallerSourceSection();
 
-            return BindingNodes.createBinding(getContext(), callerFrame, sourceSection);
+            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame, sourceSection);
         }
 
         @TruffleBoundary

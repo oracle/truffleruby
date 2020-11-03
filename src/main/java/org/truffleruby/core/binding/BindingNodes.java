@@ -63,14 +63,15 @@ import com.oracle.truffle.api.source.SourceSection;
 public abstract class BindingNodes {
 
     /** Creates a Binding without a SourceSection, only for Binding used internally and not exposed to the user. */
-    public static RubyBinding createBinding(RubyContext context, MaterializedFrame frame) {
-        return createBinding(context, frame, null);
+    public static RubyBinding createBinding(RubyContext context, RubyLanguage language, MaterializedFrame frame) {
+        return createBinding(context, language, frame, null);
     }
 
-    public static RubyBinding createBinding(RubyContext context, MaterializedFrame frame, SourceSection sourceSection) {
+    public static RubyBinding createBinding(RubyContext context, RubyLanguage language, MaterializedFrame frame,
+            SourceSection sourceSection) {
         return new RubyBinding(
                 context.getCoreLibrary().bindingClass,
-                RubyLanguage.bindingShape,
+                language.bindingShape,
                 frame,
                 sourceSection);
     }
@@ -150,7 +151,7 @@ public abstract class BindingNodes {
         protected RubyBinding dup(RubyBinding binding) {
             return new RubyBinding(
                     coreLibrary().bindingClass,
-                    RubyLanguage.bindingShape,
+                    getLanguage().bindingShape,
                     binding.getFrame(),
                     binding.sourceSection);
         }
@@ -379,7 +380,7 @@ public abstract class BindingNodes {
 
                 frame = RubyArguments.getDeclarationFrame(frame);
             }
-            return ArrayHelpers.createArray(context, names.toArray());
+            return ArrayHelpers.createArray(context, getLanguage(), names.toArray());
         }
 
         private void addNamesFromFrame(Frame frame, final Set<Object> names) {
@@ -445,7 +446,7 @@ public abstract class BindingNodes {
         protected RubyBinding binding(VirtualFrame frame) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
 
-            return BindingNodes.createBinding(getContext(), callerFrame);
+            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame);
         }
     }
 }

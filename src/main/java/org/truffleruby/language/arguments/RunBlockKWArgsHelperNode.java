@@ -45,7 +45,7 @@ public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
 
         final Object array = readArrayNode.executeRead(frame);
 
-        final RubyBinding binding = BindingNodes.createBinding(getContext(), frame.materialize());
+        final RubyBinding binding = BindingNodes.createBinding(getContext(), getLanguage(), frame.materialize());
         final Object remainingArray = callHelperNode.call(
                 coreLibrary().truffleInternalModule,
                 "load_arguments_from_array_kw_helper",

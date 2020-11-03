@@ -122,6 +122,7 @@ public abstract class TruffleDebugNodes {
                                     block,
                                     BindingNodes.createBinding(
                                             getContext(),
+                                            getLanguage(),
                                             frame.materialize(),
                                             eventContext.getInstrumentedSourceSection()));
                         }
@@ -130,7 +131,7 @@ public abstract class TruffleDebugNodes {
 
             final RubyHandle instance = new RubyHandle(
                     coreLibrary().handleClass,
-                    RubyLanguage.handleShape,
+                    getLanguage().handleShape,
                     breakpoint);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -919,7 +920,7 @@ public abstract class TruffleDebugNodes {
                 associatedValues[n] = associated[n].getAddress();
             }
 
-            return ArrayHelpers.createArray(getContext(), associatedValues);
+            return ArrayHelpers.createArray(getContext(), getLanguage(), associatedValues);
         }
     }
 

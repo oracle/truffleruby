@@ -342,9 +342,10 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     @ExportMessage
     final Object getScope(Frame frame, boolean nodeEnter,
-            @CachedContext(RubyLanguage.class) RubyContext context) throws UnsupportedMessageException {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
         if (hasScope(frame)) {
-            return new RubyScope(context, frame.materialize(), this);
+            return new RubyScope(context, language, frame.materialize(), this);
         } else {
             throw UnsupportedMessageException.create();
         }
