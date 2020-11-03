@@ -95,7 +95,7 @@ public class FiberManager {
         final RubyBasicObject fiberLocals = new RubyBasicObject(
                 context.getCoreLibrary().objectClass,
                 language.basicObjectShape);
-        final RubyArray catchTags = ArrayHelpers.createEmptyArray(context);
+        final RubyArray catchTags = ArrayHelpers.createEmptyArray(context, language);
 
         return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread);
     }

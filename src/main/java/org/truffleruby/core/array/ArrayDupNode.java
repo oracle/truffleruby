@@ -63,7 +63,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
     }
 
     private RubyArray allocateArray(RubyClass rubyClass, Object store, int size) {
-        RubyArray array = new RubyArray(rubyClass, RubyLanguage.arrayShape, store, size);
+        RubyArray array = new RubyArray(rubyClass, getLanguage().arrayShape, store, size);
         AllocationTracing.trace(array, this);
         return array;
     }

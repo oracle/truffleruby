@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.range;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -21,7 +20,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
@@ -67,7 +65,7 @@ public abstract class RangeNodes {
             final boolean excludedEnd = range.excludedEnd;
             int exclusiveEnd = excludedEnd ? end : end + 1;
             if (noopProfile.profile(begin >= exclusiveEnd)) {
-                return ArrayHelpers.createEmptyArray(getContext());
+                return createEmptyArray();
             }
 
             final int length = exclusiveEnd - begin;
@@ -344,7 +342,7 @@ public abstract class RangeNodes {
             final int length = result - begin;
 
             if (length < 0) {
-                return ArrayHelpers.createEmptyArray(getContext());
+                return createEmptyArray();
             } else {
                 final int[] values = new int[length];
 
@@ -547,7 +545,7 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyArray normalize(RubyRange range, int size) {
-            return ArrayHelpers.createArray(getContext(), startLengthNode.execute(range, size));
+            return createArray(startLengthNode.execute(range, size));
         }
     }
 

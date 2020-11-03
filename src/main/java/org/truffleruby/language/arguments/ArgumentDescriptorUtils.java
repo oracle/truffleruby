@@ -29,7 +29,7 @@ public class ArgumentDescriptorUtils {
         for (int i = 0; i < argsDesc.length; i++) {
             params[i] = toArray(language, context, argsDesc[i], isLambda);
         }
-        return ArrayHelpers.createArray(context, params);
+        return ArrayHelpers.createArray(context, language, params);
     }
 
     private static RubyArray toArray(RubyLanguage language, RubyContext context, ArgumentDescriptor argDesc,
@@ -50,6 +50,6 @@ public class ArgumentDescriptorUtils {
             store = new Object[]{ language.getSymbol(argType.symbolicName), language.getSymbol(name) };
         }
 
-        return ArrayHelpers.createArray(context, store);
+        return ArrayHelpers.createArray(context, language, store);
     }
 }

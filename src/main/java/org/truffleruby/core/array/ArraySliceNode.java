@@ -39,7 +39,7 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
         final int length = array.size + to - from;
 
         if (emptyArray.profile(length <= 0)) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         } else {
             final Object slice = cowNode.execute(array, from, length);
             return createArray(slice, length);

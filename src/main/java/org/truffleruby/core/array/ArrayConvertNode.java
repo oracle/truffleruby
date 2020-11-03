@@ -28,7 +28,7 @@ public final class ArrayConvertNode extends RubyContextNode {
     public RubyArray execute(Object object) {
         Object converted = arrayCast.execute(object);
         if (cantCast.profile(converted == nil)) {
-            return ArrayHelpers.specializedRubyArrayOf(getContext(), arrayBuilder, object);
+            return ArrayHelpers.specializedRubyArrayOf(getContext(), getLanguage(), arrayBuilder, object);
         }
         return (RubyArray) converted;
     }
