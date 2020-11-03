@@ -87,6 +87,7 @@ public class TraceManager {
                         SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(LineTag.class).build(),
                         eventContext -> new BaseEventEventNode(
                                 context,
+                                language,
                                 eventContext,
                                 traceFunc,
                                 language.coreStrings.LINE.createInstance(context))));
@@ -100,6 +101,7 @@ public class TraceManager {
                                 .build(),
                         eventContext -> new BaseEventEventNode(
                                 context,
+                                language,
                                 eventContext,
                                 traceFunc,
                                 language.coreStrings.CLASS.createInstance(context))));
@@ -115,6 +117,7 @@ public class TraceManager {
                                     .build(),
                             eventContext -> new CallEventEventNode(
                                     context,
+                                    language,
                                     eventContext,
                                     traceFunc,
                                     language.coreStrings.CALL.createInstance(context))));
@@ -130,10 +133,11 @@ public class TraceManager {
 
         public BaseEventEventNode(
                 RubyContext context,
+                RubyLanguage language,
                 EventContext eventContext,
                 RubyProc traceFunc,
                 Object event) {
-            super(context, eventContext);
+            super(context, language, eventContext);
             this.traceFunc = traceFunc;
             this.event = event;
         }
@@ -154,6 +158,7 @@ public class TraceManager {
                         Nil.INSTANCE,
                         BindingNodes.createBinding(
                                 context,
+                                language,
                                 frame.materialize(),
                                 eventContext.getInstrumentedSourceSection()),
                         Nil.INSTANCE);
@@ -170,10 +175,11 @@ public class TraceManager {
 
         public CallEventEventNode(
                 RubyContext context,
+                RubyLanguage language,
                 EventContext eventContext,
                 RubyProc traceFunc,
                 Object event) {
-            super(context, eventContext, traceFunc, event);
+            super(context, language, eventContext, traceFunc, event);
         }
 
         @Override
@@ -192,6 +198,7 @@ public class TraceManager {
                         getSymbol(context, RubyArguments.getMethod(frame).getName()),
                         BindingNodes.createBinding(
                                 context,
+                                language,
                                 frame.materialize(),
                                 eventContext.getInstrumentedSourceSection()),
                         getLogicalClass(RubyArguments.getSelf(frame)));
