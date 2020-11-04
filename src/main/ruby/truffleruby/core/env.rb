@@ -298,7 +298,13 @@ class << ENV
     return self if equal?(other)
     other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
     if block_given?
-      other.each { |k, v| self[k] = yield(k, lookup(k), v) }
+      other.each do |k, v|
+        if include?(k)
+          self[k] = yield(k, lookup(k), v)
+        else
+          self[k] = v
+        end
+      end
     else
       other.each { |k, v| self[k] = v }
     end
