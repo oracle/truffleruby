@@ -14,6 +14,6 @@ current_array = array
   current_array = next_array
 end
 
-benchmark 'core-array-flatten-recursive' do
+benchmark 'core-array-flatten-deep' do
   array.flatten
 end
