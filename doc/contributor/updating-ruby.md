@@ -136,7 +136,7 @@ In a separate commit, update all of these:
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Run `jt test gems default-bundled-gems`
 * Grep for the old version with `git grep -F x.y.z`
-* If `id.def` or `id.h` has changed, `jt build core-symbols` and check for correctness.
+* If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
 
 ## Last step
 

@@ -59,7 +59,7 @@ end
 min_index = ids_map.keys.min
 offset = 128
 index = offset
-static_symbols_size = 216
+static_symbols_size = 235
 
 File.write('src/main/java/org/truffleruby/core/symbol/CoreSymbols.java', ERB.new(<<'JAVA').result)
 /*
@@ -96,7 +96,6 @@ public class CoreSymbols {
     public final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[STATIC_SYMBOLS_SIZE];
 
     public final RubySymbol CLASS = createRubySymbol("class");
-    public final RubySymbol DIVMOD = createRubySymbol("divmod");
     public final RubySymbol IMMEDIATE = createRubySymbol("immediate");
     public final RubySymbol LINE = createRubySymbol("line");
     public final RubySymbol NEVER = createRubySymbol("never");
