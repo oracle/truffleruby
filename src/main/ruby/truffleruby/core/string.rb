@@ -844,7 +844,7 @@ class String
         if j = Primitive.string_previous_byte_index(self, bytes)
           chr = Primitive.string_chr_at(self, j)
 
-          if chr.ord == 13
+          if !Primitive.nil?(chr) && chr.ord == 13
             bytes = j
           end
         end
@@ -857,13 +857,13 @@ class String
 
       while i = Primitive.string_previous_byte_index(self, bytes)
         chr = Primitive.string_chr_at(self, i)
-        break unless chr.ord == 10
+        break unless !Primitive.nil?(chr) && chr.ord == 10
 
         bytes = i
 
         if j = Primitive.string_previous_byte_index(self, i)
           chr = Primitive.string_chr_at(self, j)
-          if chr.ord == 13
+          if !Primitive.nil?(chr) && chr.ord == 13
             bytes = j
           end
         end
