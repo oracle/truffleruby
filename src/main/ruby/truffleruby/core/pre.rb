@@ -43,6 +43,18 @@ class Module
     mod.__send__ :included, self
     self
   end
+
+  private def ruby2_keywords(*methods)
+    warn "ruby2_keywords(#{methods.join(', ')}) was ignored", uplevel: 1 if $DEBUG
+    nil
+  end
+end
+
+class Proc
+  def ruby2_keywords
+    warn 'Proc#ruby2_keywords was ignored', uplevel: 1 if $DEBUG
+    self
+  end
 end
 
 module Kernel
