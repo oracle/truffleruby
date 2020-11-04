@@ -127,7 +127,8 @@ ruby tool/patch_launchers.rb
 
 In a separate commit, update all of these:
 
-* Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION/LANGUAGE_REVISION` and `versions.json`
+* Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
+* Update `versions.json` (from `../ruby/gems/bundled_gems`)
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md`
@@ -135,6 +136,9 @@ In a separate commit, update all of these:
 * Update `doc/contributor/stdlib.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Run `jt test gems default-bundled-gems`
-* Update `ci.jsonnet` to use the corresponding MRI version for benchmarking
 * Grep for the old version with `git grep -F x.y.z`
 * If `id.def` or `id.h` has changed, `jt build core-symbols` and check for correctness.
+
+## Last step
+
+* Request the new MRI version on Jira, then update `ci.jsonnet` to use the corresponding MRI version for benchmarking.
