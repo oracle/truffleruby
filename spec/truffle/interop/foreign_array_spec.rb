@@ -78,6 +78,16 @@ describe "Foreign arrays" do
   end
 #=end
 
+  it "should access array with #first" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.first.should == 1
+  end
+
+  it "should access array with #last" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.last.should == 3
+  end
+  
 end
 
 describe "Foreign arrays that are also pointers" do

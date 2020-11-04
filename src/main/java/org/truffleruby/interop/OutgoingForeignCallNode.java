@@ -49,6 +49,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected final static String INDEX_WRITE = "[]=";
     protected final static String AT = "at";
     protected final static String FETCH = "fetch";
+    protected final static String FIRST = "first";
+    protected final static String LAST = "last";
     protected final static String CALL = "call";
     protected final static String NEW = "new";
     protected final static String TO_A = "to_a";
@@ -158,6 +160,34 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         context,
                         context.getCoreExceptions().indexError("Index " + (int) args[0] + " outside of array bounds: " + (-size+1) + "..." + (size-1), this));
             }
+        } catch (UnsupportedMessageException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
+    @Specialization(guards = {
+                    "name == cachedName",
+                    "cachedName.equals(FIRST)",
+                    "args.length == 0" },
+            limit = "1")
+    protected Object first(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @Cached InteropNodes.ReadArrayElementNode firstNode) {
+                return firstNode.execute(receiver, 0);
+    }
+
+    @Specialization(guards = {
+                    "name == cachedName",
+                    "cachedName.equals(LAST)",
+                    "args.length == 0" },
+            limit = "1")
+    protected Object last(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,                        
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @Cached InteropNodes.ReadArrayElementNode lastNode) {
+        try {
+                return lastNode.execute(receiver, interop.getArraySize(receiver) - 1);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
