@@ -484,7 +484,7 @@ class File < IO
     dot_idx = Primitive.find_string_reverse(path, '.', path_size)
 
     # No dots at all
-    return '' unless dot_idx
+    return +'' unless dot_idx
 
     slash_idx = Primitive.find_string_reverse(path, '/', path_size)
 
@@ -492,13 +492,13 @@ class File < IO
     slash_idx ||= -1
 
     # no . in the last component of the path
-    return '' if dot_idx < slash_idx
+    return +'' if dot_idx < slash_idx
 
     # last component starts with a .
-    return '' if dot_idx == slash_idx + 1
+    return +'' if dot_idx == slash_idx + 1
 
     # last component ends with a .
-    return '' if dot_idx == path_size - 1
+    return +'' if dot_idx == path_size - 1
 
     path.byteslice(dot_idx, path_size - dot_idx)
   end
