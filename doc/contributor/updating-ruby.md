@@ -131,7 +131,7 @@ In a separate commit, update all of these:
 * Update `versions.json` (from `../ruby/gems/bundled_gems`)
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
-* Update `doc/user/compatibility.md`
+* Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`
 * Update `doc/contributor/stdlib.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
