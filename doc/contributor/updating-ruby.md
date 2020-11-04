@@ -77,8 +77,13 @@ git clean -Xdf
 
 ## Update libraries from third-party repos
 
-Look in `../ruby/ext/json` to see the version of `flori/json` being used, and
-then copy the original source of `flori/json` into `lib/json`.
+Look in `../ruby/ext/json/lib/json/version.rb` to see the version of `flori/json` being used,
+compare to `lib/json/lib/json/version.rb` and if different then
+copy `flori/json`'s `lib` directory into `lib/json`:
+```
+rm -rf lib/json/lib
+cp -R ../../json/lib lib/json
+```
 
 ## Updating default and bundled gems
 

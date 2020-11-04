@@ -250,7 +250,8 @@ module JSON
           if respond_to?(name)
             __send__(name)
           else
-            instance_variable_get("@#{name}")
+            instance_variable_get("@#{name}") if
+              instance_variables.include?("@#{name}".to_sym) # avoid warning
           end
         end
 

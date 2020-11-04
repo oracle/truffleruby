@@ -197,7 +197,15 @@ module JSON
       def parse_value
         case
         when scan(FLOAT)
-          @decimal_class && @decimal_class.new(self[1]) || Float(self[1])
+          if @decimal_class then
+            if @decimal_class == BigDecimal then
+              BigDecimal(self[1])
+            else
+              @decimal_class.new(self[1]) || Float(self[1])
+            end
+          else
+            Float(self[1])
+          end
         when scan(INTEGER)
           Integer(self[1])
         when scan(TRUE)

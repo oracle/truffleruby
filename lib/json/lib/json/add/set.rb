@@ -1,15 +1,14 @@
-#frozen_string_literal: false
 unless defined?(::JSON::JSON_LOADED) and ::JSON::JSON_LOADED
   require 'json'
 end
-defined?(::BigDecimal) or require 'bigdecimal'
+defined?(::Set) or require 'set'
 
-class BigDecimal
+class Set
   # Import a JSON Marshalled object.
   #
   # method used for JSON marshalling support.
   def self.json_create(object)
-    BigDecimal._load object['b']
+    new object['a']
   end
 
   # Marshal the object to JSON.
@@ -18,7 +17,7 @@ class BigDecimal
   def as_json(*)
     {
       JSON.create_id => self.class.name,
-      'b'            => _dump,
+      'a'            => to_a,
     }
   end
 
@@ -27,3 +26,4 @@ class BigDecimal
     as_json.to_json(*args)
   end
 end
+
