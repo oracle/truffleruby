@@ -133,7 +133,6 @@ In a separate commit, update all of these:
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`
-* Update `doc/contributor/stdlib.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Run `jt test gems default-bundled-gems`
 * Grep for the old version with `git grep -F x.y.z`
