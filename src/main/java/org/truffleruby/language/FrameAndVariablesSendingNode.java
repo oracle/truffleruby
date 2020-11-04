@@ -229,21 +229,21 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
             resetNeedsCallerAssumption();
         }
 
-        if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
-            return new FrameAndVariables(readMyVariables.execute(frame), frame.materialize());
-        } else if ((sendsVariables == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.CALLER_FRAME) ||
-                (sendsVariables == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.NO_FRAME) ||
-                (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.CALLER_FRAME)) {
-            return readCaller.execute(frame);
+        if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
+            return null;
         } else if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
             return readMyVariables.execute(frame);
         } else if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
             return frame.materialize();
-        } else if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
+        } else if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
+            return new FrameAndVariables(readMyVariables.execute(frame), frame.materialize());
+        } else if ((sendsVariables == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.MY_FRAME) ||
+                (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.CALLER_FRAME)) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            CompilerDirectives.shouldNotReachHere();
             return null;
         } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new Error();
+            return readCaller.execute(frame);
         }
     }
 
