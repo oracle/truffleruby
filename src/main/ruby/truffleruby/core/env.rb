@@ -304,6 +304,7 @@ class << ENV
     end
     self
   end
+  alias_method :merge!, :update
 
   def keep_if(&block)
     return to_enum(:keep_if) { size } unless block_given?
