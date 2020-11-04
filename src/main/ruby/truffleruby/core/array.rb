@@ -563,6 +563,26 @@ class Array
   end
   alias_method :to_s, :inspect
 
+  def intersection(*others)
+    return self & others.first if others.size == 1
+
+    common = {}
+    each { |e| common[e] = true }
+
+    others.each do |other|
+      other = Truffle::Type.coerce_to other, Array, :to_ary
+
+      other_hash = {}
+      other.each { |e| other_hash[e] = true }
+
+      common.each_key do |x|
+        common.delete(x) unless other_hash.include?(x)
+      end
+    end
+
+    common.keys
+  end
+
   def join(sep=nil)
     return ''.encode(Encoding::US_ASCII) if size == 0
 
