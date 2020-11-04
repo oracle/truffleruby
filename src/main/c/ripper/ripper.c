@@ -13734,18 +13734,7 @@ tokadd_string(struct parser_params *p,
 static inline rb_strterm_t *
 new_strterm(VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
-#ifdef TRUFFLERUBY
-    rb_strterm_t *term = xmalloc(sizeof(rb_strterm_t));
-    VALUE flags = T_IMEMO | (imemo_parser_strterm << FL_USHIFT);
-    term->flags = flags;
-    term->u.heredoc.sourceline = v0;
-    term->u.heredoc.term = v1;
-    term->u.heredoc.lastline = v2;
-    term->u.heredoc.u3.lastidx = v3;
-    return term;
-#else
     return (rb_strterm_t*)rb_imemo_new(imemo_parser_strterm, v1, v2, v3, v0);
-#endif
 }
 
 /* imemo_parser_strterm for literal */
