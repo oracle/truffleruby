@@ -44,7 +44,7 @@ class Delegator < BasicObject
       undef_method m
     end
     private_instance_methods.each do |m|
-      if /\Ablock_given\?\z|iterator\?\z|\A__.*__\z/ =~ m
+      if /\Ablock_given\?\z|\Aiterator\?\z|\A__.*__\z/ =~ m
         next
       end
       undef_method m
@@ -60,8 +60,8 @@ class Delegator < BasicObject
 
   ##
   # :method: raise
-  # Use __raise__ if your Delegator does not have a object to delegate the
-  # raise method call.
+  # Use #__raise__ if your Delegator does not have a object to delegate the
+  # #raise method call.
   #
 
   #
@@ -75,14 +75,14 @@ class Delegator < BasicObject
   #
   # Handles the magic of delegation through \_\_getobj\_\_.
   #
-  def method_missing(m, *args, &block)
+  ruby2_keywords def method_missing(m, *args, &block)
     r = true
     target = self.__getobj__ {r = false}
 
-    if r && target.respond_to?(m)
+    if r && target_respond_to?(target, m, false)
       target.__send__(m, *args, &block)
-    elsif ::Kernel.respond_to?(m, true)
-      ::Kernel.instance_method(m).bind(self).(*args, &block)
+    elsif ::Kernel.method_defined?(m) || ::Kernel.private_method_defined?(m)
+      ::Kernel.instance_method(m).bind_call(self, *args, &block)
     else
       super(m, *args, &block)
     end
@@ -95,12 +95,29 @@ class Delegator < BasicObject
   def respond_to_missing?(m, include_private)
     r = true
     target = self.__getobj__ {r = false}
-    r &&= target.respond_to?(m, include_private)
-    if r && include_private && !target.respond_to?(m, false)
+    r &&= target_respond_to?(target, m, include_private)
+    if r && include_private && !target_respond_to?(target, m, false)
       warn "delegator does not forward private method \##{m}", uplevel: 3
       return false
     end
     r
+  end
+
+  KERNEL_RESPOND_TO = ::Kernel.instance_method(:respond_to?)
+  private_constant :KERNEL_RESPOND_TO
+
+  # Handle BasicObject instances
+  private def target_respond_to?(target, m, include_private)
+    case target
+    when Object
+      target.respond_to?(m, include_private)
+    else
+      if KERNEL_RESPOND_TO.bind_call(target, :respond_to?)
+        target.respond_to?(m, include_private)
+      else
+        KERNEL_RESPOND_TO.bind_call(target, m, include_private)
+      end
+    end
   end
 
   #
@@ -210,35 +227,12 @@ class Delegator < BasicObject
   private :initialize_clone, :initialize_dup
 
   ##
-  # :method: trust
-  # Trust both the object returned by \_\_getobj\_\_ and self.
-  #
-
-  ##
-  # :method: untrust
-  # Untrust both the object returned by \_\_getobj\_\_ and self.
-  #
-
-  ##
-  # :method: taint
-  # Taint both the object returned by \_\_getobj\_\_ and self.
-  #
-
-  ##
-  # :method: untaint
-  # Untaint both the object returned by \_\_getobj\_\_ and self.
-  #
-
-  ##
   # :method: freeze
   # Freeze both the object returned by \_\_getobj\_\_ and self.
   #
-
-  [:trust, :untrust, :taint, :untaint, :freeze].each do |method|
-    define_method method do
-      __getobj__.send(method)
-      super()
-    end
+  def freeze
+    __getobj__.freeze
+    super()
   end
 
   @delegator_api = self.public_instance_methods
@@ -347,7 +341,7 @@ def Delegator.delegating_block(mid) # :nodoc:
   lambda do |*args, &block|
     target = self.__getobj__
     target.__send__(mid, *args, &block)
-  end
+  end.ruby2_keywords
 end
 
 #
@@ -355,6 +349,14 @@ end
 # your class.
 #
 #   class MyClass < DelegateClass(ClassToDelegateTo) # Step 1
+#     def initialize
+#       super(obj_of_ClassToDelegateTo)              # Step 2
+#     end
+#   end
+#
+# or:
+#
+#   MyClass = DelegateClass(ClassToDelegateTo) do    # Step 1
 #     def initialize
 #       super(obj_of_ClassToDelegateTo)              # Step 2
 #     end
@@ -383,11 +385,13 @@ end
 #     # ...
 #   end
 #
-def DelegateClass(superclass)
+def DelegateClass(superclass, &block)
   klass = Class.new(Delegator)
-  methods = superclass.instance_methods
-  methods -= ::Delegator.public_api
-  methods -= [:to_s, :inspect, :=~, :!~, :===]
+  ignores = [*::Delegator.public_api, :to_s, :inspect, :=~, :!~, :===]
+  protected_instance_methods = superclass.protected_instance_methods
+  protected_instance_methods -= ignores
+  public_instance_methods = superclass.public_instance_methods
+  public_instance_methods -= ignores
   klass.module_eval do
     def __getobj__ # :nodoc:
       unless defined?(@delegate_dc_obj)
@@ -400,15 +404,20 @@ def DelegateClass(superclass)
       __raise__ ::ArgumentError, "cannot delegate to self" if self.equal?(obj)
       @delegate_dc_obj = obj
     end
-    methods.each do |method|
+    protected_instance_methods.each do |method|
+      define_method(method, Delegator.delegating_block(method))
+      protected method
+    end
+    public_instance_methods.each do |method|
       define_method(method, Delegator.delegating_block(method))
     end
   end
   klass.define_singleton_method :public_instance_methods do |all=true|
-    super(all) - superclass.protected_instance_methods
+    super(all) | superclass.public_instance_methods
   end
   klass.define_singleton_method :protected_instance_methods do |all=true|
     super(all) | superclass.protected_instance_methods
   end
+  klass.module_eval(&block) if block
   return klass
 end

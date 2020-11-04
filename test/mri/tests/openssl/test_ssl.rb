@@ -155,6 +155,21 @@ class OpenSSL::TestSSL < OpenSSL::SSLTestCase
     }
   end
 
+  def test_sysread_nonblock_and_syswrite_nonblock_keywords
+    start_server(ignore_listener_error: true) do |port|
+      sock = TCPSocket.new("127.0.0.1", port)
+      ssl = OpenSSL::SSL::SSLSocket.new(sock)
+
+      assert_warn ("") do
+        ssl.send(:syswrite_nonblock, "1", exception: false)
+        ssl.send(:sysread_nonblock, 1, exception: false) rescue nil
+        ssl.send(:sysread_nonblock, 1, String.new, exception: false) rescue nil
+      end
+    ensure
+      sock&.close
+    end
+  end
+
   def test_sync_close
     start_server { |port|
       begin
@@ -1255,8 +1270,13 @@ end
     }
   end
 
+  def readwrite_loop_safe(ctx, ssl)
+    readwrite_loop(ctx, ssl)
+  rescue OpenSSL::SSL::SSLError
+  end
+
   def test_close_after_socket_close
-    start_server { |port|
+    start_server(server_proc: method(:readwrite_loop_safe)) { |port|
       sock = TCPSocket.new("127.0.0.1", port)
       ssl = OpenSSL::SSL::SSLSocket.new(sock)
       ssl.connect
@@ -1332,6 +1352,10 @@ end
   end
 
   def test_fallback_scsv
+    supported = check_supported_protocol_versions
+    return unless supported.include?(OpenSSL::SSL::TLS1_1_VERSION) &&
+      supported.include?(OpenSSL::SSL::TLS1_2_VERSION)
+
     pend "Fallback SCSV is not supported" unless \
       OpenSSL::SSL::SSLContext.method_defined?(:enable_fallback_scsv)
 

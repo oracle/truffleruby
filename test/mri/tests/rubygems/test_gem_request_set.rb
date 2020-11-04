@@ -3,6 +3,7 @@ require 'rubygems/test_case'
 require 'rubygems/request_set'
 
 class TestGemRequestSet < Gem::TestCase
+
   def setup
     super
 
@@ -182,6 +183,58 @@ DEPENDENCIES
     assert_path_exists File.join @gemhome, 'specifications', 'b-1.gemspec'
   end
 
+  def test_install_from_gemdeps_complex_dependencies
+    quick_gem("z", 1)
+    quick_gem("z", "1.0.1")
+    quick_gem("z", "1.0.2")
+    quick_gem("z", "1.0.3")
+    quick_gem("z", 2)
+
+    spec_fetcher do |fetcher|
+      fetcher.download "z", 1
+    end
+
+    rs = Gem::RequestSet.new
+    installed = []
+
+    File.open 'Gemfile.lock', 'w' do |io|
+      io.puts <<-LOCKFILE
+GEM
+  remote: #{@gem_repo}
+  specs:
+    z (1)
+
+PLATFORMS
+  #{Gem::Platform::RUBY}
+
+DEPENDENCIES
+  z (~> 1.0, >= 1.0.1)
+      LOCKFILE
+    end
+
+    File.open 'testo.gemspec', 'w' do |io|
+      io.puts <<-LOCKFILE
+Gem::Specification.new do |spec|
+  spec.name = 'testo'
+  spec.version = '1.0.0'
+  spec.add_dependency('z', '~> 1.0', '>= 1.0.1')
+end
+      LOCKFILE
+    end
+
+    File.open 'Gemfile', 'w' do |io|
+      io.puts("gemspec")
+    end
+
+    rs.install_from_gemdeps :gemdeps => 'Gemfile' do |req, installer|
+      installed << req.full_name
+    end
+
+    assert_includes installed, 'z-1.0.3'
+
+    assert_path_exists File.join @gemhome, 'specifications', 'z-1.0.3.gemspec'
+  end
+
   def test_install_from_gemdeps_version_mismatch
     spec_fetcher do |fetcher|
       fetcher.gem 'a', 2
@@ -311,8 +364,14 @@ ruby "0"
   end
 
   def test_resolve_development_shallow
-    a = util_spec 'a', 1 do |s| s.add_development_dependency 'b' end
-    b = util_spec 'b', 1 do |s| s.add_development_dependency 'c' end
+    a = util_spec 'a', 1 do |s|
+      s.add_development_dependency 'b'
+    end
+
+    b = util_spec 'b', 1 do |s|
+      s.add_development_dependency 'c'
+    end
+
     c = util_spec 'c', 1
 
     a_spec = Gem::Resolver::SpecSpecification.new nil, a
@@ -528,8 +587,14 @@ ruby "0"
   end
 
   def test_sorted_requests_development_shallow
-    a = util_spec 'a', 1 do |s| s.add_development_dependency 'b' end
-    b = util_spec 'b', 1 do |s| s.add_development_dependency 'c' end
+    a = util_spec 'a', 1 do |s|
+      s.add_development_dependency 'b'
+    end
+
+    b = util_spec 'b', 1 do |s|
+      s.add_development_dependency 'c'
+    end
+
     c = util_spec 'c', 1
 
     rs = Gem::RequestSet.new
@@ -547,8 +612,14 @@ ruby "0"
   end
 
   def test_tsort_each_child_development
-    a = util_spec 'a', 1 do |s| s.add_development_dependency 'b' end
-    b = util_spec 'b', 1 do |s| s.add_development_dependency 'c' end
+    a = util_spec 'a', 1 do |s|
+      s.add_development_dependency 'b'
+    end
+
+    b = util_spec 'b', 1 do |s|
+      s.add_development_dependency 'c'
+    end
+
     c = util_spec 'c', 1
 
     rs = Gem::RequestSet.new
@@ -570,8 +641,14 @@ ruby "0"
   end
 
   def test_tsort_each_child_development_shallow
-    a = util_spec 'a', 1 do |s| s.add_development_dependency 'b' end
-    b = util_spec 'b', 1 do |s| s.add_development_dependency 'c' end
+    a = util_spec 'a', 1 do |s|
+      s.add_development_dependency 'b'
+    end
+
+    b = util_spec 'b', 1 do |s|
+      s.add_development_dependency 'c'
+    end
+
     c = util_spec 'c', 1
 
     rs = Gem::RequestSet.new

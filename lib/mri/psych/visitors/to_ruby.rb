@@ -252,6 +252,8 @@ module Psych
 
           e = build_exception((resolve_class($1) || class_loader.exception),
                               h.delete('message'))
+
+          e.set_backtrace h.delete('backtrace') if h.key? 'backtrace'
           init_with(e, h, o)
 
         when '!set', 'tag:yaml.org,2002:set'
@@ -334,7 +336,7 @@ module Psych
       SHOVEL = '<<'
       def revive_hash hash, o
         o.children.each_slice(2) { |k,v|
-          key = accept(k)
+          key = deduplicate(accept(k))
           val = accept(v)
 
           if key == SHOVEL && k.tag != "tag:yaml.org,2002:str"
@@ -364,6 +366,24 @@ module Psych
 
         }
         hash
+      end
+
+      if RUBY_VERSION < '2.7'
+        def deduplicate key
+          if key.is_a?(String)
+            -(key.untaint)
+          else
+            key
+          end
+        end
+      else
+        def deduplicate key
+          if key.is_a?(String)
+            -key
+          else
+            key
+          end
+        end
       end
 
       def merge_key hash, key, val

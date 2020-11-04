@@ -19,22 +19,18 @@ class Dir
   # Returns the operating system's temporary file path.
 
   def self.tmpdir
-    if $SAFE > 0
-      @@systmpdir.dup
-    else
-      tmp = nil
-      [ENV['TMPDIR'], ENV['TMP'], ENV['TEMP'], @@systmpdir, '/tmp', '.'].each do |dir|
-        next if !dir
-        dir = File.expand_path(dir)
-        if stat = File.stat(dir) and stat.directory? and stat.writable? and
-            (!stat.world_writable? or stat.sticky?)
-          tmp = dir
-          break
-        end rescue nil
-      end
-      raise ArgumentError, "could not find a temporary directory" unless tmp
-      tmp
+    tmp = nil
+    [ENV['TMPDIR'], ENV['TMP'], ENV['TEMP'], @@systmpdir, '/tmp', '.'].each do |dir|
+      next if !dir
+      dir = File.expand_path(dir)
+      if stat = File.stat(dir) and stat.directory? and stat.writable? and
+          (!stat.world_writable? or stat.sticky?)
+        tmp = dir
+        break
+      end rescue nil
     end
+    raise ArgumentError, "could not find a temporary directory" unless tmp
+    tmp
   end
 
   # Dir.mktmpdir creates a temporary directory.
@@ -82,15 +78,15 @@ class Dir
   #    FileUtils.remove_entry dir
   #  end
   #
-  def self.mktmpdir(prefix_suffix=nil, *rest)
+  def self.mktmpdir(prefix_suffix=nil, *rest, **options)
     base = nil
-    path = Tmpname.create(prefix_suffix || "d", *rest) {|path, _, _, d|
+    path = Tmpname.create(prefix_suffix || "d", *rest, **options) {|path, _, _, d|
       base = d
       mkdir(path, 0700)
     }
     if block_given?
       begin
-        yield path
+        yield path.dup
       ensure
         unless base
           stat = File.stat(File.dirname(path))
@@ -112,21 +108,19 @@ class Dir
       Dir.tmpdir
     end
 
+    UNUSABLE_CHARS = [File::SEPARATOR, File::ALT_SEPARATOR, File::PATH_SEPARATOR, ":"].uniq.join("").freeze
+
     def create(basename, tmpdir=nil, max_try: nil, **opts)
-      if $SAFE > 0 and tmpdir.tainted?
-        tmpdir = '/tmp'
-      else
-        origdir = tmpdir
-        tmpdir ||= tmpdir()
-      end
+      origdir = tmpdir
+      tmpdir ||= tmpdir()
       n = nil
       prefix, suffix = basename
       prefix = (String.try_convert(prefix) or
                 raise ArgumentError, "unexpected prefix: #{prefix.inspect}")
-      prefix = prefix.delete("#{File::SEPARATOR}#{File::ALT_SEPARATOR}")
+      prefix = prefix.delete(UNUSABLE_CHARS)
       suffix &&= (String.try_convert(suffix) or
                   raise ArgumentError, "unexpected suffix: #{suffix.inspect}")
-      suffix &&= suffix.delete("#{File::SEPARATOR}#{File::ALT_SEPARATOR}")
+      suffix &&= suffix.delete(UNUSABLE_CHARS)
       begin
         t = Time.now.strftime("%Y%m%d")
         path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}"\

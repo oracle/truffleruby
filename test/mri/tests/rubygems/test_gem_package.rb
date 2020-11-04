@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require 'rubygems/package/tar_test_case'
-require 'rubygems/simple_gem'
+require 'digest'
 
 class TestGemPackage < Gem::Package::TarTestCase
 
@@ -24,6 +24,8 @@ class TestGemPackage < Gem::Package::TarTestCase
   end
 
   def test_class_new_old_format
+    skip "jruby can't require the simple_gem file" if Gem.java_platform?
+    require_relative "simple_gem"
     File.open 'old_format.gem', 'wb' do |io|
       io.write SIMPLE_GEM
     end
@@ -104,7 +106,7 @@ class TestGemPackage < Gem::Package::TarTestCase
     assert_equal expected, YAML.load(checksums)
   end
 
-  def test_build_time_source_date_epoch
+  def test_build_time_uses_source_date_epoch
     epoch = ENV["SOURCE_DATE_EPOCH"]
     ENV["SOURCE_DATE_EPOCH"] = "123456789"
 
@@ -115,10 +117,30 @@ class TestGemPackage < Gem::Package::TarTestCase
     spec.date = Time.at 0
     spec.rubygems_version = Gem::Version.new '0'
 
-
     package = Gem::Package.new spec.file_name
 
     assert_equal Time.at(ENV["SOURCE_DATE_EPOCH"].to_i).utc, package.build_time
+  ensure
+    ENV["SOURCE_DATE_EPOCH"] = epoch
+  end
+
+  def test_build_time_without_source_date_epoch
+    epoch = ENV["SOURCE_DATE_EPOCH"]
+    ENV["SOURCE_DATE_EPOCH"] = nil
+
+    spec = Gem::Specification.new 'build', '1'
+    spec.summary = 'build'
+    spec.authors = 'build'
+    spec.files = ['lib/code.rb']
+    spec.rubygems_version = Gem::Version.new '0'
+
+    package = Gem::Package.new spec.file_name
+
+    assert_kind_of Time, package.build_time
+
+    build_time = package.build_time.to_i
+
+    assert_equal Gem.source_date_epoch.to_i, build_time
   ensure
     ENV["SOURCE_DATE_EPOCH"] = epoch
   end
@@ -129,8 +151,13 @@ class TestGemPackage < Gem::Package::TarTestCase
 
     FileUtils.mkdir_p 'lib/empty'
 
-    File.open 'lib/code.rb',  'w' do |io| io.write '# lib/code.rb'  end
-    File.open 'lib/extra.rb', 'w' do |io| io.write '# lib/extra.rb' end
+    File.open 'lib/code.rb',  'w' do |io|
+      io.write '# lib/code.rb'
+    end
+
+    File.open 'lib/extra.rb', 'w' do |io|
+      io.write '# lib/extra.rb'
+    end
 
     package = Gem::Package.new 'bogus.gem'
     package.spec = spec
@@ -157,7 +184,10 @@ class TestGemPackage < Gem::Package::TarTestCase
     spec.files = %w[lib/code.rb lib/code_sym.rb lib/code_sym2.rb]
 
     FileUtils.mkdir_p 'lib'
-    File.open 'lib/code.rb',  'w' do |io| io.write '# lib/code.rb'  end
+
+    File.open 'lib/code.rb',  'w' do |io|
+      io.write '# lib/code.rb'
+    end
 
     # NOTE: 'code.rb' is correct, because it's relative to lib/code_sym.rb
     begin
@@ -412,6 +442,33 @@ class TestGemPackage < Gem::Package::TarTestCase
     assert_equal %w[lib/code.rb], reader.contents
   end
 
+  def test_raw_spec
+    data_tgz = util_tar_gz { }
+
+    gem = util_tar do |tar|
+      tar.add_file 'data.tar.gz', 0644 do |io|
+        io.write data_tgz.string
+      end
+
+      tar.add_file 'metadata.gz', 0644 do |io|
+        Zlib::GzipWriter.wrap io do |gzio|
+          gzio.write @spec.to_yaml
+        end
+      end
+    end
+
+    gem_path = "#{@destination}/test.gem"
+
+    File.open gem_path, "wb" do |io|
+      io.write gem.string
+    end
+
+    spec, metadata = Gem::Package.raw_spec(gem_path)
+
+    assert_equal @spec, spec
+    assert_match @spec.to_yaml, metadata.force_encoding("UTF-8")
+  end
+
   def test_contents
     package = Gem::Package.new @gem
 
@@ -433,7 +490,7 @@ class TestGemPackage < Gem::Package::TarTestCase
   end
 
   def test_extract_files_empty
-    data_tgz = util_tar_gz do end
+    data_tgz = util_tar_gz { }
 
     gem = util_tar do |tar|
       tar.add_file 'data.tar.gz', 0644 do |io|
@@ -462,7 +519,9 @@ class TestGemPackage < Gem::Package::TarTestCase
     package = Gem::Package.new @gem
 
     tgz_io = util_tar_gz do |tar|
-      tar.add_file '/absolute.rb', 0644 do |io| io.write 'hi' end
+      tar.add_file '/absolute.rb', 0644 do |io|
+        io.write 'hi'
+      end
     end
 
     e = assert_raises Gem::Package::PathError do
@@ -477,7 +536,10 @@ class TestGemPackage < Gem::Package::TarTestCase
     package = Gem::Package.new @gem
 
     tgz_io = util_tar_gz do |tar|
-      tar.add_file    'relative.rb', 0644 do |io| io.write 'hi' end
+      tar.add_file    'relative.rb', 0644 do |io|
+        io.write 'hi'
+      end
+
       tar.mkdir       'lib',         0755
       tar.add_symlink 'lib/foo.rb', '../relative.rb', 0644
     end
@@ -506,7 +568,9 @@ class TestGemPackage < Gem::Package::TarTestCase
     tgz_io = util_tar_gz do |tar|
       tar.mkdir       'lib',               0755
       tar.add_symlink 'lib/link', '../..', 0644
-      tar.add_file    'lib/link/outside.txt', 0644 do |io| io.write 'hi' end
+      tar.add_file    'lib/link/outside.txt', 0644 do |io|
+        io.write 'hi'
+      end
     end
 
     # Extract into a subdirectory of @destination; if this test fails it writes
@@ -568,7 +632,9 @@ class TestGemPackage < Gem::Package::TarTestCase
 
     tgz_io = util_tar_gz do |tar|
       tar.mkdir    'lib',        0755
-      tar.add_file 'lib/foo.rb', 0644 do |io| io.write 'hi' end
+      tar.add_file 'lib/foo.rb', 0644 do |io|
+        io.write 'hi'
+      end
       tar.mkdir    'lib/foo',    0755
     end
 
@@ -585,7 +651,9 @@ class TestGemPackage < Gem::Package::TarTestCase
     package = Gem::Package.new @gem
 
     tgz_io = util_tar_gz do |tar|
-      tar.add_file './dot_slash.rb', 0644 do |io| io.write 'hi' end
+      tar.add_file './dot_slash.rb', 0644 do |io|
+        io.write 'hi'
+      end
     end
 
     package.extract_tar_gz tgz_io, @destination
@@ -598,7 +666,9 @@ class TestGemPackage < Gem::Package::TarTestCase
     package = Gem::Package.new @gem
 
     tgz_io = util_tar_gz do |tar|
-      tar.add_file '.dot_file.rb', 0644 do |io| io.write 'hi' end
+      tar.add_file '.dot_file.rb', 0644 do |io|
+        io.write 'hi'
+      end
     end
 
     package.extract_tar_gz tgz_io, @destination
@@ -612,7 +682,9 @@ class TestGemPackage < Gem::Package::TarTestCase
       package = Gem::Package.new @gem
 
       tgz_io = util_tar_gz do |tar|
-        tar.add_file 'foo/file.rb', 0644 do |io| io.write 'hi' end
+        tar.add_file 'foo/file.rb', 0644 do |io|
+          io.write 'hi'
+        end
       end
 
       package.extract_tar_gz tgz_io, @destination.upcase
@@ -626,12 +698,12 @@ class TestGemPackage < Gem::Package::TarTestCase
     package = Gem::Package.new @gem
 
     file = 'file.rb'.dup
-    file.taint
+    file.taint if RUBY_VERSION < '2.7'
 
     destination = package.install_location file, @destination
 
     assert_equal File.join(@destination, 'file.rb'), destination
-    refute destination.tainted?
+    refute destination.tainted? if RUBY_VERSION < '2.7'
   end
 
   def test_install_location_absolute
@@ -665,14 +737,14 @@ class TestGemPackage < Gem::Package::TarTestCase
     package = Gem::Package.new @gem
 
     file = 'foo//file.rb'.dup
-    file.taint
+    file.taint if RUBY_VERSION < '2.7'
 
     destination = @destination.sub '/', '//'
 
     destination = package.install_location file, destination
 
     assert_equal File.join(@destination, 'foo', 'file.rb'), destination
-    refute destination.tainted?
+    refute destination.tainted? if RUBY_VERSION < '2.7'
   end
 
   def test_install_location_relative
@@ -817,6 +889,7 @@ class TestGemPackage < Gem::Package::TarTestCase
   end
 
   def test_verify_corrupt
+    skip "jruby strips the null byte and does not think it's corrupt" if Gem.java_platform?
     tf = Tempfile.open 'corrupt' do |io|
       data = Gem::Util.gzip 'a' * 10
       io.write \
@@ -1042,6 +1115,11 @@ class TestGemPackage < Gem::Package::TarTestCase
     assert_equal @spec, package.spec
   end
 
+  def test_gem_attr
+    package = Gem::Package.new(@gem)
+    assert_equal(@gem, package.gem.path)
+  end
+
   def test_spec_from_io
     # This functionality is used by rubygems.org to extract spec data from an
     # uploaded gem before it is written to storage.
@@ -1077,7 +1155,9 @@ class TestGemPackage < Gem::Package::TarTestCase
     tgz_io = StringIO.new
 
     # can't wrap TarWriter because it seeks
-    Zlib::GzipWriter.wrap tgz_io do |io| io.write tar_io.string end
+    Zlib::GzipWriter.wrap tgz_io do |io|
+      io.write tar_io.string
+    end
 
     StringIO.new tgz_io.string
   end

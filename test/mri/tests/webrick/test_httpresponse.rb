@@ -110,7 +110,7 @@ module WEBrick
       io.rewind
       res = Net::HTTPResponse.read_new(Net::BufferedIO.new(io))
       assert_equal '300', res.code
-      refute_match /<img/, io.string
+      refute_match(/<img/, io.string)
     end
 
     def test_304_does_not_log_warning
@@ -131,6 +131,13 @@ module WEBrick
       res.setup_header
 
       assert_equal 0, logger.messages.length
+    end
+
+    def test_200_chunked_does_not_set_content_length
+      res.chunked     = false
+      res["Transfer-Encoding"] = 'chunked'
+      res.setup_header
+      assert_nil res.header.fetch('content-length', nil)
     end
 
     def test_send_body_io
@@ -263,6 +270,13 @@ module WEBrick
       body = @res.set_error(error)
       assert_match(/#{@res.reason_phrase}/, body)
       assert_match(/#{message}/, body)
+    end
+
+    def test_no_extraneous_space
+      [200, 300, 400, 500].each do |status|
+        @res.status = status
+        assert_match(/\S\r\n/, @res.status_line)
+      end
     end
   end
 end

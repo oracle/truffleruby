@@ -7,6 +7,7 @@
 require 'rubygems/platform'
 
 class Gem::NameTuple
+
   def initialize(name, version, platform="ruby")
     @name = name
     @version = version
@@ -54,14 +55,14 @@ class Gem::NameTuple
       "#{@name}-#{@version}"
     else
       "#{@name}-#{@version}-#{@platform}"
-    end.dup.untaint
+    end.dup.tap(&Gem::UNTAINT)
   end
 
   ##
   # Indicate if this NameTuple matches the current platform.
 
   def match_platform?
-    Gem::Platform.match_gem? @platform, @name
+    Gem::Platform.match @platform
   end
 
   ##

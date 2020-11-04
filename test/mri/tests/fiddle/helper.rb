@@ -10,12 +10,28 @@ case RUBY_PLATFORM
 when /cygwin/
   libc_so = "cygwin1.dll"
   libm_so = "cygwin1.dll"
+when /android/
+  libdir = '/system/lib'
+  if [0].pack('L!').size == 8
+    libdir = '/system/lib64'
+  end
+  libc_so = File.join(libdir, "libc.so")
+  libm_so = File.join(libdir, "libm.so")
 when /linux/
   libdir = '/lib'
-  case [0].pack('L!').size
+  case RbConfig::SIZEOF['void*']
   when 4
     # 32-bit ruby
-    libdir = '/lib32' if File.directory? '/lib32'
+    case RUBY_PLATFORM
+    when /armv\w+-linux/
+      # In the ARM 32-bit libc package such as libc6:armhf libc6:armel,
+      # libc.so and libm.so are installed to /lib/arm-linux-gnu*.
+      # It's not installed to /lib32.
+      dirs = Dir.glob('/lib/arm-linux-gnu*')
+      libdir = dirs[0] if dirs && File.directory?(dirs[0])
+    else
+      libdir = '/lib32' if File.directory? '/lib32'
+    end
   when 8
     # 64-bit ruby
     libdir = '/lib64' if File.directory? '/lib64'
@@ -27,8 +43,7 @@ when /mingw/, /mswin/
   crtname = RbConfig::CONFIG["RUBY_SO_NAME"][/msvc\w+/] || 'ucrtbase'
   libc_so = libm_so = "#{crtname}.dll"
 when /darwin/
-  libc_so = "/usr/lib/libc.dylib"
-  libm_so = "/usr/lib/libm.dylib"
+  libc_so = libm_so = "/usr/lib/libSystem.B.dylib"
 when /kfreebsd/
   libc_so = "/lib/libc.so.0.1"
   libm_so = "/lib/libm.so.1"
@@ -46,7 +61,7 @@ when /bsd|dragonfly/
   libm_so = "/usr/lib/libm.so"
 when /solaris/
   libdir = '/lib'
-  case [0].pack('L!').size
+  case RbConfig::SIZEOF['void*']
   when 4
     # 32-bit ruby
     libdir = '/lib' if File.directory? '/lib'
@@ -95,8 +110,16 @@ end
 libc_so = nil if !libc_so || (libc_so[0] == ?/ && !File.file?(libc_so))
 libm_so = nil if !libm_so || (libm_so[0] == ?/ && !File.file?(libm_so))
 
+# macOS 11.0+ removed libSystem.B.dylib from /usr/lib. But It works with dlopen.
+if RUBY_PLATFORM =~ /darwin/
+  libc_so = libm_so = "/usr/lib/libSystem.B.dylib"
+end
+
 if !libc_so || !libm_so
   ruby = EnvUtil.rubybin
+  # When the ruby binary is 32-bit and the host is 64-bit,
+  # `ldd ruby` outputs "not a dynamic executable" message.
+  # libc_so and libm_so are not set.
   ldd = `ldd #{ruby}`
   #puts ldd
   libc_so = $& if !libc_so && %r{/\S*/libc\.so\S*} =~ ldd

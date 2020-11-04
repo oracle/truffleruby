@@ -55,7 +55,13 @@ class TestProc < Test::Unit::TestCase
 
   def assert_arity(n)
     meta = class << self; self; end
-    meta.class_eval {define_method(:foo, Proc.new)}
+    b = assert_warn(/Capturing the given block using Proc\.new is deprecated/) do
+      Proc.new
+    end
+    meta.class_eval {
+      remove_method(:foo) if method_defined?(:foo)
+      define_method(:foo, b)
+    }
     assert_equal(n, method(:foo).arity)
   end
 
@@ -149,45 +155,6 @@ class TestProc < Test::Unit::TestCase
   def test_block_par
     assert_equal(10, Proc.new{|&b| b.call(10)}.call {|x| x})
     assert_equal(12, Proc.new{|a,&b| b.call(a)}.call(12) {|x| x})
-  end
-
-  def test_safe
-    safe = $SAFE
-    c = Class.new
-    x = c.new
-
-    p = proc {
-      $SAFE += 1
-      proc {$SAFE}
-    }.call
-
-    assert_equal(safe + 1, $SAFE)
-    assert_equal(safe + 1, p.call)
-    assert_equal(safe + 1, $SAFE)
-
-    $SAFE = 0
-    c.class_eval {define_method(:safe, p)}
-    assert_equal(safe, x.safe)
-
-    $SAFE = 0
-    p = proc {$SAFE += 1}
-    assert_equal(safe + 1, p.call)
-    assert_equal(safe + 1, $SAFE)
-
-    $SAFE = 0
-    c.class_eval {define_method(:inc, p)}
-    assert_equal(safe + 1, proc {x.inc; $SAFE}.call)
-    assert_equal(safe + 1, $SAFE)
-
-    $SAFE = 0
-    assert_equal(safe + 1, proc {x.method(:inc).call; $SAFE}.call)
-    assert_equal(safe + 1, $SAFE)
-
-    $SAFE = 0
-    assert_equal(safe + 1, proc {x.method(:inc).to_proc.call; $SAFE}.call)
-    assert_equal(safe + 1, $SAFE)
-  ensure
-    $SAFE = 0
   end
 
   def m2
@@ -424,14 +391,14 @@ class TestProc < Test::Unit::TestCase
       1.times { b = lambda }
       b
     end
-    assert_equal(:foo, o.foo { :foo }.call)
+    assert_raise(ArgumentError) {o.foo { :foo }.call}
 
     def o.foo(&b)
       b = nil
       1.times { b = lambda }
       b
     end
-    assert_equal(:foo, o.foo { :foo }.call)
+    assert_raise(ArgumentError) {o.foo { :foo }.call}
   end
 
   def test_arity2
@@ -1120,6 +1087,26 @@ class TestProc < Test::Unit::TestCase
     assert_equal([1,2,[3],4,5], r, "[ruby-core:19485]")
   end
 
+  def test_proc_autosplat
+    def self.a(arg, kw)
+      yield arg
+      yield arg, **kw
+      yield arg, kw
+    end
+
+    arr = []
+    a([1,2,3], {}) do |arg1, arg2=0|
+      arr << [arg1, arg2]
+    end
+    assert_equal([[1, 2], [[1, 2, 3], 0], [[1, 2, 3], {}]], arr)
+
+    arr = []
+    a([1,2,3], a: 1) do |arg1, arg2=0|
+      arr << [arg1, arg2]
+    end
+    assert_equal([[1, 2], [[1, 2, 3], {a: 1}], [[1, 2, 3], {a: 1}]], arr)
+  end
+
   def test_parameters
     assert_equal([], proc {}.parameters)
     assert_equal([], proc {||}.parameters)
@@ -1188,12 +1175,9 @@ class TestProc < Test::Unit::TestCase
   end
 
   def test_to_s
-    assert_match(/^#<Proc:0x\h+@#{ Regexp.quote(__FILE__) }:\d+>$/, proc {}.to_s)
-    assert_match(/^#<Proc:0x\h+@#{ Regexp.quote(__FILE__) }:\d+ \(lambda\)>$/, lambda {}.to_s)
+    assert_match(/^#<Proc:0x\h+ #{ Regexp.quote(__FILE__) }:\d+>$/, proc {}.to_s)
+    assert_match(/^#<Proc:0x\h+ #{ Regexp.quote(__FILE__) }:\d+ \(lambda\)>$/, lambda {}.to_s)
     assert_match(/^#<Proc:0x\h+ \(lambda\)>$/, method(:p).to_proc.to_s)
-    x = proc {}
-    x.taint
-    assert_predicate(x.to_s, :tainted?)
     name = "Proc\u{1f37b}"
     assert_include(EnvUtil.labeled_class(name, Proc).new {}.to_s, name)
   end
@@ -1302,7 +1286,7 @@ class TestProc < Test::Unit::TestCase
   def test_local_variables
     b = get_binding
     assert_equal(%i'if case when begin end a', b.local_variables)
-    a = tap {|;x, y| x = y; break binding.local_variables}
+    a = tap {|;x, y| x = y = x; break binding.local_variables}
     assert_equal(%i[a b x y], a.sort)
   end
 
@@ -1413,7 +1397,9 @@ class TestProc < Test::Unit::TestCase
   end
 
   def method_for_test_proc_without_block_for_symbol
-    binding.eval('proc')
+    assert_warn(/Capturing the given block using Kernel#proc is deprecated/) do
+      binding.eval('proc')
+    end
   end
 
   def test_proc_without_block_for_symbol
@@ -1477,11 +1463,168 @@ class TestProc < Test::Unit::TestCase
   def test_compose_with_noncallable
     f = proc {|x| x * 2}
 
-    assert_raise(NoMethodError) {
+    assert_raise(TypeError) {
       (f << 5).call(2)
     }
-    assert_raise(NoMethodError) {
+    assert_raise(TypeError) {
       (f >> 5).call(2)
     }
   end
+
+  def test_orphan_return
+    assert_equal(42, Module.new { extend self
+      def m1(&b) b.call end; def m2(); m1 { return 42 } end }.m2)
+    assert_equal(42, Module.new { extend self
+      def m1(&b) b end; def m2(); m1 { return 42 }.call end }.m2)
+    assert_raise(LocalJumpError) { Module.new { extend self
+      def m1(&b) b end; def m2(); m1 { return 42 } end }.m2.call }
+  end
+
+  def test_orphan_break
+    assert_equal(42, Module.new { extend self
+      def m1(&b) b.call end; def m2(); m1 { break 42 } end }.m2 )
+    assert_raise(LocalJumpError) { Module.new { extend self
+      def m1(&b) b end; def m2(); m1 { break 42 }.call end }.m2 }
+    assert_raise(LocalJumpError) { Module.new { extend self
+      def m1(&b) b end; def m2(); m1 { break 42 } end }.m2.call }
+  end
+
+  def test_not_orphan_next
+    assert_equal(42, Module.new { extend self
+      def m1(&b) b.call end; def m2(); m1 { next 42 } end }.m2)
+    assert_equal(42, Module.new { extend self
+      def m1(&b) b end; def m2(); m1 { next 42 }.call end }.m2)
+    assert_equal(42, Module.new { extend self
+      def m1(&b) b end; def m2(); m1 { next 42 } end }.m2.call)
+  end
 end
+
+class TestProcKeywords < Test::Unit::TestCase
+  def test_compose_keywords
+    f = ->(**kw) { kw.merge(:a=>1) }
+    g = ->(kw) { kw.merge(:a=>2) }
+
+    assert_equal(2, (f >> g).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call(a: 3)[:a])
+    end
+    assert_equal(2, (f >> g).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(2, (f >> g).call({a: 3})[:a])
+    end
+    assert_equal(2, (g << f).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (g >> f).call(a: 3)[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(2, (g << f).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (g >> f).call({a: 3})[:a])
+    end
+    assert_warn(/Passing the keyword argument as the last hash parameter is deprecated.*Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call(**{})[:a])
+    end
+    assert_equal(2, (f >> g).call(**{})[:a])
+  end
+
+  def test_compose_keywords_method
+    f = ->(**kw) { kw.merge(:a=>1) }.method(:call)
+    g = ->(kw) { kw.merge(:a=>2) }.method(:call)
+
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call(a: 3)[:a])
+    end
+    assert_equal(2, (f >> g).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(2, (f >> g).call({a: 3})[:a])
+    end
+    assert_equal(2, (g << f).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (g >> f).call(a: 3)[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(2, (g << f).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (g >> f).call({a: 3})[:a])
+    end
+    assert_warn(/Passing the keyword argument as the last hash parameter is deprecated.*Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call(**{})[:a])
+    end
+    assert_equal(2, (f >> g).call(**{})[:a])
+  end
+
+  def test_compose_keywords_non_proc
+    f = ->(**kw) { kw.merge(:a=>1) }
+    g = Object.new
+    def g.call(kw) kw.merge(:a=>2) end
+    def g.to_proc; method(:call).to_proc; end
+    def g.<<(f) to_proc << f end
+    def g.>>(f) to_proc >> f end
+
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call(a: 3)[:a])
+    end
+    assert_equal(2, (f >> g).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (f << g).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(2, (f >> g).call({a: 3})[:a])
+    end
+    assert_equal(2, (g << f).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (g >> f).call(a: 3)[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(2, (g << f).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method is defined here/m) do
+      assert_equal(1, (g >> f).call({a: 3})[:a])
+    end
+    assert_warn(/Passing the keyword argument as the last hash parameter is deprecated.*The called method `call'/m) do
+      assert_equal(1, (f << g).call(**{})[:a])
+    end
+    assert_equal(2, (f >> g).call(**{})[:a])
+
+    f = ->(kw) { kw.merge(:a=>1) }
+    g = Object.new
+    def g.call(**kw) kw.merge(:a=>2) end
+    def g.to_proc; method(:call).to_proc; end
+    def g.<<(f) to_proc << f end
+    def g.>>(f) to_proc >> f end
+
+    assert_equal(1, (f << g).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(2, (f >> g).call(a: 3)[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(1, (f << g).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(2, (f >> g).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(2, (g << f).call(a: 3)[:a])
+    end
+    assert_equal(1, (g >> f).call(a: 3)[:a])
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(2, (g << f).call({a: 3})[:a])
+    end
+    assert_warn(/Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(1, (g >> f).call({a: 3})[:a])
+    end
+    assert_equal(1, (f << g).call(**{})[:a])
+    assert_warn(/Passing the keyword argument as the last hash parameter is deprecated.*Using the last argument as keyword parameters is deprecated.*The called method `call'/m) do
+      assert_equal(2, (f >> g).call(**{})[:a])
+    end
+  end
+end
+

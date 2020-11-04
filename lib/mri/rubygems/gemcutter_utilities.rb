@@ -7,12 +7,9 @@ require 'rubygems/text'
 
 module Gem::GemcutterUtilities
 
-  include Gem::Text
+  ERROR_CODE = 1
 
-  # TODO: move to Gem::Command
-  OptionParser.accept Symbol do |value|
-    value.to_sym
-  end
+  include Gem::Text
 
   attr_writer :host
 
@@ -41,7 +38,9 @@ module Gem::GemcutterUtilities
   # The API key from the command options or from the user's configuration.
 
   def api_key
-    if options[:key]
+    if ENV["GEM_HOST_API_KEY"]
+      ENV["GEM_HOST_API_KEY"]
+    elsif options[:key]
       verify_api_key options[:key]
     elsif Gem.configuration.api_keys.key?(host)
       Gem.configuration.api_keys[host]
@@ -64,7 +63,7 @@ module Gem::GemcutterUtilities
         env_rubygems_host = nil if
           env_rubygems_host and env_rubygems_host.empty?
 
-        env_rubygems_host|| configured_host
+        env_rubygems_host || configured_host
       end
   end
 
@@ -79,7 +78,7 @@ module Gem::GemcutterUtilities
     self.host = host if host
     unless self.host
       alert_error "You must specify a gem server"
-      terminate_interaction 1 # TODO: question this
+      terminate_interaction(ERROR_CODE)
     end
 
     if allowed_push_host
@@ -88,15 +87,29 @@ module Gem::GemcutterUtilities
 
       unless (host_uri.scheme == allowed_host_uri.scheme) && (host_uri.host == allowed_host_uri.host)
         alert_error "#{self.host.inspect} is not allowed by the gemspec, which only allows #{allowed_push_host.inspect}"
-        terminate_interaction 1
+        terminate_interaction(ERROR_CODE)
       end
     end
 
     uri = URI.parse "#{self.host}/#{path}"
 
     request_method = Net::HTTP.const_get method.to_s.capitalize
+    response = Gem::RemoteFetcher.fetcher.request(uri, request_method, &block)
+    return response unless mfa_unauthorized?(response)
 
-    Gem::RemoteFetcher.fetcher.request(uri, request_method, &block)
+    Gem::RemoteFetcher.fetcher.request(uri, request_method) do |req|
+      req.add_field "OTP", get_otp
+      block.call(req)
+    end
+  end
+
+  def mfa_unauthorized?(response)
+    response.kind_of?(Net::HTTPUnauthorized) && response.body.start_with?('You have enabled multifactor authentication')
+  end
+
+  def get_otp
+    say 'You have enabled multi-factor authentication. Please enter OTP code.'
+    ask 'Code: '
   end
 
   ##
@@ -117,20 +130,14 @@ module Gem::GemcutterUtilities
     say "Don't have an account yet? " +
         "Create one at #{sign_in_host}/sign_up"
 
-    email    =              ask "   Email: "
+    email = ask "   Email: "
     password = ask_for_password "Password: "
     say "\n"
 
     response = rubygems_api_request(:get, "api/v1/api_key",
                                     sign_in_host) do |request|
       request.basic_auth email, password
-    end
-
-    if need_otp? response
-      response = rubygems_api_request(:get, "api/v1/api_key", sign_in_host) do |request|
-        request.basic_auth email, password
-        request.add_field "OTP", options[:otp]
-      end
+      request.add_field "OTP", options[:otp] if options[:otp]
     end
 
     with_response response do |resp|
@@ -148,7 +155,7 @@ module Gem::GemcutterUtilities
       Gem.configuration.api_keys[key]
     else
       alert_error "No such API key. Please add it to your configuration (done automatically on initial `gem push`)."
-      terminate_interaction 1 # TODO: question this
+      terminate_interaction(ERROR_CODE)
     end
   end
 
@@ -172,23 +179,13 @@ module Gem::GemcutterUtilities
       message = "#{error_prefix}: #{message}" if error_prefix
 
       say clean_text(message)
-      terminate_interaction 1 # TODO: question this
+      terminate_interaction(ERROR_CODE)
     end
   end
 
   ##
   # Returns true when the user has enabled multifactor authentication from
-  # +response+ text.
-
-  def need_otp?(response)
-    return unless response.kind_of?(Net::HTTPUnauthorized) &&
-        response.body.start_with?('You have enabled multifactor authentication')
-    return true if options[:otp]
-
-    say 'You have enabled multi-factor authentication. Please enter OTP code.'
-    options[:otp] = ask 'Code: '
-    true
-  end
+  # +response+ text and no otp provided by options.
 
   def set_api_key(host, key)
     if host == Gem::DEFAULT_HOST

@@ -1,17 +1,9 @@
 #! /usr/bin/env ruby
 # -*- coding: us-ascii -*-
 
-if defined?(::TruffleRuby)
-  require 'rbconfig'
-  RUBY = RbConfig.ruby
-else
-  RUBY = './miniruby'
-end
-
 $testnum=0
 $ntest=0
 $failed = 0
-$tagged = 0
 class Progress
   def initialize
     @color = nil
@@ -43,7 +35,7 @@ class Progress
       # dircolors-like style
       colors = (colors = ENV['TEST_COLORS']) ? Hash[colors.scan(/(\w+)=([^:\n]*)/)] : {}
       begin
-        File.read(File.join(__dir__, "../test/colors")).scan(/(\w+)=([^:\n]*)/) do |n, c|
+        File.read(File.join(__dir__, "../tool/colors")).scan(/(\w+)=([^:\n]*)/) do |n, c|
           colors[n] ||= c
         end
       rescue
@@ -133,12 +125,6 @@ def test_ok(cond,n=1)
   end
   STDOUT.flush
   STDERR.flush
-end
-
-def tagged
-  $testnum+=1
-  $ntest+=1
-  $tagged += 1
 end
 
 # make sure conditional operators work
@@ -712,16 +698,15 @@ end
 test_ok(tmp.eof? && !$bad)
 tmp.close
 
-tagged
-# sum=0
-# for i in 1..10
-#  sum += i
-#  i -= 1
-#  if i > 0
-#    redo
-#  end
-# end
-# test_ok(sum == 220)
+sum=0
+for i in 1..10
+  sum += i
+  i -= 1
+  if i > 0
+    redo
+  end
+end
+test_ok(sum == 220)
 
 # test interval
 $bad = false
@@ -998,13 +983,6 @@ test_ok($x[22] == 44)
 test_ok($z == 0)
 
 test_check "iterator"
-
-test_ok(!iterator?)
-
-def ttt
-  test_ok(iterator?)
-end
-ttt{}
 
 # yield at top level
 test_ok(!defined?(yield))
@@ -1301,12 +1279,11 @@ end
 
 test_ok(45 == exit_value_test{break 45})
 
-tagged
-# test_ok(55 == begin
-#               block_get{break 55}.call
-#             rescue LocalJumpError
-#               $!.exit_value
-#             end)
+test_ok(55 == begin
+              block_get{break 55}.call
+            rescue LocalJumpError
+              $!.exit_value
+            end)
 
 def block_call(&block)
   block.call
@@ -1755,7 +1732,7 @@ a = nil
 test_ok(defined?(a))
 test_ok(a == nil)
 
-# multiple asignment
+# multiple assignment
 a, b = 1, 2
 test_ok(a == 1 && b == 2)
 
@@ -1988,22 +1965,22 @@ end
 
 test_check "system"
 test_ok(`echo foobar` == "foobar\n")
-test_ok(`#{RUBY} -e 'print "foobar"'` == 'foobar')
+test_ok(`./miniruby -e 'print "foobar"'` == 'foobar')
 
 script_tmp = "script_tmp.#{$$}"
 tmp = open(script_tmp, "w")
 tmp.print "print $zzz\n";
 tmp.close
 
-test_ok(`#{RUBY} -s #{script_tmp} -zzz` == 'true')
-test_ok(`#{RUBY} -s #{script_tmp} -zzz=555` == '555')
+test_ok(`./miniruby -s #{script_tmp} -zzz` == 'true')
+test_ok(`./miniruby -s #{script_tmp} -zzz=555` == '555')
 
 tmp = open(script_tmp, "w")
 tmp.print "#! /usr/local/bin/ruby -s\n";
 tmp.print "print $zzz\n";
 tmp.close
 
-tagged # test_ok(`#{RUBY} #{script_tmp} -zzz=678` == '678')
+test_ok(`./miniruby #{script_tmp} -zzz=678` == '678')
 
 tmp = open(script_tmp, "w")
 tmp.print "this is a leading junk\n";
@@ -2013,8 +1990,8 @@ tmp.print "__END__\n";
 tmp.print "this is a trailing junk\n";
 tmp.close
 
-test_ok(`#{RUBY} -x #{script_tmp}` == '')
-tagged # test_ok(`#{RUBY} -x #{script_tmp} -zzz=555` == '555')
+test_ok(`./miniruby -x #{script_tmp}` == '')
+test_ok(`./miniruby -x #{script_tmp} -zzz=555` == '555')
 
 tmp = open(script_tmp, "w")
 for i in 1..5
@@ -2022,7 +1999,7 @@ for i in 1..5
 end
 tmp.close
 
-`#{RUBY} -i.bak -pe '$_.sub!(/^[0-9]+$/){$&.to_i * 5}' #{script_tmp}`
+`./miniruby -i.bak -pe '$_.sub!(/^[0-9]+$/){$&.to_i * 5}' #{script_tmp}`
 done = true
 tmp = open(script_tmp, "r")
 while tmp.gets
@@ -2032,10 +2009,10 @@ while tmp.gets
   end
 end
 tmp.close
-tagged # test_ok(done)
+test_ok(done)
 
-File.unlink script_tmp or `/bin/rm -f "#{script_tmp}"` if File.exist?(script_tmp)
-File.unlink "#{script_tmp}.bak" or `/bin/rm -f "#{script_tmp}.bak"`  if File.exist?("#{script_tmp}.bak")
+File.unlink script_tmp or `/bin/rm -f "#{script_tmp}"`
+File.unlink "#{script_tmp}.bak" or `/bin/rm -f "#{script_tmp}.bak"`
 
 test_check "const"
 TEST1 = 1
@@ -2151,13 +2128,12 @@ test_check "variable"
 test_ok($$.instance_of?(Integer))
 
 # read-only variable
-tagged
-# begin
-#   $$ = 5
-#   test_ok false
-# rescue NameError
-#   test_ok true
-# end
+begin
+  $$ = 5
+  test_ok false
+rescue NameError
+  test_ok true
+end
 
 foobar = "foobar"
 $_ = foobar
@@ -2200,16 +2176,16 @@ test_ok(Gods.ruler2 == "Cronus")
 test_ok(Titans.ruler1 == "Cronus")
 test_ok(Titans.ruler2 == "Cronus")
 atlas = Titans.new
-tagged # test_ok(atlas.ruler0 == "Cronus")
+test_ok(atlas.ruler0 == "Cronus")
 test_ok(atlas.ruler3 == "Zeus")
-tagged # test_ok(atlas.ruler4 == "Cronus")
+test_ok(atlas.ruler4 == "Cronus")
 
 test_check "trace"
 $x = 1234
 $y = 0
 trace_var :$x, Proc.new{$y = $x}
 $x = 40414
-tagged # test_ok($y == $x)
+test_ok($y == $x)
 
 untrace_var :$x
 $x = 19660208
@@ -2217,7 +2193,7 @@ test_ok($y != $x)
 
 trace_var :$x, Proc.new{$x *= 2}
 $x = 5
-tagged # test_ok($x == 10)
+test_ok($x == 10)
 
 untrace_var :$x
 
@@ -2330,8 +2306,8 @@ if dosish
   test_ok(File.expand_path("/", "z:/sub") == "z:/")
   test_ok(File.expand_path("/dir", "z:/sub") == "z:/dir")
 end
-tagged # test_ok(File.expand_path(".", "//") == "//")
-tagged # test_ok(File.expand_path("sub", "//") == "//sub")
+test_ok(File.expand_path(".", "//") == "//")
+test_ok(File.expand_path("sub", "//") == "//sub")
 
 # test_check "Proc#binding"
 ObjectSpace.each_object(Proc){|o|
@@ -2378,7 +2354,7 @@ test_ok true   # reach here or dumps core
 
 PROGRESS.finish
 if $failed > 0
-  printf "not ok/test: %d, failed %d, tagged %d\n", $ntest, $failed, $tagged
+  printf "not ok/test: %d failed %d\n", $ntest, $failed
 else
   printf "end of test(test: %d)\n", $ntest
 end

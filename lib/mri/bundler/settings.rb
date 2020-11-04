@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-require "uri"
-
 module Bundler
   class Settings
-    autoload :Mirror,  "bundler/mirror"
-    autoload :Mirrors, "bundler/mirror"
-    autoload :Validator, "bundler/settings/validator"
+    autoload :Mirror,  File.expand_path("mirror", __dir__)
+    autoload :Mirrors, File.expand_path("mirror", __dir__)
+    autoload :Validator, File.expand_path("settings/validator", __dir__)
 
     BOOL_KEYS = %w[
       allow_bundler_dependency_conflicts
@@ -17,8 +15,6 @@ module Bundler
       auto_config_jobs
       cache_all
       cache_all_platforms
-      cache_command_is_package
-      console_command
       default_install_uses_path
       deployment
       deployment_means_frozen
@@ -29,28 +25,24 @@ module Bundler
       disable_platform_warnings
       disable_shared_gems
       disable_version_check
-      error_on_stderr
       force_ruby_platform
       forget_cli_options
       frozen
       gem.coc
       gem.mit
-      global_path_appends_ruby_scope
       global_gem_cache
       ignore_messages
       init_gems_rb
-      list_command
-      lockfile_uses_separate_rubygems_sources
-      major_deprecations
       no_install
       no_prune
       only_update_to_newer_versions
       path_relative_to_cwd
       path.system
       plugins
-      prefer_gems_rb
+      prefer_patch
       print_only_version_number
       setup_makes_kernel_gem_public
+      silence_deprecations
       silence_root_warning
       skip_default_git_sources
       specific_platform
@@ -58,7 +50,6 @@ module Bundler
       unlock_source_unlocks_spec
       update_requires_all_flag
       use_gem_version_promoter_for_major_updates
-      viz_command
     ].freeze
 
     NUMBER_KEYS = %w[
@@ -75,7 +66,9 @@ module Bundler
     ].freeze
 
     DEFAULT_CONFIG = {
+      :silence_deprecations => false,
       :disable_version_check => true,
+      :prefer_patch => false,
       :redirect => 5,
       :retry => 3,
       :timeout => 10,
@@ -106,18 +99,6 @@ module Bundler
         temporary(key => value)
         value
       else
-        command = if value.nil?
-          "bundle config --delete #{key}"
-        else
-          "bundle config #{key} #{Array(value).join(":")}"
-        end
-
-        Bundler::SharedHelpers.major_deprecation 2,\
-          "flags passed to commands " \
-          "will no longer be automatically remembered. Instead please set flags " \
-          "you want remembered between commands using `bundle config " \
-          "<setting name> <setting value>`, i.e. `#{command}`"
-
         set_local(key, value)
       end
     end
@@ -169,7 +150,11 @@ module Bundler
     end
 
     def mirror_for(uri)
-      uri = URI(uri.to_s) unless uri.is_a?(URI)
+      if uri.is_a?(String)
+        require_relative "vendored_uri"
+        uri = Bundler::URI(uri)
+      end
+
       gem_mirrors.for(uri.to_s).uri
     end
 
@@ -220,23 +205,22 @@ module Bundler
       locations
     end
 
-    # for legacy reasons, in Bundler 1, the ruby scope isnt appended when the setting comes from ENV or the global config,
-    # nor do we respect :disable_shared_gems
+    # for legacy reasons, in Bundler 2, we do not respect :disable_shared_gems
     def path
       key  = key_for(:path)
       path = ENV[key] || @global_config[key]
       if path && !@temporary.key?(key) && !@local_config.key?(key)
-        return Path.new(path, Bundler.feature_flag.global_path_appends_ruby_scope?, false, false)
+        return Path.new(path, false, false)
       end
 
       system_path = self["path.system"] || (self[:disable_shared_gems] == false)
-      Path.new(self[:path], true, system_path, Bundler.feature_flag.default_install_uses_path?)
+      Path.new(self[:path], system_path, Bundler.feature_flag.default_install_uses_path?)
     end
 
-    Path = Struct.new(:explicit_path, :append_ruby_scope, :system_path, :default_install_uses_path) do
+    Path = Struct.new(:explicit_path, :system_path, :default_install_uses_path) do
       def path
         path = base_path
-        path = File.join(path, Bundler.ruby_scope) if append_ruby_scope && !use_system_gems?
+        path = File.join(path, Bundler.ruby_scope) unless use_system_gems?
         path
       end
 
@@ -371,7 +355,7 @@ module Bundler
       return unless file
       SharedHelpers.filesystem_access(file) do |p|
         FileUtils.mkdir_p(p.dirname)
-        require "bundler/yaml_serializer"
+        require_relative "yaml_serializer"
         p.open("w") {|f| f.write(YAMLSerializer.dump(hash)) }
       end
     end
@@ -406,26 +390,12 @@ module Bundler
       Pathname.new(@root).join("config") if @root
     end
 
-    CONFIG_REGEX = %r{ # rubocop:disable Style/RegexpLiteral
-      ^
-      (BUNDLE_.+):\s # the key
-      (?: !\s)? # optional exclamation mark found with ruby 1.9.3
-      (['"]?) # optional opening quote
-      (.* # contents of the value
-        (?: # optionally, up until the next key
-          (\n(?!BUNDLE).+)*
-        )
-      )
-      \2 # matching closing quote
-      $
-    }xo
-
     def load_config(config_file)
       return {} if !config_file || ignore_config?
       SharedHelpers.filesystem_access(config_file, :read) do |file|
         valid_file = file.exist? && !file.size.zero?
         return {} unless valid_file
-        require "bundler/yaml_serializer"
+        require_relative "yaml_serializer"
         YAMLSerializer.load file.read
       end
     end
@@ -441,7 +411,7 @@ module Bundler
         (https?.*?) # URI
         (\.#{Regexp.union(PER_URI_OPTIONS)})? # optional suffix key
         \z
-      /ix
+      /ix.freeze
 
     # TODO: duplicates Rubygems#normalize_uri
     # TODO: is this the correct place to validate mirror URIs?
@@ -453,7 +423,8 @@ module Bundler
         suffix = $3
       end
       uri = "#{uri}/" unless uri.end_with?("/")
-      uri = URI(uri)
+      require_relative "vendored_uri"
+      uri = Bundler::URI(uri)
       unless uri.absolute?
         raise ArgumentError, format("Gem sources must be absolute. You provided '%s'.", uri)
       end

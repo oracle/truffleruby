@@ -17,6 +17,7 @@ class TestGc < Test::Unit::TestCase
       1.upto(10000) {
         tmp = [0,1,2,3,4,5,6,7,8,9]
       }
+      tmp
     end
     l=nil
     100000.times {
@@ -53,6 +54,7 @@ class TestGc < Test::Unit::TestCase
 
   def test_start_full_mark
     return unless use_rgengc?
+    skip 'stress' if GC.stress
 
     GC.start(full_mark: false)
     assert_nil GC.latest_gc_info(:major_by)
@@ -62,6 +64,8 @@ class TestGc < Test::Unit::TestCase
   end
 
   def test_start_immediate_sweep
+    skip 'stress' if GC.stress
+
     GC.start(immediate_sweep: false)
     assert_equal false, GC.latest_gc_info(:immediate_sweep)
 
@@ -105,12 +109,16 @@ class TestGc < Test::Unit::TestCase
   end
 
   def test_stat_single
+    skip 'stress' if GC.stress
+
     stat = GC.stat
     assert_equal stat[:count], GC.stat(:count)
     assert_raise(ArgumentError){ GC.stat(:invalid) }
   end
 
   def test_stat_constraints
+    skip 'stress' if GC.stress
+
     stat = GC.stat
     assert_equal stat[:total_allocated_pages], stat[:heap_allocated_pages] + stat[:total_freed_pages]
     assert_operator stat[:heap_sorted_length], :>=, stat[:heap_eden_pages] + stat[:heap_allocatable_pages], "stat is: " + stat.inspect
@@ -124,6 +132,8 @@ class TestGc < Test::Unit::TestCase
   end
 
   def test_latest_gc_info
+    skip 'stress' if GC.stress
+
     assert_separately %w[--disable-gem], __FILE__, __LINE__, <<-'eom'
     GC.start
     count = GC.stat(:heap_free_slots) + GC.stat(:heap_allocatable_pages) * GC::INTERNAL_CONSTANTS[:HEAP_PAGE_OBJ_LIMIT]
@@ -253,6 +263,7 @@ class TestGc < Test::Unit::TestCase
   end
 
   def test_profiler_clear
+    skip "for now"
     assert_separately %w[--disable-gem], __FILE__, __LINE__, <<-'eom', timeout: 30
     GC::Profiler.enable
 
@@ -311,7 +322,7 @@ class TestGc < Test::Unit::TestCase
   def test_sweep_in_finalizer
     bug9205 = '[ruby-core:58833] [Bug #9205]'
     2.times do
-      assert_ruby_status([], <<-'end;', bug9205, timeout: 60)
+      assert_ruby_status([], <<-'end;', bug9205, timeout: 120)
         raise_proc = proc do |id|
           GC.start
         end
@@ -361,6 +372,14 @@ class TestGc < Test::Unit::TestCase
     assert_empty(out)
   end
 
+  def test_finalizer_passed_object_id
+    assert_in_out_err(%w[--disable-gems], <<-EOS, ["true"], [])
+      o = Object.new
+      obj_id = o.object_id
+      ObjectSpace.define_finalizer(o, ->(id){ p id == obj_id })
+    EOS
+  end
+
   def test_verify_internal_consistency
     assert_nil(GC.verify_internal_consistency)
   end
@@ -381,6 +400,10 @@ class TestGc < Test::Unit::TestCase
       GC.stress = true
       C.new
     end;
+  end
+
+  def test_gc_stress_at_startup
+    assert_in_out_err([{"RUBY_DEBUG"=>"gc_stress"}], '', [], [], '[Bug #15784]', success: true, timeout: 60)
   end
 
   def test_gc_disabled_start
@@ -445,5 +468,13 @@ class TestGc < Test::Unit::TestCase
     GC.start
     skip "finalizers did not get run" if @result.empty?
     assert_equal([:c1, :c2], @result)
+  end
+
+  def test_object_ids_never_repeat
+    GC.start
+    a = 1000.times.map { Object.new.object_id }
+    GC.start
+    b = 1000.times.map { Object.new.object_id }
+    assert_empty(a & b)
   end
 end

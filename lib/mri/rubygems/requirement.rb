@@ -2,23 +2,6 @@
 require "rubygems/version"
 require "rubygems/deprecate"
 
-# If we're being loaded after yaml was already required, then
-# load our yaml + workarounds now.
-if defined?(::TruffleRuby)
-  if defined? ::YAML
-    # Truffle: this is conditional because at this point #gem cannot be defined
-    # (it is defined after loading rubygems/core_ext/kernel_gem which comes
-    # after this file). In the case of lazy RubyGems, #gem exists but is a stub
-    # while loading RubyGems, which would cause a stack overflow. Removing #gem
-    # is not OK for concurrency.
-    unless defined?(gem) && Truffle::Boot.get_option('lazy-rubygems')
-      Gem.load_yaml
-    end
-  end
-else
-  Gem.load_yaml if defined? ::YAML
-end
-
 ##
 # A Requirement is a set of one or more version restrictions. It supports a
 # few (<tt>=, !=, >, <, >=, <=, ~></tt>) different restriction operators.
@@ -27,6 +10,7 @@ end
 # together in RubyGems.
 
 class Gem::Requirement
+
   OPS = { #:nodoc:
     "="  =>  lambda { |v, r| v == r },
     "!=" =>  lambda { |v, r| v != r },
@@ -39,7 +23,7 @@ class Gem::Requirement
 
   SOURCE_SET_REQUIREMENT = Struct.new(:for_lockfile).new "!" # :nodoc:
 
-  quoted  = OPS.keys.map { |k| Regexp.quote k }.join "|"
+  quoted = OPS.keys.map { |k| Regexp.quote k }.join "|"
   PATTERN_RAW = "\\s*(#{quoted})?\\s*(#{Gem::Version::VERSION_PATTERN})\\s*".freeze # :nodoc:
 
   ##
@@ -48,9 +32,14 @@ class Gem::Requirement
   PATTERN = /\A#{PATTERN_RAW}\z/.freeze
 
   ##
-  # The default requirement matches any version
+  # The default requirement matches any non-prerelease version
 
   DefaultRequirement = [">=", Gem::Version.new(0)].freeze
+
+  ##
+  # The default requirement matches any version
+
+  DefaultPrereleaseRequirement = [">=", Gem::Version.new("0.a")].freeze
 
   ##
   # Raised when a bad requirement is encountered
@@ -85,11 +74,12 @@ class Gem::Requirement
     end
   end
 
-  ##
-  # A default "version requirement" can surely _only_ be '>= 0'.
-
   def self.default
     new '>= 0'
+  end
+
+  def self.default_prerelease
+    new '>= 0.a'
   end
 
   ###
@@ -120,6 +110,8 @@ class Gem::Requirement
 
     if $1 == ">=" && $2 == "0"
       DefaultRequirement
+    elsif $1 == ">=" && $2 == "0.a"
+      DefaultPrereleaseRequirement
     else
       [$1 || "=", Gem::Version.new($2)]
     end
@@ -146,7 +138,6 @@ class Gem::Requirement
       @requirements = [DefaultRequirement]
     else
       @requirements = requirements.map! { |r| self.class.parse r }
-      sort_requirements!
     end
   end
 
@@ -160,7 +151,6 @@ class Gem::Requirement
     new = new.map { |r| self.class.parse r }
 
     @requirements.concat new
-    sort_requirements!
   end
 
   ##
@@ -169,11 +159,11 @@ class Gem::Requirement
   def for_lockfile # :nodoc:
     return if [DefaultRequirement] == @requirements
 
-    list = requirements.sort_by { |_, version|
+    list = requirements.sort_by do |_, version|
       version
-    }.map { |op, version|
+    end.map do |op, version|
       "#{op} #{version}"
-    }.uniq
+    end.uniq
 
     " (#{list.join ', '})"
   end
@@ -202,7 +192,7 @@ class Gem::Requirement
   end
 
   def hash # :nodoc:
-    requirements.hash
+    requirements.sort.hash
   end
 
   def marshal_dump # :nodoc:
@@ -311,18 +301,13 @@ class Gem::Requirement
     end
   end
 
-  def sort_requirements! # :nodoc:
-    @requirements.sort! do |l, r|
-      comp = l.last <=> r.last # first, sort by the requirement's version
-      next comp unless comp == 0
-      l.first <=> r.first # then, sort by the operator (for stability)
-    end
-  end
 end
 
 class Gem::Version
+
   # This is needed for compatibility with older yaml
   # gemspecs.
 
   Requirement = Gem::Requirement # :nodoc:
+
 end

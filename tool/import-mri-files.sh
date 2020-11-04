@@ -90,6 +90,10 @@ rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
 git checkout -- test/mri/tests/runner.rb
 
+# Copy from tool/lib to test/lib
+cp -r ../ruby/tool/lib/* test/mri/tests/lib
+rm -f test/mri/tests/lib/leakchecker.rb
+
 # basictest/ and bootstraptest/
 rm -rf test/basictest
 cp -r ../ruby/basictest test/basictest

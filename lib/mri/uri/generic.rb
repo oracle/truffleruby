@@ -588,17 +588,9 @@ module URI
       if @opaque
         raise InvalidURIError,
           "can not set host with registry or opaque"
-      else
-        if defined?(::TruffleRuby)
-          bad = !parser.regexp[:HOST].match(v)
-        else
-          bad = parser.regexp[:HOST] !~ v
-        end
-        
-        if bad
-          raise InvalidComponentError,
-            "bad component(expected host component): #{v}"
-        end
+      elsif parser.regexp[:HOST] !~ v
+        raise InvalidComponentError,
+          "bad component(expected host component): #{v}"
       end
 
       return true
@@ -844,6 +836,7 @@ module URI
       v.encode!(Encoding::UTF_8) rescue nil
       v.delete!("\t\r\n")
       v.force_encoding(Encoding::ASCII_8BIT)
+      raise InvalidURIError, "invalid percent escape: #{$1}" if /(%\H\H)/n.match(v)
       v.gsub!(/(?!%\h\h|[!$-&(-;=?-_a-~])./n.freeze){'%%%02X' % $&.ord}
       v.force_encoding(Encoding::US_ASCII)
       @query = v

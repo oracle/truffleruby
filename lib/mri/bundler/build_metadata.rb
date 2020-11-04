@@ -4,8 +4,6 @@ module Bundler
   # Represents metadata from when the Bundler gem was built.
   module BuildMetadata
     # begin ivars
-    @built_at = "2018-12-19".freeze
-    @git_commit_sha = "3fc4de72b".freeze
     @release = false
     # end ivars
 
@@ -25,7 +23,7 @@ module Bundler
 
     # The SHA for the git commit the bundler gem was built from.
     def self.git_commit_sha
-      return @git_commit_sha if @git_commit_sha
+      return @git_commit_sha if instance_variable_defined? :@git_commit_sha
 
       # If Bundler has been installed without its .git directory and without a
       # commit instance variable then we can't determine its commits SHA.

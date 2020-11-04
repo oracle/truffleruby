@@ -21,15 +21,13 @@ extern "C" {
 #endif
 #endif
 
-// Must be first, as it defines feature test macros like _GNU_SOURCE,
-// which influences the definitions exposed by system header files.
 #include "ruby/config.h"
-#include <truffleruby/truffleruby-pre.h>
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
 #endif
 
 #include "defines.h"
+#include "ruby/assert.h"
 
 /* For MinGW, we need __declspec(dllimport) for RUBY_EXTERN on MJIT.
    mswin's RUBY_EXTERN already has that. See also: win32/Makefile.sub */
@@ -101,10 +99,8 @@ typedef uintptr_t ID;
 # define SIZEOF_VALUE SIZEOF_UINTPTR_T
 # undef PRI_VALUE_PREFIX
 #elif SIZEOF_LONG == SIZEOF_VOIDP
-#ifndef TRUFFLERUBY
 typedef unsigned long VALUE;
 typedef unsigned long ID;
-#endif
 # define SIGNED_VALUE long
 # define SIZEOF_VALUE SIZEOF_LONG
 # define PRI_VALUE_PREFIX "l"
@@ -167,11 +163,7 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define PRIuVALUE PRI_VALUE_PREFIX"u"
 #define PRIxVALUE PRI_VALUE_PREFIX"x"
 #define PRIXVALUE PRI_VALUE_PREFIX"X"
-#ifdef TRUFFLERUBY
-#define PRIsVALUE "P"
-#else
 #define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
-#endif
 #endif
 #ifndef PRI_VALUE_PREFIX
 # define PRI_VALUE_PREFIX ""
@@ -262,23 +254,14 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 # endif
 #endif
 
-#ifdef TRUFFLERUBY
-#define RUBY_FIXNUM_MAX LONG_MAX
-#define RUBY_FIXNUM_MIN LONG_MIN
-#else
 #define RUBY_FIXNUM_MAX (LONG_MAX>>1)
 #define RUBY_FIXNUM_MIN RSHIFT((long)LONG_MIN,1)
-#endif
 #define FIXNUM_MAX RUBY_FIXNUM_MAX
 #define FIXNUM_MIN RUBY_FIXNUM_MIN
 
 #define RB_INT2FIX(i) (((VALUE)(i))<<1 | RUBY_FIXNUM_FLAG)
 #define INT2FIX(i) RB_INT2FIX(i)
-#ifdef TRUFFLERUBY
-#define RB_LONG2FIX(i) (VALUE)rb_tr_longwrap((long)(i))
-#else
 #define RB_LONG2FIX(i) RB_INT2FIX(i)
-#endif
 #define LONG2FIX(i) RB_INT2FIX(i)
 #define rb_fix_new(v) RB_INT2FIX(v)
 VALUE rb_int2inum(intptr_t);
@@ -352,9 +335,6 @@ VALUE rb_ull2inum(unsigned LONG_LONG);
 NORETURN(void rb_out_of_int(SIGNED_VALUE num));
 #endif
 
-#ifdef TRUFFLERUBY
-int rb_long2int(long value);
-#else
 #if SIZEOF_INT < SIZEOF_LONG
 static inline int
 rb_long2int_inline(long n)
@@ -368,7 +348,6 @@ rb_long2int_inline(long n)
 #define rb_long2int(n) rb_long2int_inline(n)
 #else
 #define rb_long2int(n) ((int)(n))
-#endif
 #endif
 
 #ifndef PIDT2NUM
@@ -396,11 +375,7 @@ rb_long2int_inline(long n)
 #define MODET2NUM(v) INT2NUM(v)
 #endif
 
-#ifdef TRUFFLERUBY
-#define RB_FIX2LONG(x) (polyglot_as_i64(rb_tr_unwrap(x)))
-#else
 #define RB_FIX2LONG(x) ((long)RSHIFT((SIGNED_VALUE)(x),1))
-#endif
 static inline long
 rb_fix2long(VALUE x)
 {
@@ -412,13 +387,8 @@ rb_fix2ulong(VALUE x)
 {
     return RB_FIX2ULONG(x);
 }
-#ifdef TRUFFLERUBY
-int RB_FIXNUM_P(VALUE value);
-#define RB_POSFIXABLE(f) ((f) <= RUBY_FIXNUM_MAX)
-#else
 #define RB_FIXNUM_P(f) (((int)(SIGNED_VALUE)(f))&RUBY_FIXNUM_FLAG)
 #define RB_POSFIXABLE(f) ((f) < RUBY_FIXNUM_MAX+1)
-#endif
 #define RB_NEGFIXABLE(f) ((f) >= RUBY_FIXNUM_MIN)
 #define RB_FIXABLE(f) (RB_POSFIXABLE(f) && RB_NEGFIXABLE(f))
 #define FIX2LONG(x) RB_FIX2LONG(x)
@@ -431,21 +401,11 @@ int RB_FIXNUM_P(VALUE value);
 #define RB_IMMEDIATE_P(x) ((VALUE)(x) & RUBY_IMMEDIATE_MASK)
 #define IMMEDIATE_P(x) RB_IMMEDIATE_P(x)
 
-static inline VALUE
-rb_symbol_p_inline(VALUE v)
-{
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", rb_tr_unwrap(v)));
-}
-
 ID rb_sym2id(VALUE);
 VALUE rb_id2sym(ID);
 #define RB_STATIC_SYM_P(x) (((VALUE)(x)&~((~(VALUE)0)<<RUBY_SPECIAL_SHIFT)) == RUBY_SYMBOL_FLAG)
 #define RB_DYNAMIC_SYM_P(x) (!RB_SPECIAL_CONST_P(x) && RB_BUILTIN_TYPE(x) == (RUBY_T_SYMBOL))
-#ifdef TRUFFLERUBY
-#define RB_SYMBOL_P(x) rb_symbol_p_inline(x)
-#else
 #define RB_SYMBOL_P(x) (RB_STATIC_SYM_P(x)||RB_DYNAMIC_SYM_P(x))
-#endif
 #define RB_ID2SYM(x) (rb_id2sym(x))
 #define RB_SYM2ID(x) (rb_sym2id(x))
 #define STATIC_SYM_P(x) RB_STATIC_SYM_P(x)
@@ -553,6 +513,7 @@ enum ruby_value_type {
     RUBY_T_NODE   = 0x1b,
     RUBY_T_ICLASS = 0x1c,
     RUBY_T_ZOMBIE = 0x1d,
+    RUBY_T_MOVED  = 0x1e,
 
     RUBY_T_MASK   = 0x1f
 };
@@ -583,36 +544,19 @@ enum ruby_value_type {
 #define T_UNDEF  RUBY_T_UNDEF
 #define T_NODE   RUBY_T_NODE
 #define T_ZOMBIE RUBY_T_ZOMBIE
+#define T_MOVED RUBY_T_MOVED
 #define T_MASK   RUBY_T_MASK
 
-#ifdef TRUFFLERUBY
-#define RB_BUILTIN_TYPE(OBJECT) rb_type(OBJECT)
-#define RB_BUILTIN_TYPE_NATIVE(x) (int)(((struct RBasic*)(x))->flags & RUBY_T_MASK)
-#else
 #define RB_BUILTIN_TYPE(x) (int)(((struct RBasic*)(x))->flags & RUBY_T_MASK)
-#endif
 #define BUILTIN_TYPE(x) RB_BUILTIN_TYPE(x)
 
-#ifdef TRUFFLERUBY
-int rb_type(VALUE value);
-#else
 static inline int rb_type(VALUE obj);
-#endif
 #define TYPE(x) rb_type((VALUE)(x))
 
-#ifdef TRUFFLERUBY
-/* TruffleRuby: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats. */
-#define RB_FLOAT_TYPE_P(obj) (\
-	polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", rb_tr_unwrap(obj))))
-#else
 #define RB_FLOAT_TYPE_P(obj) (\
 	RB_FLONUM_P(obj) || \
 	(!RB_SPECIAL_CONST_P(obj) && RB_BUILTIN_TYPE(obj) == RUBY_T_FLOAT))
-#endif
 
-#ifdef TRUFFLERUBY
-bool RB_TYPE_P(VALUE value, int type);
-#else
 #define RB_TYPE_P(obj, type) ( \
 	((type) == RUBY_T_FIXNUM) ? RB_FIXNUM_P(obj) : \
 	((type) == RUBY_T_TRUE) ? ((obj) == RUBY_Qtrue) : \
@@ -622,16 +566,7 @@ bool RB_TYPE_P(VALUE value, int type);
 	((type) == RUBY_T_SYMBOL) ? RB_SYMBOL_P(obj) : \
 	((type) == RUBY_T_FLOAT) ? RB_FLOAT_TYPE_P(obj) : \
 	(!RB_SPECIAL_CONST_P(obj) && RB_BUILTIN_TYPE(obj) == (type)))
-#endif
 
-#ifdef TRUFFLERUBY
-#define RB_GC_GUARD(v) \
-    (*__extension__ ({ \
-	polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v); \
-	volatile VALUE *rb_gc_guarded_ptr = &v; \
-	rb_gc_guarded_ptr; \
-    }))
-#else
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
@@ -649,7 +584,6 @@ volatile VALUE *rb_gc_guarded_ptr_val(volatile VALUE *ptr, VALUE val);
 #define HAVE_RB_GC_GUARDED_PTR_VAL 1
 #define RB_GC_GUARD(v) (*rb_gc_guarded_ptr_val(&(v),(v)))
 #endif
-#endif
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))
@@ -661,56 +595,38 @@ void rb_check_type(VALUE,int);
 #define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
 VALUE rb_str_to_str(VALUE);
-#ifdef TRUFFLERUBY
-VALUE rb_string_value(VALUE *value_pointer);
-char *rb_string_value_ptr(VALUE *value_pointer);
-char *rb_string_value_cstr(VALUE *value_pointer);
-#else
 VALUE rb_string_value(volatile VALUE*);
 char *rb_string_value_ptr(volatile VALUE*);
 char *rb_string_value_cstr(volatile VALUE*);
-#endif
 
-#ifdef TRUFFLERUBY
-#define StringValue(v) rb_tr_string_value(&(v))
-#define StringValuePtr(v) rb_tr_string_value_ptr(&(v))
-#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
-#else
 #define StringValue(v) rb_string_value(&(v))
 #define StringValuePtr(v) rb_string_value_ptr(&(v))
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
-#endif
 
 void rb_check_safe_obj(VALUE);
-#define SafeStringValue(v) do {\
-    StringValue(v);\
-    rb_check_safe_obj(v);\
-} while (0)
+#define SafeStringValue(v) StringValue(v)
 #if GCC_VERSION_SINCE(4,4,0)
-void rb_check_safe_str(VALUE) __attribute__((error("rb_check_safe_str() and Check_SafeStr() are obsolete; use SafeStringValue() instead")));
+void rb_check_safe_str(VALUE) __attribute__((error("rb_check_safe_str() and Check_SafeStr() are obsolete; use StringValue() instead")));
 # define Check_SafeStr(v) rb_check_safe_str((VALUE)(v))
 #else
-# define rb_check_safe_str(x) [<"rb_check_safe_str() is obsolete; use SafeStringValue() instead">]
-# define Check_SafeStr(v) [<"Check_SafeStr() is obsolete; use SafeStringValue() instead">]
+# define rb_check_safe_str(x) [<"rb_check_safe_str() is obsolete; use StringValue() instead">]
+# define Check_SafeStr(v) [<"Check_SafeStr() is obsolete; use StringValue() instead">]
 #endif
 
 VALUE rb_str_export(VALUE);
 #define ExportStringValue(v) do {\
-    SafeStringValue(v);\
+    StringValue(v);\
    (v) = rb_str_export(v);\
 } while (0)
 VALUE rb_str_export_locale(VALUE);
 
 VALUE rb_get_path(VALUE);
-#ifdef TRUFFLERUBY
-#define FilePathValue(v) (v = rb_get_path(v))
-#else
 #define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
-#endif
 
 VALUE rb_get_path_no_checksafe(VALUE);
-#define FilePathStringValue(v) ((v) = rb_get_path_no_checksafe(v))
+#define FilePathStringValue(v) ((v) = rb_get_path(v))
 
+/* Remove in 3.0 */
 #define RUBY_SAFE_LEVEL_MAX 1
 void rb_secure(int);
 int rb_safe_level(void);
@@ -930,6 +846,7 @@ enum ruby_fl_type {
     RUBY_FL_FINALIZE  = (1<<7),
     RUBY_FL_TAINT     = (1<<8),
     RUBY_FL_UNTRUSTED = RUBY_FL_TAINT,
+    RUBY_FL_SEEN_OBJ_ID = (1<<9),
     RUBY_FL_EXIVAR    = (1<<10),
     RUBY_FL_FREEZE    = (1<<11),
 
@@ -968,16 +885,8 @@ enum ruby_fl_type {
 
 struct RUBY_ALIGNAS(SIZEOF_VALUE) RBasic {
     VALUE flags;
-#ifdef TRUFFLERUBY
-    VALUE klass;
-#else
     const VALUE klass;
-#endif
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RBasic)
-#endif
 
 VALUE rb_obj_hide(VALUE obj);
 VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change klass information */
@@ -994,16 +903,17 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
      OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 #endif
 
-#ifdef TRUFFLERUBY
-#define RBASIC_CLASS(obj) (rb_class_of(obj))
-#else
 #define RBASIC_CLASS(obj) (RBASIC(obj)->klass)
-#endif
+
+#define RVALUE_EMBED_LEN_MAX RVALUE_EMBED_LEN_MAX
+enum ruby_rvalue_flags {
+    RVALUE_EMBED_LEN_MAX = 3,
+};
 
 #define ROBJECT_EMBED_LEN_MAX ROBJECT_EMBED_LEN_MAX
 #define ROBJECT_EMBED ROBJECT_EMBED
 enum ruby_robject_flags {
-    ROBJECT_EMBED_LEN_MAX = 3,
+    ROBJECT_EMBED_LEN_MAX = RVALUE_EMBED_LEN_MAX,
     ROBJECT_EMBED = RUBY_FL_USER1,
 
     ROBJECT_ENUM_END
@@ -1069,7 +979,7 @@ enum ruby_rstring_flags {
     RSTRING_EMBED_LEN_MASK = (RUBY_FL_USER2|RUBY_FL_USER3|RUBY_FL_USER4|
 			      RUBY_FL_USER5|RUBY_FL_USER6),
     RSTRING_EMBED_LEN_SHIFT = (RUBY_FL_USHIFT+2),
-    RSTRING_EMBED_LEN_MAX = (int)((sizeof(VALUE)*3)/sizeof(char)-1),
+    RSTRING_EMBED_LEN_MAX = (int)((sizeof(VALUE)*RVALUE_EMBED_LEN_MAX)/sizeof(char)-1),
     RSTRING_FSTR = RUBY_FL_USER17,
 
     RSTRING_ENUM_END
@@ -1092,17 +1002,6 @@ struct RString {
 #define RSTRING_EMBED_LEN(str) \
      (long)((RBASIC(str)->flags >> RSTRING_EMBED_LEN_SHIFT) & \
             (RSTRING_EMBED_LEN_MASK >> RSTRING_EMBED_LEN_SHIFT))
-#ifdef TRUFFLERUBY
-int rb_str_len(VALUE string);
-#define RSTRING_LEN(str) (long)rb_str_len(str)
-
-char *RSTRING_PTR_IMPL(VALUE string);
-char *RSTRING_END_IMPL(VALUE string);
-#define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
-#define RSTRING_END(str) RSTRING_END_IMPL(str)
-#define RSTRING_LENINT(str) rb_str_len(str)
-#define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
-#else
 #define RSTRING_LEN(str) \
     (!(RBASIC(str)->flags & RSTRING_NOEMBED) ? \
      RSTRING_EMBED_LEN(str) : \
@@ -1120,14 +1019,13 @@ char *RSTRING_END_IMPL(VALUE string);
     (!(RBASIC(str)->flags & RSTRING_NOEMBED) ? \
      ((ptrvar) = RSTRING(str)->as.ary, (lenvar) = RSTRING_EMBED_LEN(str)) : \
      ((ptrvar) = RSTRING(str)->as.heap.ptr, (lenvar) = RSTRING(str)->as.heap.len))
-#endif
 
 #ifndef USE_TRANSIENT_HEAP
 #define USE_TRANSIENT_HEAP 1
 #endif
 
 enum ruby_rarray_flags {
-    RARRAY_EMBED_LEN_MAX = 3,
+    RARRAY_EMBED_LEN_MAX = RVALUE_EMBED_LEN_MAX,
     RARRAY_EMBED_FLAG = RUBY_FL_USER1,
     /* RUBY_FL_USER2 is for ELTS_SHARED */
     RARRAY_EMBED_LEN_MASK = (RUBY_FL_USER4|RUBY_FL_USER3),
@@ -1154,7 +1052,12 @@ struct RArray {
 	    long len;
 	    union {
 		long capa;
-		VALUE shared;
+#if defined(__clang__)      /* <- clang++ is sane */ || \
+    !defined(__cplusplus)   /* <- C99 is sane */     || \
+    (__cplusplus > 199711L) /* <- C++11 is sane */
+                const
+#endif
+                VALUE shared_root;
 	    } aux;
 	    const VALUE *ptr;
 	} heap;
@@ -1165,13 +1068,7 @@ struct RArray {
     (long)((RBASIC(a)->flags >> RARRAY_EMBED_LEN_SHIFT) & \
 	   (RARRAY_EMBED_LEN_MASK >> RARRAY_EMBED_LEN_SHIFT))
 #define RARRAY_LEN(a) rb_array_len(a)
-#ifdef TRUFFLERUBY
-long rb_array_len(VALUE a);
-int RARRAY_LENINT(VALUE array);
-#else
 #define RARRAY_LENINT(ary) rb_long2int(RARRAY_LEN(ary))
-#endif
-
 #define RARRAY_CONST_PTR(a) rb_array_const_ptr(a)
 #define RARRAY_CONST_PTR_TRANSIENT(a) rb_array_const_ptr_transient(a)
 
@@ -1201,10 +1098,6 @@ int RARRAY_LENINT(VALUE array);
     RARRAY_PTR_USE_END(_ary); \
 } while (0)
 
-#ifdef TRUFFLERUBY
-VALUE RARRAY_AREF(VALUE array, long index);
-#define RARRAY_ASET(a, i, v) rb_ary_store(a, i, v)
-#else
 #define RARRAY_AREF(a, i) (RARRAY_CONST_PTR_TRANSIENT(a)[i])
 #define RARRAY_ASET(a, i, v) do { \
     const VALUE _ary = (a); \
@@ -1213,14 +1106,8 @@ VALUE RARRAY_AREF(VALUE array, long index);
     RB_OBJ_WRITE(_ary, &ptr[i], _v); \
     RARRAY_PTR_USE_END_TRANSIENT(_ary); \
 } while (0)
-#endif
 
-#ifdef TRUFFLERUBY
-VALUE *RARRAY_PTR_IMPL(VALUE array);
-#define RARRAY_PTR(array) RARRAY_PTR_IMPL(array)
-#else
 #define RARRAY_PTR(a) ((VALUE *)RARRAY_CONST_PTR(RB_OBJ_WB_UNPROTECT_FOR(ARRAY, a)))
-#endif
 
 struct RRegexp {
     struct RBasic basic;
@@ -1256,10 +1143,6 @@ struct RData {
     void *data;
 };
 
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RData)
-#endif
-
 typedef struct rb_data_type_struct rb_data_type_t;
 
 struct rb_data_type_struct {
@@ -1268,7 +1151,8 @@ struct rb_data_type_struct {
 	void (*dmark)(void*);
 	void (*dfree)(void*);
 	size_t (*dsize)(const void *);
-	void *reserved[2]; /* For future extension.
+        void (*dcompact)(void*);
+        void *reserved[1]; /* For future extension.
 			      This array *must* be filled with ZERO. */
     } function;
     const rb_data_type_t *parent;
@@ -1282,18 +1166,11 @@ struct rb_data_type_struct {
 #define HAVE_RB_DATA_TYPE_T_PARENT 1
 
 struct RTypedData {
-#ifndef TRUFFLERUBY
-    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
-#endif
     const rb_data_type_t *type;
     VALUE typed_flag; /* 1 or not */
     void *data;
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RTypedData)
-#endif
 
 #define DATA_PTR(dta) (RDATA(dta)->data)
 
@@ -1341,10 +1218,10 @@ void *rb_check_typeddata(VALUE, const rb_data_type_t *);
     (void)((sval) = (type *)DATA_PTR(result));
 
 #ifdef __GNUC__
-#define Data_Make_Struct(klass,type,mark,free,sval) RB_GNUC_EXTENSION_BLOCK(\
+#define Data_Make_Struct(klass,type,mark,free,sval) ({\
     Data_Make_Struct0(data_struct_obj, klass, type, sizeof(type), mark, free, sval); \
-    data_struct_obj \
-)
+    data_struct_obj; \
+})
 #else
 #define Data_Make_Struct(klass,type,mark,free,sval) (\
     rb_data_object_make((klass),(RUBY_DATA_FUNC)(mark),(RUBY_DATA_FUNC)(free),(void **)&(sval),sizeof(type)) \
@@ -1359,10 +1236,10 @@ void *rb_check_typeddata(VALUE, const rb_data_type_t *);
     (void)((sval) = (type *)DATA_PTR(result));
 
 #ifdef __GNUC__
-#define TypedData_Make_Struct(klass, type, data_type, sval) RB_GNUC_EXTENSION_BLOCK(\
+#define TypedData_Make_Struct(klass, type, data_type, sval) ({\
     TypedData_Make_Struct0(data_struct_obj, klass, type, sizeof(type), data_type, sval); \
-    data_struct_obj \
-)
+    data_struct_obj; \
+})
 #else
 #define TypedData_Make_Struct(klass, type, data_type, sval) (\
     rb_data_typed_object_make((klass),(data_type),(void **)&(sval),sizeof(type)) \
@@ -1386,24 +1263,16 @@ int rb_big_sign(VALUE);
 #define RBIGNUM_NEGATIVE_P(b) (RBIGNUM_SIGN(b)==0)
 
 #define R_CAST(st)   (struct st*)
-#ifdef TRUFFLERUBY
-#define RBASIC(obj) (polyglot_as_RBasic(polyglot_invoke(RUBY_CEXT, "RBASIC", rb_tr_unwrap(obj))))
-#else
+#define RMOVED(obj)  (R_CAST(RMoved)(obj))
 #define RBASIC(obj)  (R_CAST(RBasic)(obj))
-#endif
 #define ROBJECT(obj) (R_CAST(RObject)(obj))
 #define RCLASS(obj)  (R_CAST(RClass)(obj))
 #define RMODULE(obj) RCLASS(obj)
 #define RSTRING(obj) (R_CAST(RString)(obj))
 #define RREGEXP(obj) (R_CAST(RRegexp)(obj))
 #define RARRAY(obj)  (R_CAST(RArray)(obj))
-#ifdef TRUFFLERUBY
-#define RDATA(obj) (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
-#define RTYPEDDATA(obj) (polyglot_as_RTypedData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
-#else
 #define RDATA(obj)   (R_CAST(RData)(obj))
 #define RTYPEDDATA(obj)   (R_CAST(RTypedData)(obj))
-#endif
 #define RFILE(obj)   (R_CAST(RFile)(obj))
 
 #define FL_SINGLETON    ((VALUE)RUBY_FL_SINGLETON)
@@ -1413,6 +1282,7 @@ int rb_big_sign(VALUE);
 #define FL_FINALIZE     ((VALUE)RUBY_FL_FINALIZE)
 #define FL_TAINT        ((VALUE)RUBY_FL_TAINT)
 #define FL_UNTRUSTED    ((VALUE)RUBY_FL_UNTRUSTED)
+#define FL_SEEN_OBJ_ID  ((VALUE)RUBY_FL_SEEN_OBJ_ID)
 #define FL_EXIVAR       ((VALUE)RUBY_FL_EXIVAR)
 #define FL_FREEZE       ((VALUE)RUBY_FL_FREEZE)
 
@@ -1437,71 +1307,40 @@ int rb_big_sign(VALUE);
 #define FL_USER16 	((VALUE)RUBY_FL_USER16)
 #define FL_USER17 	((VALUE)RUBY_FL_USER17)
 #define FL_USER18 	((VALUE)RUBY_FL_USER18)
-#define FL_USER19 	((VALUE)RUBY_FL_USER19)
+#define FL_USER19 	((VALUE)(unsigned int)RUBY_FL_USER19)
 
-#ifdef TRUFFLERUBY
-int rb_special_const_p(VALUE object);
-#define RB_SPECIAL_CONST_P(x) rb_special_const_p(x)
-#else
 #define RB_SPECIAL_CONST_P(x) (RB_IMMEDIATE_P(x) || !RB_TEST(x))
-#endif
 #define SPECIAL_CONST_P(x) RB_SPECIAL_CONST_P(x)
 
 #define RB_FL_ABLE(x) (!RB_SPECIAL_CONST_P(x) && RB_BUILTIN_TYPE(x) != RUBY_T_NODE)
-#ifdef TRUFFLERUBY
-#define RB_FL_TEST_RAW(x,f) (rb_tr_flags(x)&(f))
-#else
 #define RB_FL_TEST_RAW(x,f) (RBASIC(x)->flags&(f))
-#endif
 #define RB_FL_TEST(x,f) (RB_FL_ABLE(x)?RB_FL_TEST_RAW((x),(f)):0)
 #define RB_FL_ANY_RAW(x,f) RB_FL_TEST_RAW((x),(f))
 #define RB_FL_ANY(x,f) RB_FL_TEST((x),(f))
 #define RB_FL_ALL_RAW(x,f) (RB_FL_TEST_RAW((x),(f)) == (f))
 #define RB_FL_ALL(x,f) (RB_FL_TEST((x),(f)) == (f))
-#ifdef TRUFFLERUBY
-#define RB_FL_SET_RAW(x,f) rb_tr_add_flags(x,f)
-#else
 #define RB_FL_SET_RAW(x,f) (void)(RBASIC(x)->flags |= (f))
-#endif
 #define RB_FL_SET(x,f) (RB_FL_ABLE(x) ? RB_FL_SET_RAW(x, f) : (void)0)
 #define RB_FL_UNSET_RAW(x,f) (void)(RBASIC(x)->flags &= ~(VALUE)(f))
 #define RB_FL_UNSET(x,f) (RB_FL_ABLE(x) ? RB_FL_UNSET_RAW(x, f) : (void)0)
 #define RB_FL_REVERSE_RAW(x,f) (void)(RBASIC(x)->flags ^= (f))
 #define RB_FL_REVERSE(x,f) (RB_FL_ABLE(x) ? RB_FL_REVERSE_RAW(x, f) : (void)0)
 
-#ifdef TRUFFLERUBY
-#define RB_OBJ_TAINTABLE(x) rb_tr_obj_taintable_p(x)
-#define RB_OBJ_TAINTED_RAW(x) rb_tr_obj_tainted_p(x)
-#define RB_OBJ_TAINTED(x) rb_tr_obj_tainted_p(x)
-#define RB_OBJ_TAINT_RAW(x) rb_obj_taint(x)
-#else
 #define RB_OBJ_TAINTABLE(x) (RB_FL_ABLE(x) && RB_BUILTIN_TYPE(x) != RUBY_T_BIGNUM && RB_BUILTIN_TYPE(x) != RUBY_T_FLOAT)
 #define RB_OBJ_TAINTED_RAW(x) RB_FL_TEST_RAW(x, RUBY_FL_TAINT)
 #define RB_OBJ_TAINTED(x) (!!RB_FL_TEST((x), RUBY_FL_TAINT))
 #define RB_OBJ_TAINT_RAW(x) RB_FL_SET_RAW(x, RUBY_FL_TAINT)
-#endif
 #define RB_OBJ_TAINT(x) (RB_OBJ_TAINTABLE(x) ? RB_OBJ_TAINT_RAW(x) : (void)0)
 #define RB_OBJ_UNTRUSTED(x) RB_OBJ_TAINTED(x)
 #define RB_OBJ_UNTRUST(x) RB_OBJ_TAINT(x)
-#ifdef TRUFFLERUBY
-#define RB_OBJ_INFECT_RAW(x,s) rb_tr_obj_infect(x, s)
-#define RB_OBJ_INFECT(x,s) rb_tr_obj_infect(x, s)
-#else
 #define RB_OBJ_INFECT_RAW(x,s) RB_FL_SET_RAW(x, RB_OBJ_TAINTED_RAW(s))
 #define RB_OBJ_INFECT(x,s) ( \
     (RB_OBJ_TAINTABLE(x) && RB_FL_ABLE(s)) ? \
     RB_OBJ_INFECT_RAW(x, s) : (void)0)
-#endif
 
-#ifdef TRUFFLERUBY
-#define RB_OBJ_FROZEN_RAW(x) rb_obj_frozen_p(x)
-#define RB_OBJ_FROZEN(x) rb_obj_frozen_p(x)
-#define RB_OBJ_FREEZE_RAW(x) rb_obj_freeze(x)
-#else
 #define RB_OBJ_FROZEN_RAW(x) (RBASIC(x)->flags&RUBY_FL_FREEZE)
 #define RB_OBJ_FROZEN(x) (!RB_FL_ABLE(x) || RB_OBJ_FROZEN_RAW(x))
 #define RB_OBJ_FREEZE_RAW(x) (void)(RBASIC(x)->flags |= RUBY_FL_FREEZE)
-#endif
 #define RB_OBJ_FREEZE(x) rb_obj_freeze_inline((VALUE)x)
 
 /*!
@@ -1541,9 +1380,6 @@ int rb_special_const_p(VALUE object);
 
 void rb_freeze_singleton_class(VALUE klass);
 
-#ifdef TRUFFLERUBY
-#define rb_obj_freeze_inline(object) rb_obj_freeze(object)
-#else
 static inline void
 rb_obj_freeze_inline(VALUE x)
 {
@@ -1554,7 +1390,6 @@ rb_obj_freeze_inline(VALUE x)
 	}
     }
 }
-#endif
 
 #if GCC_VERSION_SINCE(4,4,0)
 # define RUBY_UNTYPED_DATA_FUNC(func) func __attribute__((warning("untyped Data is unsafe; use TypedData instead")))
@@ -1584,20 +1419,12 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 #endif
 #endif
 
-#ifdef TRUFFLERUBY
-static inline void *
-rb_data_object_get(VALUE obj)
-{
-    return DATA_PTR(obj);
-}
-#else
 static inline void *
 rb_data_object_get(VALUE obj)
 {
     Check_Type(obj, RUBY_T_DATA);
     return ((struct RData *)obj)->data;
 }
-#endif
 
 #if defined(__GNUC__) && !defined(__NO_INLINE__)
 static inline void *
@@ -1614,11 +1441,6 @@ rb_data_object_make(VALUE klass, RUBY_DATA_FUNC mark_func, RUBY_DATA_FUNC free_f
     return result;
 }
 
-#ifdef TRUFFLERUBY
-VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size);
-
-#define rb_data_object_alloc(klass, data, dmark, dfree) rb_data_object_wrap(klass, data, dmark, dfree)
-#else
 static inline VALUE
 rb_data_typed_object_make(VALUE klass, const rb_data_type_t *type, void **datap, size_t size)
 {
@@ -1633,7 +1455,6 @@ rb_data_object_alloc(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FU
 {
     return rb_data_object_wrap(klass, data, dmark, dfree);
 }
-#endif
 #endif
 
 #ifndef rb_data_typed_object_alloc
@@ -1804,11 +1625,7 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
 	return RB_LONG2FIX(v);
     else
-#ifdef TRUFFLERUBY
-	return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v));
-#else
 	return rb_uint2big(v);
-#endif
 }
 #define RB_ULONG2NUM(x) rb_ulong2num_inline(x)
 
@@ -1936,6 +1753,15 @@ rb_alloc_tmp_buffer2(volatile VALUE *store, long count, size_t elsize)
 #define MEMCPY(p1,p2,type,n) memcpy((p1), (p2), sizeof(type)*(size_t)(n))
 #define MEMMOVE(p1,p2,type,n) memmove((p1), (p2), sizeof(type)*(size_t)(n))
 #define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(size_t)(n))
+#ifdef __GLIBC__
+static inline void *
+ruby_nonempty_memcpy(void *dest, const void *src, size_t n)
+{
+    /* if nothing to be copied, src may be NULL */
+    return (n ? memcpy(dest, src, n) : dest);
+}
+#define memcpy(p1,p2,n) ruby_nonempty_memcpy(p1, p2, n)
+#endif
 
 void rb_obj_infect(VALUE victim, VALUE carrier);
 
@@ -1953,34 +1779,31 @@ void rb_include_module(VALUE,VALUE);
 void rb_extend_object(VALUE,VALUE);
 void rb_prepend_module(VALUE,VALUE);
 
-struct rb_global_variable;
-
-typedef VALUE rb_gvar_getter_t(ID id, void *data, struct rb_global_variable *gvar);
-typedef void  rb_gvar_setter_t(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
+typedef VALUE rb_gvar_getter_t(ID id, VALUE *data);
+typedef void  rb_gvar_setter_t(VALUE val, ID id, VALUE *data);
 typedef void  rb_gvar_marker_t(VALUE *var);
 
-VALUE rb_gvar_undef_getter(ID id, void *data, struct rb_global_variable *gvar);
-void  rb_gvar_undef_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
-void  rb_gvar_undef_marker(VALUE *var);
+rb_gvar_getter_t rb_gvar_undef_getter;
+rb_gvar_setter_t rb_gvar_undef_setter;
+rb_gvar_marker_t rb_gvar_undef_marker;
 
-VALUE rb_gvar_val_getter(ID id, void *data, struct rb_global_variable *gvar);
-void  rb_gvar_val_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
-void  rb_gvar_val_marker(VALUE *var);
+rb_gvar_getter_t rb_gvar_val_getter;
+rb_gvar_setter_t rb_gvar_val_setter;
+rb_gvar_marker_t rb_gvar_val_marker;
 
-VALUE rb_gvar_var_getter(ID id, void *data, struct rb_global_variable *gvar);
-void  rb_gvar_var_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
-void  rb_gvar_var_marker(VALUE *var);
+rb_gvar_getter_t rb_gvar_var_getter;
+rb_gvar_setter_t rb_gvar_var_setter;
+rb_gvar_marker_t rb_gvar_var_marker;
 
-NORETURN(void  rb_gvar_readonly_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar));
+NORETURN(rb_gvar_setter_t rb_gvar_readonly_setter);
 
 void rb_define_variable(const char*,VALUE*);
-void rb_define_virtual_variable(const char*,VALUE(*)(ANYARGS),void(*)(ANYARGS));
-void rb_define_hooked_variable(const char*,VALUE*,VALUE(*)(ANYARGS),void(*)(ANYARGS));
+void rb_define_virtual_variable(const char*,rb_gvar_getter_t*,rb_gvar_setter_t*);
+void rb_define_hooked_variable(const char*,VALUE*,rb_gvar_getter_t*,rb_gvar_setter_t*);
 void rb_define_readonly_variable(const char*,const VALUE*);
 void rb_define_const(VALUE,const char*,VALUE);
 void rb_define_global_const(const char*,VALUE);
 
-#define RUBY_METHOD_FUNC(func) ((VALUE (*)(ANYARGS))(func))
 void rb_define_method(VALUE,const char*,VALUE(*)(ANYARGS),int);
 void rb_define_module_function(VALUE,const char*,VALUE(*)(ANYARGS),int);
 void rb_define_global_function(const char*,VALUE(*)(ANYARGS),int);
@@ -1989,11 +1812,7 @@ void rb_undef_method(VALUE,const char*);
 void rb_define_alias(VALUE,const char*,const char*);
 void rb_define_attr(VALUE,const char*,int,int);
 
-#ifdef TRUFFLERUBY
-#define rb_global_variable(address) ;
-#else
 void rb_global_variable(VALUE*);
-#endif
 void rb_gc_register_mark_object(VALUE);
 void rb_gc_register_address(VALUE*);
 void rb_gc_unregister_address(VALUE*);
@@ -2009,15 +1828,6 @@ VALUE rb_sym2str(VALUE);
 VALUE rb_to_symbol(VALUE name);
 VALUE rb_check_symbol(volatile VALUE *namep);
 
-#ifdef TRUFFLERUBY
-#define RUBY_CONST_ID_CACHE(result, str)		\
-    {							\
-	static ID rb_intern_id_cache;			\
-	if (!polyglot_is_value((void*)rb_intern_id_cache)) \
-	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
-	result rb_intern_id_cache;			\
-    }
-#else
 #define RUBY_CONST_ID_CACHE(result, str)		\
     {							\
 	static ID rb_intern_id_cache;			\
@@ -2025,7 +1835,6 @@ VALUE rb_check_symbol(volatile VALUE *namep);
 	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
 	result rb_intern_id_cache;			\
     }
-#endif
 #define RUBY_CONST_ID(var, str) \
     do RUBY_CONST_ID_CACHE((var) =, (str)) while (0)
 #define CONST_ID_CACHE(result, str) RUBY_CONST_ID_CACHE(result, str)
@@ -2042,7 +1851,6 @@ VALUE rb_check_symbol(volatile VALUE *namep);
      __extension__ (rb_intern2((str), (long)strlen(str))) : \
      (rb_intern)(str))
 
-#ifndef TRUFFLERUBY
 # define rb_varargs_argc_check_runtime(argc, vargc) \
     (((argc) <= (vargc)) ? (argc) : \
      (rb_fatal("argc(%d) exceeds actual arguments(%d)", \
@@ -2066,7 +1874,6 @@ ERRORFUNC((" argument length doesn't match"), int rb_varargs_bad_length(int,int)
 #   define rb_varargs_argc_check(argc, vargc) \
 	rb_varargs_argc_check_runtime(argc, vargc)
 # endif
-#endif
 
 #else
 #define rb_intern_const(str) rb_intern2((str), (long)strlen(str))
@@ -2082,13 +1889,23 @@ VALUE rb_eval_string_protect(const char*, int*);
 VALUE rb_eval_string_wrap(const char*, int*);
 VALUE rb_funcall(VALUE, ID, int, ...);
 VALUE rb_funcallv(VALUE, ID, int, const VALUE*);
+VALUE rb_funcallv_kw(VALUE, ID, int, const VALUE*, int);
 VALUE rb_funcallv_public(VALUE, ID, int, const VALUE*);
+VALUE rb_funcallv_public_kw(VALUE, ID, int, const VALUE*, int);
 #define rb_funcall2 rb_funcallv
 #define rb_funcall3 rb_funcallv_public
 VALUE rb_funcall_passing_block(VALUE, ID, int, const VALUE*);
+VALUE rb_funcall_passing_block_kw(VALUE, ID, int, const VALUE*, int);
 VALUE rb_funcall_with_block(VALUE, ID, int, const VALUE*, VALUE);
+VALUE rb_funcall_with_block_kw(VALUE, ID, int, const VALUE*, VALUE, int);
 int rb_scan_args(int, const VALUE*, const char*, ...);
+#define RB_SCAN_ARGS_PASS_CALLED_KEYWORDS 0
+#define RB_SCAN_ARGS_KEYWORDS 1
+#define RB_SCAN_ARGS_EMPTY_KEYWORDS 2 /* Will be removed in 3.0 */
+#define RB_SCAN_ARGS_LAST_HASH_KEYWORDS 3
+int rb_scan_args_kw(int, int, const VALUE*, const char*, ...);
 VALUE rb_call_super(int, const VALUE*);
+VALUE rb_call_super_kw(int, const VALUE*, int);
 VALUE rb_current_receiver(void);
 int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optional, VALUE *);
 VALUE rb_extract_keywords(VALUE *orighash);
@@ -2142,32 +1959,37 @@ PRINTF_ARGS(void rb_sys_warning(const char*, ...), 1, 2);
 COLDFUNC PRINTF_ARGS(void rb_warn(const char*, ...), 1, 2);
 PRINTF_ARGS(void rb_compile_warn(const char *, int, const char*, ...), 3, 4);
 
+#define RB_BLOCK_CALL_FUNC_STRICT 1
 #define RUBY_BLOCK_CALL_FUNC_TAKES_BLOCKARG 1
 #define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) \
     VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg
 typedef VALUE rb_block_call_func(RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg));
-
-#if defined RB_BLOCK_CALL_FUNC_STRICT && RB_BLOCK_CALL_FUNC_STRICT
 typedef rb_block_call_func *rb_block_call_func_t;
-#else
-typedef VALUE (*rb_block_call_func_t)(ANYARGS);
-#endif
 
 VALUE rb_each(VALUE);
 VALUE rb_yield(VALUE);
 VALUE rb_yield_values(int n, ...);
 VALUE rb_yield_values2(int n, const VALUE *argv);
+VALUE rb_yield_values_kw(int n, const VALUE *argv, int kw_splat);
 VALUE rb_yield_splat(VALUE);
-VALUE rb_yield_block(VALUE, VALUE, int, const VALUE *, VALUE); /* rb_block_call_func */
+VALUE rb_yield_splat_kw(VALUE, int);
+VALUE rb_yield_block(RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg)); /* rb_block_call_func */
+#define RB_NO_KEYWORDS 0
+#define RB_PASS_KEYWORDS 1
+#define RB_PASS_EMPTY_KEYWORDS 2 /* Will be removed in 3.0 */
+#define RB_PASS_CALLED_KEYWORDS 3
+int rb_keyword_given_p(void);
 int rb_block_given_p(void);
 void rb_need_block(void);
-VALUE rb_iterate(VALUE(*)(VALUE),VALUE,VALUE(*)(ANYARGS),VALUE);
+VALUE rb_iterate(VALUE(*)(VALUE),VALUE,rb_block_call_func_t,VALUE);
 VALUE rb_block_call(VALUE,ID,int,const VALUE*,rb_block_call_func_t,VALUE);
-VALUE rb_rescue(VALUE(*)(ANYARGS),VALUE,VALUE(*)(ANYARGS),VALUE);
-VALUE rb_rescue2(VALUE(*)(ANYARGS),VALUE,VALUE(*)(ANYARGS),VALUE,...);
-VALUE rb_ensure(VALUE(*)(ANYARGS),VALUE,VALUE(*)(ANYARGS),VALUE);
-VALUE rb_catch(const char*,VALUE(*)(ANYARGS),VALUE);
-VALUE rb_catch_obj(VALUE,VALUE(*)(ANYARGS),VALUE);
+VALUE rb_block_call_kw(VALUE,ID,int,const VALUE*,rb_block_call_func_t,VALUE,int);
+VALUE rb_rescue(VALUE(*)(VALUE),VALUE,VALUE(*)(VALUE,VALUE),VALUE);
+VALUE rb_rescue2(VALUE(*)(VALUE),VALUE,VALUE(*)(VALUE,VALUE),VALUE,...);
+VALUE rb_vrescue2(VALUE(*)(VALUE),VALUE,VALUE(*)(VALUE,VALUE),VALUE,va_list);
+VALUE rb_ensure(VALUE(*)(VALUE),VALUE,VALUE(*)(VALUE),VALUE);
+VALUE rb_catch(const char*,rb_block_call_func_t,VALUE);
+VALUE rb_catch_obj(VALUE,rb_block_call_func_t,VALUE);
 NORETURN(void rb_throw(const char*,VALUE));
 NORETURN(void rb_throw_obj(VALUE,VALUE));
 
@@ -2256,6 +2078,7 @@ RUBY_EXTERN VALUE rb_eSysStackError;
 RUBY_EXTERN VALUE rb_eRegexpError;
 RUBY_EXTERN VALUE rb_eEncodingError;
 RUBY_EXTERN VALUE rb_eEncCompatError;
+RUBY_EXTERN VALUE rb_eNoMatchingPatternError;
 
 RUBY_EXTERN VALUE rb_eScriptError;
 RUBY_EXTERN VALUE rb_eNameError;
@@ -2264,13 +2087,8 @@ RUBY_EXTERN VALUE rb_eLoadError;
 
 RUBY_EXTERN VALUE rb_eMathDomainError;
 
-#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_stdin, rb_stdout, rb_stderr;
-#endif
 
-#ifdef TRUFFLERUBY
-VALUE rb_class_of(VALUE object);
-#else
 static inline VALUE
 rb_class_of(VALUE obj)
 {
@@ -2303,11 +2121,7 @@ rb_type(VALUE obj)
     }
     return RB_BUILTIN_TYPE(obj);
 }
-#endif
 
-#ifdef TRUFFLERUBY
-#define rb_type_p(obj, type) (rb_type(obj) == (type))
-#else
 #ifdef __GNUC__
 #define rb_type_p(obj, type) \
     __extension__ (__builtin_constant_p(type) ? RB_TYPE_P((obj), (type)) : \
@@ -2315,9 +2129,7 @@ rb_type(VALUE obj)
 #else
 #define rb_type_p(obj, type) (rb_type(obj) == (type))
 #endif
-#endif
 
-#ifndef TRUFFLERUBY
 #ifdef __GNUC__
 #define rb_special_const_p(obj) \
     __extension__ ({ \
@@ -2332,11 +2144,9 @@ rb_special_const_p(VALUE obj)
     return (int)RUBY_Qfalse;
 }
 #endif
-#endif
 
 #include "ruby/intern.h"
 
-#ifndef TRUFFLERUBY
 static inline void
 rb_clone_setup(VALUE clone, VALUE obj)
 {
@@ -2359,7 +2169,6 @@ rb_array_len(VALUE a)
     return (RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
 	RARRAY_EMBED_LEN(a) : RARRAY(a)->as.heap.len;
 }
-#endif
 
 #if defined(__fcc__) || defined(__fcc_version) || \
     defined(__FCC__) || defined(__FCC_VERSION)
@@ -2369,13 +2178,6 @@ rb_array_len(VALUE a)
 # define FIX_CONST_VALUE_PTR(x) (x)
 #endif
 
-#ifdef TRUFFLERUBY
-static inline const VALUE *
-rb_array_const_ptr_transient(VALUE a)
-{
-    return ((const VALUE *) RARRAY_PTR(a));
-}
-#else
 /* internal function. do not use this function */
 static inline const VALUE *
 rb_array_const_ptr_transient(VALUE a)
@@ -2383,7 +2185,6 @@ rb_array_const_ptr_transient(VALUE a)
     return FIX_CONST_VALUE_PTR((RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
 	RARRAY(a)->as.ary : RARRAY(a)->as.heap.ptr);
 }
-#endif
 
 /* internal function. do not use this function */
 static inline const VALUE *
@@ -2399,7 +2200,6 @@ rb_array_const_ptr(VALUE a)
     return rb_array_const_ptr_transient(a);
 }
 
-#ifndef TRUFFLERUBY
 /* internal function. do not use this function */
 static inline VALUE *
 rb_array_ptr_use_start(VALUE a, int allow_transient)
@@ -2414,6 +2214,7 @@ rb_array_ptr_use_start(VALUE a, int allow_transient)
         }
     }
 #endif
+    (void)allow_transient;
 
     return rb_ary_ptr_use_start(a);
 }
@@ -2424,8 +2225,8 @@ rb_array_ptr_use_end(VALUE a, int allow_transient)
 {
     void rb_ary_ptr_use_end(VALUE a);
     rb_ary_ptr_use_end(a);
+    (void)allow_transient;
 }
-#endif
 
 #if defined(EXTLIB) && defined(USE_DLN_A_OUT)
 /* hook for external modules */
@@ -2510,6 +2311,9 @@ static inline int rb_toupper(int c) { return rb_islower(c) ? (c&0x5f) : c; }
 #define ISALPHA(c) rb_isalpha(c)
 #define ISDIGIT(c) rb_isdigit(c)
 #define ISXDIGIT(c) rb_isxdigit(c)
+#define ISBLANK(c) rb_isblank(c)
+#define ISCNTRL(c) rb_iscntrl(c)
+#define ISPUNCT(c) rb_ispunct(c)
 #endif
 #define TOUPPER(c) rb_toupper(c)
 #define TOLOWER(c) rb_tolower(c)
@@ -2527,7 +2331,8 @@ unsigned long ruby_strtoul(const char *str, char **endptr, int base);
 PRINTF_ARGS(int ruby_snprintf(char *str, size_t n, char const *fmt, ...), 3, 4);
 int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
 
-#ifndef TRUFFLERUBY
+/* -- Remove In 3.0, Only public for rb_scan_args optimized version -- */
+int rb_empty_keyword_given_p(void);
 
 #if defined(HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR_CONSTANT_P) && defined(HAVE_VA_ARGS_MACRO) && defined(__OPTIMIZE__)
 # define rb_scan_args(argc,argvp,fmt,...) \
@@ -2535,77 +2340,61 @@ int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
         rb_scan_args0(argc,argvp,fmt,\
 		      (sizeof((VALUE*[]){__VA_ARGS__})/sizeof(VALUE*)), \
 		      ((VALUE*[]){__VA_ARGS__})), \
-        rb_scan_args(argc,argvp,fmt,__VA_ARGS__))
+        rb_scan_args(argc,argvp,fmt,##__VA_ARGS__))
 # if HAVE_ATTRIBUTE_ERRORFUNC
-ERRORFUNC(("bad scan arg format"), int rb_scan_args_bad_format(const char*));
-ERRORFUNC(("variable argument length doesn't match"), int rb_scan_args_length_mismatch(const char*,int));
+ERRORFUNC(("bad scan arg format"), void rb_scan_args_bad_format(const char*));
+ERRORFUNC(("variable argument length doesn't match"), void rb_scan_args_length_mismatch(const char*,int));
 # else
-#   define rb_scan_args_bad_format(fmt) 0
-#   define rb_scan_args_length_mismatch(fmt, varc) 0
+#   define rb_scan_args_bad_format(fmt) ((void)0)
+#   define rb_scan_args_length_mismatch(fmt, varc) ((void)0)
 # endif
 
 # define rb_scan_args_isdigit(c) ((unsigned char)((c)-'0')<10)
 
-#if !defined(__has_attribute)
-#define __has_attribute(x) 0
-#endif
-# if __has_attribute(diagnose_if)
-#  define rb_scan_args_count_end(fmt, ofs, varc, vari) \
-     (fmt[ofs] ? rb_scan_args_bad_format(fmt) : (vari))
-# else
-#  define rb_scan_args_count_end(fmt, ofs, varc, vari) \
-     ((vari)/(!fmt[ofs] || rb_scan_args_bad_format(fmt)))
-# endif
+#  define rb_scan_args_count_end(fmt, ofs, vari) \
+     (fmt[ofs] ? -1 : (vari))
 
-# define rb_scan_args_count_block(fmt, ofs, varc, vari) \
+# define rb_scan_args_count_block(fmt, ofs, vari) \
     (fmt[ofs]!='&' ? \
-     rb_scan_args_count_end(fmt, ofs, varc, vari) : \
-     rb_scan_args_count_end(fmt, ofs+1, varc, vari+1))
+     rb_scan_args_count_end(fmt, ofs, vari) : \
+     rb_scan_args_count_end(fmt, ofs+1, vari+1))
 
-# define rb_scan_args_count_hash(fmt, ofs, varc, vari) \
+# define rb_scan_args_count_hash(fmt, ofs, vari) \
     (fmt[ofs]!=':' ? \
-     rb_scan_args_count_block(fmt, ofs, varc, vari) : \
-     rb_scan_args_count_block(fmt, ofs+1, varc, vari+1))
+     rb_scan_args_count_block(fmt, ofs, vari) : \
+     rb_scan_args_count_block(fmt, ofs+1, vari+1))
 
-# define rb_scan_args_count_trail(fmt, ofs, varc, vari) \
+# define rb_scan_args_count_trail(fmt, ofs, vari) \
     (!rb_scan_args_isdigit(fmt[ofs]) ? \
-     rb_scan_args_count_hash(fmt, ofs, varc, vari) : \
-     rb_scan_args_count_hash(fmt, ofs+1, varc, vari+(fmt[ofs]-'0')))
+     rb_scan_args_count_hash(fmt, ofs, vari) : \
+     rb_scan_args_count_hash(fmt, ofs+1, vari+(fmt[ofs]-'0')))
 
-# define rb_scan_args_count_var(fmt, ofs, varc, vari) \
+# define rb_scan_args_count_var(fmt, ofs, vari) \
     (fmt[ofs]!='*' ? \
-     rb_scan_args_count_trail(fmt, ofs, varc, vari) : \
-     rb_scan_args_count_trail(fmt, ofs+1, varc, vari+1))
+     rb_scan_args_count_trail(fmt, ofs, vari) : \
+     rb_scan_args_count_trail(fmt, ofs+1, vari+1))
 
-# define rb_scan_args_count_opt(fmt, ofs, varc, vari) \
-    (!rb_scan_args_isdigit(fmt[1]) ? \
-     rb_scan_args_count_var(fmt, ofs, varc, vari) : \
-     rb_scan_args_count_var(fmt, ofs+1, varc, vari+fmt[ofs]-'0'))
+# define rb_scan_args_count_opt(fmt, ofs, vari) \
+    (!rb_scan_args_isdigit(fmt[ofs]) ? \
+     rb_scan_args_count_var(fmt, ofs, vari) : \
+     rb_scan_args_count_var(fmt, ofs+1, vari+fmt[ofs]-'0'))
 
-# define rb_scan_args_count(fmt, varc) \
-    (!rb_scan_args_isdigit(fmt[0]) ? \
-      rb_scan_args_count_var(fmt, 0, varc, 0) : \
-      rb_scan_args_count_opt(fmt, 1, varc, fmt[0]-'0'))
+# define rb_scan_args_count_lead(fmt, ofs, vari) \
+    (!rb_scan_args_isdigit(fmt[ofs]) ? \
+      rb_scan_args_count_var(fmt, ofs, vari) : \
+      rb_scan_args_count_opt(fmt, ofs+1, vari+fmt[ofs]-'0'))
 
-# define rb_scan_args_verify_count(fmt, varc) \
-    ((varc)/(rb_scan_args_count(fmt, varc) == (varc) || \
-     rb_scan_args_length_mismatch(fmt, varc)))
+# define rb_scan_args_count(fmt) rb_scan_args_count_lead(fmt, 0, 0)
 
 # if defined(__has_attribute) && __has_attribute(diagnose_if)
 #  define rb_scan_args_verify(fmt, varc) (void)0
-# elif defined(__GNUC__)
-# define rb_scan_args_verify(fmt, varc) \
-    (void)__extension__ ({ \
-	int verify; \
-	_Pragma("GCC diagnostic push"); \
-	_Pragma("GCC diagnostic ignored \"-Warray-bounds\""); \
-	verify = rb_scan_args_verify_count(fmt, varc); \
-	_Pragma("GCC diagnostic pop"); \
-	verify; \
-    })
 # else
 # define rb_scan_args_verify(fmt, varc) \
-    (void)rb_scan_args_verify_count(fmt, varc)
+    (sizeof(char[1-2*(rb_scan_args_count(fmt)<0)])!=1 ? \
+     rb_scan_args_bad_format(fmt) : \
+     sizeof(char[1-2*(rb_scan_args_count(fmt)!=(varc))])!=1 ? \
+     rb_scan_args_length_mismatch(fmt, varc) : \
+     (void)0)
 # endif
 
 ALWAYS_INLINE(static int rb_scan_args_lead_p(const char *fmt));
@@ -2729,37 +2518,88 @@ rb_scan_args_set(int argc, const VALUE *argv,
 		 int f_var, int f_hash, int f_block,
 		 VALUE *vars[], RB_UNUSED_VAR(char *fmt), RB_UNUSED_VAR(int varc))
 # if defined(__has_attribute) && __has_attribute(diagnose_if)
-    __attribute__((diagnose_if(rb_scan_args_count(fmt,varc)==0,"bad scan arg format","error")))
-    __attribute__((diagnose_if(rb_scan_args_count(fmt,varc)!=varc,"variable argument length doesn't match","error")))
+    __attribute__((diagnose_if(rb_scan_args_count(fmt)<0,"bad scan arg format","error")))
+    __attribute__((diagnose_if(rb_scan_args_count(fmt)!=varc,"variable argument length doesn't match","error")))
 # endif
 {
     int i, argi = 0, vari = 0, last_idx = -1;
     VALUE *var, hash = Qnil, last_hash = 0;
     const int n_mand = n_lead + n_trail;
+    int keyword_given = rb_keyword_given_p();
+    int empty_keyword_given = 0;
+    VALUE tmp_buffer = 0;
 
-    /* capture an option hash - phase 1: pop */
-    if (f_hash && n_mand < argc) {
-	VALUE last = argv[argc - 1];
-
-	if (RB_NIL_P(last)) {
-	    /* nil is taken as an empty option hash only if it is not
-	       ambiguous; i.e. '*' is not specified and arguments are
-	       given more than sufficient */
-	    if (!f_var && n_mand + n_opt < argc)
-		argc--;
-	}
-	else {
-	    hash = rb_check_hash_type(last);
-	    if (!RB_NIL_P(hash)) {
-		VALUE opts = rb_extract_keywords(&hash);
-		if (!(last_hash = hash)) argc--;
-		else last_idx = argc - 1;
-		hash = opts ? opts : Qnil;
-	    }
-	}
+    if (!keyword_given) {
+        empty_keyword_given = rb_empty_keyword_given_p();
     }
 
-    rb_check_arity(argc, n_mand, f_var ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
+    /* capture an option hash - phase 1: pop */
+    /* Ignore final positional hash if empty keywords given */
+    if (argc > 0 && !(f_hash && empty_keyword_given)) {
+        VALUE last = argv[argc - 1];
+
+        if (f_hash && n_mand < argc) {
+            if (keyword_given) {
+                if (!RB_TYPE_P(last, T_HASH)) {
+                    rb_warn("Keyword flag set when calling rb_scan_args, but last entry is not a hash");
+                }
+                else {
+                    hash = last;
+                }
+            }
+            else if (NIL_P(last)) {
+                /* For backwards compatibility, nil is taken as an empty
+                   option hash only if it is not ambiguous; i.e. '*' is
+                   not specified and arguments are given more than sufficient.
+                   This will be removed in Ruby 3. */
+                if (!f_var && n_mand + n_opt < argc) {
+                    rb_warn("The last argument is nil, treating as empty keywords");
+                    argc--;
+                }
+            }
+            else {
+                hash = rb_check_hash_type(last);
+            }
+
+            /* Ruby 3: Remove if branch, as it will not attempt to split hashes */
+            if (!NIL_P(hash)) {
+                VALUE opts = rb_extract_keywords(&hash);
+
+                if (!(last_hash = hash)) {
+                    if (!keyword_given) {
+                        /* Warn if treating positional as keyword, as in Ruby 3,
+                           this will be an error */
+                        rb_warn("Using the last argument as keyword parameters is deprecated");
+                    }
+                    argc--;
+                }
+                else {
+                    /* Warn if splitting either positional hash to keywords or keywords
+                       to positional hash, as in Ruby 3, no splitting will be done */
+                    rb_warn("The last argument is split into positional and keyword parameters");
+                    last_idx = argc - 1;
+                }
+                hash = opts ? opts : Qnil;
+            }
+        }
+        else if (f_hash && keyword_given && n_mand == argc) {
+            /* Warn if treating keywords as positional, as in Ruby 3, this will be an error */
+            rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
+        }
+    }
+    if (f_hash && n_mand > 0 && n_mand == argc+1 && empty_keyword_given) {
+        VALUE *ptr = (VALUE *)rb_alloc_tmp_buffer2(&tmp_buffer, argc+1, sizeof(VALUE));
+        memcpy(ptr, argv, sizeof(VALUE)*argc);
+        ptr[argc] = rb_hash_new();
+        argc++;
+        *(&argv) = ptr;
+        rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
+    }
+
+
+    if (argc < n_mand) {
+        goto argc_error;
+    }
 
     /* capture leading mandatory arguments */
     for (i = n_lead; i-- > 0; ) {
@@ -2817,6 +2657,13 @@ rb_scan_args_set(int argc, const VALUE *argv,
 	}
     }
 
+    if (argi < argc) {
+      argc_error:
+        if (tmp_buffer) rb_free_tmp_buffer(&tmp_buffer);
+        rb_error_arity(argc, n_mand, f_var ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
+    }
+
+    if (tmp_buffer) rb_free_tmp_buffer(&tmp_buffer);
     return argc;
 }
 #endif
@@ -2839,13 +2686,11 @@ __extension__({ \
 	const VALUE rb_funcall_args[] = {__VA_ARGS__}; \
 	const int rb_funcall_nargs = \
 	    (int)(sizeof(rb_funcall_args) / sizeof(VALUE)); \
-	rb_funcallv(recv, mid, \
+        rb_funcallv(recv, mid, \
 	    rb_varargs_argc_check(rb_funcall_argc, rb_funcall_nargs), \
 	    rb_funcall_nargs ? rb_funcall_args : NULL); \
     })
 #endif
-
-#endif // TRUFFLERUBY
 
 #ifndef RUBY_DONT_SUBST
 #include "ruby/subst.h"
@@ -2885,13 +2730,7 @@ void ruby_show_copyright(void);
     ruby_init_stack(&variable_in_this_stack_frame);
 /*! @} */
 
-#ifdef __ia64
-void ruby_init_stack(volatile VALUE*, void*);
-#define ruby_init_stack(addr) ruby_init_stack((addr), rb_ia64_bsp())
-#else
 void ruby_init_stack(volatile VALUE*);
-#endif
-#define Init_stack(addr) ruby_init_stack(addr)
 
 int ruby_setup(void);
 int ruby_cleanup(volatile int);
@@ -2923,12 +2762,110 @@ void ruby_sig_finalize(void);
 
 RUBY_SYMBOL_EXPORT_END
 
-#include <truffleruby/truffleruby.h>
-
 #if defined(__cplusplus)
 #if 0
 { /* satisfy cc-mode */
 #endif
 }  /* extern "C" { */
+extern "C++" {
 #endif
+
+#ifdef RB_METHOD_DEFINITION_DECL
+
+RB_METHOD_DEFINITION_DECL(rb_define_method, (2,3), (VALUE klass, const char *name), (klass, name))
+#ifdef __cplusplus
+#define rb_define_method(m, n, f, a) rb_define_method_tmpl<a>::define(m, n, f)
+#else
+#define rb_define_method_if_constexpr(x, t, f)    __builtin_choose_expr(__builtin_choose_expr(__builtin_constant_p(x),(x),0),(t),(f))
+#define rb_define_method_choose_prototype15(n)    rb_define_method_if_constexpr((n)==15,rb_define_method15,rb_define_methodm3)
+#define rb_define_method_choose_prototype14(n)    rb_define_method_if_constexpr((n)==14,rb_define_method14,rb_define_method_choose_prototype15(n))
+#define rb_define_method_choose_prototype13(n)    rb_define_method_if_constexpr((n)==13,rb_define_method13,rb_define_method_choose_prototype14(n))
+#define rb_define_method_choose_prototype12(n)    rb_define_method_if_constexpr((n)==12,rb_define_method12,rb_define_method_choose_prototype13(n))
+#define rb_define_method_choose_prototype11(n)    rb_define_method_if_constexpr((n)==11,rb_define_method11,rb_define_method_choose_prototype12(n))
+#define rb_define_method_choose_prototype10(n)    rb_define_method_if_constexpr((n)==10,rb_define_method10,rb_define_method_choose_prototype11(n))
+#define rb_define_method_choose_prototype9(n)     rb_define_method_if_constexpr((n)== 9,rb_define_method9, rb_define_method_choose_prototype10(n))
+#define rb_define_method_choose_prototype8(n)     rb_define_method_if_constexpr((n)== 8,rb_define_method8, rb_define_method_choose_prototype9(n))
+#define rb_define_method_choose_prototype7(n)     rb_define_method_if_constexpr((n)== 7,rb_define_method7, rb_define_method_choose_prototype8(n))
+#define rb_define_method_choose_prototype6(n)     rb_define_method_if_constexpr((n)== 6,rb_define_method6, rb_define_method_choose_prototype7(n))
+#define rb_define_method_choose_prototype5(n)     rb_define_method_if_constexpr((n)== 5,rb_define_method5, rb_define_method_choose_prototype6(n))
+#define rb_define_method_choose_prototype4(n)     rb_define_method_if_constexpr((n)== 4,rb_define_method4, rb_define_method_choose_prototype5(n))
+#define rb_define_method_choose_prototype3(n)     rb_define_method_if_constexpr((n)== 3,rb_define_method3, rb_define_method_choose_prototype4(n))
+#define rb_define_method_choose_prototype2(n)     rb_define_method_if_constexpr((n)== 2,rb_define_method2, rb_define_method_choose_prototype3(n))
+#define rb_define_method_choose_prototype1(n)     rb_define_method_if_constexpr((n)== 1,rb_define_method1, rb_define_method_choose_prototype2(n))
+#define rb_define_method_choose_prototype0(n)     rb_define_method_if_constexpr((n)== 0,rb_define_method0, rb_define_method_choose_prototype1(n))
+#define rb_define_method_choose_prototypem1(n)    rb_define_method_if_constexpr((n)==-1,rb_define_methodm1,rb_define_method_choose_prototype0(n))
+#define rb_define_method_choose_prototypem2(n)    rb_define_method_if_constexpr((n)==-2,rb_define_methodm2,rb_define_method_choose_prototypem1(n))
+#define rb_define_method_choose_prototypem3(n, f) rb_define_method_if_constexpr(rb_f_notimplement_p(f),rb_define_methodm3,rb_define_method_choose_prototypem2(n))
+#define rb_define_method(klass, mid, func, arity) rb_define_method_choose_prototypem3((arity),(func))((klass),(mid),(func),(arity));
+#endif
+
+RB_METHOD_DEFINITION_DECL(rb_define_module_function, (2,3), (VALUE klass, const char *name), (klass, name))
+#ifdef __cplusplus
+#define rb_define_module_function(m, n, f, a) rb_define_module_function_tmpl<a>::define(m, n, f)
+#else
+#define rb_define_module_function_choose_prototype15(n)    rb_define_method_if_constexpr((n)==15,rb_define_module_function15,rb_define_module_functionm3)
+#define rb_define_module_function_choose_prototype14(n)    rb_define_method_if_constexpr((n)==14,rb_define_module_function14,rb_define_module_function_choose_prototype15(n))
+#define rb_define_module_function_choose_prototype13(n)    rb_define_method_if_constexpr((n)==13,rb_define_module_function13,rb_define_module_function_choose_prototype14(n))
+#define rb_define_module_function_choose_prototype12(n)    rb_define_method_if_constexpr((n)==12,rb_define_module_function12,rb_define_module_function_choose_prototype13(n))
+#define rb_define_module_function_choose_prototype11(n)    rb_define_method_if_constexpr((n)==11,rb_define_module_function11,rb_define_module_function_choose_prototype12(n))
+#define rb_define_module_function_choose_prototype10(n)    rb_define_method_if_constexpr((n)==10,rb_define_module_function10,rb_define_module_function_choose_prototype11(n))
+#define rb_define_module_function_choose_prototype9(n)     rb_define_method_if_constexpr((n)== 9,rb_define_module_function9, rb_define_module_function_choose_prototype10(n))
+#define rb_define_module_function_choose_prototype8(n)     rb_define_method_if_constexpr((n)== 8,rb_define_module_function8, rb_define_module_function_choose_prototype9(n))
+#define rb_define_module_function_choose_prototype7(n)     rb_define_method_if_constexpr((n)== 7,rb_define_module_function7, rb_define_module_function_choose_prototype8(n))
+#define rb_define_module_function_choose_prototype6(n)     rb_define_method_if_constexpr((n)== 6,rb_define_module_function6, rb_define_module_function_choose_prototype7(n))
+#define rb_define_module_function_choose_prototype5(n)     rb_define_method_if_constexpr((n)== 5,rb_define_module_function5, rb_define_module_function_choose_prototype6(n))
+#define rb_define_module_function_choose_prototype4(n)     rb_define_method_if_constexpr((n)== 4,rb_define_module_function4, rb_define_module_function_choose_prototype5(n))
+#define rb_define_module_function_choose_prototype3(n)     rb_define_method_if_constexpr((n)== 3,rb_define_module_function3, rb_define_module_function_choose_prototype4(n))
+#define rb_define_module_function_choose_prototype2(n)     rb_define_method_if_constexpr((n)== 2,rb_define_module_function2, rb_define_module_function_choose_prototype3(n))
+#define rb_define_module_function_choose_prototype1(n)     rb_define_method_if_constexpr((n)== 1,rb_define_module_function1, rb_define_module_function_choose_prototype2(n))
+#define rb_define_module_function_choose_prototype0(n)     rb_define_method_if_constexpr((n)== 0,rb_define_module_function0, rb_define_module_function_choose_prototype1(n))
+#define rb_define_module_function_choose_prototypem1(n)    rb_define_method_if_constexpr((n)==-1,rb_define_module_functionm1,rb_define_module_function_choose_prototype0(n))
+#define rb_define_module_function_choose_prototypem2(n)    rb_define_method_if_constexpr((n)==-2,rb_define_module_functionm2,rb_define_module_function_choose_prototypem1(n))
+#define rb_define_module_function_choose_prototypem3(n, f) rb_define_method_if_constexpr(rb_f_notimplement_p(f),rb_define_module_functionm3,rb_define_module_function_choose_prototypem2(n))
+#define rb_define_module_function(klass, mid, func, arity) rb_define_module_function_choose_prototypem3((arity),(func))((klass),(mid),(func),(arity));
+#endif
+
+RB_METHOD_DEFINITION_DECL(rb_define_global_function, (1,2), (const char *name), (name))
+#ifdef __cplusplus
+#define rb_define_global_function(n, f, a) rb_define_global_function_tmpl<a>::define(n, f)
+#else
+#define rb_define_global_function_choose_prototype15(n)    rb_define_method_if_constexpr((n)==15,rb_define_global_function15,rb_define_global_functionm3)
+#define rb_define_global_function_choose_prototype14(n)    rb_define_method_if_constexpr((n)==14,rb_define_global_function14,rb_define_global_function_choose_prototype15(n))
+#define rb_define_global_function_choose_prototype13(n)    rb_define_method_if_constexpr((n)==13,rb_define_global_function13,rb_define_global_function_choose_prototype14(n))
+#define rb_define_global_function_choose_prototype12(n)    rb_define_method_if_constexpr((n)==12,rb_define_global_function12,rb_define_global_function_choose_prototype13(n))
+#define rb_define_global_function_choose_prototype11(n)    rb_define_method_if_constexpr((n)==11,rb_define_global_function11,rb_define_global_function_choose_prototype12(n))
+#define rb_define_global_function_choose_prototype10(n)    rb_define_method_if_constexpr((n)==10,rb_define_global_function10,rb_define_global_function_choose_prototype11(n))
+#define rb_define_global_function_choose_prototype9(n)     rb_define_method_if_constexpr((n)== 9,rb_define_global_function9, rb_define_global_function_choose_prototype10(n))
+#define rb_define_global_function_choose_prototype8(n)     rb_define_method_if_constexpr((n)== 8,rb_define_global_function8, rb_define_global_function_choose_prototype9(n))
+#define rb_define_global_function_choose_prototype7(n)     rb_define_method_if_constexpr((n)== 7,rb_define_global_function7, rb_define_global_function_choose_prototype8(n))
+#define rb_define_global_function_choose_prototype6(n)     rb_define_method_if_constexpr((n)== 6,rb_define_global_function6, rb_define_global_function_choose_prototype7(n))
+#define rb_define_global_function_choose_prototype5(n)     rb_define_method_if_constexpr((n)== 5,rb_define_global_function5, rb_define_global_function_choose_prototype6(n))
+#define rb_define_global_function_choose_prototype4(n)     rb_define_method_if_constexpr((n)== 4,rb_define_global_function4, rb_define_global_function_choose_prototype5(n))
+#define rb_define_global_function_choose_prototype3(n)     rb_define_method_if_constexpr((n)== 3,rb_define_global_function3, rb_define_global_function_choose_prototype4(n))
+#define rb_define_global_function_choose_prototype2(n)     rb_define_method_if_constexpr((n)== 2,rb_define_global_function2, rb_define_global_function_choose_prototype3(n))
+#define rb_define_global_function_choose_prototype1(n)     rb_define_method_if_constexpr((n)== 1,rb_define_global_function1, rb_define_global_function_choose_prototype2(n))
+#define rb_define_global_function_choose_prototype0(n)     rb_define_method_if_constexpr((n)== 0,rb_define_global_function0, rb_define_global_function_choose_prototype1(n))
+#define rb_define_global_function_choose_prototypem1(n)    rb_define_method_if_constexpr((n)==-1,rb_define_global_functionm1,rb_define_global_function_choose_prototype0(n))
+#define rb_define_global_function_choose_prototypem2(n)    rb_define_method_if_constexpr((n)==-2,rb_define_global_functionm2,rb_define_global_function_choose_prototypem1(n))
+#define rb_define_global_function_choose_prototypem3(n, f) rb_define_method_if_constexpr(rb_f_notimplement_p(f),rb_define_global_functionm3,rb_define_global_function_choose_prototypem2(n))
+#define rb_define_global_function(mid, func, arity) rb_define_global_function_choose_prototypem3((arity),(func))((mid),(func),(arity));
+#endif
+
+#endif
+
+#if defined(RUBY_DEVEL) && RUBY_DEVEL && (!defined(__cplusplus) || defined(RB_METHOD_DEFINITION_DECL))
+# define RUBY_METHOD_FUNC(func) (func)
+#else
+# define RUBY_METHOD_FUNC(func) ((VALUE (*)(ANYARGS))(func))
+#endif
+
+#ifdef __cplusplus
+#include "backward/cxxanyargs.hpp"
+
+#if 0
+{ /* satisfy cc-mode */
+#endif
+}  /* extern "C++" { */
+#endif
+
 #endif /* RUBY_RUBY_H */

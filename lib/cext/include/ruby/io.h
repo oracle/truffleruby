@@ -101,6 +101,8 @@ typedef struct rb_io_t {
     VALUE write_lock;
 } rb_io_t;
 
+typedef struct rb_io_enc_t rb_io_enc_t;
+
 #define HAVE_RB_IO_T 1
 
 #define FMODE_READABLE              0x00000001
@@ -122,12 +124,7 @@ typedef struct rb_io_t {
 /* #define FMODE_INET                  0x00400000 */
 /* #define FMODE_INET6                 0x00800000 */
 
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(rb_io_t)
-#define GetOpenFile(obj,fp) rb_io_check_closed((fp) = polyglot_as_rb_io_t(RUBY_CEXT_INVOKE_NO_WRAP("GetOpenFile", obj)))
-#else
 #define GetOpenFile(obj,fp) rb_io_check_closed((fp) = RFILE(rb_io_taint_check(obj))->fptr)
-#endif
 
 #define MakeOpenFile(obj, fp) do {\
     (fp) = rb_io_make_open_file(obj);\
@@ -158,6 +155,7 @@ int rb_io_wait_writable(int);
 int rb_wait_for_single_fd(int fd, int events, struct timeval *tv);
 void rb_io_set_nonblock(rb_io_t *fptr);
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p);
+void rb_io_extract_modeenc(VALUE *vmode_p, VALUE *vperm_p, VALUE opthash, int *oflags_p, int *fmode_p, rb_io_enc_t *convconfig_p);
 ssize_t rb_io_bufwrite(VALUE io, const void *buf, size_t size);
 
 /* compatibility for ruby 1.8 and older */

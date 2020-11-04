@@ -226,9 +226,9 @@ module WEBrick
         raise HTTPStatus::BadRequest, "bad URI `#{@unparsed_uri}'."
       end
 
-      if /close/io =~ self["connection"]
+      if /\Aclose\z/io =~ self["connection"]
         @keep_alive = false
-      elsif /keep-alive/io =~ self["connection"]
+      elsif /\Akeep-alive\z/io =~ self["connection"]
         @keep_alive = true
       elsif @http_version < "1.1"
         @keep_alive = false
@@ -503,7 +503,7 @@ module WEBrick
       return unless socket
       if tc = self['transfer-encoding']
         case tc
-        when /chunked/io then read_chunked(socket, block)
+        when /\Achunked\z/io then read_chunked(socket, block)
         else raise HTTPStatus::NotImplemented, "Transfer-Encoding: #{tc}."
         end
       elsif self['content-length'] || @remaining_size
@@ -611,7 +611,12 @@ module WEBrick
       end
       if host_port = self["x-forwarded-host"]
         host_port = host_port.split(",", 2).first
-        @forwarded_host, tmp = host_port.split(":", 2)
+        if host_port =~ /\A(\[[0-9a-fA-F:]+\])(?::(\d+))?\z/
+          @forwarded_host = $1
+          tmp = $2
+        else
+          @forwarded_host, tmp = host_port.split(":", 2)
+        end
         @forwarded_port = (tmp || (@forwarded_proto == "https" ? 443 : 80)).to_i
       end
       if addrs = self["x-forwarded-for"]

@@ -199,16 +199,16 @@ class TestGemSource < Gem::TestCase
     installed = Gem::Source::Installed.new
     local     = Gem::Source::Local.new
 
-    assert_equal( 0, remote.   <=>(remote),    'remote    <=> remote')
+    assert_equal(0, remote.   <=>(remote),    'remote    <=> remote')
 
     assert_equal(-1, remote.   <=>(specific),  'remote    <=> specific')
-    assert_equal( 1, specific. <=>(remote),    'specific  <=> remote')
+    assert_equal(1, specific. <=>(remote),    'specific  <=> remote')
 
     assert_equal(-1, remote.   <=>(local),     'remote    <=> local')
-    assert_equal( 1, local.    <=>(remote),    'local     <=> remote')
+    assert_equal(1, local.    <=>(remote),    'local     <=> remote')
 
     assert_equal(-1, remote.   <=>(installed), 'remote    <=> installed')
-    assert_equal( 1, installed.<=>(remote),    'installed <=> remote')
+    assert_equal(1, installed.<=>(remote),    'installed <=> remote')
 
     no_uri = @source.dup
     no_uri.instance_variable_set :@uri, nil
@@ -220,9 +220,9 @@ class TestGemSource < Gem::TestCase
     sourceA = Gem::Source.new "http://example.com/a"
     sourceB = Gem::Source.new "http://example.com/b"
 
-    assert_equal( 0, sourceA. <=>(sourceA), 'sourceA <=> sourceA')
-    assert_equal( 1, sourceA. <=>(sourceB), 'sourceA <=> sourceB')
-    assert_equal( 1, sourceB. <=>(sourceA), 'sourceB <=> sourceA')
+    assert_equal(0, sourceA. <=>(sourceA), 'sourceA <=> sourceA')
+    assert_equal(1, sourceA. <=>(sourceB), 'sourceA <=> sourceB')
+    assert_equal(1, sourceB. <=>(sourceA), 'sourceB <=> sourceA')
   end
 
   def test_update_cache_eh
@@ -233,6 +233,20 @@ class TestGemSource < Gem::TestCase
     FileUtils.rmdir Gem.user_home
 
     refute @source.update_cache?
+  end
+
+  def test_typo_squatting
+    rubygems_source = Gem::Source.new("https://rubgems.org")
+    assert rubygems_source.typo_squatting?("rubygems.org")
+    assert rubygems_source.typo_squatting?("rubyagems.org")
+    assert rubygems_source.typo_squatting?("rubyasgems.org")
+    refute rubygems_source.typo_squatting?("rubysertgems.org")
+  end
+
+  def test_typo_squatting_custom_distance_threshold
+    rubygems_source = Gem::Source.new("https://rubgems.org")
+    distance_threshold = 5
+    assert rubygems_source.typo_squatting?("rubysertgems.org", distance_threshold)
   end
 
 end

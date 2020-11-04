@@ -21,7 +21,7 @@ module IRB
           class << self
             alias_method :exit, ExtendCommand.irb_original_method_name('exit')
           end
-          if iterator?
+          if block_given?
             begin
               yield
             ensure
@@ -35,5 +35,3 @@ module IRB
   end
 end
 # :startdoc:
-
-

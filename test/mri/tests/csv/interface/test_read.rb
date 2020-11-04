@@ -104,7 +104,7 @@ class TestCSVInterfaceRead < Test::Unit::TestCase
   end
 
   def test_open_encoding_nonexistent
-    _output, error = capture_io do
+    _output, error = capture_output do
       CSV.open(@input.path, encoding: "nonexistent") do
       end
     end
@@ -266,12 +266,12 @@ class TestCSVInterfaceRead < Test::Unit::TestCase
 
   def test_options_not_modified
     options = {}.freeze
-    CSV.foreach(@input.path, options)
-    CSV.open(@input.path, options) {}
-    CSV.parse("", options)
-    CSV.parse_line("", options)
-    CSV.read(@input.path, options)
-    CSV.readlines(@input.path, options)
-    CSV.table(@input.path, options)
+    CSV.foreach(@input.path, **options)
+    CSV.open(@input.path, **options) {}
+    CSV.parse("", **options)
+    CSV.parse_line("", **options)
+    CSV.read(@input.path, **options)
+    CSV.readlines(@input.path, **options)
+    CSV.table(@input.path, **options)
   end
 end

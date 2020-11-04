@@ -74,7 +74,7 @@ class Gem::AvailableSet
   end
 
   def match_platform!
-    @set.reject! { |t| !Gem::Platform.match_spec?(t.spec) }
+    @set.reject! { |t| !Gem::Platform.match(t.spec.platform) }
     @sorted = nil
     self
   end
@@ -162,4 +162,5 @@ class Gem::AvailableSet
   def inject_into_list(dep_list)
     @set.each { |t| dep_list.add t.spec }
   end
+
 end

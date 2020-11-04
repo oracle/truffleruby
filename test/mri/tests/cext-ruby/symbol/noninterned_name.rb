@@ -1,3 +1,5 @@
+# frozen-string-literal: true
+
 require "c/symbol"
 
 module Test_Symbol

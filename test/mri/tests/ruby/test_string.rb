@@ -17,8 +17,8 @@ class TestString < Test::Unit::TestCase
     super
   end
 
-  def S(*args)
-    @cls.new(*args)
+  def S(*args, **kw)
+    @cls.new(*args, **kw)
   end
 
   def test_s_new
@@ -607,18 +607,14 @@ CODE
   end
 
   def test_clone
-    for taint in [ false, true ]
-      for frozen in [ false, true ]
-        a = S("Cool")
-        a.taint  if taint
-        a.freeze if frozen
-        b = a.clone
+    for frozen in [ false, true ]
+      a = S("Cool")
+      a.freeze if frozen
+      b = a.clone
 
-        assert_equal(a, b)
-        assert_not_same(a, b)
-        assert_equal(a.frozen?, b.frozen?)
-        assert_equal(a.tainted?, b.tainted?)
-      end
+      assert_equal(a, b)
+      assert_not_same(a, b)
+      assert_equal(a.frozen?, b.frozen?)
     end
 
     assert_equal("", File.read(IO::NULL).clone, '[ruby-dev:32819] reported by Kazuhiro NISHIYAMA')
@@ -665,9 +661,22 @@ CODE
     assert_raise(ArgumentError) { "foo".count }
   end
 
+  def crypt_supports_des_crypt?
+    /openbsd/ !~ RUBY_PLATFORM
+  end
+
   def test_crypt
-    assert_equal(S('aaGUC/JkO9/Sc'), S("mypassword").crypt(S("aa")))
-    assert_not_equal(S('aaGUC/JkO9/Sc'), S("mypassword").crypt(S("ab")))
+    if crypt_supports_des_crypt?
+      pass      = "aaGUC/JkO9/Sc"
+      good_salt = "aa"
+      bad_salt  = "ab"
+    else
+      pass      = "$2a$04$0WVaz0pV3jzfZ5G5tpmHWuBQGbkjzgtSc3gJbmdy0GAGMa45MFM2."
+      good_salt = "$2a$04$0WVaz0pV3jzfZ5G5tpmHWu"
+      bad_salt  = "$2a$04$0WVaz0pV3jzfZ5G5tpmHXu"
+    end
+    assert_equal(S(pass), S("mypassword").crypt(S(good_salt)))
+    assert_not_equal(S(pass), S("mypassword").crypt(S(bad_salt)))
     assert_raise(ArgumentError) {S("mypassword").crypt(S(""))}
     assert_raise(ArgumentError) {S("mypassword").crypt(S("\0a"))}
     assert_raise(ArgumentError) {S("mypassword").crypt(S("a\0"))}
@@ -678,9 +687,9 @@ CODE
     end
 
     @cls == String and
-      assert_no_memory_leak([], 's = ""', "#{<<~"begin;"}\n#{<<~'end;'}")
+      assert_no_memory_leak([], "s = ''; salt_proc = proc{#{(crypt_supports_des_crypt? ? '..' : good_salt).inspect}}", "#{<<~"begin;"}\n#{<<~'end;'}")
     begin;
-      1000.times { s.crypt(-"..").clear  }
+      1000.times { s.crypt(-salt_proc.call).clear  }
     end;
   end
 
@@ -838,18 +847,14 @@ CODE
   end
 
   def test_dup
-    for taint in [ false, true ]
-      for frozen in [ false, true ]
-        a = S("hello")
-        a.taint  if taint
-        a.freeze if frozen
-        b = a.dup
+    for frozen in [ false, true ]
+      a = S("hello")
+      a.freeze if frozen
+      b = a.dup
 
-        assert_equal(a, b)
-        assert_not_same(a, b)
-        assert_not_predicate(b, :frozen?)
-        assert_equal(a.tainted?, b.tainted?)
-      end
+      assert_equal(a, b)
+      assert_not_same(a, b)
+      assert_not_predicate(b, :frozen?)
     end
   end
 
@@ -896,20 +901,15 @@ CODE
         assert_equal [65, 66, 67], s.bytes {}
       }
     else
-      warning = /passing a block to String#bytes is deprecated/
-      assert_warning(warning) {
-        res = []
-        assert_equal s.object_id, s.bytes {|x| res << x }.object_id
-        assert_equal(65, res[0])
-        assert_equal(66, res[1])
-        assert_equal(67, res[2])
-      }
-      assert_warning(warning) {
-        s = S("ABC")
-        res = []
-        assert_same s, s.bytes {|x| res << x }
-        assert_equal [65, 66, 67], res
-      }
+      res = []
+      assert_equal s.object_id, s.bytes {|x| res << x }.object_id
+      assert_equal(65, res[0])
+      assert_equal(66, res[1])
+      assert_equal(67, res[2])
+      s = S("ABC")
+      res = []
+      assert_same s, s.bytes {|x| res << x }
+      assert_equal [65, 66, 67], res
     end
   end
 
@@ -940,20 +940,15 @@ CODE
         assert_equal [0x3042, 0x3044, 0x3046], s.codepoints {}
       }
     else
-      warning = /passing a block to String#codepoints is deprecated/
-      assert_warning(warning) {
-        res = []
-        assert_equal s.object_id, s.codepoints {|x| res << x }.object_id
-        assert_equal(0x3042, res[0])
-        assert_equal(0x3044, res[1])
-        assert_equal(0x3046, res[2])
-      }
-      assert_warning(warning) {
-        s = S("ABC")
-        res = []
-        assert_same s, s.codepoints {|x| res << x }
-        assert_equal [65, 66, 67], res
-      }
+      res = []
+      assert_equal s.object_id, s.codepoints {|x| res << x }.object_id
+      assert_equal(0x3042, res[0])
+      assert_equal(0x3044, res[1])
+      assert_equal(0x3046, res[2])
+      s = S("ABC")
+      res = []
+      assert_same s, s.codepoints {|x| res << x }
+      assert_equal [65, 66, 67], res
     end
   end
 
@@ -978,14 +973,11 @@ CODE
         assert_equal ["A", "B", "C"], s.chars {}
       }
     else
-      warning = /passing a block to String#chars is deprecated/
-      assert_warning(warning) {
-        res = []
-        assert_equal s.object_id, s.chars {|x| res << x }.object_id
-        assert_equal("A", res[0])
-        assert_equal("B", res[1])
-        assert_equal("C", res[2])
-      }
+      res = []
+      assert_equal s.object_id, s.chars {|x| res << x }.object_id
+      assert_equal("A", res[0])
+      assert_equal("B", res[1])
+      assert_equal("C", res[2])
     end
   end
 
@@ -1005,7 +997,6 @@ CODE
     ].each do |g|
       assert_equal [g], g.each_grapheme_cluster.to_a
       assert_equal 1, g.each_grapheme_cluster.size
-      assert_predicate g.dup.taint.each_grapheme_cluster.to_a[0], :tainted?
     end
 
     [
@@ -1015,9 +1006,6 @@ CODE
     ].each do |str, grapheme_clusters|
       assert_equal grapheme_clusters, str.each_grapheme_cluster.to_a
       assert_equal grapheme_clusters.size, str.each_grapheme_cluster.size
-      str.dup.taint.each_grapheme_cluster do |g|
-        assert_predicate g, :tainted?
-      end
     end
 
     s = ("x"+"\u{10ABCD}"*250000)
@@ -1039,7 +1027,6 @@ CODE
     ].product([Encoding::UTF_8, *WIDE_ENCODINGS]) do |g, enc|
       g = g.encode(enc)
       assert_equal [g], g.grapheme_clusters
-      assert_predicate g.taint.grapheme_clusters[0], :tainted?
     end
 
     [
@@ -1057,17 +1044,13 @@ CODE
         assert_equal ["A", "B", "C"], "ABC".grapheme_clusters {}
       }
     else
-      warning = /passing a block to String#grapheme_clusters is deprecated/
-      assert_warning(warning) {
-        s = "ABC".b.taint
-        res = []
-        assert_same s, s.grapheme_clusters {|x| res << x }
-        assert_equal(3, res.size)
-        assert_equal("A", res[0])
-        assert_equal("B", res[1])
-        assert_equal("C", res[2])
-        res.each {|g| assert_predicate(g, :tainted?)}
-      }
+      s = "ABC".b
+      res = []
+      assert_same s, s.grapheme_clusters {|x| res << x }
+      assert_equal(3, res.size)
+      assert_equal("A", res[0])
+      assert_equal("B", res[1])
+      assert_equal("C", res[2])
     end
   end
 
@@ -1180,12 +1163,10 @@ CODE
         assert_equal ["hello\n", "world"], s.lines {}
       }
     else
-      assert_warning(/passing a block to String#lines is deprecated/) {
-        res = []
-        assert_equal s.object_id, s.lines {|x| res << x }.object_id
-        assert_equal(S("hello\n"), res[0])
-        assert_equal(S("world"),  res[1])
-      }
+      res = []
+      assert_equal s.object_id, s.lines {|x| res << x }.object_id
+      assert_equal(S("hello\n"), res[0])
+      assert_equal(S("world"),  res[1])
     end
   end
 
@@ -1217,10 +1198,6 @@ CODE
     assert_equal(S("HELL-o"),
                  S("hello").gsub(/(hell)(.)/) { |s| $1.upcase + S('-') + $2 })
     assert_equal(S("<>h<>e<>l<>l<>o<>"), S("hello").gsub(S(''), S('<\0>')))
-
-    a = S("hello")
-    a.taint
-    assert_predicate(a.gsub(/./, S('X')), :tainted?)
 
     assert_equal("z", "abc".gsub(/./, "a" => "z"), "moved from btest/knownbug")
 
@@ -1265,11 +1242,6 @@ CODE
     a = S("hello")
     a.gsub!(/(hell)(.)/) { |s| $1.upcase + S('-') + $2 }
     assert_equal(S("HELL-o"), a)
-
-    r = S('X')
-    r.taint
-    a.gsub!(/./, r)
-    assert_predicate(a, :tainted?)
 
     a = S("hello")
     assert_nil(a.sub!(S('X'), S('Y')))
@@ -1462,10 +1434,8 @@ CODE
     assert_equal(S("foobar"), a.replace(S("foobar")))
 
     a = S("foo")
-    a.taint
     b = a.replace(S("xyz"))
     assert_equal(S("xyz"), b)
-    assert_predicate(b, :tainted?)
 
     s = "foo" * 100
     s2 = ("bar" * 100).dup
@@ -1560,12 +1530,6 @@ CODE
     a.scan(/(...)/) { |w| res << w }
     assert_equal([[S("cru")], [S("el ")], [S("wor")]],res)
 
-    a = S("hello")
-    a.taint
-    res = []
-    a.scan(/./) { |w| res << w }
-    assert_predicate(res[0], :tainted?, '[ruby-core:33338] #4087')
-
     /h/ =~ a
     a.scan(/x/)
     assert_nil($~)
@@ -1573,8 +1537,6 @@ CODE
     /h/ =~ a
     a.scan('x')
     assert_nil($~)
-
-    assert_equal(3, S("hello hello hello").scan("hello".taint).count(&:tainted?))
 
     assert_equal(%w[1 2 3], S("a1 a2 a3").scan(/a\K./))
   end
@@ -1745,7 +1707,7 @@ CODE
 
     assert_equal([], "".split(//, 1))
   ensure
-    $; = fs
+    EnvUtil.suppress_warning {$; = fs}
   end
 
   def test_split_with_block
@@ -1788,7 +1750,7 @@ CODE
     result = []; "aaa,bbb,ccc,ddd".split(/,/) {|s| result << s.gsub(/./, "A")}
     assert_equal(["AAA"]*4, result)
   ensure
-    $; = fs
+    EnvUtil.suppress_warning {$; = fs}
   end
 
   def test_fs
@@ -1796,7 +1758,7 @@ CODE
       $; = []
     }
 
-    assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
+    assert_separately(%W[-W0], "#{<<~"begin;"}\n#{<<~'end;'}")
     bug = '[ruby-core:79582] $; must not be GCed'
     begin;
       $; = " "
@@ -1952,11 +1914,6 @@ CODE
     assert_equal(S("a\\&aba"), S("ababa").sub(/b/, '\\\\&'))
     assert_equal(S("a\\baba"), S("ababa").sub(/b/, '\\\\\&'))
 
-    a = S("hello")
-    a.taint
-    x = a.sub(/./, S('X'))
-    assert_predicate(x, :tainted?)
-
     o = Object.new
     def o.to_str; "bar"; end
     assert_equal("fooBARbaz", "foobarbaz".sub(o, "BAR"))
@@ -2003,11 +1960,6 @@ CODE
 
     a=S("hello")
     assert_nil(a.sub!(/X/, S('Y')))
-
-    r = S('X')
-    r.taint
-    a.sub!(/./, r)
-    assert_predicate(a, :tainted?)
 
     bug16105 = '[Bug #16105] heap-use-after-free'
     a = S("ABCDEFGHIJKLMNOPQRSTUVWXYZ012345678")
@@ -3180,6 +3132,22 @@ CODE
 
     bar = %w(b a r).join('')
     assert_same(str, -bar, "uminus deduplicates [Feature #13077]")
+  end
+
+  def test_uminus_no_freeze_not_bare
+    str = @cls.new("foo")
+    assert_instance_of(@cls, -str)
+    assert_equal(false, str.frozen?)
+
+    str = @cls.new("foo")
+    str.instance_variable_set(:@iv, 1)
+    assert_instance_of(@cls, -str)
+    assert_equal(false, str.frozen?)
+    assert_equal(1, str.instance_variable_get(:@iv))
+
+    str = @cls.new("foo")
+    assert_instance_of(@cls, -str)
+    assert_equal(false, str.frozen?)
   end
 
   def test_ord

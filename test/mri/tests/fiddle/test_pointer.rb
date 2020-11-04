@@ -79,7 +79,6 @@ module Fiddle
     def test_to_ptr_string
       str = "hello world"
       ptr = Pointer[str]
-      assert ptr.tainted?, 'pointer should be tainted'
       assert_equal str.length, ptr.size
       assert_equal 'hello', ptr[0,5]
     end
@@ -226,7 +225,7 @@ module Fiddle
     end
 
     def test_no_memory_leak
-      assert_no_memory_leak(%w[-W0 -rfiddle], '', '100_000.times {Fiddle::Pointer.allocate}', rss: true) # TruffleRuby - MRI was -rfiddle.so
+      assert_no_memory_leak(%w[-W0 -rfiddle.so], '', '100_000.times {Fiddle::Pointer.allocate}', rss: true)
     end
   end
 end if defined?(Fiddle)

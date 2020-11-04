@@ -147,16 +147,6 @@ class Set
     super
   end
 
-  def taint     # :nodoc:
-    @hash.taint
-    super
-  end
-
-  def untaint   # :nodoc:
-    @hash.untaint
-    super
-  end
-
   # Returns the number of elements.
   def size
     @hash.size
@@ -527,7 +517,7 @@ class Set
     if @hash.respond_to?(:rehash)
       @hash.rehash # This should perform frozenness check.
     else
-      raise "can't modify frozen #{self.class.name}" if frozen?
+      raise FrozenError, "can't modify frozen #{self.class.name}" if frozen?
     end
     self
   end
@@ -804,7 +794,8 @@ class SortedSet < Set
 
   def initialize(*args, &block) # :nodoc:
     SortedSet.setup
-    initialize(*args, &block)
+    @keys = nil
+    super
   end
 end
 

@@ -7,54 +7,6 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
-if defined?(::TruffleRuby)
-  # Set RbConfig::CONFIG['COMPILE_C'] and 'COMPILE_CXX' to call the preprocessor only when needed.
-  # This avoids the cost of an extra process just for patching C files when most C files don't need patching.
-  # 'COMPILE_C' and 'COMPILE_CXX' are not defined in rbconfig.rb in MRI, so it is OK to define them only here.
-  require 'truffle/cext_preprocessor'
-
-  # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
-  # C or C++ file) to add the file's path as the first entry on the
-  # include path. This is to ensure that files from the source file's
-  # directory are included in preference to others on the include path,
-  # and is required because we are actually piping the file into the
-  # compiler which disables this standard behaviour of the C preprocessor.
-  begin
-    cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
-
-    with_conditional_preprocessing = proc do |command1, command2|
-      Truffle::CExt::Preprocessor.makefile_matcher(command1, command2)
-    end
-
-    for_file = proc do |compiler, flags|
-      "#{compiler} #{flags} $(CSRCFLAG)$<"
-    end
-
-    for_pipe = proc do |compiler, flags|
-      language_flag = '$(CXX)' == compiler ? '-xc++' : '-xc'
-      "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} -"
-    end
-
-    c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'
-    cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c'
-
-    RbConfig::MAKEFILE_CONFIG['COMPILE_C'] = with_conditional_preprocessing.call(
-        for_pipe.call('$(CC)', c_flags),
-        for_file.call('$(CC)', c_flags))
-
-    RbConfig::MAKEFILE_CONFIG['COMPILE_CXX'] = with_conditional_preprocessing.call(
-        for_pipe.call('$(CXX)', cxx_flags),
-        for_file.call('$(CXX)', cxx_flags))
-  end
-end
-
-if defined?(::TruffleRuby)
-  # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
-  # currently required as TruffleRuby cannot yet link to static libraries.
-  # See https://github.com/sparklemotion/nokogiri/pull/2085 when solving this.
-  ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
-end
-
 class String
   # :stopdoc:
 
@@ -277,44 +229,30 @@ module MakeMakefile
     map.inject(dir) {|d, (orig, new)| d.gsub(orig, new)}
   end
 
-  if defined?(::TruffleRuby)
-    $extmk = Truffle::Boot.get_option('building-core-cexts') || ENV.key?('MKMF_SET_EXTMK_TO_TRUE')
-    topdir = RbConfig::CONFIG['prefix'] # the TruffleRuby home
-    $hdrdir = RbConfig::CONFIG["rubyhdrdir"] # lib/cext/include
-    $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"] # lib/cext/include
-
-    unless File.exist?("#{$hdrdir}/ruby/ruby.h")
-      abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby/ruby.h"
+  topdir = File.dirname(File.dirname(__FILE__))
+  path = File.expand_path($0)
+  until (dir = File.dirname(path)) == path
+    if File.identical?(dir, topdir)
+      $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
+      break
     end
-
-    if not $extmk
-      $topdir = $hdrdir # lib/cext/include
-      $top_srcdir = $hdrdir # lib/cext/include
-    else
-      $top_srcdir ||= topdir + "/lib/cext" # lib/cext
-      $topdir ||= RbConfig::CONFIG["topdir"] # lib/mri
-    end
+    path = dir
+  end
+  $extmk ||= false
+  if not $extmk and File.exist?(($hdrdir = RbConfig::CONFIG["rubyhdrdir"]) + "/ruby/ruby.h")
+    $topdir = $hdrdir
+    $top_srcdir = $hdrdir
+    $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
+  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
+    $topdir ||= RbConfig::CONFIG["topdir"]
+    $arch_hdrdir = "$(extout)/include/$(arch)"
   else
-    topdir = File.dirname(File.dirname(__FILE__))
-    path = File.expand_path($0)
-    until (dir = File.dirname(path)) == path
-      if File.identical?(dir, topdir)
-        $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
-        break
-      end
-      path = dir
-    end
-    $extmk ||= false
-    if not $extmk and File.exist?(($hdrdir = RbConfig::CONFIG["rubyhdrdir"]) + "/ruby/ruby.h")
-      $topdir = $hdrdir
-      $top_srcdir = $hdrdir
-      $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
-    elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
-      $topdir ||= RbConfig::CONFIG["topdir"]
-      $arch_hdrdir = "$(extout)/include/$(arch)"
-    else
-      abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
-    end
+    abort <<MESSAGE
+mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h
+
+You might have to install separate package for the ruby development
+environment, ruby-dev or ruby-devel for example.
+MESSAGE
   end
 
   CONFTEST = "conftest".freeze
@@ -414,15 +352,6 @@ module MakeMakefile
       end
     end
 
-    if defined?(::TruffleRuby)
-      def self::read_log
-        return 'no log file' unless @logfile
-        log_close
-        return 'log file does not exist' unless File.exist?(@logfile)
-        "\nContents of #{@logfile}:\n#{File.binread(@logfile)}"
-      end
-    end
-
     def self::postpone
       tmplog = "mkmftmp#{@postpone += 1}.log"
       open do
@@ -474,13 +403,7 @@ module MakeMakefile
         end
         result
       else
-        if defined?(::TruffleRuby)
-          result = system(libpath_env, command)
-          puts "Process failed: #{$?.inspect}" unless result
-          result
-        else
-          system(libpath_env, command)
-        end
+        system(libpath_env, command)
       end
     end
   end
@@ -511,6 +434,10 @@ EOM
 EOM
   end
 
+  def conftest_source
+    CONFTEST_C
+  end
+
   def create_tmpsrc(src)
     src = "#{COMMON_HEADERS}\n#{src}"
     src = yield(src) if block_given?
@@ -519,7 +446,7 @@ EOM
     src.sub!(/[^\n]\z/, "\\&\n")
     count = 0
     begin
-      open(CONFTEST_C, "wb") do |cfile|
+      open(conftest_source, "wb") do |cfile|
         cfile.print src
       end
     rescue Errno::EACCES
@@ -544,7 +471,6 @@ EOM
       raise <<MSG
 The compiler failed to generate an executable file.
 You have to install development tools first.
-#{Logging::read_log if defined?(::TruffleRuby)}
 MSG
     end
     begin
@@ -555,10 +481,10 @@ MSG
     end
   end
 
-  def link_command(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
-    librubyarg = "$(LIBRUBYARG)"
+  def link_config(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
+    librubyarg = $extmk ? $LIBRUBYARG_STATIC : "$(LIBRUBYARG)"
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote,
-                                  'src' => "#{CONFTEST_C}",
+                                  'src' => "#{conftest_source}",
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote,
                                   'INCFLAGS' => "#$INCFLAGS",
@@ -569,21 +495,29 @@ MSG
                                   'LOCAL_LIBS' => "#$LOCAL_LIBS #$libs",
                                   'LIBS' => "#{librubyarg} #{opt} #$LIBS")
     conf['LIBPATH'] = libpathflag(libpath.map {|s| RbConfig::expand(s.dup, conf)})
+    conf
+  end
+
+  def link_command(ldflags, *opts)
+    conf = link_config(ldflags, *opts)
     RbConfig::expand(TRY_LINK.dup, conf)
   end
 
-  def cc_command(opt="")
+  def cc_config(opt="")
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote)
+    conf
+  end
+
+  def cc_command(opt="")
+    conf = cc_config(opt)
     RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
                      conf)
   end
 
   def cpp_command(outfile, opt="")
-    conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
-                                  'arch_hdrdir' => $arch_hdrdir.quote,
-                                  'top_srcdir' => $top_srcdir.quote)
+    conf = cc_config(opt)
     if $universal and (arch_flag = conf['ARCH_FLAG']) and !arch_flag.empty?
       conf['ARCH_FLAG'] = arch_flag.gsub(/(?:\G|\s)-arch\s+\S+/, '')
     end
@@ -1085,6 +1019,7 @@ SRC
   # <code>--with-FOOlib</code> configuration option.
   #
   def have_library(lib, func = nil, headers = nil, opt = "", &b)
+    dir_config(lib)
     lib = with_config(lib+'lib', lib)
     checking_for checking_message(func && func.funcall_style, LIBARG%lib, opt) do
       if COMMON_LIBS.include?(lib)
@@ -1110,6 +1045,7 @@ SRC
   # library paths searched and linked against.
   #
   def find_library(lib, func, *paths, &b)
+    dir_config(lib)
     lib = with_config(lib+'lib', lib)
     paths = paths.collect {|path| path.split(File::PATH_SEPARATOR)}.flatten
     checking_for checking_message(func && func.funcall_style, LIBARG%lib) do
@@ -1183,6 +1119,7 @@ SRC
   # +HAVE_FOO_H+ preprocessor macro would be passed to the compiler.
   #
   def have_header(header, preheaders = nil, opt = "", &b)
+    dir_config(header[/.*?(?=\/)|.*?(?=\.)/])
     checking_for header do
       if try_header(cpp_include(preheaders)+cpp_include(header), opt, &b)
         $defs.push(format("-DHAVE_%s", header.tr_cpp))
@@ -1826,6 +1763,10 @@ SRC
   # application.
   #
   def dir_config(target, idefault=nil, ldefault=nil)
+    if conf = $config_dirs[target]
+      return conf
+    end
+
     if dir = with_config(target + "-dir", (idefault unless ldefault))
       defaults = Array === dir ? dir : dir.split(File::PATH_SEPARATOR)
       idefault = ldefault = nil
@@ -1856,7 +1797,7 @@ SRC
     end
     $LIBPATH = ldirs | $LIBPATH
 
-    [idir, ldir]
+    $config_dirs[target] = [idir, ldir]
   end
 
   # Returns compile/link information about an installed library in a
@@ -1872,7 +1813,7 @@ SRC
   #
   # Where {option} is, for instance, <code>--cflags</code>.
   #
-  # The values obtained are appended to +$CFLAGS+, +$LDFLAGS+ and
+  # The values obtained are appended to +$INCFLAGS+, +$CFLAGS+, +$LDFLAGS+ and
   # +$libs+.
   #
   # If an <code>option</code> argument is given, the config command is
@@ -1928,9 +1869,9 @@ SRC
 
       $LDFLAGS = [orig_ldflags, ldflags].join(' ')
       Logging::message "package configuration for %s\n", pkg
-      Logging::message "cflags: %s\nldflags: %s\nlibs: %s\n\n",
-                       cflags, ldflags, libs
-      [cflags, ldflags, libs]
+      Logging::message "incflags: %s\ncflags: %s\nldflags: %s\nlibs: %s\n\n",
+                       incflags, cflags, ldflags, libs
+      [[incflags, cflags].join(' '), ldflags, libs]
     else
       Logging::message "package configuration for %s is not found\n", pkg
       nil
@@ -2193,7 +2134,6 @@ RULES
       line.gsub!(/\.o\b/, ".#{$OBJEXT}")
       line.gsub!(/\{\$\(VPATH\)\}/, "") unless $nmake
       line.gsub!(/\$\((?:hdr|top)dir\)\/config.h/, $config_h)
-      line.gsub!(%r"\$\(hdrdir\)/(?!ruby(?![^:;/\s]))(?=[-\w]+\.h)", '\&ruby/')
       if $nmake && /\A\s*\$\(RM|COPY\)/ =~ line
         line.gsub!(%r"[-\w\./]{2,}"){$&.tr("/", "\\")}
         line.gsub!(/(\$\((?!RM|COPY)[^:)]+)(?=\))/, '\1:/=\\')
@@ -2215,14 +2155,7 @@ RULES
     unless suffixes.empty?
       depout.unshift(".SUFFIXES: ." + suffixes.uniq.join(" .") + "\n\n")
     end
-    if defined?(::TruffleRuby)
-      # Added dependency on Makefile as we should recompile if the Makefile was re-generated
-      if $extconf_h
-        depout.unshift("$(OBJS): Makefile $(RUBY_EXTCONF_H)\n\n")
-      else
-        depout.unshift("$(OBJS): Makefile\n\n")
-      end
-    else
+    if $extconf_h
       depout.unshift("$(OBJS): $(RUBY_EXTCONF_H)\n\n")
       depout.unshift("$(OBJS): $(hdrdir)/ruby/win32.h\n\n") if $mswin or $mingw
     end
@@ -2284,25 +2217,6 @@ RULES
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
   def create_makefile(target, srcprefix = nil)
-    if defined?(::TruffleRuby) and Truffle::Boot.get_option('building-core-cexts') and target != 'libtruffleruby'
-      # Replace the -rpath argument in $LIBRUBYARG with a relative path to libtruffleruby for core C exts
-      # Relative path from lib/mri/$TARGET to lib/cext/libtruffleruby.so
-      nesting = target.count('/')
-      target_dir_to_libtruffleruby_dir = "#{'../' * nesting}../cext"
-      if Truffle::Platform.darwin?
-        origin_token = '@loader_path'
-      else
-        origin_token = '$$ORIGIN' # $$ so the Makefile does not expand it
-      end
-
-      librubyarg = $LIBRUBYARG.split(' ')
-      rpath_index = librubyarg.index('-rpath')
-      raise 'Could not find -rpath in $LIBRUBYARG' unless rpath_index
-      # Extra quotes so the shell does not try to interpret $ORIGIN
-      librubyarg[rpath_index + 1] = "'#{origin_token}/#{target_dir_to_libtruffleruby_dir}'"
-      $LIBRUBYARG = librubyarg.join(' ')
-    end
-
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"
@@ -2596,12 +2510,7 @@ site-install-rb: install-rb
     if File.exist?(depend)
       mfile.print("###\n", *depend_rules(File.read(depend)))
     else
-      if defined?(::TruffleRuby)
-        # Added dependency on Makefile as we should recompile if the Makefile was re-generated
-        mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
-      else
-        mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
-      end
+      mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
     end
 
     $makefile_created = true
@@ -2617,6 +2526,8 @@ site-install-rb: install-rb
     $enable_shared = config['ENABLE_SHARED'] == 'yes'
     $defs = []
     $extconf_h = nil
+    $config_dirs = {}
+
     if $warnflags = CONFIG['warnflags'] and CONFIG['GCC'] == 'yes'
       # turn warnings into errors only for bundled extensions.
       config['warnflags'] = $warnflags.gsub(/(\A|\s)-Werror[-=]/, '\1-W')
@@ -2675,6 +2586,7 @@ site-install-rb: install-rb
     $extout_prefix ||= nil
 
     $arg_config.clear
+    $config_dirs.clear
     dir_config("opt")
   end
 
@@ -2694,11 +2606,7 @@ MESSAGE
   def mkmf_failed(path)
     unless $makefile_created or File.exist?("Makefile")
       opts = $arg_config.collect {|t, n| "\t#{t}#{n ? "=#{n}" : ""}\n"}
-      if defined?(::TruffleRuby)
-        abort "*** #{path} failed ***\n" + FailedMessage + opts.join + Logging::read_log
-      else
-        abort "*** #{path} failed ***\n" + FailedMessage + opts.join
-      end
+      abort "*** #{path} failed ***\n" + FailedMessage + opts.join
     end
   end
 
@@ -2747,12 +2655,7 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-
-  if defined?(::TruffleRuby)
-    $ruby = arg_config("--ruby", RbConfig.ruby)
-  else
-    $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
-  end
+  $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
 
   RbConfig.expand(CONFIG["RUBY_SO_NAME"])
 
@@ -2844,7 +2747,7 @@ MESSAGE
   ##
   # A C main function which does no work
 
-  MAIN_DOES_NOTHING = config_string('MAIN_DOES_NOTHING') || "int main(int argc, char **argv)\n{\n  return 0;\n}"
+  MAIN_DOES_NOTHING = config_string('MAIN_DOES_NOTHING') || "int main(int argc, char **argv)\n{\n  return !!argv[argc];\n}"
   UNIVERSAL_INTS = config_string('UNIVERSAL_INTS') {|s| Shellwords.shellwords(s)} ||
     %w[int short long long\ long]
 
@@ -2872,6 +2775,51 @@ distclean: clean distclean-so distclean-static distclean-rb-default distclean-rb
 
 realclean: distclean
 "
+
+  @lang = Hash.new(self)
+
+  def self.[](name)
+    @lang.fetch(name)
+  end
+
+  def self.[]=(name, mod)
+    @lang[name] = mod
+  end
+
+  self["C++"] = Module.new do
+    include MakeMakefile
+    extend self
+
+    CONFTEST_CXX = "#{CONFTEST}.#{config_string('CXX_EXT') || CXX_EXT[0]}"
+
+    TRY_LINK_CXX = config_string('TRY_LINK_CXX') ||
+                   ((cmd = TRY_LINK.gsub(/\$\(C(?:C|(FLAGS))\)/, '$(CXX\1)')) != TRY_LINK && cmd) ||
+                   "$(CXX) #{OUTFLAG}#{CONFTEST}#{$EXEEXT} $(INCFLAGS) $(CPPFLAGS) " \
+                   "$(CXXFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
+
+    def have_devel?
+      unless defined? @have_devel
+        @have_devel = true
+        @have_devel = try_link(MAIN_DOES_NOTHING)
+      end
+      @have_devel
+    end
+
+    def conftest_source
+      CONFTEST_CXX
+    end
+
+    def cc_command(opt="")
+      conf = cc_config(opt)
+      RbConfig::expand("$(CXX) #$INCFLAGS #$CPPFLAGS #$CXXFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_CXX}",
+                       conf)
+    end
+
+    def link_command(ldflags, *opts)
+      conf = link_config(ldflags, *opts)
+      RbConfig::expand(TRY_LINK_CXX.dup, conf)
+    end
+  end
 end
 
 include MakeMakefile

@@ -123,6 +123,10 @@ class Complex_Test < Test::Unit::TestCase
     assert_raise(TypeError){Complex(Object.new)}
     assert_raise(ArgumentError){Complex()}
     assert_raise(ArgumentError){Complex(1,2,3)}
+    c = Complex(1,0)
+    assert_same(c, Complex(c))
+    assert_same(c, Complex(c, exception: false))
+    assert_raise(ArgumentError){Complex(c, bad_keyword: true)}
 
     if (0.0/0).nan?
       assert_nothing_raised{Complex(0.0/0)}
@@ -427,11 +431,13 @@ class Complex_Test < Test::Unit::TestCase
     assert_equal(Complex(Rational(3,2),Rational(3)), c / Rational(2,3))
 
     c = Complex(1)
-    r = c / c
-    assert_instance_of(Complex, r)
-    assert_equal(1, r)
-    assert_predicate(r.real, :integer?)
-    assert_predicate(r.imag, :integer?)
+    [ 1, Rational(1), c ].each do |d|
+      r = c / d
+      assert_instance_of(Complex, r)
+      assert_equal(1, r)
+      assert_predicate(r.real, :integer?)
+      assert_predicate(r.imag, :integer?)
+    end
   end
 
   def test_quo
@@ -516,9 +522,16 @@ class Complex_Test < Test::Unit::TestCase
   end
 
   def test_cmp
-    assert_raise(NoMethodError){1 <=> Complex(1,1)}
-    assert_raise(NoMethodError){Complex(1,1) <=> 1}
-    assert_raise(NoMethodError){Complex(1,1) <=> Complex(1,1)}
+    assert_nil(Complex(5, 1) <=> Complex(2))
+    assert_nil(5 <=> Complex(2, 1))
+
+    assert_equal(1, Complex(5) <=> Complex(2))
+    assert_equal(-1, Complex(2) <=> Complex(3))
+    assert_equal(0, Complex(2) <=> Complex(2))
+
+    assert_equal(1, Complex(5) <=> 2)
+    assert_equal(-1, Complex(2) <=> 3)
+    assert_equal(0, Complex(2) <=> 2)
   end
 
   def test_eqeq
@@ -859,6 +872,12 @@ class Complex_Test < Test::Unit::TestCase
 
   end
 
+  def test_Complex_with_invalid_exception
+    assert_raise(ArgumentError) {
+      Complex("0", exception: 1)
+    }
+  end
+
   def test_Complex_without_exception
     assert_nothing_raised(ArgumentError){
       assert_equal(nil, Complex('5x', exception: false))
@@ -889,7 +908,6 @@ class Complex_Test < Test::Unit::TestCase
   def test_respond
     c = Complex(1,1)
     assert_not_respond_to(c, :%)
-    assert_not_respond_to(c, :<=>)
     assert_not_respond_to(c, :div)
     assert_not_respond_to(c, :divmod)
     assert_not_respond_to(c, :floor)

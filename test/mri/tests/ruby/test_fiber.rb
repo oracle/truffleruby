@@ -34,6 +34,7 @@ class TestFiber < Test::Unit::TestCase
   end
 
   def test_many_fibers
+    skip 'This is unstable on GitHub Actions --jit-wait. TODO: debug it' if RubyVM::MJIT.enabled?
     max = 10_000
     assert_equal(max, max.times{
       Fiber.new{}
@@ -109,6 +110,15 @@ class TestFiber < Test::Unit::TestCase
       }
       fib.resume
     }
+    assert_raise(FiberError){
+      fib = Fiber.new{}
+      fib.raise "raise in unborn fiber"
+    }
+    assert_raise(FiberError){
+      fib = Fiber.new{}
+      fib.resume
+      fib.raise "raise in dead fiber"
+    }
   end
 
   def test_return
@@ -125,6 +135,38 @@ class TestFiber < Test::Unit::TestCase
         throw :a
       end.resume
     }
+  end
+
+  def test_raise
+    assert_raise(ZeroDivisionError){
+      Fiber.new do
+        1/0
+      end.resume
+    }
+    assert_raise(RuntimeError){
+      fib = Fiber.new{ Fiber.yield }
+      fib.resume
+      fib.raise "raise and propagate"
+    }
+    assert_nothing_raised{
+      fib = Fiber.new do
+        begin
+          Fiber.yield
+        rescue
+        end
+      end
+      fib.resume
+      fib.raise "rescue in fiber"
+    }
+    fib = Fiber.new do
+      begin
+        Fiber.yield
+      rescue
+        Fiber.yield :ok
+      end
+    end
+    fib.resume
+    assert_equal(:ok, fib.raise)
   end
 
   def test_transfer
@@ -309,8 +351,10 @@ class TestFiber < Test::Unit::TestCase
     env = {}
     env['RUBY_FIBER_VM_STACK_SIZE'] = vm_stack_size.to_s if vm_stack_size
     env['RUBY_FIBER_MACHINE_STACK_SIZE'] = machine_stack_size.to_s if machine_stack_size
-    out, _ = Dir.mktmpdir("test_fiber") {|tmpdir|
-      EnvUtil.invoke_ruby([env, '-e', script], '', true, true, chdir: tmpdir, timeout: 30)
+    out = Dir.mktmpdir("test_fiber") {|tmpdir|
+      out, err, status = EnvUtil.invoke_ruby([env, '-e', script], '', true, true, chdir: tmpdir, timeout: 30)
+      assert(!status.signaled?, FailDesc[status, nil, err])
+      out
     }
     use_length ? out.length : out
   end
@@ -318,7 +362,7 @@ class TestFiber < Test::Unit::TestCase
   def test_stack_size
     h_default = eval(invoke_rec('p RubyVM::DEFAULT_PARAMS', nil, nil, false))
     h_0 = eval(invoke_rec('p RubyVM::DEFAULT_PARAMS', 0, 0, false))
-    h_large = eval(invoke_rec('p RubyVM::DEFAULT_PARAMS', 1024 * 1024 * 10, 1024 * 1024 * 10, false))
+    h_large = eval(invoke_rec('p RubyVM::DEFAULT_PARAMS', 1024 * 1024 * 5, 1024 * 1024 * 10, false))
 
     assert_operator(h_default[:fiber_vm_stack_size], :>, h_0[:fiber_vm_stack_size])
     assert_operator(h_default[:fiber_vm_stack_size], :<, h_large[:fiber_vm_stack_size])
@@ -331,7 +375,7 @@ class TestFiber < Test::Unit::TestCase
     assert_operator(size_default, :>, 0)
     size_0 = invoke_rec script, 0, nil
     assert_operator(size_default, :>, size_0)
-    size_large = invoke_rec script, 1024 * 1024 * 10, nil
+    size_large = invoke_rec script, 1024 * 1024 * 5, nil
     assert_operator(size_default, :<, size_large)
 
     return if /mswin|mingw/ =~ RUBY_PLATFORM
