@@ -1,0 +1,2 @@
+slow:Warning.[]= emits and suppresses warnings for :deprecated
+slow:Warning.[]= emits and suppresses warnings for :experimental
