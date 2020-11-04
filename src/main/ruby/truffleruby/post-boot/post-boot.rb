@@ -24,7 +24,7 @@ if Truffle::Boot.ruby_home
     # Load DidYouMean here manually, to avoid loading RubyGems eagerly
     Truffle::Boot.print_time_metric :'before-did-you-mean'
     begin
-      require 'did_you_mean'
+      gem_original_require 'did_you_mean'
     rescue LoadError => e
       Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
     ensure
