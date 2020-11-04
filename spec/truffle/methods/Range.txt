@@ -3,6 +3,7 @@
 ===
 begin
 bsearch
+count
 cover?
 each
 end
@@ -17,6 +18,7 @@ last
 max
 member?
 min
+minmax
 size
 step
 to_a

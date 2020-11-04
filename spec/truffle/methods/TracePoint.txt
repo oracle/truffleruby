@@ -1,4 +1,3 @@
-__enable
 binding
 callee_id
 defined_class

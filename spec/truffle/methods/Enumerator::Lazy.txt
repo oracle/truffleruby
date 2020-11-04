@@ -4,8 +4,10 @@ collect
 collect_concat
 drop
 drop_while
+eager
 enum_for
 filter
+filter_map
 find_all
 flat_map
 force
@@ -22,4 +24,5 @@ take
 take_while
 to_enum
 uniq
+with_index
 zip

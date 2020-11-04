@@ -23,6 +23,7 @@ compact!
 concat
 count
 cycle
+deconstruct
 delete
 delete_at
 delete_if
@@ -47,6 +48,7 @@ include?
 index
 insert
 inspect
+intersection
 join
 keep_if
 last
@@ -55,6 +57,7 @@ map
 map!
 max
 min
+minmax
 none?
 one?
 pack
