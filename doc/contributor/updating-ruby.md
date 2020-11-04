@@ -8,6 +8,13 @@ have to MRI source code while updating.
 You can re-run these instructions at any time to compare against unmodified
 MRI files.
 
+## Setup
+
+Set the environment variable `$VERSION` to the target version:
+```
+export VERSION=n.n.n
+```
+
 ## Create reference branches
 
 For both the current version of Ruby you're using, and the new version, create
@@ -30,7 +37,11 @@ update.
 
 ## Update MRI with modifications
 
-Install the target MRI version using the command `ruby-install ruby 2.6.6`.
+Re-install the target MRI version using the commands, to have a clean set of gems:
+```
+rm -rf ~/.rubies/ruby-$VERSION
+ruby-install ruby $VERSION
+```
 
 In your working branch you can import MRI files again, and you can re-apply
 old patches using the old reference branch.
@@ -87,14 +98,15 @@ cp -R ../../json/lib lib/json
 
 ## Updating default and bundled gems
 
-You need a clean install (e.g., no extra gems installed) of MRI for this.
+You need a clean install (e.g., no extra gems installed) of MRI for this
+(see `ruby-install` above).
 
 ```
 export TRUFFLERUBY=$(pwd)
 rm -rf lib/gems/gems
 rm -rf lib/gems/specifications
 
-cd clean-install-of/ruby-n.n.n
+cd ~/.rubies/ruby-$VERSION
 cp -R lib/ruby/gems/*.0/gems $TRUFFLERUBY/lib/gems
 cp -R lib/ruby/gems/*.0/specifications $TRUFFLERUBY/lib/gems
 
