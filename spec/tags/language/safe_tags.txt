@@ -15,3 +15,5 @@ fails:The $SAFE variable can be manually lowered
 fails:The $SAFE variable is not Proc local
 fails:The $SAFE variable is not lambda local
 fails:The $SAFE variable is global like regular global variables
+fails:The $SAFE variable warn when access
+fails:The $SAFE variable warn when set
