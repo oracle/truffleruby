@@ -6,11 +6,11 @@ gem_test_pack=$(jt gem-test-pack | tail -n 1)
 
 mkdir -p temp-gem-home
 
-GEM_HOME=$PWD/temp-gem-home jt ruby -S gem install --local "$gem_test_pack/gem-cache/bundler-2.1.4.gem"
+GEM_HOME=$PWD/temp-gem-home jt ruby -S gem install --local "$gem_test_pack/gem-cache/bundler-1.17.3.gem"
 
 output=$(GEM_HOME=$PWD/temp-gem-home jt ruby -Ctest/truffle/integration/bundler-version/one bundler-version.rb)
 
-if [ "$output" = '"1.17.2"' ]; then
+if [ "$output" = '"1.17.3"' ]; then
   echo Success
 else
   echo Unexpected bundler 1 output
