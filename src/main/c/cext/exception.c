@@ -85,6 +85,10 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
   // arguments using the polyglot api.
   for (;n < total; n++) {
     VALUE arg = polyglot_get_arg(n);
+    if (arg == (VALUE)0) {
+      break;
+    }
+
     rb_ary_push(rescued, arg);
   }
   return cext_rb_rescue2(b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
