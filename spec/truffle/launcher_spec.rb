@@ -68,6 +68,13 @@ describe "The launcher" do
     File.dirname(RbConfig.ruby).should == @default_bindir
   end
 
+  it "all launchers are in @launchers" do
+    known = @launchers.keys.map(&:to_s).sort
+    actual = Dir.children(File.dirname(RbConfig.ruby)).sort
+    actual.delete('truffleruby.sh')
+    actual.should == known
+  end
+
   @launchers.each do |launcher, test|
     unless [:ruby, :truffleruby].include?(launcher)
       it "runs #{launcher} as an -S command" do
