@@ -325,10 +325,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  -rlibrary       require the library before executing your script");
         out.println("  -s              enable some switch parsing for switches after script name");
         out.println("  -S              look for the script using PATH environment variable");
-        out.println("  -T[level=1]     turn on tainting checks");
         out.println("  -v              print the version number, then turn on verbose mode");
         out.println("  -w              turn warnings on for your script");
-        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -W[level=2|:category]");
+        out.println("                  set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  --copyright     print the copyright");
         out.println("  --enable={gems|rubyopt|...}[,...], --disable={gems|rubyopt|...}[,...]");
@@ -345,6 +345,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");
+        out.println();
+        out.println("Warning categories:");
+        out.println("  deprecated      deprecated features");
+        out.println("  experimental    experimental features");
     }
 
     // Same as above, but with "ruby -h"
@@ -366,10 +370,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  -rlibrary       require the library before executing your script");
         out.println("  -s              enable some switch parsing for switches after script name");
         out.println("  -S              look for the script using PATH environment variable");
-        out.println("  -T[level=1]     turn on tainting checks");
         out.println("  -v              print the version number, then turn on verbose mode");
         out.println("  -w              turn warnings on for your script");
-        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -W[level=2|:category]     set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  -h              show this message, --help for more info");
     }

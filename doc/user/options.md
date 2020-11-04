@@ -21,10 +21,10 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
   -rlibrary       require the library before executing your script
   -s              enable some switch parsing for switches after script name
   -S              look for the script using PATH environment variable
-  -T[level=1]     turn on tainting checks
   -v              print the version number, then turn on verbose mode
   -w              turn warnings on for your script
-  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose
+  -W[level=2|:category]
+                  set warning level; 0=silence, 1=medium, 2=verbose
   -x[directory]   strip off text before #!ruby line and perhaps cd to directory
   --copyright     print the copyright
   --enable={gems|rubyopt|...}[,...], --disable={gems|rubyopt|...}[,...]
@@ -41,6 +41,10 @@ Features:
   rubyopt         RUBYOPT environment variable (default: enabled)
   frozen-string-literal
                   freeze all string literals (default: disabled)
+
+Warning categories:
+  deprecated      deprecated features
+  experimental    experimental features
 ```
 
 TruffleRuby also reads the `RUBYOPT` environment variable, as in standard
