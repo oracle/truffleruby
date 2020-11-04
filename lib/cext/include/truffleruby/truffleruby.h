@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
+NORETURN(VALUE rb_f_notimplement(int argc, const VALUE *argv, VALUE obj, VALUE marker));
 
 // Non-standard
 

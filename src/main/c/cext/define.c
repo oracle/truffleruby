@@ -2,7 +2,7 @@
 
 // Defining classes, modules and methods, rb_define_*
 
-VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
+VALUE rb_f_notimplement(int argc, const VALUE *argv, VALUE obj, VALUE marker) {
   rb_tr_error("rb_f_notimplement");
 }
 
@@ -30,6 +30,7 @@ void rb_include_module(VALUE module, VALUE to_include) {
   RUBY_INVOKE_NO_WRAP(module, "include", to_include);
 }
 
+#undef rb_define_method
 void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   if (function == rb_f_notimplement) {
     RUBY_CEXT_INVOKE("rb_define_method_undefined", module, rb_str_new_cstr(name));
@@ -38,25 +39,30 @@ void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS)
   }
 }
 
+#undef rb_define_private_method
 void rb_define_private_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
   RUBY_INVOKE_NO_WRAP(module, "private", rb_str_new_cstr(name));
 }
 
+#undef rb_define_protected_method
 void rb_define_protected_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
   RUBY_INVOKE_NO_WRAP(module, "protected", rb_str_new_cstr(name));
 }
 
+#undef rb_define_module_function
 void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
   polyglot_invoke(RUBY_CEXT, "cext_module_function", rb_tr_unwrap(module), rb_tr_id2sym(rb_intern(name)));
 }
 
+#undef rb_define_global_function
 void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_module_function(rb_mKernel, name, function, argc);
 }
 
+#undef rb_define_singleton_method
 void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(RUBY_INVOKE(object, "singleton_class"), name, function, argc);
 }

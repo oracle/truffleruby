@@ -20,6 +20,26 @@
 #define STR_EMBED_P(str)      (str, false)
 #define STR_SHARED_P(str)     (str, false)
 
+static inline
+unsigned int nlz_long(unsigned long x) {
+#if defined(HAVE_BUILTIN___BUILTIN_CLZL)
+    if (x == 0) return SIZEOF_LONG * CHAR_BIT;
+    return (unsigned int)__builtin_clzl(x);
+#else
+    #error no __builtin_clzl
+#endif
+}
+
+static inline
+unsigned int nlz_intptr(uintptr_t x) {
+#if SIZEOF_UINTPTR_T == SIZEOF_LONG
+    return nlz_long(x);
+#else
+    #error no known integer type corresponds uintptr_t
+    return /* sane compiler */ ~0;
+#endif
+}
+
 VALUE rb_hash_key_str(VALUE);
 VALUE rb_hash_keys(VALUE hash);
 VALUE rb_hash_delete_entry(VALUE hash, VALUE key);
