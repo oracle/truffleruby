@@ -1,0 +1,4 @@
+fails:Proc#<< raises TypeError if passed not callable object
+fails:Proc#<< does not try to coerce argument with #to_proc
+fails:Proc#>> raises TypeError if passed not callable object
+fails:Proc#>> does not try to coerce argument with #to_proc

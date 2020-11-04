@@ -1,0 +1,1 @@
+fails:Struct#deconstruct returns an array of attribute values

@@ -1,0 +1,5 @@
+fails:Time#floor defaults to flooring to 0 places
+fails:Time#floor floors to 0 decimal places with an explicit argument
+fails:Time#floor floors to 7 decimal places with an explicit argument
+fails:Time#floor returns an instance of Time, even if #floor is called on a subclass
+fails:Time#floor copies own timezone to the returning value

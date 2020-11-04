@@ -1,1 +1,2 @@
 slow:Warning.[] returns default values for categories :deprecated and :experimental
+fails:Warning.[] raises for unknown category

@@ -1,0 +1,2 @@
+fails:Kernel#trust is a no-op
+fails:Kernel#trust warns in verbose mode

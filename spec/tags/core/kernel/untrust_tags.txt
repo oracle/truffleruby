@@ -1,0 +1,2 @@
+fails:Kernel#untrust is a no-op
+fails:Kernel#untrust warns in verbose mode

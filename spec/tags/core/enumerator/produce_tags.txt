@@ -1,0 +1,4 @@
+fails:Enumerator.produce creates an infinite enumerator
+fails:Enumerator.produce terminates iteration when block raises StopIteration exception
+fails:Enumerator.produce when initial value skipped uses nil instead
+fails:Enumerator.produce when initial value skipped starts enumerable from result of first block call

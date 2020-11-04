@@ -1,2 +1,5 @@
 slow:Warning.[]= emits and suppresses warnings for :deprecated
 slow:Warning.[]= emits and suppresses warnings for :experimental
+fails:Warning.[]= raises for unknown category
+fails:Warning.[]= emits and suppresses warnings for :deprecated
+fails:Warning.[]= emits and suppresses warnings for :experimental
