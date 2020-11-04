@@ -39,12 +39,45 @@ describe "Foreign arrays" do
     foreign.length.should == 3
   end
 
-  it "can access elements by indexing" do
+  it "can access elements by indexing #[]" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign[0].should == 1
     foreign[2].should == 3
   end
   
+  it "can access elements with #at" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.at(0).should == 1
+    foreign.at(2).should == 3
+  end
+
+  it "can access elements with #at with negative indices" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.at(-1).should == 3
+    foreign.at(-2).should == 2
+    foreign.at(-3).should == 1
+  end
+
+  it "can access elements with #fetch" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.fetch(0).should == 1
+    foreign.fetch(2).should == 3
+  end
+
+  it "can access elements with #fetch with negative indices" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.fetch(-1).should == 3
+    foreign.fetch(-2).should == 2
+    foreign.fetch(-3).should == 1
+  end
+  
+#=begin  
+  it "should raise array out of bounds in #fetch" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
+    foreign.fetch(-5).should == 0
+  end
+#=end
+
 end
 
 describe "Foreign arrays that are also pointers" do

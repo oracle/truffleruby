@@ -14,6 +14,7 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -45,8 +46,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     public abstract Object executeCall(Object receiver, String name, Object[] args);
 
     protected final static String INDEX_READ = "[]";
-    protected final static String AT = "at";    
     protected final static String INDEX_WRITE = "[]=";
+    protected final static String AT = "at";
+    protected final static String FETCH = "fetch";
     protected final static String CALL = "call";
     protected final static String NEW = "new";
     protected final static String TO_A = "to_a";
@@ -105,6 +107,62 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return readNode.execute(receiver, args[0]);
     }
 
+    @Specialization(guards = {
+                    "name == cachedName",
+                    "cachedName.equals(AT)",
+                    "args.length == 1",
+                    "isBasicInteger(first(args))" },
+            limit = "1")
+    protected Object at(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,                        
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @CachedContext(RubyLanguage.class) RubyContext context,                        
+            @Cached InteropNodes.ReadArrayElementNode atNode) {
+        try {
+            long size = interop.getArraySize(receiver);
+            if ((int) args[0] < 0 && size + (int) args[0] >= 0) {
+                return atNode.execute(receiver, size + (int) args[0]);
+            } else if ((int) args[0] >= 0 && size > (int) args[0]) {
+                return atNode.execute(receiver, args[0]);
+            } else {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().indexError("Index " + (int) args[0] + " outside of array bounds: " + (-size+1) + "..." + (size-1), this));
+            }
+        } catch (UnsupportedMessageException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
+    @Specialization(guards = {
+                    "name == cachedName",
+                    "cachedName.equals(FETCH)",
+                    "args.length == 1",
+                    "isBasicInteger(first(args))" },
+            limit = "1")
+    protected Object fetch(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,                        
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @CachedContext(RubyLanguage.class) RubyContext context,                        
+            @Cached InteropNodes.ReadArrayElementNode fetchNode) {
+        try {
+            long size = interop.getArraySize(receiver);
+            if ((int) args[0] < 0 && size + (int) args[0] >= 0) {
+                return fetchNode.execute(receiver, size + (int) args[0]);
+            } else if ((int) args[0] >= 0 && size > (int) args[0]) {
+                return fetchNode.execute(receiver, args[0]);
+            } else {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().indexError("Index " + (int) args[0] + " outside of array bounds: " + (-size+1) + "..." + (size-1), this));
+            }
+        } catch (UnsupportedMessageException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -128,7 +186,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object writeArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.WriteArrayElementNode writeNode) {
-
         return writeNode.execute(receiver, args[0], args[1]);
     }
 
