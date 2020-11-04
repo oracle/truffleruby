@@ -117,8 +117,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     @Override
     public Node copy() {
         RubyRootNode root = (RubyRootNode) super.copy();
-        root.needsCallerAssumption = new CyclicAssumption("needs caller frame");
-        root.needsCallerAssumption = new CyclicAssumption("needs caller special variables");
+        root.needsCallerAssumption = new CyclicAssumption("needs caller data");
         return root;
     }
 
