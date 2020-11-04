@@ -49,7 +49,10 @@ and copied into `lib/cext/include/truffleruby`. In the MRI repository
 do the following:
 
 ```
-graalvm_clang=$(jt ruby -e 'puts RbConfig::CONFIG["CC"]')
+ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+chruby truffleruby-dev
+
+graalvm_clang=$(ruby -e 'puts RbConfig::CONFIG["CC"]')
 
 autoconf
 CC=$graalvm_clang ./configure
