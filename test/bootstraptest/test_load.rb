@@ -12,7 +12,7 @@ assert_equal 'ok', %q{
     }
   }.map {|t| t.value }
   vs[0] == M && vs[1] == M ? :ok : :ng
-}, '[ruby-dev:32048]'
+}, '[ruby-dev:32048]', tagged: true
 
 assert_equal 'ok', %q{
   %w[a a/foo b].each {|d| Dir.mkdir(d)}
@@ -24,4 +24,4 @@ assert_equal 'ok', %q{
   rescue => e
     e.message
   end
-}, '[ruby-dev:38097]'
+}, '[ruby-dev:38097]', tagged: true

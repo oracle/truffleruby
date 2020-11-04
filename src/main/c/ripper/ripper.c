@@ -80,11 +80,19 @@
 #include "internal.h"
 #include "node.h"
 #include "parse.h"
+#ifdef TRUFFLERUBY
+#include <truffleruby/internal/symbol.h>
+#else
 #include "symbol.h"
+#endif
 #include "regenc.h"
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+
+#ifdef TRUFFLERUBY
+#define DTRACE_PROBES_DISABLED 1
+#endif
 #include "probes.h"
 
 #ifndef WARN_PAST_SCOPE
@@ -13726,7 +13734,18 @@ tokadd_string(struct parser_params *p,
 static inline rb_strterm_t *
 new_strterm(VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
+#ifdef TRUFFLERUBY
+    rb_strterm_t *term = xmalloc(sizeof(rb_strterm_t));
+    VALUE flags = T_IMEMO | (imemo_parser_strterm << FL_USHIFT);
+    term->flags = flags;
+    term->u.heredoc.sourceline = v0;
+    term->u.heredoc.term = v1;
+    term->u.heredoc.lastline = v2;
+    term->u.heredoc.u3.lastidx = v3;
+    return term;
+#else
     return (rb_strterm_t*)rb_imemo_new(imemo_parser_strterm, v1, v2, v3, v0);
+#endif
 }
 
 /* imemo_parser_strterm for literal */
@@ -14452,7 +14471,11 @@ formal_argument(struct parser_params *p, ID lhs)
 	return 0;
 #else
       default:
+#ifdef TRUFFLERUBY
+	lhs = dispatch1(param_error, ID2SYM(lhs));
+#else
 	lhs = dispatch1(param_error, lhs);
+#endif
 	ripper_error(p);
 	return 0;
 #endif
@@ -16987,8 +17010,12 @@ check_literal_when(struct parser_params *p, NODE *arg, const YYLTYPE *loc)
 static int
 id_is_var(struct parser_params *p, ID id)
 {
+#ifdef TRUFFLERUBY
+	switch (id_type(id)) {
+#else
     if (is_notop_id(id)) {
 	switch (id & ID_SCOPE_MASK) {
+#endif
 	  case ID_GLOBAL: case ID_INSTANCE: case ID_CONST: case ID_CLASS:
 	    return 1;
 	  case ID_LOCAL:
@@ -16999,7 +17026,9 @@ id_is_var(struct parser_params *p, ID id)
 	    /* method call without arguments */
 	    return 0;
 	}
+#ifndef TRUFFLERUBY
     }
+#endif
     compile_error(p, "identifier %"PRIsVALUE" is not valid to get", rb_id2str(id));
     return 0;
 }

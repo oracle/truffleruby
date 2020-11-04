@@ -6,7 +6,7 @@ when 'ext'
   $:.unshift 'ext', 'lib'
   require 'json/ext'
 else
-  $:.unshift 'ext', 'lib'
+  # $:.unshift 'ext', 'lib' # Modified for TruffleRuby, different directory layout
   require 'json'
 end
 

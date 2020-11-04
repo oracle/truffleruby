@@ -1,6 +1,7 @@
 # frozen_string_literal: false
 require 'test/unit'
 require 'c/integer'
+#require '-test-/integer'
 
 class Test_Integer < Test::Unit::TestCase
   FIXNUM_MIN = RbConfig::LIMITS['FIXNUM_MIN']

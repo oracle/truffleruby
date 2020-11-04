@@ -103,6 +103,10 @@ class BigDecimal < Numeric
     '1.1.0'
   end
 
+  def self.interpret_loosely(str)
+    BigDecimal(str, Truffle::UNDEFINED, exception: false)
+  end
+
   def ==(o)
     (self <=> o) == 0 rescue false
   end
