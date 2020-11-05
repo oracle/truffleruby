@@ -96,12 +96,12 @@ VALUE rb_yield_values2(int n, const VALUE *argv) {
   return rb_yield_splat(values);
 }
 
-void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
+void *rb_thread_call_with_gvl(gvl_call *function, void *data1) {
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_with_gvl", function, data1);
 }
 
 struct gvl_call_data {
-  gvl_call function;
+  gvl_call *function;
   void* data;
 };
 
@@ -120,7 +120,7 @@ static void call_unblock_function(void *data) {
   s->function(s->data);
 }
 
-void* rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
+void* rb_thread_call_without_gvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   // wrap functions to handle native functions
   struct gvl_call_data call_struct = { function, data1 };
   struct unblock_function_data unblock_struct = { unblock_function, data2 };
@@ -137,11 +137,11 @@ void* rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_func
     wrapped_unblock_function, &unblock_struct);
 }
 
-void* rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
+void* rb_thread_call_without_gvl2(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   return rb_thread_call_without_gvl(function, data1, unblock_function, data2);
 }
 
-void* rb_nogvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2, int flags) {
+void* rb_nogvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2, int flags) {
   return rb_thread_call_without_gvl(function, data1, unblock_function, data2);
 }
 
