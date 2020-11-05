@@ -4,7 +4,7 @@ source test/truffle/common.sh.inc
 
 gem_test_pack=$(jt gem-test-pack)
 
-ruby_home="$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
+ruby_home="$(jt ruby -e 'print RbConfig::CONFIG["prefix"]')"
 export PATH="$ruby_home/bin:$PATH"
 
 cd spec/ffi || exit 1
