@@ -222,6 +222,11 @@ class RubyLex
     begin # check if parser error are available
       verbose, $VERBOSE = $VERBOSE, nil
       case RUBY_ENGINE
+      when 'truffleruby'
+        catch(:valid) do
+          eval("BEGIN{throw :valid, true}\n#{code}")
+          false
+        end
       when 'jruby'
         JRuby.compile_ir(code)
       else
