@@ -27,7 +27,7 @@ describe "IRB" do
 
       if echo == ">> [B\n" # "[B" (echo'd by JLine) looks like a legal expression to IRB so we need to complete it
         io.puts "]"
-        io.gets.should == ">> ]\n"
+        io.gets.should == ">>   ]\n"
         io.gets.should == "=> [42]\n"
       end
 
