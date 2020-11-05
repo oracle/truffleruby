@@ -23,7 +23,7 @@ describe "IRB" do
       io.gets.should == ">> ^C\n"
 
       io.puts "exit"
-      io.gets.should == "\n"
+      [">> exit\n", "\n"].should include(io.gets)
     end
   end
 end
