@@ -191,6 +191,7 @@ module Racc
     Racc_Runtime_Core_Version_R = ::Racc::VERSION
     Racc_Runtime_Core_Revision_R = '$Id: e754525bd317344c4284fca6fdce0a425979ade1 $'.split[1]
     begin
+      raise LoadError if defined?(::TruffleRuby) # avoid force loading RubyGems
       if Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
         require 'racc/cparse-jruby.jar'
         com.headius.racc.Cparse.new.load(JRuby.runtime, false)
