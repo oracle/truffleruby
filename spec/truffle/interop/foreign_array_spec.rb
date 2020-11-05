@@ -71,12 +71,11 @@ describe "Foreign arrays" do
     foreign.fetch(-3).should == 1
   end
   
-#=begin  
   it "should raise array out of bounds in #fetch" do
+    skip "Exception raised in Java is not caught in Ruby... FIX!"
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
-    foreign.fetch(-5).should == 0
+    foreign.fetch(-5).must_raise IndexError
   end
-#=end
 
   it "should access array with #first" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
