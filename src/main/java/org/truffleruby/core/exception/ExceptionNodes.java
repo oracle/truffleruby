@@ -321,8 +321,7 @@ public abstract class ExceptionNodes {
         @Specialization
         protected boolean breakpoint() {
             // have a Ruby backtrace at hand
-            String printableRubyBacktrace = BacktraceFormatter
-                    .printableRubyBacktrace(getContext(), getLanguage(), this);
+            String printableRubyBacktrace = BacktraceFormatter.printableRubyBacktrace(this);
             return true; // place to put a Java breakpoint
         }
 
