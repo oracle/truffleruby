@@ -44,7 +44,7 @@ describe "Foreign arrays" do
     foreign[0].should == 1
     foreign[2].should == 3
   end
-  
+
   it "can access elements with #at" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign.at(0).should == 1
@@ -70,7 +70,7 @@ describe "Foreign arrays" do
     foreign.fetch(-2).should == 2
     foreign.fetch(-3).should == 1
   end
-  
+
   it "should raise array out of bounds in #fetch" do
     skip "Exception raised in Java is not caught in Ruby... FIX!"
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
@@ -86,7 +86,6 @@ describe "Foreign arrays" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign.last.should == 3
   end
-  
 end
 
 describe "Foreign arrays that are also pointers" do
