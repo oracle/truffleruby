@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 require 'rbconfig'
 
-$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+if defined?(::TruffleRuby)
+  $LOAD_PATH.unshift File.expand_path("lib", __dir__)
+else
+  $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+end
 
 require 'test/unit'
 
