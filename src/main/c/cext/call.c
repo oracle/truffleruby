@@ -18,6 +18,11 @@ VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
   return RUBY_CEXT_INVOKE("rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
+VALUE rb_funcallv_kw(VALUE object, ID name, int args_count, const VALUE *args, int kw_splat) {
+  // Ignoring kw_splat for now
+  return rb_funcallv(object, name, args_count, args);
+}
+
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {
   return RUBY_CEXT_INVOKE("rb_funcallv_public", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
