@@ -27,20 +27,12 @@ extern "C" {
 
 RUBY_SYMBOL_EXPORT_BEGIN
 
-#ifdef TRUFFLERUBY
-void *rb_thread_call_with_gvl(gvl_call function, void *data1);
-
-void *rb_thread_call_without_gvl(gvl_call function, void *data1,
-                                 rb_unblock_function_t *unblock_function, void *data2);
-#define rb_thread_call_without_gvl2 rb_thread_call_without_gvl
-#else
 void *rb_thread_call_with_gvl(void *(*func)(void *), void *data1);
 
 void *rb_thread_call_without_gvl(void *(*func)(void *), void *data1,
 				 rb_unblock_function_t *ubf, void *data2);
 void *rb_thread_call_without_gvl2(void *(*func)(void *), void *data1,
 				  rb_unblock_function_t *ubf, void *data2);
-#endif
 
 /*
  * XXX: unstable/unapproved - out-of-tree code should NOT not depend
