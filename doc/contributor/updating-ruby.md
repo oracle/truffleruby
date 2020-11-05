@@ -131,6 +131,8 @@ rm -rf lib/json/lib
 cp -R ../../json/lib lib/json
 ```
 
+Also reapply our changes to json files, by looking with `git log -p lib/json`.
+
 ## Updating default and bundled gems
 
 You need a clean install (e.g., no extra gems installed) of MRI for this
