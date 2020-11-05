@@ -141,6 +141,10 @@ void* rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_fun
   return rb_thread_call_without_gvl(function, data1, unblock_function, data2);
 }
 
+void* rb_nogvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2, int flags) {
+  return rb_thread_call_without_gvl(function, data1, unblock_function, data2);
+}
+
 ID rb_frame_this_func(void) {
   return SYM2ID(RUBY_CEXT_INVOKE("rb_frame_this_func"));
 }
