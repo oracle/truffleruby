@@ -33,7 +33,7 @@ module Truffle::GemUtil
     'logger' => true,
     'matrix' => true,
     'mutex_m' => true,
-    'net' => true,
+    'net' => true, # gem 'net-pop', 'net-smtp', required as 'net/pop', 'net/smtp'
     'observer' => true,
     'open3' => true,
     'openssl' => true,

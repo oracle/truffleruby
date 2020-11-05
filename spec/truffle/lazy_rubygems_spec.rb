@@ -25,6 +25,8 @@ describe "RubyGems" do
     ]
     default_gems.delete('io')
     default_gems << 'io/console'
+    default_gems.delete('net')
+    default_gems << 'net/pop' << 'net/smtp'
     default_gems.delete('rexml')
     default_gems << 'rexml/document'
 
