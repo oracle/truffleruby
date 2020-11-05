@@ -11,6 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -40,7 +41,12 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
         return string;
     }
 
-    @Specialization(guards = { "!isRubySymbol(object)", "!isRubyString(object)" })
+    @Specialization
+    protected ImmutableRubyString coerceRubyString(ImmutableRubyString string) {
+        return string;
+    }
+
+    @Specialization(guards = { "!isRubySymbol(object)", "isNotRubyString(object)" })
     protected RubyString coerceObject(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile) {
         final Object coerced;

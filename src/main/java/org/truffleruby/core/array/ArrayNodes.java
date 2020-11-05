@@ -61,6 +61,7 @@ import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -76,6 +77,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -1509,11 +1511,16 @@ public abstract class ArrayNodes {
             return ToStrNodeGen.create(format);
         }
 
-        @Specialization(guards = "equalNode.execute(format.rope, cachedFormat)", limit = "getCacheLimit()")
-        protected RubyString packCached(RubyArray array, RubyString format,
-                @Cached("privatizeRope(format)") Rope cachedFormat,
+        @Specialization(
+                guards = {
+                        "libFormat.isRubyString(format)",
+                        "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
+                limit = "getCacheLimit()")
+        protected RubyString packCached(RubyArray array, Object format,
+                @CachedLibrary("format") RubyStringLibrary libFormat,
+                @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached("cachedFormat.byteLength()") int cachedFormatLength,
-                @Cached("create(compileFormat(format))") DirectCallNode callPackNode,
+                @Cached("create(compileFormat(libFormat.getRope(format)))") DirectCallNode callPackNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
 
@@ -1528,21 +1535,22 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result);
         }
 
-        @Specialization(replaces = "packCached")
-        protected RubyString packUncached(RubyArray array, RubyString format,
+        @Specialization(limit = "2", guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
+        protected RubyString packUncached(RubyArray array, Object format,
+                @CachedLibrary("format") RubyStringLibrary libFormat,
                 @Cached IndirectCallNode callPackNode) {
             final BytesResult result;
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(format),
+                        compileFormat(libFormat.getRope(format)),
                         new Object[]{ array.store, array.size, false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(format.rope.byteLength(), result);
+            return finishPack(libFormat.getRope(format).byteLength(), result);
         }
 
         private RubyString finishPack(int formatLength, BytesResult result) {
@@ -1589,8 +1597,9 @@ public abstract class ArrayNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(RubyString format) {
-            return new PackCompiler(getContext(), this).compile(format.getJavaString());
+        protected RootCallTarget compileFormat(Rope rope) {
+            final String javaString = RopeOperations.decodeRope(rope);
+            return new PackCompiler(getContext(), this).compile(javaString);
         }
 
         protected int getCacheLimit() {

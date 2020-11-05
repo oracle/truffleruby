@@ -11,6 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -23,6 +24,11 @@ public abstract class StringToSymbolNode extends RubyContextSourceNode {
 
     @Specialization
     protected RubySymbol doString(RubyString string) {
+        return getSymbol(string.rope);
+    }
+
+    @Specialization
+    protected RubySymbol doString(ImmutableRubyString string) {
         return getSymbol(string.rope);
     }
 

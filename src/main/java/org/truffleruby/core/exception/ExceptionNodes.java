@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -24,6 +25,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -305,8 +307,9 @@ public abstract class ExceptionNodes {
 
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
-        @Specialization
-        protected RubySystemCallError exceptionErrnoError(RubyString message, int errno) {
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected RubySystemCallError exceptionErrnoError(RubyString message, int errno,
+                @CachedLibrary("message") RubyStringLibrary strings) {
             return errnoErrorNode.execute(errno, message, null);
         }
 

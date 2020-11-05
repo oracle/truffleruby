@@ -51,7 +51,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
         for (ToSNode child : children) {
             final Object toInterpolate = child.execute(frame);
-            builder = executeStringAppend(builder, (RubyString) toInterpolate);
+            builder = executeStringAppend(builder, toInterpolate);
             tainted |= executeIsTainted(toInterpolate);
         }
 
@@ -70,7 +70,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         rubyLibraryTaint.taint(obj);
     }
 
-    private RubyString executeStringAppend(RubyString builder, RubyString string) {
+    private RubyString executeStringAppend(RubyString builder, Object string) {
         if (appendNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             appendNode = insert(StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null));

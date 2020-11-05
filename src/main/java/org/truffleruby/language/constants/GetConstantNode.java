@@ -15,7 +15,6 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -78,7 +77,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             LookupConstantInterface lookupConstantNode,
             @Cached DispatchNode callRequireNode) {
 
-        final RubyString feature = autoloadConstant.getAutoloadConstant().getFeature();
+        final Object feature = autoloadConstant.getAutoloadConstant().getFeature();
 
         if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading

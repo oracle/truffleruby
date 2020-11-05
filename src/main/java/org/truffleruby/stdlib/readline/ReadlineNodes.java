@@ -36,6 +36,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -51,6 +52,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @CoreModule("Truffle::Readline")
 public abstract class ReadlineNodes {
@@ -79,9 +81,10 @@ public abstract class ReadlineNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected RubyString setBasicWordBreakCharacters(RubyString characters) {
-            final String delimiters = characters.getJavaString();
+        @Specialization(guards = "strings.isRubyString(characters)", limit = "2")
+        protected Object setBasicWordBreakCharacters(Object characters,
+                @CachedLibrary("characters") RubyStringLibrary strings) {
+            final String delimiters = RopeOperations.decodeRope(strings.getRope(characters));
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
         }

@@ -32,7 +32,7 @@ public class ConvertBytes {
     private final RubyContext context;
     private final Node node;
     private final FixnumOrBignumNode fixnumOrBignumNode;
-    private final RubyString _str;
+    private final Object _str;
     private int str;
     private int end;
     private byte[] data;
@@ -44,10 +44,11 @@ public class ConvertBytes {
             Node node,
             FixnumOrBignumNode fixnumOrBignumNode,
             RopeNodes.BytesNode bytesNode,
-            RubyString _str,
+            Object _str,
+            Rope _strRope,
             int base,
             boolean badcheck) {
-        final Rope rope = _str.rope;
+        final Rope rope = _strRope;
 
         this.context = context;
         this.node = node;
@@ -71,8 +72,9 @@ public class ConvertBytes {
     /** rb_cstr_to_inum */
 
     public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
-            RopeNodes.BytesNode bytesNode, RubyString str, int base, boolean badcheck) {
-        return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, base, badcheck).byteListToInum();
+            RopeNodes.BytesNode bytesNode, Object str, Rope strRope, int base, boolean badcheck) {
+        return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, strRope, base, badcheck)
+                .byteListToInum();
     }
 
     /** conv_digit */

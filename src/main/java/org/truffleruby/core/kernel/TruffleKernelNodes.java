@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -23,7 +24,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -36,6 +37,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FileLoader;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -85,10 +87,11 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected boolean load(RubyString file, boolean wrap,
+        @Specialization(guards = "strings.isRubyString(file)", limit = "2")
+        protected boolean load(Object file, boolean wrap,
+                @CachedLibrary("file") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
-            final String feature = file.getJavaString();
+            final String feature = RopeOperations.decodeRope(strings.getRope(file));
             final RubySource source;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext());

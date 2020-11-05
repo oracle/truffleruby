@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -24,12 +25,14 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.MainLoader;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -109,16 +112,20 @@ public abstract class TruffleBootNodes {
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization
-        protected int main(RubyString kind, RubyString toExecute) {
+        @Specialization(
+                guards = { "stringsKind.isRubyString(kind)", "stringsToExecute.isRubyString(toExecute)" },
+                limit = "2")
+        protected int main(Object kind, Object toExecute,
+                @CachedLibrary("kind") RubyStringLibrary stringsKind,
+                @CachedLibrary("toExecute") RubyStringLibrary stringsToExecute) {
             return topLevelRaiseHandler.execute(() -> {
                 setArgvGlobals();
 
                 // Need to set $0 before loading required libraries
                 // Also, a non-existing main script file errors out before loading required libraries
                 final RubySource source = loadMainSourceSettingDollarZero(
-                        kind.getJavaString(),
-                        toExecute.getJavaString().intern()); //intern() to improve footprint
+                        RopeOperations.decodeRope(stringsKind.getRope(kind)),
+                        RopeOperations.decodeRope(stringsToExecute.getRope(toExecute)).intern()); //intern() to improve footprint
 
                 // Load libraries required from the command line (-r LIBRARY)
                 for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
@@ -300,8 +307,9 @@ public abstract class TruffleBootNodes {
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization
-        protected Object getOption(RubyString optionName) {
+        @Specialization(limit = "2", guards = "libOptionName.isRubyString(optionName)")
+        protected Object getOption(Object optionName,
+                @CachedLibrary("optionName") RubyStringLibrary libOptionName) {
             if (getContext().isPreInitializing()) {
                 throw new RaiseException(
                         getContext(),
@@ -311,7 +319,7 @@ public abstract class TruffleBootNodes {
                                 this));
             }
 
-            final String optionNameString = optionName.getJavaString();
+            final String optionNameString = RopeOperations.decodeRope(libOptionName.getRope(optionName));
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
 
             if (descriptor == null) {

@@ -9,11 +9,11 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -26,6 +26,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
@@ -43,21 +44,27 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     public abstract String executeToJavaString(Object name);
 
     @Specialization(
-            guards = { "equalsNode.execute(value.rope, cachedRope)" },
+            guards = { "strings.isRubyString(value)", "equalsNode.execute(strings.getRope(value), cachedRope)" },
             limit = "getLimit()")
-    protected String stringCached(RubyString value,
-            @Cached("privatizeRope(value)") Rope cachedRope,
-            @Cached("value.getJavaString()") String convertedString,
+    protected String stringCached(Object value,
+            @CachedLibrary("value") RubyStringLibrary strings,
+            @Cached("strings.getRope(value)") Rope cachedRope,
+            @Cached("toJavaString(strings.getRope(value))") String convertedString,
             @Cached RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }
 
-    @Specialization(replaces = "stringCached")
-    protected String stringUncached(RubyString value,
+    protected String toJavaString(Rope rope) {
+        return RopeOperations.decodeRope(rope);
+    }
+
+    @Specialization(limit = "2", guards = "strings.isRubyString(value)", replaces = "stringCached")
+    protected String stringUncached(Object value,
+            @CachedLibrary("value") RubyStringLibrary strings,
             @Cached ConditionProfile asciiOnlyProfile,
             @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
             @Cached RopeNodes.BytesNode bytesNode) {
-        final Rope rope = value.rope;
+        final Rope rope = strings.getRope(value);
         final byte[] bytes = bytesNode.execute(rope);
 
         if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {

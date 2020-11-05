@@ -11,6 +11,7 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -31,6 +32,15 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
             assumptions = "assumptions",
             limit = "1")
     protected int byteSize(VirtualFrame frame, RubyString self,
+            @Cached LookupMethodOnSelfNode lookupNode) {
+        return self.rope.byteLength();
+    }
+
+    @Specialization(
+            guards = { "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_BYTESIZE", },
+            assumptions = "assumptions",
+            limit = "1")
+    protected int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
             @Cached LookupMethodOnSelfNode lookupNode) {
         return self.rope.byteLength();
     }

@@ -51,6 +51,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -743,11 +744,11 @@ public class CoreLibrary {
         module.fields.setConstant(context, node, name, value);
     }
 
-    private RubyString frozenUSASCIIString(String string) {
+    private ImmutableRubyString frozenUSASCIIString(String string) {
         // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
         final Rope rope = language.ropeCache.getRope(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        return StringOperations.createFrozenString(context, language, rope);
+        return StringOperations.createFrozenString(rope);
     }
 
     private RubyClass defineClass(String name) {
@@ -884,6 +885,8 @@ public class CoreLibrary {
             return integerClass;
         } else if (object instanceof RubySymbol) {
             return symbolClass;
+        } else if (object instanceof ImmutableRubyString) {
+            return stringClass;
         } else if (object instanceof Boolean) {
             return (boolean) object ? trueClass : falseClass;
         } else if (object instanceof Byte) {

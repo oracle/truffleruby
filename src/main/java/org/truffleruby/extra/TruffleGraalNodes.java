@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -17,11 +18,11 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.ProcType;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -229,8 +230,9 @@ public abstract class TruffleGraalNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class BailoutNode extends PrimitiveNode {
 
-        @Specialization
-        protected Object bailout(RubyString message,
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected Object bailout(Object message,
+                @CachedLibrary("message") RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
             return nil;

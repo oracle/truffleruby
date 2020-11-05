@@ -11,8 +11,9 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -25,7 +26,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStrNode extends RubyContextSourceNode {
 
-    public abstract RubyString executeToStr(Object object);
+    public abstract Object executeToStr(Object object);
 
     public static ToStrNode create() {
         return ToStrNodeGen.create(null);
@@ -36,7 +37,12 @@ public abstract class ToStrNode extends RubyContextSourceNode {
         return string;
     }
 
-    @Specialization(guards = "!isRubyString(object)")
+    @Specialization
+    protected ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString string) {
+        return string;
+    }
+
+    @Specialization(guards = "isNotRubyString(object)")
     protected RubyString coerceObject(Object object,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode) {
@@ -54,7 +60,7 @@ public abstract class ToStrNode extends RubyContextSourceNode {
             }
         }
 
-        if (RubyGuards.isRubyString(coerced)) {
+        if (StringOperations.isRubyString(coerced)) {
             return (RubyString) coerced;
         } else {
             errorProfile.enter();

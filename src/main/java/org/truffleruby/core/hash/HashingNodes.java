@@ -24,6 +24,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -99,6 +100,13 @@ public abstract class HashingNodes {
                 @Cached StringNodes.HashNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
+
+        @Specialization
+        protected int hashImmutableString(ImmutableRubyString value,
+                @Cached StringNodes.HashNode stringHashNode) {
+            return (int) stringHashNode.execute(value);
+        }
+
 
         @Specialization
         protected int hashSymbol(RubySymbol value,

@@ -14,6 +14,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
@@ -30,6 +31,11 @@ public abstract class ToEncodingNode extends RubyContextNode {
 
     @Specialization
     protected Encoding stringToEncoding(RubyString value) {
+        return value.rope.getEncoding();
+    }
+
+    @Specialization
+    protected Encoding immtableStringToEncoding(ImmutableRubyString value) {
         return value.rope.getEncoding();
     }
 

@@ -11,26 +11,29 @@ package org.truffleruby.language;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 public class AutoloadConstant {
 
-    private final RubyString feature;
+    private final Object feature;
     private final String autoloadPath;
     private volatile ReentrantLock autoloadLock;
 
-    AutoloadConstant(RubyString feature) {
+    AutoloadConstant(Object feature) {
+        assert StringOperations.isRubyString(feature);
         this.feature = feature;
-        this.autoloadPath = this.feature.getJavaString();
+        this.autoloadPath = RopeOperations.decodeRope(RubyStringLibrary.getUncached().getRope(this.feature));
     }
 
     public String getAutoloadPath() {
         return autoloadPath;
     }
 
-    public RubyString getFeature() {
+    public Object getFeature() {
         return feature;
     }
 

@@ -47,6 +47,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -75,14 +76,8 @@ public abstract class StringOperations {
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
-    public static RubyString createFrozenString(RubyContext context, RubyLanguage language, Rope rope) {
-        final RubyString instance = new RubyString(
-                context.getCoreLibrary().stringClass,
-                language.stringShape,
-                true,
-                false,
-                rope);
-        return instance;
+    public static ImmutableRubyString createFrozenString(Rope rope) {
+        return new ImmutableRubyString(rope);
     }
 
     public static int clampExclusiveIndex(int length, int index) {
@@ -139,5 +134,9 @@ public abstract class StringOperations {
             }
         }
         return true;
+    }
+
+    public static boolean isRubyString(Object value) {
+        return value instanceof ImmutableRubyString || value instanceof RubyString;
     }
 }

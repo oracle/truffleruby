@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -26,7 +27,12 @@ public abstract class ToPathNode extends RubyContextSourceNode {
         return path;
     }
 
-    @Specialization(guards = "!isRubyString(object)")
+    @Specialization
+    protected ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString path) {
+        return path;
+    }
+
+    @Specialization(guards = "isNotRubyString(object)")
     protected RubyString coerceObject(Object object,
             @Cached DispatchNode toPathNode) {
         return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);

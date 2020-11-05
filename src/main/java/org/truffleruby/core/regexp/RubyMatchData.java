@@ -14,6 +14,7 @@ import java.util.Set;
 import org.joni.Region;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -22,21 +23,23 @@ import com.oracle.truffle.api.object.Shape;
 public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode {
 
     /** Either a Regexp or a String for the case of String#gsub(String) */
-    public RubyDynamicObject regexp;
-    public RubyString source;
+    public Object regexp;
+    public Object source;
     public Region region;
     public Region charOffsets;
 
     public RubyMatchData(
             RubyClass rubyClass,
             Shape shape,
-            RubyDynamicObject regexp,
-            RubyString source,
+            Object regexp,
+            Object source,
             Region region,
             Region charOffsets) {
         super(rubyClass, shape);
-        assert regexp instanceof RubyRegexp || regexp instanceof RubyString || regexp == null;
+        assert regexp instanceof RubyRegexp || regexp instanceof RubyString || regexp instanceof ImmutableRubyString ||
+                regexp == null;
         this.regexp = regexp;
+        assert source == null || source instanceof RubyString || source instanceof ImmutableRubyString;
         this.source = source;
         this.region = region;
         this.charOffsets = charOffsets;

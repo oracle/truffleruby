@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -49,6 +50,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -60,6 +62,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
 
@@ -121,20 +124,25 @@ public class TruffleRegexpNodes {
         @Child DispatchNode copyNode = DispatchNode.create();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
 
-        @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
-        protected Object executeFastUnion(VirtualFrame frame, RubyString str, RubyString sep, Object[] args,
+        @Specialization(
+                guards = { "stringsSep.isRubyString(sep)", "argsMatch(frame, cachedArgs, args)" },
+                limit = "getDefaultCacheLimit()")
+        protected Object executeFastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
+                @CachedLibrary("sep") RubyStringLibrary stringsSep,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(str, sep, args)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
-        @Specialization(replaces = "executeFastUnion")
-        protected Object executeSlowUnion(RubyString str, RubyString sep, Object[] args) {
+        @Specialization(guards = "stringsSep.isRubyString(sep)", replaces = "executeFastUnion", limit = "2")
+        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args,
+                @CachedLibrary("sep") RubyStringLibrary stringsSep) {
             return buildUnion(str, sep, args);
         }
 
-        public RubyRegexp buildUnion(RubyString str, RubyString sep, Object[] args) {
+        public RubyRegexp buildUnion(RubyString str, Object sep, Object[] args) {
             RubyString regexpString = null;
             for (int i = 0; i < args.length; i++) {
                 if (regexpString == null) {
@@ -147,9 +155,9 @@ public class TruffleRegexpNodes {
             return createRegexp(regexpString.rope);
         }
 
-        public RubyString string(Object obj) {
-            if (obj instanceof RubyString) {
-                final Rope rope = ((RubyString) obj).rope;
+        public Object string(Object obj) {
+            if (obj instanceof RubyString || obj instanceof ImmutableRubyString) {
+                final Rope rope = rubyStringLibrary.getRope(obj);
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
             } else {
                 return toSNode.execute((RubyRegexp) obj);
@@ -261,18 +269,19 @@ public class TruffleRegexpNodes {
          * @param startPos The position within the string which the matcher should consider the start. Setting this to
          *            the from position allows scanners to match starting partway through a string while still setting
          *            atStart and thus forcing the match to be at the specific starting position. */
-        @Specialization
+        @Specialization(limit = "2", guards = "libString.isRubyString(string)")
         protected Object matchInRegion(
                 RubyRegexp regexp,
-                RubyString string,
+                Object string,
                 int fromPos,
                 int toPos,
                 boolean atStart,
                 boolean encodingConversion,
                 int startPos,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached TruffleRegexpNodes.MatchNode matchNode) {
-            Rope rope = string.rope;
+                @Cached TruffleRegexpNodes.MatchNode matchNode,
+                @CachedLibrary("string") RubyStringLibrary libString) {
+            Rope rope = libString.getRope(string);
             Matcher matcher = createMatcher(
                     getContext(),
                     regexp,
@@ -294,7 +303,7 @@ public class TruffleRegexpNodes {
             return MatchNodeGen.create();
         }
 
-        public abstract Object execute(RubyRegexp regexp, RubyString string, Matcher matcher,
+        public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart);
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
@@ -308,17 +317,18 @@ public class TruffleRegexpNodes {
         //
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
-        @Specialization
+        @Specialization(limit = "3", guards = "libString.isRubyString(string)")
         protected Object executeMatch(
                 RubyRegexp regexp,
-                RubyString string,
+                Object string,
                 Matcher matcher,
                 int startPos,
                 int range,
                 boolean onlyMatchAtStart,
-                @Cached ConditionProfile matchesProfile) {
+                @Cached ConditionProfile matchesProfile,
+                @CachedLibrary("string") RubyStringLibrary libString) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
-                instrument(regexp, string, onlyMatchAtStart);
+                instrument(regexp, string, libString, onlyMatchAtStart);
             }
 
             int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
@@ -357,9 +367,10 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        protected void instrument(RubyRegexp regexp, RubyString string, boolean fromStart) {
+        protected void instrument(RubyRegexp regexp, Object string, RubyStringLibrary stringLibrary,
+                boolean fromStart) {
             Rope source = regexp.source;
-            Encoding enc = string.rope.getEncoding();
+            Encoding enc = stringLibrary.getRope(string).getEncoding();
             RegexpOptions options = regexp.options;
             MatchInfo matchInfo = new MatchInfo(
                     new RegexpCacheKey(

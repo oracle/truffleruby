@@ -66,6 +66,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -77,7 +78,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -87,6 +87,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.platform.Platform;
@@ -140,10 +141,14 @@ public abstract class IONodes {
     public static abstract class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected boolean fnmatch(RubyString pattern, RubyString path, int flags) {
-            final Rope patternRope = pattern.rope;
-            final Rope pathRope = path.rope;
+        @Specialization(
+                limit = "2",
+                guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
+        protected boolean fnmatch(Object pattern, Object path, int flags,
+                @CachedLibrary("pattern") RubyStringLibrary stringsPattern,
+                @CachedLibrary("path") RubyStringLibrary stringsPath) {
+            final Rope patternRope = stringsPattern.getRope(pattern);
+            final Rope pathRope = stringsPath.getRope(path);
 
             return fnmatch(
                     patternRope.getBytes(),
@@ -468,8 +473,9 @@ public abstract class IONodes {
     public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected int write(int fd, RubyString string) {
+        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        protected int write(int fd, Object string,
+                @CachedLibrary("string") RubyStringLibrary strings) {
             final OutputStream stream;
 
             switch (fd) {
@@ -484,7 +490,7 @@ public abstract class IONodes {
                     throw CompilerDirectives.shouldNotReachHere();
             }
 
-            final Rope rope = string.rope;
+            final Rope rope = strings.getRope(string);
             final byte[] bytes = rope.getBytes();
 
             getContext().getThreadManager().runUntilResult(this, () -> {

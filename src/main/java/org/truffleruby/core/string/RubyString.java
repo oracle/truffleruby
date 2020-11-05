@@ -28,9 +28,11 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
+@ExportLibrary(RubyStringLibrary.class)
 public class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
@@ -53,6 +55,19 @@ public class RubyString extends RubyDynamicObject {
     public String getJavaString() {
         return RopeOperations.decodeRope(rope);
     }
+
+    // region RubyStringLibrary messages
+    @ExportMessage
+    protected Rope getRope() {
+        return rope;
+    }
+
+    @ExportMessage
+    public boolean isRubyString() {
+        return true;
+    }
+    // endregion
+
 
     // region RubyLibrary messages
     @ExportMessage

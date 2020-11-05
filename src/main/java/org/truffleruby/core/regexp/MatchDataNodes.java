@@ -47,6 +47,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -57,12 +58,13 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.LogicalClassNode;
 
 @CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
 
     @TruffleBoundary
-    public static Object begin(RubyMatchData matchData, int index) {
+    public static Object begin(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
         // Taken from org.jruby.RubyMatchData
         int b = matchData.region.beg[index];
 
@@ -70,16 +72,15 @@ public abstract class MatchDataNodes {
             return Nil.INSTANCE;
         }
 
-        final Rope rope = matchData.source.rope;
-        if (!rope.isSingleByteOptimizable()) {
-            b = getCharOffsets(matchData).beg[index];
+        if (!matchDataSourceRope.isSingleByteOptimizable()) {
+            b = getCharOffsets(matchData, matchDataSourceRope).beg[index];
         }
 
         return b;
     }
 
     @TruffleBoundary
-    public static Object end(RubyMatchData matchData, int index) {
+    public static Object end(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
         // Taken from org.jruby.RubyMatchData
         int e = matchData.region.end[index];
 
@@ -87,9 +88,8 @@ public abstract class MatchDataNodes {
             return Nil.INSTANCE;
         }
 
-        final Rope rope = matchData.source.rope;
-        if (!rope.isSingleByteOptimizable()) {
-            e = getCharOffsets(matchData).end[index];
+        if (!matchDataSourceRope.isSingleByteOptimizable()) {
+            e = getCharOffsets(matchData, matchDataSourceRope).end[index];
         }
 
         return e;
@@ -160,19 +160,18 @@ public abstract class MatchDataNodes {
         return charOffsets;
     }
 
-    public static Region getCharOffsets(RubyMatchData matchData) {
+    public static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
         // Taken from org.jruby.RubyMatchData
         Region charOffsets = matchData.charOffsets;
         if (charOffsets != null) {
             return charOffsets;
         } else {
-            return createCharOffsets(matchData);
+            return createCharOffsets(matchData, sourceRope);
         }
     }
 
     @TruffleBoundary
-    private static Region createCharOffsets(RubyMatchData matchData) {
-        final Rope source = matchData.source.rope;
+    private static Region createCharOffsets(RubyMatchData matchData, Rope source) {
         final Encoding enc = source.getEncoding();
         final Region charOffsets = getCharOffsetsManyRegs(matchData, source, enc);
         matchData.charOffsets = charOffsets;
@@ -182,8 +181,10 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
     public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        protected Object create(RubyString regexp, RubyString string, int start, int end) {
+        @Specialization(guards = { "libRegexp.isRubyString(regexp)", "strings.isRubyString(string)" }, limit = "2")
+        protected Object create(Object regexp, Object string, int start, int end,
+                @CachedLibrary("regexp") RubyStringLibrary libRegexp,
+                @CachedLibrary("string") RubyStringLibrary strings) {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -201,8 +202,9 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create")
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        protected Object create(RubyDynamicObject regexp, RubyString string, RubyArray starts, RubyArray ends,
+        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        protected Object create(RubyDynamicObject regexp, Object string, RubyArray starts, RubyArray ends,
+                @CachedLibrary("string") RubyStringLibrary strings,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
             final Region region = new Region(starts.size);
@@ -246,11 +248,13 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object getIndex(RubyMatchData matchData, int index, NotProvided length,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ConditionProfile normalizedIndexProfile,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
-                @Cached ConditionProfile hasValueProfile) {
-            final RubyString source = matchData.source;
-            final Rope sourceRope = source.rope;
+                @Cached ConditionProfile hasValueProfile,
+                @Cached LogicalClassNode logicalClassNode) {
+            final Object source = matchData.source;
+            final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(index < 0)) {
                 index += region.beg.length;
@@ -263,7 +267,7 @@ public abstract class MatchDataNodes {
                 final int end = region.end[index];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = source.getLogicalClass();
+                    final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
                     final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
                     AllocationTracing.trace(string, this);
@@ -310,13 +314,21 @@ public abstract class MatchDataNodes {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
-        @Specialization
-        protected Object getIndexString(RubyMatchData matchData, RubyString index, NotProvided length) {
-            return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
+        @Specialization(limit = "2", guards = "libIndex.isRubyString(index)")
+        protected Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
+                @CachedLibrary("index") RubyStringLibrary libIndex) {
+            return executeGetIndex(
+                    matchData,
+                    getBackRefFromRope(matchData, index, libIndex.getRope(index)),
+                    NotProvided.INSTANCE);
         }
 
         @Specialization(
-                guards = { "!isInteger(index)", "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
+                guards = {
+                        "!isInteger(index)",
+                        "!isRubySymbol(index)",
+                        "isNotRubyString(index)",
+                        "!isIntRange(index)" })
         protected Object getIndexCoerce(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
@@ -365,17 +377,12 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        private int getBackRefFromString(RubyMatchData matchData, RubyString index) {
-            final Rope value = index.rope;
-            return getBackRefFromRope(matchData, index, value);
-        }
-
-        @TruffleBoundary
         private int getBackRefFromSymbol(RubyMatchData matchData, RubySymbol index) {
             final Rope value = index.getRope();
             return getBackRefFromRope(matchData, index, value);
         }
 
+        @TruffleBoundary
         private int getBackRefFromRope(RubyMatchData matchData, Object index, Rope value) {
             try {
                 return getRegexp(matchData).regex.nameToBackrefNumber(
@@ -427,8 +434,9 @@ public abstract class MatchDataNodes {
     public abstract static class BeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object begin(RubyMatchData matchData, int index) {
-            return MatchDataNodes.begin(matchData, index);
+        protected Object begin(RubyMatchData matchData, int index,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            return MatchDataNodes.begin(matchData, index, strings.getRope(matchData.source));
         }
 
         @TruffleBoundary
@@ -459,9 +467,11 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization
         protected Object[] getValuesSlow(RubyMatchData matchData,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
-            final RubyString source = matchData.source;
-            final Rope sourceRope = source.rope;
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached LogicalClassNode logicalClassNode) {
+            final Object source = matchData.source;
+            final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
             boolean isTainted = rubyLibrary.isTainted(source);
@@ -472,7 +482,7 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = source.getLogicalClass();
+                    final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
                     final RubyString string = new RubyString(logicalClass, shape, false, isTainted, rope);
                     AllocationTracing.trace(string, this);
@@ -506,8 +516,9 @@ public abstract class MatchDataNodes {
     public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object end(RubyMatchData matchData, int index) {
-            return MatchDataNodes.end(matchData, index);
+        protected Object end(RubyMatchData matchData, int index,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            return MatchDataNodes.end(matchData, index, strings.getRope(matchData.source));
         }
 
         @TruffleBoundary
@@ -580,14 +591,16 @@ public abstract class MatchDataNodes {
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected RubyString preMatch(RubyMatchData matchData) {
-            RubyString source = matchData.source;
-            Rope sourceRope = source.rope;
+        protected RubyString preMatch(RubyMatchData matchData,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached LogicalClassNode logicalClassNode) {
+            Object source = matchData.source;
+            Rope sourceRope = strings.getRope(source);
             Region region = matchData.region;
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final RubyClass logicalClass = source.getLogicalClass();
+            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
             AllocationTracing.trace(string, this);
@@ -604,14 +617,16 @@ public abstract class MatchDataNodes {
         public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected RubyString postMatch(RubyMatchData matchData) {
-            RubyString source = matchData.source;
-            Rope sourceRope = source.rope;
+        protected RubyString postMatch(RubyMatchData matchData,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached LogicalClassNode logicalClassNode) {
+            Object source = matchData.source;
+            Rope sourceRope = strings.getRope(source);
             Region region = matchData.region;
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final RubyClass logicalClass = source.getLogicalClass();
+            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
             AllocationTracing.trace(string, this);
@@ -644,7 +659,7 @@ public abstract class MatchDataNodes {
         protected RubyRegexp regexp(RubyMatchData matchData,
                 @Cached ConditionProfile profile,
                 @Cached DispatchNode stringToRegexp) {
-            final RubyDynamicObject value = matchData.regexp;
+            final Object value = matchData.regexp;
 
             if (profile.profile(value instanceof RubyRegexp)) {
                 return (RubyRegexp) value;
@@ -710,7 +725,7 @@ public abstract class MatchDataNodes {
     public abstract static class GetSourceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyString getSource(RubyMatchData matchData) {
+        protected Object getSource(RubyMatchData matchData) {
             return matchData.source;
         }
     }

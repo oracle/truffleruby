@@ -10,7 +10,6 @@
 package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 
@@ -21,6 +20,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.language.ImmutableRubyString;
 
 public class TruffleNFIPlatform {
 
@@ -84,7 +84,7 @@ public class TruffleNFIPlatform {
 
     public String resolveType(NativeConfiguration nativeConfiguration, String type) {
         final Object typedef = resolveTypeRaw(nativeConfiguration, type);
-        return toNFIType(((RubyString) typedef).getJavaString());
+        return toNFIType(((ImmutableRubyString) typedef).getJavaString());
     }
 
     private String toNFIType(String type) {

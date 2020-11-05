@@ -36,8 +36,8 @@ import java.util.regex.Pattern;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.parser.Helpers;
@@ -75,7 +75,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
     @TruffleBoundary
     protected TimeZoneAndName getTimeZone(Object tz) {
         String tzString = "";
-        if (RubyGuards.isRubyString(tz)) {
+        if (StringOperations.isRubyString(tz)) {
             tzString = ((RubyString) tz).getJavaString();
         }
 
@@ -85,7 +85,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         } else if (tzString.equalsIgnoreCase("localtime")) {
             // On Solaris, $TZ is "localtime", so get it from Java
             return new TimeZoneAndName(getSystemTimeZone());
-        } else if (RubyGuards.isRubyString(tz)) {
+        } else if (StringOperations.isRubyString(tz)) {
             return parse(tzString);
         } else {
             throw CompilerDirectives.shouldNotReachHere();

@@ -40,15 +40,18 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -98,9 +101,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected RubyHandle setBreak(RubyString file, int line, RubyProc block) {
-            final String fileString = file.getJavaString();
+        @Specialization(guards = "strings.isRubyString(file)", limit = "2")
+        protected RubyHandle setBreak(Object file, int line, RubyProc block,
+                @CachedLibrary("file") RubyStringLibrary strings) {
+            final String fileString = RopeOperations.decodeRope(strings.getRope(file));
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
@@ -408,9 +412,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwJavaException(RubyString message) {
-            callingMethod(message.getJavaString());
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected Object throwJavaException(Object message,
+                @CachedLibrary("message") RubyStringLibrary strings) {
+            callingMethod(RopeOperations.decodeRope(strings.getRope(message)));
             return nil;
         }
 
@@ -430,10 +435,11 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionWithCauseNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwJavaExceptionWithCause(RubyString message) {
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected Object throwJavaExceptionWithCause(Object message,
+                @CachedLibrary("message") RubyStringLibrary strings) {
             throw new RuntimeException(
-                    message.getJavaString(),
+                    RopeOperations.decodeRope(strings.getRope(message)),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
@@ -443,9 +449,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowAssertionErrorNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwAssertionError(RubyString message) {
-            throw new AssertionError(message.getJavaString());
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected Object throwAssertionError(Object message,
+                @CachedLibrary("message") RubyStringLibrary strings) {
+            throw new AssertionError(strings.getRope(message));
         }
 
     }
@@ -821,9 +828,10 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object foreignString(RubyString string) {
-            return new ForeignString(string.getJavaString());
+        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        protected Object foreignString(Object string,
+                @CachedLibrary("string") RubyStringLibrary strings) {
+            return new ForeignString(RopeOperations.decodeRope(strings.getRope(string)));
         }
 
     }
@@ -922,6 +930,14 @@ public abstract class TruffleDebugNodes {
 
             return ArrayHelpers.createArray(getContext(), getLanguage(), associatedValues);
         }
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray associated(ImmutableRubyString string) {
+            final long[] associatedValues = new long[0];
+            return ArrayHelpers.createArray(getContext(), getLanguage(), associatedValues);
+        }
+
     }
 
     @CoreMethod(names = "drain_finalization_queue", onSingleton = true)

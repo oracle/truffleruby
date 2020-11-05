@@ -28,8 +28,8 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
@@ -46,6 +46,7 @@ import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
@@ -335,44 +336,20 @@ public abstract class BasicObjectNodes {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
 
-        @Specialization
+        @Specialization(guards = {
+                "strings.isRubyString(string)",
+                "stringsFileName.isRubyString(fileName)",
+                "wasProvided(fileName)",
+                "wasProvided(string)" }, limit = "2")
         protected Object instanceEval(
                 VirtualFrame frame,
                 Object receiver,
-                RubyString string,
-                RubyString fileName,
+                Object string,
+                Object fileName,
                 int line,
                 NotProvided block,
-                @Cached ReadCallerFrameNode callerFrameNode,
-                @Cached IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-
-            return instanceEvalHelper(callerFrame, receiver, string, fileName, line, callNode);
-        }
-
-        @Specialization
-        protected Object instanceEval(
-                VirtualFrame frame,
-                Object receiver,
-                RubyString string,
-                RubyString fileName,
-                NotProvided line,
-                NotProvided block,
-                @Cached ReadCallerFrameNode callerFrameNode,
-                @Cached IndirectCallNode callNode) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-
-            return instanceEvalHelper(callerFrame, receiver, string, fileName, 1, callNode);
-        }
-
-        @Specialization
-        protected Object instanceEval(
-                VirtualFrame frame,
-                Object receiver,
-                RubyString string,
-                NotProvided fileName,
-                NotProvided line,
-                NotProvided block,
+                @CachedLibrary("string") RubyStringLibrary strings,
+                @CachedLibrary("fileName") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -380,8 +357,57 @@ public abstract class BasicObjectNodes {
             return instanceEvalHelper(
                     callerFrame,
                     receiver,
-                    string,
-                    coreStrings().EVAL_FILENAME_STRING.createInstance(getContext()),
+                    strings.getRope(string),
+                    stringsFileName.getRope(fileName),
+                    line,
+                    callNode);
+        }
+
+        @Specialization(guards = {
+                "strings.isRubyString(string)",
+                "stringsFileName.isRubyString(fileName)",
+                "wasProvided(string)",
+                "wasProvided(fileName)" }, limit = "2")
+        protected Object instanceEval(
+                VirtualFrame frame,
+                Object receiver,
+                Object string,
+                Object fileName,
+                NotProvided line,
+                NotProvided block,
+                @CachedLibrary("string") RubyStringLibrary strings,
+                @CachedLibrary("fileName") RubyStringLibrary stringsFileName,
+                @Cached ReadCallerFrameNode callerFrameNode,
+                @Cached IndirectCallNode callNode) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+
+            return instanceEvalHelper(
+                    callerFrame,
+                    receiver,
+                    strings.getRope(string),
+                    stringsFileName.getRope(fileName),
+                    1,
+                    callNode);
+        }
+
+        @Specialization(guards = { "strings.isRubyString(string)", "wasProvided(string)" }, limit = "2")
+        protected Object instanceEval(
+                VirtualFrame frame,
+                Object receiver,
+                Object string,
+                NotProvided fileName,
+                NotProvided line,
+                NotProvided block,
+                @CachedLibrary("string") RubyStringLibrary strings,
+                @Cached ReadCallerFrameNode callerFrameNode,
+                @Cached IndirectCallNode callNode) {
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+
+            return instanceEvalHelper(
+                    callerFrame,
+                    receiver,
+                    strings.getRope(string),
+                    coreStrings().EVAL_FILENAME_STRING.createInstance(getContext()).rope,
                     1,
                     callNode);
         }
@@ -398,12 +424,12 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private Object instanceEvalHelper(MaterializedFrame callerFrame, Object receiver, RubyString string,
-                RubyString fileName, int line, IndirectCallNode callNode) {
-            final String fileNameString = RopeOperations.decodeRope(fileName.rope);
+        private Object instanceEvalHelper(MaterializedFrame callerFrame, Object receiver, Rope stringRope,
+                Rope fileNameRope, int line, IndirectCallNode callNode) {
+            final String fileNameString = RopeOperations.decodeRope(fileNameRope);
 
             final RubySource source = createEvalSourceNode
-                    .createEvalSource(string.rope, "instance_eval", fileNameString, line);
+                    .createEvalSource(stringRope, "instance_eval", fileNameString, line);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
@@ -496,6 +522,7 @@ public abstract class BasicObjectNodes {
             if (nameObject instanceof RubySymbol) {
                 name = ((RubySymbol) nameObject).getString();
             } else {
+                // REVIEW
                 name = nameObject.toString();
             }
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();

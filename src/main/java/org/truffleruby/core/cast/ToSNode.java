@@ -11,6 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -31,13 +32,18 @@ public abstract class ToSNode extends RubyContextSourceNode {
         return string;
     }
 
-    @Specialization(guards = "!isRubyString(object)")
-    protected RubyString toSFallback(VirtualFrame frame, Object object,
+    @Specialization
+    protected ImmutableRubyString toS(ImmutableRubyString string) {
+        return string;
+    }
+
+    @Specialization(guards = "isNotRubyString(object)")
+    protected Object toSFallback(VirtualFrame frame, Object object,
             @Cached DispatchNode callToSNode) {
         final Object value = callToSNode.dispatch(frame, object, "to_s", null, EMPTY_ARGUMENTS);
 
-        if (value instanceof RubyString) {
-            return (RubyString) value;
+        if (value instanceof RubyString || value instanceof ImmutableRubyString) {
+            return value;
         } else {
             return kernelToS(object);
         }

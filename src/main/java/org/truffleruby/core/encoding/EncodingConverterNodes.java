@@ -16,6 +16,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.specific.ASCIIEncoding;
@@ -53,6 +54,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -193,14 +195,16 @@ public abstract class EncodingConverterNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @TruffleBoundary
-        @Specialization
+        @Specialization(guards = "stringsSource.isRubyString(source)", limit = "2")
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
-                RubyString source,
+                Object source,
                 RubyString target,
                 int offset,
                 int size,
-                RubyHash options) {
+                RubyHash options,
+                @CachedLibrary("source") RubyStringLibrary stringsSource,
+                @CachedLibrary("target") RubyStringLibrary stringsTarget) {
             throw new UnsupportedOperationException("not implemented");
         }
 
@@ -215,14 +219,15 @@ public abstract class EncodingConverterNodes {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
 
-        @Specialization
+        @Specialization(guards = "stringsSource.isRubyString(source)", limit = "2")
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
-                RubyString source,
+                Object source,
                 RubyString target,
                 int offset,
                 int size,
-                int options) {
+                int options,
+                @CachedLibrary("source") RubyStringLibrary stringsSource) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
@@ -234,9 +239,9 @@ public abstract class EncodingConverterNodes {
                 RubyString target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
+            Rope targetRope = target.rope;
             final boolean nonNullSource = source != nil;
             Rope sourceRope = nonNullSource ? ((RubyString) source).rope : RopeConstants.EMPTY_UTF8_ROPE;
-            final Rope targetRope = target.rope;
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
             final Ptr inPtr = new Ptr();
@@ -504,12 +509,13 @@ public abstract class EncodingConverterNodes {
             return ToStrNodeGen.create(replacement);
         }
 
-        @Specialization
-        protected RubyString setReplacement(RubyEncodingConverter encodingConverter, RubyString replacement,
+        @Specialization(limit = "2", guards = "libReplacement.isRubyString(replacement)")
+        protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached BranchProfile errorProfile,
-                @Cached RopeNodes.BytesNode bytesNode) {
+                @Cached RopeNodes.BytesNode bytesNode,
+                @CachedLibrary("replacement") RubyStringLibrary libReplacement) {
             final EConv ec = encodingConverter.econv;
-            final Rope rope = replacement.rope;
+            final Rope rope = libReplacement.getRope(replacement);
             final Encoding encoding = rope.getEncoding();
 
             final int ret = setReplacement(ec, bytesNode.execute(rope), rope.byteLength(), encoding.getName());

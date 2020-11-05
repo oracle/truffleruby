@@ -37,6 +37,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -175,6 +176,11 @@ public abstract class TypeNodes {
 
         @Specialization
         protected RubyArray instanceVariablesSymbol(RubySymbol object) {
+            return createEmptyArray();
+        }
+
+        @Specialization
+        protected RubyArray instanceVariablesImmutableString(ImmutableRubyString object) {
             return createEmptyArray();
         }
 

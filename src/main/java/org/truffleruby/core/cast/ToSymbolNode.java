@@ -11,15 +11,16 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedLanguage;
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @GenerateUncached
 public abstract class ToSymbolNode extends RubyBaseNode {
@@ -53,19 +54,25 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return language.getSymbol(str);
     }
 
-    @Specialization(guards = "equals.execute(str.rope, cachedRope)", limit = "getCacheLimit()")
-    protected RubySymbol toSymbolRubyString(RubyString str,
-            @Cached(value = "str.rope") Rope cachedRope,
+    @Specialization(
+            guards = {
+                    "rubyStringLibrary.isRubyString(str)",
+                    "equals.execute(rubyStringLibrary.getRope(str), cachedRope)" },
+            limit = "getCacheLimit()")
+    protected RubySymbol toSymbolRubyString(Object str,
+            @CachedLibrary("str") RubyStringLibrary rubyStringLibrary,
+            @Cached(value = "rubyStringLibrary.getRope(str)") Rope cachedRope,
             @CachedLanguage RubyLanguage language,
             @Cached RopeNodes.EqualNode equals,
             @Cached(value = "language.getSymbol(cachedRope)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
-    @Specialization(replaces = "toSymbolRubyString")
-    protected RubySymbol toSymbolRubyStringUncached(RubyString str,
-            @CachedLanguage RubyLanguage language) {
-        return language.getSymbol(str.rope);
+    @Specialization(limit = "2", guards = "rubyStringLibrary.isRubyString(str)", replaces = "toSymbolRubyString")
+    protected RubySymbol toSymbolRubyStringUncached(Object str,
+            @CachedLanguage RubyLanguage language,
+            @CachedLibrary("str") RubyStringLibrary rubyStringLibrary) {
+        return language.getSymbol(rubyStringLibrary.getRope(str));
     }
 
     protected int getCacheLimit() {

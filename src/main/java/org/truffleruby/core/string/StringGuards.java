@@ -19,51 +19,52 @@ public class StringGuards {
 
     private static final int CASE_FULL_UNICODE = 0;
 
-    public static boolean isSingleByteOptimizable(RubyString string,
+    public static boolean isSingleByteOptimizable(Rope rope,
             RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        final Rope rope = string.rope;
-
         return singleByteOptimizableNode.execute(rope);
     }
 
-    public static boolean is7Bit(RubyString string, RopeNodes.CodeRangeNode codeRangeNode) {
-        final Rope rope = string.rope;
+    public static boolean isSingleByteOptimizable(RubyString string,
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
 
+        final Rope rope = string.rope;
+        return singleByteOptimizableNode.execute(rope);
+    }
+
+    public static boolean is7Bit(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
         return codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
+    }
+
+    public static boolean isAsciiCompatible(Rope rope) {
+        return rope.getEncoding().isAsciiCompatible();
     }
 
     public static boolean isAsciiCompatible(RubyString string) {
         return string.rope.getEncoding().isAsciiCompatible();
     }
 
-    public static boolean isFixedWidthEncoding(RubyString string) {
-        return string.rope.getEncoding().isFixedWidth();
+    public static boolean isFixedWidthEncoding(Rope rope) {
+        return rope.getEncoding().isFixedWidth();
     }
 
-    public static boolean isValidUtf8(RubyString string, RopeNodes.CodeRangeNode codeRangeNode) {
-        final Rope rope = string.rope;
-
+    public static boolean isValidUtf8(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
         return rope.getEncoding().isUTF8() && codeRangeNode.execute(rope) == CodeRange.CR_VALID;
     }
 
-    public static boolean isEmpty(RubyString string) {
-        return string.rope.isEmpty();
+    public static boolean isEmpty(Rope rope) {
+        return rope.isEmpty();
     }
 
-    public static boolean isBrokenCodeRange(RubyString string, RopeNodes.CodeRangeNode codeRangeNode) {
-        final Rope rope = string.rope;
-
+    public static boolean isBrokenCodeRange(Rope rope, RopeNodes.CodeRangeNode codeRangeNode) {
         return codeRangeNode.execute(rope) == CodeRange.CR_BROKEN;
     }
 
-    public static boolean isSingleByteString(RubyString string) {
-        return string.rope.byteLength() == 1;
+    public static boolean isSingleByteString(Rope rope) {
+        return rope.byteLength() == 1;
     }
 
-    public static boolean canMemcmp(RubyString first, RubyString second,
+    public static boolean canMemcmp(Rope sourceRope, Rope patternRope,
             RopeNodes.SingleByteOptimizableNode singleByteNode) {
-        final Rope sourceRope = first.rope;
-        final Rope patternRope = second.rope;
 
         return (singleByteNode.execute(sourceRope) || sourceRope.getEncoding().isUTF8()) &&
                 (singleByteNode.execute(patternRope) || patternRope.getEncoding().isUTF8());

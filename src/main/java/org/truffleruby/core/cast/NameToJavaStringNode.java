@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
@@ -16,15 +17,14 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -53,15 +53,18 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
 
     public abstract String execute(Object name);
 
-    @Specialization
-    protected String stringNameToJavaString(RubyString value,
-            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
+    // REVIEW shared
+    @Specialization(limit = "2", guards = "strings.isRubyString(value)")
+    protected String stringNameToJavaString(Object value,
+            @CachedLibrary("value") RubyStringLibrary strings,
+            @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
+    // REVIEW shared
     @Specialization
     protected String symbolNameToJavaString(RubySymbol value,
-            @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
+            @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 
@@ -70,7 +73,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
         return value;
     }
 
-    @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "!isRubyString(object)" })
+    @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "isNotRubyString(object)" })
     protected String nameToJavaString(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
@@ -90,7 +93,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
             }
         }
 
-        if (RubyGuards.isRubyString(coerced)) {
+        if (StringOperations.isRubyString(coerced)) {
             return ((RubyString) coerced).getJavaString();
         } else {
             errorProfile.enter();

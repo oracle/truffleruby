@@ -40,6 +40,7 @@ package org.truffleruby.core;
 import java.io.PrintStream;
 import java.util.Map.Entry;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -60,6 +61,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -70,6 +72,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -229,10 +232,14 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected boolean restoreDefault(RubyString signalString, RubyString action) {
-            final String actionString = action.getJavaString();
-            final String signalName = signalString.getJavaString();
+        @Specialization(
+                limit = "2",
+                guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })
+        protected boolean restoreDefault(Object signalString, Object action,
+                @CachedLibrary("signalString") RubyStringLibrary libSignalString,
+                @CachedLibrary("action") RubyStringLibrary libAction) {
+            final String actionString = RopeOperations.decodeRope(libAction.getRope(action));
+            final String signalName = RopeOperations.decodeRope(libSignalString.getRope(signalString));
 
             switch (actionString) {
                 case "DEFAULT":
@@ -247,8 +254,9 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected boolean watchSignalProc(RubyString signalString, RubyProc action) {
+        @Specialization(limit = "2", guards = "libSignalString.isRubyString(signalString)")
+        protected boolean watchSignalProc(Object signalString, RubyProc action,
+                @CachedLibrary("signalString") RubyStringLibrary libSignalString) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), action);
@@ -256,7 +264,7 @@ public abstract class VMPrimitiveNodes {
 
             final RubyContext context = getContext();
 
-            String signalName = signalString.getJavaString();
+            String signalName = RopeOperations.decodeRope(libSignalString.getRope(signalString));
             return registerHandler(signalName, signal -> {
                 if (context.getOptions().SINGLE_THREADED) {
                     RubyLanguage.LOGGER.severe(
@@ -374,9 +382,11 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigItemNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object get(RubyString key) {
-            final Object value = getContext().getNativeConfiguration().get(key.getJavaString());
+        @Specialization(limit = "2")
+        protected Object get(Object key,
+                @CachedLibrary("key") RubyStringLibrary library) {
+            final String keyString = RopeOperations.decodeRope(library.getRope(key));
+            final Object value = getContext().getNativeConfiguration().get(keyString);
 
             if (value == null) {
                 return nil;
@@ -391,13 +401,14 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object getSection(RubyString section, RubyProc block,
+        @Specialization(limit = "2")
+        protected Object getSection(Object section, RubyProc block,
+                @CachedLibrary("section") RubyStringLibrary libSection,
                 @Cached MakeStringNode makeStringNode,
                 @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
-                    .getSection(section.getJavaString())) {
+                    .getSection(RopeOperations.decodeRope(libSection.getRope(section)))) {
                 final RubyString key = makeStringNode
                         .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, key, entry.getValue());

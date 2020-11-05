@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -31,6 +32,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -77,12 +79,13 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected RubyByteArray prepend(RubyByteArray byteArray, RubyString string,
+        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        protected RubyByteArray prepend(RubyByteArray byteArray, Object string,
+                @CachedLibrary("string") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 
-            final Rope rope = string.rope;
+            final Rope rope = strings.getRope(string);
             final int prependLength = rope.byteLength();
             final int originalLength = bytes.length;
             final int newLength = prependLength + originalLength;
@@ -159,14 +162,17 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "locate", required = 3, lowerFixnum = { 2, 3 })
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isSingleBytePattern(pattern)" })
-        protected Object getByteSingleByte(RubyByteArray byteArray, RubyString pattern, int start, int length,
+        @Specialization(
+                limit = "2",
+                guards = { "libPattern.isRubyString(pattern)", "isSingleBytePattern(libPattern.getRope(pattern))" })
+        protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
-                @Cached BranchProfile tooLargeStartProfile) {
+                @Cached BranchProfile tooLargeStartProfile,
+                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
 
             final byte[] bytes = byteArray.bytes;
-            final Rope rope = pattern.rope;
+            final Rope rope = libPattern.getRope(pattern);
             final byte searchByte = bytesNode.execute(rope)[0];
 
             if (start >= length) {
@@ -184,12 +190,15 @@ public abstract class ByteArrayNodes {
             return index == -1 ? nil : index + 1;
         }
 
-        @Specialization(guards = { "!isSingleBytePattern(pattern)" })
-        protected Object getByte(RubyByteArray byteArray, RubyString pattern, int start, int length,
+        @Specialization(
+                limit = "2",
+                guards = { "libPattern.isRubyString(pattern)", "!isSingleBytePattern(libPattern.getRope(pattern))" })
+        protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
-                @Cached ConditionProfile notFoundProfile) {
-            final Rope patternRope = pattern.rope;
+                @Cached ConditionProfile notFoundProfile,
+                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
+            final Rope patternRope = libPattern.getRope(pattern);
             final int index = indexOf(
                     byteArray.bytes,
                     start,
@@ -203,8 +212,7 @@ public abstract class ByteArrayNodes {
             }
         }
 
-        protected boolean isSingleBytePattern(RubyString pattern) {
-            final Rope rope = pattern.rope;
+        protected boolean isSingleBytePattern(Rope rope) {
             return RopeGuards.isSingleByteString(rope);
         }
 

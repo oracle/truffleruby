@@ -53,6 +53,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyByteArray;
@@ -67,6 +68,7 @@ import org.truffleruby.core.time.RubyTime;
 import org.truffleruby.core.tracepoint.RubyTracePoint;
 import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.ffi.RubyPointer;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
@@ -148,6 +150,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
     public final PrimitiveManager primitiveManager;
+    public final FrozenStringLiterals frozenStringLiterals;
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
     @CompilationFinal public LanguageOptions options;
@@ -204,6 +207,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         coreStrings = new CoreStrings(this);
         coreSymbols = new CoreSymbols();
         primitiveManager = new PrimitiveManager();
+        frozenStringLiterals = new FrozenStringLiterals();
         ropeCache = new RopeCache(coreSymbols);
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
     }
@@ -418,6 +422,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public AllocationReporter getAllocationReporter() {
         return allocationReporter;
+    }
+
+    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
+        return frozenStringLiterals.getFrozenStringLiteral(rope);
     }
 
     public long getNextObjectID() {

@@ -43,6 +43,7 @@ public abstract class ObjSpaceNodes {
             return memsizeOfObject(object) + object.size;
         }
 
+        // REVIEW memsizeOf Immutable?
         @Specialization
         protected int memsizeOfString(RubyString object) {
             return memsizeOfObject(object) + object.rope.byteLength();
@@ -58,7 +59,7 @@ public abstract class ObjSpaceNodes {
                 guards = {
                         "!isRubyArray(object)",
                         "!isRubyHash(object)",
-                        "!isRubyString(object)",
+                        "isNotRubyString(object)",
                         "!isRubyMatchData(object)" })
         protected int memsizeOfObject(RubyDynamicObject object) {
             return 1 + object.getShape().getPropertyListInternal(false).size();

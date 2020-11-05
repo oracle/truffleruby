@@ -15,9 +15,10 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -44,8 +45,10 @@ public abstract class ExceptionOperations {
         if (message == null || message == Nil.INSTANCE) {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
-        } else if (RubyGuards.isRubyString(message)) {
+        } else if (message instanceof RubyString) {
             return ((RubyString) message).getJavaString();
+        } else if (message instanceof ImmutableRubyString) {
+            return ((ImmutableRubyString) message).getJavaString();
         } else {
             return message.toString();
         }
@@ -55,7 +58,7 @@ public abstract class ExceptionOperations {
     public static String messageToString(RubyContext context, RubyException exception) {
         try {
             final Object messageObject = context.send(exception, "message");
-            if (RubyGuards.isRubyString(messageObject)) {
+            if (StringOperations.isRubyString(messageObject)) {
                 return ((RubyString) messageObject).getJavaString();
             }
         } catch (Throwable e) {

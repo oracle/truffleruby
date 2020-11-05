@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -31,6 +32,11 @@ public abstract class IsStringLikeNode extends RubyBaseNode {
     }
 
     @Specialization
+    protected boolean isImmutableRubyStringStringLike(ImmutableRubyString value) {
+        return true;
+    }
+
+    @Specialization
     protected boolean isRubySymbolStringLike(RubySymbol value) {
         return true;
     }
@@ -40,7 +46,7 @@ public abstract class IsStringLikeNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization(guards = { "!isRubyString(value)", "!isRubySymbol(value)", "!isString(value)" })
+    @Specialization(guards = { "isNotRubyString(value)", "!isRubySymbol(value)", "!isString(value)" })
     protected boolean notStringLike(Object value) {
         return false;
     }

@@ -9,37 +9,26 @@
  */
 package org.truffleruby.core.string;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.language.ImmutableRubyString;
 
 public class FrozenStringLiterals {
 
-    private final RubyContext context;
-    private final RubyLanguage language;
-    private final WeakValueCache<Rope, RubyString> values = new WeakValueCache<>();
+    private final WeakValueCache<Rope, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public FrozenStringLiterals(RubyContext context, RubyLanguage language) {
-        this.context = context;
-        this.language = language;
-    }
-
-    public RubyString getFrozenStringLiteral(Rope rope) {
-        final RubyString string = values.get(rope);
+    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
+        final ImmutableRubyString string = values.get(rope);
         if (string != null) {
             return string;
         } else {
-            return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(context, language, rope));
+            return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(rope));
         }
     }
 
-    public RubyString getFrozenStringLiteral(RubyString string) {
-        assert string.frozen == true;
-
+    public ImmutableRubyString getFrozenStringLiteral(ImmutableRubyString string) {
         final Rope rope = string.rope;
-
-        final RubyString stringCached = values.get(rope);
+        final ImmutableRubyString stringCached = values.get(rope);
         if (stringCached != null) {
             return stringCached;
         } else {

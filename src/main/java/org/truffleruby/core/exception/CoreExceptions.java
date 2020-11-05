@@ -33,6 +33,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -209,7 +210,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorInvalidStringToInteger(RubyString object, Node currentNode) {
+    public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
+        assert object instanceof RubyString || object instanceof ImmutableRubyString;
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
         final String formattedObject = ((RubyString) context.send(object, "inspect")).getJavaString();
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);

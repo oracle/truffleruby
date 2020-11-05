@@ -28,6 +28,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild("value")
 public abstract class StringToPointerNode extends FormatNode {
@@ -38,11 +39,14 @@ public abstract class StringToPointerNode extends FormatNode {
     }
 
     @SuppressWarnings("unchecked")
-    @Specialization(limit = "getRubyLibraryCacheLimit()")
-    protected long toPointer(VirtualFrame frame, RubyString string,
+    @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "strings.isRubyString(string)")
+    protected long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
+            @CachedLibrary("string") RubyStringLibrary strings,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
-        rubyLibrary.taint(string);
+        if (string instanceof RubyString) {
+            rubyLibrary.taint(string);
+        }
 
         final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();
 

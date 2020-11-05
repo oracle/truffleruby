@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
@@ -38,6 +39,7 @@ import org.truffleruby.core.time.RubyDateFormatter.Token;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -427,18 +429,22 @@ public abstract class TimeNodes {
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(
-                guards = { "equalNode.execute(format.rope, cachedFormat)" },
+                guards = {
+                        "libFormat.isRubyString(format)",
+                        "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
                 limit = "getContext().getOptions().TIME_FORMAT_CACHE")
-        protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, RubyString format,
-                @Cached("privatizeRope(format)") Rope cachedFormat,
+        protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
+                @CachedLibrary("format") RubyStringLibrary libFormat,
+                @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached RopeNodes.EqualNode equalNode) {
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
-        @Specialization
-        protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, RubyString format) {
-            final List<Token> pattern = compilePattern(format.rope);
+        @Specialization(limit = "2", guards = "libFormat.isRubyString(format)")
+        protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
+                @CachedLibrary("format") RubyStringLibrary libFormat) {
+            final List<Token> pattern = compilePattern(libFormat.getRope(format));
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 

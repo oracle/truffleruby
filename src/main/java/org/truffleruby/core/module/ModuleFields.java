@@ -28,7 +28,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
@@ -37,6 +37,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -337,7 +338,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, RubyString filename) {
+    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename,
+            String javaFilename) {
         RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
         if (autoloadConstant == null) {
             return;
@@ -351,7 +353,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     filename));
         }
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
-        final ReentrantLock lock = fileLocks.get(filename.getJavaString());
+        final ReentrantLock lock = fileLocks.get(javaFilename);
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
             // if Object.autoload(name, filename) is executed from filename.rb
@@ -367,7 +369,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context, rubyModule, value);
 
-        final String autoloadPath = autoload ? ((RubyString) value).getJavaString() : null;
+        final String autoloadPath = autoload
+                ? RopeOperations.decodeRope(RubyStringLibrary.getUncached().getRope(value))
+                : null;
         RubyConstant previous;
         RubyConstant newConstant;
         do {

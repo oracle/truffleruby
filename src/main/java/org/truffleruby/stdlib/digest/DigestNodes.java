@@ -12,6 +12,7 @@ package org.truffleruby.stdlib.digest;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.builtins.CoreMethod;
@@ -23,6 +24,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
 import java.security.MessageDigest;
@@ -104,10 +106,11 @@ public abstract class DigestNodes {
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected RubyDigest update(RubyDigest digestObject, RubyString message) {
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected RubyDigest update(RubyDigest digestObject, Object message,
+                @CachedLibrary("message") RubyStringLibrary strings) {
             final MessageDigest digest = digestObject.digest;
-            final Rope rope = message.rope;
+            final Rope rope = strings.getRope(message);
 
             digest.update(rope.getBytes());
             return digestObject;
@@ -172,9 +175,10 @@ public abstract class DigestNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization
-        protected RubyString bubblebabble(RubyString message) {
-            final Rope rope = message.rope;
+        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        protected RubyString bubblebabble(Object message,
+                @CachedLibrary("message") RubyStringLibrary strings) {
+            final Rope rope = strings.getRope(message);
             final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
 
             return makeStringNode.executeMake(bubblebabbleBytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);

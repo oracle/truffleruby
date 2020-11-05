@@ -45,7 +45,7 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.RopeOperations;
 
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 
 public abstract class DefaultNativeConfiguration {
 
@@ -53,8 +53,10 @@ public abstract class DefaultNativeConfiguration {
         return BignumOperations.createBignum(new BigInteger(value));
     }
 
-    protected static RubyString string(RubyContext context, String value) {
-        return context.getFrozenStringLiteral(RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
+    protected static ImmutableRubyString string(RubyContext context, String value) {
+        return context
+                .getLanguageSlow()
+                .getFrozenStringLiteral(RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
     }
 
 }

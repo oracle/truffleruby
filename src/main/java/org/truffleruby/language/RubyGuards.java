@@ -24,6 +24,7 @@ import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
@@ -120,8 +121,8 @@ public abstract class RubyGuards {
         return value instanceof RubyRegexp;
     }
 
-    public static boolean isRubyString(Object value) {
-        return value instanceof RubyString;
+    public static boolean isNotRubyString(Object value) {
+        return !(value instanceof ImmutableRubyString) && !(value instanceof RubyString);
     }
 
     public static boolean isRubySymbol(Object value) {
@@ -130,7 +131,7 @@ public abstract class RubyGuards {
 
     /** Should be used only for interop together with {@link ToJavaStringNode} */
     public static boolean isRubySymbolOrString(Object value) {
-        return isRubySymbol(value) || isRubyString(value);
+        return isRubySymbol(value) || StringOperations.isRubyString(value);
     }
 
     public static boolean isRubyEncoding(Object object) {
