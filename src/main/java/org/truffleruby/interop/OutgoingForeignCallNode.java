@@ -14,13 +14,11 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -109,7 +107,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return readNode.execute(receiver, args[0]);
     }
 
-    @Specialization(guards = {
+    @Specialization(
+            guards = {
                     "name == cachedName",
                     "cachedName.equals(AT)",
                     "args.length == 1",
@@ -130,7 +129,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             } else {
                 throw new RaiseException(
                         context,
-                        context.getCoreExceptions().indexError("Index " + (int) args[0] + " outside of array bounds: " + (-size+1) + "..." + (size-1), this));
+                        context.getCoreExceptions().indexError("Index " + (int) args[0] +
+                                " outside of array bounds: " + (-size + 1) + "..." + (size - 1), this));
             }
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
@@ -158,7 +158,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             } else {
                 throw new RaiseException(
                         context,
-                        context.getCoreExceptions().indexError("Index " + (int) args[0] + " outside of array bounds: " + (-size+1) + "..." + (size-1), this));
+                        context.getCoreExceptions().indexError("Index " + (int) args[0] +
+                                " outside of array bounds: " + (-size + 1) + "..." + (size - 1), this));
             }
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
@@ -419,7 +420,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case TO_ARY:
                 return "to_array";
             case SIZE:
-                return "array_size";
             case LENGTH:
                 return "array_size";
             case KEYS:
