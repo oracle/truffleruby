@@ -88,7 +88,6 @@ find test/mri/tests/cext-ruby -name '*.rb' -print0 | xargs -0 -n 1 sed -i.backup
 find test/mri/tests/cext-ruby -name '*.backup' -delete
 rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
-git checkout -- test/mri/tests/runner.rb
 
 # Copy from tool/lib to test/lib
 cp -r ../ruby/tool/lib/* test/mri/tests/lib
