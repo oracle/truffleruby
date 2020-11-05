@@ -212,8 +212,8 @@ module Racc
       Racc_Runtime_Core_Revision   = Racc_Runtime_Core_Revision_C # :nodoc:
       Racc_Runtime_Type            = 'c' # :nodoc:
     rescue LoadError
-puts $!
-puts $!.backtrace
+puts $! unless defined?(::TruffleRuby)
+puts $!.backtrace unless defined?(::TruffleRuby)
       Racc_Main_Parsing_Routine    = :_racc_do_parse_rb
       Racc_YY_Parse_Method         = :_racc_yyparse_rb
       Racc_Runtime_Core_Version    = Racc_Runtime_Core_Version_R
