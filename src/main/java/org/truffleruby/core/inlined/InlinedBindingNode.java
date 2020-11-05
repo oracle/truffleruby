@@ -35,7 +35,7 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
     protected RubyBinding binding(VirtualFrame frame, Object self,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached("getMyEncapsulatingSourceSection()") SourceSection sourceSection) {
-        return BindingNodes.createBinding(getContext(), frame.materialize(), sourceSection);
+        return BindingNodes.createBinding(getContext(), getLanguage(), frame.materialize(), sourceSection);
     }
 
     @Specialization

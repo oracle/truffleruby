@@ -54,7 +54,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     protected RubyArray cachedCreateArray(Object store, int size) {
-        final RubyArray array = new RubyArray(coreLibrary().arrayClass, RubyLanguage.arrayShape, store, size);
+        final RubyArray array = createArray(store, size);
         AllocationTracing.trace(array, this);
         return array;
     }

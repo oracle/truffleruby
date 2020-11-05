@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -32,7 +31,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -361,7 +359,7 @@ public abstract class KernelNodes {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             final SourceSection sourceSection = getCallerSourceSection();
 
-            return BindingNodes.createBinding(getContext(), callerFrame, sourceSection);
+            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame, sourceSection);
         }
 
         @TruffleBoundary
@@ -426,7 +424,7 @@ public abstract class KernelNodes {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-            return backtrace.getBacktraceLocations(getContext(), length, this);
+            return backtrace.getBacktraceLocations(getContext(), getLanguage(), length, this);
         }
     }
 
@@ -1190,7 +1188,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isLiteralBlock(block)")
         protected RubyProc lambdaFromBlock(RubyProc block) {
-            return ProcOperations.createLambdaFromBlock(getContext(), block);
+            return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")
@@ -1300,7 +1298,7 @@ public abstract class KernelNodes {
             }
             final RubyMethod instance = new RubyMethod(
                     coreLibrary().methodClass,
-                    RubyLanguage.methodShape,
+                    getLanguage().methodShape,
                     self,
                     method);
             AllocationTracing.trace(instance, this);
@@ -1709,7 +1707,7 @@ public abstract class KernelNodes {
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
                     final RubyMethod instance = new RubyMethod(
                             coreLibrary().methodClass,
-                            RubyLanguage.methodShape,
+                            getLanguage().methodShape,
                             self,
                             method);
                     AllocationTracing.trace(instance, this);
@@ -1748,7 +1746,7 @@ public abstract class KernelNodes {
             final RubyClass metaClass = metaClassNode.execute(self);
 
             if (!metaClass.isSingleton) {
-                return ArrayHelpers.createEmptyArray(getContext());
+                return createEmptyArray();
             }
 
             Object[] objects = metaClass.fields

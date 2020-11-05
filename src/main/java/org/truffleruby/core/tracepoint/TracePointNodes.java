@@ -53,10 +53,10 @@ public abstract class TracePointNodes {
     }
 
     @TruffleBoundary
-    public static boolean createEventBindings(RubyContext context, RubyTracePoint tracePoint) {
+    public static boolean createEventBindings(RubyContext context, RubyLanguage language, RubyTracePoint tracePoint) {
         final TracePointEvent[] events = tracePoint.events;
         for (TracePointEvent event : events) {
-            if (!event.setupEventBinding(context, tracePoint)) {
+            if (!event.setupEventBinding(context, language, tracePoint)) {
                 return false;
             }
         }
@@ -127,13 +127,13 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected boolean enable(RubyTracePoint tracePoint, NotProvided block) {
-            boolean setupDone = createEventBindings(getContext(), tracePoint);
+            boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             return !setupDone;
         }
 
         @Specialization
         protected Object enable(RubyTracePoint tracePoint, RubyProc block) {
-            final boolean setupDone = createEventBindings(getContext(), tracePoint);
+            final boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             try {
                 return yield(block);
             } finally {
@@ -159,7 +159,7 @@ public abstract class TracePointNodes {
                 return yield(block);
             } finally {
                 if (wasEnabled) {
-                    createEventBindings(getContext(), tracePoint);
+                    createEventBindings(getContext(), getLanguage(), tracePoint);
                 }
             }
         }

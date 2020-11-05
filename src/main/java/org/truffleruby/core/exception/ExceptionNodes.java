@@ -181,7 +181,7 @@ public abstract class ExceptionNodes {
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = exception.backtrace;
                     backtraceLocations = backtrace
-                            .getBacktraceLocations(getContext(), GetBacktraceException.UNLIMITED, null);
+                            .getBacktraceLocations(getContext(), getLanguage(), GetBacktraceException.UNLIMITED, null);
                     exception.backtraceLocations = backtraceLocations;
                 }
                 return backtraceLocations;
@@ -321,7 +321,8 @@ public abstract class ExceptionNodes {
         @Specialization
         protected boolean breakpoint() {
             // have a Ruby backtrace at hand
-            String printableRubyBacktrace = BacktraceFormatter.printableRubyBacktrace(getContext(), this);
+            String printableRubyBacktrace = BacktraceFormatter
+                    .printableRubyBacktrace(getContext(), getLanguage(), this);
             return true; // place to put a Java breakpoint
         }
 

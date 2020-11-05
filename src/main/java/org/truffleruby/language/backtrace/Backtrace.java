@@ -59,7 +59,7 @@ import org.truffleruby.language.objects.AllocationTracing;
  *
  * <p>
  * In general, there isn't any guarantee that the getters will return non-null values, excepted {@link #getStackTrace()}
- * and {@link #getBacktraceLocations(RubyContext, int, Node)}.
+ * and {@link #getBacktraceLocations(RubyContext, RubyLanguage, int, Node)}.
  *
  * <p>
  * NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions on the backtrace object
@@ -273,12 +273,12 @@ public class Backtrace {
      *
      * <p>
      * This causes the activations to be computed if not yet the case.
-     *
+     * 
      * @param length the maximum number of locations to return (if positive), or -1 minus the number of items to exclude
      *            at the end. You can use {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
      * @param node the node at which we're requiring the backtrace. Can be null if the backtrace is associated with a */
     @TruffleBoundary
-    public Object getBacktraceLocations(RubyContext context, int length, Node node) {
+    public Object getBacktraceLocations(RubyContext context, RubyLanguage language, int length, Node node) {
         final int stackTraceLength;
         if (this.raiseException != null) {
             // When dealing with the backtrace of a Ruby exception, we use the wrapping
@@ -297,7 +297,7 @@ public class Backtrace {
         if (stackTraceLength == 0) {
             return omitted > totalUnderlyingElements
                     ? Nil.INSTANCE
-                    : ArrayHelpers.createEmptyArray(context);
+                    : ArrayHelpers.createEmptyArray(context, language);
         }
 
         final int locationsLength = length < 0
@@ -310,13 +310,13 @@ public class Backtrace {
         for (int i = 0; i < locationsLength; i++) {
             final RubyBacktraceLocation instance = new RubyBacktraceLocation(
                     context.getCoreLibrary().threadBacktraceLocationClass,
-                    RubyLanguage.threadBacktraceLocationShape,
+                    language.threadBacktraceLocationShape,
                     this,
                     i);
-            AllocationTracing.trace(context.getLanguageSlow(), context, instance, node);
+            AllocationTracing.trace(language, context, instance, node);
             locations[i] = instance;
         }
-        return ArrayHelpers.createArray(context, locations);
+        return ArrayHelpers.createArray(context, language, locations);
     }
 
     // endregion

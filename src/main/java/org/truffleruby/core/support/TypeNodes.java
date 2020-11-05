@@ -21,7 +21,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
@@ -151,37 +150,37 @@ public abstract class TypeNodes {
 
         @Specialization
         protected RubyArray instanceVariables(int object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization
         protected RubyArray instanceVariables(long object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization
         protected RubyArray instanceVariables(double object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization
         protected RubyArray instanceVariables(boolean object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization
         protected RubyArray instanceVariablesNil(Nil object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization
         protected RubyArray instanceVariablesSymbol(RubySymbol object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization(guards = "isForeignObject(object)")
         protected RubyArray instanceVariablesForeign(Object object) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
     }

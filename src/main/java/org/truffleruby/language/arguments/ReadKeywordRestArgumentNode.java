@@ -49,9 +49,9 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
         final RubyHash hash = readUserKeywordsHashNode.execute(frame);
 
         if (noHash.profile(hash == null)) {
-            return HashOperations.newEmptyHash(getContext());
+            return HashOperations.newEmptyHash(getContext(), getLanguage());
         } else {
-            final RubyHash kwRest = HashOperations.newEmptyHash(getContext());
+            final RubyHash kwRest = HashOperations.newEmptyHash(getContext(), getLanguage());
             return eachKeyNode.executeEachKeyValue(frame, hash, this, kwRest);
         }
     }

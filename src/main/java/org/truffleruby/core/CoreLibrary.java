@@ -121,6 +121,7 @@ public class CoreLibrary {
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     public final SourceSection sourceSection;
 
@@ -305,14 +306,13 @@ public class CoreLibrary {
 
     private final SingletonClassNode node;
 
-    public CoreLibrary(RubyContext context) {
+    public CoreLibrary(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
         this.coreLoadPath = buildCoreLoadPath();
         this.corePath = coreLoadPath + File.separator + "core" + File.separator;
         this.sourceSection = initCoreSourceSection(context);
         this.node = SingletonClassNode.getUncached();
-
-        final RubyLanguage language = context.getLanguageSlow();
 
         // Nothing in this constructor can use RubyContext.getCoreLibrary() as we are building it!
         // Therefore, only initialize the core classes and modules here.
@@ -340,7 +340,7 @@ public class CoreLibrary {
         // Create Exception classes
 
         // Exception
-        exceptionClass = defineClass("Exception", RubyLanguage.exceptionShape);
+        exceptionClass = defineClass("Exception", language.exceptionShape);
 
         // fatal
         defineClass(exceptionClass, "fatal");
@@ -380,11 +380,11 @@ public class CoreLibrary {
         defineClass(ioErrorClass, "EOFError");
 
         // StandardError > NameError
-        nameErrorClass = defineClass(standardErrorClass, "NameError", RubyLanguage.nameErrorShape);
-        noMethodErrorClass = defineClass(nameErrorClass, "NoMethodError", RubyLanguage.noMethodErrorShape);
+        nameErrorClass = defineClass(standardErrorClass, "NameError", language.nameErrorShape);
+        noMethodErrorClass = defineClass(nameErrorClass, "NoMethodError", language.noMethodErrorShape);
 
         // StandardError > SystemCallError
-        systemCallErrorClass = defineClass(standardErrorClass, "SystemCallError", RubyLanguage.systemCallErrorShape);
+        systemCallErrorClass = defineClass(standardErrorClass, "SystemCallError", language.systemCallErrorShape);
 
         errnoModule = defineModule("Errno");
 
@@ -417,32 +417,32 @@ public class CoreLibrary {
 
         // Classes defined in Object
 
-        arrayClass = defineClass("Array", RubyLanguage.arrayShape);
-        bindingClass = defineClass("Binding", RubyLanguage.bindingShape);
-        defineClass("ConditionVariable", RubyLanguage.conditionVariableShape);
+        arrayClass = defineClass("Array", language.arrayShape);
+        bindingClass = defineClass("Binding", language.bindingShape);
+        defineClass("ConditionVariable", language.conditionVariableShape);
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
-        encodingClass = defineClass("Encoding", RubyLanguage.encodingShape);
+        encodingClass = defineClass("Encoding", language.encodingShape);
         falseClass = defineClass("FalseClass");
-        fiberClass = defineClass("Fiber", RubyLanguage.fiberShape);
+        fiberClass = defineClass("Fiber", language.fiberShape);
         defineModule("FileTest");
-        hashClass = defineClass("Hash", RubyLanguage.hashShape);
-        matchDataClass = defineClass("MatchData", RubyLanguage.matchDataShape);
-        methodClass = defineClass("Method", RubyLanguage.methodShape);
-        defineClass("Mutex", RubyLanguage.mutexShape);
+        hashClass = defineClass("Hash", language.hashShape);
+        matchDataClass = defineClass("MatchData", language.matchDataShape);
+        methodClass = defineClass("Method", language.methodShape);
+        defineClass("Mutex", language.mutexShape);
         nilClass = defineClass("NilClass");
-        procClass = defineClass("Proc", RubyLanguage.procShape);
+        procClass = defineClass("Proc", language.procShape);
 
         processModule = defineModule("Process");
-        RubyClass queueClass = defineClass("Queue", RubyLanguage.queueShape);
-        defineClass(queueClass, "SizedQueue", RubyLanguage.sizedQueueShape);
-        rangeClass = defineClass("Range", RubyLanguage.objectRangeShape);
+        RubyClass queueClass = defineClass("Queue", language.queueShape);
+        defineClass(queueClass, "SizedQueue", language.sizedQueueShape);
+        rangeClass = defineClass("Range", language.objectRangeShape);
 
-        regexpClass = defineClass("Regexp", RubyLanguage.regexpShape);
-        stringClass = defineClass("String", RubyLanguage.stringShape);
+        regexpClass = defineClass("Regexp", language.regexpShape);
+        stringClass = defineClass("String", language.stringShape);
         symbolClass = defineClass("Symbol");
 
-        threadClass = defineClass("Thread", RubyLanguage.threadShape);
+        threadClass = defineClass("Thread", language.threadShape);
         DynamicObjectLibrary.getUncached().put(threadClass, "@report_on_exception", true);
         DynamicObjectLibrary.getUncached().put(threadClass, "@abort_on_exception", false);
 
@@ -451,15 +451,15 @@ public class CoreLibrary {
                 threadBacktraceClass,
                 objectClass,
                 "Location",
-                RubyLanguage.threadBacktraceLocationShape);
-        defineClass("Time", RubyLanguage.timeShape);
+                language.threadBacktraceLocationShape);
+        defineClass("Time", language.timeShape);
         trueClass = defineClass("TrueClass");
-        unboundMethodClass = defineClass("UnboundMethod", RubyLanguage.unboundMethodShape);
-        ioClass = defineClass("IO", RubyLanguage.ioShape);
+        unboundMethodClass = defineClass("UnboundMethod", language.unboundMethodShape);
+        ioClass = defineClass("IO", language.ioShape);
         defineClass(ioClass, "File");
         structClass = defineClass("Struct");
 
-        defineClass("TracePoint", RubyLanguage.tracePointShape);
+        defineClass("TracePoint", language.tracePointShape);
 
         // Modules
 
@@ -470,7 +470,7 @@ public class CoreLibrary {
         defineModule("Math");
         objectSpaceModule = defineModule("ObjectSpace");
 
-        weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap", RubyLanguage.weakMapShape);
+        weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap", language.weakMapShape);
 
         // The rest
 
@@ -484,9 +484,9 @@ public class CoreLibrary {
                 encodingClass,
                 objectClass,
                 "Converter",
-                RubyLanguage.encodingConverterShape);
+                language.encodingConverterShape);
         final RubyModule truffleRubyModule = defineModule("TruffleRuby");
-        defineClass(truffleRubyModule, objectClass, "AtomicReference", RubyLanguage.atomicReferenceShape);
+        defineClass(truffleRubyModule, objectClass, "AtomicReference", language.atomicReferenceShape);
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
@@ -536,10 +536,10 @@ public class CoreLibrary {
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
-        handleClass = defineClass(truffleModule, objectClass, "Handle", RubyLanguage.handleShape);
+        handleClass = defineClass(truffleModule, objectClass, "Handle", language.handleShape);
         warningModule = defineModule("Warning");
 
-        bigDecimalClass = defineClass(numericClass, "BigDecimal", RubyLanguage.bigDecimalShape);
+        bigDecimalClass = defineClass(numericClass, "BigDecimal", language.bigDecimalShape);
         bigDecimalOperationsModule = defineModule(truffleModule, "BigDecimalOperations");
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
@@ -548,19 +548,19 @@ public class CoreLibrary {
                 truffleFFIModule,
                 truffleFFIAbstractMemoryClass,
                 "Pointer",
-                RubyLanguage.truffleFFIPointerShape);
+                language.truffleFFIPointerShape);
         truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 
         truffleTypeModule = defineModule(truffleModule, "Type");
 
-        byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray", RubyLanguage.byteArrayShape);
+        byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray", language.byteArrayShape);
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
-        randomizerClass = defineClass(truffleModule, objectClass, "Randomizer", RubyLanguage.randomizerShape);
+        randomizerClass = defineClass(truffleModule, objectClass, "Randomizer", language.randomizerShape);
 
         // Standard library
 
-        digestClass = defineClass(truffleModule, basicObjectClass, "Digest", RubyLanguage.digestShape);
+        digestClass = defineClass(truffleModule, basicObjectClass, "Digest", language.digestShape);
 
         // Include the core modules
 
@@ -573,7 +573,7 @@ public class CoreLibrary {
         emptyDeclarationDescriptor = new FrameDescriptor(Nil.INSTANCE);
         emptyDeclarationSpecialVariableSlot = emptyDeclarationDescriptor
                 .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
-        argv = new RubyArray(arrayClass, RubyLanguage.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
+        argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();
         topScopeObject = new TopScopeObject(
@@ -747,9 +747,10 @@ public class CoreLibrary {
     }
 
     private RubyString frozenUSASCIIString(String string) {
-        final Rope rope = context.getLanguageSlow().ropeCache.getRope(
+        // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
+        final Rope rope = language.ropeCache.getRope(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        return StringOperations.createFrozenString(context, rope);
+        return StringOperations.createFrozenString(context, language, rope);
     }
 
     private RubyClass defineClass(String name) {
@@ -855,8 +856,11 @@ public class CoreLibrary {
         findGlobalVariableStorage();
 
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
-        RubyString dollarZeroValue = StringOperations
-                .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+        // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
+        RubyString dollarZeroValue = StringOperations.createString(
+                context,
+                language,
+                StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
 
         topLevelBinding = (RubyBinding) objectClass.fields

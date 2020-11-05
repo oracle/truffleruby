@@ -62,12 +62,12 @@ import com.oracle.truffle.api.dsl.Specialization;
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
-    public static RubyRandomizer newRandomizer(RubyContext context) {
+    public static RubyRandomizer newRandomizer(RubyContext context, RubyLanguage language) {
         final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         return new RubyRandomizer(
                 context.getCoreLibrary().randomizerClass,
-                RubyLanguage.randomizerShape,
+                language.randomizerShape,
                 randomizer);
     }
 
@@ -82,7 +82,7 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
-            return new RubyRandomizer(coreLibrary().randomizerClass, RubyLanguage.randomizerShape, new Randomizer());
+            return new RubyRandomizer(coreLibrary().randomizerClass, getLanguage().randomizerShape, new Randomizer());
         }
 
     }

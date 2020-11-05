@@ -112,7 +112,7 @@ public class ArrayBuilderTest {
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
-                    RubyLanguage.arrayShape,
+                    RubyLanguage.getCurrentLanguage().arrayShape,
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
             builder.appendArray(state, 0, otherStore);
@@ -127,7 +127,7 @@ public class ArrayBuilderTest {
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
-                    RubyLanguage.arrayShape,
+                    RubyLanguage.getCurrentLanguage().arrayShape,
                     new int[10],
                     10);
             builder.appendArray(state, 0, otherStore);
@@ -142,7 +142,7 @@ public class ArrayBuilderTest {
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
-                    RubyLanguage.arrayShape,
+                    RubyLanguage.getCurrentLanguage().arrayShape,
                     new long[10],
                     10);
             builder.appendArray(state, 0, otherStore);
@@ -157,7 +157,7 @@ public class ArrayBuilderTest {
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
-                    RubyLanguage.arrayShape,
+                    RubyLanguage.getCurrentLanguage().arrayShape,
                     new double[10],
                     10);
             builder.appendArray(state, 0, otherStore);
@@ -172,7 +172,7 @@ public class ArrayBuilderTest {
             BuilderState state = builder.start(10);
             RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayClass,
-                    RubyLanguage.arrayShape,
+                    RubyLanguage.getCurrentLanguage().arrayShape,
                     new Object[10],
                     10);
             builder.appendArray(state, 0, otherStore);

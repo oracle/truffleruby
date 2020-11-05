@@ -191,7 +191,7 @@ public abstract class ThreadNodes {
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
-                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), length, this));
+                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), getLanguage(), length, this));
             };
 
             getContext()

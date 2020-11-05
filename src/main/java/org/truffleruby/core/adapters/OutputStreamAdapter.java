@@ -13,6 +13,7 @@ import java.io.OutputStream;
 
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -21,11 +22,13 @@ import org.truffleruby.core.support.RubyIO;
 public class OutputStreamAdapter extends OutputStream {
 
     private final RubyContext context;
+    private final RubyLanguage language;
     private final RubyIO object;
     private final Encoding encoding;
 
-    public OutputStreamAdapter(RubyContext context, RubyIO object, Encoding encoding) {
+    public OutputStreamAdapter(RubyContext context, RubyLanguage language, RubyIO object, Encoding encoding) {
         this.context = context;
+        this.language = language;
         this.object = object;
         this.encoding = encoding;
     }
@@ -36,7 +39,10 @@ public class OutputStreamAdapter extends OutputStream {
                 object,
                 "write",
                 StringOperations
-                        .createString(context, RopeOperations.create((byte) bite, encoding, CodeRange.CR_UNKNOWN)));
+                        .createString(
+                                context,
+                                language,
+                                RopeOperations.create((byte) bite, encoding, CodeRange.CR_UNKNOWN)));
     }
 
 }

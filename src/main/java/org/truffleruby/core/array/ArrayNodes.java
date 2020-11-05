@@ -1621,13 +1621,13 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected RubyArray popEmpty(RubyArray array, int n) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization(guards = { "n == 0", "!isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected RubyArray popZeroNotEmpty(RubyArray array, int n) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization(
@@ -2076,12 +2076,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "n == 0")
         protected Object shiftZero(RubyArray array, int n) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization(guards = { "n > 0", "isEmptyArray(array)" })
         protected Object shiftManyEmpty(RubyArray array, int n) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @Specialization(
@@ -2125,7 +2125,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
         protected RubyArray sortEmpty(RubyArray array, Object unusedBlock) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @ExplodeLoop

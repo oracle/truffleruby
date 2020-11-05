@@ -22,7 +22,6 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
@@ -668,7 +667,7 @@ public abstract class HashNodes {
         @Specialization(guards = "isNullHash(hash)")
         protected RubyArray mapNull(RubyHash hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         }
 
         @ExplodeLoop

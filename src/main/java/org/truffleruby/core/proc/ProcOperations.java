@@ -94,10 +94,10 @@ public abstract class ProcOperations {
         // TODO(norswap, 04 Aug 2020): do allocation tracing (normally via AllocateHelper)?
     }
 
-    public static RubyProc createLambdaFromBlock(RubyContext context, RubyProc block) {
+    public static RubyProc createLambdaFromBlock(RubyContext context, RubyLanguage language, RubyProc block) {
         return ProcOperations.createRubyProc(
                 context.getCoreLibrary().procClass,
-                RubyLanguage.procShape,
+                language.procShape,
                 ProcType.LAMBDA,
                 block.sharedMethodInfo,
                 block.callTargetForLambdas,

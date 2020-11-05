@@ -10,7 +10,6 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -92,7 +91,7 @@ public abstract class ByteArrayNodes {
             System.arraycopy(bytes, 0, prependedBytes, prependLength, originalLength);
             final RubyByteArray instance = new RubyByteArray(
                     coreLibrary().byteArrayClass,
-                    RubyLanguage.byteArrayShape,
+                    getLanguage().byteArrayShape,
                     prependedBytes);
             AllocationTracing.trace(instance, this);
             return instance;

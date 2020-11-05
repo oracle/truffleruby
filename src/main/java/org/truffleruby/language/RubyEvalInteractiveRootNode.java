@@ -27,9 +27,11 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
     private final Rope sourceRope;
 
     @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
+    private final RubyLanguage language;
 
     public RubyEvalInteractiveRootNode(RubyLanguage language, Source source) {
         super(language, null, null);
+        this.language = language;
         this.sourceRope = StringOperations.encodeRope(source.getCharacters().toString(), UTF8Encoding.INSTANCE);
     }
 
@@ -47,8 +49,7 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
                 .getConstant("INTERACTIVE_BINDING")
                 .getValue();
         return context
-                .send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
-
+                .send(interactiveBinding, "eval", StringOperations.createString(context, language, sourceRope));
     }
 
 }

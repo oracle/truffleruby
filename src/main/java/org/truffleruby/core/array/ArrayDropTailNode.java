@@ -37,7 +37,7 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
             @Cached ConditionProfile indexLargerThanSize) {
         final int size = array.size;
         if (indexLargerThanSize.profile(index >= size)) {
-            return ArrayHelpers.createEmptyArray(getContext());
+            return createEmptyArray();
         } else {
             final int newSize = size - index;
             final Object withoutTail = cowNode.execute(array, 0, newSize);

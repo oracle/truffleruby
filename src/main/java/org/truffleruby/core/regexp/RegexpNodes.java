@@ -31,7 +31,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.klass.RubyClass;
@@ -196,7 +195,7 @@ public abstract class RegexpNodes {
         protected RubyArray regexpNames(RubyRegexp regexp) {
             final int size = regexp.regex.numberOfNames();
             if (size == 0) {
-                return ArrayHelpers.createEmptyArray(getContext());
+                return createEmptyArray();
             }
 
             final Object[] names = new Object[size];

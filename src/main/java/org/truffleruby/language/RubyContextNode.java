@@ -15,6 +15,8 @@ import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.symbol.CoreSymbols;
@@ -59,5 +61,25 @@ public abstract class RubyContextNode extends RubyBaseNode implements RubyNode.W
 
     public CoreSymbols coreSymbols() {
         return getLanguage().coreSymbols;
+    }
+
+    public RubyArray createArray(Object store, int size) {
+        return ArrayHelpers.createArray(getContext(), getLanguage(), store, size);
+    }
+
+    public RubyArray createArray(int[] store) {
+        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+    }
+
+    public RubyArray createArray(long[] store) {
+        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+    }
+
+    public RubyArray createArray(Object[] store) {
+        return ArrayHelpers.createArray(getContext(), getLanguage(), store);
+    }
+
+    public RubyArray createEmptyArray() {
+        return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
     }
 }

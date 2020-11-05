@@ -10,6 +10,7 @@
 package org.truffleruby.core.tracepoint;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -29,16 +30,19 @@ class TracePointEventNode extends TraceBaseEventNode {
     private final RubyTracePoint tracePoint;
     private final RubyProc proc;
     private final RubySymbol event;
+    private final RubyLanguage language;
 
     public TracePointEventNode(
             RubyContext context,
+            RubyLanguage language,
             EventContext eventContext,
             RubyTracePoint tracePoint,
             RubySymbol event) {
-        super(context, eventContext);
+        super(context, language, eventContext);
         this.tracePoint = tracePoint;
         this.proc = tracePoint.proc;
         this.event = event;
+        this.language = language;
     }
 
     @Override
@@ -54,7 +58,7 @@ class TracePointEventNode extends TraceBaseEventNode {
         state.path = getFile();
         state.line = getLine();
         state.binding = BindingNodes
-                .createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection());
+                .createBinding(context, language, frame.materialize(), eventContext.getInstrumentedSourceSection());
 
         state.insideProc = true;
         try {

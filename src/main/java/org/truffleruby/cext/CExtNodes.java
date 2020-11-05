@@ -18,7 +18,6 @@ import org.jcodings.IntHolder;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -31,7 +30,6 @@ import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -358,7 +356,7 @@ public class CExtNodes {
                     }
                 }
             }
-            return ArrayHelpers.createArray(getContext(), bytes);
+            return createArray(bytes);
         }
 
 
@@ -1027,7 +1025,7 @@ public class CExtNodes {
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
-                    RubyLanguage.truffleFFIPointerShape,
+                    getLanguage().truffleFFIPointerShape,
                     nativeRope.getNativePointer());
             AllocationTracing.trace(instance, this);
             return instance;
@@ -1211,7 +1209,6 @@ public class CExtNodes {
                 System.arraycopy(to, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    getContext(),
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
@@ -1235,7 +1232,6 @@ public class CExtNodes {
                 System.arraycopy(buf, 0, result, 0, resultLength);
             }
             return StringOperations.createString(
-                    getContext(),
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }

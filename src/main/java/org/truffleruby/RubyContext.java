@@ -103,7 +103,7 @@ public class RubyContext {
     private final SafepointManager safepointManager = new SafepointManager(this);
     private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader = new CodeLoader(this);
-    private final FeatureLoader featureLoader = new FeatureLoader(this);
+    private final FeatureLoader featureLoader;
     private final TraceManager traceManager;
     private final ReferenceProcessor referenceProcessor;
     private final FinalizationService finalizationService;
@@ -112,9 +112,9 @@ public class RubyContext {
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
-    private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
+    private final FrozenStringLiterals frozenStringLiterals;
     private final CoreExceptions coreExceptions;
-    private final EncodingManager encodingManager = new EncodingManager(this);
+    private final EncodingManager encodingManager;
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
@@ -165,8 +165,11 @@ public class RubyContext {
 
         options = createOptions(env, language.options);
 
+        frozenStringLiterals = new FrozenStringLiterals(this, language);
         coreExceptions = new CoreExceptions(this, language);
+        encodingManager = new EncodingManager(this, language);
 
+        featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);
         markingService = new MarkingService(this, referenceProcessor);
@@ -176,8 +179,8 @@ public class RubyContext {
 
         hashing = new Hashing(generateHashingSeed());
 
-        defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
-        userBacktraceFormatter = new BacktraceFormatter(this, BacktraceFormatter.USER_BACKTRACE_FLAGS);
+        defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
+        userBacktraceFormatter = new BacktraceFormatter(this, language, BacktraceFormatter.USER_BACKTRACE_FLAGS);
 
         rubyHome = findRubyHome(options);
         rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
@@ -185,7 +188,7 @@ public class RubyContext {
         // Load the core library classes
 
         Metrics.printTime("before-create-core-library");
-        coreLibrary = new CoreLibrary(this);
+        coreLibrary = new CoreLibrary(this, language);
         nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
         valueWrapperManager = new ValueWrapperManager(this);
@@ -205,7 +208,7 @@ public class RubyContext {
         Metrics.printTime("after-initialize-encodings");
 
         Metrics.printTime("before-thread-manager");
-        threadManager = new ThreadManager(this);
+        threadManager = new ThreadManager(this, language);
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
         threadManager.initializeMainThread(Thread.currentThread());
         Metrics.printTime("after-thread-manager");
@@ -285,7 +288,7 @@ public class RubyContext {
         random = createRandomInstance();
         hashing.patchSeed(generateHashingSeed());
 
-        this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
+        this.defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
 
         this.truffleNFIPlatform = createNativePlatform();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
@@ -663,7 +666,7 @@ public class RubyContext {
         if (consoleHolder == null) {
             synchronized (this) {
                 if (consoleHolder == null) {
-                    consoleHolder = ConsoleHolder.create(this);
+                    consoleHolder = ConsoleHolder.create(this, language);
                 }
             }
         }

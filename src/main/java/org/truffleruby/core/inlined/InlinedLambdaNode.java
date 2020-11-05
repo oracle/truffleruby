@@ -36,7 +36,7 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
             @Cached LookupMethodOnSelfNode lookupNode) {
-        return ProcOperations.createLambdaFromBlock(getContext(), block);
+        return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
     }
 
     // The lambda method might have been overriden, undefined, redefined, ...

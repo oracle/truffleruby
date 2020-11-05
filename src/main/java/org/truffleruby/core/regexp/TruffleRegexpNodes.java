@@ -26,7 +26,6 @@ import org.joni.Syntax;
 import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -178,7 +177,7 @@ public class TruffleRegexpNodes {
 
             return new RubyRegexp(
                     getContext().getCoreLibrary().regexpClass,
-                    RubyLanguage.regexpShape,
+                    getLanguage().regexpShape,
                     regex,
                     (Rope) regex.getUserObject(),
                     regexpOptions,
@@ -195,7 +194,7 @@ public class TruffleRegexpNodes {
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
                 Rope key = StringOperations.encodeRope(e.getKey().toString(), UTF8Encoding.INSTANCE);
-                arrayBuilderNode.appendValue(state, n++, StringOperations.createString(context, key));
+                arrayBuilderNode.appendValue(state, n++, StringOperations.createString(context, getLanguage(), key));
                 arrayBuilderNode.appendValue(state, n++, e.getValue().get());
             }
             return createArray(arrayBuilderNode.finish(state, n), n);
@@ -334,7 +333,7 @@ public class TruffleRegexpNodes {
             final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
             RubyMatchData result = new RubyMatchData(
                     coreLibrary().matchDataClass,
-                    RubyLanguage.matchDataShape,
+                    getLanguage().matchDataShape,
                     regexp,
                     dupedString,
                     region,

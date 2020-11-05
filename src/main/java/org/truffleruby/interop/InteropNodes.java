@@ -1050,6 +1050,7 @@ public abstract class InteropNodes {
             for (int i = 0; i < languagesArray.length; i++) {
                 rubyStringArray[i] = StringOperations.createString(
                         getContext(),
+                        getLanguage(),
                         StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));
             }
             return createArray(rubyStringArray);

@@ -10,6 +10,7 @@
 package org.truffleruby.core.tracepoint;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -24,6 +25,7 @@ import com.oracle.truffle.api.source.Source;
 public class TraceBaseEventNode extends ExecutionEventNode {
 
     protected final RubyContext context;
+    private final RubyLanguage language;
     protected final EventContext eventContext;
 
     @CompilationFinal private RubyString file;
@@ -31,8 +33,9 @@ public class TraceBaseEventNode extends ExecutionEventNode {
 
     @Child private YieldNode yieldNode;
 
-    public TraceBaseEventNode(RubyContext context, EventContext eventContext) {
+    public TraceBaseEventNode(RubyContext context, RubyLanguage language, EventContext eventContext) {
         this.context = context;
+        this.language = language;
         this.eventContext = eventContext;
     }
 
@@ -40,7 +43,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
         if (file == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final Source source = eventContext.getInstrumentedSourceSection().getSource();
-            file = StringOperations.createString(context, context.getPathToRopeCache().getCachedPath(source));
+            file = StringOperations.createString(context, language, context.getPathToRopeCache().getCachedPath(source));
         }
         return file;
     }

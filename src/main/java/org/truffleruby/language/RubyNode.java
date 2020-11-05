@@ -13,6 +13,7 @@ import java.math.BigInteger;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -22,8 +23,6 @@ import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.method.RubyMethod;
@@ -255,22 +254,6 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
             return getContext().getEncodingManager().getLocaleEncoding();
         }
 
-        default RubyArray createArray(Object store, int size) {
-            return ArrayHelpers.createArray(getContext(), store, size);
-        }
-
-        default RubyArray createArray(int[] store) {
-            return ArrayHelpers.createArray(getContext(), store);
-        }
-
-        default RubyArray createArray(long[] store) {
-            return ArrayHelpers.createArray(getContext(), store);
-        }
-
-        default RubyArray createArray(Object[] store) {
-            return ArrayHelpers.createArray(getContext(), store);
-        }
-
         default RubyBignum createBignum(BigInteger value) {
             return BignumOperations.createBignum(value);
         }
@@ -341,9 +324,10 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     @ExportMessage
     final Object getScope(Frame frame, boolean nodeEnter,
-            @CachedContext(RubyLanguage.class) RubyContext context) throws UnsupportedMessageException {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
         if (hasScope(frame)) {
-            return new RubyScope(context, frame.materialize(), this);
+            return new RubyScope(context, language, frame.materialize(), this);
         } else {
             throw UnsupportedMessageException.create();
         }
@@ -369,7 +353,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     @ExportMessage
     Object getRootInstance(Frame frame,
-            @CachedContext(RubyLanguage.class) RubyContext context) throws UnsupportedMessageException {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @CachedLanguage RubyLanguage language) throws UnsupportedMessageException {
         if (frame == null) {
             throw UnsupportedMessageException.create();
         }
@@ -377,7 +362,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         final InternalMethod method = RubyArguments.getMethod(frame);
         return new RubyMethod(
                 context.getCoreLibrary().methodClass,
-                RubyLanguage.methodShape,
+                language.methodShape,
                 self,
                 method);
     }

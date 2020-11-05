@@ -13,6 +13,7 @@ import java.io.OutputStream;
 
 import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.adapters.InputStreamAdapter;
 import org.truffleruby.core.adapters.OutputStreamAdapter;
 import org.truffleruby.core.support.RubyIO;
@@ -23,13 +24,15 @@ import org.truffleruby.core.support.RubyIO;
 public class IoStream {
 
     private final RubyContext context;
+    private final RubyLanguage language;
     private final int fd;
     private final RubyIO io;
     private NonBlockingInputStream in;
     private OutputStream out;
 
-    public IoStream(RubyContext context, int fd, RubyIO io) {
+    public IoStream(RubyContext context, RubyLanguage language, int fd, RubyIO io) {
         this.context = context;
+        this.language = language;
         this.fd = fd;
         this.io = io;
     }
@@ -66,6 +69,7 @@ public class IoStream {
                 default:
                     out = new OutputStreamAdapter(
                             context,
+                            language,
                             io,
                             context.getEncodingManager().getDefaultExternalEncoding());
             }

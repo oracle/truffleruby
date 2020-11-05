@@ -104,7 +104,8 @@ public class RubyWarnings implements WarnCallback {
         if (context.getCoreLibrary().isLoaded()) {
             final Object warning = context.getCoreLibrary().warningModule;
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
-            final RubyString messageString = StringOperations.createString(context, messageRope);
+            final RubyString messageString = StringOperations
+                    .createString(context, context.getLanguageSlow(), messageRope);
             context.send(warning, "warn", messageString);
         } else {
             try {

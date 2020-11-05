@@ -54,6 +54,7 @@ public class ThreadManager {
     public static final String NAME_PREFIX = "Ruby Thread";
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     private final RubyThread rootThread;
     @CompilationFinal private Thread rootJavaThread;
@@ -111,8 +112,9 @@ public class ThreadManager {
 
     private final ExecutorService fiberPool;
 
-    public ThreadManager(RubyContext context) {
+    public ThreadManager(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
         this.rootThread = createBootThread("main");
         this.fiberPool = Executors.newCachedThreadPool(this::createFiberJavaThread);
     }
@@ -201,8 +203,8 @@ public class ThreadManager {
     public RubyThread createBootThread(String info) {
         return createThread(
                 context.getCoreLibrary().threadClass,
-                RubyLanguage.threadShape,
-                context.getLanguageSlow(),
+                language.threadShape,
+                language,
                 Nil.INSTANCE,
                 info);
     }
@@ -219,8 +221,8 @@ public class ThreadManager {
         assert currentGroup != null;
         return createThread(
                 context.getCoreLibrary().threadClass,
-                RubyLanguage.threadShape,
-                context.getLanguageSlow(),
+                language.threadShape,
+                language,
                 currentGroup,
                 "<foreign thread>");
     }

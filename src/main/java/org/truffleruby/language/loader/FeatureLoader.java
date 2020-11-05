@@ -59,6 +59,7 @@ import com.oracle.truffle.api.source.SourceSection;
 public class FeatureLoader {
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     private final ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<>();
     /** Maps basename without extension -> autoload path -> autoload constant, to detect when require-ing a file already
@@ -77,8 +78,9 @@ public class FeatureLoader {
 
     private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
 
-    public FeatureLoader(RubyContext context) {
+    public FeatureLoader(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     public void initialize(NativeConfiguration nativeConfiguration, TruffleNFIPlatform nfi) {
@@ -420,7 +422,10 @@ public class FeatureLoader {
             Metrics.printTime("before-load-cext-support");
             try {
                 final RubyString cextRb = StringOperations
-                        .createString(context, StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
+                        .createString(
+                                context,
+                                language,
+                                StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
                 context.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
