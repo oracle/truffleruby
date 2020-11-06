@@ -10,6 +10,10 @@
 package org.truffleruby.interop;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -91,6 +95,36 @@ public abstract class InteropNodes {
         } catch (InteropException e) {
             throw translateInteropExceptionNode.execute(e);
         }
+    }
+
+    @Primitive(name = "interop_library_all_methods")
+    public abstract static class AllMethodsOfInteropLibrary extends PrimitiveArrayArgumentsNode {
+
+        private static final String[] METHODS = publicInteropLibraryMethods();
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray allMethodsOfInteropLibrary() {
+            Object[] store = new Object[METHODS.length];
+            for (int i = 0; i < METHODS.length; i++) {
+                store[i] = StringOperations
+                        .createString(this, StringOperations.encodeRope(METHODS[i], UTF8Encoding.INSTANCE));
+            }
+            return createArray(store);
+        }
+
+        private static String[] publicInteropLibraryMethods() {
+            List<String> methods = new ArrayList<>();
+            for (Method method : InteropLibrary.class.getDeclaredMethods()) {
+                if (Modifier.isPublic(method.getModifiers())) {
+                    if (!methods.contains(method.getName())) {
+                        methods.add(method.getName());
+                    }
+                }
+            }
+            return methods.toArray(StringUtils.EMPTY_STRING_ARRAY);
+        }
+
     }
 
     @CoreMethod(names = "import_file", onSingleton = true, required = 1)
