@@ -1077,11 +1077,11 @@ public abstract class InteropNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "invoke", onSingleton = true, required = 2, rest = true)
-    public abstract static class InvokeNode extends RubySourceNode {
+    @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true)
+    public abstract static class InvokeMemberNode extends RubySourceNode {
 
-        public static InvokeNode create() {
-            return InteropNodesFactory.InvokeNodeFactory.create(null);
+        public static InvokeMemberNode create() {
+            return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier, Object[] args);

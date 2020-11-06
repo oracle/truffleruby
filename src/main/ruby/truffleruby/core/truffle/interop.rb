@@ -351,7 +351,7 @@ module Truffle
           Truffle::Interop.meta_object(receiver)
         end
       else
-        Truffle::Interop.invoke(receiver, :class, *args)
+        Truffle::Interop.invoke_member(receiver, :class, *args)
       end
     end
 
