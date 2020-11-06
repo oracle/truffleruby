@@ -3565,8 +3565,8 @@ states[573] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-    yyVal = support.new_args_tail(position, null, null, block);
-    yyVal = support.new_args(position, null, null, splat, null, (ArgsTailHolder)yyVal);
+    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+    yyVal = support.new_args(position, null, null, splat, null, argsTail);
     return yyVal;
 };
 states[574] = (support, lexer, yyVal, yyVals, yyTop) -> {

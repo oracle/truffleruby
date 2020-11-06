@@ -2451,8 +2451,8 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                     SourceIndexLength position = support.getPosition(null);
                     RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
                     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
-                    $$ = support.new_args_tail(position, null, null, block);
-                    $$ = support.new_args(position, null, null, splat, null, (ArgsTailHolder)$$);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+                    $$ = support.new_args(position, null, null, splat, null, argsTail);
                 }
                 | /* none */ {
                     $$ = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
