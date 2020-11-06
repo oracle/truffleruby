@@ -1262,6 +1262,15 @@ public abstract class InteropNodes {
     // endregion
 
     // region Language
+    @CoreMethod(names = "has_language?", onSingleton = true, required = 1)
+    public abstract static class HasLanguageNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasLanguage(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasLanguage(receiver);
+        }
+    }
+
     @CoreMethod(names = "language", onSingleton = true, required = 1)
     public abstract static class GetLanguageNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -1659,31 +1668,22 @@ public abstract class InteropNodes {
     // endregion
 
     // region Scope
-    @Primitive(name = "current_scope")
-    public abstract static class GetCurrentScopeNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected Object getScope(VirtualFrame frame,
-                @CachedLibrary(limit = "1") NodeLibrary nodeLibrary,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                return nodeLibrary.getScope(this, frame, true);
-            } catch (UnsupportedMessageException e) {
-                throw translateInteropException.execute(e);
-            }
+    @CoreMethod(names = "scope?", onSingleton = true, required = 1)
+    public abstract static class IsScopeNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isScope(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isScope(receiver);
         }
-
     }
 
-    @Primitive(name = "top_scope")
-    public abstract static class GetTopScopeNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected Object getTopScope(
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getTopScopeObject();
+    @CoreMethod(names = "has_scope_parent?", onSingleton = true, required = 1)
+    public abstract static class HasScopeParentNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasScopeParent(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasScopeParent(receiver);
         }
-
     }
 
     @CoreMethod(names = "scope_parent", onSingleton = true, required = 1)
@@ -1702,6 +1702,29 @@ public abstract class InteropNodes {
             } else {
                 return nil;
             }
+        }
+    }
+
+    @Primitive(name = "current_scope")
+    public abstract static class GetCurrentScopeNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object getScope(VirtualFrame frame,
+                @CachedLibrary(limit = "1") NodeLibrary nodeLibrary,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return nodeLibrary.getScope(this, frame, true);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @Primitive(name = "top_scope")
+    public abstract static class GetTopScopeNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object getTopScope(
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getTopScopeObject();
         }
     }
     // endregion scope
