@@ -603,7 +603,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region String
-    @CoreMethod(names = "is_string?", onSingleton = true, required = 1)
+    @CoreMethod(names = "string?", onSingleton = true, required = 1)
     public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isString(Object receiver,
@@ -706,7 +706,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Number
-    @CoreMethod(names = "is_number?", onSingleton = true, required = 1)
+    @CoreMethod(names = "number?", onSingleton = true, required = 1)
     public abstract static class IsNumberNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isNumber(Object receiver,
@@ -1042,7 +1042,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_readable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberReadable(Object receiver, Object name,
@@ -1052,7 +1052,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_modifiable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberModifiable(Object receiver, Object name,
@@ -1062,7 +1062,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_insertable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_insertable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberInsertable(Object receiver, Object name,
@@ -1072,7 +1072,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_removable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_removable?", onSingleton = true, required = 2)
     public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberRemovable(Object receiver, Object name,
@@ -1082,7 +1082,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_invocable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_invocable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberInvocable(Object receiver, Object name,
@@ -1092,7 +1092,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_internal?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_internal?", onSingleton = true, required = 2)
     public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberInternal(Object receiver, Object name,
@@ -1102,7 +1102,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_writable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_writable?", onSingleton = true, required = 2)
     public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberWritable(Object receiver, Object name,
@@ -1112,7 +1112,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_existing?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_existing?", onSingleton = true, required = 2)
     public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberExisting(Object receiver, Object name,
@@ -1277,7 +1277,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
+    @CoreMethod(names = "java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
     public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isJavaMap(Object value) {

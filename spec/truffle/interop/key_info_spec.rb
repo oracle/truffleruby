@@ -18,12 +18,12 @@ describe "key_info" do
        *(:insertable if Truffle::Interop.array_element_insertable?(object, index)),
        *(:removable if Truffle::Interop.array_element_removable?(object, index))]
     else
-      [*(:readable if Truffle::Interop.is_member_readable?(object, index)),
-       *(:modifiable if Truffle::Interop.is_member_modifiable?(object, index)),
-       *(:insertable if Truffle::Interop.is_member_insertable?(object, index)),
-       *(:removable if Truffle::Interop.is_member_removable?(object, index)),
-       *(:internal if Truffle::Interop.is_member_internal?(object, index)),
-       *(:invocable if Truffle::Interop.is_member_invocable?(object, index))]
+      [*(:readable if Truffle::Interop.member_readable?(object, index)),
+       *(:modifiable if Truffle::Interop.member_modifiable?(object, index)),
+       *(:insertable if Truffle::Interop.member_insertable?(object, index)),
+       *(:removable if Truffle::Interop.member_removable?(object, index)),
+       *(:internal if Truffle::Interop.member_internal?(object, index)),
+       *(:invocable if Truffle::Interop.member_invocable?(object, index))]
     end
   end
 
