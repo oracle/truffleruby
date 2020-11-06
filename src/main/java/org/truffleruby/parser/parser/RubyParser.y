@@ -55,6 +55,7 @@ import org.truffleruby.parser.ast.IterParseNode;
 import org.truffleruby.parser.ast.LambdaParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LiteralParseNode;
+import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ModuleParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
@@ -79,6 +80,7 @@ import org.truffleruby.parser.ast.RetryParseNode;
 import org.truffleruby.parser.ast.ReturnParseNode;
 import org.truffleruby.parser.ast.SClassParseNode;
 import org.truffleruby.parser.ast.SelfParseNode;
+import org.truffleruby.parser.ast.SplatParseNode;
 import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.ast.TrueParseNode;
@@ -247,7 +249,8 @@ public class RubyParser {
 %token <Rope> tQSYMBOLS_BEG
 %token <Rope> tDSTAR
 %token <Rope> tSTRING_DEND
-%type <Rope> kwrest_mark f_kwrest f_label 
+%type <Rope> kwrest_mark f_kwrest f_label
+%type <Rope> args_forward
 %type <Rope> call_op call_op2
 %type <ArgumentParseNode> f_arg_asgn
 %type <FCallParseNode> fcall
@@ -1304,6 +1307,13 @@ arg_rhs         : arg %prec tOP_ASGN {
 paren_args      : tLPAREN2 opt_call_args rparen {
                     $$ = $2;
                     if ($$ != null) $<ParseNode>$.setPosition($1);
+                }
+                | tLPAREN2 args_forward rparen {
+                    SourceIndexLength position = support.getPosition(null);
+                    // NOTE(norswap, 06 Nov 2020): location (0) arg is unused
+                    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, support.prefixName("rest")));
+                    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, support.prefixName("block")));
+                    $$ = support.arg_blk_pass(splat, block);
                 }
 
 opt_paren_args  : none | paren_args
@@ -2438,9 +2448,18 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                 | args_tail {
                     $$ = support.new_args($1.getPosition(), null, null, null, null, $1);
                 }
+                | args_forward {
+                    SourceIndexLength position = support.getPosition(null);
+                    RestArgParseNode splat = new RestArgParseNode(position, support.prefixName("rest"), 0);
+                    BlockArgParseNode block = new BlockArgParseNode(position, 1, support.prefixName("block"));
+                    $$ = support.new_args_tail(position, null, null, block);
+                    $$ = support.new_args(position, null, null, splat, null, (ArgsTailHolder)$$);
+                }
                 | /* none */ {
                     $$ = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
                 }
+
+args_forward    : tBDOT3
 
 f_bad_arg       : tCONSTANT {
                     support.yyerror("formal argument cannot be a constant");

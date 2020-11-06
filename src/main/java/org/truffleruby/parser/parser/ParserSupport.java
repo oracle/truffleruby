@@ -191,12 +191,15 @@ public class ParserSupport {
         return configuration;
     }
 
+    public String prefixName(String name) {
+        return (TranslatorEnvironment.TEMP_PREFIX + name).intern();
+    }
+
     public void popCurrentScope() {
         if (!currentScope.isBlockScope()) {
             lexer.getCmdArgumentState().reset(currentScope.getCommandArgumentStack());
         }
         currentScope = currentScope.getEnclosingScope();
-
     }
 
     public void pushBlockScope() {
@@ -251,7 +254,11 @@ public class ParserSupport {
     }
 
     public ParseNode declareIdentifier(Rope rope) {
-        String name = rope.getString().intern();
+        return declareIdentifier(rope.getString());
+    }
+
+    public ParseNode declareIdentifier(String string) {
+        String name = string.intern();
         final Rope currentArg = lexer.getCurrentArg();
         if (currentArg != null && name.equals(currentArg.getString())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
@@ -1455,7 +1462,12 @@ public class ParserSupport {
     // 1.9
     @SuppressFBWarnings("ES")
     public ArgumentParseNode arg_var(Rope rope) {
-        String name = rope.getString().intern();
+        return arg_var(rope.getString());
+    }
+
+    @SuppressFBWarnings("ES")
+    public ArgumentParseNode arg_var(String string) {
+        String name = string.intern();
         StaticScope current = getCurrentScope();
 
         // Multiple _ arguments are allowed.  To not screw with tons of arity
