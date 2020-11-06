@@ -1331,6 +1331,9 @@ public class ParserSupport {
             Rope keywordRestArgNameRope, BlockArgParseNode blockArg) {
         if (keywordRestArgNameRope == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
+        } else if (keywordRestArgNameRope == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
+            // TODO (eregon, 6 Nov 2020): actually implement **nil semantics
+            return new ArgsTailHolder(position, keywordArg, null, blockArg);
         }
 
         final String restKwargsName;

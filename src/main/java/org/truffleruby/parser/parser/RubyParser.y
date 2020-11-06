@@ -1746,6 +1746,9 @@ block_args_tail : f_block_kwarg ',' f_kwrest opt_f_block_arg {
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
                 }
+                | f_no_kwarg opt_f_block_arg {
+                    $$ = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, $2);
+                }
                 | f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
                 }
@@ -2393,6 +2396,9 @@ args_tail       : f_kwarg ',' f_kwrest opt_f_block_arg {
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
                 }
+                | f_no_kwarg opt_f_block_arg {
+                    $$ = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, $2);
+                }
                 | f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
                 }
@@ -2557,6 +2563,9 @@ kwrest_mark     : tPOW {
                 | tDSTAR {
                     $$ = $1;
                 }
+
+f_no_kwarg      : kwrest_mark keyword_nil
+                ;
 
 f_kwrest        : kwrest_mark tIDENTIFIER {
                     support.shadowing_lvar($2);
