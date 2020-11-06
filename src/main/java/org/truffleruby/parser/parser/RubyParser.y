@@ -151,6 +151,7 @@ public class RubyParser {
 %token <Rope> tMATCH tNMATCH /* =~ and !~ */
 %token <Rope> tDOT           /* Is just '.' in ruby and not a token */
 %token <Rope> tDOT2 tDOT3    /* .. and ... */
+%token <Rope> tBDOT2 tBDOT3    /* (.. and (... */
 %token <Rope> tAREF tASET    /* [] and []= */
 %token <Rope> tLSHFT tRSHFT  /* << and >> */
 %token <Rope> tANDDOT        /* &. */
@@ -267,7 +268,7 @@ public class RubyParser {
 %right '=' tOP_ASGN
 %left modifier_rescue
 %right '?' ':'
-%nonassoc tDOT2 tDOT3
+%nonassoc tDOT2 tDOT3 tBDOT2 tBDOT3
 %left  tOROP
 %left  tANDOP
 %nonassoc  tCMP tEQ tEQQ tNEQ tMATCH tNMATCH
@@ -1137,6 +1138,12 @@ arg             : lhs '=' arg_rhs {
                     boolean isLiteral = $1 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, false, isLiteral);
                 }
+                | tBDOT2 arg {
+                    value_expr(lexer, $2);
+
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($2), NilImplicitParseNode.NIL, support.makeNullNil($2), false, isLiteral);
+                }
                 | arg tDOT3 arg {
                     value_expr(lexer, $1);
                     value_expr(lexer, $3);
@@ -1149,6 +1156,12 @@ arg             : lhs '=' arg_rhs {
 
                     boolean isLiteral = $1 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, true, isLiteral);
+                }
+                | tBDOT3 arg {
+                    value_expr(lexer, $2);
+
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($2), NilImplicitParseNode.NIL, support.makeNullNil($2), true, isLiteral);
                 }
                 | arg tPLUS arg {
                     $$ = support.getOperatorCallNode($1, $2, $3, lexer.getPosition());
