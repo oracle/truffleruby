@@ -58,7 +58,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
-import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
 import org.truffleruby.parser.ast.ArgsCatParseNode;
@@ -147,13 +146,15 @@ import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
 
+    public static final char TEMP_PREFIX = '%';
+
     public static final String UNNAMED_REST_VAR = prefixName("unnamed_rest");
     public static final String ANONYMOUS_REST_VAR = prefixName("anon_rest");
     public static final String FORWARD_ARGS_REST_VAR = prefixName("forward_rest");
     public static final String FORWARD_ARGS_BLOCK_VAR = prefixName("forward_block");
 
     private static String prefixName(String name) {
-        return (TranslatorEnvironment.TEMP_PREFIX + name).intern();
+        return (TEMP_PREFIX + name).intern();
     }
 
     // Parser states:
@@ -1334,7 +1335,7 @@ public class ParserSupport {
 
         final String restKwargsName;
         if (keywordRestArgNameRope.isEmpty()) {
-            restKwargsName = TranslatorEnvironment.TEMP_PREFIX + "_kwrest";
+            restKwargsName = TEMP_PREFIX + "_kwrest";
         } else {
             restKwargsName = keywordRestArgNameRope.getString().intern();
         }

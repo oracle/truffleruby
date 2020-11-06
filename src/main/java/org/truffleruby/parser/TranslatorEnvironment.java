@@ -28,10 +28,11 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import org.truffleruby.parser.parser.ParserSupport;
 
 public class TranslatorEnvironment {
 
-    public static final char TEMP_PREFIX = '%';
+    public static final char TEMP_PREFIX = ParserSupport.TEMP_PREFIX;
     public static final String METHOD_BLOCK_NAME = TEMP_PREFIX + "__method_block_arg__";
 
     private final ParseEnvironment parseEnvironment;
