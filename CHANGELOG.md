@@ -17,6 +17,7 @@ Performance:
 
 Changes:
 
+* All `InteropLibrary` messages are now exposed consistently as methods on `Truffle::Interop` (#2139). Some methods were renamed to match the scheme described in the documentation.
 
 # 20.3.0
 
