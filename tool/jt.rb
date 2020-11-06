@@ -1199,7 +1199,11 @@ module Commands
   end
 
   private def test_cexts(*args)
-    all_tests = %w(tools minimum method module globals backtraces xopenssl postinstallhook gems)
+    all_tests = %w[
+      tools minimum method module globals backtraces xopenssl postinstallhook
+      oily_png psd_native
+      puma sqlite3 unf_ext json RubyInline msgpack
+    ]
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? all_tests : all_tests & args
@@ -1220,7 +1224,6 @@ module Commands
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
         # Test that we can compile and run some very basic C extensions
-
         begin
           output_file = 'cext-output.txt'
           dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{test_name}"
@@ -1248,46 +1251,49 @@ module Commands
         end
 
       when 'postinstallhook'
-
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
         sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "#{ruby_home}/lib/truffle/post_install_hook.sh")
 
-      when 'gems'
-        # Test that we can compile and run some real C extensions
-
+      when 'oily_png', 'psd_native'
         gem_home = "#{gem_test_pack}/gems"
+        tests = {
+          'oily_png' => [['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
+          'psd_native' => [['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
+        }
 
-        tests = [
-            ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
-            ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
-        ]
+        gem_name = test_name
+        dependencies, libs = tests.fetch(gem_name)
 
-        tests.each do |gem_name, dependencies, libs|
-          puts '', gem_name
-          gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-          ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
+        puts '', gem_name
+        gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
+        ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
+        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
 
-          next if gem_name == 'psd_native' # psd_native is excluded just for running
-          run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
-                   *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
-                   "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
-        end
+        next if gem_name == 'psd_native' # psd_native is excluded just for running
+        run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
+                 *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
+                 "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
 
-        # Tests using gem install to compile the cexts
+      # Tests using gem install to compile the cexts
+      when 'puma'
         sh 'test/truffle/cexts/puma/puma.sh'
+      when 'sqlite3'
         sh 'test/truffle/cexts/sqlite3/sqlite3.sh'
+      when 'unf_ext'
         sh 'test/truffle/cexts/unf_ext/unf_ext.sh'
+      when 'json'
         sh 'test/truffle/cexts/json/json.sh'
 
+      when 'RubyInline'
         # Test a gem dynamically compiling a C extension
         # Does not work on macOS. Also fails on macOS on MRI with --enabled-shared.
         # It's a bug of RubyInline not using LIBRUBYARG/LIBRUBYARG_SHARED.
         sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless darwin?
 
-        # Test cexts used by many projects
+      # Test cexts used by many projects
+      when 'msgpack'
         sh 'test/truffle/cexts/msgpack/msgpack.sh'
       else
         raise "unknown test: #{test_name}"
