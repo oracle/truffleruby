@@ -214,7 +214,7 @@ module Truffle
           starts << self.code_unit_index_to_byte_index(str, java_string, tr_match.getStart(pos))
           ends << self.code_unit_index_to_byte_index(str, java_string, tr_match.getEnd(pos))
         end
-        md = Primitive.matchdata_create(re, str, starts, ends)
+        md = Primitive.matchdata_create(re, str.dup, starts, ends)
         if str.tainted? then
           md.taint
         end
