@@ -116,16 +116,16 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object at(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedLibrary("receiver") InteropLibrary interop,                        
+            @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
-            @CachedContext(RubyLanguage.class) RubyContext context,                        
-            @Cached InteropNodes.ReadArrayElementNode atNode) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached InteropNodes.ReadArrayElementNode readNode) {
         try {
             long size = interop.getArraySize(receiver);
             if ((int) args[0] < 0 && size + (int) args[0] >= 0) {
-                return atNode.execute(receiver, size + (int) args[0]);
+                return readNode.execute(receiver, size + (int) args[0]);
             } else if ((int) args[0] >= 0 && size > (int) args[0]) {
-                return atNode.execute(receiver, args[0]);
+                return readNode.execute(receiver, args[0]);
             } else {
                 throw new RaiseException(
                         context,
@@ -137,7 +137,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = {
+    @Specialization(
+            guards = {
                     "name == cachedName",
                     "cachedName.equals(FETCH)",
                     "args.length == 1",
@@ -145,12 +146,18 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object fetch(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedLibrary("receiver") InteropLibrary interop,                        
+            @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
-            @CachedContext(RubyLanguage.class) RubyContext context,                        
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode fetchNode) {
         try {
             long size = interop.getArraySize(receiver);
+            if (size == 0) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().indexError("Index " + (int) args[0] +
+                                " out of array ", this));
+            }
             if ((int) args[0] < 0 && size + (int) args[0] >= 0) {
                 return fetchNode.execute(receiver, size + (int) args[0]);
             } else if ((int) args[0] >= 0 && size > (int) args[0]) {
@@ -166,7 +173,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = {
+    @Specialization(
+            guards = {
                     "name == cachedName",
                     "cachedName.equals(FIRST)",
                     "args.length == 0" },
@@ -174,21 +182,22 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object first(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.ReadArrayElementNode firstNode) {
-                return firstNode.execute(receiver, 0);
+        return firstNode.execute(receiver, 0);
     }
 
-    @Specialization(guards = {
+    @Specialization(
+            guards = {
                     "name == cachedName",
                     "cachedName.equals(LAST)",
                     "args.length == 0" },
             limit = "1")
     protected Object last(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedLibrary("receiver") InteropLibrary interop,                        
+            @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
             @Cached InteropNodes.ReadArrayElementNode lastNode) {
         try {
-                return lastNode.execute(receiver, interop.getArraySize(receiver) - 1);
+            return lastNode.execute(receiver, interop.getArraySize(receiver) - 1);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }

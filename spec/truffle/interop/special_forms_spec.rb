@@ -70,6 +70,34 @@ describe "Interop special forms" do
     pa.log.should include([:polyglot_read_array_element, 0])
   end
 
+  it description['.at(index)', :at, (:index)] do
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo.at 0 }.should raise_error(IndexError)
+    l.log.should include(['getArraySize'])
+    pa.log.should include([:polyglot_array_size])
+  end
+
+  it description['.fetch(index)', :fetch, (:index)] do
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo.at 0 }.should raise_error(IndexError)
+    l.log.should include(['getArraySize'])
+    pa.log.should include([:polyglot_array_size])
+  end
+
+  it description['.first', :first] do
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo.at 0 }.should raise_error(IndexError)
+    l.log.should include(['getArraySize'])
+    pa.log.should include([:polyglot_array_size])
+  end
+
+  it description['.last', :last] do
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo.at 0 }.should raise_error(IndexError)
+    l.log.should include(['getArraySize'])
+    pa.log.should include([:polyglot_array_size])
+  end
+
   it description['[name] = value', :writeMember, [:name, :value]] do
     pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     pfo[:foo] = 1
@@ -134,6 +162,12 @@ describe "Interop special forms" do
   end
 
   it description['.size', :getArraySize] do
+    pfo, _, l = proxy[Object.new]
+    -> { pfo.size }.should raise_error(Polyglot::UnsupportedMessageError)
+    l.log.should include(['getArraySize'])
+  end
+
+  it description['.length', :getArraySize] do
     pfo, _, l = proxy[Object.new]
     -> { pfo.size }.should raise_error(Polyglot::UnsupportedMessageError)
     l.log.should include(['getArraySize'])

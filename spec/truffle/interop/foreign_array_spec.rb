@@ -45,6 +45,17 @@ describe "Foreign arrays" do
     foreign[2].should == 3
   end
 
+  it "can create empty foreign array" do
+    foreign = Truffle::Interop.to_java_array([])
+    foreign.length.should == 0
+  end
+
+  it "should grow array when indexing out of bounds with #[]" do
+    skip "Throwing IndexError instead"
+    foreign = Truffle::Interop.to_java_array([])
+    foreign[0] = 5
+  end
+
   it "can access elements with #at" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign.at(0).should == 1
@@ -56,6 +67,12 @@ describe "Foreign arrays" do
     foreign.at(-1).should == 3
     foreign.at(-2).should == 2
     foreign.at(-3).should == 1
+  end
+
+  it "should raise IndexError when using #fetch to access an empty array" do
+    skip "Exception raised in Java is not caught in Ruby... FIX!"
+    foreign = Truffle::Interop.to_java_array([])
+    foreign.fetch(0).should raise_error(IndexError)
   end
 
   it "can access elements with #fetch" do
@@ -71,10 +88,10 @@ describe "Foreign arrays" do
     foreign.fetch(-3).should == 1
   end
 
-  it "should raise array out of bounds in #fetch" do
+  it "should raise IndexError in #fetch when index out of bounds" do
     skip "Exception raised in Java is not caught in Ruby... FIX!"
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
-    foreign.fetch(-5).must_raise IndexError
+    foreign.fetch(-5).should raise_error(IndexError)
   end
 
   it "should access array with #first" do
@@ -85,7 +102,7 @@ describe "Foreign arrays" do
   it "should access array with #last" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign.last.should == 3
-  end
+  end  
 end
 
 describe "Foreign arrays that are also pointers" do

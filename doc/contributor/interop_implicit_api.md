@@ -10,6 +10,10 @@ Format: `Ruby code` sends `InteropLibrary message`
 
 - `foreign_object[name]` sends `readMember(foreign_object, name)`
 - `foreign_object[index]` sends `readArrayElement(foreign_object, index)`
+- `foreign_object.at(index)` sends `at(foreign_object, index)`
+- `foreign_object.fetch(index)` sends `fetch(foreign_object, index)`
+- `foreign_object.first` sends `first(foreign_object)`
+- `foreign_object.last` sends `last(foreign_object)`
 - `foreign_object[name] = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object[index] = value` sends `writeArrayElement(foreign_object, index, value)`
 - `foreign_object.name = value` sends `writeMember(foreign_object, name, value)`
@@ -19,6 +23,7 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.call(*arguments)` sends `execute(foreign_object, *arguments)`
 - `foreign_object.nil?` sends `isNull(foreign_object)`
 - `foreign_object.size` sends `getArraySize(foreign_object)`
+- `foreign_object.length` sends `getArraySize(foreign_object)`
 - `foreign_object.keys` sends `getMembers(foreign_object)`
 - `foreign_object.method_name` sends `invokeMember(foreign_object, method_name)` if member is invocable
 - `foreign_object.method_name` sends `readMember(foreign_object, method_name)` if member is readable but not invocable
