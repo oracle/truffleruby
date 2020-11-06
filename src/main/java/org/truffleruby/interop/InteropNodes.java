@@ -347,11 +347,11 @@ public abstract class InteropNodes {
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "new", onSingleton = true, required = 1, rest = true)
-    public abstract static class NewNode extends RubySourceNode {
+    @CoreMethod(names = "instantiate", onSingleton = true, required = 1, rest = true)
+    public abstract static class InstantiateNode extends RubySourceNode {
 
-        public static NewNode create() {
-            return InteropNodesFactory.NewNodeFactory.create(null);
+        public static InstantiateNode create() {
+            return InteropNodesFactory.InstantiateNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object[] args);

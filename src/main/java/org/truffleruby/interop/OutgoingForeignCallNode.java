@@ -157,7 +157,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NEW)" }, limit = "1")
     protected Object newOutgoing(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.NewNode newNode) {
+            @Cached InteropNodes.InstantiateNode newNode) {
         return newNode.execute(receiver, args);
     }
 
