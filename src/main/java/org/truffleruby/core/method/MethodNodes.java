@@ -272,12 +272,12 @@ public abstract class MethodNodes {
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments
-                    .pack(null, null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, coreLibrary().emptyDeclarationDescriptor);
-            SpecialVariableStorage storage = new SpecialVariableStorage();
-            declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, storage);
+            SpecialVariableStorage variables = new SpecialVariableStorage();
+            declarationFrame.setObject(coreLibrary().emptyDeclarationSpecialVariableSlot, variables);
             return ProcOperations.createRubyProc(
                     coreLibrary().procClass,
                     getLanguage().procShape,
@@ -286,7 +286,7 @@ public abstract class MethodNodes {
                     callTarget,
                     callTarget,
                     declarationFrame,
-                    storage,
+                    variables,
                     method,
                     null,
                     null,

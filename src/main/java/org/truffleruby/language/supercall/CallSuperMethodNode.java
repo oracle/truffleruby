@@ -11,7 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.FrameOrStorageSendingNode;
+import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CallSuperMethodNode extends FrameOrStorageSendingNode {
+public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.create();
 
@@ -52,8 +52,7 @@ public class CallSuperMethodNode extends FrameOrStorageSendingNode {
         final Object[] frameArguments = RubyArguments
                 .pack(
                         null,
-                        getFrameIfRequired(frame),
-                        getStorageIfRequired(frame),
+                        getFrameOrStorageIfRequired(frame),
                         superMethod,
                         null,
                         self,

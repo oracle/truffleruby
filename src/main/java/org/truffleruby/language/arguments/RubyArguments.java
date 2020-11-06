@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -25,13 +26,12 @@ public final class RubyArguments {
 
     private enum ArgumentIndicies {
         DECLARATION_FRAME, // 0
-        CALLER_FRAME, // 1
-        CALLER_SPECIAL_VARIABLE_STORAGE, // 2
-        METHOD, // 3
-        DECLARATION_CONTEXT, // 4
-        FRAME_ON_STACK_MARKER, // 5
-        SELF, // 6
-        BLOCK // 7
+        CALLER_FRAME_OR_VARIABLES, // 1
+        METHOD, // 2
+        DECLARATION_CONTEXT, // 3
+        FRAME_ON_STACK_MARKER, // 4
+        SELF, // 5
+        BLOCK // 6
     }
 
     private final static int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
@@ -39,8 +39,7 @@ public final class RubyArguments {
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(
             MaterializedFrame declarationFrame,
-            MaterializedFrame callerFrame,
-            SpecialVariableStorage storage,
+            Object callerFrameOrVariables,
             InternalMethod method,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
@@ -48,8 +47,7 @@ public final class RubyArguments {
             Object[] arguments) {
         return pack(
                 declarationFrame,
-                callerFrame,
-                storage,
+                callerFrameOrVariables,
                 method,
                 method.getDeclarationContext(),
                 frameOnStackMarker,
@@ -60,8 +58,7 @@ public final class RubyArguments {
 
     public static Object[] pack(
             MaterializedFrame declarationFrame,
-            MaterializedFrame callerFrame,
-            SpecialVariableStorage storage,
+            Object callerFrameOrVariables,
             InternalMethod method,
             DeclarationContext declarationContext,
             FrameOnStackMarker frameOnStackMarker,
@@ -72,12 +69,15 @@ public final class RubyArguments {
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
+        assert callerFrameOrVariables == null ||
+                callerFrameOrVariables instanceof MaterializedFrame ||
+                callerFrameOrVariables instanceof SpecialVariableStorage ||
+                callerFrameOrVariables instanceof FrameAndVariables;
 
         final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
 
         packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
-        packed[ArgumentIndicies.CALLER_FRAME.ordinal()] = callerFrame;
-        packed[ArgumentIndicies.CALLER_SPECIAL_VARIABLE_STORAGE.ordinal()] = storage;
+        packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
         packed[ArgumentIndicies.METHOD.ordinal()] = method;
         packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
@@ -96,12 +96,38 @@ public final class RubyArguments {
     }
 
     public static MaterializedFrame getCallerFrame(Frame frame) {
-        return (MaterializedFrame) frame.getArguments()[ArgumentIndicies.CALLER_FRAME.ordinal()];
+        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrVariables == null) {
+            return null;
+        } else if (frameOrVariables instanceof FrameAndVariables) {
+            return ((FrameAndVariables) frameOrVariables).frame;
+        } else if (frameOrVariables instanceof SpecialVariableStorage) {
+            return null;
+        } else {
+            return (MaterializedFrame) frameOrVariables;
+        }
     }
 
     public static SpecialVariableStorage getCallerStorage(Frame frame) {
-        return (SpecialVariableStorage) frame.getArguments()[ArgumentIndicies.CALLER_SPECIAL_VARIABLE_STORAGE
-                .ordinal()];
+        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrVariables == null) {
+            return null;
+        } else if (frameOrVariables instanceof FrameAndVariables) {
+            return ((FrameAndVariables) frameOrVariables).variables;
+        } else if (frameOrVariables instanceof SpecialVariableStorage) {
+            return (SpecialVariableStorage) frameOrVariables;
+        } else {
+            return null;
+        }
+    }
+
+    public static FrameAndVariables getCallerFrameAndVariables(Frame frame) {
+        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
+        if (frameOrVariables instanceof FrameAndVariables) {
+            return (FrameAndVariables) frameOrVariables;
+        } else {
+            return null;
+        }
     }
 
     public static InternalMethod getMethod(Frame frame) {

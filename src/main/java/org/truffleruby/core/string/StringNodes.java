@@ -164,7 +164,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerStorageNode;
+import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -700,7 +700,7 @@ public abstract class StringNodes {
         @Specialization
         protected Object sliceCapture0(VirtualFrame frame, RubyString string, RubyRegexp regexp, NotProvided capture,
                 @Cached DispatchNode callNode,
-                @Cached ReadCallerStorageNode readCallerNode,
+                @Cached ReadCallerVariablesNode readCallerNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             return sliceCapture(
@@ -717,18 +717,18 @@ public abstract class StringNodes {
         @Specialization(guards = "wasProvided(capture)")
         protected Object sliceCapture(VirtualFrame frame, RubyString string, RubyRegexp regexp, Object capture,
                 @Cached DispatchNode callNode,
-                @Cached ReadCallerStorageNode readCallerStorageNode,
+                @Cached ReadCallerVariablesNode readCallerStorageNode,
                 @Cached ConditionProfile unsetProfile,
                 @Cached ConditionProfile sameThreadProfile) {
             final Object matchStrPair = callNode.call(string, "subpattern", regexp, capture);
 
-            final SpecialVariableStorage storage = readCallerStorageNode.execute(frame);
+            final SpecialVariableStorage variables = readCallerStorageNode.execute(frame);
             if (matchStrPair == nil) {
-                storage.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
+                variables.setLastMatch(nil, getContext(), unsetProfile, sameThreadProfile);
                 return nil;
             } else {
                 final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
-                storage.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
+                variables.setLastMatch(array[0], getContext(), unsetProfile, sameThreadProfile);
                 return array[1];
             }
         }
