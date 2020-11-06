@@ -12,7 +12,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
-import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -1311,8 +1310,8 @@ paren_args      : tLPAREN2 opt_call_args rparen {
                 | tLPAREN2 args_forward rparen {
                     SourceIndexLength position = support.getPosition(null);
                     // NOTE(norswap, 06 Nov 2020): location (0) arg is unused
-                    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, support.prefixName("rest")));
-                    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, support.prefixName("block")));
+                    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+                    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
                     $$ = support.arg_blk_pass(splat, block);
                 }
 
@@ -1775,7 +1774,7 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, null, $3, null, $4);
                 }
                 | f_arg ',' {
-                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "anon_rest", support.getCurrentScope().addVariable("*"), false);
+                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), ParserSupport.ANONYMOUS_REST_VAR, support.getCurrentScope().addVariable("*"), false);
                     $$ = support.new_args($1.getPosition(), $1, null, rest, null, (ArgsTailHolder) null);
                 }
                 | f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail {
@@ -2450,8 +2449,8 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                 }
                 | args_forward {
                     SourceIndexLength position = support.getPosition(null);
-                    RestArgParseNode splat = new RestArgParseNode(position, support.prefixName("rest"), 0);
-                    BlockArgParseNode block = new BlockArgParseNode(position, 1, support.prefixName("block"));
+                    RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
+                    BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
                     $$ = support.new_args_tail(position, null, null, block);
                     $$ = support.new_args(position, null, null, splat, null, (ArgsTailHolder)$$);
                 }
@@ -2608,7 +2607,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                 }
                 | restarg_mark {
   // FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).
-  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "rest", support.getCurrentScope().addVariable("*"), true);
+  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), ParserSupport.UNNAMED_REST_VAR, support.getCurrentScope().addVariable("*"), true);
                 }
 
 // [!null]

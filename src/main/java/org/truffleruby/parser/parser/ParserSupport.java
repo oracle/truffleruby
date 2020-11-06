@@ -146,6 +146,16 @@ import org.truffleruby.parser.lexer.SyntaxException.PID;
 import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
+
+    public static final String UNNAMED_REST_VAR = prefixName("unnamed_rest");
+    public static final String ANONYMOUS_REST_VAR = prefixName("anon_rest");
+    public static final String FORWARD_ARGS_REST_VAR = prefixName("forward_rest");
+    public static final String FORWARD_ARGS_BLOCK_VAR = prefixName("forward_block");
+
+    private static String prefixName(String name) {
+        return (TranslatorEnvironment.TEMP_PREFIX + name).intern();
+    }
+
     // Parser states:
     protected StaticScope currentScope;
 
@@ -189,10 +199,6 @@ public class ParserSupport {
 
     public ParserConfiguration getConfiguration() {
         return configuration;
-    }
-
-    public String prefixName(String name) {
-        return (TranslatorEnvironment.TEMP_PREFIX + name).intern();
     }
 
     public void popCurrentScope() {

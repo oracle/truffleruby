@@ -51,7 +51,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
-import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -160,7 +159,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 128 "-"
+// line 127 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -2260,8 +2259,8 @@ states[274] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[275] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
     /* NOTE(norswap, 06 Nov 2020): location (0) arg is unused*/
-    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, support.prefixName("rest")));
-    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, support.prefixName("block")));
+    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
     yyVal = support.arg_blk_pass(splat, block);
     return yyVal;
 };
@@ -2791,7 +2790,7 @@ states[403] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[404] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), TranslatorEnvironment.TEMP_PREFIX + "anon_rest", support.getCurrentScope().addVariable("*"), false);
+    RestArgParseNode rest = new UnnamedRestArgParseNode(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ParserSupport.ANONYMOUS_REST_VAR, support.getCurrentScope().addVariable("*"), false);
     yyVal = support.new_args(((ListParseNode)yyVals[-1+yyTop]).getPosition(), ((ListParseNode)yyVals[-1+yyTop]), null, rest, null, (ArgsTailHolder) null);
     return yyVal;
 };
@@ -3564,8 +3563,8 @@ states[572] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[573] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength position = support.getPosition(null);
-    RestArgParseNode splat = new RestArgParseNode(position, support.prefixName("rest"), 0);
-    BlockArgParseNode block = new BlockArgParseNode(position, 1, support.prefixName("block"));
+    RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
+    BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
     yyVal = support.new_args_tail(position, null, null, block);
     yyVal = support.new_args(position, null, null, splat, null, (ArgsTailHolder)yyVal);
     return yyVal;
@@ -3733,7 +3732,7 @@ states[608] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[609] = (support, lexer, yyVal, yyVals, yyTop) -> {
   /* FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).*/
-  yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "rest", support.getCurrentScope().addVariable("*"), true);
+  yyVal = new UnnamedRestArgParseNode(lexer.getPosition(), ParserSupport.UNNAMED_REST_VAR, support.getCurrentScope().addVariable("*"), true);
     return yyVal;
 };
 states[610] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3898,7 +3897,7 @@ states[656] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2770 "RubyParser.y"
+// line 2769 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3915,4 +3914,4 @@ states[656] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10745 "-"
+// line 10744 "-"
