@@ -1744,7 +1744,7 @@ public class ParserSupport {
     }
 
     public ParseNode new_defined(SourceIndexLength position, ParseNode something) {
-        return new DefinedParseNode(position, something);
+        return new DefinedParseNode(position, makeNullNil(something));
     }
 
     public static final Rope INTERNAL_ID = RopeConstants.EMPTY_US_ASCII_ROPE;
