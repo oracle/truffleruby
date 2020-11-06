@@ -1,0 +1,6 @@
+exclude :test_dedent_string, "needs investigation"
+exclude :test_regexp_enc_error, "needs investigation"
+exclude :test_regexp_with_option, "needs investigation"
+exclude :test_yydebug_ident, "needs investigation"
+exclude :test_regexp_enc_error, "needs investigation"
+exclude :test_yydebug_ident, "needs investigation"
