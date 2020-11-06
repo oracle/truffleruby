@@ -39,6 +39,9 @@ ruby/test_parse.rb # encoding
 rubygems/test_gem_security.rb # hangs
 io/wait/test_io_wait_uncommon.rb # unreliable in parallel
 
+# Pattern matching
+ruby/test_pattern_matching.rb
+
 # Too slow
 
 test_extlibs.rb
