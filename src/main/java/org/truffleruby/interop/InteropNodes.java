@@ -715,10 +715,28 @@ public abstract class InteropNodes {
         }
     }
 
+    @CoreMethod(names = "fits_in_byte?", onSingleton = true, required = 1)
+    public abstract static class FitsInByteNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean fits(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInByte(receiver);
+        }
+    }
+
+    @CoreMethod(names = "fits_in_short?", onSingleton = true, required = 1)
+    public abstract static class FitsInShortNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean fits(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInShort(receiver);
+        }
+    }
+
     @CoreMethod(names = "fits_in_int?", onSingleton = true, required = 1)
     public abstract static class FitsInIntNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean fitsInInt(Object receiver,
+        protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInInt(receiver);
         }
@@ -727,25 +745,62 @@ public abstract class InteropNodes {
     @CoreMethod(names = "fits_in_long?", onSingleton = true, required = 1)
     public abstract static class FitsInLongNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean fitsInLong(Object receiver,
+        protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInLong(receiver);
+        }
+    }
+
+    @CoreMethod(names = "fits_in_float?", onSingleton = true, required = 1)
+    public abstract static class FitsInFloatNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean fits(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.fitsInFloat(receiver);
         }
     }
 
     @CoreMethod(names = "fits_in_double?", onSingleton = true, required = 1)
     public abstract static class FitsInDoubleNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean fitsInDouble(Object receiver,
+        protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInDouble(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_byte", onSingleton = true, required = 1)
+    public abstract static class AsByteNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected int as(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.asByte(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "as_short", onSingleton = true, required = 1)
+    public abstract static class AsShortNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected int as(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.asShort(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
         }
     }
 
     @CoreMethod(names = "as_int", onSingleton = true, required = 1)
     public abstract static class AsIntNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected int asInt(Object receiver,
+        protected int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
@@ -759,7 +814,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "as_long", onSingleton = true, required = 1)
     public abstract static class AsLongNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected long asLong(Object receiver,
+        protected long as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
@@ -770,10 +825,24 @@ public abstract class InteropNodes {
         }
     }
 
+    @CoreMethod(names = "as_float", onSingleton = true, required = 1)
+    public abstract static class AsFloatNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected double as(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.asFloat(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
     @CoreMethod(names = "as_double", onSingleton = true, required = 1)
     public abstract static class AsDoubleNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected double asDouble(Object receiver,
+        protected double as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
@@ -1439,9 +1508,26 @@ public abstract class InteropNodes {
     // endregion
 
     // region MetaObject
+    @CoreMethod(names = "meta_object?", onSingleton = true, required = 1)
+    public abstract static class IsMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isMetaObject(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isMetaObject(receiver);
+        }
+    }
+
+    @CoreMethod(names = "has_meta_object?", onSingleton = true, required = 1)
+    public abstract static class HasMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasMetaObject(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasMetaObject(receiver);
+        }
+    }
+
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
     public abstract static class InteropMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
-
         @Specialization(limit = "getCacheLimit()")
         protected Object metaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
@@ -1457,14 +1543,67 @@ public abstract class InteropNodes {
                 return coreLibrary().getLogicalClass(value);
             }
         }
+    }
 
+    @CoreMethod(names = "has_declaring_meta_object?", onSingleton = true, required = 1)
+    public abstract static class HasDeclaringMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasDeclaringMetaObject(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasDeclaringMetaObject(receiver);
+        }
+    }
+
+    @CoreMethod(names = "declaring_meta_object", onSingleton = true, required = 1)
+    public abstract static class DeclaringMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object declaringMetaObject(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getDeclaringMetaObject(value);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "meta_instance?", onSingleton = true, required = 2)
+    public abstract static class IsMetaInstanceNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isMetaInstance(Object metaObject, Object instance,
+                @CachedLibrary("metaObject") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.isMetaInstance(metaObject, instance);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "meta_simple_name", onSingleton = true, required = 1)
+    public abstract static class GetMetaSimpleNameNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getMetaSimpleName(Object metaObject,
+                @CachedLibrary("metaObject") InteropLibrary interop,
+                @CachedLibrary(limit = "1") InteropLibrary asStrings,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final Object simpleName = interop.getMetaSimpleName(metaObject);
+                final String string = asStrings.asString(simpleName);
+                return fromJavaStringNode.executeFromJavaString(string);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
     }
 
     @CoreMethod(names = "meta_qualified_name", onSingleton = true, required = 1)
     public abstract static class GetMetaQualifiedNameNode extends InteropCoreMethodArrayArgumentsNode {
-
         @Specialization(limit = "getCacheLimit()")
-        protected Object metaObject(Object metaObject,
+        protected Object getMetaQualifiedName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @CachedLibrary(limit = "1") InteropLibrary asStrings,
                 @Cached FromJavaStringNode fromJavaStringNode,
@@ -1477,22 +1616,45 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(e);
             }
         }
-
     }
     // endregion
 
     // region Identity
-    @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1)
-    public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        @TruffleBoundary
-        protected int identityHashCode(Object value) {
-            final int code = System.identityHashCode(value);
-            assert code >= 0;
-            return code;
+    @CoreMethod(names = "identical?", onSingleton = true, required = 2)
+    public abstract static class IsIdenticalNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isIdentical(Object receiver, Object other,
+                @CachedLibrary("receiver") InteropLibrary lhsInterop,
+                @CachedLibrary("other") InteropLibrary rhsInterop) {
+            return lhsInterop.isIdentical(receiver, other, rhsInterop);
         }
+    }
 
+    @CoreMethod(names = "has_identity?", onSingleton = true, required = 1)
+    public abstract static class HasIdentityNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasIdentity(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasIdentity(receiver);
+        }
+    }
+
+    @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1)
+    public abstract static class InteropIdentityHashCodeNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected int identityHashCode(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            if (interop.hasIdentity(value)) {
+                try {
+                    return interop.identityHashCode(value);
+                } catch (UnsupportedMessageException e) {
+                    throw translateInteropException.execute(e);
+                }
+            } else {
+                return System.identityHashCode(value);
+            }
+        }
     }
     // endregion
 
