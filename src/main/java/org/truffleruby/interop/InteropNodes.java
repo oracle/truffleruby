@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -282,6 +283,160 @@ public abstract class InteropNodes {
     }
     // endregion
 
+    // region Exception
+    @CoreMethod(names = "exception?", onSingleton = true, required = 1)
+    public abstract static class IsExceptionNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isException(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isException(receiver);
+        }
+    }
+
+    @CoreMethod(names = "has_exception_cause?", onSingleton = true, required = 1)
+    public abstract static class HasExceptionCauseNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasExceptionCause(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasExceptionCause(receiver);
+        }
+    }
+
+    @CoreMethod(names = "exception_cause", onSingleton = true, required = 1)
+    public abstract static class ExceptionCauseNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getExceptionCause(Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.getExceptionCause(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "exception_exit_status", onSingleton = true, required = 1)
+    public abstract static class ExceptionExitStatusSourceNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected int getExceptionExitStatus(Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.getExceptionExitStatus(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "exception_incomplete_source?", onSingleton = true, required = 1)
+    public abstract static class IsExceptionIncompleteSourceNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isExceptionIncompleteSource(Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.isExceptionIncompleteSource(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "has_exception_message?", onSingleton = true, required = 1)
+    public abstract static class HasExceptionMessageNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasExceptionMessage(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasExceptionMessage(receiver);
+        }
+    }
+
+    @CoreMethod(names = "exception_message", onSingleton = true, required = 1)
+    public abstract static class ExceptionMessageNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected RubyString getExceptionMessage(Object receiver,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "1") InteropLibrary asStrings) {
+            final String string;
+            try {
+                final Object exceptionMessage = receivers.getExceptionMessage(receiver);
+                string = asStrings.asString(exceptionMessage);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+            return fromJavaStringNode.executeFromJavaString(string);
+        }
+    }
+
+    @CoreMethod(names = "has_exception_stack_trace?", onSingleton = true, required = 1)
+    public abstract static class HasExceptionStackTraceNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasExceptionStackTrace(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasExceptionStackTrace(receiver);
+        }
+    }
+
+    @CoreMethod(names = "exception_stack_trace", onSingleton = true, required = 1)
+    public abstract static class ExceptionStackTraceNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getExceptionStackTrace(Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                return receivers.getExceptionStackTrace(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "exception_type", onSingleton = true, required = 1)
+    public abstract static class ExceptionTypeNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected RubySymbol getExceptionType(Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                final ExceptionType exceptionType = receivers.getExceptionType(receiver);
+                return getLanguage().getSymbol(exceptionType.name());
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "throw_exception", onSingleton = true, required = 1)
+    public abstract static class ThrowExceptionNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object throwException(Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            try {
+                throw receivers.throwException(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    // endregion
+
     // region Executable
     @CoreMethod(names = "executable?", onSingleton = true, required = 1)
     public abstract static class IsExecutableNode extends InteropCoreMethodArrayArgumentsNode {
@@ -290,6 +445,37 @@ public abstract class InteropNodes {
         protected boolean isExecutable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isExecutable(receiver);
+        }
+    }
+
+
+    @CoreMethod(names = "has_executable_name?", onSingleton = true, required = 1)
+    public abstract static class HasExecutableNameNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasExecutableName(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasExecutableName(receiver);
+        }
+    }
+
+    @CoreMethod(names = "executable_name", onSingleton = true, required = 1)
+    public abstract static class ExecutableNameNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected RubyString getExecutableName(Object receiver,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "1") InteropLibrary asStrings) {
+            final String string;
+            try {
+                final Object executableName = receivers.getExecutableName(receiver);
+                string = asStrings.asString(executableName);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+            return fromJavaStringNode.executeFromJavaString(string);
         }
     }
 
@@ -602,6 +788,32 @@ public abstract class InteropNodes {
     }
     // endregion
 
+    // region SourceLocation
+    @CoreMethod(names = "has_source_location?", onSingleton = true, required = 1)
+    public abstract static class HasSourceLocationNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasSourceLocation(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasSourceLocation(receiver);
+        }
+    }
+
+    @CoreMethod(names = "source_location", onSingleton = true, required = 1)
+    public abstract static class GetSourceLocationNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getSourceLocation(Object receiver,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return context.getEnv().asGuestValue(receivers.getSourceLocation(receiver));
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+    // endregion
+
     // region String
     @CoreMethod(names = "string?", onSingleton = true, required = 1)
     public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
@@ -699,6 +911,128 @@ public abstract class InteropNodes {
             try {
                 return receivers.asBoolean(receiver);
             } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+    // endregion
+
+    // region DateTime
+    @CoreMethod(names = "date?", onSingleton = true, required = 1)
+    public abstract static class IsDateNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isDate(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isDate(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_date", onSingleton = true, required = 1)
+    public abstract static class AsDateNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object asDate(Object receiver,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return context.getEnv().asGuestValue(receivers.asDate(receiver));
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "duration?", onSingleton = true, required = 1)
+    public abstract static class IsDurationNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isDuration(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isDuration(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_duration", onSingleton = true, required = 1)
+    public abstract static class AsDurationNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object asDuration(Object receiver,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return context.getEnv().asGuestValue(receivers.asDuration(receiver));
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "instant?", onSingleton = true, required = 1)
+    public abstract static class IsInstantNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isInstant(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isInstant(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_instant", onSingleton = true, required = 1)
+    public abstract static class AsInstantNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object asInstant(Object receiver,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return context.getEnv().asGuestValue(receivers.asInstant(receiver));
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "time?", onSingleton = true, required = 1)
+    public abstract static class IsTimeNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isTime(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isTime(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_time", onSingleton = true, required = 1)
+    public abstract static class AsTimeNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object asTime(Object receiver,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return context.getEnv().asGuestValue(receivers.asTime(receiver));
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "time_zone?", onSingleton = true, required = 1)
+    public abstract static class IsTimeZoneNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isTimeZone(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isTimeZone(receiver);
+        }
+    }
+
+    @CoreMethod(names = "as_time_zone", onSingleton = true, required = 1)
+    public abstract static class AsTimeZoneNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object asTimeZone(Object receiver,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return context.getEnv().asGuestValue(receivers.asTimeZone(receiver));
+            } catch (UnsupportedMessageException e) {
                 throw translateInteropException.execute(e);
             }
         }
