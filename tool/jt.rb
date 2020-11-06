@@ -1207,6 +1207,12 @@ module Commands
     tests.delete 'gems' if no_gems
 
     tests.each do |test_name|
+      run_single_cexts_test(test_name)
+    end
+  end
+
+  private def run_single_cexts_test(test_name)
+    time_test("jt test cexts #{test_name}") do
       case test_name
       when 'tools'
         # Test tools
@@ -1305,15 +1311,21 @@ module Commands
 
     STDERR.puts
     candidates.each do |test_script|
-      STDERR.puts "[jt] Running #{test_script} ..."
-      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      begin
+      time_test(test_script) do
         yield test_script
-      ensure
-        finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        duration = finish - start
-        STDERR.puts "[jt] #{test_script} took #{'%.1f' % duration}s\n\n\n"
       end
+    end
+  end
+
+  private def time_test(test_name)
+    STDERR.puts "[jt] Running #{test_name} ..."
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    begin
+      yield
+    ensure
+      finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      duration = finish - start
+      STDERR.puts "[jt] #{test_name} took #{'%.1f' % duration}s\n\n\n"
     end
   end
 
