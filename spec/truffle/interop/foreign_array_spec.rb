@@ -102,7 +102,7 @@ describe "Foreign arrays" do
   it "should access array with #last" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
     foreign.last.should == 3
-  end  
+  end
 end
 
 describe "Foreign arrays that are also pointers" do
