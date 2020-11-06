@@ -97,6 +97,7 @@ public abstract class InteropNodes {
         }
     }
 
+    // region Misc
     @Primitive(name = "interop_library_all_methods")
     public abstract static class AllMethodsOfInteropLibrary extends PrimitiveArrayArgumentsNode {
 
@@ -127,6 +128,56 @@ public abstract class InteropNodes {
 
     }
 
+    @Primitive(name = "dispatch_missing")
+    public abstract static class DispatchMissingNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object dispatchMissing() {
+            return DispatchNode.MISSING;
+        }
+
+    }
+
+    @CoreMethod(names = "foreign?", onSingleton = true, required = 1)
+    public abstract static class InteropIsForeignNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isForeign(Object value) {
+            return RubyGuards.isForeignObject(value);
+        }
+
+    }
+
+    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1, optional = 1)
+    public abstract static class ProxyForeignObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected Object proxyForeignObject(Object delegate, NotProvided logger) {
+            return new ProxyForeignObject(delegate);
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "wasProvided(logger)")
+        protected Object proxyForeignObject(Object delegate, Object logger) {
+            return new ProxyForeignObject(delegate, logger);
+        }
+
+    }
+    // endregion
+
+    // region eval
+    @CoreMethod(names = "mime_type_supported?", onSingleton = true, required = 1)
+    public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected boolean isMimeTypeSupported(RubyString mimeType) {
+            return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
+        }
+
+    }
+
     @CoreMethod(names = "import_file", onSingleton = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
@@ -149,6 +200,89 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "eval", onSingleton = true, required = 2)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
+    public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(
+                guards = {
+                        "mimeTypeEqualNode.execute(mimeType.rope, cachedMimeType)",
+                        "sourceEqualNode.execute(source.rope, cachedSource)" },
+                limit = "getCacheLimit()")
+        protected Object evalCached(RubyString mimeType, RubyString source,
+                @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
+                @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
+                @Cached RopeNodes.EqualNode mimeTypeEqualNode,
+                @Cached RopeNodes.EqualNode sourceEqualNode) {
+            return callNode.call(EMPTY_ARGUMENTS);
+        }
+
+        @Specialization(replaces = "evalCached")
+        protected Object evalUncached(RubyString mimeType, RubyString source,
+                @Cached IndirectCallNode callNode) {
+            return callNode.call(parse(mimeType, source), EMPTY_ARGUMENTS);
+        }
+
+        @TruffleBoundary
+        protected CallTarget parse(RubyString mimeType, RubyString code) {
+            final String mimeTypeString = mimeType.getJavaString();
+            final String codeString = code.getJavaString();
+            String language = Source.findLanguage(mimeTypeString);
+            if (language == null) {
+                // Give the original string to get the nice exception from Truffle
+                language = mimeTypeString;
+            }
+            final Source source = Source.newBuilder(language, codeString, "(eval)").build();
+            try {
+                return getContext().getEnv().parsePublic(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().EVAL_CACHE;
+        }
+
+    }
+
+    @Primitive(name = "interop_eval_nfi")
+    public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object evalNFI(RubyString code,
+                @Cached IndirectCallNode callNode) {
+            return callNode.call(parse(code), EMPTY_ARGUMENTS);
+        }
+
+        @TruffleBoundary
+        protected CallTarget parse(RubyString code) {
+            final String codeString = code.getJavaString();
+            final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
+
+            try {
+                return getContext().getEnv().parseInternal(source);
+            } catch (IllegalStateException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "polyglot_bindings_access?", onSingleton = true)
+    public abstract static class IsPolyglotBindingsAccessAllowedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isPolyglotBindingsAccessAllowed() {
+            return getContext().getEnv().isPolyglotBindingsAccessAllowed();
+        }
+
+    }
+    // endregion
+
+    // region Executable
     @CoreMethod(names = "executable?", onSingleton = true, required = 1)
     public abstract static class IsExecutableNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -197,44 +331,9 @@ public abstract class InteropNodes {
             return InteropNodes.execute(receiver, args, receivers, translateInteropException);
         }
     }
+    // endregion
 
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "invoke", onSingleton = true, required = 2, rest = true)
-    public abstract static class InvokeNode extends RubySourceNode {
-
-        public static InvokeNode create() {
-            return InteropNodesFactory.InvokeNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object identifier, Object[] args);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected Object invokeCached(Object receiver, Object identifier, Object[] args,
-                @Cached ToJavaStringNode toJavaStringNode,
-                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached ForeignToRubyNode foreignToRubyNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final String name = toJavaStringNode.executeToJavaString(identifier);
-            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
-
-            final Object foreign;
-            try {
-                foreign = receivers.invokeMember(receiver, name, arguments);
-            } catch (InteropException e) {
-                throw translateInteropException.executeInInvokeMember(e, receiver, args);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
-    }
-
+    // region Instantiable
     @CoreMethod(names = "instantiable?", onSingleton = true, required = 1)
     public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -278,7 +377,9 @@ public abstract class InteropNodes {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
     }
+    // endregion
 
+    // region Array elements
     @CoreMethod(names = "has_array_elements?", onSingleton = true, required = 1)
     public abstract static class HasArrayElementsNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -307,6 +408,201 @@ public abstract class InteropNodes {
 
     }
 
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
+    public abstract static class ReadArrayElementNode extends RubySourceNode {
+
+        public static ReadArrayElementNode create() {
+            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object readArrayElement(Object receiver, long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            final Object foreign;
+            try {
+                foreign = receivers.readArrayElement(receiver, identifier);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+
+            return foreignToRubyNode.executeConvert(foreign);
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "read_array_element_without_conversion", onSingleton = true, required = 2)
+    public abstract static class ReadArrayElementWithoutConversionNode extends RubySourceNode {
+
+        public static ReadArrayElementNode create() {
+            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object readArrayElement(Object receiver, long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.readArrayElement(receiver, identifier);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
+    public abstract static class WriteArrayElementNode extends RubySourceNode {
+
+        public static WriteArrayElementNode create() {
+            return InteropNodesFactory.WriteArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier, Object value);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object write(Object receiver, long identifier, Object value,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached RubyToForeignNode valueToForeignNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                receivers.writeArrayElement(receiver, identifier, valueToForeignNode.executeConvert(value));
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+
+            return value;
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
+    public abstract static class RemoveArrayElementNode extends RubySourceNode {
+
+        public static ReadArrayElementNode create() {
+            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        }
+
+        abstract Nil execute(Object receiver, Object identifier);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Nil readArrayElement(Object receiver, long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                receivers.removeArrayElement(receiver, identifier);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+
+            return Nil.INSTANCE;
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
+    public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isArrayElementReadable(Object receiver, long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementReadable(receiver, index);
+        }
+    }
+
+    @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
+    public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isArrayElementModifiable(Object receiver, long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementModifiable(receiver, index);
+        }
+    }
+
+    @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
+    public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isArrayElementInsertable(Object receiver, long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementInsertable(receiver, index);
+        }
+    }
+
+    @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
+    public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isArrayElementRemovable(Object receiver, long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementRemovable(receiver, index);
+        }
+    }
+
+    @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
+    public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isArrayElementWritable(Object receiver, long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementWritable(receiver, index);
+        }
+    }
+
+    @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
+    public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isArrayElementExisting(Object receiver, long index,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.isArrayElementExisting(receiver, index);
+        }
+    }
+    // endregion
+
+    // region String
     @CoreMethod(names = "is_string?", onSingleton = true, required = 1)
     public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
@@ -369,41 +665,21 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "language", onSingleton = true, required = 1)
-    public abstract static class GetLanguageNode extends InteropCoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "to_string", onSingleton = true, required = 1)
+    public abstract static class ToStringNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
-        protected Object getLanguage(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached FromJavaStringNode fromJavaStringNode) {
-            if (!receivers.hasLanguage(receiver)) {
-                return nil;
-            }
-
-            final Class<? extends TruffleLanguage<?>> language;
-            try {
-                language = receivers.getLanguage(receiver);
-            } catch (UnsupportedMessageException e) {
-                return nil;
-            }
-
-            final String name = languageClassToLanguageName(language);
-            return fromJavaStringNode.executeFromJavaString(name);
-        }
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        private String languageClassToLanguageName(Class<? extends TruffleLanguage<?>> language) {
-            String name = language.getSimpleName();
-            if (name.endsWith("Language")) {
-                name = name.substring(0, name.length() - "Language".length());
-            }
-            if (name.equals("Host")) {
-                name = "Java";
-            }
-            return name;
+        @Specialization
+        protected RubyString toString(Object value) {
+            return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
-    }
 
+    }
+    // endregion
+
+    // region Boolean
     @CoreMethod(names = "boolean?", onSingleton = true, required = 1)
     public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
@@ -427,7 +703,9 @@ public abstract class InteropNodes {
             }
         }
     }
+    // endregion
 
+    // region Number
     @CoreMethod(names = "is_number?", onSingleton = true, required = 1)
     public abstract static class IsNumberNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
@@ -505,7 +783,9 @@ public abstract class InteropNodes {
             }
         }
     }
+    // endregion
 
+    // region Null
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
@@ -529,7 +809,9 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
 
+    // region Pointer
     @CoreMethod(names = "pointer?", onSingleton = true, required = 1)
     public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -567,6 +849,41 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
+
+    // region Members
+    @CoreMethod(names = "has_members?", onSingleton = true, required = 1)
+    public abstract static class HasMembersNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasMembers(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers) {
+            return receivers.hasMembers(receiver);
+        }
+    }
+
+    @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
+    public abstract static class GetMembersNode extends InteropPrimitiveArrayArgumentsNode {
+
+        protected abstract Object executeMembers(Object receiver, boolean internal);
+
+        @Specialization
+        protected Object members(Object receiver, NotProvided internal) {
+            return executeMembers(receiver, false);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object members(Object receiver, boolean internal,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return receivers.getMembers(receiver, internal);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
 
     @GenerateUncached
     @GenerateNodeFactory
@@ -601,96 +918,6 @@ public abstract class InteropNodes {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
 
-    }
-
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
-    public abstract static class ReadArrayElementNode extends RubySourceNode {
-
-        public static ReadArrayElementNode create() {
-            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object identifier);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected Object readArrayElement(Object receiver, long identifier,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached ForeignToRubyNode foreignToRubyNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            final Object foreign;
-            try {
-                foreign = receivers.readArrayElement(receiver, identifier);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-
-            return foreignToRubyNode.executeConvert(foreign);
-        }
-
-        protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
-    }
-
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
-    public abstract static class RemoveArrayElementNode extends RubySourceNode {
-
-        public static ReadArrayElementNode create() {
-            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
-        }
-
-        abstract Nil execute(Object receiver, Object identifier);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected Nil readArrayElement(Object receiver, long identifier,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                receivers.removeArrayElement(receiver, identifier);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-
-            return Nil.INSTANCE;
-        }
-
-        protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
-    }
-
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "read_array_element_without_conversion", onSingleton = true, required = 2)
-    public abstract static class ReadArrayElementWithoutConversionNode extends RubySourceNode {
-
-        public static ReadArrayElementNode create() {
-            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object identifier);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected Object readArrayElement(Object receiver, long identifier,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                return receivers.readArrayElement(receiver, identifier);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-        }
-
-        protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
     }
 
     @GenerateUncached
@@ -759,37 +986,6 @@ public abstract class InteropNodes {
         }
     }
 
-    @GenerateUncached
-    @GenerateNodeFactory
-    @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
-    public abstract static class WriteArrayElementNode extends RubySourceNode {
-
-        public static WriteArrayElementNode create() {
-            return InteropNodesFactory.WriteArrayElementNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver, Object identifier, Object value);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected Object write(Object receiver, long identifier, Object value,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached RubyToForeignNode valueToForeignNode,
-                @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                receivers.writeArrayElement(receiver, identifier, valueToForeignNode.executeConvert(value));
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-
-            return value;
-        }
-
-        protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
-    }
-
     @CoreMethod(names = "remove_member", onSingleton = true, required = 2)
     public abstract static class RemoveMemberNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -809,37 +1005,41 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_members?", onSingleton = true, required = 1)
-    public abstract static class HasMembersNode extends InteropCoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "invoke", onSingleton = true, required = 2, rest = true)
+    public abstract static class InvokeNode extends RubySourceNode {
 
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean hasMembers(Object receiver,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.hasMembers(receiver);
-        }
-    }
-
-    @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
-    public abstract static class GetMembersNode extends InteropPrimitiveArrayArgumentsNode {
-
-        protected abstract Object executeMembers(Object receiver, boolean internal);
-
-        @Specialization
-        protected Object members(Object receiver, NotProvided internal) {
-            return executeMembers(receiver, false);
+        public static InvokeNode create() {
+            return InteropNodesFactory.InvokeNodeFactory.create(null);
         }
 
+        abstract Object execute(Object receiver, Object identifier, Object[] args);
+
         @Specialization(limit = "getCacheLimit()")
-        protected Object members(Object receiver, boolean internal,
+        protected Object invokeCached(Object receiver, Object identifier, Object[] args,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
+            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
+
+            final Object foreign;
             try {
-                return receivers.getMembers(receiver, internal);
+                foreign = receivers.invokeMember(receiver, name, arguments);
             } catch (InteropException e) {
-                throw translateInteropException.execute(e);
+                throw translateInteropException.executeInInvokeMember(e, receiver, args);
             }
+
+            return foreignToRubyNode.executeConvert(foreign);
         }
 
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
     }
 
     @CoreMethod(names = "is_member_readable?", onSingleton = true, required = 2)
@@ -941,79 +1141,9 @@ public abstract class InteropNodes {
             return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
         }
     }
+    // endregion
 
-    @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean isArrayElementReadable(Object receiver, long index,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isArrayElementReadable(receiver, index);
-        }
-    }
-
-    @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean isArrayElementModifiable(Object receiver, long index,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isArrayElementModifiable(receiver, index);
-        }
-    }
-
-    @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean isArrayElementInsertable(Object receiver, long index,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isArrayElementInsertable(receiver, index);
-        }
-    }
-
-    @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean isArrayElementRemovable(Object receiver, long index,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isArrayElementRemovable(receiver, index);
-        }
-    }
-
-    @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean isArrayElementWritable(Object receiver, long index,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isArrayElementWritable(receiver, index);
-        }
-    }
-
-    @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()")
-        protected boolean isArrayElementExisting(Object receiver, long index,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            return receivers.isArrayElementExisting(receiver, index);
-        }
-    }
-
+    // region Import/Export
     @CoreMethod(names = "export_without_conversion", onSingleton = true, required = 2)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "object", type = RubyNode.class)
@@ -1060,16 +1190,42 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
 
-    @CoreMethod(names = "mime_type_supported?", onSingleton = true, required = 1)
-    public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
+    // region Language
+    @CoreMethod(names = "language", onSingleton = true, required = 1)
+    public abstract static class GetLanguageNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization
-        protected boolean isMimeTypeSupported(RubyString mimeType) {
-            return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getLanguage(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached FromJavaStringNode fromJavaStringNode) {
+            if (!receivers.hasLanguage(receiver)) {
+                return nil;
+            }
+
+            final Class<? extends TruffleLanguage<?>> language;
+            try {
+                language = receivers.getLanguage(receiver);
+            } catch (UnsupportedMessageException e) {
+                return nil;
+            }
+
+            final String name = languageClassToLanguageName(language);
+            return fromJavaStringNode.executeFromJavaString(name);
         }
 
+        @TruffleBoundary
+        private String languageClassToLanguageName(Class<? extends TruffleLanguage<?>> language) {
+            String name = language.getSimpleName();
+            if (name.endsWith("Language")) {
+                name = name.substring(0, name.length() - "Language".length());
+            }
+            if (name.equals("Host")) {
+                name = "Java";
+            }
+            return name;
+        }
     }
 
     @CoreMethod(names = "languages", onSingleton = true, required = 0)
@@ -1101,86 +1257,33 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
 
-    @CoreMethod(names = "eval", onSingleton = true, required = 2)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-    @ReportPolymorphism
-    public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(
-                guards = {
-                        "mimeTypeEqualNode.execute(mimeType.rope, cachedMimeType)",
-                        "sourceEqualNode.execute(source.rope, cachedSource)" },
-                limit = "getCacheLimit()")
-        protected Object evalCached(RubyString mimeType, RubyString source,
-                @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
-                @Cached RopeNodes.EqualNode mimeTypeEqualNode,
-                @Cached RopeNodes.EqualNode sourceEqualNode) {
-            return callNode.call(EMPTY_ARGUMENTS);
+    // region Java
+    @CoreMethod(names = "java?", onSingleton = true, required = 1)
+    public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isJava(Object value) {
+            return getContext().getEnv().isHostObject(value);
         }
-
-        @Specialization(replaces = "evalCached")
-        protected Object evalUncached(RubyString mimeType, RubyString source,
-                @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(mimeType, source), EMPTY_ARGUMENTS);
-        }
-
-        @TruffleBoundary
-        protected CallTarget parse(RubyString mimeType, RubyString code) {
-            final String mimeTypeString = mimeType.getJavaString();
-            final String codeString = code.getJavaString();
-            String language = Source.findLanguage(mimeTypeString);
-            if (language == null) {
-                // Give the original string to get the nice exception from Truffle
-                language = mimeTypeString;
-            }
-            final Source source = Source.newBuilder(language, codeString, "(eval)").build();
-            try {
-                return getContext().getEnv().parsePublic(source);
-            } catch (IllegalStateException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
-            }
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().EVAL_CACHE;
-        }
-
     }
 
-    @Primitive(name = "interop_eval_nfi")
-    public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
-
+    @CoreMethod(names = "java_class?", onSingleton = true, required = 1)
+    public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object evalNFI(RubyString code,
-                @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(code), EMPTY_ARGUMENTS);
+        protected boolean isJavaClass(Object value) {
+            return getContext().getEnv().isHostObject(value) &&
+                    getContext().getEnv().asHostObject(value) instanceof Class;
         }
-
-        @TruffleBoundary
-        protected CallTarget parse(RubyString code) {
-            final String codeString = code.getJavaString();
-            final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
-
-            try {
-                return getContext().getEnv().parseInternal(source);
-            } catch (IllegalStateException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
-            }
-        }
-
     }
 
-    @Primitive(name = "dispatch_missing")
-    public abstract static class DispatchMissingNode extends PrimitiveArrayArgumentsNode {
-
+    @CoreMethod(names = "is_java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
+    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected Object dispatchMissing() {
-            return DispatchNode.MISSING;
+        protected boolean isJavaMap(Object value) {
+            return getContext().getEnv().isHostObject(value) &&
+                    getContext().getEnv().asHostObject(value) instanceof Map;
         }
-
     }
 
     @CoreMethod(names = "java_string?", onSingleton = true, required = 1)
@@ -1303,42 +1406,39 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "foreign?", onSingleton = true, required = 1)
-    public abstract static class InteropIsForeignNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "java_type", onSingleton = true, required = 1)
+    public abstract static class JavaTypeNode extends CoreMethodArrayArgumentsNode {
 
+        // TODO CS 17-Mar-18 we should cache this in the future
+
+        @TruffleBoundary
         @Specialization
-        protected boolean isForeign(Object value) {
-            return RubyGuards.isForeignObject(value);
+        protected Object javaTypeSymbol(RubySymbol name) {
+            return javaType(name.getString());
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object javaTypeString(RubyString name) {
+            return javaType(name.getJavaString());
+        }
+
+        private Object javaType(String name) {
+            final TruffleLanguage.Env env = getContext().getEnv();
+
+            if (!env.isHostLookupAllowed()) {
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().securityError("host access is not allowed", this));
+            }
+
+            return env.lookupHostSymbol(name);
         }
 
     }
+    // endregion
 
-    @CoreMethod(names = "java?", onSingleton = true, required = 1)
-    public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean isJava(Object value) {
-            return getContext().getEnv().isHostObject(value);
-        }
-    }
-
-    @CoreMethod(names = "java_class?", onSingleton = true, required = 1)
-    public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean isJavaClass(Object value) {
-            return getContext().getEnv().isHostObject(value) &&
-                    getContext().getEnv().asHostObject(value) instanceof Class;
-        }
-    }
-
-    @CoreMethod(names = "is_java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
-    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean isJavaMap(Object value) {
-            return getContext().getEnv().isHostObject(value) &&
-                    getContext().getEnv().asHostObject(value) instanceof Map;
-        }
-    }
-
+    // region MetaObject
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
     public abstract static class InteropMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -1379,68 +1479,9 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
 
-    @CoreMethod(names = "java_type", onSingleton = true, required = 1)
-    public abstract static class JavaTypeNode extends CoreMethodArrayArgumentsNode {
-
-        // TODO CS 17-Mar-18 we should cache this in the future
-
-        @TruffleBoundary
-        @Specialization
-        protected Object javaTypeSymbol(RubySymbol name) {
-            return javaType(name.getString());
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object javaTypeString(RubyString name) {
-            return javaType(name.getJavaString());
-        }
-
-        private Object javaType(String name) {
-            final TruffleLanguage.Env env = getContext().getEnv();
-
-            if (!env.isHostLookupAllowed()) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().securityError("host access is not allowed", this));
-            }
-
-            return env.lookupHostSymbol(name);
-        }
-
-    }
-
-    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1, optional = 1)
-    public abstract static class ProxyForeignObjectNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected Object proxyForeignObject(Object delegate, NotProvided logger) {
-            return new ProxyForeignObject(delegate);
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "wasProvided(logger)")
-        protected Object proxyForeignObject(Object delegate, Object logger) {
-            return new ProxyForeignObject(delegate, logger);
-        }
-
-    }
-
-    @CoreMethod(names = "to_string", onSingleton = true, required = 1)
-    public abstract static class ToStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyString toString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-    }
-
+    // region Identity
     @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1)
     public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
 
@@ -1453,17 +1494,9 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
 
-    @CoreMethod(names = "polyglot_bindings_access?", onSingleton = true)
-    public abstract static class IsPolyglotBindingsAccessAllowedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean isPolyglotBindingsAccessAllowed() {
-            return getContext().getEnv().isPolyglotBindingsAccessAllowed();
-        }
-
-    }
-
+    // region Scope
     @Primitive(name = "current_scope")
     public abstract static class GetCurrentScopeNode extends PrimitiveArrayArgumentsNode {
 
@@ -1509,5 +1542,6 @@ public abstract class InteropNodes {
             }
         }
     }
+    // endregion scope
 
 }
