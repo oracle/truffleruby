@@ -177,6 +177,7 @@ module Truffle
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       begin
+        StringOperations::java_string(re.source)
         java_string = StringOperations::java_string(str)
       rescue => e
         # Some strings might contain invalid (non-Unicode) characters, e.g. values higher than 127 in ASCII strings.
@@ -190,13 +191,7 @@ module Truffle
         else
           flags = options_to_flags(re.options)
         end
-        begin
-          Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, "UTF-16"))
-        rescue => e
-          # Some strings might contain invalid (non-Unicode) characters, e.g. values higher than 127 in ASCII strings.
-          # These strings can then throw CannotConvertBinaryRubyStringToJavaString exception.
-          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-        end
+        Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, "UTF-16"))
       end
       tr = Primitive.object_hidden_var_get(re, compiled_regex_key)
       begin
