@@ -1100,13 +1100,14 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      truffle_args += %w(--reveal --vm.Xmx2G --testing-rubygems)
+      truffle_args += %w(--reveal --vm.Xmx2G)
     end
 
     env_vars = {
       'EXCLUDES' => 'test/mri/excludes',
       'RUBYGEMS_TEST_PATH' => MRI_TEST_PREFIX,
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
+      'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--testing-rubygems'].join(' '),
     }
     compile_env = {
       # MRI C-ext tests expect to be built with $extmk = true.
