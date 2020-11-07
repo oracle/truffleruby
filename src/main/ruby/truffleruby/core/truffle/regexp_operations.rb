@@ -122,7 +122,7 @@ module Truffle
         if self.results_match(md1, md2) then
           return self.return_match_data(md1)
         else
-          $stderr.puts "match_in_region(#{re}, #{str}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
+          $stderr.puts "match_in_region(#{re}, #{str}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
           self.print_match_data(md1)
           $stderr.puts "but we expected"
           self.print_match_data(md2)
