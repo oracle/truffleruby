@@ -1105,7 +1105,7 @@ module Commands
 
     env_vars = {
       'EXCLUDES' => 'test/mri/excludes',
-      'RUBYGEMS_TEST_PATH' => MRI_TEST_PREFIX,
+      'RUBYGEMS_TEST_PATH' => "#{MRI_TEST_PREFIX}/rubygems",
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--testing-rubygems'].join(' '),
     }
