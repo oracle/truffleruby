@@ -177,8 +177,13 @@ module Truffle
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       begin
-        StringOperations::java_string(re.source)
+        re_source = StringOperations::java_string(re.source)
         java_string = StringOperations::java_string(str)
+        if (re.source.length != String(re_source).length) || (str.length != String(java_string).length) then
+          # Calling java_string with certain string and certain encodings (e.g. '\xF6' in BINARY encoding) can lead
+          # to differences in escape behavior, yielding strings of different lengths. We bail out in these cases.
+          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        end
       rescue => e
         # Some strings might contain invalid (non-Unicode) characters, e.g. values higher than 127 in ASCII strings.
         # These strings can then throw CannotConvertBinaryRubyStringToJavaString exception.
@@ -191,7 +196,7 @@ module Truffle
         else
           flags = options_to_flags(re.options)
         end
-        Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re.source, flags, "UTF-16"))
+        Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re_source, flags, "UTF-16"))
       end
       tr = Primitive.object_hidden_var_get(re, compiled_regex_key)
       begin
