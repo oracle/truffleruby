@@ -245,11 +245,11 @@ module Truffle
     end
 
     private_class_method def self.basic_inspect_for(object)
-      if is_string?(object)
+      if string?(object)
         object.inspect
       elsif has_array_elements?(object)
         '[...]'
-      elsif (java?(object) && is_java_map?(object)) || has_members?(object)
+      elsif (java?(object) && java_map?(object)) || has_members?(object)
         '{...}'
       else
         object.inspect
@@ -259,7 +259,7 @@ module Truffle
     private_class_method def self.recursive_string_for(object)
       if has_array_elements?(object)
         '[...]'
-      elsif java?(object) && is_java_map?(object) || has_members?(object)
+      elsif java?(object) && java_map?(object) || has_members?(object)
         '{...}'
       else
         # This last case should not currently be hit, but could be if we extend inspect with new cases.
@@ -298,7 +298,7 @@ module Truffle
           array_or_map = true
           string << " [#{to_array(object).map { |e| basic_inspect_for e }.join(', ')}]"
         end
-        if is_java_map?(object)
+        if java_map?(object)
           array_or_map = true
           string << " {#{pairs_from_java_map(object).map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
         end
@@ -334,7 +334,7 @@ module Truffle
     end
 
     def self.foreign_to_str(object)
-      # object = as_string object if is_string? object
+      # object = as_string object if string? object
       object = Truffle::Interop.unbox_if_needed(object)
       if object.is_a?(String)
         object
@@ -351,7 +351,7 @@ module Truffle
           Truffle::Interop.meta_object(receiver)
         end
       else
-        Truffle::Interop.invoke(receiver, :class, *args)
+        Truffle::Interop.invoke_member(receiver, :class, *args)
       end
     end
 
@@ -408,7 +408,7 @@ module Truffle
     end
 
     def self.pairs_from_object(object)
-      readable_members = members(object).select { |member| Truffle::Interop.is_member_readable?(object, member) }
+      readable_members = members(object).select { |member| Truffle::Interop.member_readable?(object, member) }
       readable_members.map { |key| [key, object[key]] }
     end
 
@@ -421,14 +421,14 @@ module Truffle
     end
 
     def self.boxed?(object)
-      boolean?(object) || is_string?(object) || is_number?(object)
+      boolean?(object) || string?(object) || number?(object)
     end
 
     def self.unbox(object)
       return as_boolean object if boolean? object
-      return as_string object if is_string? object
+      return as_string object if string? object
 
-      if is_number?(object)
+      if number?(object)
         return as_int object if fits_in_int? object
         return as_long object if fits_in_long? object
         return as_double object if fits_in_double? object
@@ -439,9 +439,9 @@ module Truffle
 
     def self.unbox_without_conversion(object)
       return as_boolean object if boolean? object
-      return as_string_without_conversion object if is_string? object
+      return as_string_without_conversion object if string? object
 
-      if is_number?(object)
+      if number?(object)
         return as_int object if fits_in_int? object
         return as_long object if fits_in_long? object
         return as_double object if fits_in_double? object

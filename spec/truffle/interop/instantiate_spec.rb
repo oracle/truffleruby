@@ -9,15 +9,13 @@
 require_relative '../../ruby/spec_helper'
 require_relative 'fixtures/classes'
 
-describe "Truffle::Interop.new" do
-
+describe "Truffle::Interop.instantiate" do
   it "creates new instances of objects" do
-    obj = Truffle::Interop.new(TruffleInteropSpecs::NewTestClass, 14, 2)
+    obj = Truffle::Interop.instantiate(TruffleInteropSpecs::NewTestClass, 14, 2)
     obj.should be_an_instance_of(TruffleInteropSpecs::NewTestClass)
   end
 
   it "calls initialize" do
-    Truffle::Interop.new(TruffleInteropSpecs::NewTestClass, 14, 2).x.should == 16
+    Truffle::Interop.instantiate(TruffleInteropSpecs::NewTestClass, 14, 2).x.should == 16
   end
-
 end

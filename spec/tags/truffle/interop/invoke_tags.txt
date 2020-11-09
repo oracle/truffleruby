@@ -1,1 +1,0 @@
-fails:Truffle::Interop.invoke raises a NoMethodError when the method is not found on a foreign object

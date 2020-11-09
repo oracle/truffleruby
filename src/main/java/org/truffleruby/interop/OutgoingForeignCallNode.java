@@ -157,7 +157,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NEW)" }, limit = "1")
     protected Object newOutgoing(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.NewNode newNode) {
+            @Cached InteropNodes.InstantiateNode newNode) {
         return newNode.execute(receiver, args);
     }
 
@@ -437,7 +437,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object readOrInvoke(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached ToSymbolNode toSymbolNode,
-            @Cached InteropNodes.InvokeNode invokeNode,
+            @Cached InteropNodes.InvokeMemberNode invokeNode,
             @Cached InteropNodes.ReadMemberNode readNode,
             @Cached ConditionProfile invocable,
             @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -466,7 +466,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object notOperatorOrAssignment(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.InvokeNode invokeNode) {
+            @Cached InteropNodes.InvokeMemberNode invokeNode) {
         return invokeNode.execute(receiver, name, args);
     }
 
@@ -577,7 +577,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 limit = "getCacheLimit()")
         protected Object call(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached InteropNodes.InvokeNode invokeNode) {
+                @Cached InteropNodes.InvokeMemberNode invokeNode) {
             return invokeNode.execute(receiver, name, args);
         }
 

@@ -9,14 +9,14 @@
 require_relative '../../ruby/spec_helper'
 require_relative 'fixtures/classes'
 
-describe "Truffle::Interop.invoke" do
+describe "Truffle::Interop.invoke_member" do
 
   it "invokes methods using symbols" do
-    Truffle::Interop.invoke(TruffleInteropSpecs::InvokeTestClass.new, :add, 14, 2).should == 16
+    Truffle::Interop.invoke_member(TruffleInteropSpecs::InvokeTestClass.new, :add, 14, 2).should == 16
   end
 
   it "invokes methods using strings" do
-    Truffle::Interop.invoke(TruffleInteropSpecs::InvokeTestClass.new, 'add', 14, 2).should == 16
+    Truffle::Interop.invoke_member(TruffleInteropSpecs::InvokeTestClass.new, 'add', 14, 2).should == 16
   end
 
   it "raises a NoMethodError when the method is not found on a foreign object" do
