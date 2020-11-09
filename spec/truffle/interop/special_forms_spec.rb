@@ -26,9 +26,11 @@ describe "Interop special forms" do
 
   after :all do
     file = File.expand_path('../../../doc/contributor/interop_implicit_api.md', __dir__)
-    File.open(file, 'w') do |out|
-      output.each do |line|
-        out.puts line
+    if File.exist?(file) && File.writable?(file)
+      File.open(file, 'w') do |out|
+        output.each do |line|
+          out.puts line
+        end
       end
     end
   end
