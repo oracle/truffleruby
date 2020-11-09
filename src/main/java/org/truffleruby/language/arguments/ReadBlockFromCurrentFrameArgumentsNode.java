@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -27,7 +26,7 @@ public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNod
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyProc block = RubyArguments.getBlock(frame);
+        final Object block = RubyArguments.getBlockAssertType(frame);
         return nullProfile.profile(block == null) ? valueIfAbsent : block;
     }
 
