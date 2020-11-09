@@ -1251,7 +1251,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        require '-test-/regexp'
+        # require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'

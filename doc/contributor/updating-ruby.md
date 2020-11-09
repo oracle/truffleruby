@@ -53,6 +53,18 @@ git revert vNN
 
 You'll usually get some conflicts to work out.
 
+## Comment out `-test-` requires
+
+Run
+
+```bash
+git grep -E -- "^\\s+require '-test-/"
+git grep -E -- '^\s+require "-test-/'
+```
+
+And comment any `require` found in files under `test/mri/tests`
+but not for files under `test/mri/tests/cext-ruby`.
+
 ## Update config_*.h files
 
 Configuration files must be regenerated from ruby for Linux and macOS
