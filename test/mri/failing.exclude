@@ -45,6 +45,7 @@ ruby/test_pattern_matching.rb
 # Too slow
 
 test_extlibs.rb
+racc/test_racc_command.rb
 
 # Other issues
 
