@@ -12,6 +12,7 @@ package org.truffleruby.core.string;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.control.RaiseException;
@@ -70,22 +71,21 @@ public class TruffleStringNodes {
 
     }
 
-    @CoreMethod(names = "raw_bytes", onSingleton = true, required = 1)
-    public abstract static class RawBytesNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object rawBytes(RubyString string) {
-            Object bytes = string.rope.getBytes();
-            return getContext().getEnv().asGuestValue(bytes);
-        }
-    }
-
     @CoreMethod(names = "java_string", onSingleton = true, required = 1)
     public abstract static class JavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected String javaString(RubyString rubyString) {
-            return rubyString.toString();
+            try {
+                return rubyString.toString();
+            } catch (CannotConvertBinaryRubyStringToJavaString e) {
+                throw new RaiseException(
+                        getContext(),
+                        getContext().getCoreExceptions().argumentError(
+                                "cannot convert binary Ruby string to Java string",
+                                this,
+                                e));
+            }
         }
     }
 
