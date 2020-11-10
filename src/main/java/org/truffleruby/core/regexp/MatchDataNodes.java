@@ -564,11 +564,9 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = { "length", "size" })
     public abstract static class LengthNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ValuesNode getValues = ValuesNode.create();
-
         @Specialization
         protected int length(RubyMatchData matchData) {
-            return getValues.execute(matchData).length;
+            return matchData.region.numRegs;
         }
 
     }
