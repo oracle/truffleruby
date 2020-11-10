@@ -150,6 +150,13 @@ public final class RubyArguments {
         return (RubyProc) frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
     }
 
+    /** A variant of getBlock() when the return type does not need to be RubyProc and which avoids the extra cast. */
+    public static Object getBlockAssertType(Frame frame) {
+        final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
+        assert block == null || block instanceof RubyProc : block;
+        return block;
+    }
+
     public static int getArgumentsCount(Frame frame) {
         return frame.getArguments().length - RUNTIME_ARGUMENT_COUNT;
     }
