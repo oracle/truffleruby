@@ -29,7 +29,7 @@ class TestRDocMarkdownTest < RDoc::TestCase
         para("6 > 5."),
         para("Here's a {link}[http://example.com/?foo=1&bar=2] with " +
              "an ampersand in the URL."),
-        para("Here's a link with an amersand in the link text: " +
+        para("Here's a link with an ampersand in the link text: " +
              "{AT&T}[http://att.com/]."),
         para("Here's an inline {link}[/script?foo=1&bar=2]."),
         para("Here's an inline {link}[/script?foo=1&bar=2]."))
