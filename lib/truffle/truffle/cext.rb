@@ -1004,11 +1004,11 @@ module Truffle::CExt
   end
 
   def rb_yield(value)
-    Primitive.call_with_c_mutex(rb_block_proc, [value])
+    Primitive.interop_execute(rb_block_proc, [value])
   end
 
   def rb_yield_splat(values)
-    Primitive.call_with_c_mutex(rb_block_proc, values)
+    Primitive.interop_execute(rb_block_proc, values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1161,7 +1161,9 @@ module Truffle::CExt
 
   def rb_enumeratorize_with_size(obj, meth, args, size_fn)
     return rb_enumeratorize(obj, meth, args) if size_fn.nil?
-    enum = obj.to_enum(meth, *args) { Primitive.cext_unwrap(Primitive.call_with_c_mutex(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)])) }
+    enum = obj.to_enum(meth, *args) do
+      Primitive.cext_unwrap(Primitive.call_with_c_mutex(size_fn, [Primitive.cext_wrap(obj), Primitive.cext_wrap(args), Primitive.cext_wrap(enum)]))
+    end
     enum
   end
 
@@ -1305,7 +1307,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(func, [Primitive.cext_wrap(arg)]))
+      Primitive.cext_unwrap(Primitive.interop_execute(func, [Primitive.cext_wrap(arg)]))
     end
   end
 
@@ -1461,29 +1463,29 @@ module Truffle::CExt
 
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
-      Primitive.call_with_c_mutex(b_proc, [data1])
+      Primitive.interop_execute(b_proc, [data1])
     ensure
-      Primitive.call_with_c_mutex(e_proc, [data2])
+      Primitive.interop_execute(e_proc, [data2])
     end
   end
 
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
-      Primitive.call_with_c_mutex(b_proc, [data1])
+      Primitive.interop_execute(b_proc, [data1])
     rescue StandardError => e
       if Truffle::Interop.null?(r_proc)
         Primitive.cext_wrap(nil)
       else
-        Primitive.call_with_c_mutex(r_proc, [data2, Primitive.cext_wrap(e)])
+        Primitive.interop_execute(r_proc, [data2, Primitive.cext_wrap(e)])
       end
     end
   end
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
-      Primitive.call_with_c_mutex(b_proc, [data1])
+      Primitive.interop_execute(b_proc, [data1])
     rescue *rescued => e
-      Primitive.call_with_c_mutex(r_proc, [data2, Primitive.cext_wrap(e)])
+      Primitive.interop_execute(r_proc, [data2, Primitive.cext_wrap(e)])
     end
   end
 
@@ -1491,11 +1493,11 @@ module Truffle::CExt
     result = nil
 
     recursive = Truffle::ThreadOperations.detect_recursion(obj) do
-      result = Primitive.cext_unwrap(Primitive.call_with_c_mutex(func, [Primitive.cext_wrap(obj), Primitive.cext_wrap(arg), 0]))
+      result = Primitive.cext_unwrap(Primitive.interop_execute(func, [Primitive.cext_wrap(obj), Primitive.cext_wrap(arg), 0]))
     end
 
     if recursive
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(func, [Primitive.cext_wrap(obj), Primitive.cext_wrap(arg), 1]))
+      Primitive.cext_unwrap(Primitive.interop_execute(func, [Primitive.cext_wrap(obj), Primitive.cext_wrap(arg), 1]))
     else
       result
     end
