@@ -104,7 +104,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object readArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
-        return readNode.execute(receiver, args[0]);
+            return readNode.execute(receiver, args[0]);
     }
 
     @Specialization(
@@ -122,21 +122,17 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached InteropNodes.ReadArrayElementNode readNode) {
         try {
             long size = interop.getArraySize(receiver);
-            if ((int) args[0] < 0 && size + (int) args[0] >= 0) {
-                return readNode.execute(receiver, size + (int) args[0]);
-            } else if ((int) args[0] >= 0 && size > (int) args[0]) {
-                return readNode.execute(receiver, args[0]);
-            } else {
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().indexError("Index " + (int) args[0] +
-                                " outside of array bounds: " + (-size + 1) + "..." + (size - 1), this));
+            long bound = (size != 0) ? size : 0;
+            if (((int) args[0]) < -bound || (int) args[0] >= bound) {
+                return nil;
             }
+            return ((int) args[0] < 0) ? readNode.execute(receiver, size + (int) args[0]) :
+                readNode.execute(receiver, args[0]);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
     }
-
+                         
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -152,22 +148,15 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached InteropNodes.ReadArrayElementNode fetchNode) {
         try {
             long size = interop.getArraySize(receiver);
-            if (size == 0) {
+            long bound = (size != 0) ? size : 0;
+            if (((int) args[0]) < -bound || (int) args[0] >= bound) {
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().indexError("Index " + (int) args[0] +
-                                " out of array ", this));
+                                " outside of array bounds: -" + bound + "..." + bound, this));
             }
-            if ((int) args[0] < 0 && size + (int) args[0] >= 0) {
-                return fetchNode.execute(receiver, size + (int) args[0]);
-            } else if ((int) args[0] >= 0 && size > (int) args[0]) {
-                return fetchNode.execute(receiver, args[0]);
-            } else {
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().indexError("Index " + (int) args[0] +
-                                " outside of array bounds: " + (-size + 1) + "..." + (size - 1), this));
-            }
+            return ((int) args[0] < 0) ? fetchNode.execute(receiver, size + (int) args[0]) :
+                fetchNode.execute(receiver, args[0]);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
