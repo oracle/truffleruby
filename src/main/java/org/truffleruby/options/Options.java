@@ -75,9 +75,9 @@ public class Options {
     public final boolean TRACE_CALLS;
     /** --coverage-global=false */
     public final boolean COVERAGE_GLOBAL;
-    /** --core-as-internal=true */
+    /** --core-as-internal=false */
     public final boolean CORE_AS_INTERNAL;
-    /** --stdlib-as-internal=true */
+    /** --stdlib-as-internal=false */
     public final boolean STDLIB_AS_INTERNAL;
     /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;

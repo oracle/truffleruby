@@ -47,8 +47,8 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> HOST_INTEROP_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> TRACE_CALLS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> COVERAGE_GLOBAL_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> CORE_AS_INTERNAL_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> STDLIB_AS_INTERNAL_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> CORE_AS_INTERNAL_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> STDLIB_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_JAVA_KEY = new OptionKey<>(false);
