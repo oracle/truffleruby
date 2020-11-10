@@ -26,6 +26,7 @@
 #define HAVE__BOOL 1
 #define HAVE_STDBOOL_H 1
 #define HAVE_SYS_WAIT_H 1
+#define HAVE_COPYFILE_H 1
 #define HAVE_GRP_H 1
 #define HAVE_FCNTL_H 1
 #define HAVE_FLOAT_H 1
@@ -50,6 +51,7 @@
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
 #define HAVE_TYPEOF 1
+#define restrict __restrict
 #define HAVE_LONG_LONG 1
 #define HAVE_OFF_T 1
 #define SIZEOF_INT 4
@@ -143,11 +145,13 @@
 #define MAYBE_UNUSED(x) __attribute__ ((__unused__)) x
 #define WEAK(x) __attribute__ ((__weak__)) x
 #define HAVE_FUNC_WEAK 1
+#define RUBY_CXX_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #define FUNC_CDECL(x) __attribute__ ((__cdecl__)) x
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
 #define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
+#define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
 #define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 1
@@ -214,11 +218,8 @@
 #define HAVE_DUP2 1
 #define HAVE_ERF 1
 #define HAVE_FFS 1
-#define HAVE_FINITE 1
 #define HAVE_FLOCK 1
 #define HAVE_HYPOT 1
-#define HAVE_ISINF 1
-#define HAVE_ISNAN 1
 #define HAVE_LGAMMA_R 1
 #define HAVE_MEMMOVE 1
 #define HAVE_NAN 1
@@ -229,6 +230,9 @@
 #define HAVE_STRLCPY 1
 #define HAVE_STRSTR 1
 #define HAVE_TGAMMA 1
+#define HAVE_FINITE 1
+#define HAVE_ISINF 1
+#define HAVE_ISNAN 1
 #define SPT_TYPE SPT_REUSEARGV
 #define HAVE_SIGNBIT 1
 #define HAVE_FORK 1
@@ -246,6 +250,7 @@
 #define HAVE_DLADDR 1
 #define HAVE_DUP 1
 #define HAVE_ENDGRENT 1
+#define HAVE_FCOPYFILE 1
 #define HAVE_FCHMOD 1
 #define HAVE_FCHOWN 1
 #define HAVE_FCNTL 1
@@ -285,6 +290,7 @@
 #define HAVE_MBLEN 1
 #define HAVE_MEMSET_S 1
 #define HAVE_WRITEV 1
+#define HAVE_MEMMEM 1
 #define HAVE_MKFIFO 1
 #define HAVE_MKNOD 1
 #define HAVE_MKTIME 1
@@ -295,6 +301,7 @@
 #define HAVE_PWRITE 1
 #define HAVE_QSORT_R 1
 #define HAVE_READLINK 1
+#define HAVE_REALPATH 1
 #define HAVE_ROUND 1
 #define HAVE_SEEKDIR 1
 #define HAVE_SENDFILE 1
@@ -365,7 +372,7 @@
 #define RSHIFT(x,y) ((x)>>(int)(y))
 #define HAVE__SC_CLK_TCK 1
 #define STACK_GROW_DIRECTION -1
-#define FIBER_USE_COROUTINE "coroutine/amd64/Context.h"
+#define COROUTINE_H "coroutine/amd64/Context.h"
 #define _REENTRANT 1
 #define _THREAD_SAFE 1
 #define HAVE_LIBPTHREAD 1
@@ -380,6 +387,7 @@
 #define SET_CURRENT_THREAD_NAME(name) pthread_setname_np(name)
 #define DEFINE_MCONTEXT_PTR(mc, uc) mcontext_t mc = (uc)->uc_mcontext
 #define HAVE_MACH_O_LOADER_H 1
+#define HAVE_LIBPROC_H 1
 #define HAVE_EXECINFO_H 1
 #define HAVE_LIBUNWIND_H 1
 #define HAVE_BACKTRACE 1

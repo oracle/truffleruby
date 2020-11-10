@@ -1,8 +1,6 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
-require "cgi"
-require "bundler/vendored_thor"
+require_relative "vendored_thor"
 
 module Bundler
   module FriendlyErrors
@@ -17,7 +15,7 @@ module Bundler
         Bundler.ui.error error.message
       when GemRequireError
         Bundler.ui.error error.message
-        Bundler.ui.trace error.orig_exception, nil, true
+        Bundler.ui.trace error.orig_exception
       when BundlerError
         Bundler.ui.error error.message, :wrap => true
         Bundler.ui.trace error
@@ -29,7 +27,7 @@ module Bundler
         Bundler.ui.warn <<-WARN, :wrap => true
           You must recompile Ruby with OpenSSL support or change the sources in your \
           Gemfile from 'https' to 'http'. Instructions for compiling with OpenSSL \
-          using RVM are available at http://rvm.io/packages/openssl.
+          using RVM are available at https://rvm.io/packages/openssl.
         WARN
         Bundler.ui.trace error
       when Interrupt
@@ -45,7 +43,7 @@ module Bundler
           "Alternatively, you can increase the amount of memory the JVM is able to use by running Bundler with jruby -J-Xmx1024m -S bundle (JRuby defaults to 500MB)."
       else request_issue_report_for(error)
       end
-    rescue
+    rescue StandardError
       raise error
     end
 
@@ -115,6 +113,7 @@ module Bundler
     def issues_url(exception)
       message = exception.message.lines.first.tr(":", " ").chomp
       message = message.split("-").first if exception.is_a?(Errno)
+      require "cgi"
       "https://github.com/bundler/bundler/search?q=" \
         "#{CGI.escape(message)}&type=Issues"
     end
@@ -124,7 +123,7 @@ module Bundler
     yield
   rescue SignalException
     raise
-  rescue Exception => e
+  rescue Exception => e # rubocop:disable Lint/RescueException
     FriendlyErrors.log_error(e)
     exit FriendlyErrors.exit_status(e)
   end

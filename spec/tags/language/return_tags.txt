@@ -8,3 +8,6 @@ fails:The return keyword at top level file requiring stops file loading and exec
 fails:The return keyword at top level return with argument does not affect exit status
 fails:The return keyword at top level within a block within a class is allowed
 fails:The return keyword at top level within a class raises a SyntaxError
+fails(escapes the interpreter):The return keyword at top level within a block within a class is not allowed
+slow:The return keyword at top level return with argument warns but does not affect exit status
+fails:The return keyword at top level return with argument warns but does not affect exit status

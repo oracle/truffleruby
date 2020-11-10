@@ -1,0 +1,3 @@
+fails:Comparable#clamp returns self if within the given range parameters
+fails:Comparable#clamp returns the minimum value of the range parameters if smaller than it
+fails:Comparable#clamp returns the maximum value of the range parameters if greater than it

@@ -1,1 +1,3 @@
 fails:Module#autoload (concurrently) blocks others threads while doing an autoload
+fails:Module#autoload? returns nil if an ancestor defined that autoload but recursion is disabled
+fails:Module#autoload? returns the name of the file that will be loaded if recursion is disabled but the autoload is defined on the class itself

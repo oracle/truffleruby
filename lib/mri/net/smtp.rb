@@ -17,7 +17,7 @@
 # See Net::SMTP for documentation.
 #
 
-require_relative 'protocol'
+require 'net/protocol'
 require 'digest/md5'
 require 'timeout'
 begin
@@ -38,7 +38,7 @@ module Net
     include SMTPError
   end
 
-  # Represents SMTP error code 420 or 450, a temporary error.
+  # Represents SMTP error code 4xx, a temporary error.
   class SMTPServerBusy < ProtoServerError
     include SMTPError
   end
@@ -831,9 +831,6 @@ module Net
     end
 
     def mailfrom(from_addr)
-      if $SAFE > 0
-        raise SecurityError, 'tainted from_addr' if from_addr.tainted?
-      end
       getok("MAIL FROM:<#{from_addr}>")
     end
 
@@ -859,9 +856,6 @@ module Net
     end
 
     def rcptto(to_addr)
-      if $SAFE > 0
-        raise SecurityError, 'tainted to_addr' if to_addr.tainted?
-      end
       getok("RCPT TO:<#{to_addr}>")
     end
 

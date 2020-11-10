@@ -58,7 +58,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
-import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
 import org.truffleruby.parser.ast.ArgsCatParseNode;
@@ -146,6 +145,18 @@ import org.truffleruby.parser.lexer.SyntaxException.PID;
 import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserSupport {
+
+    public static final char TEMP_PREFIX = '%';
+
+    public static final String UNNAMED_REST_VAR = prefixName("unnamed_rest");
+    public static final String ANONYMOUS_REST_VAR = prefixName("anon_rest");
+    public static final String FORWARD_ARGS_REST_VAR = prefixName("forward_rest");
+    public static final String FORWARD_ARGS_BLOCK_VAR = prefixName("forward_block");
+
+    private static String prefixName(String name) {
+        return (TEMP_PREFIX + name).intern();
+    }
+
     // Parser states:
     protected StaticScope currentScope;
 
@@ -196,7 +207,6 @@ public class ParserSupport {
             lexer.getCmdArgumentState().reset(currentScope.getCommandArgumentStack());
         }
         currentScope = currentScope.getEnclosingScope();
-
     }
 
     public void pushBlockScope() {
@@ -251,7 +261,11 @@ public class ParserSupport {
     }
 
     public ParseNode declareIdentifier(Rope rope) {
-        String name = rope.getString().intern();
+        return declareIdentifier(rope.getString());
+    }
+
+    public ParseNode declareIdentifier(String string) {
+        String name = string.intern();
         final Rope currentArg = lexer.getCurrentArg();
         if (currentArg != null && name.equals(currentArg.getString())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
@@ -1317,11 +1331,14 @@ public class ParserSupport {
             Rope keywordRestArgNameRope, BlockArgParseNode blockArg) {
         if (keywordRestArgNameRope == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
+        } else if (keywordRestArgNameRope == RubyLexer.Keyword.NIL.bytes) { // def m(**nil)
+            // TODO (eregon, 6 Nov 2020): actually implement **nil semantics
+            return new ArgsTailHolder(position, keywordArg, null, blockArg);
         }
 
         final String restKwargsName;
         if (keywordRestArgNameRope.isEmpty()) {
-            restKwargsName = TranslatorEnvironment.TEMP_PREFIX + "_kwrest";
+            restKwargsName = TEMP_PREFIX + "_kwrest";
         } else {
             restKwargsName = keywordRestArgNameRope.getString().intern();
         }
@@ -1455,7 +1472,12 @@ public class ParserSupport {
     // 1.9
     @SuppressFBWarnings("ES")
     public ArgumentParseNode arg_var(Rope rope) {
-        String name = rope.getString().intern();
+        return arg_var(rope.getString());
+    }
+
+    @SuppressFBWarnings("ES")
+    public ArgumentParseNode arg_var(String string) {
+        String name = string.intern();
         StaticScope current = getCurrentScope();
 
         // Multiple _ arguments are allowed.  To not screw with tons of arity
@@ -1744,7 +1766,7 @@ public class ParserSupport {
     }
 
     public ParseNode new_defined(SourceIndexLength position, ParseNode something) {
-        return new DefinedParseNode(position, something);
+        return new DefinedParseNode(position, makeNullNil(something));
     }
 
     public static final Rope INTERNAL_ID = RopeConstants.EMPTY_US_ASCII_ROPE;

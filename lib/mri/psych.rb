@@ -10,12 +10,7 @@ when 'jruby'
     org.jruby.ext.psych.PsychLibrary.new.load(JRuby.runtime, false)
   end
 else
-  # TruffleRuby: avoid requiring a non-existing file, which would trigger loading RubyGems
-  # begin
-  #   require "#{RUBY_VERSION[/\d+\.\d+/]}/psych.so"
-  # rescue LoadError
-    require 'psych.so'
-  # end
+  require 'psych.so'
 end
 require 'psych/nodes'
 require 'psych/streaming'
@@ -268,6 +263,10 @@ module Psych
   #   Psych.load("---\n foo: bar", symbolize_names: true)  # => {:foo=>"bar"}
   #
   # Raises a TypeError when `yaml` parameter is NilClass
+  #
+  # NOTE: This method *should not* be used to parse untrusted documents, such as
+  # YAML documents that are supplied via user input.  Instead, please use the
+  # safe_load method.
   #
   def self.load yaml, legacy_filename = NOT_GIVEN, filename: nil, fallback: false, symbolize_names: false
     if legacy_filename != NOT_GIVEN

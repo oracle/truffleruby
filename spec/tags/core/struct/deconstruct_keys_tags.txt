@@ -1,0 +1,8 @@
+fails:Struct#deconstruct_keys returns a hash of attributes
+fails:Struct#deconstruct_keys requires one argument
+fails:Struct#deconstruct_keys returns only specified keys
+fails:Struct#deconstruct_keys accepts string attribute names
+fails:Struct#deconstruct_keys accepts argument position number as well but returns them as keys
+fails:Struct#deconstruct_keys ignores not existing attribute names
+fails:Struct#deconstruct_keys accepts nil argument and return all the attributes
+fails:Struct#deconstruct_keys raise TypeError if passed anything accept nil or array

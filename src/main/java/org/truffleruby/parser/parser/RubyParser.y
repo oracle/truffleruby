@@ -12,7 +12,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.RubyWarnings;
-import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -55,6 +54,7 @@ import org.truffleruby.parser.ast.IterParseNode;
 import org.truffleruby.parser.ast.LambdaParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LiteralParseNode;
+import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ModuleParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
 import org.truffleruby.parser.ast.NextParseNode;
@@ -79,6 +79,7 @@ import org.truffleruby.parser.ast.RetryParseNode;
 import org.truffleruby.parser.ast.ReturnParseNode;
 import org.truffleruby.parser.ast.SClassParseNode;
 import org.truffleruby.parser.ast.SelfParseNode;
+import org.truffleruby.parser.ast.SplatParseNode;
 import org.truffleruby.parser.ast.StarParseNode;
 import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.ast.TrueParseNode;
@@ -151,6 +152,7 @@ public class RubyParser {
 %token <Rope> tMATCH tNMATCH /* =~ and !~ */
 %token <Rope> tDOT           /* Is just '.' in ruby and not a token */
 %token <Rope> tDOT2 tDOT3    /* .. and ... */
+%token <Rope> tBDOT2 tBDOT3    /* (.. and (... */
 %token <Rope> tAREF tASET    /* [] and []= */
 %token <Rope> tLSHFT tRSHFT  /* << and >> */
 %token <Rope> tANDDOT        /* &. */
@@ -246,7 +248,8 @@ public class RubyParser {
 %token <Rope> tQSYMBOLS_BEG
 %token <Rope> tDSTAR
 %token <Rope> tSTRING_DEND
-%type <Rope> kwrest_mark f_kwrest f_label 
+%type <Rope> kwrest_mark f_kwrest f_label
+%type <Rope> args_forward
 %type <Rope> call_op call_op2
 %type <ArgumentParseNode> f_arg_asgn
 %type <FCallParseNode> fcall
@@ -267,7 +270,7 @@ public class RubyParser {
 %right '=' tOP_ASGN
 %left modifier_rescue
 %right '?' ':'
-%nonassoc tDOT2 tDOT3
+%nonassoc tDOT2 tDOT3 tBDOT2 tBDOT3
 %left  tOROP
 %left  tANDOP
 %nonassoc  tCMP tEQ tEQQ tNEQ tMATCH tNMATCH
@@ -1137,6 +1140,12 @@ arg             : lhs '=' arg_rhs {
                     boolean isLiteral = $1 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, false, isLiteral);
                 }
+                | tBDOT2 arg {
+                    value_expr(lexer, $2);
+
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($2), NilImplicitParseNode.NIL, support.makeNullNil($2), false, isLiteral);
+                }
                 | arg tDOT3 arg {
                     value_expr(lexer, $1);
                     value_expr(lexer, $3);
@@ -1149,6 +1158,12 @@ arg             : lhs '=' arg_rhs {
 
                     boolean isLiteral = $1 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, true, isLiteral);
+                }
+                | tBDOT3 arg {
+                    value_expr(lexer, $2);
+
+                    boolean isLiteral = $2 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($2), NilImplicitParseNode.NIL, support.makeNullNil($2), true, isLiteral);
                 }
                 | arg tPLUS arg {
                     $$ = support.getOperatorCallNode($1, $2, $3, lexer.getPosition());
@@ -1291,6 +1306,13 @@ arg_rhs         : arg %prec tOP_ASGN {
 paren_args      : tLPAREN2 opt_call_args rparen {
                     $$ = $2;
                     if ($$ != null) $<ParseNode>$.setPosition($1);
+                }
+                | tLPAREN2 args_forward rparen {
+                    SourceIndexLength position = support.getPosition(null);
+                    // NOTE(norswap, 06 Nov 2020): location (0) arg is unused
+                    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+                    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
+                    $$ = support.arg_blk_pass(splat, block);
                 }
 
 opt_paren_args  : none | paren_args
@@ -1724,6 +1746,9 @@ block_args_tail : f_block_kwarg ',' f_kwrest opt_f_block_arg {
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
                 }
+                | f_no_kwarg opt_f_block_arg {
+                    $$ = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, $2);
+                }
                 | f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
                 }
@@ -1752,7 +1777,7 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, null, $3, null, $4);
                 }
                 | f_arg ',' {
-                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "anon_rest", support.getCurrentScope().addVariable("*"), false);
+                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), ParserSupport.ANONYMOUS_REST_VAR, support.getCurrentScope().addVariable("*"), false);
                     $$ = support.new_args($1.getPosition(), $1, null, rest, null, (ArgsTailHolder) null);
                 }
                 | f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail {
@@ -2371,6 +2396,9 @@ args_tail       : f_kwarg ',' f_kwrest opt_f_block_arg {
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
                 }
+                | f_no_kwarg opt_f_block_arg {
+                    $$ = support.new_args_tail(lexer.getPosition(), null, RubyLexer.Keyword.NIL.bytes, $2);
+                }
                 | f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
                 }
@@ -2425,9 +2453,18 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                 | args_tail {
                     $$ = support.new_args($1.getPosition(), null, null, null, null, $1);
                 }
+                | args_forward {
+                    SourceIndexLength position = support.getPosition(null);
+                    RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
+                    BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+                    $$ = support.new_args(position, null, null, splat, null, argsTail);
+                }
                 | /* none */ {
                     $$ = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
                 }
+
+args_forward    : tBDOT3
 
 f_bad_arg       : tCONSTANT {
                     support.yyerror("formal argument cannot be a constant");
@@ -2527,6 +2564,9 @@ kwrest_mark     : tPOW {
                     $$ = $1;
                 }
 
+f_no_kwarg      : kwrest_mark keyword_nil
+                ;
+
 f_kwrest        : kwrest_mark tIDENTIFIER {
                     support.shadowing_lvar($2);
                     $$ = $2;
@@ -2576,7 +2616,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                 }
                 | restarg_mark {
   // FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).
-  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "rest", support.getCurrentScope().addVariable("*"), true);
+  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), ParserSupport.UNNAMED_REST_VAR, support.getCurrentScope().addVariable("*"), true);
                 }
 
 // [!null]

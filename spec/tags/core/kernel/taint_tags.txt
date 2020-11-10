@@ -1,0 +1,2 @@
+fails:Kernel#taint is a no-op
+fails:Kernel#taint warns in verbose mode

@@ -409,13 +409,7 @@ suite = {
                     "file:mx.truffleruby/native-image.properties",
                 ],
                 "bin/": [
-                    "file:bin/bundle",
-                    "file:bin/bundler",
-                    "file:bin/gem",
-                    "file:bin/irb",
-                    "file:bin/rake",
-                    "file:bin/rdoc",
-                    "file:bin/ri",
+                    "file:bin/*",
                 ],
                 "doc/": [
                     "file:doc/user",

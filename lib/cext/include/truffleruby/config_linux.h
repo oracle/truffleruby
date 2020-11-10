@@ -56,9 +56,8 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
-#define HAVE_GMP_H 1
-#define HAVE_LIBGMP 1
 #define HAVE_TYPEOF 1
+#define restrict __restrict
 #define HAVE_LONG_LONG 1
 #define HAVE_OFF_T 1
 #define SIZEOF_INT 4
@@ -152,6 +151,7 @@
 #define MAYBE_UNUSED(x) __attribute__ ((__unused__)) x
 #define WEAK(x) __attribute__ ((__weak__)) x
 #define HAVE_FUNC_WEAK 1
+#define RUBY_CXX_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #define FUNC_CDECL(x) __attribute__ ((__cdecl__)) x
 #define HAVE_ATTRIBUTE_FUNCTION_ALIAS 1
 #define RUBY_ALIAS_FUNCTION_TYPE(type, prot, name, args) type prot __attribute__((alias(#name)));
@@ -160,6 +160,7 @@
 #define HAVE_GCC_SYNC_BUILTINS 1
 #define UNREACHABLE __builtin_unreachable()
 #define RUBY_FUNC_EXPORTED __attribute__ ((__visibility__("default"))) extern
+#define RUBY_FUNC_NONNULL(n,x) __attribute__ ((__nonnull__(n))) x
 #define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1
 #define HAVE_DECL_SYS_NERR 1
@@ -180,6 +181,7 @@
 #define HAVE_STRUCT_STAT_ST_ATIM 1
 #define HAVE_STRUCT_STAT_ST_MTIM 1
 #define HAVE_STRUCT_STAT_ST_CTIM 1
+#define HAVE_STRUCT_STATX_STX_BTIME 1
 #define HAVE_STRUCT_TIMEVAL 1
 #define SIZEOF_STRUCT_TIMEVAL_TV_SEC SIZEOF_TIME_T
 #define HAVE_STRUCT_TIMESPEC 1
@@ -225,11 +227,8 @@
 #define HAVE_ERF 1
 #define HAVE_EXPLICIT_BZERO 1
 #define HAVE_FFS 1
-#define HAVE_FINITE 1
 #define HAVE_FLOCK 1
 #define HAVE_HYPOT 1
-#define HAVE_ISINF 1
-#define HAVE_ISNAN 1
 #define HAVE_LGAMMA_R 1
 #define HAVE_MEMMOVE 1
 #define HAVE_NAN 1
@@ -238,6 +237,9 @@
 #define HAVE_STRERROR 1
 #define HAVE_STRSTR 1
 #define HAVE_TGAMMA 1
+#define HAVE_FINITE 1
+#define HAVE_ISINF 1
+#define HAVE_ISNAN 1
 #define SPT_TYPE SPT_REUSEARGV
 #define HAVE_SIGNBIT 1
 #define HAVE_FORK 1
@@ -249,6 +251,7 @@
 #define HAVE_ATAN2F 1
 #define HAVE_CHROOT 1
 #define HAVE_CLOCK_GETTIME 1
+#define HAVE_COPY_FILE_RANGE 1
 #define HAVE_COSH 1
 #define HAVE_CRYPT_R 1
 #define HAVE_DIRFD 1
@@ -278,6 +281,7 @@
 #define HAVE_GETPGRP 1
 #define HAVE_GETPRIORITY 1
 #define HAVE_GETPWNAM_R 1
+#define HAVE_GETRANDOM 1
 #define HAVE_GETRESGID 1
 #define HAVE_GETRESUID 1
 #define HAVE_GETRLIMIT 1
@@ -314,6 +318,7 @@
 #define HAVE_PWRITE 1
 #define HAVE_QSORT_R 1
 #define HAVE_READLINK 1
+#define HAVE_REALPATH 1
 #define HAVE_ROUND 1
 #define HAVE_SCHED_GETAFFINITY 1
 #define HAVE_SEEKDIR 1
@@ -351,6 +356,7 @@
 #define HAVE_UTIMES 1
 #define HAVE_WAIT4 1
 #define HAVE_WAITPID 1
+#define HAVE_STATX 1
 #define HAVE_CRYPT_H 1
 #define HAVE_STRUCT_CRYPT_DATA_INITIALIZED 1
 #define HAVE_BUILTIN___BUILTIN_ALLOCA_WITH_ALIGN 1
@@ -390,7 +396,7 @@
 #define RSHIFT(x,y) ((x)>>(int)(y))
 #define HAVE__SC_CLK_TCK 1
 #define STACK_GROW_DIRECTION -1
-#define FIBER_USE_COROUTINE "coroutine/amd64/Context.h"
+#define COROUTINE_H "coroutine/amd64/Context.h"
 #define _REENTRANT 1
 #define _THREAD_SAFE 1
 #define HAVE_LIBPTHREAD 1
@@ -416,7 +422,6 @@
 #define HAVE__SETJMP 1
 #define RUBY_SETJMP(env) __builtin_setjmp((void **)(env))
 #define RUBY_LONGJMP(env,val) __builtin_longjmp((void **)(env),val)
-#define RUBY_JMP_BUF jmp_buf
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
 #define RUBY_PLATFORM "x86_64-linux"

@@ -6,6 +6,7 @@ end
 require 'minitest/unit'
 require 'test/unit/assertions'
 require_relative '../envutil'
+require_relative '../colorize'
 require 'test/unit/testcase'
 require 'optparse'
 
@@ -194,10 +195,10 @@ module Test
 
       class Worker
         def self.launch(ruby,args=[])
-          scale = EnvUtil.subprocess_timeout_scale
+          scale = EnvUtil.timeout_scale
           io = IO.popen([*ruby, "-W1",
                         "#{File.dirname(__FILE__)}/unit/parallel.rb",
-                        *("--subprocess-timeout-scale=#{scale}" if scale),
+                        *("--timeout-scale=#{scale}" if scale),
                         *args], "rb+")
           new(io, io.pid, :waiting)
         end
@@ -256,6 +257,8 @@ module Test
           return if @io.closed?
           @quit_called = true
           @io.puts "quit"
+        rescue Errno::EPIPE => e
+          warn "#{@pid}:#{@status.to_s.ljust(7)}:#{@file}: #{e.message}"
         end
 
         def kill
@@ -705,26 +708,11 @@ module Test
         when :always
           color = true
         when :auto, nil
-          color = (@tty || @options[:job_status] == :replace) && /dumb/ !~ ENV["TERM"]
+          color = true if @tty || @options[:job_status] == :replace
         else
           color = false
         end
-        if color
-          # dircolors-like style
-          colors = (colors = ENV['TEST_COLORS']) ? Hash[colors.scan(/(\w+)=([^:\n]*)/)] : {}
-          begin
-            File.read(File.join(__dir__, "../../colors")).scan(/(\w+)=([^:\n]*)/) do |n, c|
-              colors[n] ||= c
-            end
-          rescue
-          end
-          @passed_color = "\e[;#{colors["pass"] || "32"}m"
-          @failed_color = "\e[;#{colors["fail"] || "31"}m"
-          @skipped_color = "\e[;#{colors["skip"] || "33"}m"
-          @reset_color = "\e[m"
-        else
-          @passed_color = @failed_color = @skipped_color = @reset_color = ""
-        end
+        @colorize = Colorize.new(color, colors_file: File.join(__dir__, "../../colors"))
         if color or @options[:job_status] == :replace
           @verbose = !options[:parallel]
         end
@@ -748,9 +736,7 @@ module Test
       def update_status(s)
         count = @test_count.to_s(10).rjust(@total_tests.size)
         del_status_line(false)
-        print(@passed_color)
-        add_status("[#{count}/#{@total_tests}]")
-        print(@reset_color)
+        add_status(@colorize.pass("[#{count}/#{@total_tests}]"))
         add_status(" #{s}")
         $stdout.print "\r" if @options[:job_status] == :replace and !@verbose
         $stdout.flush
@@ -769,14 +755,13 @@ module Test
               del_status_line
               next
             end
-            color = @skipped_color
+            color = :skip
           else
-            color = @failed_color
+            color = :fail
           end
-          msg = msg.split(/$/, 2)
-          $stdout.printf("%s%s%3d) %s%s%s\n",
-                         sep, color, @report_count += 1,
-                         msg[0], @reset_color, msg[1])
+          first, msg = msg.split(/$/, 2)
+          first = sprintf("%3d) %s", @report_count += 1, first)
+          $stdout.print(sep, @colorize.decorate(first, color), msg, "\n")
           sep = nil
         end
         report.clear
@@ -871,12 +856,25 @@ module Test
       def setup_options(parser, options)
         super
         parser.separator "globbing options:"
-        parser.on '-b', '--basedir=DIR', 'Base directory of test suites.' do |dir|
+        parser.on '-B', '--base-directory DIR', 'Base directory to glob.' do |dir|
+          raise OptionParser::InvalidArgument, "not a directory: #{dir}" unless File.directory?(dir)
           options[:base_directory] = dir
         end
         parser.on '-x', '--exclude REGEXP', 'Exclude test files on pattern.' do |pattern|
           (options[:reject] ||= []) << pattern
         end
+      end
+
+      def complement_test_name f, orig_f
+        basename = File.basename(f)
+
+        if /\.rb\z/ !~ basename
+          return File.join(File.dirname(f), basename+'.rb')
+        elsif /\Atest_/ !~ basename
+          return File.join(File.dirname(f), 'test_'+basename)
+        end if f.end_with?(basename) # otherwise basename is dirname/
+
+        raise ArgumentError, "file not found: #{orig_f}"
       end
 
       def non_options(files, options)
@@ -886,43 +884,53 @@ module Test
         end
         files.map! {|f|
           f = f.tr(File::ALT_SEPARATOR, File::SEPARATOR) if File::ALT_SEPARATOR
-          ((paths if /\A\.\.?(?:\z|\/)/ !~ f) || [nil]).any? do |prefix|
-            if prefix
-              path = f.empty? ? prefix : "#{prefix}/#{f}"
-            else
-              next if f.empty?
-              path = f
-            end
-            if f.end_with?(File::SEPARATOR) or !f.include?(File::SEPARATOR) or File.directory?(path)
-              match = (Dir["#{path}/**/#{@@testfile_prefix}_*.rb"] + Dir["#{path}/**/*_#{@@testfile_suffix}.rb"]).uniq
-            else
-              match = Dir[path]
-            end
-            if !match.empty?
-              if reject
-                match.reject! {|n|
-                  n = n[(prefix.length+1)..-1] if prefix
-                  reject_pat =~ n
-                }
+          orig_f = f
+          while true
+            ret = ((paths if /\A\.\.?(?:\z|\/)/ !~ f) || [nil]).any? do |prefix|
+              if prefix
+                path = f.empty? ? prefix : "#{prefix}/#{f}"
+              else
+                next if f.empty?
+                path = f
               end
-              break match
-            elsif !reject or reject_pat !~ f and File.exist? path
-              break path
+              if f.end_with?(File::SEPARATOR) or !f.include?(File::SEPARATOR) or File.directory?(path)
+                match = (Dir["#{path}/**/#{@@testfile_prefix}_*.rb"] + Dir["#{path}/**/*_#{@@testfile_suffix}.rb"]).uniq
+              else
+                match = Dir[path]
+              end
+              if !match.empty?
+                if reject
+                  match.reject! {|n|
+                    n = n[(prefix.length+1)..-1] if prefix
+                    reject_pat =~ n
+                  }
+                end
+                break match
+              elsif !reject or reject_pat !~ f and File.exist? path
+                break path
+              end
             end
-          end or
-            raise ArgumentError, "file not found: #{f}"
+            if !ret
+              f = complement_test_name(f, orig_f)
+            else
+              break ret
+            end
+          end
         }
         files.flatten!
         super(files, options)
       end
     end
 
-    module GCStressOption # :nodoc: all
+    module GCOption # :nodoc: all
       def setup_options(parser, options)
         super
         parser.separator "GC options:"
         parser.on '--[no-]gc-stress', 'Set GC.stress as true' do |flag|
           options[:gc_stress] = flag
+        end
+        parser.on '--[no-]gc-compact', 'GC.compact every time' do |flag|
+          options[:gc_compact] = flag
         end
       end
 
@@ -933,9 +941,21 @@ module Test
             define_method(:run) do |runner|
               begin
                 gc_stress, GC.stress = GC.stress, true
-                oldrun.bind(self).call(runner)
+                oldrun.bind_call(self, runner)
               ensure
                 GC.stress = gc_stress
+              end
+            end
+          end
+        end
+        if options.delete(:gc_compact)
+          MiniTest::Unit::TestCase.class_eval do
+            oldrun = instance_method(:run)
+            define_method(:run) do |runner|
+              begin
+                oldrun.bind_call(self, runner)
+              ensure
+                GC.compact
               end
             end
           end
@@ -1046,11 +1066,11 @@ module Test
       end
     end
 
-    module SubprocessOption
+    module TimeoutOption
       def setup_options(parser, options)
         super
-        parser.separator "subprocess options:"
-        parser.on '--subprocess-timeout-scale NUM', "Scale subprocess timeout", Float do |scale|
+        parser.separator "timeout options:"
+        parser.on '--timeout-scale NUM', '--subprocess-timeout-scale NUM', "Scale timeout", Float do |scale|
           raise OptionParser::InvalidArgument, "timeout scale must be positive" unless scale > 0
           options[:timeout_scale] = scale
         end
@@ -1058,8 +1078,9 @@ module Test
 
       def non_options(files, options)
         if scale = options[:timeout_scale] or
-          (scale = ENV["RUBY_TEST_SUBPROCESS_TIMEOUT_SCALE"] and (scale = scale.to_f) > 0)
-          EnvUtil.subprocess_timeout_scale = scale
+          (scale = ENV["RUBY_TEST_TIMEOUT_SCALE"] || ENV["RUBY_TEST_SUBPROCESS_TIMEOUT_SCALE"] and
+           (scale = scale.to_f) > 0)
+          EnvUtil.timeout_scale = scale
         end
         super
       end
@@ -1074,10 +1095,18 @@ module Test
       include Test::Unit::GlobOption
       include Test::Unit::RepeatOption
       include Test::Unit::LoadPathOption
-      include Test::Unit::GCStressOption
+      include Test::Unit::GCOption
       include Test::Unit::ExcludesOption
-      include Test::Unit::SubprocessOption
+      include Test::Unit::TimeoutOption
       include Test::Unit::RunCount
+
+      def run(argv)
+        super
+      rescue NoMemoryError
+        system("cat /proc/meminfo") if File.exist?("/proc/meminfo")
+        system("ps x -opid,args,%cpu,%mem,nlwp,rss,vsz,wchan,stat,start,time,etime,blocked,caught,ignored,pending,f") if File.exist?("/bin/ps")
+        raise
+      end
 
       class << self; undef autorun; end
 
@@ -1118,10 +1147,11 @@ module Test
       def initialize(force_standalone = false, default_dir = nil, argv = ARGV)
         @force_standalone = force_standalone
         @runner = Runner.new do |files, options|
-          options[:base_directory] ||= default_dir
+          base = options[:base_directory] ||= default_dir
           files << default_dir if files.empty? and default_dir
           @to_run = files
           yield self if block_given?
+          $LOAD_PATH.unshift base if base
           files
         end
         Runner.runner = @runner

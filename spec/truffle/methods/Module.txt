@@ -23,6 +23,7 @@ const_defined?
 const_get
 const_missing
 const_set
+const_source_location
 constants
 define_method
 deprecate_constant

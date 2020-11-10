@@ -8,29 +8,6 @@ module Fiddle
   class TestHandle < TestCase
     include Fiddle
 
-    def test_safe_handle_open
-      Thread.new do
-        $SAFE = 1
-        assert_raise(SecurityError) {
-          Fiddle::Handle.new(LIBC_SO.dup.taint)
-        }
-      end.join
-    ensure
-      $SAFE = 0
-    end
-
-    def test_safe_function_lookup
-      Thread.new do
-        h = Fiddle::Handle.new(LIBC_SO)
-        $SAFE = 1
-        assert_raise(SecurityError) {
-          h["qsort".dup.taint]
-        }
-      end.join
-    ensure
-      $SAFE = 0
-    end
-
     def test_to_i
       handle = Fiddle::Handle.new(LIBC_SO)
       assert_kind_of Integer, handle.to_i
@@ -52,7 +29,7 @@ module Fiddle
 
       begin
         # NetBSD
-        require '-test-/dln/empty'
+        # require '-test-/dln/empty'
         refute_nil Fiddle::Handle.sym('Init_empty')
         assert_equal Fiddle::Handle.sym('Init_empty'), Fiddle::Handle['Init_empty']
         return
@@ -159,7 +136,7 @@ module Fiddle
         # interface, below, should be used, since getpid() is a function and not a
         # data object.)
         # --- FreeBSD 8.0 dlsym(3)
-        require '-test-/dln/empty'
+        # require '-test-/dln/empty'
         handle = Handle::NEXT
         refute_nil handle['Init_empty']
         return

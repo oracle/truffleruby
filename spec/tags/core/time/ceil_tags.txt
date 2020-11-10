@@ -1,0 +1,7 @@
+fails:Time#ceil defaults to ceiling to 0 places
+fails:Time#ceil ceils to 0 decimal places with an explicit argument
+fails:Time#ceil ceils to 2 decimal places with an explicit argument
+fails:Time#ceil ceils to 4 decimal places with an explicit argument
+fails:Time#ceil ceils to 7 decimal places with an explicit argument
+fails:Time#ceil returns an instance of Time, even if #ceil is called on a subclass
+fails:Time#ceil copies own timezone to the returning value

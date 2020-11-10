@@ -20,6 +20,26 @@
 #define STR_EMBED_P(str)      (str, false)
 #define STR_SHARED_P(str)     (str, false)
 
+static inline
+unsigned int nlz_long(unsigned long x) {
+#if defined(HAVE_BUILTIN___BUILTIN_CLZL)
+    if (x == 0) return SIZEOF_LONG * CHAR_BIT;
+    return (unsigned int)__builtin_clzl(x);
+#else
+    #error no __builtin_clzl
+#endif
+}
+
+static inline
+unsigned int nlz_intptr(uintptr_t x) {
+#if SIZEOF_UINTPTR_T == SIZEOF_LONG
+    return nlz_long(x);
+#else
+    #error no known integer type corresponds uintptr_t
+    return /* sane compiler */ ~0;
+#endif
+}
+
 VALUE rb_hash_key_str(VALUE);
 VALUE rb_hash_keys(VALUE hash);
 VALUE rb_hash_delete_entry(VALUE hash, VALUE key);
@@ -45,22 +65,29 @@ typedef struct rb_imemo_tmpbuf_struct {
     size_t cnt; /* buffer size in VALUE */
 } rb_imemo_tmpbuf_t;
 
-VALUE rb_imemo_tmpbuf_auto_free_pointer(void *buf);
+#define rb_imemo_tmpbuf_auto_free_pointer() rb_imemo_new(imemo_tmpbuf, 0, 0, 0, 0)
 rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt);
+
+static inline
+void* rb_imemo_tmpbuf_set_ptr(VALUE v, void *ptr) {
+    return ((rb_imemo_tmpbuf_t *)v)->ptr = ptr;
+}
 
 #if defined(HAVE_MALLOC_USABLE_SIZE) || defined(HAVE_MALLOC_SIZE) || defined(_WIN32)
 #define ruby_sized_xrealloc(ptr, new_size, old_size) ruby_xrealloc(ptr, new_size)
-#define ruby_sized_xrealloc2(ptr, new_count, element_size, old_count) ruby_xrealloc(ptr, new_count, element_size)
+#define ruby_sized_xrealloc2(ptr, new_count, element_size, old_count) ruby_xrealloc2(ptr, new_count, element_size)
 #define ruby_sized_xfree(ptr, size) ruby_xfree(ptr)
 #define SIZED_REALLOC_N(var,type,n,old_n) REALLOC_N(var, type, n)
 #else
 RUBY_SYMBOL_EXPORT_BEGIN
-void *ruby_sized_xrealloc(void *ptr, size_t new_size, size_t old_size) RUBY_ATTR_ALLOC_SIZE((2));
-void *ruby_sized_xrealloc2(void *ptr, size_t new_count, size_t element_size, size_t old_count) RUBY_ATTR_ALLOC_SIZE((2, 3));
+void *ruby_sized_xrealloc(void *ptr, size_t new_size, size_t old_size) RUBY_ATTR_RETURNS_NONNULL RUBY_ATTR_ALLOC_SIZE((2));
+void *ruby_sized_xrealloc2(void *ptr, size_t new_count, size_t element_size, size_t old_count) RUBY_ATTR_RETURNS_NONNULL RUBY_ATTR_ALLOC_SIZE((2, 3));
 void ruby_sized_xfree(void *x, size_t size);
 RUBY_SYMBOL_EXPORT_END
-#define SIZED_REALLOC_N(var,type,n,old_n) ((var)=(type*)ruby_sized_xrealloc((char*)(var), (n) * sizeof(type), (old_n) * sizeof(type)))
+#define SIZED_REALLOC_N(var,type,n,old_n) ((var)=(type*)ruby_sized_xrealloc2((void*)(var), (n), sizeof(type), (old_n)))
 #endif
+
+void *rb_xmalloc_mul_add(size_t, size_t, size_t) RUBY_ATTR_MALLOC;
 
 #ifndef IMEMO_DEBUG
 #define IMEMO_DEBUG 0
@@ -180,10 +207,25 @@ PRINTF_ARGS(void rb_sys_enc_warning(rb_encoding *enc, const char *fmt, ...), 2, 
 PRINTF_ARGS(void rb_syserr_enc_warning(int err, rb_encoding *enc, const char *fmt, ...), 3, 4);
 #endif
 
+typedef enum {
+    RB_WARN_CATEGORY_NONE,
+    RB_WARN_CATEGORY_DEPRECATED,
+    RB_WARN_CATEGORY_EXPERIMENTAL,
+    RB_WARN_CATEGORY_ALL_BITS = 0x6, /* no RB_WARN_CATEGORY_NONE bit */
+} rb_warning_category_t;
+rb_warning_category_t rb_warning_category_from_name(VALUE category);
+bool rb_warning_category_enabled_p(rb_warning_category_t category);
+
 /* symbol.c */
 VALUE rb_sym_intern_ascii_cstr(const char *ptr);
 
 /* thread.c */
 VALUE rb_suppress_tracing(VALUE (*func)(VALUE), VALUE arg);
+
+/* vm.c */
+VALUE rb_source_location(int *pline);
+
+/* io.c (export) */
+void rb_write_error_str(VALUE mesg);
 
 #endif /* RUBY_INTERNAL_H */

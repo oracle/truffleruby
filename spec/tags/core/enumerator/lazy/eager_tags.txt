@@ -1,0 +1,2 @@
+fails:Enumerator::Lazy#eager returns a non-lazy Enumerator converted from the lazy enumerator
+fails:Enumerator::Lazy#eager does not enumerate an enumerator

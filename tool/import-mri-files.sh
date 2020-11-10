@@ -33,11 +33,8 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-# Uses TracePoint.new(:call), and we have a more efficient --cpusampler
-rm lib/mri/profiler.rb
 # Uses RubyVM
 rm lib/mri/debug.rb
-rm lib/mri/profile.rb
 # Files not actually installed in MRI
 find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
@@ -91,7 +88,10 @@ find test/mri/tests/cext-ruby -name '*.rb' -print0 | xargs -0 -n 1 sed -i.backup
 find test/mri/tests/cext-ruby -name '*.backup' -delete
 rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
-git checkout -- test/mri/tests/runner.rb
+
+# Copy from tool/lib to test/lib
+cp -r ../ruby/tool/lib/* test/mri/tests/lib
+rm -f test/mri/tests/lib/leakchecker.rb
 
 # basictest/ and bootstraptest/
 rm -rf test/basictest

@@ -18,6 +18,11 @@ VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
   return RUBY_CEXT_INVOKE("rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
+VALUE rb_funcallv_kw(VALUE object, ID name, int args_count, const VALUE *args, int kw_splat) {
+  // Ignoring kw_splat for now
+  return rb_funcallv(object, name, args_count, args);
+}
+
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {
   return RUBY_CEXT_INVOKE("rb_funcallv_public", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
@@ -96,12 +101,12 @@ VALUE rb_yield_values2(int n, const VALUE *argv) {
   return rb_yield_splat(values);
 }
 
-void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
+void *rb_thread_call_with_gvl(gvl_call *function, void *data1) {
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_with_gvl", function, data1);
 }
 
 struct gvl_call_data {
-  gvl_call function;
+  gvl_call *function;
   void* data;
 };
 
@@ -120,7 +125,7 @@ static void call_unblock_function(void *data) {
   s->function(s->data);
 }
 
-void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
+void* rb_thread_call_without_gvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   // wrap functions to handle native functions
   struct gvl_call_data call_struct = { function, data1 };
   struct unblock_function_data unblock_struct = { unblock_function, data2 };
@@ -135,6 +140,14 @@ void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_func
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl",
     call_gvl_call_function, &call_struct,
     wrapped_unblock_function, &unblock_struct);
+}
+
+void* rb_thread_call_without_gvl2(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
+  return rb_thread_call_without_gvl(function, data1, unblock_function, data2);
+}
+
+void* rb_nogvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2, int flags) {
+  return rb_thread_call_without_gvl(function, data1, unblock_function, data2);
 }
 
 ID rb_frame_this_func(void) {

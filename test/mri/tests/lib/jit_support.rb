@@ -3,15 +3,18 @@ require 'rbconfig'
 module JITSupport
   JIT_TIMEOUT = 600 # 10min for each...
   JIT_SUCCESS_PREFIX = 'JIT success \(\d+\.\dms\)'
+  JIT_COMPACTION_PREFIX = 'JIT compaction \(\d+\.\dms\)'
   UNSUPPORTED_COMPILERS = [
-    %r[\A.*/bin/intel64/icc\b],
+    %r[\A/opt/intel/.*/bin/intel64/icc\b],
     %r[\A/opt/developerstudio\d+\.\d+/bin/cc\z],
   ]
   # freebsd12: cc1 internal failure https://rubyci.org/logs/rubyci.s3.amazonaws.com/freebsd12/ruby-master/log/20200306T103003Z.fail.html.gz
   # rhel8: one or more PCH files were found, but they were invalid https://rubyci.org/logs/rubyci.s3.amazonaws.com/rhel8/ruby-master/log/20200306T153003Z.fail.html.gz
+  # centos8: ditto https://rubyci.org/logs/rubyci.s3.amazonaws.com/centos8/ruby-master/log/20200512T003004Z.fail.html.gz
   PENDING_RUBYCI_NICKNAMES = %w[
     freebsd12
     rhel8
+    centos8
   ]
 
   module_function
@@ -35,6 +38,7 @@ module JITSupport
     ]
     args << '--jit-wait' if wait
     args << '--jit-save-temps' if save_temps
+    args << '--jit-debug' if defined?(@jit_debug) && @jit_debug
     args << '-e' << script
     base_env = { 'MJIT_SEARCH_BUILD_DIR' => 'true' } # workaround to skip requiring `make install` for `make test-all`
     if preloadenv = RbConfig::CONFIG['PRELOADENV'] and !preloadenv.empty?

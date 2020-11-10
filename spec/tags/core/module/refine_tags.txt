@@ -1,1 +1,2 @@
 slow:Module#refine method lookup looks in the included modules for builtin methods
+fails:Module#refine for methods accessed indirectly is honored by Kernel#method

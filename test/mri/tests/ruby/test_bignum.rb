@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require 'test/unit'
 begin
-  require '-test-/integer'
+  # require '-test-/integer'
 rescue LoadError
 else
 
@@ -10,7 +10,6 @@ class TestBignum < Test::Unit::TestCase
   FIXNUM_MAX = RbConfig::LIMITS['FIXNUM_MAX']
 
   BIGNUM_MIN = FIXNUM_MAX + 1
-  b = BIGNUM_MIN
 
   f = BIGNUM_MIN
   n = 0
@@ -612,7 +611,6 @@ class TestBignum < Test::Unit::TestCase
       return # GMP doesn't support interrupt during an operation.
     end
     time = Time.now
-    start_flag = false
     end_flag = false
     num = (65536 ** 65536)
     q = Queue.new

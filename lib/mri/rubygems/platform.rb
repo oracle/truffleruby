@@ -106,7 +106,7 @@ class Gem::Platform
                       when /^dalvik(\d+)?$/ then        [ 'dalvik',    $1  ]
                       when /^dotnet$/ then              [ 'dotnet',    nil ]
                       when /^dotnet([\d.]*)/ then       [ 'dotnet',    $1  ]
-                      when /linux/ then                 [ 'linux',     $1  ]
+                      when /linux-?((?!gnu)\w+)?/ then  [ 'linux',     $1  ]
                       when /mingw32/ then               [ 'mingw32',   nil ]
                       when /(mswin\d+)(\_(\d+))?/ then
                         os, version = $1, $3
@@ -220,4 +220,5 @@ class Gem::Platform
   # This will be replaced with Gem::Platform::local.
 
   CURRENT = 'current'.freeze
+
 end

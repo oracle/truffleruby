@@ -64,3 +64,15 @@ slow:The launcher runtime configuration flags should recognize ruby --vm options
 slow:The launcher runtime configuration flags uses --native by default
 slow:The launcher runtime configuration flags switches to JVM with --jvm as a Ruby argument
 slow:The launcher runtime configuration flags keeps --jvm as an application argument if given as an application argument
+slow:The launcher runs erb as an -S command
+slow:The launcher runs racc as an -S command
+slow:The launcher runs racc2y as an -S command
+slow:The launcher runs y2racc as an -S command
+slow:The launcher supports running erb in any of the bin/ directories
+slow:The launcher supports running racc in any of the bin/ directories
+slow:The launcher supports running racc2y in any of the bin/ directories
+slow:The launcher supports running y2racc in any of the bin/ directories
+slow:The launcher supports running erb symlinked
+slow:The launcher supports running racc symlinked
+slow:The launcher supports running racc2y symlinked
+slow:The launcher supports running y2racc symlinked

@@ -26,7 +26,7 @@ dir_config("kerberos")
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
 
 unless defined?(::TruffleRuby) # Let it be lazily computed only if needed
-  # Add -Werror=deprecated-declarations to $warnflags if available
+  # Check with -Werror=deprecated-declarations if available
   OpenSSL.deprecated_warning_flag
 end
 
@@ -186,6 +186,7 @@ have_func("EVP_PBE_scrypt")
 Logging::message "=== Checking done. ===\n"
 
 create_header
+OpenSSL.restore_warning_flag
 
 ### END of checks
 end

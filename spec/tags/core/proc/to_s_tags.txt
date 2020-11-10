@@ -1,0 +1,3 @@
+fails:Proc#to_s for a proc created with Proc.new returns a description including file and line number
+fails:Proc#to_s for a proc created with lambda returns a description including '(lambda)' and including file and line number
+fails:Proc#to_s for a proc created with proc returns a description including file and line number

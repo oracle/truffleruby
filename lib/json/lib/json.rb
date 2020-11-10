@@ -55,10 +55,13 @@ require 'json/common'
 module JSON
   require 'json/version'
 
-  # TruffleRuby: we use the pure version at the moment, to avoid loading C extensions for JSON
-  #begin
-  #  require 'json/ext'
-  #rescue LoadError
+  begin
+    if defined?(::TruffleRuby)
+      require 'json/pure' # avoid the LoadError which would force loading RubyGems
+    else
+      require 'json/ext'
+    end
+  rescue LoadError
     require 'json/pure'
-  #end
+  end
 end

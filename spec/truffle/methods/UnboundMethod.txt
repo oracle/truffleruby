@@ -1,6 +1,7 @@
 ==
 arity
 bind
+bind_call
 clone
 eql?
 hash

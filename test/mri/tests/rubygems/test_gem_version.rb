@@ -148,14 +148,21 @@ class TestGemVersion < Gem::TestCase
   end
 
   def test_spaceship
-    assert_equal( 0, v("1.0")       <=> v("1.0.0"))
-    assert_equal( 1, v("1.0")       <=> v("1.0.a"))
-    assert_equal( 1, v("1.8.2")     <=> v("0.0.0"))
-    assert_equal( 1, v("1.8.2")     <=> v("1.8.2.a"))
-    assert_equal( 1, v("1.8.2.b")   <=> v("1.8.2.a"))
-    assert_equal(-1, v("1.8.2.a")   <=> v("1.8.2"))
-    assert_equal( 1, v("1.8.2.a10") <=> v("1.8.2.a9"))
-    assert_equal( 0, v("")          <=> v("0"))
+    assert_equal(0, v("1.0")       <=> v("1.0.0"))
+    assert_equal(1, v("1.0")       <=> v("1.0.a"))
+    assert_equal(1, v("1.8.2")     <=> v("0.0.0"))
+    assert_equal(1, v("1.8.2")     <=> v("1.8.2.a"))
+    assert_equal(1, v("1.8.2.b")   <=> v("1.8.2.a"))
+    assert_equal(-1, v("1.8.2.a") <=> v("1.8.2"))
+    assert_equal(1, v("1.8.2.a10") <=> v("1.8.2.a9"))
+    assert_equal(0, v("")          <=> v("0"))
+
+    assert_equal(0, v("0.beta.1")  <=> v("0.0.beta.1"))
+    assert_equal(-1, v("0.0.beta")  <=> v("0.0.beta.1"))
+    assert_equal(-1, v("0.0.beta")  <=> v("0.beta.1"))
+
+    assert_equal(-1, v("5.a") <=> v("5.0.0.rc2"))
+    assert_equal(1, v("5.x") <=> v("5.0.0.rc2"))
 
     assert_nil v("1.0") <=> "whatever"
   end
@@ -208,6 +215,13 @@ class TestGemVersion < Gem::TestCase
     assert_equal [1], v("1.0.0").canonical_segments
     assert_equal [1, "a", 1], v("1.0.0.a.1.0").canonical_segments
     assert_equal [1, 2, 3, "pre", 1], v("1.2.3-1").canonical_segments
+  end
+
+  def test_frozen_version
+    v = v('1.freeze.test').freeze
+    assert_less_than v, v('1')
+    assert_version_equal v('1'), v.release
+    assert_version_equal v('2'), v.bump
   end
 
   # Asserts that +version+ is a prerelease.
@@ -284,4 +298,5 @@ class TestGemVersion < Gem::TestCase
   def refute_version_equal(unexpected, actual)
     refute_equal v(unexpected), v(actual)
   end
+
 end

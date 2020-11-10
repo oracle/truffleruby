@@ -1,0 +1,2 @@
+fails:Range.new beginless/endless range allows beginless left boundary
+fails:Range.new beginless/endless range distinguishes ranges with included and excluded right boundary

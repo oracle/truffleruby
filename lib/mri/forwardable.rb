@@ -57,10 +57,9 @@
 #
 # == Another example
 #
-# We want to rely on what has come before obviously, but with delegation we can
-# take just the methods we need and even rename them as appropriate.  In many
-# cases this is preferable to inheritance, which gives us the entire old
-# interface, even if much of it isn't needed.
+# You could use Forwardable as an alternative to inheritance, when you don't want
+# to inherit all methods from the superclass. For instance, here is how you might
+# add a range of +Array+ instance methods to a new class +Queue+:
 #
 #   class Queue
 #     extend Forwardable
@@ -111,10 +110,7 @@
 #
 module Forwardable
   require 'forwardable/impl'
-
-  # Version of +forwardable.rb+
-  VERSION = "1.2.0"
-  FORWARDABLE_VERSION = VERSION
+  require "forwardable/version"
 
   @debug = nil
   class << self
@@ -123,7 +119,8 @@ module Forwardable
   end
 
   # Takes a hash as its argument.  The key is a symbol or an array of
-  # symbols.  These symbols correspond to method names.  The value is
+  # symbols.  These symbols correspond to method names, instance variable
+  # names, or constant names (see def_delegator).  The value is
   # the accessor to which the methods will be delegated.
   #
   # :call-seq:
@@ -152,18 +149,21 @@ module Forwardable
   #   def_delegator :@records, :map
   #
   def def_instance_delegators(accessor, *methods)
-    methods.delete("__send__")
-    methods.delete("__id__")
-    for method in methods
+    methods.each do |method|
+      next if /\A__(?:send|id)__\z/ =~ method
       def_instance_delegator(accessor, method)
     end
   end
 
   # Define +method+ as delegator instance method with an optional
   # alias name +ali+. Method calls to +ali+ will be delegated to
-  # +accessor.method+.
+  # +accessor.method+.  +accessor+ should be a method name, instance
+  # variable name, or constant name.  Use the full path to the
+  # constant if providing the constant name.
+  # Returns the name of the method defined.
   #
   #   class MyQueue
+  #     CONST = 1
   #     extend Forwardable
   #     attr_reader :queue
   #     def initialize
@@ -171,18 +171,23 @@ module Forwardable
   #     end
   #
   #     def_delegator :@queue, :push, :mypush
+  #     def_delegator 'MyQueue::CONST', :to_i
   #   end
   #
   #   q = MyQueue.new
   #   q.mypush 42
   #   q.queue    #=> [42]
   #   q.push 23  #=> NoMethodError
+  #   q.to_i     #=> 1
   #
   def def_instance_delegator(accessor, method, ali = method)
     gen = Forwardable._delegator_method(self, accessor, method, ali)
 
     # If it's not a class or module, it's an instance
-    (Module === self ? self : singleton_class).module_eval(&gen)
+    mod = Module === self ? self : singleton_class
+    ret = mod.module_eval(&gen)
+    mod.send(:ruby2_keywords, ali) if RUBY_VERSION >= '2.7'
+    ret
   end
 
   alias delegate instance_delegate
@@ -284,9 +289,8 @@ module SingleForwardable
   #   def_delegator :@records, :map
   #
   def def_single_delegators(accessor, *methods)
-    methods.delete("__send__")
-    methods.delete("__id__")
-    for method in methods
+    methods.each do |method|
+      next if /\A__(?:send|id)__\z/ =~ method
       def_single_delegator(accessor, method)
     end
   end
@@ -297,10 +301,13 @@ module SingleForwardable
   # Defines a method _method_ which delegates to _accessor_ (i.e. it calls
   # the method of the same name in _accessor_).  If _new_name_ is
   # provided, it is used as the name for the delegate method.
+  # Returns the name of the method defined.
   def def_single_delegator(accessor, method, ali = method)
     gen = Forwardable._delegator_method(self, accessor, method, ali)
 
-    instance_eval(&gen)
+    ret = instance_eval(&gen)
+    singleton_class.send(:ruby2_keywords, ali) if RUBY_VERSION >= '2.7'
+    ret
   end
 
   alias delegate single_delegate

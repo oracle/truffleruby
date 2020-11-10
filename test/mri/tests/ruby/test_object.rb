@@ -96,17 +96,6 @@ class TestObject < Test::Unit::TestCase
     assert_raise(TypeError) { 1.kind_of?(1) }
   end
 
-  def test_taint_frozen_obj
-    o = Object.new
-    o.freeze
-    assert_raise(FrozenError) { o.taint }
-
-    o = Object.new
-    o.taint
-    o.freeze
-    assert_raise(FrozenError) { o.untaint }
-  end
-
   def test_freeze_immediate
     assert_equal(true, 1.frozen?)
     1.freeze
@@ -130,6 +119,27 @@ class TestObject < Test::Unit::TestCase
 
   def test_nil_to_f
     assert_equal(0.0, nil.to_f)
+  end
+
+  def test_nil_to_s
+    str = nil.to_s
+    assert_equal("", str)
+    assert_predicate(str, :frozen?)
+    assert_same(str, nil.to_s)
+  end
+
+  def test_true_to_s
+    str = true.to_s
+    assert_equal("true", str)
+    assert_predicate(str, :frozen?)
+    assert_same(str, true.to_s)
+  end
+
+  def test_false_to_s
+    str = false.to_s
+    assert_equal("false", str)
+    assert_predicate(str, :frozen?)
+    assert_same(str, false.to_s)
   end
 
   def test_not
@@ -225,6 +235,14 @@ class TestObject < Test::Unit::TestCase
     assert_equal([:foo], o.methods(false))
     class << o; prepend Module.new; end
     assert_equal([:foo], o.methods(false), bug8044)
+  end
+
+  def test_methods_prepend_singleton
+    c = Class.new(Module) {private def foo; end}
+    k = c.new
+    k.singleton_class
+    c.module_eval {prepend(Module.new)}
+    assert_equal([:foo], k.private_methods(false))
   end
 
   def test_instance_variable_get
@@ -765,36 +783,7 @@ class TestObject < Test::Unit::TestCase
     end
   end
 
-  def test_untrusted
-    verbose = $VERBOSE
-    $VERBOSE = false
-    begin
-      obj = Object.new
-      assert_equal(false, obj.untrusted?)
-      assert_equal(false, obj.tainted?)
-      obj.untrust
-      assert_equal(true, obj.untrusted?)
-      assert_equal(true, obj.tainted?)
-      obj.trust
-      assert_equal(false, obj.untrusted?)
-      assert_equal(false, obj.tainted?)
-      obj.taint
-      assert_equal(true, obj.untrusted?)
-      assert_equal(true, obj.tainted?)
-      obj.untaint
-      assert_equal(false, obj.untrusted?)
-      assert_equal(false, obj.tainted?)
-    ensure
-      $VERBOSE = verbose
-    end
-  end
-
   def test_to_s
-    x = Object.new
-    x.taint
-    s = x.to_s
-    assert_equal(true, s.tainted?)
-
     x = eval(<<-EOS)
       class ToS\u{3042}
         new.to_s
@@ -803,14 +792,10 @@ class TestObject < Test::Unit::TestCase
     assert_match(/\bToS\u{3042}:/, x)
 
     name = "X".freeze
-    x = Object.new.taint
+    x = Object.new
     class<<x;self;end.class_eval {define_method(:to_s) {name}}
     assert_same(name, x.to_s)
-    assert_not_predicate(name, :tainted?)
-    assert_raise(FrozenError) {name.taint}
     assert_equal("X", [x].join(""))
-    assert_not_predicate(name, :tainted?)
-    assert_not_predicate(eval('"X".freeze'), :tainted?)
   end
 
   def test_inspect
@@ -857,6 +842,29 @@ class TestObject < Test::Unit::TestCase
     assert_match(/@\u{3046}=6\b/, x.inspect)
   end
 
+  def test_singleton_methods
+    assert_equal([], Object.new.singleton_methods)
+    assert_equal([], Object.new.singleton_methods(false))
+    c = Class.new
+    def c.foo; end
+    assert_equal([:foo], c.singleton_methods - [:yaml_tag])
+    assert_equal([:foo], c.singleton_methods(false))
+    assert_equal([], c.singleton_class.singleton_methods(false))
+    c.singleton_class.singleton_class
+    assert_equal([], c.singleton_class.singleton_methods(false))
+
+    o = c.new.singleton_class
+    assert_equal([:foo], o.singleton_methods - [:yaml_tag])
+    assert_equal([], o.singleton_methods(false))
+    o.singleton_class
+    assert_equal([:foo], o.singleton_methods - [:yaml_tag])
+    assert_equal([], o.singleton_methods(false))
+
+    c.extend(Module.new{def bar; end})
+    assert_equal([:bar, :foo], c.singleton_methods.sort - [:yaml_tag])
+    assert_equal([:foo], c.singleton_methods(false))
+  end
+
   def test_singleton_class
     x = Object.new
     xs = class << x; self; end
@@ -901,7 +909,7 @@ class TestObject < Test::Unit::TestCase
     assert_nothing_raised("copy") {a.instance_eval {initialize_copy(b)}}
     c = a.dup.freeze
     assert_raise(FrozenError, "frozen") {c.instance_eval {initialize_copy(b)}}
-    d = a.dup.trust
+    d = a.dup
     [a, b, c, d]
   end
 

@@ -2,12 +2,12 @@
 
 // Global variables, rb_gvar_*, rb_gv_*
 
-VALUE rb_gvar_var_getter(ID id, void *data, struct rb_global_variable *gvar) {
-  return *(VALUE*)data;
+VALUE rb_gvar_var_getter(ID id, VALUE *data) {
+  return *data;
 }
 
-void rb_gvar_var_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar) {
-  *((VALUE*)data) = val;
+void rb_gvar_var_setter(VALUE val, ID id, VALUE *data) {
+  *data = val;
 }
 
 void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS)) {
@@ -22,7 +22,7 @@ void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANY
   polyglot_invoke(RUBY_CEXT, "rb_define_hooked_variable", rb_tr_unwrap(rb_str_new_cstr(name)), var, getter, setter);
 }
 
-void rb_gvar_readonly_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar) {
+void rb_gvar_readonly_setter(VALUE val, ID id, VALUE *data) {
   rb_raise(rb_eNameError, "read-only variable");
 }
 

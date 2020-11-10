@@ -124,8 +124,16 @@ class Symbol
   def succ
     to_s.succ.to_sym
   end
-
   alias_method :next, :succ
+
+  def start_with?(*args)
+    Primitive.share_special_variables(Primitive.caller_special_variables) if args.any?(Regexp)
+    to_s.start_with?(*args)
+  end
+
+  def end_with?(*args)
+    to_s.end_with?(*args)
+  end
 
   def [](index, other = undefined)
     if index.kind_of?(Regexp)

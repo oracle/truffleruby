@@ -96,7 +96,7 @@ end
 
 class Prime
 
-  VERSION = "0.1.0"
+  VERSION = "0.1.1"
 
   include Enumerable
   include Singleton
@@ -283,9 +283,9 @@ class Prime
     end
 
     # see +Enumerator+#with_index.
-    def with_index(offset = 0)
-      return enum_for(:with_index, offset) { Float::INFINITY } unless block_given?
-      return each_with_index(&proc) if offset == 0
+    def with_index(offset = 0, &block)
+      return enum_for(:with_index, offset) { Float::INFINITY } unless block
+      return each_with_index(&block) if offset == 0
 
       each do |prime|
         yield prime, offset

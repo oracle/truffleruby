@@ -219,11 +219,15 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     provided_executables=[
         'bin/bundle',
         'bin/bundler',
+        'bin/erb',
         'bin/gem',
         'bin/irb',
+        'bin/racc',
+        'bin/racc2y',
         'bin/rake',
         'bin/rdoc',
         'bin/ri',
+        'bin/y2racc',
     ],
     launcher_configs=[
         mx_sdk.LanguageLauncherConfig(

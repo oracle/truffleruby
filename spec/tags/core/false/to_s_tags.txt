@@ -1,0 +1,2 @@
+fails:FalseClass#to_s returns a frozen string
+fails:FalseClass#to_s always returns the same string

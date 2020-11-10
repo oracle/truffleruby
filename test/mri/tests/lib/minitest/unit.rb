@@ -3,7 +3,7 @@
 
 require "optparse"
 require "rbconfig"
-# require "leakchecker"
+require "leakchecker" unless defined?(::TruffleRuby)
 
 ##
 # Minimal (mostly drop-in) replacement for test-unit.
@@ -79,18 +79,14 @@ module MiniTest
     # figure out what diff to use.
 
     def self.diff
-      @diff = if (RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ &&
-                  system("diff.exe", __FILE__, __FILE__)) then
-                "diff.exe -u"
-              elsif Minitest::Unit::Guard.maglev? then # HACK
-                "diff -u"
-              elsif system("gdiff", __FILE__, __FILE__)
-                "gdiff -u" # solaris and kin suck
-              elsif system("diff", __FILE__, __FILE__)
-                "diff -u"
-              else
-                nil
-              end unless defined? @diff
+      unless defined? @diff
+        exe = RbConfig::CONFIG['EXEEXT']
+        @diff = %W"gdiff#{exe} diff#{exe}".find do |diff|
+          if system(diff, "-u", __FILE__, __FILE__)
+            break "#{diff} -u"
+          end
+        end
+      end
 
       @diff
     end
@@ -179,7 +175,7 @@ module MiniTest
     # uses mu_pp to do the first pass and then cleans it up.
 
     def mu_pp_for_diff obj
-      mu_pp(obj).gsub(/\\n/, "\n").gsub(/:0x[a-fA-F0-9]{4,}/m, ':0xXXXXXX')
+      mu_pp(obj).gsub(/(?<!\\)(?:\\\\)*\K\\n/, "\n").gsub(/:0x[a-fA-F0-9]{4,}/m, ':0xXXXXXX')
     end
 
     def _assertions= n # :nodoc:
@@ -484,6 +480,7 @@ module MiniTest
 
       return captured_stdout.string, captured_stderr.string
     end
+    alias capture_output capture_io
 
     ##
     # Captures $stdout and $stderr into strings, using Tempfile to
@@ -721,6 +718,8 @@ module MiniTest
       raise MiniTest::Skip, msg, bt
     end
 
+    alias omit skip
+
     ##
     # Was this testcase skipped? Meant for #teardown.
 
@@ -940,30 +939,38 @@ module MiniTest
         filter === m || filter === "#{suite}##{m}"
       }
 
-      # leakchecker = LeakChecker.new
+      leakchecker = LeakChecker.new unless defined?(::TruffleRuby)
 
-      assertions = filtered_test_methods.map { |method|
-        inst = suite.new method
-        inst._assertions = 0
+      continuation = proc do
+        assertions = filtered_test_methods.map { |method|
+          inst = suite.new method
+          inst._assertions = 0
 
-        print "#{suite}##{method} = " if @verbose
+          print "#{suite}##{method} = " if @verbose
 
-        start_time = Time.now if @verbose
-        result = inst.run self
+          start_time = Time.now if @verbose
+          result = inst.run self
 
-        print "%.2f s = " % (Time.now - start_time) if @verbose
-        print result
-        puts if @verbose
-        $stdout.flush
+          print "%.2f s = " % (Time.now - start_time) if @verbose
+          print result
+          puts if @verbose
+          $stdout.flush
 
-        unless defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # compiler process is wrongly considered as leak
-          # leakchecker.check("#{inst.class}\##{inst.__name__}")
-        end
+          unless defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # compiler process is wrongly considered as leak
+            leakchecker.check("#{inst.class}\##{inst.__name__}") unless defined?(::TruffleRuby)
+          end
 
-        inst._assertions
-      }
+          inst._assertions
+        }
+        return assertions.size, assertions.inject(0) { |sum, n| sum + n }
+      end
 
-      return assertions.size, assertions.inject(0) { |sum, n| sum + n }
+      if ENV["LEAK_CHECKER_TRACE_OBJECT_ALLOCATION"]
+        require "objspace"
+        ObjectSpace.trace_object_allocations(&continuation)
+      else
+        continuation.call
+      end
     end
 
     ##
@@ -988,6 +995,9 @@ module MiniTest
 
     def location e # :nodoc:
       last_before_assertion = ""
+
+      return '<empty>' unless e.backtrace # SystemStackError can return nil.
+
       e.backtrace.reverse_each do |s|
         break if s =~ /in .(assert|refute|flunk|pass|fail|raise|must|wont)/
         last_before_assertion = s

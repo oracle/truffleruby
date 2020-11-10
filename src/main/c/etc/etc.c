@@ -52,6 +52,8 @@ char *getenv();
 #endif
 char *getlogin();
 
+#define RUBY_ETC_VERSION "1.1.0"
+
 #include "constdefs.h"
 
 /* call-seq:
@@ -98,7 +100,7 @@ static VALUE
 safe_setup_str(const char *str)
 {
     if (str == 0) str = "";
-    return rb_tainted_str_new2(str);
+    return rb_str_new2(str);
 }
 
 static VALUE
@@ -217,7 +219,6 @@ etc_getpwnam(VALUE obj, VALUE nam)
     struct passwd *pwd;
     const char *p = StringValueCStr(nam);
 
-    rb_check_safe_obj(nam);
     pwd = getpwnam(p);
     if (pwd == 0) rb_raise(rb_eArgError, "can't find user for %"PRIsVALUE, nam);
     return setup_passwd(pwd);
@@ -229,7 +230,7 @@ etc_getpwnam(VALUE obj, VALUE nam)
 #ifdef HAVE_GETPWENT
 static int passwd_blocking = 0;
 static VALUE
-passwd_ensure(void)
+passwd_ensure(VALUE _)
 {
     endpwent();
     passwd_blocking = (int)Qfalse;
@@ -237,7 +238,7 @@ passwd_ensure(void)
 }
 
 static VALUE
-passwd_iterate(void)
+passwd_iterate(VALUE _)
 {
     struct passwd *pw;
 
@@ -461,7 +462,6 @@ etc_getgrnam(VALUE obj, VALUE nam)
     struct group *grp;
     const char *p = StringValueCStr(nam);
 
-    rb_check_safe_obj(nam);
     grp = getgrnam(p);
     if (grp == 0) rb_raise(rb_eArgError, "can't find group for %"PRIsVALUE, nam);
     return setup_group(grp);
@@ -473,7 +473,7 @@ etc_getgrnam(VALUE obj, VALUE nam)
 #ifdef HAVE_GETGRENT
 static int group_blocking = 0;
 static VALUE
-group_ensure(void)
+group_ensure(VALUE _)
 {
     endgrent();
     group_blocking = (int)Qfalse;
@@ -482,7 +482,7 @@ group_ensure(void)
 
 
 static VALUE
-group_iterate(void)
+group_iterate(VALUE _)
 {
     struct group *pw;
 
@@ -645,7 +645,7 @@ etc_sysconfdir(VALUE obj)
  * Returns system temporary directory; typically "/tmp".
  */
 static VALUE
-etc_systmpdir(void)
+etc_systmpdir(VALUE _)
 {
     VALUE tmpdir;
 #ifdef _WIN32
@@ -677,9 +677,8 @@ etc_systmpdir(void)
     }
 # endif
 #endif
-#ifdef TRUFFLERUBY
-    rb_obj_untaint(tmpdir);
-#else
+#ifndef RB_PASS_KEYWORDS
+    /* untaint on Ruby < 2.7 */
     FL_UNSET(tmpdir, FL_TAINT);
 #endif
     return tmpdir;
@@ -758,9 +757,6 @@ etc_uname(VALUE obj)
 # ifndef PROCESSOR_ARCHITECTURE_AMD64
 #   define PROCESSOR_ARCHITECTURE_AMD64 9
 # endif
-# ifndef PROCESSOR_ARCHITECTURE_IA64
-#   define PROCESSOR_ARCHITECTURE_IA64 6
-# endif
 # ifndef PROCESSOR_ARCHITECTURE_INTEL
 #   define PROCESSOR_ARCHITECTURE_INTEL 0
 # endif
@@ -771,9 +767,6 @@ etc_uname(VALUE obj)
 	break;
       case PROCESSOR_ARCHITECTURE_ARM:
 	mach = "ARM";
-	break;
-      case PROCESSOR_ARCHITECTURE_IA64:
-	mach = "IA64";
 	break;
       case PROCESSOR_ARCHITECTURE_INTEL:
 	mach = "x86";
@@ -1072,6 +1065,7 @@ Init_etc(void)
     VALUE mEtc;
 
     mEtc = rb_define_module("Etc");
+    rb_define_const(mEtc, "VERSION", rb_str_new_cstr(RUBY_ETC_VERSION));
     init_constants(mEtc);
 
     rb_define_module_function(mEtc, "getlogin", etc_getlogin, 0);

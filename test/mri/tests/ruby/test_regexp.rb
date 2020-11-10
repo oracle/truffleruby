@@ -954,24 +954,29 @@ class TestRegexp < Test::Unit::TestCase
   end
 
   def test_cclass_R
-    assert_match /\A\R\z/, "\r"
-    assert_match /\A\R\z/, "\n"
-    assert_match /\A\R\z/, "\r\n"
+    assert_match(/\A\R\z/, "\r")
+    assert_match(/\A\R\z/, "\n")
+    assert_match(/\A\R\z/, "\f")
+    assert_match(/\A\R\z/, "\v")
+    assert_match(/\A\R\z/, "\r\n")
+    assert_match(/\A\R\z/, "\u0085")
+    assert_match(/\A\R\z/, "\u2028")
+    assert_match(/\A\R\z/, "\u2029")
   end
 
   def test_cclass_X
-    assert_match /\A\X\z/, "\u{20 200d}"
-    assert_match /\A\X\z/, "\u{600 600}"
-    assert_match /\A\X\z/, "\u{600 20}"
-    assert_match /\A\X\z/, "\u{261d 1F3FB}"
-    assert_match /\A\X\z/, "\u{1f600}"
-    assert_match /\A\X\z/, "\u{20 324}"
-    assert_match /\A\X\X\z/, "\u{a 324}"
-    assert_match /\A\X\X\z/, "\u{d 324}"
-    assert_match /\A\X\z/, "\u{1F477 1F3FF 200D 2640 FE0F}"
-    assert_match /\A\X\z/, "\u{1F468 200D 1F393}"
-    assert_match /\A\X\z/, "\u{1F46F 200D 2642 FE0F}"
-    assert_match /\A\X\z/, "\u{1f469 200d 2764 fe0f 200d 1f469}"
+    assert_match(/\A\X\z/, "\u{20 200d}")
+    assert_match(/\A\X\z/, "\u{600 600}")
+    assert_match(/\A\X\z/, "\u{600 20}")
+    assert_match(/\A\X\z/, "\u{261d 1F3FB}")
+    assert_match(/\A\X\z/, "\u{1f600}")
+    assert_match(/\A\X\z/, "\u{20 324}")
+    assert_match(/\A\X\X\z/, "\u{a 324}")
+    assert_match(/\A\X\X\z/, "\u{d 324}")
+    assert_match(/\A\X\z/, "\u{1F477 1F3FF 200D 2640 FE0F}")
+    assert_match(/\A\X\z/, "\u{1F468 200D 1F393}")
+    assert_match(/\A\X\z/, "\u{1F46F 200D 2642 FE0F}")
+    assert_match(/\A\X\z/, "\u{1f469 200d 2764 fe0f 200d 1f469}")
 
     assert_warning('') {/\X/ =~ "\u{a0}"}
   end
@@ -1001,6 +1006,8 @@ class TestRegexp < Test::Unit::TestCase
     assert_raise(TypeError) { Regexp.allocate.names }
     assert_raise(TypeError) { Regexp.allocate.named_captures }
 
+    assert_not_respond_to(MatchData, :allocate)
+=begin
     assert_raise(TypeError) { MatchData.allocate.hash }
     assert_raise(TypeError) { MatchData.allocate.regexp }
     assert_raise(TypeError) { MatchData.allocate.names }
@@ -1023,6 +1030,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_raise(TypeError) { $` }
     assert_raise(TypeError) { $' }
     assert_raise(TypeError) { $+ }
+=end
   end
 
   def test_unicode
@@ -1092,7 +1100,9 @@ class TestRegexp < Test::Unit::TestCase
     assert_equal(a, b, '[ruby-core:24748]')
     h = {a => 42}
     assert_equal(42, h[b], '[ruby-core:24748]')
+=begin
     assert_match(/#<TestRegexp::MatchData_\u{3042}:/, MatchData_A.allocate.inspect)
+=end
 
     h = /^(?<@time>\d+): (?<body>.*)/.match("123456: hoge fuga")
     assert_equal("123456", h["@time"])
@@ -1128,6 +1138,8 @@ class TestRegexp < Test::Unit::TestCase
 
     bug8151 = '[ruby-core:53649]'
     assert_warning(/\A\z/, bug8151) { Regexp.new('(?:[\u{33}])').to_s }
+
+    assert_warning(%r[/.*/\Z]) { Regexp.new("[\n\n]") }
   end
 
   def test_property_warn
@@ -1239,7 +1251,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        require '-test-/regexp'
+        # require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'

@@ -1,0 +1,1 @@
+fails:Invoking a private getter method permits self as a receiver

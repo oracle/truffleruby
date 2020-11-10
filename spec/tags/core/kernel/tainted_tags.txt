@@ -1,0 +1,2 @@
+fails:Kernel#tainted? is a no-op
+fails:Kernel#tainted? warns in verbose mode

@@ -26,6 +26,10 @@ class TestNumeric < Test::Unit::TestCase
     assert_raise_with_message(TypeError, /:"\\u3042"/) {1&:"\u{3042}"}
     assert_raise_with_message(TypeError, /:"\\u3042"/) {1|:"\u{3042}"}
     assert_raise_with_message(TypeError, /:"\\u3042"/) {1^:"\u{3042}"}
+    assert_raise_with_message(TypeError, /:\u{3044}/) {1+"\u{3044}".to_sym}
+    assert_raise_with_message(TypeError, /:\u{3044}/) {1&"\u{3044}".to_sym}
+    assert_raise_with_message(TypeError, /:\u{3044}/) {1|"\u{3044}".to_sym}
+    assert_raise_with_message(TypeError, /:\u{3044}/) {1^"\u{3044}".to_sym}
 
     bug10711 = '[ruby-core:67405] [Bug #10711]'
     exp = "1.2 can't be coerced into Integer"
@@ -52,7 +56,6 @@ class TestNumeric < Test::Unit::TestCase
     end.new
     assert_equal(-1, -a)
 
-    bug7688 = '[ruby-core:51389] [Bug #7688]'
     a = Class.new(Numeric) do
       def coerce(x); raise StandardError, "my error"; end
     end.new
@@ -227,7 +230,8 @@ class TestNumeric < Test::Unit::TestCase
   end
 
   def assert_step(expected, (from, *args), inf: false)
-    enum = from.step(*args)
+    kw = args.last.is_a?(Hash) ? args.pop : {}
+    enum = from.step(*args, **kw)
     size = enum.size
     xsize = expected.size
 
@@ -236,7 +240,7 @@ class TestNumeric < Test::Unit::TestCase
       assert_send [size, :>, 0], "step size: +infinity"
 
       a = []
-      from.step(*args) { |x| a << x; break if a.size == xsize }
+      from.step(*args, **kw) { |x| a << x; break if a.size == xsize }
       assert_equal expected, a, "step"
 
       a = []
@@ -246,7 +250,7 @@ class TestNumeric < Test::Unit::TestCase
       assert_equal expected.size, size, "step size"
 
       a = []
-      from.step(*args) { |x| a << x }
+      from.step(*args, **kw) { |x| a << x }
       assert_equal expected, a, "step"
 
       a = []
@@ -287,6 +291,14 @@ class TestNumeric < Test::Unit::TestCase
     assert_raise(ArgumentError, bug9811) { 1.step(10, to: 11).size }
     assert_raise(ArgumentError, bug9811) { 1.step(10, 1, by: 11) {} }
     assert_raise(ArgumentError, bug9811) { 1.step(10, 1, by: 11).size }
+
+
+    e = assert_warn(/Using the last argument as keyword parameters is deprecated/) {
+      1.step(10, {by: "1"})
+    }
+    assert_warn('') {
+      assert_raise(ArgumentError) {e.size}
+    }
 
     assert_equal(bignum*2+1, (-bignum).step(bignum, 1).size)
     assert_equal(bignum*2, (-bignum).step(bignum-1, 1).size)
@@ -337,6 +349,20 @@ class TestNumeric < Test::Unit::TestCase
     assert_step [bignum]*4, [bignum, by: 0.0], inf: true
     assert_step [bignum]*4, [bignum, by: 0, to: bignum+1], inf: true
     assert_step [bignum]*4, [bignum, by: 0, to: 0], inf: true
+  end
+
+  def test_step_bug15537
+    assert_step [10.0, 8.0, 6.0, 4.0, 2.0], [10.0, 1, -2]
+    assert_step [10.0, 8.0, 6.0, 4.0, 2.0], [10.0, to: 1, by: -2]
+    assert_step [10.0, 8.0, 6.0, 4.0, 2.0], [10.0, 1, -2]
+    assert_step [10.0, 8.0, 6.0, 4.0, 2.0], [10, to: 1.0, by: -2]
+    assert_step [10.0, 8.0, 6.0, 4.0, 2.0], [10, 1.0, -2]
+
+    assert_step [10.0, 9.0, 8.0, 7.0], [10, by: -1.0], inf: true
+    assert_step [10.0, 9.0, 8.0, 7.0], [10, by: -1.0, to: nil], inf: true
+    assert_step [10.0, 9.0, 8.0, 7.0], [10, nil, -1.0], inf: true
+    assert_step [10.0, 9.0, 8.0, 7.0], [10.0, by: -1], inf: true
+    assert_step [10.0, 9.0, 8.0, 7.0], [10.0, nil, -1], inf: true
   end
 
   def test_num2long

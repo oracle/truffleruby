@@ -61,14 +61,14 @@ foo\\bar::foo\\bar = baz
 [default1  default2]\t\t  # space is allowed in section name
           fo =b  ar       # space allowed in value
 [emptysection]
- [doller ]
+ [dollar ]
 foo=bar
 bar = $(foo)
 baz = 123$(default::bar)456${foo}798
 qux = ${baz}
 quxx = $qux.$qux
 __EOC__
-    assert_equal(['default', 'default1  default2', 'doller', 'emptysection', 'foo', 'foo\\bar'], c.sections.sort)
+    assert_equal(['default', 'default1  default2', 'dollar', 'emptysection', 'foo', 'foo\\bar'], c.sections.sort)
     assert_equal(['', 'a', 'bar', 'baz', 'd', 'dq', 'dq2', 'esc', 'foo\\bar', 'sq'], c['default'].keys.sort)
     assert_equal('c', c['default'][''])
     assert_equal('', c['default']['a'])
@@ -84,12 +84,12 @@ __EOC__
     assert_equal('baz', c['foo\\bar']['foo\\bar'])
     assert_equal('b  ar', c['default1  default2']['fo'])
 
-    # dolloer
-    assert_equal('bar', c['doller']['foo'])
-    assert_equal('bar', c['doller']['bar'])
-    assert_equal('123baz456bar798', c['doller']['baz'])
-    assert_equal('123baz456bar798', c['doller']['qux'])
-    assert_equal('123baz456bar798.123baz456bar798', c['doller']['quxx'])
+    # dollar
+    assert_equal('bar', c['dollar']['foo'])
+    assert_equal('bar', c['dollar']['bar'])
+    assert_equal('123baz456bar798', c['dollar']['baz'])
+    assert_equal('123baz456bar798', c['dollar']['qux'])
+    assert_equal('123baz456bar798.123baz456bar798', c['dollar']['quxx'])
 
     excn = assert_raise(OpenSSL::ConfigError) do
       OpenSSL::Config.parse("foo = $bar")
@@ -118,6 +118,49 @@ __EOC__
 __EOC__
     end
     assert_equal("error in line 7: missing close square bracket", excn.message)
+  end
+
+  def test_s_parse_include
+    in_tmpdir("ossl-config-include-test") do |dir|
+      Dir.mkdir("child")
+      File.write("child/a.conf", <<~__EOC__)
+        [default]
+        file-a = a.conf
+        [sec-a]
+        a = 123
+      __EOC__
+      File.write("child/b.cnf", <<~__EOC__)
+        [default]
+        file-b = b.cnf
+        [sec-b]
+        b = 123
+      __EOC__
+      File.write("include-child.conf", <<~__EOC__)
+        key_outside_section = value_a
+        .include child
+      __EOC__
+
+      include_file = <<~__EOC__
+        [default]
+        file-main = unnamed
+        [sec-main]
+        main = 123
+        .include = include-child.conf
+      __EOC__
+
+      # Include a file by relative path
+      c1 = OpenSSL::Config.parse(include_file)
+      assert_equal(["default", "sec-a", "sec-b", "sec-main"], c1.sections.sort)
+      assert_equal(["file-main", "file-a", "file-b"], c1["default"].keys)
+      assert_equal({"a" => "123"}, c1["sec-a"])
+      assert_equal({"b" => "123"}, c1["sec-b"])
+      assert_equal({"main" => "123", "key_outside_section" => "value_a"}, c1["sec-main"])
+
+      # Relative paths are from the working directory
+      assert_raise(OpenSSL::ConfigError) do
+        Dir.chdir("child") { OpenSSL::Config.parse(include_file) }
+      end
+    end
   end
 
   def test_s_load
@@ -298,6 +341,17 @@ __EOC__
     assert_equal(@it.sections.sort, c.sections.sort)
     @it['newsection'] = {'a' => 'b'}
     assert_not_equal(@it.sections.sort, c.sections.sort)
+  end
+
+  private
+
+  def in_tmpdir(*args)
+    Dir.mktmpdir(*args) do |dir|
+      dir = File.realpath(dir)
+      Dir.chdir(dir) do
+        yield dir
+      end
+    end
   end
 end
 

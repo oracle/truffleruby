@@ -242,15 +242,16 @@ class OpenSSL::TestX509Name < OpenSSL::TestCase
       assert_match(/^multi-valued RDN is not supported: #{dn_r}/, ex.message)
     }
 
+    bad_dc = "exa#{"pm"}le"     # <- typo of "example"
     [
-      ["DC=org,DC=exapmle,CN", "CN"],
+      ["DC=org,DC=#{bad_dc},CN", "CN"],
       ["DC=org,DC=example,", ""],
-      ["DC=org,DC=exapmle,CN=www.example.org;", "CN=www.example.org;"],
-      ["DC=org,DC=exapmle,CN=#www.example.org", "CN=#www.example.org"],
-      ["DC=org,DC=exapmle,CN=#777777.example.org", "CN=#777777.example.org"],
-      ["DC=org,DC=exapmle,CN=\"www.example\".org", "CN=\"www.example\".org"],
-      ["DC=org,DC=exapmle,CN=www.\"example.org\"", "CN=www.\"example.org\""],
-      ["DC=org,DC=exapmle,CN=www.\"example\".org", "CN=www.\"example\".org"],
+      ["DC=org,DC=#{bad_dc},CN=www.example.org;", "CN=www.example.org;"],
+      ["DC=org,DC=#{bad_dc},CN=#www.example.org", "CN=#www.example.org"],
+      ["DC=org,DC=#{bad_dc},CN=#777777.example.org", "CN=#777777.example.org"],
+      ["DC=org,DC=#{bad_dc},CN=\"www.example\".org", "CN=\"www.example\".org"],
+      ["DC=org,DC=#{bad_dc},CN=www.\"example.org\"", "CN=www.\"example.org\""],
+      ["DC=org,DC=#{bad_dc},CN=www.\"example\".org", "CN=www.\"example\".org"],
     ].each{|dn, msg|
       ex = scanner.call(dn) rescue $!
       assert_match(/^malformed RDN: .*=>#{Regexp.escape(msg)}/, ex.message)
@@ -409,12 +410,12 @@ class OpenSSL::TestX509Name < OpenSSL::TestCase
     n2 = OpenSSL::X509::Name.new([["CN", "a"]])
     n3 = OpenSSL::X509::Name.new([["CN", "ab"]])
 
-    assert_equal 0, n1 <=> n2
-    assert_equal -1, n1 <=> n3
-    assert_equal 0, n2 <=> n1
-    assert_equal -1, n2 <=> n3
-    assert_equal 1, n3 <=> n1
-    assert_equal 1, n3 <=> n2
+    assert_equal(0, n1 <=> n2)
+    assert_equal(-1, n1 <=> n3)
+    assert_equal(0, n2 <=> n1)
+    assert_equal(-1, n2 <=> n3)
+    assert_equal(1, n3 <=> n1)
+    assert_equal(1, n3 <=> n2)
   end
 
   def name_hash(name)

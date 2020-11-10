@@ -12,6 +12,7 @@ compact
 compact!
 compare_by_identity
 compare_by_identity?
+deconstruct_keys
 default
 default=
 default_proc

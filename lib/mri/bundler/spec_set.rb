@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 require "tsort"
-require "forwardable"
 require "set"
 
 module Bundler
   class SpecSet
-    extend Forwardable
-    include TSort, Enumerable
-
-    def_delegators :@specs, :<<, :length, :add, :remove, :size, :empty?
-    def_delegators :sorted, :each
+    include Enumerable
+    include TSort
 
     def initialize(specs)
       @specs = specs
@@ -64,7 +60,6 @@ module Bundler
       @specs << value
       @lookup = nil
       @sorted = nil
-      value
     end
 
     def sort!
@@ -132,6 +127,26 @@ module Bundler
       what_required(req) << spec
     end
 
+    def <<(spec)
+      @specs << spec
+    end
+
+    def length
+      @specs.length
+    end
+
+    def size
+      @specs.size
+    end
+
+    def empty?
+      @specs.empty?
+    end
+
+    def each(&b)
+      sorted.each(&b)
+    end
+
   private
 
     def sorted
@@ -147,11 +162,7 @@ module Bundler
     end
 
     def extract_circular_gems(error)
-      if Bundler.current_ruby.mri? && Bundler.current_ruby.on_19?
-        error.message.scan(/(\w+) \([^)]/).flatten
-      else
-        error.message.scan(/@name="(.*?)"/).flatten
-      end
+      error.message.scan(/@name="(.*?)"/).flatten
     end
 
     def lookup

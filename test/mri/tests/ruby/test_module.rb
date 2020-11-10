@@ -28,10 +28,13 @@ class TestModule < Test::Unit::TestCase
   def setup
     @verbose = $VERBOSE
     $VERBOSE = nil
+    @deprecated = Warning[:deprecated]
+    Warning[:deprecated] = true
   end
 
   def teardown
     $VERBOSE = @verbose
+    Warning[:deprecated] = @deprecated
   end
 
   def test_LT_0
@@ -563,6 +566,28 @@ class TestModule < Test::Unit::TestCase
     assert_equal("Integer", Integer.name)
     assert_equal("TestModule::Mixin",  Mixin.name)
     assert_equal("TestModule::User",   User.name)
+
+    assert_predicate Integer.name, :frozen?
+    assert_predicate Mixin.name, :frozen?
+    assert_predicate User.name, :frozen?
+  end
+
+  def test_accidental_singleton_naming_with_module
+    o = Object.new
+    assert_nil(o.singleton_class.name)
+    class << o
+      module Hi; end
+    end
+    assert_nil(o.singleton_class.name)
+  end
+
+  def test_accidental_singleton_naming_with_class
+    o = Object.new
+    assert_nil(o.singleton_class.name)
+    class << o
+      class Hi; end
+    end
+    assert_nil(o.singleton_class.name)
   end
 
   def test_classpath
@@ -584,6 +609,8 @@ class TestModule < Test::Unit::TestCase
     assert_equal(prefix+"N", m.const_get(:N).name)
     assert_equal(prefix+"O", m.const_get(:O).name)
     assert_equal(prefix+"C", m.const_get(:C).name)
+    c = m.class_eval("Bug15891 = Class.new.freeze")
+    assert_equal(prefix+"Bug15891", c.name)
   end
 
   def test_private_class_method
@@ -703,6 +730,32 @@ class TestModule < Test::Unit::TestCase
     assert_equal(false, o.respond_to?(:bar=))
   end
 
+  def test_attr_public_at_toplevel
+    s = Object.new
+    TOPLEVEL_BINDING.eval(<<-END).call(s.singleton_class)
+      proc do |c|
+        c.send(:attr_accessor, :x)
+        c.send(:attr, :y)
+        c.send(:attr_reader, :z)
+        c.send(:attr_writer, :w)
+      end
+    END
+    assert_nil s.x
+    s.x = 1
+    assert_equal 1, s.x
+
+    assert_nil s.y
+    s.instance_variable_set(:@y, 2)
+    assert_equal 2, s.y
+
+    assert_nil s.z
+    s.instance_variable_set(:@z, 3)
+    assert_equal 3, s.z
+
+    s.w = 4
+    assert_equal 4, s.instance_variable_get(:@w)
+  end
+
   def test_const_get_evaled
     c1 = Class.new
     c2 = Class.new(c1)
@@ -760,10 +813,6 @@ class TestModule < Test::Unit::TestCase
     assert_raise(NameError) { c1.const_get(:foo) }
     bug5084 = '[ruby-dev:44200]'
     assert_raise(TypeError, bug5084) { c1.const_get(1) }
-    bug7574 = '[ruby-dev:46749]'
-    assert_raise_with_message(NameError, "wrong constant name \"String\\u0000\"", bug7574) {
-      Object.const_get("String\0")
-    }
   end
 
   def test_const_defined_invalid_name
@@ -771,10 +820,6 @@ class TestModule < Test::Unit::TestCase
     assert_raise(NameError) { c1.const_defined?(:foo) }
     bug5084 = '[ruby-dev:44200]'
     assert_raise(TypeError, bug5084) { c1.const_defined?(1) }
-    bug7574 = '[ruby-dev:46749]'
-    assert_raise_with_message(NameError, "wrong constant name \"String\\u0000\"", bug7574) {
-      Object.const_defined?("String\0")
-    }
   end
 
   def test_const_get_no_inherited
@@ -1352,6 +1397,17 @@ class TestModule < Test::Unit::TestCase
     assert_match(/: warning: previous definition of foo/, stderr)
   end
 
+  def test_module_function_inside_method
+    assert_warn(/calling module_function without arguments inside a method may not have the intended effect/, '[ruby-core:79751]') do
+      Module.new do
+        def self.foo
+          module_function
+        end
+        foo
+      end
+    end
+  end
+
   def test_protected_singleton_method
     klass = Class.new
     x = klass.new
@@ -1523,21 +1579,31 @@ class TestModule < Test::Unit::TestCase
     c = Class.new
     c.const_set(:FOO, "foo")
     c.deprecate_constant(:FOO)
-    assert_warn(/deprecated/) {c::FOO}
-    assert_warn(/#{c}::FOO is deprecated/) {Class.new(c)::FOO}
+    assert_warn(/deprecated/) do
+      Warning[:deprecated] = true
+      c::FOO
+    end
+    assert_warn(/#{c}::FOO is deprecated/) do
+      Warning[:deprecated] = true
+      Class.new(c)::FOO
+    end
     bug12382 = '[ruby-core:75505] [Bug #12382]'
-    assert_warn(/deprecated/, bug12382) {c.class_eval "FOO"}
-  end
-
-  NIL = nil
-  FALSE = false
-  deprecate_constant(:NIL, :FALSE)
-
-  def test_deprecate_nil_constant
-    w = EnvUtil.verbose_warning {2.times {FALSE}}
-    assert_equal(1, w.scan("::FALSE").size, w)
-    w = EnvUtil.verbose_warning {2.times {NIL}}
-    assert_equal(1, w.scan("::NIL").size, w)
+    assert_warn(/deprecated/, bug12382) do
+      Warning[:deprecated] = true
+      c.class_eval "FOO"
+    end
+    assert_warn('') do
+      Warning[:deprecated] = false
+      c::FOO
+    end
+    assert_warn('') do
+      Warning[:deprecated] = false
+      Class.new(c)::FOO
+    end
+    assert_warn('') do
+      Warning[:deprecated] = false
+      c.class_eval "FOO"
+    end
   end
 
   def test_constants_with_private_constant
@@ -2084,15 +2150,11 @@ class TestModule < Test::Unit::TestCase
       $foo
       \u3042$
     ].each do |name|
-      assert_raise_with_message(NameError, /#{Regexp.quote(quote(name))}/) do
+      e = assert_raise(NameError) do
         Module.new { attr_accessor name.to_sym }
       end
+      assert_equal(name, e.name.to_s)
     end
-  end
-
-  private def quote(name)
-    encoding = Encoding.default_internal || Encoding.default_external
-    (name.encoding == encoding || name.ascii_only?) ? name : name.inspect
   end
 
   class AttrTest
@@ -2323,7 +2385,7 @@ class TestModule < Test::Unit::TestCase
 
       A.prepend InspectIsShallow
 
-      expect = "#<Method: A(ShallowInspect)#inspect(shallow_inspect)>"
+      expect = "#<Method: A(ShallowInspect)#inspect(shallow_inspect)() -:7>"
       assert_equal expect, A.new.method(:inspect).inspect, "#{bug_10282}"
     RUBY
   end
@@ -2349,15 +2411,17 @@ class TestModule < Test::Unit::TestCase
 
   def test_redefinition_mismatch
     m = Module.new
-    m.module_eval "A = 1"
-    assert_raise_with_message(TypeError, /is not a module/) {
+    m.module_eval "A = 1", __FILE__, line = __LINE__
+    e = assert_raise_with_message(TypeError, /is not a module/) {
       m.module_eval "module A; end"
     }
+    assert_include(e.message, "#{__FILE__}:#{line}: previous definition")
     n = "M\u{1f5ff}"
-    m.module_eval "#{n} = 42"
-    assert_raise_with_message(TypeError, "#{n} is not a module") {
+    m.module_eval "#{n} = 42", __FILE__, line = __LINE__
+    e = assert_raise_with_message(TypeError, /#{n} is not a module/) {
       m.module_eval "module #{n}; end"
     }
+    assert_include(e.message, "#{__FILE__}:#{line}: previous definition")
 
     assert_separately([], <<-"end;")
       Etc = (class C\u{1f5ff}; self; end).new
@@ -2385,6 +2449,56 @@ class TestModule < Test::Unit::TestCase
     }
   end
 
+  ConstLocation = [__FILE__, __LINE__]
+
+  def test_const_source_location
+    assert_equal(ConstLocation, self.class.const_source_location(:ConstLocation))
+    assert_equal(ConstLocation, self.class.const_source_location("ConstLocation"))
+    assert_equal(ConstLocation, Object.const_source_location("#{self.class.name}::ConstLocation"))
+    assert_raise(TypeError) {
+      self.class.const_source_location(nil)
+    }
+    assert_raise_with_message(NameError, /wrong constant name/) {
+      self.class.const_source_location("xxx")
+    }
+    assert_raise_with_message(TypeError, %r'does not refer to class/module') {
+      self.class.const_source_location("ConstLocation::FILE")
+    }
+  end
+
+  module CloneTestM_simple
+    C = 1
+    def self.m; C; end
+  end
+
+  module CloneTestM0
+    def foo; TEST; end
+  end
+
+  CloneTestM1 = CloneTestM0.clone
+  CloneTestM2 = CloneTestM0.clone
+  module CloneTestM1
+    TEST = :M1
+  end
+  module CloneTestM2
+    TEST = :M2
+  end
+  class CloneTestC1
+    include CloneTestM1
+  end
+  class CloneTestC2
+    include CloneTestM2
+  end
+
+  def test_constant_access_from_method_in_cloned_module
+    m = CloneTestM_simple.dup
+    assert_equal 1, m::C, '[ruby-core:47834]'
+    assert_equal 1, m.m, '[ruby-core:47834]'
+
+    assert_equal :M1, CloneTestC1.new.foo, '[Bug #15877]'
+    assert_equal :M2, CloneTestC2.new.foo, '[Bug #15877]'
+  end
+
   private
 
   def assert_top_method_is_private(method)
@@ -2393,7 +2507,8 @@ class TestModule < Test::Unit::TestCase
       assert_include(methods, :#{method}, ":#{method} should be private")
 
       assert_raise_with_message(NoMethodError, "private method `#{method}' called for main:Object") {
-        self.#{method}
+        recv = self
+        recv.#{method}
       }
     }
   end

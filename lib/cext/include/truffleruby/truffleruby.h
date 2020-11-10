@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
+NORETURN(VALUE rb_f_notimplement(int argc, const VALUE *argv, VALUE obj, VALUE marker));
 
 // Non-standard
 
@@ -51,7 +51,7 @@ void rb_tr_obj_infect(VALUE a, VALUE b);
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);
 
-typedef void *(*gvl_call)(void *);
+typedef void* (gvl_call)(void *);
 
 // Utilities
 

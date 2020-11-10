@@ -147,16 +147,17 @@ static const struct st_hash_type st_hashtype_num = {
     st_numhash,
 };
 
-/* extern int strcmp(const char *, const char *); */
+static int st_strcmp(st_data_t, st_data_t);
 static st_index_t strhash(st_data_t);
 static const struct st_hash_type type_strhash = {
-    strcmp,
+    st_strcmp,
     strhash,
 };
 
+static int st_locale_insensitive_strcasecmp_i(st_data_t lhs, st_data_t rhs);
 static st_index_t strcasehash(st_data_t);
 static const struct st_hash_type type_strcasehash = {
-    st_locale_insensitive_strcasecmp,
+    st_locale_insensitive_strcasecmp_i,
     strcasehash,
 };
 
@@ -346,10 +347,7 @@ do_hash(st_data_t key, st_table *tab)
 static int
 get_power2(st_index_t size)
 {
-    unsigned int n;
-
-    for (n = 0; size != 0; n++)
-        size >>= 1;
+    unsigned int n = ST_INDEX_BITS - nlz_intptr(size);
     if (n <= MAX_POWER2)
         return n < MINIMAL_POWER2 ? MINIMAL_POWER2 : n;
 #ifndef NOT_RUBY
@@ -565,6 +563,8 @@ stat_col(void)
     FILE *f;
     if (!collision.total) return;
     f = fopen((snprintf(fname, sizeof(fname), "/tmp/col%ld", (long)getpid()), fname), "w");
+    if (f == NULL)
+        return;
     fprintf(f, "collision: %d / %d (%6.2f)\n", collision.all, collision.total,
             ((double)collision.all / (collision.total)) * 100);
     fprintf(f, "num: %d, str: %d, strcase: %d\n", collision.num, collision.str, collision.strcase);
@@ -595,17 +595,38 @@ st_init_table_with_size(const struct st_hash_type *type, st_index_t size)
 #endif
 
     n = get_power2(size);
+#ifndef RUBY
+    if (n < 0)
+        return NULL;
+#endif
     tab = (st_table *) malloc(sizeof (st_table));
+#ifndef RUBY
+    if (tab == NULL)
+        return NULL;
+#endif
     tab->type = type;
     tab->entry_power = n;
     tab->bin_power = features[n].bin_power;
     tab->size_ind = features[n].size_ind;
     if (n <= MAX_POWER2_FOR_TABLES_WITHOUT_BINS)
         tab->bins = NULL;
-    else
+    else {
         tab->bins = (st_index_t *) malloc(bins_size(tab));
+#ifndef RUBY
+        if (tab->bins == NULL) {
+            free(tab);
+            return NULL;
+        }
+#endif
+    }
     tab->entries = (st_table_entry *) malloc(get_allocated_entries(tab)
 					     * sizeof(st_table_entry));
+#ifndef RUBY
+    if (tab->entries == NULL) {
+        st_free_table(tab);
+        return NULL;
+    }
+#endif
 #ifdef ST_DEBUG
     memset(tab->entries, ST_INIT_VAL_BYTE,
 	   get_allocated_entries(tab) * sizeof(st_table_entry));
@@ -695,7 +716,7 @@ st_free_table(st_table *tab)
     free(tab);
 }
 
-/* Return byte size of memory allocted for table TAB.  */
+/* Return byte size of memory allocated for table TAB.  */
 size_t
 st_memsize(const st_table *tab)
 {
@@ -1201,7 +1222,7 @@ st_insert(st_table *tab, st_data_t key, st_data_t value)
 
 /* Insert (KEY, VALUE, HASH) into table TAB.  The table should not have
    entry with KEY before the insertion.  */
-void
+static inline void
 st_add_direct_with_hash(st_table *tab,
 			st_data_t key, st_data_t value, st_hash_t hash)
 {
@@ -1303,13 +1324,30 @@ st_copy(st_table *old_tab)
     st_table *new_tab;
 
     new_tab = (st_table *) malloc(sizeof(st_table));
+#ifndef RUBY
+    if (new_tab == NULL)
+        return NULL;
+#endif
     *new_tab = *old_tab;
     if (old_tab->bins == NULL)
         new_tab->bins = NULL;
-    else
+    else {
         new_tab->bins = (st_index_t *) malloc(bins_size(old_tab));
+#ifndef RUBY
+        if (new_tab->bins == NULL) {
+            free(new_tab);
+            return NULL;
+        }
+#endif
+    }
     new_tab->entries = (st_table_entry *) malloc(get_allocated_entries(old_tab)
 						 * sizeof(st_table_entry));
+#ifndef RUBY
+    if (new_tab->entries == NULL) {
+        st_free_table(new_tab);
+        return NULL;
+    }
+#endif
     MEMCPY(new_tab->entries, old_tab->entries, st_table_entry,
 	   get_allocated_entries(old_tab));
     if (old_tab->bins != NULL)
@@ -1550,7 +1588,7 @@ st_update(st_table *tab, st_data_t key,
    different for ST_CHECK and when the current element is removed
    during traversing.  */
 static inline int
-st_general_foreach(st_table *tab, int (*func)(ANYARGS), st_data_t arg,
+st_general_foreach(st_table *tab, st_foreach_check_callback_func *func, st_update_callback_func *replace, st_data_t arg,
 		   int check_p)
 {
     st_index_t bin;
@@ -1574,6 +1612,15 @@ st_general_foreach(st_table *tab, int (*func)(ANYARGS), st_data_t arg,
 	rebuilds_num = tab->rebuilds_num;
 	hash = curr_entry_ptr->hash;
 	retval = (*func)(key, curr_entry_ptr->record, arg, 0);
+
+        if (retval == ST_REPLACE && replace) {
+            st_data_t value;
+            value = curr_entry_ptr->record;
+            retval = (*replace)(&key, &value, arg, TRUE);
+            curr_entry_ptr->key = key;
+            curr_entry_ptr->record = value;
+        }
+
 	if (rebuilds_num != tab->rebuilds_num) {
 	retry:
 	    entries = tab->entries;
@@ -1602,6 +1649,8 @@ st_general_foreach(st_table *tab, int (*func)(ANYARGS), st_data_t arg,
 	    curr_entry_ptr = &entries[i];
 	}
 	switch (retval) {
+            case ST_REPLACE:
+                break;
 	  case ST_CONTINUE:
 	      break;
 	  case ST_CHECK:
@@ -1650,17 +1699,36 @@ st_general_foreach(st_table *tab, int (*func)(ANYARGS), st_data_t arg,
 }
 
 int
-st_foreach(st_table *tab, int (*func)(ANYARGS), st_data_t arg)
+st_foreach_with_replace(st_table *tab, st_foreach_check_callback_func *func, st_update_callback_func *replace, st_data_t arg)
 {
-    return st_general_foreach(tab, func, arg, FALSE);
+    return st_general_foreach(tab, func, replace, arg, TRUE);
+}
+
+struct functor {
+    st_foreach_callback_func *func;
+    st_data_t arg;
+};
+
+static int
+apply_functor(st_data_t k, st_data_t v, st_data_t d, int _)
+{
+    const struct functor *f = (void *)d;
+    return f->func(k, v, f->arg);
+}
+
+int
+st_foreach(st_table *tab, st_foreach_callback_func *func, st_data_t arg)
+{
+    const struct functor f = { func, arg };
+    return st_general_foreach(tab, apply_functor, NULL, (st_data_t)&f, FALSE);
 }
 
 /* See comments for function st_delete_safe.  */
 int
-st_foreach_check(st_table *tab, int (*func)(ANYARGS), st_data_t arg,
+st_foreach_check(st_table *tab, st_foreach_check_callback_func *func, st_data_t arg,
                  st_data_t never ATTRIBUTE_UNUSED)
 {
-    return st_general_foreach(tab, func, arg, TRUE);
+    return st_general_foreach(tab, func, NULL, arg, TRUE);
 }
 
 /* Set up array KEYS by at most SIZE keys of head table TAB entries.
@@ -2001,7 +2069,7 @@ st_hash_end(st_index_t h)
 
 #undef st_hash_start
 st_index_t
-st_hash_start(st_index_t h)
+rb_st_hash_start(st_index_t h)
 {
     return h;
 }
@@ -2061,6 +2129,22 @@ st_locale_insensitive_strncasecmp(const char *s1, const char *s2, size_t n)
         }
     }
     return 0;
+}
+
+static int
+st_strcmp(st_data_t lhs, st_data_t rhs)
+{
+    const char *s1 = (char *)lhs;
+    const char *s2 = (char *)rhs;
+    return strcmp(s1, s2);
+}
+
+static int
+st_locale_insensitive_strcasecmp_i(st_data_t lhs, st_data_t rhs)
+{
+    const char *s1 = (char *)lhs;
+    const char *s2 = (char *)rhs;
+    return st_locale_insensitive_strcasecmp(s1, s2);
 }
 
 NO_SANITIZE("unsigned-integer-overflow", PUREFUNC(static st_index_t strcasehash(st_data_t)));

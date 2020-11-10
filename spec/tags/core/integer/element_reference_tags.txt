@@ -1,0 +1,13 @@
+fails:Integer#[] fixnum when index and length passed returns specified number of bits from specified position
+fails:Integer#[] fixnum when index and length passed ensures n[i, len] equals to (n >> i) & ((1 << len) - 1)
+fails:Integer#[] fixnum when index and length passed moves start position to the most significant bits when negative index passed
+fails:Integer#[] fixnum when index and length passed ignores negative length
+fails:Integer#[] fixnum when range passed returns bits specified by range
+fails:Integer#[] fixnum when range passed ensures n[i..j] equals to (n >> i) & ((1 << (j - i + 1)) - 1)
+fails:Integer#[] fixnum when range passed ensures n[i..] equals to (n >> i)
+fails:Integer#[] fixnum when range passed moves lower boundary to the most significant bits when negative value passed
+fails:Integer#[] fixnum when range passed ignores negative upper boundary
+fails:Integer#[] fixnum when range passed ignores upper boundary smaller than lower boundary
+fails:Integer#[] fixnum when range passed raises FloatDomainError if any boundary is infinity
+fails:Integer#[] fixnum when range passed when passed (..i) returns 0 if all i bits equal 0
+fails:Integer#[] fixnum when range passed when passed (..i) raises ArgumentError if any of i bit equals 1

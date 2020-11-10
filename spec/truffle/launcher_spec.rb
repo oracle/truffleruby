@@ -12,18 +12,25 @@ require 'benchmark'
 require 'json'
 
 describe "The launcher" do
-  @versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
+  gem_versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__))).fetch('gems')
+  @default_gems = gem_versions.fetch('default')
+  @bundled_gems = gem_versions.fetch('bundled')
 
+  escape = -> string { /^#{Regexp.escape string}$/ }
   @launchers = {
-    bundle: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
-    bundler: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
-    gem: /^#{Regexp.escape @versions['gems']['default']['gem']}$/,
-    irb: /^irb #{Regexp.escape @versions['gems']['default']['irb']}/,
-    rake: /^rake, version #{Regexp.escape @versions['gems']['bundled']['rake']}/,
-    rdoc: /^#{Regexp.escape @versions['gems']['default']['rdoc']}$/,
-    ri: /^ri #{Regexp.escape @versions['gems']['default']['rdoc']}$/,
-    ruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
-    truffleruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    bundle: escape["Bundler version #{@default_gems['bundler']}"],
+    bundler: escape["Bundler version #{@default_gems['bundler']}"],
+    erb: escape["erb.rb [#{@default_gems['erb']} $]"],
+    gem: escape[@default_gems['gem']],
+    irb: escape["irb #{@default_gems['irb']} (2020-09-14)"],
+    racc: escape["racc version #{@default_gems['racc']}"],
+    racc2y: escape["racc2y version #{@default_gems['racc']}"],
+    y2racc: escape["y2racc version #{@default_gems['racc']}"],
+    rake: escape["rake, version #{@bundled_gems['rake']}"],
+    rdoc: escape[@default_gems['rdoc']],
+    ri: escape["ri #{@default_gems['rdoc']}"],
+    ruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    truffleruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
   }
 
   before :all do
@@ -68,10 +75,18 @@ describe "The launcher" do
     File.dirname(RbConfig.ruby).should == @default_bindir
   end
 
+  it "all launchers are in @launchers" do
+    known = @launchers.keys.map(&:to_s).sort
+    actual = Dir.children(File.dirname(RbConfig.ruby)).sort
+    actual.delete('truffleruby.sh')
+    actual.should == known
+  end
+
   @launchers.each do |launcher, test|
     unless [:ruby, :truffleruby].include?(launcher)
       it "runs #{launcher} as an -S command" do
-        out = ruby_exe(nil, options: "-S#{launcher} --version", args: @redirect)
+        redirect = launcher == :erb ? (touch @stderr; '2>&1') : @redirect
+        out = ruby_exe(nil, options: "-S #{launcher} --version", args: redirect)
         check_status_and_empty_stderr
         out.should =~ test
       end
@@ -80,8 +95,9 @@ describe "The launcher" do
 
   @launchers.each do |launcher, test|
     it "supports running #{launcher} in any of the bin/ directories" do
+      redirect = launcher == :erb ? (touch @stderr; '2>&1') : @redirect
       @bin_dirs.each do |bin_dir|
-        out = `#{bin_dir}/#{launcher} --version #{@redirect}`
+        out = `#{bin_dir}/#{launcher} --version #{redirect}`
         check_status_and_empty_stderr
         out.should =~ test
       end
@@ -90,6 +106,7 @@ describe "The launcher" do
 
   @launchers.each do |launcher, test|
     it "supports running #{launcher} symlinked" do
+      redirect = launcher == :erb ? (touch @stderr; '2>&1') : @redirect
       require 'tmpdir'
       @bin_dirs.each do |bin_dir|
         # Use the system tmp dir to not be under the Ruby home dir
@@ -97,7 +114,7 @@ describe "The launcher" do
           Dir.chdir(path) do
             linkname = "linkto#{launcher}"
             File.symlink("#{bin_dir}/#{launcher}", linkname)
-            out = `./#{linkname} --version #{@redirect}`
+            out = `./#{linkname} --version #{redirect}`
             check_status_and_empty_stderr
             out.should =~ test
           end
@@ -140,7 +157,7 @@ describe "The launcher" do
     gem_list = `#{@default_bindir}/gem list #{@redirect}`
     check_status_and_empty_stderr
     # see doc/contributor/stdlib.md
-    @versions['gems']['bundled'].each_pair do |gem, version|
+    @bundled_gems.each_pair do |gem, version|
       gem_list.should =~ /#{Regexp.escape gem}.*#{Regexp.escape version}/
     end
   end

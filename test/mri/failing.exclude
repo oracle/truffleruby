@@ -39,9 +39,13 @@ ruby/test_parse.rb # encoding
 rubygems/test_gem_security.rb # hangs
 io/wait/test_io_wait_uncommon.rb # unreliable in parallel
 
+# Pattern matching
+ruby/test_pattern_matching.rb
+
 # Too slow
 
 test_extlibs.rb
+racc/test_racc_command.rb
 
 # Other issues
 
@@ -188,3 +192,4 @@ xmlrpc/test_client.rb # pollutes other tests
 xmlrpc/test_cookie.rb # undefined method `http' for NilClass
 xmlrpc/test_parser.rb # `const_missing': uninitialized constant Test_REXMLStreamParser::GenericParserTest
 xmlrpc/test_webrick_server.rb # undefined method `<<' for Object
+ruby/test_bignum.rb # relies on Bignums on Fixnum range

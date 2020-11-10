@@ -1,0 +1,2 @@
+fails:Time#inspect preserves milliseconds
+fails:Time#inspect formats nanoseconds as a Rational

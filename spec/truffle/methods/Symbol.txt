@@ -9,6 +9,7 @@ casecmp?
 downcase
 empty?
 encoding
+end_with?
 id2name
 inspect
 intern
@@ -18,6 +19,7 @@ match?
 next
 size
 slice
+start_with?
 succ
 swapcase
 to_proc

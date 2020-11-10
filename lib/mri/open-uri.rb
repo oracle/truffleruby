@@ -10,23 +10,38 @@ module Kernel
     alias open_uri_original_open open # :nodoc:
   end
 
+  def open(name, *rest, **kw, &block) # :nodoc:
+    if (name.respond_to?(:open) && !name.respond_to?(:to_path)) ||
+       (name.respond_to?(:to_str) &&
+        %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://} =~ name &&
+        (uri = URI.parse(name)).respond_to?(:open))
+      warn('calling URI.open via Kernel#open is deprecated, call URI.open directly or use URI#open', uplevel: 1)
+      URI.open(name, *rest, **kw, &block)
+    else
+      open_uri_original_open(name, *rest, **kw, &block)
+    end
+  end
+  module_function :open
+end
+
+module URI
   # Allows the opening of various resources including URIs.
   #
   # If the first argument responds to the 'open' method, 'open' is called on
   # it with the rest of the arguments.
   #
-  # If the first argument is a string that begins with xxx://, it is parsed by
+  # If the first argument is a string that begins with <code>(protocol)://<code>, it is parsed by
   # URI.parse.  If the parsed object responds to the 'open' method,
   # 'open' is called on it with the rest of the arguments.
   #
-  # Otherwise, the original Kernel#open is called.
+  # Otherwise, Kernel#open is called.
   #
   # OpenURI::OpenRead#open provides URI::HTTP#open, URI::HTTPS#open and
   # URI::FTP#open, Kernel#open.
   #
   # We can accept URIs and strings that begin with http://, https:// and
   # ftp://. In these cases, the opened file object is extended by OpenURI::Meta.
-  def open(name, *rest, &block) # :doc:
+  def self.open(name, *rest, &block)
     if name.respond_to?(:open)
       name.open(*rest, &block)
     elsif name.respond_to?(:to_str) &&
@@ -35,15 +50,9 @@ module Kernel
       uri.open(*rest, &block)
     else
       open_uri_original_open(name, *rest, &block)
+      # After Kernel#open override is removed:
+      #super
     end
-  end
-  module_function :open
-end
-
-module URI #:nodoc:
-  # alias for Kernel.open defined in open-uri.
-  def self.open(name, *rest, &block)
-    Kernel.open(name, *rest, &block)
   end
 end
 
@@ -53,14 +62,14 @@ end
 #
 # It is possible to open an http, https or ftp URL as though it were a file:
 #
-#   open("http://www.ruby-lang.org/") {|f|
+#   URI.open("http://www.ruby-lang.org/") {|f|
 #     f.each_line {|line| p line}
 #   }
 #
 # The opened file has several getter methods for its meta-information, as
 # follows, since it is extended by OpenURI::Meta.
 #
-#   open("http://www.ruby-lang.org/en") {|f|
+#   URI.open("http://www.ruby-lang.org/en") {|f|
 #     f.each_line {|line| p line}
 #     p f.base_uri         # <URI::HTTP:0x40e6ef2 URL:http://www.ruby-lang.org/en/>
 #     p f.content_type     # "text/html"
@@ -71,7 +80,7 @@ end
 #
 # Additional header fields can be specified by an optional hash argument.
 #
-#   open("http://www.ruby-lang.org/en/",
+#   URI.open("http://www.ruby-lang.org/en/",
 #     "User-Agent" => "Ruby/#{RUBY_VERSION}",
 #     "From" => "foo@bar.invalid",
 #     "Referer" => "http://www.ruby-lang.org/") {|f|
@@ -81,11 +90,11 @@ end
 # The environment variables such as http_proxy, https_proxy and ftp_proxy
 # are in effect by default. Here we disable proxy:
 #
-#   open("http://www.ruby-lang.org/en/", :proxy => nil) {|f|
+#   URI.open("http://www.ruby-lang.org/en/", :proxy => nil) {|f|
 #     # ...
 #   }
 #
-# See OpenURI::OpenRead.open and Kernel#open for more on available options.
+# See OpenURI::OpenRead.open and URI.open for more on available options.
 #
 # URI objects can be opened in a similar way.
 #
@@ -543,17 +552,16 @@ module OpenURI
     # It can be used to guess charset.
     #
     # If charset parameter and block is not given,
-    # nil is returned except text type in HTTP.
-    # In that case, "iso-8859-1" is returned as defined by RFC2616 3.7.1.
+    # nil is returned except text type.
+    # In that case, "utf-8" is returned as defined by RFC6838 4.2.1
     def charset
       type, *parameters = content_type_parse
       if pair = parameters.assoc('charset')
         pair.last.downcase
       elsif block_given?
         yield
-      elsif type && %r{\Atext/} =~ type &&
-            @base_uri && /\Ahttp\z/i =~ @base_uri.scheme
-        "iso-8859-1" # RFC2616 3.7.1
+      elsif type && %r{\Atext/} =~ type
+        "utf-8" # RFC6838 4.2.1
       else
         nil
       end

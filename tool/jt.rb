@@ -32,7 +32,7 @@ PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'fe5cfa6d14ce50b154fafbc8551cb656d4a39d3d'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '02e158f0f04845018e843666477ef134c15f76e9'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
@@ -1102,13 +1102,14 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      truffle_args += %w(--reveal --vm.Xmx2G --testing-rubygems)
+      truffle_args += %w(--reveal --vm.Xmx2G)
     end
 
     env_vars = {
       'EXCLUDES' => 'test/mri/excludes',
-      'RUBYGEMS_TEST_PATH' => MRI_TEST_PREFIX,
+      'RUBYGEMS_TEST_PATH' => "#{MRI_TEST_PREFIX}/rubygems",
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
+      'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--testing-rubygems'].join(' '),
     }
     compile_env = {
       # MRI C-ext tests expect to be built with $extmk = true.
@@ -1206,7 +1207,11 @@ module Commands
   end
 
   private def test_cexts(*args)
-    all_tests = %w(tools minimum method module globals backtraces xopenssl postinstallhook gems)
+    all_tests = %w[
+      tools minimum method module globals backtraces xopenssl postinstallhook
+      oily_png psd_native
+      puma sqlite3 unf_ext json RubyInline msgpack
+    ]
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? all_tests : all_tests & args
@@ -1214,6 +1219,12 @@ module Commands
     tests.delete 'gems' if no_gems
 
     tests.each do |test_name|
+      run_single_cexts_test(test_name)
+    end
+  end
+
+  private def run_single_cexts_test(test_name)
+    time_test("jt test cexts #{test_name}") do
       case test_name
       when 'tools'
         # Test tools
@@ -1221,7 +1232,6 @@ module Commands
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
         # Test that we can compile and run some very basic C extensions
-
         begin
           output_file = 'cext-output.txt'
           dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{test_name}"
@@ -1249,48 +1259,49 @@ module Commands
         end
 
       when 'postinstallhook'
-
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
         sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "#{ruby_home}/lib/truffle/post_install_hook.sh")
 
-      when 'gems'
-        # Test that we can compile and run some real C extensions
-
+      when 'oily_png', 'psd_native'
         gem_home = "#{gem_test_pack}/gems"
+        tests = {
+          'oily_png' => [['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
+          'psd_native' => [['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
+        }
 
-        tests = [
-            ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
-            ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
-            ['nokogiri', [], ['nokogiri']]
-        ]
+        gem_name = test_name
+        dependencies, libs = tests.fetch(gem_name)
 
-        tests.each do |gem_name, dependencies, libs|
-          puts '', gem_name
-          next if gem_name == 'nokogiri' # nokogiri totally excluded
-          gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-          ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
+        puts '', gem_name
+        gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
+        ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
+        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.#{DLEXT}", ['-Werror=implicit-function-declaration']
 
-          next if gem_name == 'psd_native' # psd_native is excluded just for running
-          run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
-                   *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
-                   "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
-        end
+        next if gem_name == 'psd_native' # psd_native is excluded just for running
+        run_ruby(*dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
+                 *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
+                 "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root)
 
-        # Tests using gem install to compile the cexts
+      # Tests using gem install to compile the cexts
+      when 'puma'
         sh 'test/truffle/cexts/puma/puma.sh'
+      when 'sqlite3'
         sh 'test/truffle/cexts/sqlite3/sqlite3.sh'
+      when 'unf_ext'
         sh 'test/truffle/cexts/unf_ext/unf_ext.sh'
+      when 'json'
         sh 'test/truffle/cexts/json/json.sh'
 
+      when 'RubyInline'
         # Test a gem dynamically compiling a C extension
         # Does not work on macOS. Also fails on macOS on MRI with --enabled-shared.
         # It's a bug of RubyInline not using LIBRUBYARG/LIBRUBYARG_SHARED.
         sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless darwin?
 
-        # Test cexts used by many projects
+      # Test cexts used by many projects
+      when 'msgpack'
         sh 'test/truffle/cexts/msgpack/msgpack.sh'
       else
         raise "unknown test: #{test_name}"
@@ -1312,15 +1323,21 @@ module Commands
 
     STDERR.puts
     candidates.each do |test_script|
-      STDERR.puts "[jt] Running #{test_script} ..."
-      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      begin
+      time_test(test_script) do
         yield test_script
-      ensure
-        finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        duration = finish - start
-        STDERR.puts "[jt] #{test_script} took #{'%.1f' % duration}s\n\n\n"
       end
+    end
+  end
+
+  private def time_test(test_name)
+    STDERR.puts "[jt] Running #{test_name} ..."
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    begin
+      yield
+    ensure
+      finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      duration = finish - start
+      STDERR.puts "[jt] #{test_name} took #{'%.1f' % duration}s\n\n\n"
     end
   end
 
@@ -1485,11 +1502,15 @@ module Commands
 
     current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true).chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
-      has_commit = raw_sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
-      unless has_commit
-        raw_sh env, 'git', '-C', gem_test_pack, 'fetch', Remotes.bitbucket(gem_test_pack), continue_on_failure: true
+      if ENV['GEM_TEST_PACK_WIP'] == 'true'
+        STDERR.puts 'WARNING: the gem test pack commit is different than TRUFFLERUBY_GEM_TEST_PACK_VERSION in jt.rb'
+      else
+        has_commit = raw_sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
+        unless has_commit
+          raw_sh env, 'git', '-C', gem_test_pack, 'fetch', Remotes.bitbucket(gem_test_pack), continue_on_failure: true
+        end
+        raw_sh env, 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
       end
-      raw_sh env, 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
 
     puts gem_test_pack

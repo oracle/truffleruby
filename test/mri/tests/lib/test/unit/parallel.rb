@@ -2,6 +2,12 @@
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../.."
 require 'test/unit'
 
+require "profile_test_all" if ENV.key?('RUBY_TEST_ALL_PROFILE')
+require "tracepointchecker" unless defined?(::TruffleRuby)
+require "zombie_hunter"
+require "iseq_loader_checker" unless defined?(::TruffleRuby)
+require "gc_compact_checker"
+
 module Test
   module Unit
     class Worker < Runner # :nodoc:
@@ -140,9 +146,13 @@ module Test
         rescue Exception => e
           begin
             trace = e.backtrace || ['unknown method']
-            err = ["#{trace.shift}: #{e.message} (#{e.class})"] + trace.map{|t| t.prepend("\t") }
+            err = ["#{trace.shift}: #{e.message} (#{e.class})"] + trace.map{|t| "\t" + t }
 
-            _report "bye", Marshal.dump(err.join("\n"))
+            if @stdout
+              _report "bye", Marshal.dump(err.join("\n"))
+            else
+              raise "failed to report a failure due to lack of @stdout"
+            end
           rescue Errno::EPIPE;end
           exit
         ensure
@@ -153,6 +163,8 @@ module Test
 
       def _report(res, *args) # :nodoc:
         @stdout.write(args.empty? ? "#{res}\n" : "#{res} #{args.pack("m0")}\n")
+      rescue TypeError => e
+        abort("#{e.inspect} in _report(#{res.inspect}, #{args.inspect})\n#{e.backtrace.join("\n")}")
       end
 
       def puke(klass, meth, e) # :nodoc:
@@ -198,11 +210,5 @@ if $0 == __FILE__
     end
   end
   require 'rubygems'
-  module Gem # :nodoc:
-  end
-  class Gem::TestCase < MiniTest::Unit::TestCase # :nodoc:
-    @@project_dir = File.expand_path('../../../../..', __FILE__)
-  end
-
   Test::Unit::Worker.new.run(ARGV)
 end

@@ -67,13 +67,14 @@ public class BacktraceFormatter {
     }
 
     // For debugging:
-    // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(getContext(), this)
+    // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(this)
     // When outside a Ruby node:
-    // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(RubyLanguage.getCurrentContext(), null)
-    public static String printableRubyBacktrace(RubyContext context, RubyLanguage language, Node node) {
+    // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(null)
+    public static String printableRubyBacktrace(Node node) {
+        final RubyContext context = RubyLanguage.getCurrentContext();
         final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(
                 context,
-                language,
+                RubyLanguage.getCurrentLanguage(),
                 EnumSet.noneOf(FormattingFlags.class));
         final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
         if (backtrace.isEmpty()) {

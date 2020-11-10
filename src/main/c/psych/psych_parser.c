@@ -1,7 +1,6 @@
 #include <psych.h>
 
 VALUE cPsychParser;
-VALUE ePsychSyntaxError;
 
 static ID id_read;
 static ID id_path;
@@ -81,9 +80,12 @@ static VALUE allocate(VALUE klass)
 static VALUE make_exception(yaml_parser_t * parser, VALUE path)
 {
     size_t line, column;
+    VALUE ePsychSyntaxError;
 
     line = parser->context_mark.line + 1;
     column = parser->context_mark.column + 1;
+
+    ePsychSyntaxError = rb_const_get(mPsych, rb_intern("SyntaxError"));
 
     return rb_funcall(ePsychSyntaxError, rb_intern("new"), 6,
 	    path,
@@ -254,7 +256,6 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
     yaml_parser_t * parser;
     yaml_event_t event;
     int done = 0;
-    int tainted = 0;
     int state = 0;
     int parser_encoding = YAML_ANY_ENCODING;
     int encoding = rb_utf8_encindex();
@@ -273,13 +274,10 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
     yaml_parser_delete(parser);
     yaml_parser_initialize(parser);
 
-    if (OBJ_TAINTED(yaml)) tainted = 1;
-
     if (rb_respond_to(yaml, id_read)) {
 	yaml = transcode_io(yaml, &parser_encoding);
 	yaml_parser_set_encoding(parser, parser_encoding);
 	yaml_parser_set_input(parser, io_reader, (void *)yaml);
-	if (RTEST(rb_obj_is_kind_of(yaml, rb_cIO))) tainted = 1;
     } else {
 	StringValue(yaml);
 	yaml = transcode_string(yaml, &parser_encoding);
@@ -350,13 +348,11 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
 			VALUE prefix = Qnil;
 			if(start->handle) {
 			    handle = rb_str_new2((const char *)start->handle);
-			    if (tainted) OBJ_TAINT(handle);
 			    PSYCH_TRANSCODE(handle, encoding, internal_enc);
 			}
 
 			if(start->prefix) {
 			    prefix = rb_str_new2((const char *)start->prefix);
-			    if (tainted) OBJ_TAINT(prefix);
 			    PSYCH_TRANSCODE(prefix, encoding, internal_enc);
 			}
 
@@ -385,7 +381,6 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
 		VALUE alias = Qnil;
 		if(event.data.alias.anchor) {
 		    alias = rb_str_new2((const char *)event.data.alias.anchor);
-		    if (tainted) OBJ_TAINT(alias);
 		    PSYCH_TRANSCODE(alias, encoding, internal_enc);
 		}
 
@@ -404,19 +399,16 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
 		    (const char *)event.data.scalar.value,
 		    (long)event.data.scalar.length
 		    );
-		if (tainted) OBJ_TAINT(val);
 
 		PSYCH_TRANSCODE(val, encoding, internal_enc);
 
 		if(event.data.scalar.anchor) {
 		    anchor = rb_str_new2((const char *)event.data.scalar.anchor);
-		    if (tainted) OBJ_TAINT(anchor);
 		    PSYCH_TRANSCODE(anchor, encoding, internal_enc);
 		}
 
 		if(event.data.scalar.tag) {
 		    tag = rb_str_new2((const char *)event.data.scalar.tag);
-		    if (tainted) OBJ_TAINT(tag);
 		    PSYCH_TRANSCODE(tag, encoding, internal_enc);
 		}
 
@@ -446,14 +438,12 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
 		VALUE implicit, style;
 		if(event.data.sequence_start.anchor) {
 		    anchor = rb_str_new2((const char *)event.data.sequence_start.anchor);
-		    if (tainted) OBJ_TAINT(anchor);
 		    PSYCH_TRANSCODE(anchor, encoding, internal_enc);
 		}
 
 		tag = Qnil;
 		if(event.data.sequence_start.tag) {
 		    tag = rb_str_new2((const char *)event.data.sequence_start.tag);
-		    if (tainted) OBJ_TAINT(tag);
 		    PSYCH_TRANSCODE(tag, encoding, internal_enc);
 		}
 
@@ -482,13 +472,11 @@ static VALUE parse(int argc, VALUE *argv, VALUE self)
 		VALUE implicit, style;
 		if(event.data.mapping_start.anchor) {
 		    anchor = rb_str_new2((const char *)event.data.mapping_start.anchor);
-		    if (tainted) OBJ_TAINT(anchor);
 		    PSYCH_TRANSCODE(anchor, encoding, internal_enc);
 		}
 
 		if(event.data.mapping_start.tag) {
 		    tag = rb_str_new2((const char *)event.data.mapping_start.tag);
-		    if (tainted) OBJ_TAINT(tag);
 		    PSYCH_TRANSCODE(tag, encoding, internal_enc);
 		}
 
@@ -569,7 +557,6 @@ void Init_psych_parser(void)
     rb_define_const(cPsychParser, "UTF16BE", INT2NUM(YAML_UTF16BE_ENCODING));
 
     rb_require("psych/syntax_error");
-    ePsychSyntaxError = rb_const_get(mPsych, rb_intern("SyntaxError"));
 
     rb_define_method(cPsychParser, "parse", parse, -1);
     rb_define_method(cPsychParser, "mark", mark, 0);

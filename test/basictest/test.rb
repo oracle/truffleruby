@@ -43,7 +43,7 @@ class Progress
       # dircolors-like style
       colors = (colors = ENV['TEST_COLORS']) ? Hash[colors.scan(/(\w+)=([^:\n]*)/)] : {}
       begin
-        File.read(File.join(__dir__, "../test/colors")).scan(/(\w+)=([^:\n]*)/) do |n, c|
+        File.read(File.join(__dir__, "../tool/colors")).scan(/(\w+)=([^:\n]*)/) do |n, c|
           colors[n] ||= c
         end
       rescue
@@ -999,13 +999,6 @@ test_ok($z == 0)
 
 test_check "iterator"
 
-test_ok(!iterator?)
-
-def ttt
-  test_ok(iterator?)
-end
-ttt{}
-
 # yield at top level
 test_ok(!defined?(yield))
 
@@ -1755,7 +1748,7 @@ a = nil
 test_ok(defined?(a))
 test_ok(a == nil)
 
-# multiple asignment
+# multiple assignment
 a, b = 1, 2
 test_ok(a == 1 && b == 2)
 

@@ -18,6 +18,6 @@ describe "The --platform-native option" do
   end
 
   it "when disabled can use reasonable parts of the stdlib" do
-    ruby_exe("require 'uri'; p URI('http://foo.com/posts?id=30&limit=5#time=1305298413').query", options: "--experimental-options --platform-native=false").should == "\"id=30&limit=5\"\n"
+    ruby_exe("require 'uri'; p URI('http://foo.com/posts?id=30&limit=5#time=1305298413').query", options: "--experimental-options --platform-native=false --disable-gems").should == "\"id=30&limit=5\"\n"
   end
 end

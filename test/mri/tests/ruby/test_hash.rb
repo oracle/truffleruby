@@ -149,10 +149,9 @@ class TestHash < Test::Unit::TestCase
     assert_equal(nil, h['b'])
     assert_equal(300, h['c'])
 
-    h = @cls[[["a", 100], "b", ["c", 300]]]
-    assert_equal(100, h['a'])
-    assert_equal(nil, h['b'])
-    assert_equal(300, h['c'])
+    assert_raise(ArgumentError) do
+      @cls[[["a", 100], "b", ["c", 300]]]
+    end
   end
 
   def test_s_AREF_duplicated_key
@@ -321,17 +320,6 @@ class TestHash < Test::Unit::TestCase
     assert_same "ABC".freeze, c.keys[0]
   end
 
-  def test_tainted_string_key
-    str = 'str'.taint
-    h = {}
-    h[str] = nil
-    key = h.keys.first
-    assert_predicate str, :tainted?
-    assert_not_predicate str, :frozen?
-    assert_predicate key, :tainted?
-    assert_predicate key, :frozen?
-  end
-
   def test_EQUAL # '=='
     h1 = @cls[ "a" => 1, "c" => 2 ]
     h2 = @cls[ "a" => 1, "c" => 2, 7 => 35 ]
@@ -354,18 +342,14 @@ class TestHash < Test::Unit::TestCase
   end
 
   def test_clone
-    for taint in [ false, true ]
-      for frozen in [ false, true ]
-        a = @h.clone
-        a.taint  if taint
-        a.freeze if frozen
-        b = a.clone
+    for frozen in [ false, true ]
+      a = @h.clone
+      a.freeze if frozen
+      b = a.clone
 
-        assert_equal(a, b)
-        assert_not_same(a, b)
-        assert_equal(a.frozen?, b.frozen?)
-        assert_equal(a.tainted?, b.tainted?)
-      end
+      assert_equal(a, b)
+      assert_not_same(a, b)
+      assert_equal(a.frozen?, b.frozen?)
     end
   end
 
@@ -452,18 +436,14 @@ class TestHash < Test::Unit::TestCase
   end
 
   def test_dup
-    for taint in [ false, true ]
-      for frozen in [ false, true ]
-        a = @h.dup
-        a.taint  if taint
-        a.freeze if frozen
-        b = a.dup
+    for frozen in [ false, true ]
+      a = @h.dup
+      a.freeze if frozen
+      b = a.dup
 
-        assert_equal(a, b)
-        assert_not_same(a, b)
-        assert_equal(false, b.frozen?)
-        assert_equal(a.tainted?, b.tainted?)
-      end
+      assert_equal(a, b)
+      assert_not_same(a, b)
+      assert_equal(false, b.frozen?)
     end
   end
 
@@ -671,12 +651,21 @@ class TestHash < Test::Unit::TestCase
     assert_not_send([@h, :member?, 'gumby'])
   end
 
+  def hash_hint hv
+    hv & 0xff
+  end
+
   def test_rehash
     a = [ "a", "b" ]
     c = [ "c", "d" ]
     h = @cls[ a => 100, c => 300 ]
     assert_equal(100, h[a])
-    a[0] = "z"
+
+    hv = a.hash
+    begin
+      a[0] << "z"
+    end while hash_hint(a.hash) == hash_hint(hv)
+
     assert_nil(h[a])
     h.rehash
     assert_equal(100, h[a])
@@ -704,10 +693,8 @@ class TestHash < Test::Unit::TestCase
 
     h.instance_variable_set(:@foo, :foo)
     h.default = 42
-    h.taint
     h = EnvUtil.suppress_warning {h.reject {false}}
     assert_instance_of(Hash, h)
-    assert_not_predicate(h, :tainted?)
     assert_nil(h.default)
     assert_not_send([h, :instance_variable_defined?, :@foo])
   end
@@ -832,11 +819,6 @@ class TestHash < Test::Unit::TestCase
     assert_equal([3,4], a.delete([3,4]))
     assert_equal([5,6], a.delete([5,6]))
     assert_equal(0, a.length)
-
-    h = @cls[ 1=>2, 3=>4, 5=>6 ]
-    h.taint
-    a = h.to_a
-    assert_equal(true, a.tainted?)
   end
 
   def test_to_hash
@@ -944,8 +926,8 @@ class TestHash < Test::Unit::TestCase
 
   def test_create
     assert_equal({1=>2, 3=>4}, @cls[[[1,2],[3,4]]])
-    assert_raise(ArgumentError) { Hash[0, 1, 2] }
-    assert_warning(/wrong element type Integer at 1 /) {@cls[[[1, 2], 3]]}
+    assert_raise(ArgumentError) { @cls[0, 1, 2] }
+    assert_raise(ArgumentError) { @cls[[[0, 1], 2]] }
     bug5406 = '[ruby-core:39945]'
     assert_raise(ArgumentError, bug5406) { @cls[[[1, 2], [3, 4, 5]]] }
     assert_equal({1=>2, 3=>4}, @cls[1,2,3,4])
@@ -1029,10 +1011,8 @@ class TestHash < Test::Unit::TestCase
 
     h.instance_variable_set(:@foo, :foo)
     h.default = 42
-    h.taint
     h = h.select {true}
     assert_instance_of(Hash, h)
-    assert_not_predicate(h, :tainted?)
     assert_nil(h.default)
     assert_not_send([h, :instance_variable_defined?, :@foo])
   end
@@ -1075,10 +1055,8 @@ class TestHash < Test::Unit::TestCase
 
     h.instance_variable_set(:@foo, :foo)
     h.default = 42
-    h.taint
     h = h.filter {true}
     assert_instance_of(Hash, h)
-    assert_not_predicate(h, :tainted?)
     assert_nil(h.default)
     assert_not_send([h, :instance_variable_defined?, :@foo])
   end
@@ -1686,9 +1664,16 @@ class TestHash < Test::Unit::TestCase
 
   def test_transform_values
     x = @cls[a: 1, b: 2, c: 3]
+    x.default = 42
     y = x.transform_values {|v| v ** 2 }
     assert_equal([1, 4, 9], y.values_at(:a, :b, :c))
     assert_not_same(x, y)
+    assert_nil(y.default)
+
+    x.default_proc = proc {|h, k| k}
+    y = x.transform_values {|v| v ** 2 }
+    assert_nil(y.default_proc)
+    assert_nil(y.default)
 
     y = x.transform_values.with_index {|v, i| "#{v}.#{i}" }
     assert_equal(%w(1.0  2.1  3.2), y.values_at(:a, :b, :c))
@@ -1721,6 +1706,35 @@ class TestHash < Test::Unit::TestCase
     assert_equal(keys, h.keys.map(&:hash), msg)
   end
 
+  def hrec h, n, &b
+    if n > 0
+      h.each{hrec(h, n-1, &b)}
+    else
+      yield
+    end
+  end
+
+  def test_huge_iter_level
+    nrec = 200
+
+    h = @cls[a: 1]
+    hrec(h, nrec){}
+    h[:c] = 3
+    assert_equal(3, h[:c])
+
+    h = @cls[a: 1]
+    h.freeze # set hidden attribute for a frozen object
+    hrec(h, nrec){}
+    assert_equal(1, h.size)
+
+    h = @cls[a: 1]
+    assert_raise(RuntimeError){
+      hrec(h, nrec){ h[:c] = 3 }
+    }
+  rescue SystemStackError
+    # ignore
+  end
+
   class TestSubHash < TestHash
     class SubHash < Hash
       def reject(*)
@@ -1732,6 +1746,30 @@ class TestHash < Test::Unit::TestCase
       @cls = SubHash
       super
     end
+  end
+
+  ruby2_keywords def get_flagged_hash(*args)
+    args.last
+  end
+
+  def check_flagged_hash(k: :NG)
+    k
+  end
+
+  def test_ruby2_keywords_hash?
+    flagged_hash = get_flagged_hash(k: 1)
+    assert_equal(true, Hash.ruby2_keywords_hash?(flagged_hash))
+    assert_equal(false, Hash.ruby2_keywords_hash?({}))
+    assert_raise(TypeError) { Hash.ruby2_keywords_hash?(1) }
+  end
+
+  def test_ruby2_keywords_hash
+    hash = {k: 1}
+    assert_equal(false, Hash.ruby2_keywords_hash?(hash))
+    hash = Hash.ruby2_keywords_hash(hash)
+    assert_equal(true, Hash.ruby2_keywords_hash?(hash))
+    assert_equal(1, check_flagged_hash(*[hash]))
+    assert_raise(TypeError) { Hash.ruby2_keywords_hash(1) }
   end
 
   def test_ar2st

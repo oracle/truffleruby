@@ -42,7 +42,6 @@ Truffleruby uses hybrid executables, an example of `gem` file follows:
 
 ```ruby
 #!/usr/bin/env bash
-# ignored by Ruby interpreter
 
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
