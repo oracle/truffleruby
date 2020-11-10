@@ -11,7 +11,7 @@
 module Truffle
   module RegexpOperations
 
-    COMPARE_ENGINES = true
+    COMPARE_ENGINES = false
     USE_TRUFFLE_REGEX = true
 
     TREGEX = Primitive.object_hidden_var_create :tregex
