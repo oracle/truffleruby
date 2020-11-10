@@ -498,8 +498,8 @@ class Enumerator
       end
     end
 
-    def chunk(&original_block)
-      super.lazy
+    def chunk(&block)
+      super(&block).lazy
     end
 
     # clone these methods from the superclass
