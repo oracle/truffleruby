@@ -728,17 +728,18 @@ public class CoreLibrary {
         // Errno classes and constants
         for (Entry<String, Object> entry : context.getNativeConfiguration().getSection(ERRNO_CONFIG_PREFIX)) {
             final String name = entry.getKey().substring(ERRNO_CONFIG_PREFIX.length());
-            if (name.equals("EWOULDBLOCK") && getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
-                continue; // Don't define it as a class, define it as constant later.
-            }
-            errnoValueToNames.put((int) entry.getValue(), name);
-            final RubyClass rubyClass = defineClass(errnoModule, systemCallErrorClass, name);
-            setConstant(rubyClass, "Errno", entry.getValue());
-            errnoClasses.put(name, rubyClass);
-        }
+            final int errno = (int) entry.getValue();
 
-        if (getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
-            setConstant(errnoModule, "EWOULDBLOCK", errnoClasses.get("EAGAIN"));
+            final String alreadyDefined = errnoValueToNames.putIfAbsent(errno, name);
+            final RubyClass rubyClass;
+            if (alreadyDefined != null) {
+                rubyClass = errnoClasses.get(alreadyDefined);
+                setConstant(errnoModule, name, rubyClass);
+            } else {
+                rubyClass = defineClass(errnoModule, systemCallErrorClass, name);
+                setConstant(rubyClass, "Errno", entry.getValue());
+            }
+            errnoClasses.put(name, rubyClass);
         }
     }
 
