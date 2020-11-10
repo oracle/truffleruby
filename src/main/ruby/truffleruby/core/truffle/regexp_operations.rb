@@ -204,6 +204,7 @@ module Truffle
       rescue => e
         if !("#{e.message}".index("UnsupportedRegexException"))
           $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
+          raise e
         end
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
