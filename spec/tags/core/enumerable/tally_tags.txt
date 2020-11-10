@@ -1,5 +1,0 @@
-fails:Enumerable#tally returns a hash with counts according to the value
-fails:Enumerable#tally returns a hash without default
-fails:Enumerable#tally returns an empty hash for empty enumerables
-fails:Enumerable#tally counts values as gathered array when yielded with multiple arguments
-fails:Enumerable#tally does not call given block
