@@ -103,8 +103,11 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object readArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
-            return readNode.execute(receiver, args[0]);
+        return at(receiver, name, args, cachedName, interop, translateInteropException, context, readNode);
     }
 
     @Specialization(
@@ -126,13 +129,14 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             if (((int) args[0]) < -bound || (int) args[0] >= bound) {
                 return nil;
             }
-            return ((int) args[0] < 0) ? readNode.execute(receiver, size + (int) args[0]) :
-                readNode.execute(receiver, args[0]);
+            return ((int) args[0] < 0)
+                    ? readNode.execute(receiver, size + (int) args[0])
+                    : readNode.execute(receiver, args[0]);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
     }
-                         
+
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -155,8 +159,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         context.getCoreExceptions().indexError("Index " + (int) args[0] +
                                 " outside of array bounds: -" + bound + "..." + bound, this));
             }
-            return ((int) args[0] < 0) ? fetchNode.execute(receiver, size + (int) args[0]) :
-                fetchNode.execute(receiver, args[0]);
+            return ((int) args[0] < 0)
+                    ? fetchNode.execute(receiver, size + (int) args[0])
+                    : fetchNode.execute(receiver, args[0]);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }

@@ -47,42 +47,49 @@ describe "Non empty foreign arrays" do
   end
 
   it "can access elements by indexing #[]" do
-    @foreign
     @foreign[0].should == 1
     @foreign[2].should == 3
+    @foreign[4].should == nil
   end
 
-  it "can access elements with #at" do
+  it "can access elements by indexing #[] with negative indices" do
+    @foreign[-1].should == 3
+    @foreign[-2].should == 2
+    @foreign[-3].should == 1
+    @foreign[-4].should == nil
+  end
+
+  it "can access elements by indexing #at" do
     @foreign.at(0).should == 1
     @foreign.at(2).should == 3
     @foreign.at(5).should == nil
   end
 
-  it "can access elements with #at with negative indices" do
+  it "can access elements by indexing #at with negative indices" do
     @foreign.at(-1).should == 3
     @foreign.at(-2).should == 2
     @foreign.at(-3).should == 1
     @foreign.at(-5).should == nil
   end
 
-  it "should raise IndexError in #fetch when index out of bounds" do
+  it "can access elements by indexing #fetch" do
+    @foreign.fetch(0).should == 1
+    @foreign.fetch(2).should == 3
+  end
+
+  it "can access elements by indexing #fetch with negative indices" do
+    @foreign.fetch(-1).should == 3
+    @foreign.fetch(-2).should == 2
+    @foreign.fetch(-3).should == 1
+  end
+
+  it "should raise IndexError when indexing #fetch out of bounds" do
     @foreign
     -> {
       @foreign.fetch(-5)
     }.should raise_error(IndexError) { |e|
       e.message.should.include?("Index -5 outside of array bounds: -3...3")
     }
-  end
-
-  it "can access elements with #fetch" do
-    @foreign.fetch(0).should == 1
-    @foreign.fetch(2).should == 3
-  end
-
-  it "can access elements with #fetch with negative indices" do
-    @foreign.fetch(-1).should == 3
-    @foreign.fetch(-2).should == 2
-    @foreign.fetch(-3).should == 1
   end
 
   it "should access array with #first" do
@@ -98,7 +105,7 @@ describe "Empty foreign arrays" do
   before do
     @foreign = Truffle::Interop.to_java_array([])
   end
-  
+
   it "can create empty foreign array" do
     @foreign.length.should == 0
   end
