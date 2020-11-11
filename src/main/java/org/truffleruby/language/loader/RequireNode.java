@@ -319,7 +319,7 @@ public abstract class RequireNode extends RubyContextNode {
     private void handleCExtensionException(String feature, Exception e) {
         TranslateExceptionNode.logJavaException(getContext(), this, e);
 
-        final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
+        final Throwable linkErrorException = searchForException("NFIUnsatisfiedLinkError", e);
         if (linkErrorException != null) {
             final String linkError = linkErrorException.getMessage();
 
@@ -361,17 +361,6 @@ public abstract class RequireNode extends RubyContextNode {
 
             throw new RaiseException(getContext(), getContext().getCoreExceptions().runtimeError(message, this));
         }
-    }
-
-    private <T extends Throwable> T searchForException(Class<T> exceptionClass, Throwable exception) {
-        while (exception != null) {
-            if (exceptionClass.isInstance(exception)) {
-                return exceptionClass.cast(exception);
-            }
-            exception = exception.getCause();
-        }
-
-        return null;
     }
 
     private Throwable searchForException(String exceptionClass, Throwable exception) {
