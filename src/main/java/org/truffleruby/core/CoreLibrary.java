@@ -123,7 +123,7 @@ public class CoreLibrary {
     private final RubyContext context;
     private final RubyLanguage language;
 
-    public final SourceSection sourceSection;
+    public final SourceSection sourceSection = initCoreSourceSection();
 
     public final RubyClass argumentErrorClass;
     public final RubyClass arrayClass;
@@ -261,14 +261,11 @@ public class CoreLibrary {
     public final String corePath;
 
     @TruffleBoundary
-    private SourceSection initCoreSourceSection(RubyContext context) {
+    private SourceSection initCoreSourceSection() {
         final Source.SourceBuilder builder = Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
-        if (context.getOptions().CORE_AS_INTERNAL) {
-            builder.internal(true);
-        }
+        builder.internal(true);
 
         final Source source;
-
         try {
             source = builder.build();
         } catch (IOException e) {
@@ -311,7 +308,6 @@ public class CoreLibrary {
         this.language = language;
         this.coreLoadPath = buildCoreLoadPath();
         this.corePath = coreLoadPath + File.separator + "core" + File.separator;
-        this.sourceSection = initCoreSourceSection(context);
         this.node = SingletonClassNode.getUncached();
 
         // Nothing in this constructor can use RubyContext.getCoreLibrary() as we are building it!
