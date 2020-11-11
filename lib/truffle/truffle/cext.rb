@@ -1785,4 +1785,23 @@ module Truffle::CExt
   def test_cext_wrap(value)
     Primitive.cext_wrap(value)
   end
+
+  # An object that once unreachable frees the associated native pointer using ruby_xfree()
+  class IMemoTmpBufAutoFree
+    def pointer=(address)
+      ObjectSpace.define_finalizer(self, self.class.free(address))
+    end
+
+    def self.free(address)
+      -> _id { LIBTRUFFLERUBY.ruby_xfree(address) }
+    end
+  end
+
+  def rb_imemo_tmpbuf_auto_free_pointer
+    IMemoTmpBufAutoFree.new
+  end
+
+  def rb_imemo_tmpbuf_set_ptr(obj, ptr)
+    obj.pointer = ptr
+  end
 end

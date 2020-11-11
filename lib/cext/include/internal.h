@@ -65,13 +65,10 @@ typedef struct rb_imemo_tmpbuf_struct {
     size_t cnt; /* buffer size in VALUE */
 } rb_imemo_tmpbuf_t;
 
-#define rb_imemo_tmpbuf_auto_free_pointer() rb_imemo_new(imemo_tmpbuf, 0, 0, 0, 0)
-rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt);
+VALUE rb_imemo_tmpbuf_auto_free_pointer(void);
+void* rb_imemo_tmpbuf_set_ptr(VALUE v, void *ptr);
 
-static inline
-void* rb_imemo_tmpbuf_set_ptr(VALUE v, void *ptr) {
-    return ((rb_imemo_tmpbuf_t *)v)->ptr = ptr;
-}
+rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt);
 
 #if defined(HAVE_MALLOC_USABLE_SIZE) || defined(HAVE_MALLOC_SIZE) || defined(_WIN32)
 #define ruby_sized_xrealloc(ptr, new_size, old_size) ruby_xrealloc(ptr, new_size)
