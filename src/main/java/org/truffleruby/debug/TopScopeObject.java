@@ -227,7 +227,7 @@ public final class TopScopeObject implements TruffleObject {
             @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
             throws UnsupportedMessageException, UnknownIdentifierException {
         int length = NAMES.length;
-        for (int i = 0; i < length; i++) {
+        for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
             if (interop.isMemberRemovable(scope, member)) {
                 interop.removeMember(scope, member);

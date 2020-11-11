@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2018, 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -216,6 +216,20 @@ public class PolyglotInteropTest {
             Value formatMethod = bindings.getMember("format");
             assertTrue(formatMethod.canExecute());
             assertEquals(formatMethod.execute("hello").asString(), "hello");
+        }
+    }
+
+    @Test
+    //GR-27300
+    public void testTopScopeRemoveBindings() {
+        try (Context context = Context.create()) {
+            Value bindings = context.getBindings("ruby");
+
+            assertFalse(bindings.hasMember("@foo"));
+            context.eval("ruby", "@foo=42;");
+            assertTrue(bindings.hasMember("@foo"));
+            assertTrue(bindings.removeMember("@foo"));
+            assertFalse(bindings.hasMember("@foo"));
         }
     }
 }
