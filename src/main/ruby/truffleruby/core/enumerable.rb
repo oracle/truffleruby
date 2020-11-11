@@ -267,6 +267,19 @@ module Enumerable
     end
   end
 
+  def tally
+    h = {}
+    each do
+      e = Primitive.single_block_arg
+      if h.key?(e)
+        h[e] += 1
+      else
+        h[e] = 1
+      end
+    end
+    h
+  end
+
   def to_a(*arg)
     ary = []
     each(*arg) do
