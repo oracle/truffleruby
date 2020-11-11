@@ -12,6 +12,7 @@ Bug fixes:
 Compatibility:
 
 * Implement `String#undump` (#2131, @kustosz)
+* `Errno` constants with the same `errno` number are now the same class.
 
 Performance:
 
