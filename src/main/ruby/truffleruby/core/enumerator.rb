@@ -216,6 +216,19 @@ class Enumerator
     Enumerator::Chain.new(self, other)
   end
 
+  def self.produce(initial = nil)
+    # Taken from https://github.com/zverok/enumerator_generate
+    raise ArgumentError, 'No block given' unless block_given?
+    Enumerator.new(Float::INFINITY) do |y|
+      val = initial == nil ? yield() : initial
+
+      loop do
+        y << val
+        val = yield(val)
+      end
+    end
+  end
+
   class Yielder
     def initialize(&block)
       raise LocalJumpError, 'Expected a block to be given' unless block_given?
