@@ -366,7 +366,7 @@ public class BacktraceFormatter {
 
     public static String formatJavaThrowableMessage(Throwable t) {
         final String message = t.getMessage();
-        return (message != null ? message : "<no message>") + " (" + t.getClass().getSimpleName() + ")";
+        return (message != null ? message : "<no message>") + " (" + t.getClass().getCanonicalName() + ")";
     }
 
 }
