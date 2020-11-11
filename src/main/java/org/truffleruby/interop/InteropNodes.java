@@ -30,6 +30,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -127,6 +128,18 @@ public abstract class InteropNodes {
             return methods.toArray(StringUtils.EMPTY_STRING_ARRAY);
         }
 
+    }
+
+    @Primitive(name = "interop_execute")
+    public abstract static class InteropExecuteNode extends InteropPrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object executeWithoutConversion(Object receiver, RubyArray argsArray,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+            return InteropNodes.execute(receiver, args, receivers, translateInteropException);
+        }
     }
 
     @Primitive(name = "dispatch_missing")
