@@ -28,6 +28,10 @@ void *ruby_xmalloc2(size_t n, size_t size) {
   return malloc(xmalloc2_size(n, total_size));
 }
 
+void* rb_xmalloc_mul_add(size_t x, size_t y, size_t z) {
+  return ruby_xmalloc(x * y + z);
+}
+
 void *ruby_xcalloc(size_t n, size_t size) {
   return calloc(n, size);
 }
