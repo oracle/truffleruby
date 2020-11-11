@@ -12,16 +12,17 @@ package org.truffleruby.language.control;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import org.truffleruby.language.SafepointManager;
 
 public final class WhileNode extends RubyContextSourceNode {
 
@@ -37,9 +38,7 @@ public final class WhileNode extends RubyContextSourceNode {
         return nil;
     }
 
-    private static abstract class WhileRepeatingBaseNode extends Node implements RepeatingNode {
-
-        protected final RubyContext context;
+    private static abstract class WhileRepeatingBaseNode extends RubyContextNode implements RepeatingNode {
 
         @Child protected BooleanCastNode condition;
         @Child protected RubyNode body;
@@ -49,7 +48,6 @@ public final class WhileNode extends RubyContextSourceNode {
         protected final BranchProfile nextUsed = BranchProfile.create();
 
         public WhileRepeatingBaseNode(RubyContext context, RubyNode condition, RubyNode body) {
-            this.context = context;
             this.condition = BooleanCastNodeGen.create(condition);
             this.body = body;
         }
@@ -74,7 +72,7 @@ public final class WhileNode extends RubyContextSourceNode {
             }
 
             while (true) { // for redo
-                context.getSafepointManager().poll(this);
+                SafepointManager.poll(getLanguage(), this);
                 try {
                     body.execute(frame);
                     return true;
@@ -98,7 +96,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
-            context.getSafepointManager().poll(this);
+            SafepointManager.poll(getLanguage(), this);
             try {
                 body.execute(frame);
             } catch (NextException e) {

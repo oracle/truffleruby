@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
@@ -29,13 +30,12 @@ import org.truffleruby.platform.Signals;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.Node;
 
-public class SafepointManager {
+public final class SafepointManager {
 
+    private final RubyLanguage language;
     private final RubyContext context;
 
     private final Set<Thread> runningThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -56,13 +56,16 @@ public class SafepointManager {
         };
     }
 
-    @CompilationFinal private Assumption assumption = Truffle.getRuntime().createAssumption("SafepointManager");
+    /** The Assumption needs to be per language to be PE constant. This flag tracks whether there is an active safepoint
+     * per context. */
+    private volatile boolean active = false;
 
     private volatile SafepointAction action;
     private volatile boolean deferred;
 
-    public SafepointManager(RubyContext context) {
+    public SafepointManager(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     @TruffleBoundary
@@ -91,18 +94,23 @@ public class SafepointManager {
         }
     }
 
-    public void poll(Node currentNode) {
-        poll(currentNode, false);
+    public static void poll(RubyLanguage language, Node currentNode) {
+        poll(language, currentNode, false);
     }
 
-    public void pollFromBlockingCall(Node currentNode) {
-        poll(currentNode, true);
+    public static void pollFromBlockingCall(RubyLanguage language, Node currentNode) {
+        poll(language, currentNode, true);
     }
 
-    private void poll(Node currentNode, boolean fromBlockingCall) {
-        if (!assumption.isValid()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            assumptionInvalidated(currentNode, fromBlockingCall);
+    private static void poll(RubyLanguage language, Node currentNode, boolean fromBlockingCall) {
+        final Assumption safepointAssumption = language.getSafepointAssumption();
+        CompilerAsserts.partialEvaluationConstant(safepointAssumption);
+        if (!safepointAssumption.isValid()) {
+            final SafepointManager safepointManager = RubyLanguage.getCurrentContext().getSafepointManager();
+            if (safepointManager.active) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                safepointManager.assumptionInvalidated(currentNode, fromBlockingCall);
+            }
         }
     }
 
@@ -140,7 +148,8 @@ public class SafepointManager {
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
             driveArrivalAtPhaser();
-            assumption = Truffle.getRuntime().createAssumption("SafepointManager");
+            language.resetSafepointAssumption();
+            this.active = false;
         } else {
             phaser.arriveAndAwaitAdvance();
         }
@@ -255,7 +264,7 @@ public class SafepointManager {
 
         // Need to lock interruptibly since we are in the registered threads.
         while (!lock.tryLock()) {
-            poll(currentNode);
+            poll(language, currentNode);
         }
 
         try {
@@ -326,7 +335,8 @@ public class SafepointManager {
 
         /* We need to invalidate first so the interrupted threads see the invalidation in poll() in their
          * catch(InterruptedException) clause and wait on the Phaser instead of retrying their blocking action. */
-        assumption.invalidate(reason);
+        this.active = true;
+        language.invalidateSafepointAssumption(reason);
         interruptOtherThreads();
 
         step(currentNode, true);

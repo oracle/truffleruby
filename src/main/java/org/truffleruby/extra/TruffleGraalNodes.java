@@ -137,7 +137,7 @@ public abstract class TruffleGraalNodes {
                 readNode.replace(new ObjectLiteralNode(value));
             }
             final RubyRootNode newRootNode = new RubyRootNode(
-                    getContext(),
+                    getLanguage(),
                     rootNode.getSourceSection(),
                     rootNode.getFrameDescriptor(),
                     rootNode.getSharedMethodInfo(),

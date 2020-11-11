@@ -177,7 +177,7 @@ public class MethodTranslator extends BodyTranslator {
         bodyProc.unsafeSetSourceSection(enclosing(sourceSection, body));
 
         final RubyRootNode newRootNodeForProcs = new RubyRootNode(
-                context,
+                language,
                 translateSourceSection(source, sourceSection),
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
@@ -190,7 +190,7 @@ public class MethodTranslator extends BodyTranslator {
         composed = new CatchForLambdaNode(environment.getReturnID(), environment.getBreakID(), composed);
 
         final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
-                context,
+                language,
                 translateSourceSection(source, sourceSection),
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
@@ -298,7 +298,7 @@ public class MethodTranslator extends BodyTranslator {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
         return new RubyRootNode(
-                context,
+                language,
                 fullMethodSourceSection,
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),

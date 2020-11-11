@@ -100,7 +100,7 @@ public class RubyContext {
     @CompilationFinal private TruffleFile rubyHomeTruffleFile;
     @CompilationFinal private boolean hadHome;
 
-    private final SafepointManager safepointManager = new SafepointManager(this);
+    private final SafepointManager safepointManager;
     private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader = new CodeLoader(this);
     private final FeatureLoader featureLoader;
@@ -165,6 +165,7 @@ public class RubyContext {
 
         options = createOptions(env, language.options);
 
+        safepointManager = new SafepointManager(this, language);
         frozenStringLiterals = new FrozenStringLiterals(this, language);
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);

@@ -176,7 +176,7 @@ public abstract class SymbolNodes {
             declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, variables);
 
             final RubyRootNode rootNode = new RubyRootNode(
-                    context,
+                    language,
                     sourceSection,
                     new FrameDescriptor(nil),
                     sharedMethodInfo,

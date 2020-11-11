@@ -40,7 +40,7 @@ public class RubyFileTypeDetectorTest extends RubyTest {
         testWithAST("", new Consumer<RubyRootNode>() {
             @Override
             public void accept(RubyRootNode rootNode) {
-                TruffleLanguage.Env env = rootNode.getContext().getEnv();
+                TruffleLanguage.Env env = RubyLanguage.getCurrentContext().getEnv();
                 try {
                     for (TestCase testCase : getTestCases()) {
                         TruffleFile file = env.getPublicTruffleFile(testCase.path.toString());
@@ -86,7 +86,7 @@ public class RubyFileTypeDetectorTest extends RubyTest {
         testWithAST("", new Consumer<RubyRootNode>() {
             @Override
             public void accept(RubyRootNode rootNode) {
-                TruffleLanguage.Env env = rootNode.getContext().getEnv();
+                TruffleLanguage.Env env = RubyLanguage.getCurrentContext().getEnv();
                 try {
                     for (TestCase testCase : getTestCases()) {
                         if (testCase.hasRubyMimeType) {

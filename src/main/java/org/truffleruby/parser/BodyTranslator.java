@@ -909,7 +909,7 @@ public class BodyTranslator extends Translator {
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final RubyRootNode rootNode = new RubyRootNode(
-                context,
+                language,
                 fullSourceSection,
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),

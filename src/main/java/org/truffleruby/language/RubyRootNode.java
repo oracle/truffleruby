@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
@@ -23,7 +22,7 @@ import org.truffleruby.language.methods.Split;
 
 public class RubyRootNode extends RubyBaseRootNode {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final SharedMethodInfo sharedMethodInfo;
     private Split split;
 
@@ -32,17 +31,17 @@ public class RubyRootNode extends RubyBaseRootNode {
     private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller data");
 
     public RubyRootNode(
-            RubyContext context,
+            RubyLanguage language,
             SourceSection sourceSection,
             FrameDescriptor frameDescriptor,
             SharedMethodInfo sharedMethodInfo,
             RubyNode body,
             Split split) {
-        super(context.getLanguageSlow(), frameDescriptor, sourceSection);
+        super(language, frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
 
-        this.context = context;
+        this.language = language;
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
         this.split = split;
@@ -58,8 +57,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        assert RubyLanguage.getCurrentContext() == context;
-        context.getSafepointManager().poll(this);
+        SafepointManager.poll(language, this);
         return body.execute(frame);
     }
 
@@ -96,10 +94,6 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     public RubyNode getBody() {
         return body;
-    }
-
-    public RubyContext getContext() {
-        return context;
     }
 
     public Assumption getNeedsCallerAssumption() {

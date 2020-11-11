@@ -1313,7 +1313,7 @@ public abstract class KernelNodes {
 
             final RubyNode newBody = new CallMethodMissingWithStaticName(name);
             final RubyRootNode newRootNode = new RubyRootNode(
-                    getContext(),
+                    getLanguage(),
                     info.getSourceSection(),
                     new FrameDescriptor(nil),
                     info,

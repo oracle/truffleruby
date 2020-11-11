@@ -22,6 +22,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.language.SafepointManager;
 
 @CoreModule("GC")
 public abstract class GCNodes {
@@ -68,7 +69,7 @@ public abstract class GCNodes {
 
             do {
                 System.gc();
-                getContext().getSafepointManager().poll(this);
+                SafepointManager.poll(getLanguage(), this);
             } while (cache.get(key) != null);
 
             return nil;

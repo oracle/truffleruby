@@ -12,6 +12,7 @@ package org.truffleruby;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
@@ -115,7 +116,7 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         StandardTags.ReadVariableTag.class,
         StandardTags.WriteVariableTag.class,
 })
-public class RubyLanguage extends TruffleLanguage<RubyContext> {
+public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String PLATFORM = String.format(
             "%s-%s%s",
@@ -137,6 +138,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             .getRuntime()
             .createAssumption("single RubyContext per RubyLanguage instance");
     public final CyclicAssumption traceFuncUnusedAssumption = new CyclicAssumption("set_trace_func is not used");
+
+    private final ReentrantLock safepointLock = new ReentrantLock();
+    @CompilationFinal private Assumption safepointAssumption = Truffle
+            .getRuntime()
+            .createAssumption("SafepointManager");
 
     public final CoreMethodAssumptions coreMethodAssumptions;
     public final CoreStrings coreStrings;
@@ -220,6 +226,20 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public void invalidateTracingAssumption() {
         tracingCyclicAssumption.invalidate();
         tracingAssumption = tracingCyclicAssumption.getAssumption();
+    }
+
+    public Assumption getSafepointAssumption() {
+        return safepointAssumption;
+    }
+
+    public void invalidateSafepointAssumption(String reason) {
+        safepointLock.lock();
+        safepointAssumption.invalidate(reason);
+    }
+
+    public void resetSafepointAssumption() {
+        safepointAssumption = Truffle.getRuntime().createAssumption("SafepointManager");
+        safepointLock.unlock();
     }
 
     @Override

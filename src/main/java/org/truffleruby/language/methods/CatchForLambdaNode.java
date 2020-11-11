@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.DynamicReturnException;
@@ -64,7 +65,7 @@ public class CatchForLambdaNode extends RubyContextSourceNode {
                 throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidRetry(this));
             } catch (RedoException e) {
                 redoProfile.enter();
-                getContext().getSafepointManager().poll(this);
+                SafepointManager.poll(getLanguage(), this);
                 continue;
             } catch (NextException e) {
                 nextProfile.enter();
