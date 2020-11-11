@@ -924,6 +924,19 @@ module Enumerable
     ary
   end
 
+  def filter_map
+    return to_enum(:filter_map) { enumerator_size } unless block_given?
+
+    ary = []
+    each do
+      o = Primitive.single_block_arg
+      v = yield(o)
+      ary << v if v
+    end
+
+    ary
+  end
+
   def reverse_each(&block)
     return to_enum(:reverse_each) { enumerator_size } unless block_given?
 

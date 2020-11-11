@@ -1,3 +1,0 @@
-fails:Enumerable#filter_map returns an empty array if there are no elements
-fails:Enumerable#filter_map returns an array with truthy results of passing each element to block
-fails:Enumerable#filter_map returns an enumerator when no block given
