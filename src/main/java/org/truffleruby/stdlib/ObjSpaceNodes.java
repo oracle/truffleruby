@@ -106,7 +106,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected Object traceAllocationsStart() {
-            getContext().getObjectSpaceManager().traceAllocationsStart(getContext().getLanguageSlow());
+            getContext().getObjectSpaceManager().traceAllocationsStart(getLanguage());
             return nil;
         }
 
@@ -118,7 +118,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected Object traceAllocationsStop() {
-            getContext().getObjectSpaceManager().traceAllocationsStop(getContext().getLanguageSlow());
+            getContext().getObjectSpaceManager().traceAllocationsStop(getLanguage());
             return nil;
         }
 
