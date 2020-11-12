@@ -1006,7 +1006,7 @@ class Array
     end
   end
 
-  def sample_many(count, rng)
+  private def sample_many(count, rng)
     if count <= 70 # three implementations; choice determined experimentally
       if 2.0 * size / count  <= count  + 13
         sample_many_swap(count, rng)
@@ -1021,10 +1021,9 @@ class Array
       end
     end
   end
-  private :sample_many
 
-  def sample_many_swap(count, rng)
-    #linear dependence on array size, therefore very slow for small count / size
+  private def sample_many_swap(count, rng)
+    # linear dependence on array size, therefore very slow for small count / size
     result = Array.new(self)
 
     count.times do |c|
@@ -1032,8 +1031,8 @@ class Array
     end
   end
 
-  def sample_many_quad(count, rng)
-    #quadratic time due to linear time collision check but low overhead
+  private def sample_many_quad(count, rng)
+    # quadratic time due to linear time collision check but low overhead
     result = Array.new count
     i = 1
 
@@ -1075,7 +1074,7 @@ class Array
     result
   end
 
-  def sample_many_hash(count, rng)
+  private def sample_many_hash(count, rng)
     # use hash for constant time collision check but higher overhead
     result = Array.new count
     i = 1
@@ -1117,7 +1116,6 @@ class Array
     ary = select(&block)
     Primitive.steal_array_storage(self, ary) unless size == ary.size
   end
-
   alias_method :filter!, :select!
 
   def shuffle(options = undefined)
@@ -1226,7 +1224,6 @@ class Array
 
     self
   end
-
   alias_method :prepend, :unshift
 
   def values_at(*args)
