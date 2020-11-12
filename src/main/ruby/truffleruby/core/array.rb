@@ -1042,7 +1042,7 @@ class Array
       k = rng.rand(size)
       spin = false
 
-      while true # rubocop:disable Lint/LiteralAsCondition
+      while true
         j = 0
         while j < i
           if k == result[j]
@@ -1085,7 +1085,7 @@ class Array
     while i < count
       k = rng.rand(size)
 
-      while true # rubocop:disable Lint/LiteralAsCondition
+      while true
         if result_set.include?(k)
           k = rng.rand(size)
         else

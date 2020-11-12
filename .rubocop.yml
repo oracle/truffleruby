@@ -179,10 +179,8 @@ Lint/InheritException:
 
 Lint/LiteralAsCondition:
   Description: Checks of literals used in conditions.
-  Details: >-
-      Pattern `while true` is allowed, disable the cop with
-      `while true # rubocop:disable Lint/LiteralAsCondition` in this case.
-  Enabled: true
+  # disabled, it prevents `while true`, which is useful
+  Enabled: false
 
 # Supports --auto-correct
 Lint/LiteralInInterpolation:
