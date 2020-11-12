@@ -61,13 +61,13 @@ module Truffle
 
     def self.results_match(md1, md2)
       if md1 == nil then
-        return md2 == nil
+        md2 == nil
       elsif md2 == nil then
-        return false
+        false
       elsif md1.kind_of?(Exception) then
-        return md1.class == md2.class
+        md1.class == md2.class
       elsif md2.kind_of?(Exception) then
-        return false
+        false
       else
         if md1.size != md2.size then
           return false
@@ -80,13 +80,13 @@ module Truffle
         if md1.tainted? != md2.tainted? then
           return false
         end
-        return true
+        true
       end
     end
 
     def self.print_match_data(md)
       if md == nil
-        $stderr.puts "    NO MATCH"
+        $stderr.puts '    NO MATCH'
       elsif md.kind_of?(Exception) then
         $stderr.puts "    EXCEPTION - #{md}"
       else
@@ -103,7 +103,7 @@ module Truffle
       if md.kind_of?(Exception) then
         raise md
       else
-        return md
+        md
       end
     end
 
@@ -122,9 +122,9 @@ module Truffle
         if self.results_match(md1, md2) then
           return self.return_match_data(md1)
         else
-          $stderr.puts "match_in_region(#{re}, #{str}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
+          $stderr.puts "match_in_region(/#{re}/, \"#{str}\"@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
           self.print_match_data(md1)
-          $stderr.puts "but we expected"
+          $stderr.puts 'but we expected'
           self.print_match_data(md2)
           return self.return_match_data(md2)
         end
@@ -136,17 +136,17 @@ module Truffle
     end
 
     def self.options_to_flags(options)
-      flags = ""
+      flags = ''
       if options & Regexp::MULTILINE != 0
-        flags += "m"
+        flags += 'm'
       end
       if options & Regexp::IGNORECASE != 0
-        flags += "i"
+        flags += 'i'
       end
       if options & Regexp::EXTENDED != 0
-        flags += "x"
+        flags += 'x'
       end
-      return flags
+      flags
     end
 
     def self.byte_index_to_code_unit_index(ruby_string, java_string, byte_index)
@@ -184,7 +184,6 @@ module Truffle
           # Calling java_string with certain string and certain encodings (e.g. non-ASCII characters in BINARY encoding)
           # can lead to differences in escape behavior, yielding different strings. These result in strings of different
           # sizes after the round trip. In such cases, we bail out.
-          $stderr.puts ""
           return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
         end
       rescue => e
@@ -195,17 +194,17 @@ module Truffle
       compiled_regex_key = at_start ? TREGEX_STICKY : TREGEX
       if (nil == Primitive.object_hidden_var_get(re, compiled_regex_key))
         if at_start
-          flags = options_to_flags(re.options) + "y"
+          flags = options_to_flags(re.options) + 'y'
         else
           flags = options_to_flags(re.options)
         end
-        Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re_source, flags, "UTF-16"))
+        Primitive.object_hidden_var_set(re, compiled_regex_key, tregex_engine.call(re_source, flags, 'UTF-16'))
       end
       tr = Primitive.object_hidden_var_get(re, compiled_regex_key)
       begin
         tr_match = tr.exec(java_string, self.byte_index_to_code_unit_index(str, java_string, from))
       rescue => e
-        if !("#{e.message}".index("UnsupportedRegexException"))
+        if !(e.message.index('UnsupportedRegexException'))
           $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
           raise e
         end
