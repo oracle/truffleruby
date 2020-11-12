@@ -31,7 +31,7 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
  * </ul>
 */
 public class DeclarationContext {
-    private static final Map<RubyModule, RubyModule[]> NO_REFINEMENTS = Collections.emptyMap();
+    public static final Map<RubyModule, RubyModule[]> NO_REFINEMENTS = Collections.emptyMap();
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {

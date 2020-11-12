@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -46,7 +47,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     // No need to guard the refinements here since refinements are always the same in a given source location
     @Specialization(
             guards = "symbol == cachedSymbol",
-            assumptions = "getContext().getLanguageSlow().coreMethodAssumptions.symbolToProcAssumption",
+            assumptions = "getLanguage().coreMethodAssumptions.symbolToProcAssumption",
             limit = "1")
     protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
             @Cached("symbol") RubySymbol cachedSymbol,
@@ -84,7 +85,9 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     }
 
     protected RubyProc getProcForSymbol(Map<RubyModule, RubyModule[]> refinements, RubySymbol symbol) {
-        return SymbolNodes.ToProcNode.getOrCreateProc(getContext(), getLanguage(), refinements, symbol);
+        final RootCallTarget callTarget = SymbolNodes.ToProcNode
+                .getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
+        return SymbolNodes.ToProcNode.createProc(getContext(), getLanguage(), refinements, callTarget);
     }
 
     protected static Map<RubyModule, RubyModule[]> getRefinements(VirtualFrame frame) {

@@ -20,7 +20,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.language.methods.Split;
 
-public class RubyRootNode extends RubyBaseRootNode {
+public final class RubyRootNode extends RubyBaseRootNode {
 
     private final RubyLanguage language;
     private final SharedMethodInfo sharedMethodInfo;

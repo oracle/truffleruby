@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.symbol;
 
+import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -25,6 +26,7 @@ import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -122,58 +124,80 @@ public abstract class SymbolNodes {
         protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getRefinements(frame)") Map<RubyModule, RubyModule[]> cachedRefinements,
-                @Cached("getOrCreateProc(getContext(), getLanguage(), cachedRefinements, symbol)") RubyProc cachedProc) {
+                @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, cachedRefinements)") RootCallTarget callTarget,
+                @Cached("createProc(getContext(), getLanguage(), cachedRefinements, callTarget)") RubyProc cachedProc) {
             return cachedProc;
         }
 
         @Specialization(replaces = "toProcCached")
         protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
             final Map<RubyModule, RubyModule[]> refinements = getRefinements(frame);
-            return getOrCreateProc(getContext(), getLanguage(), refinements, symbol);
+            final RootCallTarget callTarget = getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
+            return createProc(getContext(), getLanguage(), refinements, callTarget);
         }
 
         @TruffleBoundary
-        public static RubyProc getOrCreateProc(
-                RubyContext context,
-                RubyLanguage language,
-                Map<RubyModule, RubyModule[]> refinements,
-                RubySymbol symbol) {
-            // TODO (eregon, 23 Sep 2020): this should ideally cache on the refinements by comparing classes, and not by identity.
-            return ConcurrentOperations.getOrCompute(
-                    symbol.getCachedProcs(),
-                    refinements,
-                    key -> createProc(context, language, key, symbol));
+        public static RootCallTarget getOrCreateCallTarget(RubyContext context, RubyLanguage language,
+                RubySymbol symbol, Map<RubyModule, RubyModule[]> refinements) {
+            if (refinements == DeclarationContext.NO_REFINEMENTS) {
+                return symbol.getCallTargetNoRefinements(language);
+            } else {
+                // TODO (eregon, 23 Sep 2020): this should ideally cache on the refinements by comparing classes, and not by identity.
+                return ConcurrentOperations.getOrCompute(
+                        context.cachedSymbolToProcTargetsWithRefinements,
+                        Pair.create(symbol, refinements),
+                        key -> createCallTarget(language, symbol, refinements));
+            }
         }
 
-        @TruffleBoundary
-        private static RubyProc createProc(RubyContext context, RubyLanguage language,
-                Map<RubyModule, RubyModule[]> refinements,
-                RubySymbol symbol) {
+        public static RubyProc createProc(RubyContext context, RubyLanguage language,
+                Map<RubyModule, RubyModule[]> refinements, RootCallTarget callTarget) {
             final InternalMethod method = context.getCoreMethods().SYMBOL_TO_PROC;
-            final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
-            final DeclarationContext declarationContext = refinements.isEmpty()
+            final DeclarationContext declarationContext = refinements == DeclarationContext.NO_REFINEMENTS
                     ? DeclarationContext.NONE
                     : new DeclarationContext(Visibility.PUBLIC, null, refinements);
 
+            final Object[] args = RubyArguments
+                    .pack(null, null, method, declarationContext, null, nil, null, EMPTY_ARGUMENTS);
+            // MRI raises an error on Proc#binding if you attempt to access the binding of a Proc generated
+            // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
+            // binding as this simplifies the logic elsewhere in the runtime.
+            final MaterializedFrame declarationFrame = Truffle
+                    .getRuntime()
+                    .createVirtualFrame(args, context.getCoreLibrary().emptyDeclarationDescriptor)
+                    .materialize();
+            SpecialVariableStorage variables = new SpecialVariableStorage();
+            declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, variables);
+
+            return ProcOperations.createRubyProc(
+                    context.getCoreLibrary().procClass,
+                    language.procShape,
+                    ProcType.PROC,
+                    ((RubyRootNode) callTarget.getRootNode()).getSharedMethodInfo(),
+                    callTarget,
+                    callTarget,
+                    declarationFrame,
+                    variables,
+                    method,
+                    null,
+                    null,
+                    declarationContext);
+        }
+
+        public static RootCallTarget createCallTarget(RubyLanguage language, RubySymbol symbol,
+                // unused but the CallTarget will capture the refinements in the DispatchNode on first call
+                Map<RubyModule, RubyModule[]> refinements) {
+            final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
+
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
-                    method.getLexicalScope(),
+                    LexicalScope.IGNORE,
                     ARITY,
                     null,
                     symbol.getString(),
                     0,
                     "proc",
                     ArgumentDescriptor.ANON_REST);
-            final Object[] args = RubyArguments
-                    .pack(null, null, method, declarationContext, null, nil, null, EMPTY_ARGUMENTS);
-            // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
-            // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
-            // binding as this simplifies the logic elsewhere in the runtime.
-            final MaterializedFrame declarationFrame = Truffle
-                    .getRuntime()
-                    .createMaterializedFrame(args, context.getCoreLibrary().emptyDeclarationDescriptor);
-            SpecialVariableStorage variables = new SpecialVariableStorage();
-            declarationFrame.setObject(context.getCoreLibrary().emptyDeclarationSpecialVariableSlot, variables);
 
             final RubyRootNode rootNode = new RubyRootNode(
                     language,
@@ -183,21 +207,7 @@ public abstract class SymbolNodes {
                     new SymbolProcNode(symbol.getString()),
                     Split.HEURISTIC);
 
-            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-
-            return ProcOperations.createRubyProc(
-                    context.getCoreLibrary().procClass,
-                    language.procShape,
-                    ProcType.PROC,
-                    sharedMethodInfo,
-                    callTarget,
-                    callTarget,
-                    declarationFrame,
-                    variables,
-                    method,
-                    null,
-                    null,
-                    declarationContext);
+            return Truffle.getRuntime().createCallTarget(rootNode);
         }
 
         protected InternalMethod getMethod(VirtualFrame frame) {

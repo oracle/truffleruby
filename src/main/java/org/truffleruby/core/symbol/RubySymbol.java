@@ -10,12 +10,11 @@
 package org.truffleruby.core.symbol;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -26,10 +25,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import org.truffleruby.language.methods.DeclarationContext;
 
 @ExportLibrary(InteropLibrary.class)
 public final class RubySymbol extends ImmutableRubyObject implements TruffleObject {
@@ -42,8 +38,8 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
     private final Rope rope;
     private final int javaStringHashCode;
     private final long id;
-    /** refinements -> Proc for Symbol#to_proc */
-    private final ConcurrentMap<Map<RubyModule, RubyModule[]>, RubyProc> cachedProcs = new ConcurrentHashMap<>();
+
+    private volatile RootCallTarget callTargetNoRefinements = null;
 
     public RubySymbol(String string, Rope rope, long id) {
         this.string = string;
@@ -68,8 +64,18 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
         return rope;
     }
 
-    public ConcurrentMap<Map<RubyModule, RubyModule[]>, RubyProc> getCachedProcs() {
-        return cachedProcs;
+    @TruffleBoundary
+    public RootCallTarget getCallTargetNoRefinements(RubyLanguage language) {
+        if (callTargetNoRefinements == null) {
+            synchronized (this) {
+                if (callTargetNoRefinements == null) {
+                    callTargetNoRefinements = SymbolNodes.ToProcNode
+                            .createCallTarget(language, this, DeclarationContext.NO_REFINEMENTS);
+                }
+            }
+        }
+
+        return callTargetNoRefinements;
     }
 
     public long computeHashCode(Hashing hashing) {
