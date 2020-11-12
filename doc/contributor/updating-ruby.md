@@ -149,6 +149,7 @@ In a separate commit, update all of these:
 * Run `jt test gems default-bundled-gems`
 * Grep for the old version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
+* Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
 
 ## Last step
 

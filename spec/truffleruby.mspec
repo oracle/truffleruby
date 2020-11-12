@@ -89,10 +89,7 @@ class MSpecScript
   ]
 
   set :next, %w[
-    spec/ruby/core/file/absolute_path_spec.rb
-    spec/ruby/core/matchdata/allocate_spec.rb
-    spec/ruby/core/unboundmethod/bind_call_spec.rb
-    spec/ruby/core/builtin_constants/builtin_constants_spec.rb
+    spec/ruby/core/mutex/owned_spec.rb
   ]
 
   set :tags_patterns, [
@@ -135,9 +132,11 @@ end
 
 if MSpecScript.child_process?
   if version = ENV["PRETEND_RUBY_VERSION"]
+    ::VersionGuard.send :remove_const, :FULL_RUBY_VERSION
     ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new(version)
   elsif ARGV.include? ":next"
-    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("2.7.0")
+    ::VersionGuard.send :remove_const, :FULL_RUBY_VERSION
+    ::VersionGuard::FULL_RUBY_VERSION = SpecVersion.new("3.0.0")
   end
 end
 
