@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
@@ -38,7 +39,7 @@ public class CatchForProcNode extends RubyContextSourceNode {
                 return body.execute(frame);
             } catch (RedoException e) {
                 redoProfile.enter();
-                getContext().getSafepointManager().poll(this);
+                SafepointManager.poll(getLanguage(), this);
                 continue;
             } catch (NextException e) {
                 nextProfile.enter();

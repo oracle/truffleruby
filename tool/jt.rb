@@ -530,7 +530,7 @@ module Utilities
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
-        install_jvmci('$JAVA_HOME is not set, downloading JDK8 with JVMCI')
+        install_jvmci('$JAVA_HOME is not set, downloading JDK8 with JVMCI', (@mx_env || @ruby_name || '').include?('ee'))
       end
     end
   end
@@ -548,7 +548,7 @@ module Utilities
     mx_args = args.dup
 
     env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
-    mx_args.unshift '--java-home', java_home unless java_home == :use_env_java_home
+    mx_args.unshift '--java-home', java_home unless java_home == :use_env_java_home or java_home == :none
 
     raw_sh(env, find_mx, *mx_args, **options)
   end
@@ -1928,7 +1928,7 @@ module Commands
   def install(name, *options)
     case name
     when 'jvmci'
-      puts install_jvmci('Downloading JDK8 with JVMCI')
+      puts install_jvmci('Downloading JDK8 with JVMCI', (@ruby_name || '').include?('ee'))
     when 'eclipse'
       puts install_eclipse
     else
@@ -1936,29 +1936,26 @@ module Commands
     end
   end
 
-  private def install_jvmci(download_message)
-    raise 'Installing JVMCI is only available on Linux and macOS currently' unless linux? || darwin?
+  private def install_jvmci(download_message, ee)
+    jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
 
-    update, jvmci_version = jvmci_update_and_version
-    java_home = begin
-      dir_pattern = "#{CACHE_EXTRA_DIR}/openjdk1.8.0*#{jvmci_version}"
-      if Dir[dir_pattern].empty?
-        STDERR.puts download_message
-        jvmci_releases = 'https://github.com/graalvm/graal-jvmci-8/releases/download'
-        filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
-        chdir(CACHE_EXTRA_DIR) do
-          raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
-          raw_sh 'tar', 'xf', filename
-        end
+    _, jvmci_version = jvmci_update_and_version
+    java_home = "#{CACHE_EXTRA_DIR}/#{jdk_name}-#{jvmci_version}"
+    unless File.directory?(java_home)
+      STDERR.puts "#{download_message} (#{jdk_name})"
+      if ee
+        mx_env = 'jvm-ee'
+        options = { java_home: install_jvmci('Downloading OpenJDK8 JVMCI to bootstrap', false) }
+      else
+        mx_env = 'jvm'
+        options = { chdir: CACHE_EXTRA_DIR, java_home: :none } # chdir to not try to load a suite (which would need a JAVA_HOME)
       end
-      dirs = Dir[dir_pattern]
-      abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
-      extracted = dirs.first
-      darwin? ? "#{extracted}/Contents/Home" : extracted
+      mx '--env', mx_env, '-y', 'fetch-jdk',
+         '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
+         '--java-distribution', jdk_name,
+         '--to', CACHE_EXTRA_DIR,
+         **options
     end
-
-    abort 'Could not find the extracted JDK' unless java_home
-    java_home = File.expand_path(java_home)
 
     java = "#{java_home}/bin/java"
     abort "#{java_home} does not exist" unless File.executable?(java)
@@ -2101,6 +2098,7 @@ module Commands
           else
             'jvm'
           end
+    @mx_env = env
     raise 'Cannot use both --use and --env' if defined?(@ruby_name)
 
     @ruby_name = if (i = options.index('--name') || options.index('-n'))
@@ -2114,12 +2112,13 @@ module Commands
     mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
 
     # Must clone enterprise before running `mx scheckimports` in `sforceimports?`
-    cloned = env.include?('ee') && clone_enterprise
+    ee = env.include?('ee')
+    cloned = clone_enterprise if ee
     checkout_enterprise_revision(env) if cloned
 
     if options.delete('--sforceimports') || sforceimports?(mx_base_args)
       mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
-      checkout_enterprise_revision(env) if env.include?('ee') && !cloned
+      checkout_enterprise_revision(env) if ee && !cloned
     end
 
     mx_options, mx_build_options = args_split(options)

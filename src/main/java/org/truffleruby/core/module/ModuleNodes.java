@@ -436,7 +436,7 @@ public abstract class ModuleNodes {
             final RubyNode body = Translator
                     .createCheckArityNode(language, arity, accessInstanceVariable);
             final RubyRootNode rootNode = new RubyRootNode(
-                    getContext(),
+                    language,
                     sourceSection,
                     null,
                     sharedMethodInfo,
@@ -1214,7 +1214,7 @@ public abstract class ModuleNodes {
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
             final RubyNode newBody = new CallMethodWithProcBody(proc.declarationFrame, body);
             final RubyRootNode newRootNode = new RubyRootNode(
-                    getContext(),
+                    getLanguage(),
                     info.getSourceSection(),
                     rootNode.getFrameDescriptor(),
                     info,

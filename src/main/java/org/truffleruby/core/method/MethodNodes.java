@@ -304,7 +304,7 @@ public abstract class MethodNodes {
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
             final RootNode newRootNode = new RubyRootNode(
-                    getContext(),
+                    getLanguage(),
                     sourceSection,
                     oldRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),

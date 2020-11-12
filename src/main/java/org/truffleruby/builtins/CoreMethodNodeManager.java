@@ -145,7 +145,7 @@ public class CoreMethodNodeManager {
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
             final RubyNode methodNode = createCoreMethodNode(nodeFactory, annotation, sharedMethodInfo);
-            return createCallTarget(context, sharedMethodInfo, methodNode, split);
+            return createCallTarget(language, sharedMethodInfo, methodNode, split);
         };
 
         addMethods(module, isModuleFunc, onSingleton, names, arity, visibility, callTargetFactory);
@@ -173,7 +173,7 @@ public class CoreMethodNodeManager {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod annotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
             final RubyNode methodNode = createCoreMethodNode(nodeFactory, annotation, sharedMethodInfo);
-            return createCallTarget(context, sharedMethodInfo, methodNode, finalSplit);
+            return createCallTarget(language, sharedMethodInfo, methodNode, finalSplit);
         };
 
         addMethods(module, isModuleFunc, onSingleton, names, arity, visibility, callTargetFactory);
@@ -235,10 +235,10 @@ public class CoreMethodNodeManager {
                 : new Arity(required, optional, rest, 0, new String[]{ keywordAsOptional }, true, false);
     }
 
-    private static RootCallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo,
+    private static RootCallTarget createCallTarget(RubyLanguage language, SharedMethodInfo sharedMethodInfo,
             RubyNode methodNode, Split split) {
         final RubyRootNode rootNode = new RubyRootNode(
-                context,
+                language,
                 sharedMethodInfo.getSourceSection(),
                 null,
                 sharedMethodInfo,

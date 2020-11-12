@@ -17,13 +17,16 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
+import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -43,6 +46,7 @@ import org.truffleruby.core.inlined.CoreMethods;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
@@ -51,6 +55,7 @@ import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
@@ -100,7 +105,7 @@ public class RubyContext {
     @CompilationFinal private TruffleFile rubyHomeTruffleFile;
     @CompilationFinal private boolean hadHome;
 
-    private final SafepointManager safepointManager = new SafepointManager(this);
+    private final SafepointManager safepointManager;
     private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader = new CodeLoader(this);
     private final FeatureLoader featureLoader;
@@ -121,6 +126,8 @@ public class RubyContext {
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager;
     private final Map<Source, Integer> sourceLineOffsets = Collections.synchronizedMap(new WeakHashMap<>());
+    /** (Symbol, refinements) -> Proc for Symbol#to_proc */
+    public final Map<Pair<RubySymbol, Map<RubyModule, RubyModule[]>>, RootCallTarget> cachedSymbolToProcTargetsWithRefinements = new ConcurrentHashMap<>();
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
@@ -165,6 +172,7 @@ public class RubyContext {
 
         options = createOptions(env, language.options);
 
+        safepointManager = new SafepointManager(this, language);
         frozenStringLiterals = new FrozenStringLiterals(this, language);
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);

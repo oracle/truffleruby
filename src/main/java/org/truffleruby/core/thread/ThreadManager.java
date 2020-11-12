@@ -482,7 +482,7 @@ public class ThreadManager {
                 result = action.block();
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().pollFromBlockingCall(currentNode);
+                SafepointManager.pollFromBlockingCall(language, currentNode);
             }
         } while (result == null);
 
@@ -514,7 +514,7 @@ public class ThreadManager {
                 }
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().pollFromBlockingCall(currentNode);
+                SafepointManager.pollFromBlockingCall(language, currentNode);
             }
         } while (result == null);
 

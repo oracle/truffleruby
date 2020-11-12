@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
@@ -65,7 +66,7 @@ public class TryNode extends RubyContextSourceNode {
                 try {
                     return handleException(frame, exception);
                 } catch (RetryException e) {
-                    getContext().getSafepointManager().poll(this);
+                    SafepointManager.poll(getLanguage(), this);
                     continue;
                 }
             } catch (ControlFlowException exception) {

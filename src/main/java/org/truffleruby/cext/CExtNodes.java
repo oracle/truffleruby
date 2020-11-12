@@ -71,6 +71,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -1484,7 +1485,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object checkInts() {
-            getContext().getSafepointManager().poll(this);
+            SafepointManager.poll(getLanguage(), this);
             return nil;
         }
     }

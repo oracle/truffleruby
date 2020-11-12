@@ -362,7 +362,7 @@ public class TranslatorDriver {
         }
 
         return new RubyRootNode(
-                context,
+                language,
                 sourceIndexLength.toSourceSection(source),
                 environment.getFrameDescriptor(),
                 sharedMethodInfo,

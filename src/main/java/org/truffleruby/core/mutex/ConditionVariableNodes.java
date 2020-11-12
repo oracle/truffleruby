@@ -25,6 +25,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -169,7 +170,7 @@ public abstract class ConditionVariableNodes {
                      * the safepoint, and acquire it again before resuming waiting. */
                     condLock.unlock();
                     try {
-                        getContext().getSafepointManager().pollFromBlockingCall(this);
+                        SafepointManager.pollFromBlockingCall(getLanguage(), this);
                     } finally {
                         condLock.lock();
                     }
