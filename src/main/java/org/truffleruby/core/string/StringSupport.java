@@ -332,6 +332,11 @@ public final class StringSupport {
         return -1;
     }
 
+    @TruffleBoundary
+    public static int mbcToCode(Encoding encoding, Rope rope, int p, int end) {
+        return encoding.mbcToCode(rope.getBytes(), p, end);
+    }
+
     public static int offset(int start, int end, int charEnd) {
         return charEnd == -1 ? end - start : Math.min(end, charEnd) - start;
     }
