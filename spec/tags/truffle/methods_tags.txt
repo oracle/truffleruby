@@ -105,6 +105,5 @@ fails:Public methods on Hash should include deconstruct_keys
 fails:Public methods on IO should include set_encoding_by_bom
 fails:Public methods on Module should include const_source_location
 fails:Public methods on Range should include count
-fails:Public methods on Range should include minmax
 fails:Public methods on Struct should include deconstruct
 fails:Public methods on Struct should include deconstruct_keys

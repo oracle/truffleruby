@@ -358,7 +358,8 @@ class Range
   def max
     raise RangeError, 'cannot get the maximum of endless range' if Truffle::RangeOperations.endless?(self)
     return super if block_given? || (exclude_end? && !self.end.kind_of?(Numeric))
-    return nil if self.end < self.begin || (exclude_end? && self.end == self.begin)
+    return nil if Comparable.compare_int(self.end <=> self.begin) < 0
+    return nil if exclude_end? && Comparable.compare_int(self.end <=> self.begin) == 0
     return self.end unless exclude_end?
 
     unless self.end.kind_of?(Integer)
@@ -374,9 +375,21 @@ class Range
 
   def min
     return super if block_given?
-    return nil if (!Truffle::RangeOperations.endless?(self) && self.end < self.begin) || (exclude_end? && self.end == self.begin)
+    if !Truffle::RangeOperations.endless?(self) && Comparable.compare_int(self.end <=> self.begin) < 0
+      return nil
+    elsif exclude_end? && self.end == self.begin
+      return nil
+    end
 
     self.begin
+  end
+
+  def minmax(&block)
+    if block
+      super(&block)
+    else
+      [min, max]
+    end
   end
 
   def %(n)
