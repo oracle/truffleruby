@@ -260,12 +260,12 @@ public abstract class KernelNodes {
     @Primitive(name = "find_file")
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "2", guards = "libFeatureString.isRubyString(featureString)")
+        @Specialization(guards = "libFeatureString.isRubyString(featureString)")
         protected Object findFile(Object featureString,
                 @Cached BranchProfile notFoundProfile,
                 @Cached MakeStringNode makeStringNode,
-                @CachedLibrary("featureString") RubyStringLibrary libFeatureString) {
-            String feature = RopeOperations.decodeRope(libFeatureString.getRope(featureString));
+                @CachedLibrary(limit = "2") RubyStringLibrary libFeatureString) {
+            String feature = libFeatureString.getJavaString(featureString);
             return findFileString(feature, notFoundProfile, makeStringNode);
         }
 
@@ -287,12 +287,12 @@ public abstract class KernelNodes {
     @Primitive(name = "get_caller_path")
     public abstract static class GetCallerPathNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "2", guards = "libFeature.isRubyString(feature)")
+        @Specialization(guards = "libFeature.isRubyString(feature)")
         @TruffleBoundary
         protected RubyString getCallerPath(Object feature,
-                @CachedLibrary("feature") RubyStringLibrary libFeature,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFeature,
                 @Cached MakeStringNode makeStringNode) {
-            final String featureString = RopeOperations.decodeRope(libFeature.getRope(feature));
+            final String featureString = libFeature.getJavaString(feature);
             final String featurePath;
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
@@ -332,14 +332,14 @@ public abstract class KernelNodes {
 
         @Child private RequireNode requireNode = RequireNodeGen.create();
 
-        @Specialization(limit = "2", guards = {
+        @Specialization(guards = {
                 "stringsExpandedPathString.isRubyString(expandedPathString)",
                 "libFeatureString.isRubyString(featureString)" })
         protected boolean loadFeature(Object featureString, Object expandedPathString,
-                @CachedLibrary("featureString") RubyStringLibrary libFeatureString,
-                @CachedLibrary("expandedPathString") RubyStringLibrary stringsExpandedPathString) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libFeatureString,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsExpandedPathString) {
             return requireNode.executeRequire(
-                    RopeOperations.decodeRope(libFeatureString.getRope(featureString)),
+                    libFeatureString.getJavaString(featureString),
                     expandedPathString);
         }
 
@@ -409,14 +409,14 @@ public abstract class KernelNodes {
     @Primitive(name = "canonicalize_path")
     public abstract static class CanonicalizePathNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         @TruffleBoundary
         protected RubyString canonicalPath(Object string,
-                @CachedLibrary("string") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final String expandedPath = getContext()
                     .getFeatureLoader()
-                    .canonicalize(RopeOperations.decodeRope(strings.getRope(string)));
+                    .canonicalize(strings.getJavaString(string));
             return makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -748,8 +748,8 @@ public abstract class KernelNodes {
                 RubyBinding binding,
                 Object file,
                 int line,
-                @CachedLibrary("source") RubyStringLibrary libSource,
-                @CachedLibrary("file") RubyStringLibrary libFile,
+                @CachedLibrary(limit = "2") RubyStringLibrary libSource,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
@@ -779,8 +779,8 @@ public abstract class KernelNodes {
                 RubyBinding binding,
                 Object file,
                 int line,
-                @CachedLibrary("source") RubyStringLibrary libSource,
-                @CachedLibrary("file") RubyStringLibrary libFile,
+                @CachedLibrary(limit = "2") RubyStringLibrary libSource,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
@@ -795,11 +795,11 @@ public abstract class KernelNodes {
             return eval(target, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
-        @Specialization(limit = "2", guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" })
+        @Specialization(guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" })
         protected Object evalBindingUncached(Object target, Object source, RubyBinding binding, Object file, int line,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary("file") RubyStringLibrary libFile,
-                @CachedLibrary("source") RubyStringLibrary libSource) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libFile,
+                @CachedLibrary(limit = "2") RubyStringLibrary libSource) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
                     target,
                     libSource.getRope(source),
@@ -1886,7 +1886,7 @@ public abstract class KernelNodes {
                         "isDebug(frame) == cachedIsDebug" },
                 limit = "getRubyLibraryCacheLimit()")
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
-                @CachedLibrary("format") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
@@ -1912,7 +1912,7 @@ public abstract class KernelNodes {
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
                 @CachedLibrary("format") RubyLibrary rubyLibrary,
-                @CachedLibrary("format") RubyStringLibrary libFormat) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
             try {

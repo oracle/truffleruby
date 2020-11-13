@@ -28,7 +28,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
@@ -370,7 +369,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         SharedObjects.propagate(context, rubyModule, value);
 
         final String autoloadPath = autoload
-                ? RopeOperations.decodeRope(RubyStringLibrary.getUncached().getRope(value))
+                ? RubyStringLibrary.getUncached().getJavaString(value)
                 : null;
         RubyConstant previous;
         RubyConstant newConstant;

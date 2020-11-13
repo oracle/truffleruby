@@ -42,7 +42,7 @@ public abstract class StringToPointerNode extends FormatNode {
     @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "strings.isRubyString(string)")
     protected long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
-            @CachedLibrary("string") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         if (string instanceof RubyString) {
             rubyLibrary.taint(string);

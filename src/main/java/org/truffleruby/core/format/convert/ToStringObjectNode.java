@@ -36,7 +36,7 @@ public abstract class ToStringObjectNode extends FormatNode {
 
     @Specialization(guards = "strings.isRubyString(string)", limit = "getRubyLibraryCacheLimit()")
     protected Object toStringString(VirtualFrame frame, Object string,
-            @CachedLibrary("string") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
             @Cached ConditionProfile taintedProfile) {
         if (taintedProfile.profile(rubyLibrary.isTainted(string))) {

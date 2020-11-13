@@ -58,7 +58,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -105,9 +104,9 @@ public abstract class TruffleSystemNodes {
     @Primitive(name = "java_get_env")
     public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(name)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(name)")
         protected Object javaGetEnv(Object name,
-                @CachedLibrary("name") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached ConditionProfile nullValueProfile) {
@@ -132,12 +131,12 @@ public abstract class TruffleSystemNodes {
     public abstract static class SetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(limit = "2", guards = "stringsDir.isRubyString(dir)")
+        @Specialization(guards = "stringsDir.isRubyString(dir)")
         protected Object setTruffleWorkingDir(Object dir,
-                @CachedLibrary("dir") RubyStringLibrary stringsDir) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsDir) {
             TruffleFile truffleFile = getContext()
                     .getEnv()
-                    .getPublicTruffleFile(RopeOperations.decodeRope(stringsDir.getRope(dir)));
+                    .getPublicTruffleFile(stringsDir.getJavaString(dir));
             final TruffleFile canonicalFile;
             try {
                 canonicalFile = truffleFile.getCanonicalFile();
@@ -169,10 +168,10 @@ public abstract class TruffleSystemNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @Specialization(guards = "strings.isRubyString(property)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(property)")
         protected Object getJavaProperty(Object property,
-                @CachedLibrary("property") RubyStringLibrary strings) {
-            String value = getProperty(RopeOperations.decodeRope(strings.getRope(property)));
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            String value = getProperty(strings.getJavaString(property));
             if (value == null) {
                 return nil;
             } else {
@@ -225,19 +224,19 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", onSingleton = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" }, limit = "2")
+        @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" })
         protected Object logCached(RubySymbol level, Object message,
-                @CachedLibrary("message") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            log(javaLevel, RopeOperations.decodeRope(strings.getRope(message)));
+            log(javaLevel, strings.getJavaString(message));
             return nil;
         }
 
-        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
         protected Object log(RubySymbol level, Object message,
-                @CachedLibrary("message") RubyStringLibrary strings) {
-            log(getLevel(level), RopeOperations.decodeRope(strings.getRope(message)));
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            log(getLevel(level), strings.getJavaString(message));
             return nil;
         }
 

@@ -24,7 +24,6 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -87,11 +86,11 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(file)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(file)")
         protected boolean load(Object file, boolean wrap,
-                @CachedLibrary("file") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
-            final String feature = RopeOperations.decodeRope(strings.getRope(file));
+            final String feature = strings.getJavaString(file);
             final RubySource source;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext());

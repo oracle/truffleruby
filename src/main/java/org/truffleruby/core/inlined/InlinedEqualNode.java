@@ -48,11 +48,10 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
                     "stringsB.isRubyString(b)",
                     "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_EQUAL"
             },
-            assumptions = "assumptions",
-            limit = "2")
+            assumptions = "assumptions")
     protected boolean stringEqual(VirtualFrame frame, Object self, Object b,
-            @CachedLibrary("self") RubyStringLibrary stringsSelf,
-            @CachedLibrary("b") RubyStringLibrary stringsB,
+            @CachedLibrary(limit = "2") RubyStringLibrary stringsSelf,
+            @CachedLibrary(limit = "2") RubyStringLibrary stringsB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
         return stringEqualNode.executeStringEqual(self, b);

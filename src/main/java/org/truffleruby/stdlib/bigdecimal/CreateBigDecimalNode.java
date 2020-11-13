@@ -21,7 +21,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -209,7 +208,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     protected RubyBigDecimal createString(Object value, int digits, boolean strict,
             @CachedLibrary("value") RubyStringLibrary strings) {
         return executeCreate(
-                getValueFromString(RopeOperations.decodeRope(strings.getRope(value)), digits, strict),
+                getValueFromString(strings.getJavaString(value), digits, strict),
                 digits,
                 strict);
     }

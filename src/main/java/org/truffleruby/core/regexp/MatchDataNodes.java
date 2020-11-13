@@ -181,10 +181,10 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
     public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "libRegexp.isRubyString(regexp)", "strings.isRubyString(string)" }, limit = "2")
+        @Specialization(guards = { "libRegexp.isRubyString(regexp)", "strings.isRubyString(string)" })
         protected Object create(Object regexp, Object string, int start, int end,
-                @CachedLibrary("regexp") RubyStringLibrary libRegexp,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libRegexp,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -202,9 +202,9 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create")
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected Object create(RubyDynamicObject regexp, Object string, RubyArray starts, RubyArray ends,
-                @CachedLibrary("string") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
             final Region region = new Region(starts.size);
@@ -314,9 +314,9 @@ public abstract class MatchDataNodes {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
-        @Specialization(limit = "2", guards = "libIndex.isRubyString(index)")
+        @Specialization(guards = "libIndex.isRubyString(index)")
         protected Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
-                @CachedLibrary("index") RubyStringLibrary libIndex) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libIndex) {
             return executeGetIndex(
                     matchData,
                     getBackRefFromRope(matchData, index, libIndex.getRope(index)),

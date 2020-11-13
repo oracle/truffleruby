@@ -56,23 +56,23 @@ public abstract class ToSymbolNode extends RubyBaseNode {
 
     @Specialization(
             guards = {
-                    "rubyStringLibrary.isRubyString(str)",
-                    "equals.execute(rubyStringLibrary.getRope(str), cachedRope)" },
+                    "strings.isRubyString(str)",
+                    "equals.execute(strings.getRope(str), cachedRope)" },
             limit = "getCacheLimit()")
     protected RubySymbol toSymbolRubyString(Object str,
-            @CachedLibrary("str") RubyStringLibrary rubyStringLibrary,
-            @Cached(value = "rubyStringLibrary.getRope(str)") Rope cachedRope,
+            @CachedLibrary("str") RubyStringLibrary strings,
+            @Cached(value = "strings.getRope(str)") Rope cachedRope,
             @CachedLanguage RubyLanguage language,
             @Cached RopeNodes.EqualNode equals,
             @Cached(value = "language.getSymbol(cachedRope)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
-    @Specialization(limit = "2", guards = "rubyStringLibrary.isRubyString(str)", replaces = "toSymbolRubyString")
+    @Specialization(guards = "strings.isRubyString(str)", replaces = "toSymbolRubyString")
     protected RubySymbol toSymbolRubyStringUncached(Object str,
             @CachedLanguage RubyLanguage language,
-            @CachedLibrary("str") RubyStringLibrary rubyStringLibrary) {
-        return language.getSymbol(rubyStringLibrary.getRope(str));
+            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+        return language.getSymbol(strings.getRope(str));
     }
 
     protected int getCacheLimit() {

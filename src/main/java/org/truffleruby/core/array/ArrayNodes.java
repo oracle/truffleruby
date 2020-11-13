@@ -1517,7 +1517,7 @@ public abstract class ArrayNodes {
                         "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
                 limit = "getCacheLimit()")
         protected RubyString packCached(RubyArray array, Object format,
-                @CachedLibrary("format") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached("cachedFormat.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(libFormat.getRope(format)))") DirectCallNode callPackNode,
@@ -1535,22 +1535,23 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result);
         }
 
-        @Specialization(limit = "2", guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
+        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
         protected RubyString packUncached(RubyArray array, Object format,
-                @CachedLibrary("format") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached IndirectCallNode callPackNode) {
             final BytesResult result;
 
+            final Rope formatRope = libFormat.getRope(format);
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(libFormat.getRope(format)),
+                        compileFormat(formatRope),
                         new Object[]{ array.store, array.size, false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(libFormat.getRope(format).byteLength(), result);
+            return finishPack(formatRope.byteLength(), result);
         }
 
         private RubyString finishPack(int formatLength, BytesResult result) {

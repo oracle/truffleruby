@@ -195,7 +195,7 @@ public abstract class EncodingConverterNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "stringsSource.isRubyString(source)", limit = "2")
+        @Specialization(guards = "stringsSource.isRubyString(source)")
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
                 Object source,
@@ -203,8 +203,7 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 RubyHash options,
-                @CachedLibrary("source") RubyStringLibrary stringsSource,
-                @CachedLibrary("target") RubyStringLibrary stringsTarget) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource) {
             throw new UnsupportedOperationException("not implemented");
         }
 
@@ -219,7 +218,7 @@ public abstract class EncodingConverterNodes {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
 
-        @Specialization(guards = "stringsSource.isRubyString(source)", limit = "2")
+        @Specialization(guards = "stringsSource.isRubyString(source)")
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
                 Object source,
@@ -227,7 +226,7 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary("source") RubyStringLibrary stringsSource) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
@@ -509,11 +508,11 @@ public abstract class EncodingConverterNodes {
             return ToStrNodeGen.create(replacement);
         }
 
-        @Specialization(limit = "2", guards = "libReplacement.isRubyString(replacement)")
+        @Specialization(guards = "libReplacement.isRubyString(replacement)")
         protected Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached BranchProfile errorProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLibrary("replacement") RubyStringLibrary libReplacement) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libReplacement) {
             final EConv ec = encodingConverter.econv;
             final Rope rope = libReplacement.getRope(replacement);
             final Encoding encoding = rope.getEncoding();

@@ -307,9 +307,9 @@ public abstract class ExceptionNodes {
 
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected RubySystemCallError exceptionErrnoError(RubyString message, int errno,
-                @CachedLibrary("message") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             return errnoErrorNode.execute(errno, message, null);
         }
 

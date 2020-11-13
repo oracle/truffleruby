@@ -88,7 +88,7 @@ public abstract class ToStringNode extends FormatNode {
             @CachedLibrary("string") RubyLibrary rubyLibrary,
             @CachedLibrary(limit = "2") RubyLibrary rubyLibraryValue,
             @CachedLibrary(limit = "2") RubyStringLibrary libValue,
-            @CachedLibrary("string") RubyStringLibrary libString,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (taintedProfile.profile(rubyLibrary.isTainted(string))) {
             setTainted(frame);

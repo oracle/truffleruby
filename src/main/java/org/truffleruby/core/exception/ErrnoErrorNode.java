@@ -33,9 +33,9 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     public abstract RubySystemCallError execute(int errno, Object extraMessage, Backtrace backtrace);
 
-    @Specialization(guards = "strings.isRubyString(extraMessage)", limit = "2")
+    @Specialization(guards = "strings.isRubyString(extraMessage)")
     protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace,
-            @CachedLibrary("extraMessage") RubyStringLibrary strings) {
+            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;

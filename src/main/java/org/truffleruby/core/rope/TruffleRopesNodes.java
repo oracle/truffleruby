@@ -34,9 +34,9 @@ public abstract class TruffleRopesNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected RubyString dumpString(Object string,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final StringBuilder builder = new StringBuilder();
 
             final Rope rope = strings.getRope(string);
@@ -57,16 +57,16 @@ public abstract class TruffleRopesNodes {
                 .create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected Object debugPrintDefault(Object string, NotProvided printString,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             return debugPrint(string, true, strings);
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected Object debugPrint(Object string, boolean printString,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             System.err.println("Legend: ");
             System.err.println("BN = Bytes Null? (byte[] not yet populated)");
             System.err.println("BL = Byte Length");
@@ -91,9 +91,9 @@ public abstract class TruffleRopesNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected RubyString getStructure(Object string,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             Rope rope = strings.getRope(string);
             String result = getStructure(rope);
             byte[] bytes = StringOperations.encodeBytes(result, UTF8Encoding.INSTANCE);
@@ -138,9 +138,9 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "bytes?", onSingleton = true, required = 1)
     public abstract static class HasBytesNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected boolean hasBytes(Object string,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             return strings.getRope(string).getRawBytes() != null;
         }
 
@@ -149,11 +149,11 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "flatten_rope", onSingleton = true, required = 1)
     public abstract static class FlattenRopeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "2", guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)")
         protected RubyString flattenRope(Object string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode,
-                @CachedLibrary("string") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
             return makeStringNode.fromRope(flattened);
         }

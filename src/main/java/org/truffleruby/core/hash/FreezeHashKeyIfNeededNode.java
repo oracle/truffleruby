@@ -35,7 +35,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
             guards = { "strings.isRubyString(string)", "rubyLibrary.isFrozen(string)" },
             limit = "getRubyLibraryCacheLimit()")
     protected Object alreadyFrozen(Object string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
     }
@@ -44,7 +44,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
             guards = { "strings.isRubyString(string)", "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
             limit = "getRubyLibraryCacheLimit()")
     protected Object dupAndFreeze(Object string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject) {
         final Object object = dup(string);
@@ -56,7 +56,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
             guards = { "strings.isRubyString(string)", "!rubyLibrary.isFrozen(string)", "compareByIdentity" },
             limit = "getRubyLibraryCacheLimit()")
     protected Object compareByIdentity(RubyString string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
     }

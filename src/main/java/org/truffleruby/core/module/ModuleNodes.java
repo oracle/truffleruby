@@ -566,9 +566,9 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        @Specialization(limit = "2", guards = "libFilename.isRubyString(filename)")
+        @Specialization(guards = "libFilename.isRubyString(filename)")
         protected Object autoload(RubyModule module, String name, Object filename,
-                @CachedLibrary("filename") RubyStringLibrary libFilename) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libFilename) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
@@ -583,7 +583,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
-            final String javaStringFilename = RopeOperations.decodeRope(libFilename.getRope(filename));
+            final String javaStringFilename = libFilename.getJavaString(filename);
             module.fields.setAutoloadConstant(getContext(), this, name, filename, javaStringFilename);
             return nil;
         }
@@ -633,7 +633,7 @@ public abstract class ModuleNodes {
             return toStrNode.executeToStr(object);
         }
 
-        @Specialization(limit = "2", guards = { "libCode.isRubyString(code)", "wasProvided(code)" })
+        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(code)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,
@@ -642,17 +642,14 @@ public abstract class ModuleNodes {
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary("code") RubyStringLibrary libCode) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
         }
 
         @Specialization(
                 guards = {
                         "libCode.isRubyString(code)",
-                        "libFile.isRubyString(file)",
-                        "wasProvided(code)",
-                        "wasProvided(file)" },
-                limit = "2")
+                        "libFile.isRubyString(file)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,
@@ -661,14 +658,12 @@ public abstract class ModuleNodes {
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary("code") RubyStringLibrary libCode,
-                @CachedLibrary("file") RubyStringLibrary libFile) {
-            return classEvalSource(frame, module, code, RopeOperations.decodeRope(libFile.getRope(file)), callNode);
+                @CachedLibrary(limit = "2") RubyStringLibrary libCode,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
+            return classEvalSource(frame, module, code, libFile.getJavaString(file), callNode);
         }
 
-        @Specialization(
-                guards = { "libCode.isRubyString(code)", "wasProvided(code)", "wasProvided(file)" },
-                limit = "2")
+        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(code)", "wasProvided(file)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,
@@ -677,13 +672,13 @@ public abstract class ModuleNodes {
                 int line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary("code") RubyStringLibrary libCode,
-                @CachedLibrary("file") RubyStringLibrary libFile) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libCode,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(
                     frame,
                     module,
                     code,
-                    RopeOperations.decodeRope(libFile.getRope(file)),
+                    libFile.getJavaString(file),
                     line);
             return deferredCall.call(callNode);
         }
@@ -700,9 +695,7 @@ public abstract class ModuleNodes {
             return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
         }
 
-        @Specialization(
-                limit = "2",
-                guards = { "libCode.isRubyString(code)", "wasProvided(file)", "wasProvided(code)" })
+        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,
@@ -710,10 +703,10 @@ public abstract class ModuleNodes {
                 Object file,
                 NotProvided line,
                 NotProvided block,
-                @CachedLibrary(limit = "3") RubyStringLibrary stringLibrary,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached IndirectCallNode callNode,
-                @CachedLibrary("code") RubyStringLibrary libCode) {
-            final String javaString = RopeOperations.decodeRope(stringLibrary.getRope(toStr(frame, file)));
+                @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
+            final String javaString = stringLibrary.getJavaString(toStr(frame, file));
             return classEvalSource(frame, module, code, javaString, callNode);
         }
 

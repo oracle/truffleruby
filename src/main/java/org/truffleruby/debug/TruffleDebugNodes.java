@@ -40,7 +40,6 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -104,7 +103,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(file)", limit = "2")
         protected RubyHandle setBreak(Object file, int line, RubyProc block,
                 @CachedLibrary("file") RubyStringLibrary strings) {
-            final String fileString = RopeOperations.decodeRope(strings.getRope(file));
+            final String fileString = strings.getJavaString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
@@ -415,7 +414,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(message)", limit = "2")
         protected Object throwJavaException(Object message,
                 @CachedLibrary("message") RubyStringLibrary strings) {
-            callingMethod(RopeOperations.decodeRope(strings.getRope(message)));
+            callingMethod(strings.getJavaString(message));
             return nil;
         }
 
@@ -439,7 +438,7 @@ public abstract class TruffleDebugNodes {
         protected Object throwJavaExceptionWithCause(Object message,
                 @CachedLibrary("message") RubyStringLibrary strings) {
             throw new RuntimeException(
-                    RopeOperations.decodeRope(strings.getRope(message)),
+                    strings.getJavaString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
@@ -831,7 +830,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(string)", limit = "2")
         protected Object foreignString(Object string,
                 @CachedLibrary("string") RubyStringLibrary strings) {
-            return new ForeignString(RopeOperations.decodeRope(strings.getRope(string)));
+            return new ForeignString(strings.getJavaString(string));
         }
 
     }

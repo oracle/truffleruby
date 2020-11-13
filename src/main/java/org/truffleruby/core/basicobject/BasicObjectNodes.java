@@ -336,11 +336,7 @@ public abstract class BasicObjectNodes {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
 
-        @Specialization(guards = {
-                "strings.isRubyString(string)",
-                "stringsFileName.isRubyString(fileName)",
-                "wasProvided(fileName)",
-                "wasProvided(string)" }, limit = "2")
+        @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
                 VirtualFrame frame,
                 Object receiver,
@@ -348,8 +344,8 @@ public abstract class BasicObjectNodes {
                 Object fileName,
                 int line,
                 NotProvided block,
-                @CachedLibrary("string") RubyStringLibrary strings,
-                @CachedLibrary("fileName") RubyStringLibrary stringsFileName,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -367,7 +363,7 @@ public abstract class BasicObjectNodes {
                 "strings.isRubyString(string)",
                 "stringsFileName.isRubyString(fileName)",
                 "wasProvided(string)",
-                "wasProvided(fileName)" }, limit = "2")
+                "wasProvided(fileName)" })
         protected Object instanceEval(
                 VirtualFrame frame,
                 Object receiver,
@@ -375,8 +371,8 @@ public abstract class BasicObjectNodes {
                 Object fileName,
                 NotProvided line,
                 NotProvided block,
-                @CachedLibrary("string") RubyStringLibrary strings,
-                @CachedLibrary("fileName") RubyStringLibrary stringsFileName,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -390,7 +386,7 @@ public abstract class BasicObjectNodes {
                     callNode);
         }
 
-        @Specialization(guards = { "strings.isRubyString(string)", "wasProvided(string)" }, limit = "2")
+        @Specialization(guards = { "strings.isRubyString(string)", "wasProvided(string)" })
         protected Object instanceEval(
                 VirtualFrame frame,
                 Object receiver,
@@ -398,7 +394,7 @@ public abstract class BasicObjectNodes {
                 NotProvided fileName,
                 NotProvided line,
                 NotProvided block,
-                @CachedLibrary("string") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);

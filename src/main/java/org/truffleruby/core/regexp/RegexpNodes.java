@@ -103,9 +103,9 @@ public abstract class RegexpNodes {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
 
-        @Specialization(limit = "3", guards = "libRaw.isRubyString(raw)")
+        @Specialization(guards = "libRaw.isRubyString(raw)")
         protected RubyString quoteString(Object raw,
-                @CachedLibrary("raw") RubyStringLibrary libRaw) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libRaw) {
             final Rope rope = libRaw.getRope(raw);
             return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope));
         }
@@ -268,25 +268,23 @@ public abstract class RegexpNodes {
     @ImportStatic(RegexpGuards.class)
     public static abstract class RegexpCompileNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "2", guards = { "libPattern.isRubyString(pattern)", "isRegexpLiteral(regexp)" })
+        @Specialization(guards = { "libPattern.isRubyString(pattern)", "isRegexpLiteral(regexp)" })
         protected RubyRegexp initializeRegexpLiteral(RubyRegexp regexp, Object pattern, int options,
-                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
         }
 
         @Specialization(
-                limit = "2",
                 guards = { "libPattern.isRubyString(pattern)", "!isRegexpLiteral(regexp)", "isInitialized(regexp)" })
         protected RubyRegexp initializeAlreadyInitialized(RubyRegexp regexp, Object pattern, int options,
-                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
         }
 
         @Specialization(
-                limit = "2",
                 guards = { "libPattern.isRubyString(pattern)", "!isRegexpLiteral(regexp)", "!isInitialized(regexp)" })
         protected RubyRegexp initialize(RubyRegexp regexp, Object pattern, int options,
-                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             RegexpNodes.initialize(getContext(), regexp, libPattern.getRope(pattern), options, this);
             return regexp;
         }

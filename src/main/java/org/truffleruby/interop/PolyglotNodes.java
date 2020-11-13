@@ -103,7 +103,7 @@ public abstract class PolyglotNodes {
                 @CachedLibrary("fileName") RubyStringLibrary strings) {
             final Source source;
             //intern() to improve footprint
-            final String path = RopeOperations.decodeRope(strings.getRope(fileName)).intern();
+            final String path = strings.getJavaString(fileName).intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
@@ -130,8 +130,8 @@ public abstract class PolyglotNodes {
         protected Object evalFile(Object id, Object fileName,
                 @CachedLibrary("id") RubyStringLibrary stringsId,
                 @CachedLibrary("fileName") RubyStringLibrary stringsFileName) {
-            final String idString = RopeOperations.decodeRope(stringsId.getRope(id));
-            final Source source = getSource(idString, RopeOperations.decodeRope(stringsFileName.getRope(fileName)));
+            final String idString = stringsId.getJavaString(id);
+            final Source source = getSource(idString, stringsFileName.getJavaString(fileName));
             return eval(source);
         }
 
