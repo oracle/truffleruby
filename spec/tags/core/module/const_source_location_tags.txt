@@ -1,0 +1,32 @@
+fails:Module#const_source_location return empty path if constant defined in C code
+fails:Module#const_source_location accepts a String or Symbol name
+fails:Module#const_source_location returns nil if no constant is defined in the search path
+fails:Module#const_source_location raises a NameError if the name contains non-alphabetic characters except '_'
+fails:Module#const_source_location calls #to_str to convert the given name to a String
+fails:Module#const_source_location raises a TypeError if conversion to a String by calling #to_str fails
+fails:Module#const_source_location does not search the singleton class of a Class or Module
+fails:Module#const_source_location does not search the containing scope
+fails:Module#const_source_location returns nil if the constant is defined in the receiver's superclass and the inherit flag is false
+fails:Module#const_source_location searches into the receiver superclasses if the inherit flag is true
+fails:Module#const_source_location returns nil when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false
+fails:Module#const_source_location returns nil when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false
+fails:Module#const_source_location accepts a toplevel scope qualifier
+fails:Module#const_source_location accepts a scoped constant name
+fails:Module#const_source_location does search private constants path
+fails:Module#const_source_location with dynamically assigned constants searches a path in the immediate class or module first
+fails:Module#const_source_location with dynamically assigned constants searches a path in a module included in the immediate class before the superclass
+fails:Module#const_source_location with dynamically assigned constants searches a path in the superclass before a module included in the superclass
+fails:Module#const_source_location with dynamically assigned constants searches a path in a module included in the superclass
+fails:Module#const_source_location with dynamically assigned constants searches a path in the superclass chain
+fails:Module#const_source_location with dynamically assigned constants returns path to a toplevel constant when the receiver is a Class
+fails:Module#const_source_location with dynamically assigned constants returns path to a toplevel constant when the receiver is a Module
+fails:Module#const_source_location with dynamically assigned constants returns path to the updated value of a constant
+fails:Module#const_source_location with statically assigned constants searches location path the immediate class or module first
+fails:Module#const_source_location with statically assigned constants searches location path a module included in the immediate class before the superclass
+fails:Module#const_source_location with statically assigned constants searches location path the superclass before a module included in the superclass
+fails:Module#const_source_location with statically assigned constants searches location path a module included in the superclass
+fails:Module#const_source_location with statically assigned constants searches location path the superclass chain
+fails:Module#const_source_location with statically assigned constants returns location path a toplevel constant when the receiver is a Class
+fails:Module#const_source_location with statically assigned constants returns location path a toplevel constant when the receiver is a Module
+fails:Module#const_source_location autoload returns the autoload location while not resolved
+fails:Module#const_source_location autoload returns where the constant was resolved when resolved

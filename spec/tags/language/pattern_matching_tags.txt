@@ -75,3 +75,4 @@ fails:Pattern matching Hash pattern matches anything with **
 fails:Pattern matching refinements are used for #deconstruct
 fails:Pattern matching refinements are used for #deconstruct_keys
 fails:Pattern matching refinements are used for #=== in constant pattern
+fails:Pattern matching warning warns about pattern matching is experimental feature
