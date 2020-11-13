@@ -492,7 +492,7 @@ public abstract class RangeNodes {
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
                 @Cached DispatchNode compare) {
 
-            if (compare.call(begin, "<=>", end) == nil && end != nil) {
+            if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
