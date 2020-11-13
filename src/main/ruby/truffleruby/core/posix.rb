@@ -346,7 +346,7 @@ module Truffle::POSIX
   # gets as soon as it gets something.
 
   def self.read_string_at_least_one_byte(io, count)
-    while true # rubocop:disable Lint/LiteralAsCondition
+    while true
       # must call #read_string in order to properly support polyglot STDIO
       string, errno = read_string(io, count)
       return string if errno == 0
