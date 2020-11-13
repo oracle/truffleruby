@@ -215,7 +215,14 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options) {
-            return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
+            return primitiveConvertHelper(
+                    encodingConverter,
+                    source,
+                    RopeConstants.EMPTY_UTF8_ROPE,
+                    target,
+                    offset,
+                    size,
+                    options);
         }
 
         @Specialization(guards = "stringsSource.isRubyString(source)")
@@ -230,17 +237,23 @@ public abstract class EncodingConverterNodes {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
+            return primitiveConvertHelper(
+                    encodingConverter,
+                    source,
+                    stringsSource.getRope(source),
+                    target,
+                    offset,
+                    size,
+                    options);
         }
 
         @TruffleBoundary
-        private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source,
+        private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source, Rope sourceRope,
                 RubyString target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             Rope targetRope = target.rope;
             final boolean nonNullSource = source != nil;
-            Rope sourceRope = nonNullSource ? ((RubyString) source).rope : RopeConstants.EMPTY_UTF8_ROPE;
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
             final Ptr inPtr = new Ptr();

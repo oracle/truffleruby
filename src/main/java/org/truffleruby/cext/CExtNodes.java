@@ -1073,6 +1073,7 @@ public class CExtNodes {
             return string.rope instanceof NativeRope;
         }
 
+        @TruffleBoundary
         @Specialization
         protected boolean isNative(ImmutableRubyString string) {
             return getContext().getImmutableNativeRopes().containsKey(string);
