@@ -497,7 +497,7 @@ public abstract class RangeNodes {
                 @Cached AllocateHelperNode allocateHelperNode,
                 @Cached DispatchNode compare) {
 
-            if (compare.call(begin, "<=>", end) == nil && end != nil) {
+            if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
