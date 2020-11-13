@@ -74,3 +74,12 @@ void rb_mem_clear(VALUE *mem, long n) {
     mem[i] = Qnil;
   }
 }
+
+VALUE rb_imemo_tmpbuf_auto_free_pointer(void) {
+  return RUBY_CEXT_INVOKE("rb_imemo_tmpbuf_auto_free_pointer");
+}
+
+void* rb_imemo_tmpbuf_set_ptr(VALUE imemo, void *ptr) {
+  polyglot_invoke(RUBY_CEXT, "rb_imemo_tmpbuf_set_ptr", rb_tr_unwrap(imemo), ptr);
+  return ptr;
+}

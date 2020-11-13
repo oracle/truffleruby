@@ -84,7 +84,7 @@ zlib/zlib.$(DLEXT): zlib/Makefile zlib/zlib.c
 ripper/Makefile: ripper/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd ripper && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-ripper/ripper.$(DLEXT): ripper/Makefile
+ripper/ripper.$(DLEXT): ripper/Makefile ripper/*.c ripper/*.h
 	$(Q) cd ripper && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # syslog
