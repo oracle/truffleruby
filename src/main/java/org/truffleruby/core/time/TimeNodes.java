@@ -434,16 +434,16 @@ public abstract class TimeNodes {
                         "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
                 limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
-                @CachedLibrary("format") RubyStringLibrary libFormat,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached RopeNodes.EqualNode equalNode) {
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
-        @Specialization(limit = "2", guards = "libFormat.isRubyString(format)")
+        @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
-                @CachedLibrary("format") RubyStringLibrary libFormat) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
             final List<Token> pattern = compilePattern(libFormat.getRope(format));
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }

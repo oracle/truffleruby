@@ -47,16 +47,16 @@ public abstract class ToJavaStringNode extends RubySourceNode {
             guards = { "strings.isRubyString(value)", "equalsNode.execute(strings.getRope(value), cachedRope)" },
             limit = "getLimit()")
     protected String stringCached(Object value,
-            @CachedLibrary("value") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @Cached("strings.getRope(value)") Rope cachedRope,
             @Cached("strings.getJavaString(value)") String convertedString,
             @Cached RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }
 
-    @Specialization(limit = "2", guards = "strings.isRubyString(value)", replaces = "stringCached")
+    @Specialization(guards = "strings.isRubyString(value)", replaces = "stringCached")
     protected String stringUncached(Object value,
-            @CachedLibrary("value") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @Cached ConditionProfile asciiOnlyProfile,
             @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
             @Cached RopeNodes.BytesNode bytesNode) {

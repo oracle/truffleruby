@@ -51,8 +51,8 @@ public abstract class PolyglotNodes {
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")
         protected Object evalCached(Object id, Object source,
-                @CachedLibrary("id") RubyStringLibrary stringsId,
-                @CachedLibrary("source") RubyStringLibrary stringsSource,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
                 @Cached("stringsId.getRope(id)") Rope cachedMimeType,
                 @Cached("stringsSource.getRope(source)") Rope cachedSource,
                 @Cached("create(parse(stringsId.getRope(id), stringsSource.getRope(source)))") DirectCallNode callNode,
@@ -61,12 +61,12 @@ public abstract class PolyglotNodes {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
-        @Specialization(limit = "2", guards = {
+        @Specialization(guards = {
                 "stringsId.isRubyString(id)",
                 "stringsSource.isRubyString(source)" }, replaces = "evalCached")
         protected Object evalUncached(Object id, Object source,
-                @CachedLibrary("id") RubyStringLibrary stringsId,
-                @CachedLibrary("source") RubyStringLibrary stringsSource,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(stringsId.getRope(id), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
         }
@@ -98,9 +98,9 @@ public abstract class PolyglotNodes {
     public abstract static class EvalFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(fileName)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(fileName)")
         protected Object evalFile(Object fileName, NotProvided id,
-                @CachedLibrary("fileName") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final Source source;
             //intern() to improve footprint
             final String path = strings.getJavaString(fileName).intern();
@@ -124,12 +124,10 @@ public abstract class PolyglotNodes {
         @Specialization(
                 guards = {
                         "stringsId.isRubyString(id)",
-                        "stringsFileName.isRubyString(fileName)",
-                        "wasProvided(fileName)" },
-                limit = "2")
+                        "stringsFileName.isRubyString(fileName)" })
         protected Object evalFile(Object id, Object fileName,
-                @CachedLibrary("id") RubyStringLibrary stringsId,
-                @CachedLibrary("fileName") RubyStringLibrary stringsFileName) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName) {
             final String idString = stringsId.getJavaString(id);
             final Source source = getSource(idString, stringsFileName.getJavaString(fileName));
             return eval(source);

@@ -999,41 +999,33 @@ public abstract class ModuleNodes {
                         "!scoped" },
                 limit = "getLimit()")
         protected Object getConstantStringCached(RubyModule module, Object name, boolean inherit,
-                @CachedLibrary("name") RubyStringLibrary stringsName,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsName,
                 @Cached("stringsName.getRope(name)") Rope cachedRope,
-                @Cached("toJavaString(stringsName.getRope(name))") String cachedString,
+                @Cached("stringsName.getJavaString(name)") String cachedString,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
             return getConstant(module, cachedString);
         }
 
-        protected String toJavaString(Rope rope) {
-            return RopeOperations.decodeRope(rope);
-        }
-
         @Specialization(
-                limit = "2",
                 guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName.getRope(name))" },
                 replaces = "getConstantStringCached")
         protected Object getConstantString(RubyModule module, Object name, boolean inherit,
-                @CachedLibrary("name") RubyStringLibrary stringsName) {
-            return getConstant(module, toJavaString(stringsName.getRope(name)));
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
+            return getConstant(module, stringsName.getJavaString(name));
         }
 
         @Specialization(
-                limit = "2",
                 guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName.getRope(name))" })
         protected Object getConstantNoInheritString(RubyModule module, Object name, boolean inherit,
-                @CachedLibrary("name") RubyStringLibrary stringsName) {
-            return getConstantNoInherit(module, toJavaString(stringsName.getRope(name)));
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
+            return getConstantNoInherit(module, stringsName.getJavaString(name));
         }
 
         // Scoped String
-        @Specialization(
-                limit = "2",
-                guards = { "stringsName.isRubyString(name)", "isScoped(stringsName.getRope(name))" })
+        @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName.getRope(name))" })
         protected Object getConstantScoped(RubyModule module, Object name, boolean inherit,
-                @CachedLibrary("name") RubyStringLibrary stringsName) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
             return FAILURE;
         }
 

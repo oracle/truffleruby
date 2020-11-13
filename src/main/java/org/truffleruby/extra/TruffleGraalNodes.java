@@ -230,9 +230,9 @@ public abstract class TruffleGraalNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class BailoutNode extends PrimitiveNode {
 
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected Object bailout(Object message,
-                @CachedLibrary("message") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode) {
             CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
             return nil;

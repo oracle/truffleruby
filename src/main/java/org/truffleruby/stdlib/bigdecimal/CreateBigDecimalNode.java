@@ -197,16 +197,16 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return createNormalBigDecimal(round(value.value, BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
-    @Specialization(guards = "strings.isRubyString(value)", limit = "2")
+    @Specialization(guards = "strings.isRubyString(value)")
     protected RubyBigDecimal createString(Object value, NotProvided digits, boolean strict,
-            @CachedLibrary("value") RubyStringLibrary strings) {
+            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
         return createString(value, 0, strict, strings);
     }
 
     @TruffleBoundary
-    @Specialization(guards = "strings.isRubyString(value)", limit = "2")
+    @Specialization(guards = "strings.isRubyString(value)")
     protected RubyBigDecimal createString(Object value, int digits, boolean strict,
-            @CachedLibrary("value") RubyStringLibrary strings) {
+            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
         return executeCreate(
                 getValueFromString(strings.getJavaString(value), digits, strict),
                 digits,

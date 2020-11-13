@@ -106,9 +106,9 @@ public abstract class DigestNodes {
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected RubyDigest update(RubyDigest digestObject, Object message,
-                @CachedLibrary("message") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final MessageDigest digest = digestObject.digest;
             final Rope rope = strings.getRope(message);
 
@@ -175,9 +175,9 @@ public abstract class DigestNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected RubyString bubblebabble(Object message,
-                @CachedLibrary("message") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final Rope rope = strings.getRope(message);
             final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
 

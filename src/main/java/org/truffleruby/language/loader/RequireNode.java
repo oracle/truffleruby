@@ -60,9 +60,9 @@ public abstract class RequireNode extends RubyContextNode {
 
     public abstract boolean executeRequire(String feature, Object expandedPath);
 
-    @Specialization(limit = "2", guards = "libExpandedPathString.isRubyString(expandedPathString)")
+    @Specialization(guards = "libExpandedPathString.isRubyString(expandedPathString)")
     protected boolean require(String feature, Object expandedPathString,
-            @CachedLibrary("expandedPathString") RubyStringLibrary libExpandedPathString) {
+            @CachedLibrary(limit = "2") RubyStringLibrary libExpandedPathString) {
         final String expandedPath = libExpandedPathString.getJavaString(expandedPathString);
         return requireWithMetrics(feature, expandedPath, expandedPathString);
     }

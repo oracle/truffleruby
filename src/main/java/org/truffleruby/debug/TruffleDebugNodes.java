@@ -100,9 +100,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(file)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(file)")
         protected RubyHandle setBreak(Object file, int line, RubyProc block,
-                @CachedLibrary("file") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final String fileString = strings.getJavaString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -411,9 +411,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwJavaException(Object message,
-                @CachedLibrary("message") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             callingMethod(strings.getJavaString(message));
             return nil;
         }
@@ -434,9 +434,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionWithCauseNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwJavaExceptionWithCause(Object message,
-                @CachedLibrary("message") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             throw new RuntimeException(
                     strings.getJavaString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
@@ -448,9 +448,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowAssertionErrorNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwAssertionError(Object message,
-                @CachedLibrary("message") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             throw new AssertionError(strings.getRope(message));
         }
 
@@ -827,9 +827,9 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected Object foreignString(Object string,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             return new ForeignString(strings.getJavaString(string));
         }
 

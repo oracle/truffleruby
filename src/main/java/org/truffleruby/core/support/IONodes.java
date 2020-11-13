@@ -141,12 +141,10 @@ public abstract class IONodes {
     public static abstract class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(
-                limit = "2",
-                guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
+        @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
         protected boolean fnmatch(Object pattern, Object path, int flags,
-                @CachedLibrary("pattern") RubyStringLibrary stringsPattern,
-                @CachedLibrary("path") RubyStringLibrary stringsPath) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsPattern,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsPath) {
             final Rope patternRope = stringsPattern.getRope(pattern);
             final Rope pathRope = stringsPath.getRope(path);
 
@@ -473,9 +471,9 @@ public abstract class IONodes {
     public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected int write(int fd, Object string,
-                @CachedLibrary("string") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final OutputStream stream;
 
             switch (fd) {

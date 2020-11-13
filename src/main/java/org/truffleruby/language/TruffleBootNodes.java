@@ -111,12 +111,10 @@ public abstract class TruffleBootNodes {
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(
-                guards = { "stringsKind.isRubyString(kind)", "stringsToExecute.isRubyString(toExecute)" },
-                limit = "2")
+        @Specialization(guards = { "stringsKind.isRubyString(kind)", "stringsToExecute.isRubyString(toExecute)" })
         protected int main(Object kind, Object toExecute,
-                @CachedLibrary("kind") RubyStringLibrary stringsKind,
-                @CachedLibrary("toExecute") RubyStringLibrary stringsToExecute) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsKind,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsToExecute) {
             return topLevelRaiseHandler.execute(() -> {
                 setArgvGlobals();
 
@@ -306,9 +304,9 @@ public abstract class TruffleBootNodes {
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(limit = "2", guards = "libOptionName.isRubyString(optionName)")
+        @Specialization(guards = "libOptionName.isRubyString(optionName)")
         protected Object getOption(Object optionName,
-                @CachedLibrary("optionName") RubyStringLibrary libOptionName) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libOptionName) {
             if (getContext().isPreInitializing()) {
                 throw new RaiseException(
                         getContext(),

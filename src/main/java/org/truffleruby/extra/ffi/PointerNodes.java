@@ -353,10 +353,10 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
     public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "2", guards = "libString.isRubyString(string)")
+        @Specialization(guards = "libString.isRubyString(string)")
         protected Object writeBytes(long address, Object string, int index, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @CachedLibrary("string") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Pointer ptr = new Pointer(address);
             final Rope rope = libString.getRope(string);
             assert index + length <= rope.byteLength();

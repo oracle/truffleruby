@@ -79,9 +79,9 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected RubyByteArray prepend(RubyByteArray byteArray, Object string,
-                @CachedLibrary("string") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 
@@ -163,13 +163,12 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                limit = "2",
                 guards = { "libPattern.isRubyString(pattern)", "isSingleBytePattern(libPattern.getRope(pattern))" })
         protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile,
-                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
 
             final byte[] bytes = byteArray.bytes;
             final Rope rope = libPattern.getRope(pattern);
@@ -191,13 +190,12 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(
-                limit = "2",
                 guards = { "libPattern.isRubyString(pattern)", "!isSingleBytePattern(libPattern.getRope(pattern))" })
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached ConditionProfile notFoundProfile,
-                @CachedLibrary("pattern") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             final Rope patternRope = libPattern.getRope(pattern);
             final int index = indexOf(
                     byteArray.bytes,
