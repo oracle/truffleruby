@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -21,11 +20,11 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -307,9 +306,9 @@ public abstract class ExceptionNodes {
 
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
-        @Specialization(guards = "strings.isRubyString(message)")
-        protected RubySystemCallError exceptionErrnoError(RubyString message, int errno,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+        @Specialization
+        protected RubySystemCallError exceptionErrnoError(Object message, int errno) {
+            assert message instanceof RubyString || message instanceof ImmutableRubyString;
             return errnoErrorNode.execute(errno, message, null);
         }
 

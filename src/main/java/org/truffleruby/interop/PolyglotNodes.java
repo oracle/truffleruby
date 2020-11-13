@@ -45,8 +45,6 @@ public abstract class PolyglotNodes {
 
         @Specialization(
                 guards = {
-                        "stringsId.isRubyString(id)",
-                        "stringsSource.isRubyString(source)",
                         "idEqualNode.execute(stringsId.getRope(id), cachedMimeType)",
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")

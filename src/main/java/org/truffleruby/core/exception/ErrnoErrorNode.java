@@ -11,7 +11,6 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
@@ -20,7 +19,6 @@ import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.ErrnoDescriptions;
 
 public abstract class ErrnoErrorNode extends RubyContextNode {
@@ -33,9 +31,9 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     public abstract RubySystemCallError execute(int errno, Object extraMessage, Backtrace backtrace);
 
-    @Specialization(guards = "strings.isRubyString(extraMessage)")
-    protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace,
-            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+    @Specialization
+    protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
+        assert extraMessage instanceof RubyString || extraMessage instanceof ImmutableRubyString;
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;

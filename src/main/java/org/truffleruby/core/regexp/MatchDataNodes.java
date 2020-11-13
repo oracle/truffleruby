@@ -39,6 +39,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -181,10 +182,10 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
     public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "libRegexp.isRubyString(regexp)", "strings.isRubyString(string)" })
-        protected Object create(Object regexp, Object string, int start, int end,
-                @CachedLibrary(limit = "2") RubyStringLibrary libRegexp,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+        @Specialization
+        protected Object create(Object regexp, Object string, int start, int end) {
+            assert regexp instanceof RubyString || regexp instanceof ImmutableRubyString;
+            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -202,11 +203,11 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create")
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)")
+        @Specialization
         protected Object create(RubyDynamicObject regexp, Object string, RubyArray starts, RubyArray ends,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
+            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             final Region region = new Region(starts.size);
             for (int i = 0; i < region.numRegs; i++) {
                 region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));

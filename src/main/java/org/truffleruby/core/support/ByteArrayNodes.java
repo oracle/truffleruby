@@ -163,7 +163,7 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                guards = { "libPattern.isRubyString(pattern)", "isSingleBytePattern(libPattern.getRope(pattern))" })
+                guards = { "isSingleBytePattern(libPattern.getRope(pattern))" })
         protected Object getByteSingleByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
@@ -190,7 +190,7 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(
-                guards = { "libPattern.isRubyString(pattern)", "!isSingleBytePattern(libPattern.getRope(pattern))" })
+                guards = { "!isSingleBytePattern(libPattern.getRope(pattern))" })
         protected Object getByte(RubyByteArray byteArray, Object pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,

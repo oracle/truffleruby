@@ -127,18 +127,18 @@ public class TruffleRegexpNodes {
         @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
 
         @Specialization(
-                guards = { "stringsSep.isRubyString(sep)", "argsMatch(frame, cachedArgs, args)" },
+                guards = "argsMatch(frame, cachedArgs, args)",
                 limit = "getDefaultCacheLimit()")
         protected Object executeFastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSep,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(str, sep, args)") RubyRegexp union) {
+            assert sep instanceof RubyString || sep instanceof ImmutableRubyString;
             return copyNode.call(union, "clone");
         }
 
-        @Specialization(guards = "stringsSep.isRubyString(sep)", replaces = "executeFastUnion")
-        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSep) {
+        @Specialization(replaces = "executeFastUnion")
+        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args) {
+            assert sep instanceof RubyString || sep instanceof ImmutableRubyString;
             return buildUnion(str, sep, args);
         }
 

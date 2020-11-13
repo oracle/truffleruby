@@ -206,13 +206,13 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(fileName)")
-        protected Object importFile(RubyString fileName,
+        protected Object importFile(Object fileName,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             try {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
-                        .getPublicTruffleFile(fileName.getJavaString().intern());
+                        .getPublicTruffleFile(strings.getJavaString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
@@ -231,8 +231,6 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = {
-                        "stringsMimeType.isRubyString(mimeType)",
-                        "stringsSource.isRubyString(source)",
                         "mimeTypeEqualNode.execute(stringsMimeType.getRope(mimeType), cachedMimeType)",
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")

@@ -62,7 +62,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
-import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -107,10 +106,9 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = "strings.isRubyString(name)")
         protected Object javaGetEnv(Object name,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached ConditionProfile nullValueProfile) {
-            final String javaName = toJavaStringNode.executeToJavaString(name);
+            final String javaName = strings.getJavaString(name);
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(value == null)) {

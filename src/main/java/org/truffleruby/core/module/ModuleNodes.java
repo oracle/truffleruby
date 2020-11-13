@@ -633,7 +633,7 @@ public abstract class ModuleNodes {
             return toStrNode.executeToStr(object);
         }
 
-        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(code)" })
+        @Specialization(guards = { "libCode.isRubyString(code)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,
@@ -646,10 +646,7 @@ public abstract class ModuleNodes {
             return classEvalSource(frame, module, code, "(eval)", callNode);
         }
 
-        @Specialization(
-                guards = {
-                        "libCode.isRubyString(code)",
-                        "libFile.isRubyString(file)" })
+        @Specialization(guards = { "libCode.isRubyString(code)", "libFile.isRubyString(file)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,
@@ -663,7 +660,7 @@ public abstract class ModuleNodes {
             return classEvalSource(frame, module, code, libFile.getJavaString(file), callNode);
         }
 
-        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(code)", "wasProvided(file)" })
+        @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(
                 VirtualFrame frame,
                 RubyModule module,

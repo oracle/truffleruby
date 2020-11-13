@@ -242,7 +242,7 @@ public abstract class EncodingNodes {
         @Specialization(
                 guards = {
                         "libFirst.isRubyString(first)",
-                        "!libSecond.isRubyString(second)",
+                        "isNotRubyString(second)",
                         "getCodeRange(first) == codeRange",
                         "getEncoding(first) == firstEncoding",
                         "getEncoding(second) == secondEncoding",
@@ -254,7 +254,7 @@ public abstract class EncodingNodes {
                 @Cached("getEncoding(first)") Encoding firstEncoding,
                 @Cached("getEncoding(second)") Encoding secondEncoding,
                 @Cached("getCodeRange(first)") CodeRange codeRange,
-                @Cached("negotiateStringObjectUncached(first, second, libFirst, libSecond)") Encoding negotiatedEncoding) {
+                @Cached("negotiateStringObjectUncached(first, second, libFirst)") Encoding negotiatedEncoding) {
             return negotiatedEncoding;
         }
 
@@ -262,11 +262,10 @@ public abstract class EncodingNodes {
                 guards = {
                         "libFirst.isRubyString(first)",
                         "getEncoding(first) != getEncoding(second)",
-                        "!libSecond.isRubyString(second)" },
+                        "isNotRubyString(second)" },
                 replaces = "negotiateStringObjectCached")
         protected Encoding negotiateStringObjectUncached(Object first, Object second,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSecond) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libFirst) {
             final Encoding firstEncoding = getEncoding(first);
             final Encoding secondEncoding = getEncoding(second);
 
@@ -293,26 +292,23 @@ public abstract class EncodingNodes {
                 guards = {
                         "libSecond.isRubyString(second)",
                         "getEncoding(first) != getEncoding(second)",
-                        "!libFirst.isRubyString(first)" })
+                        "isNotRubyString(first)" })
         protected Encoding negotiateObjectString(Object first, Object second,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFirst,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSecond) {
-            return negotiateStringObjectUncached(second, first, libSecond, libFirst);
+            return negotiateStringObjectUncached(second, first, libSecond);
         }
 
         @Specialization(
                 guards = {
                         "firstEncoding != secondEncoding",
-                        "!libFirst.isRubyString(first)",
-                        "!libSecond.isRubyString(second)",
+                        "isNotRubyString(first)",
+                        "isNotRubyString(second)",
                         "firstEncoding != null",
                         "secondEncoding != null",
                         "getEncoding(first) == firstEncoding",
                         "getEncoding(second) == secondEncoding", },
                 limit = "getCacheLimit()")
         protected Encoding negotiateObjectObjectCached(Object first, Object second,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSecond,
                 @Cached("getEncoding(first)") Encoding firstEncoding,
                 @Cached("getEncoding(second)") Encoding secondEncoding,
                 @Cached("areCompatible(firstEncoding, secondEncoding)") Encoding negotiatedEncoding) {
@@ -323,12 +319,10 @@ public abstract class EncodingNodes {
         @Specialization(
                 guards = {
                         "getEncoding(first) != getEncoding(second)",
-                        "!libFirst.isRubyString(first)",
-                        "!libSecond.isRubyString(second)" },
+                        "isNotRubyString(first)",
+                        "isNotRubyString(second)" },
                 replaces = "negotiateObjectObjectCached")
-        protected Encoding negotiateObjectObjectUncached(Object first, Object second,
-                @CachedLibrary(limit = "2") RubyStringLibrary libFirst,
-                @CachedLibrary(limit = "2") RubyStringLibrary libSecond) {
+        protected Encoding negotiateObjectObjectUncached(Object first, Object second) {
             final Encoding firstEncoding = getEncoding(first);
             final Encoding secondEncoding = getEncoding(second);
 
