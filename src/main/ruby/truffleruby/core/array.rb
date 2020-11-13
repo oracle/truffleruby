@@ -1029,6 +1029,8 @@ class Array
     count.times do |c|
       result.__send__ :swap, c, rng.rand(size)
     end
+
+    count == size ? result : result[0, count]
   end
 
   private def sample_many_quad(count, rng)
