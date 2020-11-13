@@ -15,12 +15,12 @@ Compatibility:
 * Implement `String#undump` (#2131, @kustosz)
 * `Errno` constants with the same `errno` number are now the same class.
 * Implement `Enumerable#tally` and `Enumerable#filter_map` (#2144 and #2152, @LillianZ).
-* Pass more `Enumerator::Lazy#uniq` and `Enumerator::Lazy#chunk` specs.  (#2146, @LillianZ).
+* Pass more `Enumerator::Lazy#uniq` and `Enumerator::Lazy#chunk` specs (#2146, @LillianZ).
 
 Performance:
 
-* Refactor and implement more performant `MatchData#length`. (#2148, @LillianZ).
-* Refactor and implement more performant `Array#sample`. (#2148, @LillianZ).
+* Refactor and implement more performant `MatchData#length` (#2147, @LillianZ).
+* Refactor and implement more performant `Array#sample` (#2148, @LillianZ).
 
 Changes:
 
