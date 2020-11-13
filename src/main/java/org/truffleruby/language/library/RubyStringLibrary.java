@@ -27,10 +27,12 @@ public abstract class RubyStringLibrary extends Library {
 
     private static final LibraryFactory<RubyStringLibrary> FACTORY = LibraryFactory.resolve(RubyStringLibrary.class);
 
-    public abstract Rope getRope(Object object);
-
     public boolean isRubyString(Object receiver) {
         return false;
     }
+
+    public abstract Rope getRope(Object object);
+
+    public abstract String getJavaString(Object receiver);
 
 }

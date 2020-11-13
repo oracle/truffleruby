@@ -34,11 +34,6 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
         this.rope = rope;
     }
 
-    public String getJavaString() {
-        return RopeOperations.decodeRope(rope);
-    }
-
-
     /** should only be used for debugging */
     @Override
     public String toString() {
@@ -47,13 +42,18 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     // region RubyStringLibrary messages
     @ExportMessage
+    public boolean isRubyString() {
+        return true;
+    }
+
+    @ExportMessage
     protected Rope getRope() {
         return rope;
     }
 
     @ExportMessage
-    public boolean isRubyString() {
-        return true;
+    public String getJavaString() {
+        return RopeOperations.decodeRope(rope);
     }
     // endregion
 

@@ -15,7 +15,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
@@ -25,6 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
 
@@ -58,8 +58,10 @@ public abstract class ExceptionOperations {
     public static String messageToString(RubyContext context, RubyException exception) {
         try {
             final Object messageObject = context.send(exception, "message");
-            if (StringOperations.isRubyString(messageObject)) {
-                return ((RubyString) messageObject).getJavaString();
+
+            final RubyStringLibrary libString = RubyStringLibrary.getUncached();
+            if (libString.isRubyString(messageObject)) {
+                return libString.getJavaString(messageObject);
             }
         } catch (Throwable e) {
             // Fall back to the internal message field

@@ -10,8 +10,8 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -22,6 +22,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStrNode extends RubyContextSourceNode {
@@ -43,9 +44,10 @@ public abstract class ToStrNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    protected RubyString coerceObject(Object object,
+    protected Object coerceObject(Object object,
             @Cached BranchProfile errorProfile,
-            @Cached DispatchNode toStrNode) {
+            @Cached DispatchNode toStrNode,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = toStrNode.call(object, "to_str");
@@ -60,8 +62,8 @@ public abstract class ToStrNode extends RubyContextSourceNode {
             }
         }
 
-        if (StringOperations.isRubyString(coerced)) {
-            return (RubyString) coerced;
+        if (libString.isRubyString(coerced)) {
+            return coerced;
         } else {
             errorProfile.enter();
             throw new RaiseException(

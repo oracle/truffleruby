@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public class AutoloadConstant {
@@ -24,7 +23,7 @@ public class AutoloadConstant {
     private volatile ReentrantLock autoloadLock;
 
     AutoloadConstant(Object feature) {
-        assert StringOperations.isRubyString(feature);
+        assert RubyStringLibrary.getUncached().isRubyString(feature);
         this.feature = feature;
         this.autoloadPath = RopeOperations.decodeRope(RubyStringLibrary.getUncached().getRope(this.feature));
     }

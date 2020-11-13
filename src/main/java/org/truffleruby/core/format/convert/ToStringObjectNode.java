@@ -13,8 +13,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -52,7 +52,7 @@ public abstract class ToStringObjectNode extends FormatNode {
             @Cached ToStrNode toStrNode) {
         final Object value = toStrNode.executeToStr(object);
 
-        if (notStringProfile.profile(!StringOperations.isRubyString(value))) {
+        if (notStringProfile.profile(RubyGuards.isNotRubyString(value))) {
             throw new NoImplicitConversionException(object, "String");
         }
 

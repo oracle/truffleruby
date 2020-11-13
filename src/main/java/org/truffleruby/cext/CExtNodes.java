@@ -1153,11 +1153,12 @@ public class CExtNodes {
                 System.err.printf("Printing %d values%n", objects.length);
             }
 
+            final RubyStringLibrary libString = RubyStringLibrary.getUncached();
             for (Object object : objects) {
                 final String representation;
 
-                if (StringOperations.isRubyString(object)) {
-                    final Rope rope = ((RubyString) object).rope;
+                if (libString.isRubyString(object)) {
+                    final Rope rope = libString.getRope(object);
                     final byte[] bytes = rope.getBytes();
                     final StringBuilder builder = new StringBuilder();
 

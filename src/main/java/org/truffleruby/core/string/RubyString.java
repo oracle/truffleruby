@@ -52,22 +52,22 @@ public class RubyString extends RubyDynamicObject {
         return rope.toString();
     }
 
-    public String getJavaString() {
-        return RopeOperations.decodeRope(rope);
+    // region RubyStringLibrary messages
+    @ExportMessage
+    public boolean isRubyString() {
+        return true;
     }
 
-    // region RubyStringLibrary messages
     @ExportMessage
     protected Rope getRope() {
         return rope;
     }
 
     @ExportMessage
-    public boolean isRubyString() {
-        return true;
+    public String getJavaString() {
+        return RopeOperations.decodeRope(rope);
     }
     // endregion
-
 
     // region RubyLibrary messages
     @ExportMessage

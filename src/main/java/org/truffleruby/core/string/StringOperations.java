@@ -135,8 +135,4 @@ public abstract class StringOperations {
         }
         return true;
     }
-
-    public static boolean isRubyString(Object value) {
-        return value instanceof ImmutableRubyString || value instanceof RubyString;
-    }
 }

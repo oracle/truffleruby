@@ -12,7 +12,6 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -77,7 +76,8 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
     protected String nameToJavaString(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
-            @Cached DispatchNode toStr) {
+            @Cached DispatchNode toStr,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object coerced;
 
         try {
@@ -93,8 +93,8 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
             }
         }
 
-        if (StringOperations.isRubyString(coerced)) {
-            return ((RubyString) coerced).getJavaString();
+        if (libString.isRubyString(coerced)) {
+            return libString.getJavaString(coerced);
         } else {
             errorProfile.enter();
             throw new RaiseException(context, context.getCoreExceptions().typeErrorBadCoercion(
