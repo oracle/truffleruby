@@ -384,6 +384,14 @@ class Range
     self.begin
   end
 
+  def minmax(&block)
+    if block
+      super(&block)
+    else
+      [min, max]
+    end
+  end
+
   def %(n)
     step(n)
   end
