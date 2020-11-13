@@ -52,7 +52,6 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
 
     public abstract String execute(Object name);
 
-    // REVIEW shared
     @Specialization(limit = "2", guards = "strings.isRubyString(value)")
     protected String stringNameToJavaString(Object value,
             @CachedLibrary("value") RubyStringLibrary strings,
@@ -60,7 +59,6 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
         return toJavaStringNode.executeToJavaString(value);
     }
 
-    // REVIEW shared
     @Specialization
     protected String symbolNameToJavaString(RubySymbol value,
             @Cached ToJavaStringNode toJavaStringNode) {

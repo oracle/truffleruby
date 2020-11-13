@@ -19,6 +19,7 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 
@@ -43,10 +44,14 @@ public abstract class ObjSpaceNodes {
             return memsizeOfObject(object) + object.size;
         }
 
-        // REVIEW memsizeOf Immutable?
         @Specialization
         protected int memsizeOfString(RubyString object) {
             return memsizeOfObject(object) + object.rope.byteLength();
+        }
+
+        @Specialization
+        protected int memsizeOfString(ImmutableRubyString object) {
+            return 1 + object.rope.byteLength();
         }
 
         @Specialization

@@ -522,7 +522,6 @@ public abstract class BasicObjectNodes {
             if (nameObject instanceof RubySymbol) {
                 name = ((RubySymbol) nameObject).getString();
             } else {
-                // REVIEW
                 name = nameObject.toString();
             }
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();

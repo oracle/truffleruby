@@ -613,10 +613,9 @@ public abstract class StringNodes {
         // endregion
         // region GetIndex Specializations
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "2")
+        @Specialization(guards = "strings.isRubyString(string)")
         protected Object getIndex(Object string, int index, NotProvided length,
-                @CachedLibrary("string") RubyStringLibrary strings) {
-            // REVIEW limit
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             return index == charLength(strings.getRope(string)) // Check for the only difference from str[index, 1]
                     ? outOfBoundsNil()
                     : substring(string, index, 1);
@@ -5604,18 +5603,25 @@ public abstract class StringNodes {
 
     }
 
+    @Primitive(name = "string_interned?")
+    public abstract static class IsInternedNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected boolean isInterned(ImmutableRubyString string) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean isInterned(RubyString string) {
+            return false;
+        }
+    }
+
     @Primitive(name = "string_intern")
     public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected ImmutableRubyString internString(RubyString string) {
             return getContext().getInternedString(string);
-        }
-
-        @Specialization
-        protected ImmutableRubyString internString(ImmutableRubyString string) {
-            // REVIEW cache check necessary?
-            return getContext().getFrozenStringLiteral(string.rope);
         }
 
     }

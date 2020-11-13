@@ -14,7 +14,6 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -129,7 +128,7 @@ public class RubyContext {
     private final Map<Source, Integer> sourceLineOffsets = Collections.synchronizedMap(new WeakHashMap<>());
     /** (Symbol, refinements) -> Proc for Symbol#to_proc */
     public final Map<Pair<RubySymbol, Map<RubyModule, RubyModule[]>>, RootCallTarget> cachedSymbolToProcTargetsWithRefinements = new ConcurrentHashMap<>();
-    private final Map<ImmutableRubyString, NativeRope> immutableNativeRopes = new HashMap<>();
+    private final Map<ImmutableRubyString, NativeRope> immutableNativeRopes = new ConcurrentHashMap<>();
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;

@@ -26,14 +26,4 @@ public class FrozenStringLiterals {
         }
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(ImmutableRubyString string) {
-        final Rope rope = string.rope;
-        final ImmutableRubyString stringCached = values.get(rope);
-        if (stringCached != null) {
-            return stringCached;
-        } else {
-            return values.addInCacheIfAbsent(rope, string);
-        }
-    }
-
 }

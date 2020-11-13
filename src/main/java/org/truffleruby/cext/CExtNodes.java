@@ -1028,7 +1028,7 @@ public class CExtNodes {
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
                         codeRangeNode.execute(currentRope));
-                getContext().getImmutableNativeRopes().put(string, nativeRope);
+                getContext().getImmutableNativeRopes().putIfAbsent(string, nativeRope);
             }
 
             return nativeRope;
@@ -1072,10 +1072,14 @@ public class CExtNodes {
     @Primitive(name = "string_is_native?")
     public abstract static class StringPointerIsNativeNode extends PrimitiveArrayArgumentsNode {
 
-        // REVIEW
         @Specialization
         protected boolean isNative(RubyString string) {
             return string.rope instanceof NativeRope;
+        }
+
+        @Specialization
+        protected boolean isNative(ImmutableRubyString string) {
+            return getContext().getImmutableNativeRopes().containsKey(string);
         }
 
     }
@@ -1083,13 +1087,13 @@ public class CExtNodes {
     @Primitive(name = "string_pointer_read", lowerFixnum = 1)
     public abstract static class StringPointerReadNode extends PrimitiveArrayArgumentsNode {
 
-        // REVIEW
         @Specialization
         protected Object read(RubyString string, int index,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached ConditionProfile nativeRopeProfile,
                 @Cached ConditionProfile inBoundsProfile,
                 @Cached RopeNodes.GetByteNode getByteNode) {
-            final Rope rope = string.rope;
+            final Rope rope = libString.getRope(string);
 
             if (nativeRopeProfile.profile(rope instanceof NativeRope) ||
                     inBoundsProfile.profile(index < rope.byteLength())) {
