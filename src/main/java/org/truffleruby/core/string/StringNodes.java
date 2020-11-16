@@ -5470,7 +5470,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected ImmutableRubyString internString(RubyString string) {
-            return getContext().getInternedString(string);
+            return getLanguage().getFrozenStringLiteral(string.rope);
         }
 
     }

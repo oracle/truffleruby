@@ -53,8 +53,6 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.PathToRopeCache;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
@@ -624,14 +622,6 @@ public class RubyContext {
 
     public CallStackManager getCallStack() {
         return callStack;
-    }
-
-    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
-        return language.frozenStringLiterals.getFrozenStringLiteral(rope);
-    }
-
-    public ImmutableRubyString getInternedString(RubyString string) {
-        return language.frozenStringLiterals.getFrozenStringLiteral(string.rope);
     }
 
     public Object getClassVariableDefinitionLock() {
