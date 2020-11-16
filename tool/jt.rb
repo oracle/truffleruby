@@ -514,13 +514,19 @@ module Utilities
       java_home ||= ENV['JAVA_HOME']
 
       if java_home
+        java_home = File.realpath(java_home)
         if java_home.include?(jvmci_version)
+          return :use_env_java_home
+        end
+
+        java_version_output = `#{java_home}/bin/java -version 2>&1`
+        if java_version_output.include?(jvmci_version)
           :use_env_java_home
-        elsif java_home.include?('jvmci')
+        elsif java_version_output.include?('jvmci')
           warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in common.json (#{jvmci_version})"
           :use_env_java_home
         else
-          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (#{java_home.inspect} does not contain 'jvmci')"
+          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (`#{java_home}/bin/java -version` does not contain 'jvmci')"
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
