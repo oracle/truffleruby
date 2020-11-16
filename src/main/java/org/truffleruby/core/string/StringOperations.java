@@ -43,6 +43,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 
@@ -76,7 +77,7 @@ public abstract class StringOperations {
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
-    public static ImmutableRubyString createFrozenString(Rope rope) {
+    public static ImmutableRubyString createFrozenString(LeafRope rope) {
         return new ImmutableRubyString(rope);
     }
 
@@ -108,7 +109,7 @@ public abstract class StringOperations {
         return bytes;
     }
 
-    public static Rope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
+    public static LeafRope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
         if (codeRange == CodeRange.CR_7BIT) {
             return RopeOperations.encodeAscii(value, encoding);
         }
@@ -118,7 +119,7 @@ public abstract class StringOperations {
         return RopeOperations.create(bytes, encoding, codeRange);
     }
 
-    public static Rope encodeRope(String value, Encoding encoding) {
+    public static LeafRope encodeRope(String value, Encoding encoding) {
         return encodeRope(value, encoding, CodeRange.CR_UNKNOWN);
     }
 

@@ -18,6 +18,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -28,9 +29,9 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @ExportLibrary(RubyStringLibrary.class)
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
 
-    public final Rope rope;
+    public final LeafRope rope;
 
-    public ImmutableRubyString(Rope rope) {
+    public ImmutableRubyString(LeafRope rope) {
         this.rope = rope;
     }
 

@@ -51,6 +51,7 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -1010,7 +1011,7 @@ public class CExtNodes {
         @Specialization
         protected NativeRope toNativeImmutable(ImmutableRubyString string) {
             return ConcurrentOperations.getOrCompute(getContext().getImmutableNativeRopes(), string, s -> {
-                final Rope currentRope = s.rope;
+                final LeafRope currentRope = s.rope;
                 return new NativeRope(
                         getContext().getFinalizationService(),
                         currentRope.getBytes(),

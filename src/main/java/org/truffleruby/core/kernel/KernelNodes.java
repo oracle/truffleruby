@@ -653,7 +653,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected RubyDynamicObject cloneImmutablRubyString(ImmutableRubyString self, boolean freeze,
+        protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString self, boolean freeze,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
                 @CachedLibrary("self") RubyLibrary rubyLibrary,

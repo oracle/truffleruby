@@ -5469,8 +5469,10 @@ public abstract class StringNodes {
     public abstract static class InternNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected ImmutableRubyString internString(RubyString string) {
-            return getLanguage().getFrozenStringLiteral(string.rope);
+        protected ImmutableRubyString internString(RubyString string,
+                @Cached RopeNodes.FlattenNode flattenNode) {
+            final LeafRope flattened = flattenNode.executeFlatten(string.rope);
+            return getLanguage().getFrozenStringLiteral(flattened);
         }
 
     }

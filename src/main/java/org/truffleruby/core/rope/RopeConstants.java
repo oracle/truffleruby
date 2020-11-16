@@ -118,7 +118,7 @@ public class RopeConstants {
         }
     }
 
-    public static Rope lookupUSASCII(String string) {
+    public static LeafRope lookupUSASCII(String string) {
         if (string.length() == 1) {
             return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
         } else {

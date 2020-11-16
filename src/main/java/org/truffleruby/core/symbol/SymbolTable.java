@@ -15,6 +15,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
@@ -65,7 +66,7 @@ public class SymbolTable {
             return symbol;
         }
 
-        final Rope rope;
+        final LeafRope rope;
         if (StringOperations.isAsciiOnly(string)) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
         } else {
@@ -88,7 +89,7 @@ public class SymbolTable {
             return symbol;
         }
 
-        final Rope cachedRope = ropeCache.getRope(normalizedRope);
+        final LeafRope cachedRope = ropeCache.getRope(normalizedRope);
         final RubySymbol newSymbol = createSymbol(cachedRope);
         // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
         // do not keep rope alive unnecessarily.
@@ -113,7 +114,7 @@ public class SymbolTable {
         return rope;
     }
 
-    private RubySymbol createSymbol(Rope cachedRope) {
+    private RubySymbol createSymbol(LeafRope cachedRope) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
         return new RubySymbol(string, cachedRope);
     }

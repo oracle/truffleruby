@@ -10,6 +10,7 @@
 package org.truffleruby.core.string;
 
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyString;
 
@@ -17,7 +18,7 @@ public class FrozenStringLiterals {
 
     private final WeakValueCache<Rope, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
+    public ImmutableRubyString getFrozenStringLiteral(LeafRope rope) {
         final ImmutableRubyString string = values.get(rope);
         if (string != null) {
             return string;

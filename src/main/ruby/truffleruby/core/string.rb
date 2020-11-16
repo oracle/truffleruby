@@ -1547,7 +1547,6 @@ class String
     elsif str.tainted? || !(str.instance_variables).empty?
       str
     else
-      Truffle::Ropes.flatten_rope(str)
       Primitive.string_intern(str)
     end
   end

@@ -60,6 +60,7 @@ import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
@@ -511,7 +512,7 @@ public class BodyTranslator extends Translator {
             final Rope nodeRope = strNode.getValue();
             final CodeRange codeRange = strNode.getCodeRange();
 
-            final Rope rope = language.ropeCache.getRope(nodeRope, codeRange);
+            final LeafRope rope = language.ropeCache.getRope(nodeRope, codeRange);
             final ImmutableRubyString frozenString = language.getFrozenStringLiteral(rope);
 
             return addNewlineIfNeeded(node, withSourceSection(
@@ -2937,7 +2938,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final Rope rope = language.ropeCache.getRope(node.getValue(), node.getCodeRange());
+        final LeafRope rope = language.ropeCache.getRope(node.getValue(), node.getCodeRange());
         final RubyNode ret;
 
         if (node.isFrozen()) {
