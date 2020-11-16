@@ -215,6 +215,13 @@ class UncaughtThrowError < ArgumentError
   end
 end
 
+class FrozenError < RuntimeError
+  def initialize(*args, receiver: undefined)
+    super(*args)
+    Primitive.frozen_error_set_receiver self, receiver unless Primitive.undefined?(receiver)
+  end
+end
+
 class IndexError < StandardError
 end
 

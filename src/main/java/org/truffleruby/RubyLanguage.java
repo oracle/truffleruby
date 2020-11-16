@@ -26,6 +26,7 @@ import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.exception.RubyFrozenError;
 import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
@@ -177,6 +178,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape encodingShape = createShape(RubyEncoding.class);
     public final Shape exceptionShape = createShape(RubyException.class);
     public final Shape fiberShape = createShape(RubyFiber.class);
+    public final Shape frozenErrorShape = createShape(RubyFrozenError.class);
     public final Shape handleShape = createShape(RubyHandle.class);
     public final Shape hashShape = createShape(RubyHash.class);
     public final Shape intRangeShape = createShape(RubyIntRange.class);

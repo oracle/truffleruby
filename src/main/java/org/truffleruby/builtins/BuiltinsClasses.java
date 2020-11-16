@@ -48,6 +48,8 @@ import org.truffleruby.core.encoding.EncodingNodesBuiltins;
 import org.truffleruby.core.encoding.EncodingNodesFactory;
 import org.truffleruby.core.exception.ExceptionNodesBuiltins;
 import org.truffleruby.core.exception.ExceptionNodesFactory;
+import org.truffleruby.core.exception.FrozenErrorNodesBuiltins;
+import org.truffleruby.core.exception.FrozenErrorNodesFactory;
 import org.truffleruby.core.exception.NameErrorNodesBuiltins;
 import org.truffleruby.core.exception.NameErrorNodesFactory;
 import org.truffleruby.core.exception.NoMethodErrorNodesBuiltins;
@@ -182,6 +184,7 @@ public abstract class BuiltinsClasses {
         FalseClassNodesBuiltins.setup(coreManager);
         FiberNodesBuiltins.setup(coreManager);
         FloatNodesBuiltins.setup(coreManager);
+        FrozenErrorNodesBuiltins.setup(coreManager);
         GCNodesBuiltins.setup(coreManager);
         HashNodesBuiltins.setup(coreManager);
         IntegerNodesBuiltins.setup(coreManager);
@@ -257,6 +260,7 @@ public abstract class BuiltinsClasses {
         FalseClassNodesBuiltins.setupPrimitives(primitiveManager);
         FiberNodesBuiltins.setupPrimitives(primitiveManager);
         FloatNodesBuiltins.setupPrimitives(primitiveManager);
+        FrozenErrorNodesBuiltins.setupPrimitives(primitiveManager);
         GCNodesBuiltins.setupPrimitives(primitiveManager);
         HashNodesBuiltins.setupPrimitives(primitiveManager);
         IntegerNodesBuiltins.setupPrimitives(primitiveManager);
@@ -333,6 +337,7 @@ public abstract class BuiltinsClasses {
                 FalseClassNodesFactory.getFactories(),
                 FiberNodesFactory.getFactories(),
                 FloatNodesFactory.getFactories(),
+                FrozenErrorNodesFactory.getFactories(),
                 GCNodesFactory.getFactories(),
                 HashNodesFactory.getFactories(),
                 IntegerNodesFactory.getFactories(),

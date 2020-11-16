@@ -358,7 +358,7 @@ public class CoreLibrary {
 
         // StandardError > RuntimeError
         runtimeErrorClass = defineClass(standardErrorClass, "RuntimeError");
-        frozenErrorClass = defineClass(runtimeErrorClass, "FrozenError");
+        frozenErrorClass = defineClass(runtimeErrorClass, "FrozenError", language.frozenErrorShape);
 
         // StandardError > RangeError
         rangeErrorClass = defineClass(standardErrorClass, "RangeError");

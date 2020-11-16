@@ -258,15 +258,24 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException frozenError(Object object, Node currentNode) {
         String className = LogicalClassNode.getUncached().execute(object).fields.getName();
-        return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode);
+        return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode, object);
     }
 
     @TruffleBoundary
-    public RubyException frozenError(String message, Node currentNode) {
+    public RubyException frozenError(String message, Node currentNode, Object receiver) {
         RubyClass exceptionClass = context.getCoreLibrary().frozenErrorClass;
         RubyString errorMessage = StringOperations
                 .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        showExceptionIfDebug(exceptionClass, errorMessage, backtrace);
+        return new RubyFrozenError(
+                exceptionClass,
+                language.frozenErrorShape,
+                errorMessage,
+                backtrace,
+                cause,
+                receiver);
     }
 
     // RuntimeError

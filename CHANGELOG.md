@@ -22,6 +22,7 @@ Compatibility:
 * Implement `Enumerator#produce` (#2160, @zverok)
 * Implement `Complex#<=>` (#2004, @ssnickolay).
 * Add warning for `proc` without block (#2004, @ssnickolay).
+* Implemented `FrozenError#receiver`.
 
 Performance:
 
