@@ -177,7 +177,7 @@ class Exception
   def self.to_tty?
     # Whether $stderr refers to the original STDERR and STDERR is a tty.
     # When using polyglot stdio, we cannot know and assume false.
-    false && $stderr.equal?(STDERR) && !STDERR.closed? &&
+    $stderr.equal?(STDERR) && !STDERR.closed? &&
       (!Truffle::Boot.get_option('polyglot-stdio') && STDERR.tty?)
   end
 end
