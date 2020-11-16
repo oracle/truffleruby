@@ -143,19 +143,14 @@ module Utilities
     end
   end
 
-  def jvmci_update_and_version
-    if env = ENV['JVMCI_VERSION']
-      unless /8u(\d+(?:\+\d+)?)-(jvmci-\d+\.\d+-b\d+)/ =~ env
-        raise 'Could not parse JDK update and JVMCI version from $JVMCI_VERSION'
-      end
-    else
+  def jvmci_version
+    @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      unless /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u(\d+(?:\+\d+)?)-(jvmci-[^"]+)"\s*,/ =~ ci
+      unless /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u(?:\d+(?:\+\d+)?)-(jvmci-[^"]+)"\s*,/ =~ ci
         raise 'JVMCI version not found in common.json'
       end
+      $1
     end
-    update, jvmci = $1, $2
-    [update, jvmci]
   end
 
   def send_signal(signal, pid)
@@ -518,15 +513,20 @@ module Utilities
       end
       java_home ||= ENV['JAVA_HOME']
 
-      _, jvmci_version = jvmci_update_and_version
       if java_home
+        java_home = File.realpath(java_home)
         if java_home.include?(jvmci_version)
+          return :use_env_java_home
+        end
+
+        java_version_output = `#{java_home}/bin/java -version 2>&1`
+        if java_version_output.include?(jvmci_version)
           :use_env_java_home
-        elsif java_home.include?('jvmci')
+        elsif java_version_output.include?('jvmci')
           warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in common.json (#{jvmci_version})"
           :use_env_java_home
         else
-          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (#{java_home.inspect} does not contain 'jvmci')"
+          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (`#{java_home}/bin/java -version` does not contain 'jvmci')"
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
@@ -1939,7 +1939,6 @@ module Commands
   private def install_jvmci(download_message, ee)
     jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
 
-    _, jvmci_version = jvmci_update_and_version
     java_home = "#{CACHE_EXTRA_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
