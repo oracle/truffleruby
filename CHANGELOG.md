@@ -9,6 +9,7 @@ Bug fixes:
 * Fix error message when the method name is not a Symbol or String for `Kernel#respond_to?` (#2132, @ssnickolay)
 * Fixed setting of special variables in enumerators and enumerables (#1484).
 * Fixed return value of `Enumerable#count` and `Enumerable#uniq` with multiple yielded arguments (#2145, @LillianZ).
+* Fixed issue with ``Kernel#` `` when invalid UTF-8 given (#2118).
 
 Compatibility:
 
