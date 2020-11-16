@@ -359,11 +359,7 @@ public abstract class BasicObjectNodes {
                     callNode);
         }
 
-        @Specialization(guards = {
-                "strings.isRubyString(string)",
-                "stringsFileName.isRubyString(fileName)",
-                "wasProvided(string)",
-                "wasProvided(fileName)" })
+        @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
                 VirtualFrame frame,
                 Object receiver,
