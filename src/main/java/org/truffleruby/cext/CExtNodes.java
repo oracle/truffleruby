@@ -27,6 +27,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
@@ -1005,31 +1006,18 @@ public class CExtNodes {
             return nativeRope;
         }
 
-
         @TruffleBoundary
         @Specialization
-        protected NativeRope toNativeImmutable(ImmutableRubyString string,
-                @Cached ConditionProfile convertProfile,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @Cached RopeNodes.CharacterLengthNode characterLengthNode,
-                @Cached RopeNodes.CodeRangeNode codeRangeNode) {
-            final Rope currentRope = string.rope;
-
-            NativeRope nativeRope = getContext().getImmutableNativeRopes().get(string);
-
-            if (convertProfile.profile(nativeRope != null)) {
-                return nativeRope;
-            } else {
-                nativeRope = new NativeRope(
+        protected NativeRope toNativeImmutable(ImmutableRubyString string) {
+            return ConcurrentOperations.getOrCompute(getContext().getImmutableNativeRopes(), string, s -> {
+                final Rope currentRope = s.rope;
+                return new NativeRope(
                         getContext().getFinalizationService(),
-                        bytesNode.execute(currentRope),
+                        currentRope.getBytes(),
                         currentRope.getEncoding(),
-                        characterLengthNode.execute(currentRope),
-                        codeRangeNode.execute(currentRope));
-                getContext().getImmutableNativeRopes().putIfAbsent(string, nativeRope);
-            }
-
-            return nativeRope;
+                        currentRope.characterLength(),
+                        currentRope.getCodeRange());
+            });
         }
 
     }
