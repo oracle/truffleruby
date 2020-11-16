@@ -75,6 +75,7 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.dsl.Bind;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -4677,16 +4678,17 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "isSingleByteString(libPattern.getRope(pattern))",
-                "!isBrokenCodeRange(libPattern.getRope(pattern), codeRangeNode)",
-                "canMemcmp(libString.getRope(string), libPattern.getRope(pattern), singleByteNode)" })
+                "isSingleByteString(patternRope)",
+                "!isBrokenCodeRange(patternRope, codeRangeNode)",
+                "canMemcmp(libString.getRope(string), patternRope, singleByteNode)" })
         protected Object stringRindexSingleBytePattern(Object string, Object pattern, int byteOffset,
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern,
+                @Bind("libPattern.getRope(pattern)") Rope patternRope,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile startTooLargeProfile,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
@@ -4694,7 +4696,7 @@ public abstract class StringNodes {
             final Rope sourceRope = libString.getRope(string);
             final int end = sourceRope.byteLength();
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
-            final byte searchByte = bytesNode.execute(libPattern.getRope(pattern))[0];
+            final byte searchByte = bytesNode.execute(patternRope)[0];
             int normalizedStart = byteOffset;
 
             if (normalizedStart >= end) {
@@ -4714,18 +4716,19 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "!isEmpty(libPattern.getRope(pattern))",
-                "!isSingleByteString(libPattern.getRope(pattern))",
-                "!isBrokenCodeRange(libPattern.getRope(pattern), codeRangeNode)",
-                "canMemcmp(libString.getRope(string), libPattern.getRope(pattern), singleByteNode)" })
+                "!isEmpty(patternRope)",
+                "!isSingleByteString(patternRope)",
+                "!isBrokenCodeRange(patternRope, codeRangeNode)",
+                "canMemcmp(libString.getRope(string), patternRope, singleByteNode)" })
         protected Object stringRindexMultiBytePattern(Object string, Object pattern, int byteOffset,
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern,
+                @Bind("libPattern.getRope(pattern)") Rope patternRope,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile startOutOfBoundsProfile,
                 @Cached BranchProfile startTooCloseToEndProfile,
                 @Cached BranchProfile matchFoundProfile,
                 @Cached BranchProfile noMatchProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
@@ -4733,7 +4736,7 @@ public abstract class StringNodes {
             final Rope sourceRope = libString.getRope(string);
             final int end = sourceRope.byteLength();
             final byte[] sourceBytes = bytesNode.execute(sourceRope);
-            final Rope searchRope = libPattern.getRope(pattern);
+            final Rope searchRope = patternRope;
             final int matchSize = searchRope.byteLength();
             final byte[] searchBytes = bytesNode.execute(searchRope);
             int normalizedStart = byteOffset;
@@ -4769,22 +4772,22 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {
-                "!isBrokenCodeRange(libPattern.getRope(pattern), codeRangeNode)",
-                "!canMemcmp(libString.getRope(string), libPattern.getRope(pattern), singleByteNode)" })
+                "!isBrokenCodeRange(patternRope, codeRangeNode)",
+                "!canMemcmp(libString.getRope(string), patternRope, singleByteNode)" })
         protected Object stringRindex(Object string, Object pattern, int byteOffset,
+                @CachedLibrary(limit = "2") RubyStringLibrary libPattern,
+                @Bind("libPattern.getRope(pattern)") Rope patternRope,
                 @Cached RopeNodes.BytesNode stringBytes,
                 @Cached RopeNodes.BytesNode patternBytes,
                 @Cached RopeNodes.GetByteNode patternGetByteNode,
                 @Cached RopeNodes.GetByteNode stringGetByteNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from Rubinius's String::rindex.
             assert byteOffset >= 0;
 
             int pos = byteOffset;
 
             final Rope stringRope = libString.getRope(string);
-            final Rope patternRope = libPattern.getRope(pattern);
             final int total = stringRope.byteLength();
             final int matchSize = patternRope.byteLength();
 
