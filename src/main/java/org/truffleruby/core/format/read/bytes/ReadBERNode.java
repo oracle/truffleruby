@@ -70,23 +70,23 @@ public abstract class ReadBERNode extends FormatNode {
 
     @Specialization
     protected Object encode(VirtualFrame frame, byte[] source) {
-        final int position = getSourcePosition(frame);
-
         final ByteBuffer encode = wrapByteBuffer(frame, source);
-        int pos = encode.position();
+        int position = encode.position();
 
-        final long ul = encode.get(pos) & 0x7f;
+        final long ul = encode.get(position) & 0x7f;
 
-        if (simpleProfile.profile((encode.get(pos++) & 0x80) == 0)) {
-            setSourcePosition(frame, position + pos);
+        if (simpleProfile.profile((encode.get(position) & 0x80) == 0)) {
+            position++;
+            setSourcePosition(frame, position);
             return ul;
+        } else {
+            position++;
+            assert (ul & UL_MASK) == 0;
+            final BigIntegerAndPos bigIntegerAndPos = runLoop(encode, ul, position);
+
+            setSourcePosition(frame, bigIntegerAndPos.getPos());
+            return fixnumOrBignumNode.fixnumOrBignum(bigIntegerAndPos.getBigInteger());
         }
-
-        assert (ul & UL_MASK) == 0;
-        final BigIntegerAndPos bigIntegerAndPos = runLoop(encode, ul, pos);
-
-        setSourcePosition(frame, position + bigIntegerAndPos.getPos());
-        return fixnumOrBignumNode.fixnumOrBignum(bigIntegerAndPos.getBigInteger());
     }
 
     @TruffleBoundary
