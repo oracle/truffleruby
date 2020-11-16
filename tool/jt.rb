@@ -2311,6 +2311,7 @@ module Commands
       https://github.com/oracle/truffleruby/blob/master/doc/user/installing-libssl.md
       https://github.com/oracle/truffleruby/blob/master/doc/user/installing-llvm.md
       https://github.com/oracle/truffleruby/blob/master/doc/user/installing-zlib.md
+      https://github.com/oracle/truffleruby/blob/master/doc/user/ruby-managers.md
     ]
 
     known_hardcoded_urls.each do |url|
