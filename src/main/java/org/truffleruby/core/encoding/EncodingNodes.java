@@ -243,7 +243,7 @@ public abstract class EncodingNodes {
                 guards = {
                         "libFirst.isRubyString(first)",
                         "isNotRubyString(second)",
-                        "getCodeRange(first) == codeRange",
+                        "getCodeRange(first, libFirst) == codeRange",
                         "getEncoding(first) == firstEncoding",
                         "getEncoding(second) == secondEncoding",
                         "firstEncoding != secondEncoding" },
@@ -253,7 +253,7 @@ public abstract class EncodingNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libSecond,
                 @Cached("getEncoding(first)") Encoding firstEncoding,
                 @Cached("getEncoding(second)") Encoding secondEncoding,
-                @Cached("getCodeRange(first)") CodeRange codeRange,
+                @Cached("getCodeRange(first, libFirst)") CodeRange codeRange,
                 @Cached("negotiateStringObjectUncached(first, second, libFirst)") Encoding negotiatedEncoding) {
             return negotiatedEncoding;
         }
@@ -281,7 +281,7 @@ public abstract class EncodingNodes {
                 return firstEncoding;
             }
 
-            if (getCodeRange(first) == CodeRange.CR_7BIT) {
+            if (getCodeRange(first, libFirst) == CodeRange.CR_7BIT) {
                 return secondEncoding;
             }
 
@@ -351,20 +351,13 @@ public abstract class EncodingNodes {
             return null;
         }
 
-        protected CodeRange getCodeRange(Object string) {
-            // The Truffle DSL generator will calculate @Cached values used in guards above all guards. In practice,
-            // this guard is only used on Ruby strings, but the method must handle any object type because of the form
-            // of the generated code. If the object is not a Ruby string, the resulting value is never used.
-            if (string instanceof RubyString) {
-                if (codeRangeNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
-                }
-
-                return codeRangeNode.execute(((RubyString) string).rope);
+        protected CodeRange getCodeRange(Object string, RubyStringLibrary libString) {
+            if (codeRangeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
             }
 
-            return CodeRange.CR_UNKNOWN;
+            return codeRangeNode.execute(libString.getRope(string));
         }
 
         protected Encoding getEncoding(Object value) {

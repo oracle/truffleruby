@@ -33,7 +33,6 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     @Specialization
     protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
-        assert extraMessage instanceof RubyString || extraMessage instanceof ImmutableRubyString;
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;

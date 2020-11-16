@@ -1575,23 +1575,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = "areEqual(self, from)")
         protected Object initializeCopySelfIsSameAsFrom(RubyString self, Object from) {
-            assert from instanceof RubyString || from instanceof ImmutableRubyString;
             return self;
         }
-
-        protected static boolean areEqual(Object one, Object two) {
-            return one == two;
-        }
-
-        protected static boolean areNotEqual(Object one, Object two) {
-            return one != two;
-        }
-
 
         @Specialization(
                 guards = {
                         "stringsFrom.isRubyString(from)",
-                        "areNotEqual(self, from)",
+                        "!areEqual(self, from)",
                         "!isNativeRope(stringsFrom.getRope(from))" })
         protected Object initializeCopy(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
@@ -1605,7 +1595,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "stringsFrom.isRubyString(from)",
-                        "areNotEqual(self, from)",
+                        "!areEqual(self, from)",
                         "isNativeRope(stringsFrom.getRope(from))" })
         protected Object initializeCopyFromNative(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
@@ -1618,6 +1608,9 @@ public abstract class StringNodes {
             return self;
         }
 
+        protected static boolean areEqual(Object one, Object two) {
+            return one == two;
+        }
 
         private void copyAssociated(RubyString self, Object associated) {
             if (associated != null) {
@@ -3754,8 +3747,6 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!areComparable(string, other)" })
         protected boolean notComparable(Object string, Object other) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
-            assert other instanceof RubyString || other instanceof ImmutableRubyString;
             return false;
         }
 
@@ -4119,9 +4110,7 @@ public abstract class StringNodes {
                         "isEmpty(stringsPattern.getRope(pattern))" })
         protected int stringIndexEmptyPattern(Object string, Object pattern, int byteOffset,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsPattern) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             assert byteOffset >= 0;
-
             return byteOffset;
         }
 
@@ -4200,9 +4189,7 @@ public abstract class StringNodes {
                         "isBrokenCodeRange(stringsPattern.getRope(pattern), codeRangeNode)" })
         protected Object stringIndexBrokenPattern(Object string, Object pattern, int byteOffset,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsPattern) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             assert byteOffset >= 0;
-
             return nil;
         }
 
@@ -4362,7 +4349,6 @@ public abstract class StringNodes {
                         "isSingleByteOptimizable(strings.getRope(string), singleByteOptimizableNode)" })
         protected int singleByte(Object string, int byteIndex,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             return byteIndex;
         }
 
@@ -4644,13 +4630,11 @@ public abstract class StringNodes {
 
         @Specialization(guards = "index < 0")
         protected Object negativeIndex(Object string, int index) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative index given", this));
         }
 
         @Specialization(guards = "index == 0")
         protected Object zeroIndex(Object string, int index) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             return nil;
         }
 
@@ -4722,9 +4706,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "isEmpty(stringsPattern.getRope(pattern))" })
         protected Object stringRindexEmptyPattern(Object string, Object pattern, int byteOffset,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsPattern) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             assert byteOffset >= 0;
-
             return byteOffset;
         }
 
@@ -4816,9 +4798,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "isBrokenCodeRange(stringsPattern.getRope(pattern), codeRangeNode)" })
         protected Object stringRindexBrokenPattern(Object string, Object pattern, int byteOffset,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsPattern) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             assert byteOffset >= 0;
-
             return nil;
         }
 

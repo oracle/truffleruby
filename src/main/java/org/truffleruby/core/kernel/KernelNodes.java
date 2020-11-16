@@ -335,7 +335,6 @@ public abstract class KernelNodes {
         @Specialization(guards = "libFeatureString.isRubyString(featureString)")
         protected boolean loadFeature(Object featureString, Object expandedPathString,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFeatureString) {
-            assert expandedPathString instanceof RubyString || expandedPathString instanceof ImmutableRubyString;
             return requireNode.executeRequire(
                     libFeatureString.getJavaString(featureString),
                     expandedPathString);

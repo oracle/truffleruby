@@ -72,6 +72,7 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class RubyDateFormatter {
     private static final DateFormatSymbols FORMAT_SYMBOLS = new DateFormatSymbols(Locale.US);
@@ -619,8 +620,9 @@ public abstract class RubyDateFormatter {
     }
 
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
-        if (zone instanceof RubyString) {
-            return ((RubyString) zone).getJavaString();
+        RubyStringLibrary strings = RubyStringLibrary.getUncached();
+        if (strings.isRubyString(zone)) {
+            return strings.getJavaString(zone);
         } else {
             return "";
         }

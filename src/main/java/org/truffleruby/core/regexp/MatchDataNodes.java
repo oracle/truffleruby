@@ -39,7 +39,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -184,8 +183,6 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object create(Object regexp, Object string, int start, int end) {
-            assert regexp instanceof RubyString || regexp instanceof ImmutableRubyString;
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -207,7 +204,6 @@ public abstract class MatchDataNodes {
         protected Object create(RubyDynamicObject regexp, Object string, RubyArray starts, RubyArray ends,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
-            assert string instanceof RubyString || string instanceof ImmutableRubyString;
             final Region region = new Region(starts.size);
             for (int i = 0; i < region.numRegs; i++) {
                 region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));

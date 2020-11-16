@@ -17,6 +17,8 @@ import org.truffleruby.core.rope.Rope;
 @GenerateLibrary
 public abstract class RubyStringLibrary extends Library {
 
+    private static final LibraryFactory<RubyStringLibrary> FACTORY = LibraryFactory.resolve(RubyStringLibrary.class);
+
     public static LibraryFactory<RubyStringLibrary> getFactory() {
         return FACTORY;
     }
@@ -24,8 +26,6 @@ public abstract class RubyStringLibrary extends Library {
     public static RubyStringLibrary getUncached() {
         return FACTORY.getUncached();
     }
-
-    private static final LibraryFactory<RubyStringLibrary> FACTORY = LibraryFactory.resolve(RubyStringLibrary.class);
 
     public boolean isRubyString(Object receiver) {
         return false;

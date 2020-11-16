@@ -14,9 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -42,13 +40,12 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     private static String messageFieldToString(RubyContext context, RubyException exception) {
         Object message = exception.message;
+        RubyStringLibrary strings = RubyStringLibrary.getUncached();
         if (message == null || message == Nil.INSTANCE) {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
-        } else if (message instanceof RubyString) {
-            return ((RubyString) message).getJavaString();
-        } else if (message instanceof ImmutableRubyString) {
-            return ((ImmutableRubyString) message).getJavaString();
+        } else if (strings.isRubyString(message)) {
+            return strings.getJavaString(message);
         } else {
             return message.toString();
         }

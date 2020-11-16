@@ -50,7 +50,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -132,13 +131,11 @@ public class TruffleRegexpNodes {
         protected Object executeFastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(str, sep, args)") RubyRegexp union) {
-            assert sep instanceof RubyString || sep instanceof ImmutableRubyString;
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
         protected Object executeSlowUnion(RubyString str, Object sep, Object[] args) {
-            assert sep instanceof RubyString || sep instanceof ImmutableRubyString;
             return buildUnion(str, sep, args);
         }
 
@@ -156,7 +153,7 @@ public class TruffleRegexpNodes {
         }
 
         public Object string(Object obj) {
-            if (obj instanceof RubyString || obj instanceof ImmutableRubyString) {
+            if (rubyStringLibrary.isRubyString(obj)) {
                 final Rope rope = rubyStringLibrary.getRope(obj);
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
             } else {

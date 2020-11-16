@@ -19,8 +19,6 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -308,7 +306,6 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected RubySystemCallError exceptionErrnoError(Object message, int errno) {
-            assert message instanceof RubyString || message instanceof ImmutableRubyString;
             return errnoErrorNode.execute(errno, message, null);
         }
 

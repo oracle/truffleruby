@@ -41,7 +41,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -271,14 +270,12 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = "isRegexpLiteral(regexp)")
         protected RubyRegexp initializeRegexpLiteral(RubyRegexp regexp, Object pattern, int options) {
-            assert pattern instanceof RubyString || pattern instanceof ImmutableRubyString;
             throw new RaiseException(getContext(), coreExceptions().securityError("can't modify literal regexp", this));
         }
 
         @Specialization(
                 guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)" })
         protected RubyRegexp initializeAlreadyInitialized(RubyRegexp regexp, Object pattern, int options) {
-            assert pattern instanceof RubyString || pattern instanceof ImmutableRubyString;
             throw new RaiseException(getContext(), coreExceptions().typeError("already initialized regexp", this));
         }
 

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.ImmutableRubyString;
@@ -21,6 +22,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class ToSNode extends RubyContextSourceNode {
@@ -39,10 +41,11 @@ public abstract class ToSNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected Object toSFallback(VirtualFrame frame, Object object,
-            @Cached DispatchNode callToSNode) {
+            @Cached DispatchNode callToSNode,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object value = callToSNode.dispatch(frame, object, "to_s", null, EMPTY_ARGUMENTS);
 
-        if (value instanceof RubyString || value instanceof ImmutableRubyString) {
+        if (libString.isRubyString(value)) {
             return value;
         } else {
             return kernelToS(object);
