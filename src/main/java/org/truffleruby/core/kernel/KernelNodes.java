@@ -1311,7 +1311,8 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyMethod method(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
-                @Cached ConditionProfile respondToMissingProfile) {
+                @Cached ConditionProfile respondToMissingProfile,
+                @Cached LogicalClassNode logicalClassNode) {
             final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
                     .lookup(frame, self, normalizedName, dispatchConfig);
@@ -1328,7 +1329,7 @@ public abstract class KernelNodes {
                             getContext(),
                             coreExceptions().nameErrorUndefinedMethod(
                                     normalizedName,
-                                    coreLibrary().getLogicalClass(self),
+                                    logicalClassNode.executeLogicalClass(self),
                                     this));
                 }
             }

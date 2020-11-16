@@ -246,6 +246,7 @@ public class CoreExceptions {
         return argumentError(StringUtils.format("invalid value for BigDecimal(): \"%s\"", string), currentNode);
     }
 
+    @TruffleBoundary
     public RubyException argumentErrorCantUnfreeze(Object self, Node currentNode) {
         String className = context.getCoreLibrary().getLogicalClass(self).fields.getName();
         return argumentError(StringUtils.format("can't unfreeze %s", className), currentNode);

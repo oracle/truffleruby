@@ -54,6 +54,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CallTarget;
@@ -1911,16 +1912,17 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object metaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @Cached LogicalClassNode logicalClassNode) {
             if (interop.hasMetaObject(value)) {
                 try {
                     return interop.getMetaObject(value);
                 } catch (UnsupportedMessageException e) {
                     errorProfile.enter();
-                    return coreLibrary().getLogicalClass(value);
+                    return logicalClassNode.executeLogicalClass(value);
                 }
             } else {
-                return coreLibrary().getLogicalClass(value);
+                return logicalClassNode.executeLogicalClass(value);
             }
         }
     }

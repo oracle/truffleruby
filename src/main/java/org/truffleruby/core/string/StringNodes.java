@@ -307,10 +307,11 @@ public abstract class StringNodes {
         protected RubyString substring(Object source, int offset, int byteLength,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyLibrary library,
+                @Cached LogicalClassNode logicalClassNode,
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Rope rope = libSource.getRope(source);
 
-            final RubyClass logicalClass = coreLibrary().getLogicalClass(source);
+            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(
                     logicalClass,
@@ -386,9 +387,10 @@ public abstract class StringNodes {
 
         @Specialization(guards = "times == 0")
         protected RubyString multiplyZero(Object string, int times,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString,
+                @Cached LogicalClassNode logicalClassNode) {
 
-            final RubyClass logicalClass = coreLibrary().getLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString instance = new RubyString(
                     logicalClass,
@@ -5085,6 +5087,7 @@ public abstract class StringNodes {
         @Child RopeNodes.CharacterLengthNode characterLengthNode = RopeNodes.CharacterLengthNode.create();
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
+        @Child LogicalClassNode logicalClassNode = LogicalClassNode.create();
         @Child private RopeNodes.SubstringNode substringNode;
 
         public abstract Object execute(Object string, int index, int length);
@@ -5282,7 +5285,7 @@ public abstract class StringNodes {
                 substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
-            final RubyClass logicalClass = coreLibrary().getLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString ret = new RubyString(
                     logicalClass,

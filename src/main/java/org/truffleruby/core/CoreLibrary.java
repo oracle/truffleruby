@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
@@ -866,8 +867,8 @@ public class CoreLibrary {
                 .getValue();
     }
 
-    @TruffleBoundary
     public RubyClass getMetaClass(Object object) {
+        CompilerAsserts.neverPartOfCompilation("MetaClassNode should be used instead");
         if (object instanceof RubyDynamicObject) {
             return ((RubyDynamicObject) object).getMetaClass();
         } else {
@@ -875,8 +876,8 @@ public class CoreLibrary {
         }
     }
 
-    @TruffleBoundary
     public RubyClass getLogicalClass(Object object) {
+        CompilerAsserts.neverPartOfCompilation("LogicalClassNode should be used instead");
         if (object instanceof RubyDynamicObject) {
             return ((RubyDynamicObject) object).getLogicalClass();
         } else if (object instanceof Nil) {
