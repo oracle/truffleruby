@@ -101,7 +101,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             if (config.isGemOrBundle()) {
                 // Apply options to run gem/bundle more efficiently
                 if (isAOT()) {
-                    args.add(0, "--vm.Xmn1g");
+                    config.getUnknownArguments().add(0, "--vm.Xmn1g");
                 }
             }
 
