@@ -415,6 +415,30 @@ public abstract class RangeNodes {
                     end);
         }
 
+        @Specialization(guards = "range.isBeginless()")
+        protected RubyIntRange beginlessObjectRange(RubyObjectRange range, RubyArray array) {
+            int begin = 0;
+            int end = toInt(range.end);
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    getLanguage().intRangeShape,
+                    range.excludedEnd,
+                    begin,
+                    end);
+        }
+
+        @Specialization(guards = "range.isNilNil()")
+        protected RubyIntRange nilNilObjectRange(RubyObjectRange range, RubyArray array) {
+            int begin = 0;
+            int end = array.size;
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    getLanguage().intRangeShape,
+                    false,
+                    begin,
+                    end);
+        }
+
         private int toInt(Object indexObject) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -576,6 +600,18 @@ public abstract class RangeNodes {
         protected int[] normalizeObjectRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
+        }
+
+        @Specialization(guards = "range.isBeginless()")
+        protected int[] normalizeBeginlessRange(RubyObjectRange range, int size,
+                @Cached ToIntNode toInt) {
+            return normalize(0, toInt.execute(range.end), range.excludedEnd, size);
+        }
+
+        @Specialization(guards = "range.isNilNil()")
+        protected int[] normalizeNilNilRange(RubyObjectRange range, int size,
+                @Cached ToIntNode toInt) {
+            return new int[]{ 0, size };
         }
 
         private int[] normalize(int begin, int end, boolean excludedEnd, int size) {
