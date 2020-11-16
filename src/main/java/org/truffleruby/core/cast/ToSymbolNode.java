@@ -60,7 +60,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
                     "equals.execute(strings.getRope(str), cachedRope)" },
             limit = "getCacheLimit()")
     protected RubySymbol toSymbolRubyString(Object str,
-            @CachedLibrary("str") RubyStringLibrary strings,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings,
             @Cached(value = "strings.getRope(str)") Rope cachedRope,
             @CachedLanguage RubyLanguage language,
             @Cached RopeNodes.EqualNode equals,

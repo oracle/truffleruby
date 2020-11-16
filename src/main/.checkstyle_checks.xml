@@ -214,6 +214,10 @@
       <property name="format" value='"isNil'/>
       <property name="message" value="Type the argument as Nil instead of using a positive isNil() guard."/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='@CachedLibrary\(".+RubyStringLibrary'/>
+      <property name="message" value="Use @CachedLibrary(limit = &quot;2&quot;) RubyStringLibrary instead."/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="TruffleObject,DynamicObject,PrintWriter"/>
