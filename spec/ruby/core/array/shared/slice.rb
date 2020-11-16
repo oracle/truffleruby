@@ -520,4 +520,40 @@ describe :array_slice, shared: true do
     -> { "hello".send(@method, bignum_value..(bignum_value + 1)) }.should raise_error(RangeError)
     -> { "hello".send(@method, 0..bignum_value) }.should raise_error(RangeError)
   end
+
+  ruby_version_is "2.6" do
+    it "can accept endless ranges" do
+      a = [0, 1, 2, 3, 4, 5]
+      a.send(@method, Range.new(2, nil, false)).should == [2, 3, 4, 5]
+      a.send(@method, Range.new(2, nil, true)).should == [2, 3, 4, 5]
+      a.send(@method, Range.new(-2, nil, false)).should == [4, 5]
+      a.send(@method, Range.new(-2, nil, true)).should == [4, 5]
+      a.send(@method, Range.new(9, nil, false)).should == nil
+      a.send(@method, Range.new(9, nil, true)).should == nil
+      a.send(@method, Range.new(-9, nil, false)).should == nil
+      a.send(@method, Range.new(-9, nil, true)).should == nil
+    end
+  end
+
+  ruby_version_is "2.7" do
+    it "can accept beginless ranges" do
+      a = [0, 1, 2, 3, 4, 5]
+      a.send(@method, Range.new(nil, 3, false)).should == [0, 1, 2, 3]
+      a.send(@method, Range.new(nil, 3, true)).should == [0, 1, 2]
+      a.send(@method, Range.new(nil, -3, false)).should == [0, 1, 2, 3]
+      a.send(@method, Range.new(nil, -3, true)).should == [0, 1, 2]
+      a.send(@method, Range.new(nil, 0, false)).should == [0]
+      a.send(@method, Range.new(nil, 0, true)).should == []
+      a.send(@method, Range.new(nil, 9, false)).should == [0, 1, 2, 3, 4, 5]
+      a.send(@method, Range.new(nil, 9, true)).should == [0, 1, 2, 3, 4, 5]
+      a.send(@method, Range.new(nil, -9, false)).should == []
+      a.send(@method, Range.new(nil, -9, true)).should == []
+    end
+
+    it "can accept nil...nil ranges" do
+      a = [0, 1, 2, 3, 4, 5]
+      a.send(@method, Range.new(nil, nil, false)).should == a
+      a.send(@method, Range.new(nil, nil, true)).should == a
+    end
+  end
 end
