@@ -1957,8 +1957,9 @@ module Commands
          **options
     end
 
+    java_home = "#{java_home}/Contents/Home" if darwin?
     java = "#{java_home}/bin/java"
-    abort "#{java_home} does not exist" unless File.executable?(java)
+    abort "#{java} does not exist" unless File.executable?(java)
 
     java_home
   end
