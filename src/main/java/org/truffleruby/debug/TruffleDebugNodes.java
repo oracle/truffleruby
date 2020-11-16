@@ -933,8 +933,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray associated(ImmutableRubyString string) {
-            final long[] associatedValues = new long[0];
-            return ArrayHelpers.createArray(getContext(), getLanguage(), associatedValues);
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
         }
 
     }

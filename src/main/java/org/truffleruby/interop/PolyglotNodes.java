@@ -45,6 +45,8 @@ public abstract class PolyglotNodes {
 
         @Specialization(
                 guards = {
+                        "stringsId.isRubyString(id)",
+                        "stringsSource.isRubyString(source)",
                         "idEqualNode.execute(stringsId.getRope(id), cachedMimeType)",
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")
@@ -59,9 +61,9 @@ public abstract class PolyglotNodes {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
-        @Specialization(guards = {
-                "stringsId.isRubyString(id)",
-                "stringsSource.isRubyString(source)" }, replaces = "evalCached")
+        @Specialization(
+                guards = { "stringsId.isRubyString(id)", "stringsSource.isRubyString(source)" },
+                replaces = "evalCached")
         protected Object evalUncached(Object id, Object source,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,

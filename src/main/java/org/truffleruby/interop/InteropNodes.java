@@ -232,6 +232,8 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = {
+                        "stringsMimeType.isRubyString(mimeType)",
+                        "stringsSource.isRubyString(source)",
                         "mimeTypeEqualNode.execute(stringsMimeType.getRope(mimeType), cachedMimeType)",
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")
@@ -246,9 +248,9 @@ public abstract class InteropNodes {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
-        @Specialization(guards = {
-                "stringsMimeType.isRubyString(mimeType)",
-                "stringsSource.isRubyString(source)" }, replaces = "evalCached")
+        @Specialization(
+                guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
+                replaces = "evalCached")
         protected Object evalUncached(Object mimeType, RubyString source,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
