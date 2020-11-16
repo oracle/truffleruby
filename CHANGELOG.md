@@ -17,6 +17,7 @@ Compatibility:
 * Implement `Enumerable#tally` and `Enumerable#filter_map` (#2144 and #2152, @LillianZ).
 * Implement `Range#minmax`.
 * Pass more `Enumerator::Lazy#uniq` and `Enumerator::Lazy#chunk` specs (#2146, @LillianZ).
+* Implement `Complex#<=>` (#2004, @ssnickolay).
 
 Performance:
 
