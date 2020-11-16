@@ -17,11 +17,13 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 
@@ -59,10 +61,15 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     // endregion
 
     // region InteropLibrary messages
-    @Override
     @ExportMessage
-    public String toDisplayString(boolean allowSideEffects) {
-        return RopeOperations.decodeRope(rope);
+    public Object toDisplayString(boolean allowSideEffects,
+            @Cached DispatchNode dispatchNode,
+            @Cached KernelNodes.ToSNode kernelToSNode) {
+        if (allowSideEffects) {
+            return dispatchNode.call(this, "inspect");
+        } else {
+            return kernelToSNode.executeToS(this);
+        }
     }
 
     @ExportMessage
