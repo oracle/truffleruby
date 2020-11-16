@@ -314,7 +314,7 @@ public class TruffleRegexpNodes {
         //
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
-        @Specialization(guards = "libString.isRubyString(string)")
+        @Specialization
         protected Object executeMatch(
                 RubyRegexp regexp,
                 Object string,
@@ -322,10 +322,9 @@ public class TruffleRegexpNodes {
                 int startPos,
                 int range,
                 boolean onlyMatchAtStart,
-                @Cached ConditionProfile matchesProfile,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @Cached ConditionProfile matchesProfile) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
-                instrument(regexp, string, libString, onlyMatchAtStart);
+                instrument(regexp, string, onlyMatchAtStart);
             }
 
             int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
@@ -364,10 +363,9 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        protected void instrument(RubyRegexp regexp, Object string, RubyStringLibrary stringLibrary,
-                boolean fromStart) {
+        protected void instrument(RubyRegexp regexp, Object string, boolean fromStart) {
             Rope source = regexp.source;
-            Encoding enc = stringLibrary.getRope(string).getEncoding();
+            Encoding enc = RubyStringLibrary.getUncached().getRope(string).getEncoding();
             RegexpOptions options = regexp.options;
             MatchInfo matchInfo = new MatchInfo(
                     new RegexpCacheKey(

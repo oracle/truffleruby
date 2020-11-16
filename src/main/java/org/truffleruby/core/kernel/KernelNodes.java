@@ -651,15 +651,13 @@ public abstract class KernelNodes {
             return symbol;
         }
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected RubyDynamicObject cloneImmutableRubyString(ImmutableRubyString self, boolean freeze,
                 @Cached ConditionProfile freezeProfile,
-                @Cached ConditionProfile isFrozenProfile,
-                @CachedLibrary("self") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze,
                 @Cached MakeStringNode makeStringNode) {
             final RubyDynamicObject newObject = makeStringNode.fromRope(self.rope);
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(self))) {
+            if (freezeProfile.profile(freeze)) {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
@@ -1021,12 +1019,7 @@ public abstract class KernelNodes {
         @Child private DispatchNode initializeCopyNode = DispatchNode.create();
 
         @Specialization
-        protected Object initializeDup(VirtualFrame frame, RubyDynamicObject self, RubyDynamicObject from) {
-            return initializeCopyNode.call(self, "initialize_copy", from);
-        }
-
-        @Specialization
-        protected Object initializeDup(VirtualFrame frame, RubyDynamicObject self, ImmutableRubyString from) {
+        protected Object initializeDup(RubyDynamicObject self, Object from) {
             return initializeCopyNode.call(self, "initialize_copy", from);
         }
 
@@ -1685,20 +1678,7 @@ public abstract class KernelNodes {
     public abstract static class RespondToMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean doesRespondToMissingString(Object object, RubyString name, Object unusedIncludeAll) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean doesRespondToMissingImmutableString(
-                Object object,
-                ImmutableRubyString name,
-                Object unusedIncludeAll) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean doesRespondToMissingSymbol(Object object, RubySymbol name, Object unusedIncludeAll) {
+        protected boolean doesRespondToMissing(Object object, Object name, Object unusedIncludeAll) {
             return false;
         }
 
