@@ -45,8 +45,6 @@ public class Options {
     public final String LAUNCHER;
     /** --core-load-path="resource:/truffleruby" */
     public final String CORE_LOAD_PATH;
-    /** --frozen-string-literals=false */
-    public final boolean FROZEN_STRING_LITERALS;
     /** --rubygems=true */
     public final boolean RUBYGEMS;
     /** --lazy-rubygems=RUBYGEMS && DEFAULT_LAZY */
@@ -264,7 +262,6 @@ public class Options {
         NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
-        FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
         LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : languageOptions.DEFAULT_LAZY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
@@ -393,8 +390,6 @@ public class Options {
                 return LAUNCHER;
             case "ruby.core-load-path":
                 return CORE_LOAD_PATH;
-            case "ruby.frozen-string-literals":
-                return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
             case "ruby.lazy-rubygems":

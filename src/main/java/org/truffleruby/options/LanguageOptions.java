@@ -21,6 +21,8 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 // @formatter:off
 public class LanguageOptions {
 
+    /** --frozen-string-literals=false */
+    public final boolean FROZEN_STRING_LITERALS;
     /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
     /** --lazy-translation-user=DEFAULT_LAZY */
@@ -49,6 +51,7 @@ public class LanguageOptions {
     public final boolean SHARED_OBJECTS_FORCE;
 
     public LanguageOptions(Env env, OptionValues options) {
+        FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
         LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : DEFAULT_LAZY;
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
@@ -66,6 +69,8 @@ public class LanguageOptions {
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
         switch (descriptor.getName()) {
+            case "ruby.frozen-string-literals":
+                return FROZEN_STRING_LITERALS;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
             case "ruby.lazy-translation-user":
@@ -98,7 +103,8 @@ public class LanguageOptions {
     }
 
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
-        return one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
+        return one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
+               one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY)) &&
                one.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY).equals(two.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY)) &&

@@ -133,7 +133,7 @@ public class TranslatorDriver {
 
             parentEnvironment = environmentForFrame(context, parentFrame);
         } else {
-            parentEnvironment = environmentForFrame(context, null);
+            parentEnvironment = null;
         }
 
         if (argumentNames != null) {
@@ -151,7 +151,7 @@ public class TranslatorDriver {
                 !isEvalParse,
                 false);
 
-        if (context.getOptions().FROZEN_STRING_LITERALS) {
+        if (language.options.FROZEN_STRING_LITERALS) {
             parserConfiguration.setFrozenStringLiteral(true);
         }
 
