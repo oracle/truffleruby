@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 
@@ -155,7 +155,7 @@ static_symbols_size = index
 
 footer = <<JAVA
     public RubySymbol createRubySymbol(String string, long id) {
-        Rope rope = RopeConstants.lookupUSASCII(string);
+        LeafRope rope = RopeConstants.lookupUSASCII(string);
         if (rope == null) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
         }
