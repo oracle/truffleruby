@@ -165,6 +165,18 @@ describe "Array#slice!" do
       a.should == [1, 2]
     end
   end
+
+  ruby_version_is "2.7" do
+    it "works with beginless ranges" do
+      a = [0,1,2,3,4]
+      a.slice!(Range.new(nil, 3)).should == [0, 1, 2, 3]
+      a.should == [4]
+
+      a = [0,1,2,3,4]
+      a.slice!(Range.new(nil, -2, true)).should == [0, 1, 2]
+      a.should == [3, 4]
+    end
+  end
 end
 
 describe "Array#slice" do
