@@ -77,7 +77,7 @@ public abstract class AllocationTracing {
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
-        final String className = context.getCoreLibrary().getLogicalClass(allocatingSelf).fields
+        final String className = LogicalClassNode.getUncached().execute(allocatingSelf).fields
                 .getName();
 
         context.send(

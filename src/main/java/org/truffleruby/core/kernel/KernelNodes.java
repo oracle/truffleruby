@@ -447,7 +447,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyClass getClass(Object self) {
-            return classNode.executeLogicalClass(self);
+            return classNode.execute(self);
         }
 
     }
@@ -1002,7 +1002,7 @@ public abstract class KernelNodes {
                 @Cached LogicalClassNode rhsClassNode,
                 @Cached BranchProfile errorProfile) {
             checkFrozenNode.execute(self);
-            if (lhsClassNode.executeLogicalClass(self) != rhsClassNode.executeLogicalClass(from)) {
+            if (lhsClassNode.execute(self) != rhsClassNode.execute(from)) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -1032,7 +1032,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean instanceOf(Object self, RubyModule module) {
-            return classNode.executeLogicalClass(self) == module;
+            return classNode.execute(self) == module;
         }
 
     }
@@ -1329,7 +1329,7 @@ public abstract class KernelNodes {
                             getContext(),
                             coreExceptions().nameErrorUndefinedMethod(
                                     normalizedName,
-                                    logicalClassNode.executeLogicalClass(self),
+                                    logicalClassNode.execute(self),
                                     this));
                 }
             }
@@ -1359,7 +1359,7 @@ public abstract class KernelNodes {
                     Split.HEURISTIC);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final RubyClass module = coreLibrary().getMetaClass(self);
+            final RubyClass module = MetaClassNode.getUncached().execute(self);
             return new InternalMethod(
                     getContext(),
                     info,
@@ -2039,7 +2039,7 @@ public abstract class KernelNodes {
                 @Cached ObjectIDNode objectIDNode,
                 @Cached ToHexStringNode toHexStringNode,
                 @Cached PropagateTaintNode propagateTaintNode) {
-            String className = classNode.executeLogicalClass(self).fields.getName();
+            String className = classNode.execute(self).fields.getName();
             Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 

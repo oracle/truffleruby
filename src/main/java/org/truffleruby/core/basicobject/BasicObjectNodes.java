@@ -55,6 +55,7 @@ import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -586,7 +587,7 @@ public abstract class BasicObjectNodes {
                 FrameAndCallNode callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);
             final InternalMethod method = ModuleOperations
-                    .lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
+                    .lookupMethodUncached(MetaClassNode.getUncached().execute(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
                 assert method.getVisibility() == Visibility.PRIVATE || method.getVisibility() == Visibility.PROTECTED;
                 return method.getVisibility();

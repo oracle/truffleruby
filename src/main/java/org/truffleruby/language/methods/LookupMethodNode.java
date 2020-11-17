@@ -200,10 +200,10 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         if (callerMethod == null) {
             return context.getCoreLibrary().objectClass;
         } else if (!context.getCoreLibrary().isSend(callerMethod)) {
-            return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
+            return MetaClassNode.getUncached().execute(RubyArguments.getSelf(callingFrame));
         } else {
             final Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
-            return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callerFrame));
+            return MetaClassNode.getUncached().execute(RubyArguments.getSelf(callerFrame));
         }
     }
 

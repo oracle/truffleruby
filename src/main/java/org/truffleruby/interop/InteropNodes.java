@@ -1921,10 +1921,10 @@ public abstract class InteropNodes {
                     return interop.getMetaObject(value);
                 } catch (UnsupportedMessageException e) {
                     errorProfile.enter();
-                    return logicalClassNode.executeLogicalClass(value);
+                    return logicalClassNode.execute(value);
                 }
             } else {
-                return logicalClassNode.executeLogicalClass(value);
+                return logicalClassNode.execute(value);
             }
         }
     }

@@ -203,7 +203,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public RubyClass getMetaObject(
             @Cached LogicalClassNode classNode) {
-        return classNode.executeLogicalClass(this);
+        return classNode.execute(this);
     }
     // endregion
 

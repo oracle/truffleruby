@@ -23,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
@@ -48,15 +47,12 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableReader;
@@ -865,47 +861,6 @@ public class CoreLibrary {
         topLevelBinding = (RubyBinding) objectClass.fields
                 .getConstant("TOPLEVEL_BINDING")
                 .getValue();
-    }
-
-    public RubyClass getMetaClass(Object object) {
-        CompilerAsserts.neverPartOfCompilation("MetaClassNode should be used instead");
-        if (object instanceof RubyDynamicObject) {
-            return ((RubyDynamicObject) object).getMetaClass();
-        } else {
-            return getLogicalClass(object);
-        }
-    }
-
-    public RubyClass getLogicalClass(Object object) {
-        CompilerAsserts.neverPartOfCompilation("LogicalClassNode should be used instead");
-        if (object instanceof RubyDynamicObject) {
-            return ((RubyDynamicObject) object).getLogicalClass();
-        } else if (object instanceof Nil) {
-            return nilClass;
-        } else if (object instanceof RubyBignum) {
-            return integerClass;
-        } else if (object instanceof RubySymbol) {
-            return symbolClass;
-        } else if (object instanceof ImmutableRubyString) {
-            return stringClass;
-        } else if (object instanceof Boolean) {
-            return (boolean) object ? trueClass : falseClass;
-        } else if (object instanceof Byte) {
-            return integerClass;
-        } else if (object instanceof Short) {
-            return integerClass;
-        } else if (object instanceof Integer) {
-            return integerClass;
-        } else if (object instanceof Long) {
-            return integerClass;
-        } else if (object instanceof Float) {
-            return floatClass;
-        } else if (object instanceof Double) {
-            return floatClass;
-        } else {
-            assert RubyGuards.isForeignObject(object);
-            return truffleInteropForeignClass;
-        }
     }
 
     /** Convert a value to a {@code Float}, without doing any lookup. */

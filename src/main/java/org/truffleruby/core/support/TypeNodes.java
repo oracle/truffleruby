@@ -96,7 +96,7 @@ public abstract class TypeNodes {
 
         @Specialization
         protected RubyClass objectClass(Object object) {
-            return classNode.executeLogicalClass(object);
+            return classNode.execute(object);
         }
 
     }

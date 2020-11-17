@@ -47,6 +47,7 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.objects.LogicalClassNode;
 
 public class CoreExceptions {
 
@@ -203,7 +204,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException argumentErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
-        String badClassName = context.getCoreLibrary().getLogicalClass(object).fields.getName();
+        String badClassName = LogicalClassNode.getUncached().execute(object).fields.getName();
         return argumentError(
                 StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
                 currentNode);
@@ -248,7 +249,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException argumentErrorCantUnfreeze(Object self, Node currentNode) {
-        String className = context.getCoreLibrary().getLogicalClass(self).fields.getName();
+        String className = LogicalClassNode.getUncached().execute(self).fields.getName();
         return argumentError(StringUtils.format("can't unfreeze %s", className), currentNode);
     }
 
@@ -256,7 +257,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException frozenError(Object object, Node currentNode) {
-        String className = context.getCoreLibrary().getLogicalClass(object).fields.getName();
+        String className = LogicalClassNode.getUncached().execute(object).fields.getName();
         return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode);
     }
 
@@ -485,21 +486,21 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorCantConvertTo(Object from, String toClass, String methodUsed, Object result,
             Node currentNode) {
-        String fromClass = context.getCoreLibrary().getLogicalClass(from).fields.getName();
+        String fromClass = LogicalClassNode.getUncached().execute(from).fields.getName();
         return typeError(StringUtils.format(
                 "can't convert %s to %s (%s#%s gives %s)",
                 fromClass,
                 toClass,
                 fromClass,
                 methodUsed,
-                context.getCoreLibrary().getLogicalClass(result).toString()), currentNode);
+                LogicalClassNode.getUncached().execute(result).toString()), currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorCantConvertInto(Object from, String toClass, Node currentNode) {
         return typeError(StringUtils.format(
                 "can't convert %s into %s",
-                context.getCoreLibrary().getLogicalClass(from).fields.getName(),
+                LogicalClassNode.getUncached().execute(from).fields.getName(),
                 toClass), currentNode);
     }
 
@@ -530,32 +531,34 @@ public class CoreExceptions {
     public RubyException typeErrorNoImplicitConversion(Object from, String to, Node currentNode) {
         return typeError(StringUtils.format(
                 "no implicit conversion of %s into %s",
-                context.getCoreLibrary().getLogicalClass(from).fields.getName(),
+                LogicalClassNode.getUncached().execute(from).fields.getName(),
                 to), currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorBadCoercion(Object from, String to, String coercionMethod, Object coercedTo,
             Node currentNode) {
-        String badClassName = context.getCoreLibrary().getLogicalClass(from).fields.getName();
-        return typeError(StringUtils.format(
-                "can't convert %s to %s (%s#%s gives %s)",
-                badClassName,
-                to,
-                badClassName,
-                coercionMethod,
-                context.getCoreLibrary().getLogicalClass(coercedTo).fields.getName()), currentNode);
+        String badClassName = LogicalClassNode.getUncached().execute(from).fields.getName();
+        return typeError(
+                StringUtils.format(
+                        "can't convert %s to %s (%s#%s gives %s)",
+                        badClassName,
+                        to,
+                        badClassName,
+                        coercionMethod,
+                        LogicalClassNode.getUncached().execute(coercedTo).fields.getName()),
+                currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorCantDump(Object object, Node currentNode) {
-        String logicalClass = context.getCoreLibrary().getLogicalClass(object).fields.getName();
+        String logicalClass = LogicalClassNode.getUncached().execute(object).fields.getName();
         return typeError(StringUtils.format("can't dump %s", logicalClass), currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
-        String badClassName = context.getCoreLibrary().getLogicalClass(object).fields.getName();
+        String badClassName = LogicalClassNode.getUncached().execute(object).fields.getName();
         return typeError(
                 StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
                 currentNode);
@@ -678,7 +681,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyNameError nameErrorUndefinedSingletonMethod(String name, Object receiver, Node currentNode) {
-        String className = context.getCoreLibrary().getLogicalClass(receiver).fields.getName();
+        String className = LogicalClassNode.getUncached().execute(receiver).fields.getName();
         return nameError(
                 StringUtils.format("undefined singleton method `%s' for %s", name, className),
                 receiver,
