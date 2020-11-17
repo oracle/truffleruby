@@ -364,10 +364,17 @@ public abstract class RangeNodes {
             return toAInternalCall.call(range, "to_a_internal");
         }
 
-        @Specialization(guards = "range.isEndless()")
+        @Specialization(guards = "range.isEndless() || range.isNilNil()")
         protected Object endlessToA(RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
+                    this));
+        }
+
+        @Specialization(guards = "range.isBeginless()")
+        protected Object beginlessToA(RubyObjectRange range) {
+            throw new RaiseException(getContext(), coreExceptions().typeError(
+                    "can't iterate from NilClass",
                     this));
         }
     }
