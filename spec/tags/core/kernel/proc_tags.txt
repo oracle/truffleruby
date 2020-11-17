@@ -1,1 +1,0 @@
-fails:Kernel#proc can be created when called with no block

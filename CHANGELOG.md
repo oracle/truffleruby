@@ -21,6 +21,7 @@ Compatibility:
 * Pass more `Enumerator::Lazy#uniq` and `Enumerator::Lazy#chunk` specs (#2146, @LillianZ).
 * Implement `Enumerator#produce` (#2160, @zverok)
 * Implement `Complex#<=>` (#2004, @ssnickolay).
+* Add warning for `proc` without block (#2004, @ssnickolay).
 
 Performance:
 
