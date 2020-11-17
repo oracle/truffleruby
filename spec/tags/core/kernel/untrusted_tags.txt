@@ -1,2 +1,0 @@
-fails:Kernel#untrusted? is a no-op
-fails:Kernel#untrusted? warns in verbose mode

@@ -54,9 +54,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
                 pointer);
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
-        final RubyString string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        rubyLibrary.taint(string);
-        return string;
+        return makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
     }
 
     private void checkAssociated(Pointer[] associated, Pointer reading) {

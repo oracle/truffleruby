@@ -148,7 +148,6 @@ class Symbol
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       if match_data
         result = match_data.to_s
-        Primitive.infect result, index
         return result
       end
     else

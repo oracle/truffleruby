@@ -319,7 +319,6 @@ module Fiddle
       else
         ptr = Pointer.new(Integer(val))
       end
-      Primitive.infect ptr, val
       ptr
     end
 

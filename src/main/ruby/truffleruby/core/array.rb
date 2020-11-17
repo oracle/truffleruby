@@ -444,7 +444,6 @@ class Array
 
     out = self.class.allocate # new_reserved size
     Primitive.array_flatten_helper(self, out, level)
-    Primitive.infect(out, self)
     out
   end
 
@@ -556,7 +555,6 @@ class Array
       end
     end
 
-    Primitive.infect(result, self)
     Truffle::StringOperations.shorten!(result, 2)
     result << ']'
     result
@@ -626,7 +624,7 @@ class Array
       end
     end
 
-    Primitive.infect(out, self)
+    out
   end
 
   def keep_if(&block)

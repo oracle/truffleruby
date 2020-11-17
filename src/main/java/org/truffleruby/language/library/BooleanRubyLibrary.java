@@ -26,17 +26,4 @@ public class BooleanRubyLibrary {
         return true;
     }
 
-    @ExportMessage
-    protected static boolean isTainted(Boolean object) {
-        return false;
-    }
-
-    @ExportMessage
-    protected static void taint(Boolean object) {
-    }
-
-    @ExportMessage
-    protected static void untaint(Boolean object) {
-    }
-
 }

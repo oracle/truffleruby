@@ -166,7 +166,7 @@ bool rb_tr_obj_tainted_p(VALUE object) {
 }
 
 void rb_tr_obj_infect(VALUE a, VALUE b) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_obj_infect", a, b);
+  rb_warning("rb_obj_infect is deprecated and will be removed in Ruby 3.2.");
 }
 
 // frozen status

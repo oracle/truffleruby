@@ -26,17 +26,4 @@ public class DoubleRubyLibrary {
         return true;
     }
 
-    @ExportMessage
-    protected static boolean isTainted(Double object) {
-        return false;
-    }
-
-    @ExportMessage
-    protected static void taint(Double object) {
-    }
-
-    @ExportMessage
-    protected static void untaint(Double object) {
-    }
-
 }

@@ -11,23 +11,16 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @ExportLibrary(RubyLibrary.class)
@@ -36,13 +29,11 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
-    public boolean tainted;
     public Rope rope;
 
-    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, boolean tainted, Rope rope) {
+    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope) {
         super(rubyClass, shape);
         this.frozen = frozen;
-        this.tainted = tainted;
         this.rope = rope;
     }
 
@@ -78,45 +69,6 @@ public class RubyString extends RubyDynamicObject {
     @ExportMessage
     public boolean isFrozen() {
         return frozen;
-    }
-
-    @ExportMessage
-    public boolean isTainted() {
-        return tainted;
-    }
-
-    @ExportMessage
-    public void taint(
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached BranchProfile errorProfile) {
-        if (!tainted && frozen) {
-            errorProfile.enter();
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
-        }
-
-        tainted = true;
-    }
-
-    @ExportMessage
-    public void untaint(
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached BranchProfile errorProfile) {
-        if (!tainted) {
-            return;
-        }
-
-        if (frozen) {
-            errorProfile.enter();
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
-        }
-
-        tainted = false;
     }
     // endregion
 

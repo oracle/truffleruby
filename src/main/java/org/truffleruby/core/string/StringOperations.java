@@ -59,7 +59,6 @@ public abstract class StringOperations {
                 node.getContext().getCoreLibrary().stringClass,
                 node.getLanguage().stringShape,
                 false,
-                false,
                 rope);
         AllocationTracing.trace(instance, node);
         return instance;
@@ -70,7 +69,6 @@ public abstract class StringOperations {
         final RubyString instance = new RubyString(
                 context.getCoreLibrary().stringClass,
                 language.stringShape,
-                false,
                 false,
                 rope);
         return instance;

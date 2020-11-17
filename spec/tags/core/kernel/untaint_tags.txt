@@ -1,2 +1,0 @@
-fails:Kernel#untaint is a no-op
-fails:Kernel#untaint warns in verbose mode

@@ -96,8 +96,6 @@ class StringIO
   def initialize_copy(from)
     from = Truffle::Type.coerce_to(from, StringIO, :to_strio)
 
-    taint if from.tainted?
-
     @append = from.instance_variable_get(:@append)
     @readable = from.instance_variable_get(:@readable)
     @writable = from.instance_variable_get(:@writable)
@@ -232,7 +230,6 @@ class StringIO
       end
       Primitive.string_splice(string, str, pos, stop, string.encoding)
       d.pos += str.bytesize
-      string.taint if str.tainted?
     end
 
     str.bytesize
@@ -467,7 +464,6 @@ class StringIO
     if string and not string.kind_of? String and mode.equal? Undefined
       stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
-      taint if stringio.tainted?
       initialize_copy stringio
     else
       mode = nil if mode.equal? Undefined

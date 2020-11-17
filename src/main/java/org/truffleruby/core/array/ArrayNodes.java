@@ -76,12 +76,10 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -161,18 +159,15 @@ public abstract class ArrayNodes {
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-        @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
 
         @Specialization(guards = "count == 0")
         protected RubyArray mulZero(RubyArray array, int count) {
             final RubyClass logicalClass = array.getLogicalClass();
-            final RubyArray result = new RubyArray(
+            return new RubyArray(
                     logicalClass,
                     helperNode.getCachedShape(logicalClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
-            propagateTaintNode.executePropagate(array, result);
-            return result;
         }
 
         @Specialization(
@@ -197,13 +192,11 @@ public abstract class ArrayNodes {
             }
 
             final RubyClass logicalClass = array.getLogicalClass();
-            final RubyArray result = new RubyArray(
+            return new RubyArray(
                     logicalClass,
                     helperNode.getCachedShape(logicalClass),
                     newStore,
                     newSize);
-            propagateTaintNode.executePropagate(array, result);
-            return result;
         }
 
         @Specialization(guards = "count < 0")
@@ -219,13 +212,11 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "isEmptyArray(array)" })
         protected RubyArray mulEmpty(RubyArray array, long count) {
             final RubyClass logicalClass = array.getLogicalClass();
-            final RubyArray result = new RubyArray(
+            return new RubyArray(
                     logicalClass,
                     helperNode.getCachedShape(logicalClass),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
-            propagateTaintNode.executePropagate(array, result);
-            return result;
         }
 
         @Specialization(guards = { "!isInteger(count)", "!isLong(count)" })
@@ -1493,14 +1484,13 @@ public abstract class ArrayNodes {
 
     @NodeChild(value = "array", type = RubyNode.class)
     @NodeChild(value = "format", type = RubyNode.class)
-    @CoreMethod(names = "pack", required = 1, taintFrom = 1)
+    @CoreMethod(names = "pack", required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class PackNode extends CoreMethodNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
-        @Child private RubyLibrary rubyLibrary;
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1576,14 +1566,6 @@ public abstract class ArrayNodes {
                     result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange(),
                     result.getStringLength()));
-
-            if (result.isTainted()) {
-                if (rubyLibrary == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
-                }
-                rubyLibrary.taint(string);
-            }
 
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {

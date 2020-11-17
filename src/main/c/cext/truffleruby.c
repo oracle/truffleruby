@@ -29,9 +29,6 @@ int rb_tr_flags(VALUE value) {
   if (OBJ_FROZEN(value)) {
     flags |= RUBY_FL_FREEZE;
   }
-  if (OBJ_TAINTED(value)) {
-    flags |= RUBY_FL_TAINT;
-  }
   if (RARRAY_LEN(rb_obj_instance_variables(value)) > 0) {
     flags |= RUBY_FL_EXIVAR;
   }

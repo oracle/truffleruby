@@ -105,45 +105,6 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @CachedLibrary("this") DynamicObjectLibrary readFrozenNode) {
         return (boolean) readFrozenNode.getOrDefault(this, Layouts.FROZEN_IDENTIFIER, false);
     }
-
-    @ExportMessage
-    public boolean isTainted(
-            @CachedLibrary("this") DynamicObjectLibrary readTaintedNode) {
-        return (boolean) readTaintedNode.getOrDefault(this, Layouts.TAINTED_IDENTIFIER, false);
-    }
-
-    @ExportMessage
-    public void taint(
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
-            @Exclusive @Cached BranchProfile errorProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        if (!rubyLibrary.isTainted(this) && rubyLibrary.isFrozen(this)) {
-            errorProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
-        }
-
-        writeTaintNode.execute(this, Layouts.TAINTED_IDENTIFIER, true);
-    }
-
-    @ExportMessage
-    public void untaint(
-            @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached BranchProfile errorProfile) {
-        if (!rubyLibrary.isTainted(this)) {
-            return;
-        }
-
-        if (rubyLibrary.isFrozen(this)) {
-            errorProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
-        }
-
-        writeTaintNode.execute(this, Layouts.TAINTED_IDENTIFIER, false);
-    }
     // endregion
 
     // region InteropLibrary messages

@@ -1250,7 +1250,6 @@ class IO
           end
 
           s = IO.read_encode(@io, s)
-          s.taint
 
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
@@ -1281,7 +1280,6 @@ class IO
           str << @buffer.shift(bytes)
 
           str = IO.read_encode(@io, str)
-          str.taint
 
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
@@ -1295,7 +1293,6 @@ class IO
             str << @buffer.shift(wanted)
 
             str = @buffer.read_to_char_boundary(@io, str)
-            str.taint
 
             $. = @io.__send__(:increment_lineno)
             @buffer.discard @skip if @skip
@@ -1336,7 +1333,6 @@ class IO
           str << @buffer.shift(wanted)
 
           str = @buffer.read_to_char_boundary(@io, str)
-          str.taint
 
           $. = @io.__send__(:increment_lineno)
           yield str
@@ -1355,7 +1351,6 @@ class IO
     def yield_string(str)
       unless str.empty?
         str = IO.read_encode(@io, str)
-        str.taint
         $. = @io.__send__(:increment_lineno)
         yield str
       end

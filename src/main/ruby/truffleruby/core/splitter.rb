@@ -212,7 +212,7 @@ module Truffle
       end
 
       def empty_string(original)
-        # Use #byteslice because it returns the right class and taints automatically.
+        # Use #byteslice because it returns the right class.
         original.byteslice(0,0)
       end
 

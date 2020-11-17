@@ -44,11 +44,9 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
         frame.setObject(FormatFrameDescriptor.SOURCE_SLOT, arguments[0]);
         frame.setInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT, (int) arguments[1]);
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, 0);
-        frame.setBoolean(FormatFrameDescriptor.SOURCE_TAINTED_SLOT, (boolean) arguments[2]);
-        frame.setObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT, arguments[3]);
+        frame.setObject(FormatFrameDescriptor.SOURCE_ASSOCIATED_SLOT, arguments[2]);
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new Object[expectedLength]);
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
-        frame.setBoolean(FormatFrameDescriptor.TAINT_SLOT, false);
 
         child.execute(frame);
 
@@ -73,15 +71,7 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
             throw new IllegalStateException(e);
         }
 
-        final boolean taint;
-
-        try {
-            taint = frame.getBoolean(FormatFrameDescriptor.TAINT_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
-
-        return new ArrayResult(output, outputLength, taint);
+        return new ArrayResult(output, outputLength);
     }
 
     @Override

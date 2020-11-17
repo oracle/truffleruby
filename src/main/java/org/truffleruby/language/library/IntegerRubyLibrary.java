@@ -26,17 +26,4 @@ public class IntegerRubyLibrary {
         return true;
     }
 
-    @ExportMessage
-    protected static boolean isTainted(Integer object) {
-        return false;
-    }
-
-    @ExportMessage
-    protected static void taint(Integer object) {
-    }
-
-    @ExportMessage
-    protected static void untaint(Integer object) {
-    }
-
 }

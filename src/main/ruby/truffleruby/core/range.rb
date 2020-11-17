@@ -342,8 +342,7 @@ class Range
   end
 
   def inspect
-    result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{Truffle::RangeOperations.endless?(self) ? "" : self.end.inspect}"
-    Primitive.infect(result, self)
+    "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{Truffle::RangeOperations.endless?(self) ? "" : self.end.inspect}"
   end
 
   def last(n=undefined)
@@ -459,8 +458,7 @@ class Range
   end
 
   def to_s
-    result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{self.end}"
-    Primitive.infect(result, self)
+    "#{self.begin}#{exclude_end? ? "..." : ".."}#{self.end}"
   end
 
   def cover?(value)
@@ -528,7 +526,6 @@ class Range
       ary << o
       nil
     end
-    Primitive.infect ary, self
     ary
   end
 end

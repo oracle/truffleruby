@@ -56,18 +56,18 @@ module Truffle
     end
 
     def self.gsub_internal_hash(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |_ret, m|
+      gsub_internal_core(orig, pattern) do |_ret, m|
         replacement[m.to_s]
       end
     end
 
     def self.gsub_internal_replacement(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m|
+      gsub_internal_core(orig, pattern) do |ret, m|
         Truffle::StringOperations.to_sub_replacement(replacement, ret, m)
       end
     end
 
-    def self.gsub_internal_core(orig, pattern, tainted=false, untrusted=false)
+    def self.gsub_internal_core(orig, pattern)
       unless orig.valid_encoding?
         raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
@@ -93,9 +93,7 @@ module Truffle
         Primitive.string_append(ret, str) if str
 
         val = yield ret, match
-        untrusted ||= val.untrusted?
         val = val.to_s
-        tainted ||= val.tainted?
         Primitive.string_append(ret, val)
 
         if Truffle::RegexpOperations.collapsing?(match)
@@ -122,9 +120,6 @@ module Truffle
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
       Primitive.string_append(ret, str) if str
 
-      ret.taint if tainted
-      ret.untrust if untrusted
-
       [ret, last_match]
     end
 
@@ -143,7 +138,6 @@ module Truffle
         end
       end
 
-      Primitive.infect(string, other)
       Primitive.string_append(string, other)
     end
 

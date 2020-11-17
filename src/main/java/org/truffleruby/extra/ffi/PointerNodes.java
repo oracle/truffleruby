@@ -267,7 +267,6 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    true,
                     RopeConstants.EMPTY_ASCII_8BIT_ROPE);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -286,7 +285,6 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    true,
                     rope);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -305,7 +303,6 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    true,
                     rope);
             AllocationTracing.trace(instance, this);
             return instance;
@@ -327,7 +324,6 @@ public abstract class PointerNodes {
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
                         false,
-                        false,
                         RopeConstants.EMPTY_ASCII_8BIT_ROPE);
                 AllocationTracing.trace(instance, this);
                 return instance;
@@ -341,7 +337,6 @@ public abstract class PointerNodes {
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
                         false,
-                        true,
                         rope);
                 AllocationTracing.trace(instance, this);
                 return instance;

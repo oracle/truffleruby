@@ -115,7 +115,6 @@ class String
     Primitive.check_frozen self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
     if !prefix.empty? && start_with?(prefix)
-      Primitive.infect self, prefix
       self[0, prefix.size] = ''
       self
     else
@@ -132,7 +131,6 @@ class String
     Primitive.check_frozen self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
     if !suffix.empty? && end_with?(suffix)
-      Primitive.infect self, suffix
       self[size - suffix.size, suffix.size] = ''
       self
     else
@@ -232,7 +230,6 @@ class String
   end
 
   def scan(pattern, &block)
-    taint = tainted? || pattern.tainted?
     pattern = Truffle::Type.coerce_to_regexp(pattern, true)
     index = 0
 
@@ -254,7 +251,6 @@ class String
 
       last_match = match
       val = (match.length == 1 ? match[0] : match.captures)
-      val.taint if taint
 
       if block
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
@@ -334,7 +330,6 @@ class String
     end
 
     str = match[capture]
-    Primitive.infect str, pattern
     [match, str]
   end
   private :subpattern
@@ -536,7 +531,6 @@ class String
       index += chr.bytesize
     end
 
-    Primitive.infect result, self
     result.force_encoding(result_encoding)
   end
 
@@ -685,17 +679,12 @@ class String
       end
       Primitive.check_frozen self
       use_yield = true
-      tainted = false
     else
       Primitive.check_frozen self
-      tainted = replacement.tainted?
-      untrusted = replacement.untrusted?
 
       unless replacement.kind_of?(String)
         hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
-        tainted ||= replacement.tainted?
-        untrusted ||= replacement.untrusted?
       end
       use_yield = false
     end
@@ -719,10 +708,7 @@ class String
         if duped != self
           raise RuntimeError, 'string modified'
         end
-        untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
-
-        tainted ||= val.tainted?
 
         Primitive.string_append(ret, val)
       else
@@ -730,10 +716,6 @@ class String
       end
 
       Primitive.string_append(ret, match.post_match)
-      tainted ||= val.tainted?
-
-      ret.taint if tainted
-      ret.untrust if untrusted
 
       replace(ret)
       self
@@ -1021,8 +1003,6 @@ class String
       end
     end
 
-    taint = tainted?
-
     validate = -> str {
       str = StringValue(str)
       unless str.valid_encoding?
@@ -1032,8 +1012,6 @@ class String
       if str.ascii_only? ? !encoding.ascii_compatible? : encoding != str.encoding
         raise Encoding::CompatibilityError, 'incompatible character encodings'
       end
-      # Modifies the outer taint variable
-      taint = true if str.tainted?
       str
     }
 
@@ -1046,9 +1024,7 @@ class String
       end
     end
 
-    val = Primitive.string_scrub(self, replace_block)
-    val.taint if taint
-    val
+    Primitive.string_scrub(self, replace_block)
   end
 
   def scrub!(replace = nil, &block)
@@ -1084,8 +1060,6 @@ class String
         return self[index] = replacement
       end
     end
-
-    Primitive.infect self, replacement
 
     replacement
   end
@@ -1232,7 +1206,6 @@ class String
       Truffle::StringOperations.copy_from(str, self, 0, bs, left)
     end
 
-    str.taint if tainted? or padding.tainted?
     str.force_encoding enc
   end
 
@@ -1276,7 +1249,6 @@ class String
       Truffle::StringOperations.copy_from(str, self, 0, bs, 0)
     end
 
-    str.taint if tainted? or padding.tainted?
     str.force_encoding enc
   end
 
@@ -1308,7 +1280,6 @@ class String
 
     Truffle::StringOperations.copy_from(str, self, 0, bs, bytes)
 
-    str.taint if tainted? or padding.tainted?
     str.force_encoding enc
   end
 
@@ -1352,7 +1323,6 @@ class String
     unless Primitive.undefined?(other)
       Primitive.check_frozen self
       Primitive.string_initialize(self, other, encoding)
-      taint if other.tainted?
     end
     self.force_encoding(encoding) if encoding
     self
@@ -1460,7 +1430,6 @@ class String
       replace(left + other + right)
     end
 
-    Primitive.infect self, other
     self
   end
 
@@ -1544,7 +1513,7 @@ class String
     str = frozen? ? self : dup.freeze
     if Primitive.string_interned?(self)
       self
-    elsif str.tainted? || !(str.instance_variables).empty?
+    elsif !(str.instance_variables).empty?
       str
     else
       Primitive.string_intern(str)
@@ -1585,12 +1554,6 @@ class String
     raise ArgumentError, 'string contains null byte' if include?("\0")
     crypted = Truffle::POSIX.crypt(self, salt)
     Errno.handle unless crypted
-    if tainted? || salt.tainted?
-      crypted.taint
-    else
-      # FFI taints returned strings
-      crypted.untaint
-    end
     crypted
   end
 

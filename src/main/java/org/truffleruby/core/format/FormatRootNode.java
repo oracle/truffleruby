@@ -51,7 +51,6 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.STRING_LENGTH_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.STRING_CODE_RANGE_SLOT, CodeRange.CR_UNKNOWN.toInt());
-        frame.setBoolean(FormatFrameDescriptor.TAINT_SLOT, false);
         frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 
         child.execute(frame);
@@ -78,14 +77,6 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
 
         try {
             output = (byte[]) frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
-
-        final boolean taint;
-
-        try {
-            taint = frame.getBoolean(FormatFrameDescriptor.TAINT_SLOT);
         } catch (FrameSlotTypeException e) {
             throw new IllegalStateException(e);
         }
@@ -126,7 +117,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
             associatedArray = null;
         }
 
-        return new BytesResult(output, outputLength, stringLength, stringCodeRange, taint, encoding, associatedArray);
+        return new BytesResult(output, outputLength, stringLength, stringCodeRange, encoding, associatedArray);
     }
 
     @TruffleBoundary

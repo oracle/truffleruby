@@ -270,10 +270,6 @@ module Truffle::CExt
     end
   end
 
-  def rb_tr_obj_infect(dest, source)
-    Primitive.infect(dest, source)
-  end
-
   FREEZE_METHOD = Kernel.instance_method :freeze
 
   def rb_obj_freeze(obj)
@@ -678,7 +674,7 @@ module Truffle::CExt
 
   def rb_str_new_native(pointer, length)
     raise "#{pointer} not a pointer" unless Truffle::Interop.pointer?(pointer)
-    Truffle::FFI::Pointer.new(pointer).read_string(length).untaint
+    Truffle::FFI::Pointer.new(pointer).read_string(length)
   end
 
   def rb_enc_str_coderange(str)

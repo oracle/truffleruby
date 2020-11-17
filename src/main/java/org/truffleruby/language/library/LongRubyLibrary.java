@@ -26,17 +26,4 @@ public class LongRubyLibrary {
         return true;
     }
 
-    @ExportMessage
-    protected static boolean isTainted(Long object) {
-        return false;
-    }
-
-    @ExportMessage
-    protected static void taint(Long object) {
-    }
-
-    @ExportMessage
-    protected static void untaint(Long object) {
-    }
-
 }

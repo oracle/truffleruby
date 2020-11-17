@@ -36,11 +36,5 @@ public abstract class RubyLibrary extends Library {
 
     public abstract boolean isFrozen(Object object);
 
-    public abstract boolean isTainted(Object object);
-
-    public abstract void taint(Object object);
-
-    public abstract void untaint(Object object);
-
 }
 

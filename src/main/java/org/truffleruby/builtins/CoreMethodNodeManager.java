@@ -18,7 +18,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -347,12 +346,6 @@ public class CoreMethodNodeManager {
         } else if (method.returnsEnumeratorIfNoBlock()) {
             // TODO BF 3-18-2015 Handle multiple method names correctly
             node = new ReturnEnumeratorIfNoBlockNode(method.names()[0], node);
-        }
-
-        if (method.taintFrom() != -1) {
-            final boolean taintFromSelf = method.taintFrom() == 0;
-            final int taintFromArg = taintFromSelf ? -1 : method.taintFrom() - 1;
-            node = new TaintResultNode(taintFromSelf, taintFromArg, node);
         }
 
         return node;

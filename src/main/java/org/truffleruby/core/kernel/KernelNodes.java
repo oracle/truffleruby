@@ -96,6 +96,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -124,7 +125,6 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -548,7 +548,6 @@ public abstract class KernelNodes {
 
         @Child private CopyNode copyNode = CopyNode.create();
         @Child private DispatchNode initializeCloneNode = DispatchNode.create();
-        @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
         @CreateCast("freeze")
@@ -574,8 +573,6 @@ public abstract class KernelNodes {
             }
 
             initializeCloneNode.call(newObject, "initialize_clone", self);
-
-            propagateTaintNode.executePropagate(self, newObject);
 
             if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(self))) {
                 rubyLibraryFreeze.freeze(newObject);
@@ -679,7 +676,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "dup", taintFrom = 0)
+    @CoreMethod(names = "dup")
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1844,13 +1841,12 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1, taintFrom = 1)
+    @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private MakeStringNode makeStringNode;
-        @Child private RubyLibrary rubyLibrary;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
@@ -1861,20 +1857,18 @@ public abstract class KernelNodes {
                 guards = {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(libFormat.getRope(format), cachedFormatRope)",
-                        "isDebug(frame) == cachedIsDebug" },
-                limit = "getRubyLibraryCacheLimit()")
+                        "isDebug(frame) == cachedIsDebug" })
         protected RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(format, arguments, isDebug(frame), libFormat))") DirectCallNode callPackNode,
-                @Cached RopeNodes.EqualNode equalNode,
-                @CachedLibrary("format") RubyLibrary rubyLibrary) {
+                @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length, rubyLibrary.isTainted(format), null });
+                        new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -1885,18 +1879,16 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
-                replaces = "formatCached",
-                limit = "getRubyLibraryCacheLimit()")
+                replaces = "formatCached")
         protected RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
-                @CachedLibrary("format") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
             final BytesResult result;
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(format, arguments, isDebug, libFormat),
-                        new Object[]{ arguments, arguments.length, rubyLibrary.isTainted(format), null });
+                        new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -1917,21 +1909,10 @@ public abstract class KernelNodes {
                 makeStringNode = insert(MakeStringNode.create());
             }
 
-            final RubyString string = makeStringNode.executeMake(
+            return makeStringNode.executeMake(
                     bytes,
                     result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange());
-
-            if (result.isTainted()) {
-                if (rubyLibrary == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
-                }
-
-                rubyLibrary.taint(string);
-            }
-
-            return string;
         }
 
         @TruffleBoundary
@@ -1970,10 +1951,30 @@ public abstract class KernelNodes {
     @CoreMethod(names = "taint")
     public abstract static class KernelTaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected Object taint(Object object,
-                @CachedLibrary("object") RubyLibrary rubyLibrary) {
-            rubyLibrary.taint(object);
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                warningNode.warningMessage(
+                        getSourceSection(),
+                        "Object#taint is deprecated and will be removed in Ruby 3.2.");
+            }
+            return object;
+        }
+
+    }
+
+    @CoreMethod(names = "trust")
+    public abstract static class KernelTrustNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object trust(Object object,
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                warningNode.warningMessage(
+                        getSourceSection(),
+                        "Object#trust is deprecated and will be removed in Ruby 3.2.");
+            }
             return object;
         }
 
@@ -1982,10 +1983,31 @@ public abstract class KernelNodes {
     @CoreMethod(names = "tainted?")
     public abstract static class KernelIsTaintedNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected boolean isTainted(Object object,
-                @CachedLibrary("object") RubyLibrary rubyLibrary) {
-            return rubyLibrary.isTainted(object);
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                warningNode.warningMessage(
+                        getSourceSection(),
+                        "Object#tainted? is deprecated and will be removed in Ruby 3.2.");
+            }
+            return false;
+        }
+
+    }
+
+    @CoreMethod(names = "untrusted?")
+    public abstract static class KernelIsUntrustedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean isUntrusted(Object object,
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                warningNode.warningMessage(
+                        getSourceSection(),
+                        "Object#untrusted? is deprecated and will be removed in Ruby 3.2.");
+            }
+            return false;
         }
 
     }
@@ -2037,18 +2059,15 @@ public abstract class KernelNodes {
                 @Cached LogicalClassNode classNode,
                 @Cached MakeStringNode makeStringNode,
                 @Cached ObjectIDNode objectIDNode,
-                @Cached ToHexStringNode toHexStringNode,
-                @Cached PropagateTaintNode propagateTaintNode) {
+                @Cached ToHexStringNode toHexStringNode) {
             String className = classNode.execute(self).fields.getName();
             Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
-            final RubyString string = makeStringNode.executeMake(
+            return makeStringNode.executeMake(
                     Utils.concat("#<", className, ":0x", hexID, ">"),
                     UTF8Encoding.INSTANCE,
                     CodeRange.CR_UNKNOWN);
-            propagateTaintNode.executePropagate(self, string);
-            return string;
         }
 
     }
@@ -2056,10 +2075,30 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        @Specialization
         protected Object untaint(Object object,
-                @CachedLibrary("object") RubyLibrary rubyLibrary) {
-            rubyLibrary.untaint(object);
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                warningNode.warningMessage(
+                        getSourceSection(),
+                        "Object#untaint is deprecated and will be removed in Ruby 3.2.");
+            }
+            return object;
+        }
+
+    }
+
+    @CoreMethod(names = "untrust")
+    public abstract static class UntrustNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object untrust(Object object,
+                @Cached("new()") WarningNode warningNode) {
+            if (warningNode.shouldWarn()) {
+                warningNode.warningMessage(
+                        getSourceSection(),
+                        "Object#untrust is deprecated and will be removed in Ruby 3.2.");
+            }
             return object;
         }
 

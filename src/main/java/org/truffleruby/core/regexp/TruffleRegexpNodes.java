@@ -36,7 +36,6 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
@@ -293,7 +292,6 @@ public class TruffleRegexpNodes {
 
     public static abstract class MatchNode extends RubyContextNode {
 
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private DispatchNode dupNode = DispatchNode.create();
 
         public static MatchNode create() {
@@ -345,7 +343,7 @@ public class TruffleRegexpNodes {
                     region,
                     null);
             AllocationTracing.trace(result, this);
-            return taintResultNode.maybeTaint(string, result);
+            return result;
         }
 
         @TruffleBoundary

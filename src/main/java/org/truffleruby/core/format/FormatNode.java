@@ -88,14 +88,6 @@ public abstract class FormatNode extends RubyContextNode {
         return sourcePosition;
     }
 
-    protected boolean isSourceTainted(VirtualFrame frame) {
-        try {
-            return frame.getBoolean(FormatFrameDescriptor.SOURCE_TAINTED_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     protected Object getOutput(VirtualFrame frame) {
         try {
             return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
@@ -146,10 +138,6 @@ public abstract class FormatNode extends RubyContextNode {
         } catch (FrameSlotTypeException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    protected void setTainted(VirtualFrame frame) {
-        frame.setBoolean(FormatFrameDescriptor.TAINT_SLOT, true);
     }
 
     protected void writeByte(VirtualFrame frame, byte value) {

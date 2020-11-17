@@ -528,7 +528,7 @@ module Truffle
       else
         str = obj.to_s
         if Primitive.object_kind_of?(str, String)
-          Primitive.infect(str, obj)
+          str
         else
           Truffle::Type.rb_any_to_s(obj)
         end

@@ -187,7 +187,6 @@ module Enumerable
         h[key] = [o]
       end
     end
-    Primitive.infect h, self
     h
   end
 
@@ -290,7 +289,6 @@ module Enumerable
       ary << o
       nil
     end
-    Primitive.infect ary, self
     ary
   end
   alias_method :entries, :to_a
