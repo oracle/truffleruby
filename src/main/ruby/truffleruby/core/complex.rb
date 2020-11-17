@@ -36,7 +36,7 @@
 
 class Complex < Numeric
 
-  undef_method :%, :<, :<=, :<=>, :>, :>=, :between?, :clamp, # comparable
+  undef_method :%, :<, :<=, :>, :>=, :between?, :clamp, # comparable
                :div, :divmod, :floor, :ceil, :modulo, :remainder,
                :round, :step, :truncate, :i, :negative?, :positive?
 
@@ -371,6 +371,16 @@ class Complex < Numeric
       instance_variable_set(ivar, ary.instance_variable_get(ivar))
     end
     self
+  end
+
+  def <=>(other)
+    if imag == 0 && other.kind_of?(Numeric)
+      if other.kind_of?(Complex) && other.imag == 0
+        real <=> other.real
+      elsif other.real?
+        real <=> other
+      end
+    end
   end
 
   I = Complex(0, 1)

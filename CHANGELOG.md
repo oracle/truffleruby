@@ -18,6 +18,7 @@ Compatibility:
 * Implement `Range#minmax`.
 * Pass more `Enumerator::Lazy#uniq` and `Enumerator::Lazy#chunk` specs (#2146, @LillianZ).
 * Implement `Enumerator#produce` (#2160, @zverok)
+* Implement `Complex#<=>` (#2004, @ssnickolay).
 
 Performance:
 

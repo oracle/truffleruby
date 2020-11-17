@@ -1,3 +1,0 @@
-fails:Complex#<=> returns nil if either self or argument has imaginary part
-fails:Complex#<=> returns nil if argument is not numeric
-fails:Complex#<=> returns 0, 1, or -1 if self and argument do not have imaginary part
