@@ -89,7 +89,7 @@ module Truffle
     ]
     # A simplified version of Regexp.new("[#{SHELL_META_CHARS.map { |c| Regexp.escape(c) }.join}]")
     # to avoid running too much code during initialization
-    SHELL_META_CHAR_PATTERN = /[*?{}\[\]<>()~&|\\$;'`"\n#=%]/
+    SHELL_META_CHAR_PATTERN = /[*?{}\[\]<>()~&|\\$;'`"\n#=%]/n
 
     def self.exec(*args)
       exe = Execute.new
@@ -543,7 +543,7 @@ module Truffle
       end
 
       def should_use_shell?(command)
-        command.match?(SHELL_META_CHAR_PATTERN)
+        command.b.match?(SHELL_META_CHAR_PATTERN)
       end
 
       def should_search_path?(command)

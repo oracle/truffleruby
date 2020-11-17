@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed setting of special variables in enumerators and enumerables (#1484).
 * Fixed return value of `Enumerable#count` and `Enumerable#uniq` with multiple yielded arguments (#2145, @LillianZ).
 * Fixed `String#unpack` for `w*` format (#2143).
+* Fixed issue with ``Kernel#` `` when invalid UTF-8 given (#2118).
 
 Compatibility:
 
