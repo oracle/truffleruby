@@ -25,4 +25,10 @@ describe "Range#to_a" do
       -> { eval("(1..)").to_a }.should raise_error(RangeError)
     end
   end
+
+  ruby_version_is "2.7" do
+    it "throws an exception for beginless ranges" do
+      -> { eval("(..1)").to_a }.should raise_error(TypeError)
+    end
+  end
 end
