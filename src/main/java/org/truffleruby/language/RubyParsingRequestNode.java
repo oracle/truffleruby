@@ -71,6 +71,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
     @Override
     public Object execute(VirtualFrame frame) {
         assert RubyLanguage.getCurrentContext() == context;
+        final RubyLanguage language = getLanguage(RubyLanguage.class);
 
         printTimeMetric("before-script");
         try {
@@ -85,8 +86,8 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             // The return value will be leaked to Java, so share it if the Context API is used.
             // We share conditionally on EMBEDDED to avoid sharing return values used in RubyLauncher.
-            if (context.getOptions().SHARED_OBJECTS_ENABLED && context.getOptions().EMBEDDED) {
-                SharedObjects.writeBarrier(context, value);
+            if (language.options.SHARED_OBJECTS_ENABLED && context.getOptions().EMBEDDED) {
+                SharedObjects.writeBarrier(language, value);
             }
 
             return value;

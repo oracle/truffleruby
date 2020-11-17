@@ -41,6 +41,12 @@ public class LanguageOptions {
     public final boolean PROFILE_ARGUMENTS;
     /** --hash-packed-array-max=3 */
     public final int HASH_PACKED_ARRAY_MAX;
+    /** --shared-objects=true */
+    public final boolean SHARED_OBJECTS_ENABLED;
+    /** --shared-objects-debug=false */
+    public final boolean SHARED_OBJECTS_DEBUG;
+    /** --shared-objects-force=false */
+    public final boolean SHARED_OBJECTS_FORCE;
 
     public LanguageOptions(Env env, OptionValues options) {
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
@@ -53,6 +59,9 @@ public class LanguageOptions {
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
+        SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
+        SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
+        SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -77,6 +86,12 @@ public class LanguageOptions {
                 return PROFILE_ARGUMENTS;
             case "ruby.hash-packed-array-max":
                 return HASH_PACKED_ARRAY_MAX;
+            case "ruby.shared-objects":
+                return SHARED_OBJECTS_ENABLED;
+            case "ruby.shared-objects-debug":
+                return SHARED_OBJECTS_DEBUG;
+            case "ruby.shared-objects-force":
+                return SHARED_OBJECTS_FORCE;
             default:
                 return null;
         }
@@ -92,7 +107,10 @@ public class LanguageOptions {
                one.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY)) &&
                one.get(OptionsCatalog.BASICOPS_INLINE_KEY).equals(two.get(OptionsCatalog.BASICOPS_INLINE_KEY)) &&
                one.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY).equals(two.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY)) &&
-               one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY));
+               one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY)) &&
+               one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
+               one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
+               one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY));
     }
 }
 // @formatter:on

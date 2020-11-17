@@ -331,9 +331,9 @@ public abstract class ThreadNodes {
             final Object[] args = stores.boxedCopyOfRange(arguments.store, 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
 
-            if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
+            if (getLanguage().options.SHARED_OBJECTS_ENABLED) {
                 getContext().getThreadManager().startSharing(thread, sharingReason);
-                SharedObjects.shareDeclarationFrame(getContext(), block);
+                SharedObjects.shareDeclarationFrame(getLanguage(), block);
             }
 
             getContext().getThreadManager().initialize(
@@ -643,15 +643,15 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected Object raise(RubyThread thread, RubyException exception) {
-            raiseInThread(getContext(), thread, exception, this);
+            raiseInThread(getLanguage(), getContext(), thread, exception, this);
             return nil;
         }
 
         @TruffleBoundary
-        public static void raiseInThread(RubyContext context, RubyThread rubyThread, RubyException exception,
-                Node currentNode) {
+        public static void raiseInThread(RubyLanguage language, RubyContext context, RubyThread rubyThread,
+                RubyException exception, Node currentNode) {
             // The exception will be shared with another thread
-            SharedObjects.writeBarrier(context, exception);
+            SharedObjects.writeBarrier(language, exception);
 
             context.getSafepointManager().pauseRubyThreadAndExecute(
                     "Thread#raise",

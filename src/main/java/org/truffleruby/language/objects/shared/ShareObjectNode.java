@@ -62,7 +62,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
         if (!object.getLogicalClass().getShape().isShared()) {
             // The logical class is fixed for a given Shape and only needs to be shared once
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            SharedObjects.writeBarrier(getContext(), object.getLogicalClass());
+            SharedObjects.writeBarrier(getLanguage(), object.getLogicalClass());
         }
 
         // Share the metaclass. Note that the metaclass might refer to `object` via `attached`,
@@ -70,7 +70,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
         if (!object.getMetaClass().getShape().isShared()) {
             // The metaclass is fixed for a given Shape and only needs to be shared once
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            SharedObjects.writeBarrier(getContext(), object.getMetaClass());
+            SharedObjects.writeBarrier(getLanguage(), object.getMetaClass());
         }
 
         shareInternalFieldsNode.executeShare(object);
@@ -97,7 +97,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
 
     @Specialization(replaces = { "shareCached", "updateShapeAndShare" })
     protected void shareUncached(RubyDynamicObject object) {
-        SharedObjects.writeBarrier(getContext(), object);
+        SharedObjects.writeBarrier(getLanguage(), object);
     }
 
     protected static List<Property> getObjectProperties(Shape shape) {

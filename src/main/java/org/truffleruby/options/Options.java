@@ -249,12 +249,6 @@ public class Options {
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */
     public final boolean METRICS_TIME_REQUIRE;
-    /** --shared-objects=true */
-    public final boolean SHARED_OBJECTS_ENABLED;
-    /** --shared-objects-debug=false */
-    public final boolean SHARED_OBJECTS_DEBUG;
-    /** --shared-objects-force=false */
-    public final boolean SHARED_OBJECTS_FORCE;
     /** --testing-rubygems=false */
     public final boolean TESTING_RUBYGEMS;
 
@@ -372,9 +366,6 @@ public class Options {
         REGEXP_INSTRUMENT_MATCH = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_KEY);
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
-        SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
-        SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
-        SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
     }
 
@@ -606,12 +597,6 @@ public class Options {
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":
                 return METRICS_TIME_REQUIRE;
-            case "ruby.shared-objects":
-                return SHARED_OBJECTS_ENABLED;
-            case "ruby.shared-objects-debug":
-                return SHARED_OBJECTS_DEBUG;
-            case "ruby.shared-objects-force":
-                return SHARED_OBJECTS_FORCE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
             default:

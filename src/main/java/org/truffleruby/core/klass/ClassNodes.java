@@ -236,7 +236,7 @@ public abstract class ClassNodes {
                 true,
                 rubyClass,
                 null);
-        SharedObjects.propagate(context, rubyClass, metaClass);
+        SharedObjects.propagate(context.getLanguageSlow(), rubyClass, metaClass);
         rubyClass.setMetaClass(metaClass);
 
         return rubyClass.getMetaClass();

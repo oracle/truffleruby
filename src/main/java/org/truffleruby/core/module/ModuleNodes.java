@@ -869,7 +869,7 @@ public abstract class ModuleNodes {
         protected Object setClassVariable(RubyModule module, String name, Object value) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
-            ModuleOperations.setClassVariable(getContext(), module, name, value, this);
+            ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
 
             return value;
         }
