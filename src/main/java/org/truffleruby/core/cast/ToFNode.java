@@ -77,7 +77,7 @@ public abstract class ToFNode extends RubyContextNode {
             }
         }
 
-        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().floatClass) {
+        if (coerced instanceof Double) {
             return (double) coerced;
         } else {
             errorProfile.enter();

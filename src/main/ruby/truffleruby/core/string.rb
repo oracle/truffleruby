@@ -1542,10 +1542,11 @@ class String
 
   def -@
     str = frozen? ? self : dup.freeze
-    if str.tainted? || !(str.instance_variables).empty?
+    if Primitive.string_interned?(self)
+      self
+    elsif str.tainted? || !(str.instance_variables).empty?
       str
     else
-      Truffle::Ropes.flatten_rope(str)
       Primitive.string_intern(str)
     end
   end

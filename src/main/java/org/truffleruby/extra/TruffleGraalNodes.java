@@ -9,6 +9,7 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -17,11 +18,10 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.ProcType;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -34,7 +34,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -229,10 +228,10 @@ public abstract class TruffleGraalNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class BailoutNode extends PrimitiveNode {
 
-        @Specialization
-        protected Object bailout(RubyString message,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
+        @Specialization(guards = "strings.isRubyString(message)")
+        protected Object bailout(Object message,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            CompilerDirectives.bailout(strings.getJavaString(message));
             return nil;
         }
     }

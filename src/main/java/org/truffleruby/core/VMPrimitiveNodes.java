@@ -40,6 +40,7 @@ package org.truffleruby.core;
 import java.io.PrintStream;
 import java.util.Map.Entry;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -70,6 +71,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -229,10 +231,12 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected boolean restoreDefault(RubyString signalString, RubyString action) {
-            final String actionString = action.getJavaString();
-            final String signalName = signalString.getJavaString();
+        @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })
+        protected boolean restoreDefault(Object signalString, Object action,
+                @CachedLibrary(limit = "2") RubyStringLibrary libSignalString,
+                @CachedLibrary(limit = "2") RubyStringLibrary libAction) {
+            final String actionString = libAction.getJavaString(action);
+            final String signalName = libSignalString.getJavaString(signalString);
 
             switch (actionString) {
                 case "DEFAULT":
@@ -247,8 +251,9 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected boolean watchSignalProc(RubyString signalString, RubyProc action) {
+        @Specialization(guards = "libSignalString.isRubyString(signalString)")
+        protected boolean watchSignalProc(Object signalString, RubyProc action,
+                @CachedLibrary(limit = "2") RubyStringLibrary libSignalString) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), action);
@@ -256,7 +261,7 @@ public abstract class VMPrimitiveNodes {
 
             final RubyContext context = getContext();
 
-            String signalName = signalString.getJavaString();
+            String signalName = libSignalString.getJavaString(signalString);
             return registerHandler(signalName, signal -> {
                 if (context.getOptions().SINGLE_THREADED) {
                     RubyLanguage.LOGGER.severe(
@@ -375,8 +380,10 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object get(RubyString key) {
-            final Object value = getContext().getNativeConfiguration().get(key.getJavaString());
+        protected Object get(Object key,
+                @CachedLibrary(limit = "2") RubyStringLibrary library) {
+            final String keyString = library.getJavaString(key);
+            final Object value = getContext().getNativeConfiguration().get(keyString);
 
             if (value == null) {
                 return nil;
@@ -392,12 +399,13 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object getSection(RubyString section, RubyProc block,
+        protected Object getSection(Object section, RubyProc block,
+                @CachedLibrary(limit = "2") RubyStringLibrary libSection,
                 @Cached MakeStringNode makeStringNode,
                 @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
-                    .getSection(section.getJavaString())) {
+                    .getSection(libSection.getJavaString(section))) {
                 final RubyString key = makeStringNode
                         .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, key, entry.getValue());

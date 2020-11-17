@@ -11,6 +11,7 @@ package org.truffleruby.extra.ffi;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.ASCIIEncoding;
@@ -34,6 +35,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -92,7 +94,8 @@ public abstract class PointerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int findTypeSize(RubySymbol type) {
+        protected int findTypeSize(RubySymbol type,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary) {
             final String typeString = type.getString();
             final int size = typeSize(typeString);
             if (size > 0) {
@@ -101,7 +104,7 @@ public abstract class PointerNodes {
                 final Object typedef = getContext()
                         .getTruffleNFI()
                         .resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
-                final int typedefSize = typeSize(((RubyString) typedef).getJavaString());
+                final int typedefSize = typeSize(stringLibrary.getJavaString(typedef));
                 assert typedefSize > 0 : typedef;
                 return typedefSize;
             }
@@ -350,11 +353,12 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
     public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization
-        protected RubyString writeBytes(long address, RubyString string, int index, int length,
-                @Cached RopeNodes.BytesNode bytesNode) {
+        @Specialization(guards = "libString.isRubyString(string)")
+        protected Object writeBytes(long address, Object string, int index, int length,
+                @Cached RopeNodes.BytesNode bytesNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Pointer ptr = new Pointer(address);
-            final Rope rope = string.rope;
+            final Rope rope = libString.getRope(string);
             assert index + length <= rope.byteLength();
             if (length != 0) {
                 // No need to check the pointer address if we write nothing

@@ -11,13 +11,14 @@ package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
@@ -43,11 +44,14 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
+                    "stringsSelf.isRubyString(self)",
+                    "stringsB.isRubyString(b)",
                     "lookupNode.lookupProtected(frame, self, METHOD) == coreMethods().STRING_EQUAL"
             },
-            assumptions = "assumptions",
-            limit = "1")
-    protected boolean stringEqual(VirtualFrame frame, RubyString self, RubyString b,
+            assumptions = "assumptions")
+    protected boolean stringEqual(VirtualFrame frame, Object self, Object b,
+            @CachedLibrary(limit = "2") RubyStringLibrary stringsSelf,
+            @CachedLibrary(limit = "2") RubyStringLibrary stringsB,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached StringNodes.StringEqualNode stringEqualNode) {
         return stringEqualNode.executeStringEqual(self, b);

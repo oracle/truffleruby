@@ -46,9 +46,11 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -98,9 +100,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected RubyHandle setBreak(RubyString file, int line, RubyProc block) {
-            final String fileString = file.getJavaString();
+        @Specialization(guards = "strings.isRubyString(file)")
+        protected RubyHandle setBreak(Object file, int line, RubyProc block,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            final String fileString = strings.getJavaString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
@@ -408,9 +411,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwJavaException(RubyString message) {
-            callingMethod(message.getJavaString());
+        @Specialization(guards = "strings.isRubyString(message)")
+        protected Object throwJavaException(Object message,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            callingMethod(strings.getJavaString(message));
             return nil;
         }
 
@@ -430,10 +434,11 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionWithCauseNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwJavaExceptionWithCause(RubyString message) {
+        @Specialization(guards = "strings.isRubyString(message)")
+        protected Object throwJavaExceptionWithCause(Object message,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             throw new RuntimeException(
-                    message.getJavaString(),
+                    strings.getJavaString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
         }
 
@@ -443,9 +448,10 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowAssertionErrorNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwAssertionError(RubyString message) {
-            throw new AssertionError(message.getJavaString());
+        @Specialization(guards = "strings.isRubyString(message)")
+        protected Object throwAssertionError(Object message,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            throw new AssertionError(strings.getRope(message));
         }
 
     }
@@ -821,9 +827,10 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object foreignString(RubyString string) {
-            return new ForeignString(string.getJavaString());
+        @Specialization(guards = "strings.isRubyString(string)")
+        protected Object foreignString(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            return new ForeignString(strings.getJavaString(string));
         }
 
     }
@@ -922,6 +929,13 @@ public abstract class TruffleDebugNodes {
 
             return ArrayHelpers.createArray(getContext(), getLanguage(), associatedValues);
         }
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray associated(ImmutableRubyString string) {
+            return ArrayHelpers.createEmptyArray(getContext(), getLanguage());
+        }
+
     }
 
     @CoreMethod(names = "drain_finalization_queue", onSingleton = true)

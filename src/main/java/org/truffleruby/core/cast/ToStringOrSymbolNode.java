@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -20,8 +22,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 
 /** Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are. */
@@ -40,9 +42,15 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
         return string;
     }
 
-    @Specialization(guards = { "!isRubySymbol(object)", "!isRubyString(object)" })
-    protected RubyString coerceObject(VirtualFrame frame, Object object,
-            @Cached BranchProfile errorProfile) {
+    @Specialization
+    protected ImmutableRubyString coerceRubyString(ImmutableRubyString string) {
+        return string;
+    }
+
+    @Specialization(guards = { "!isRubySymbol(object)", "isNotRubyString(object)" })
+    protected Object coerceObject(Object object,
+            @Cached BranchProfile errorProfile,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object coerced;
         try {
             coerced = callToStr(object);
@@ -57,8 +65,8 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
             }
         }
 
-        if (coerced instanceof RubyString) {
-            return (RubyString) coerced;
+        if (libString.isRubyString(coerced)) {
+            return coerced;
         } else {
             errorProfile.enter();
             throw new RaiseException(

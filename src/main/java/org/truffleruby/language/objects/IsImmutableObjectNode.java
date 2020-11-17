@@ -12,9 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -46,17 +44,7 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
     }
 
     @Specialization
-    protected boolean isImmutableNilObject(Nil nil) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isImmutableBignumObject(RubyBignum object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isImmutableSymbolObject(RubySymbol symbol) {
+    protected boolean isImmutableObject(ImmutableRubyObject object) {
         return true;
     }
 

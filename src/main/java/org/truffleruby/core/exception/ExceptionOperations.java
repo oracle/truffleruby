@@ -14,16 +14,15 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
 
@@ -41,11 +40,12 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     private static String messageFieldToString(RubyContext context, RubyException exception) {
         Object message = exception.message;
+        RubyStringLibrary strings = RubyStringLibrary.getUncached();
         if (message == null || message == Nil.INSTANCE) {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
-        } else if (RubyGuards.isRubyString(message)) {
-            return ((RubyString) message).getJavaString();
+        } else if (strings.isRubyString(message)) {
+            return strings.getJavaString(message);
         } else {
             return message.toString();
         }
@@ -55,8 +55,10 @@ public abstract class ExceptionOperations {
     public static String messageToString(RubyContext context, RubyException exception) {
         try {
             final Object messageObject = context.send(exception, "message");
-            if (RubyGuards.isRubyString(messageObject)) {
-                return ((RubyString) messageObject).getJavaString();
+
+            final RubyStringLibrary libString = RubyStringLibrary.getUncached();
+            if (libString.isRubyString(messageObject)) {
+                return libString.getJavaString(messageObject);
             }
         } catch (Throwable e) {
             // Fall back to the internal message field

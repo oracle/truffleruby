@@ -43,10 +43,12 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -75,14 +77,8 @@ public abstract class StringOperations {
     }
 
     // TODO BJF Aug-3-2020 Trace more allocations of RubyString
-    public static RubyString createFrozenString(RubyContext context, RubyLanguage language, Rope rope) {
-        final RubyString instance = new RubyString(
-                context.getCoreLibrary().stringClass,
-                language.stringShape,
-                true,
-                false,
-                rope);
-        return instance;
+    public static ImmutableRubyString createFrozenString(LeafRope rope) {
+        return new ImmutableRubyString(rope);
     }
 
     public static int clampExclusiveIndex(int length, int index) {
@@ -113,7 +109,7 @@ public abstract class StringOperations {
         return bytes;
     }
 
-    public static Rope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
+    public static LeafRope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
         if (codeRange == CodeRange.CR_7BIT) {
             return RopeOperations.encodeAscii(value, encoding);
         }
@@ -123,7 +119,7 @@ public abstract class StringOperations {
         return RopeOperations.create(bytes, encoding, codeRange);
     }
 
-    public static Rope encodeRope(String value, Encoding encoding) {
+    public static LeafRope encodeRope(String value, Encoding encoding) {
         return encodeRope(value, encoding, CodeRange.CR_UNKNOWN);
     }
 

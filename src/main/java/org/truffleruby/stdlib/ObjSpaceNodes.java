@@ -19,6 +19,7 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 
@@ -49,6 +50,11 @@ public abstract class ObjSpaceNodes {
         }
 
         @Specialization
+        protected int memsizeOfString(ImmutableRubyString object) {
+            return 1 + object.rope.byteLength();
+        }
+
+        @Specialization
         protected int memsizeOfMatchData(RubyMatchData object,
                 @Cached ValuesNode matchDataValues) {
             return memsizeOfObject(object) + matchDataValues.execute(object).length;
@@ -58,7 +64,7 @@ public abstract class ObjSpaceNodes {
                 guards = {
                         "!isRubyArray(object)",
                         "!isRubyHash(object)",
-                        "!isRubyString(object)",
+                        "isNotRubyString(object)",
                         "!isRubyMatchData(object)" })
         protected int memsizeOfObject(RubyDynamicObject object) {
             return 1 + object.getShape().getPropertyListInternal(false).size();

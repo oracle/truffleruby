@@ -11,7 +11,7 @@ package org.truffleruby.core.encoding;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -23,9 +23,9 @@ import java.util.Set;
 public class RubyEncoding extends RubyDynamicObject implements ObjectGraphNode {
 
     public final Encoding encoding;
-    public final RubyString name;
+    public final ImmutableRubyString name;
 
-    public RubyEncoding(RubyClass rubyClass, Shape shape, Encoding encoding, RubyString name) {
+    public RubyEncoding(RubyClass rubyClass, Shape shape, Encoding encoding, ImmutableRubyString name) {
         super(rubyClass, shape);
         this.encoding = encoding;
         this.name = name;

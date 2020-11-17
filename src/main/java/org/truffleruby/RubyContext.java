@@ -51,10 +51,8 @@ import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RegexpCacheKey;
+import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.PathToRopeCache;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.FrozenStringLiterals;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
@@ -62,6 +60,7 @@ import org.truffleruby.debug.MetricsProfiler;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
@@ -117,7 +116,6 @@ public class RubyContext {
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final CallStackManager callStack = new CallStackManager(this);
-    private final FrozenStringLiterals frozenStringLiterals;
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
@@ -128,6 +126,7 @@ public class RubyContext {
     private final Map<Source, Integer> sourceLineOffsets = Collections.synchronizedMap(new WeakHashMap<>());
     /** (Symbol, refinements) -> Proc for Symbol#to_proc */
     public final Map<Pair<RubySymbol, Map<RubyModule, RubyModule[]>>, RootCallTarget> cachedSymbolToProcTargetsWithRefinements = new ConcurrentHashMap<>();
+    private final Map<ImmutableRubyString, NativeRope> immutableNativeRopes = new ConcurrentHashMap<>();
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
@@ -173,7 +172,6 @@ public class RubyContext {
         options = createOptions(env, language.options);
 
         safepointManager = new SafepointManager(this, language);
-        frozenStringLiterals = new FrozenStringLiterals(this, language);
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
@@ -626,14 +624,6 @@ public class RubyContext {
         return callStack;
     }
 
-    public RubyString getFrozenStringLiteral(Rope rope) {
-        return frozenStringLiterals.getFrozenStringLiteral(rope);
-    }
-
-    public RubyString getInternedString(RubyString string) {
-        return frozenStringLiterals.getFrozenStringLiteral(string);
-    }
-
     public Object getClassVariableDefinitionLock() {
         return classVariableDefinitionLock;
     }
@@ -756,6 +746,10 @@ public class RubyContext {
 
     public Map<Source, Integer> getSourceLineOffsets() {
         return sourceLineOffsets;
+    }
+
+    public Map<ImmutableRubyString, NativeRope> getImmutableNativeRopes() {
+        return immutableNativeRopes;
     }
 
     private static SecureRandom createRandomInstance() {

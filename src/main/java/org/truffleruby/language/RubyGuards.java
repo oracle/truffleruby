@@ -120,8 +120,9 @@ public abstract class RubyGuards {
         return value instanceof RubyRegexp;
     }
 
-    public static boolean isRubyString(Object value) {
-        return value instanceof RubyString;
+    /** Use RubyStringLibrary to check if it's a String */
+    public static boolean isNotRubyString(Object value) {
+        return !(value instanceof ImmutableRubyString) && !(value instanceof RubyString);
     }
 
     public static boolean isRubySymbol(Object value) {
@@ -130,7 +131,7 @@ public abstract class RubyGuards {
 
     /** Should be used only for interop together with {@link ToJavaStringNode} */
     public static boolean isRubySymbolOrString(Object value) {
-        return isRubySymbol(value) || isRubyString(value);
+        return isRubySymbol(value) || value instanceof RubyString || value instanceof ImmutableRubyString;
     }
 
     public static boolean isRubyEncoding(Object object) {

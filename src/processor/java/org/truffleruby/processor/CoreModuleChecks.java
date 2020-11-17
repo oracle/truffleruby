@@ -238,7 +238,8 @@ public class CoreModuleChecks {
     private static boolean isGuarded(String name, String[] guards) {
         for (String guard : guards) {
             if (guard.equals("wasProvided(" + name + ")") ||
-                    guard.equals("wasNotProvided(" + name + ")")) {
+                    guard.equals("wasNotProvided(" + name + ")") ||
+                    (!guard.startsWith("!") && guard.endsWith(".isRubyString(" + name + ")"))) {
                 return true;
             }
         }

@@ -21,7 +21,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -32,15 +31,18 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
     @Child private RegexpBuilderNode builderNode;
+    @Child private RubyStringLibrary rubyStringLibrary;
 
     public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
         this.children = children;
         builderNode = RegexpBuilderNode.create(options);
+        rubyStringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
     }
 
     @Override
@@ -53,7 +55,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         Rope[] values = new Rope[children.length];
         for (int i = 0; i < children.length; i++) {
             final Object value = children[i].execute(frame);
-            values[i] = ((RubyString) value).rope;
+            values[i] = rubyStringLibrary.getRope(value);
         }
         return values;
     }

@@ -12,6 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -75,6 +76,11 @@ public abstract class BooleanCastNode extends RubyBaseNode {
 
     @Specialization
     protected boolean doSymbol(RubySymbol object) {
+        return true;
+    }
+
+    @Specialization
+    protected boolean doImmutableRubyString(ImmutableRubyString string) {
         return true;
     }
 

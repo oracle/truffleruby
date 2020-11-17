@@ -11,12 +11,13 @@ package org.truffleruby.interop;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
@@ -32,6 +33,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @CoreModule("Polyglot")
 public abstract class PolyglotNodes {
@@ -43,28 +45,36 @@ public abstract class PolyglotNodes {
 
         @Specialization(
                 guards = {
-                        "idEqualNode.execute(id.rope, cachedMimeType)",
-                        "sourceEqualNode.execute(source.rope, cachedSource)" },
+                        "stringsId.isRubyString(id)",
+                        "stringsSource.isRubyString(source)",
+                        "idEqualNode.execute(stringsId.getRope(id), cachedMimeType)",
+                        "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(RubyString id, RubyString source,
-                @Cached("privatizeRope(id)") Rope cachedMimeType,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("create(parse(id, source))") DirectCallNode callNode,
+        protected Object evalCached(Object id, Object source,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @Cached("stringsId.getRope(id)") Rope cachedMimeType,
+                @Cached("stringsSource.getRope(source)") Rope cachedSource,
+                @Cached("create(parse(stringsId.getRope(id), stringsSource.getRope(source)))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode idEqualNode,
                 @Cached RopeNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
-        @Specialization(replaces = "evalCached")
-        protected Object evalUncached(RubyString id, RubyString source,
+        @Specialization(
+                guards = { "stringsId.isRubyString(id)", "stringsSource.isRubyString(source)" },
+                replaces = "evalCached")
+        protected Object evalUncached(Object id, Object source,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(id, source), EMPTY_ARGUMENTS);
+            return callNode.call(parse(stringsId.getRope(id), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(RubyString id, RubyString code) {
-            final String idString = id.getJavaString();
-            final String codeString = code.getJavaString();
+        protected CallTarget parse(Rope id, Rope code) {
+            final String idString = RopeOperations.decodeRope(id);
+            final String codeString = RopeOperations.decodeRope(code);
             final Source source = Source.newBuilder(idString, codeString, "(eval)").build();
             try {
                 return getContext().getEnv().parsePublic(source);
@@ -88,11 +98,12 @@ public abstract class PolyglotNodes {
     public abstract static class EvalFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object evalFile(RubyString fileName, NotProvided id) {
+        @Specialization(guards = "strings.isRubyString(fileName)")
+        protected Object evalFile(Object fileName, NotProvided id,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final Source source;
             //intern() to improve footprint
-            final String path = fileName.getJavaString().intern();
+            final String path = strings.getJavaString(fileName).intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
@@ -110,10 +121,15 @@ public abstract class PolyglotNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object evalFile(RubyString id, RubyString fileName) {
-            final String idString = id.getJavaString();
-            final Source source = getSource(idString, fileName);
+        @Specialization(
+                guards = {
+                        "stringsId.isRubyString(id)",
+                        "stringsFileName.isRubyString(fileName)" })
+        protected Object evalFile(Object id, Object fileName,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsId,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName) {
+            final String idString = stringsId.getJavaString(id);
+            final Source source = getSource(idString, stringsFileName.getJavaString(fileName));
             return eval(source);
         }
 
@@ -127,9 +143,9 @@ public abstract class PolyglotNodes {
             return callTarget.call();
         }
 
-        private Source getSource(String language, RubyString fileName) {
+        private Source getSource(String language, String fileName) {
             //intern() to improve footprint
-            final String path = fileName.getJavaString().intern();
+            final String path = fileName.intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 return Source.newBuilder(language, file).build();

@@ -9,23 +9,27 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
-    @Child private DispatchNode dupNode;
-
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
+    @Specialization
+    protected Object immutable(ImmutableRubyString string, boolean compareByIdentity) {
+        return string;
+    }
+
     @Specialization(
-            guards = { "rubyLibrary.isFrozen(string)" },
+            guards = "rubyLibrary.isFrozen(string)",
             limit = "getRubyLibraryCacheLimit()")
     protected Object alreadyFrozen(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
@@ -37,8 +41,9 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
             limit = "getRubyLibraryCacheLimit()")
     protected Object dupAndFreeze(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
-            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject) {
-        final Object object = dup(string);
+            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject,
+            @Cached DispatchNode dupNode) {
+        final Object object = dupNode.call(string, "dup");
         rubyLibraryObject.freeze(object);
         return object;
     }
@@ -51,19 +56,9 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
         return string;
     }
 
-    @Specialization(guards = "!isRubyString(value)")
+    @Specialization(guards = "isNotRubyString(value)")
     protected Object passThrough(Object value, boolean compareByIdentity) {
         return value;
     }
-
-
-    private Object dup(Object value) {
-        if (dupNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            dupNode = insert(DispatchNode.create());
-        }
-        return dupNode.call(value, "dup");
-    }
-
 
 }

@@ -51,6 +51,7 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 @CoreModule("Truffle::Readline")
 public abstract class ReadlineNodes {
@@ -79,9 +80,10 @@ public abstract class ReadlineNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected RubyString setBasicWordBreakCharacters(RubyString characters) {
-            final String delimiters = characters.getJavaString();
+        @Specialization(guards = "strings.isRubyString(characters)")
+        protected Object setBasicWordBreakCharacters(Object characters,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            final String delimiters = strings.getJavaString(characters);
             getContext().getConsoleHolder().getParser().setDelimiters(delimiters);
             return characters;
         }

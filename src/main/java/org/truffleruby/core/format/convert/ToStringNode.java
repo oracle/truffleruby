@@ -18,9 +18,7 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 
@@ -31,6 +29,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
@@ -84,9 +83,12 @@ public abstract class ToStringNode extends FormatNode {
         return RopeOperations.encodeAsciiBytes(Double.toString(value));
     }
 
-    @Specialization(limit = "getRubyLibraryCacheLimit()")
-    protected byte[] toStringString(VirtualFrame frame, RubyString string,
+    @Specialization(guards = "libString.isRubyString(string)", limit = "getRubyLibraryCacheLimit()")
+    protected byte[] toStringString(VirtualFrame frame, Object string,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
+            @CachedLibrary(limit = "2") RubyLibrary rubyLibraryValue,
+            @CachedLibrary(limit = "2") RubyStringLibrary libValue,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (taintedProfile.profile(rubyLibrary.isTainted(string))) {
             setTainted(frame);
@@ -94,22 +96,23 @@ public abstract class ToStringNode extends FormatNode {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
-            if (RubyGuards.isRubyString(value)) {
-                if (taintedProfile.profile(rubyLibrary.isTainted(value))) {
+            if (libValue.isRubyString(value)) {
+                if (taintedProfile.profile(rubyLibraryValue.isTainted(value))) {
                     setTainted(frame);
                 }
 
-                return bytesNode.execute(((RubyString) value).rope);
+                return bytesNode.execute(libValue.getRope(value));
             } else {
                 throw new NoImplicitConversionException(string, "String");
             }
         }
-        return bytesNode.execute(string.rope);
+        return bytesNode.execute(libString.getRope(string));
     }
 
     @Specialization
     protected byte[] toString(VirtualFrame frame, RubyArray array,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -118,30 +121,31 @@ public abstract class ToStringNode extends FormatNode {
 
         final Object value = toSNode.call(array, "to_s");
 
-        if (RubyGuards.isRubyString(value)) {
+        if (libString.isRubyString(value)) {
             if (taintedProfile.profile(rubyLibrary.isTainted(value))) {
                 setTainted(frame);
             }
 
-            return bytesNode.execute(((RubyString) value).rope);
+            return bytesNode.execute(libString.getRope(value));
         } else {
             throw new NoImplicitConversionException(array, "String");
         }
     }
 
     @Specialization(
-            guards = { "!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
+            guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     protected byte[] toString(VirtualFrame frame, Object object,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
-        if (RubyGuards.isRubyString(value)) {
+        if (libString.isRubyString(value)) {
             if (taintedProfile.profile(rubyLibrary.isTainted(value))) {
                 setTainted(frame);
             }
 
-            return bytesNode.execute(((RubyString) value).rope);
+            return bytesNode.execute(libString.getRope(value));
         }
 
         if (inspectOnConversionFailure) {
@@ -150,7 +154,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
-            return bytesNode.execute((inspectNode.executeToS(object)).rope);
+            return bytesNode.execute(inspectNode.executeToS(object).rope);
         } else {
             throw new NoImplicitConversionException(object, "String");
         }

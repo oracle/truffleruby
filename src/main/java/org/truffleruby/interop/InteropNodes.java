@@ -37,12 +37,14 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -51,6 +53,8 @@ import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CallTarget;
@@ -190,19 +194,26 @@ public abstract class InteropNodes {
             return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
         }
 
+        @TruffleBoundary
+        @Specialization
+        protected boolean isMimeTypeSupportedImmutable(ImmutableRubyString mimeType) {
+            return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
+        }
+
     }
 
     @CoreMethod(names = "import_file", onSingleton = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object importFile(RubyString fileName) {
+        @Specialization(guards = "strings.isRubyString(fileName)")
+        protected Object importFile(Object fileName,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             try {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
-                        .getPublicTruffleFile(fileName.getJavaString().intern());
+                        .getPublicTruffleFile(strings.getJavaString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
@@ -221,28 +232,37 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = {
-                        "mimeTypeEqualNode.execute(mimeType.rope, cachedMimeType)",
-                        "sourceEqualNode.execute(source.rope, cachedSource)" },
+                        "stringsMimeType.isRubyString(mimeType)",
+                        "stringsSource.isRubyString(source)",
+                        "mimeTypeEqualNode.execute(stringsMimeType.getRope(mimeType), cachedMimeType)",
+                        "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(RubyString mimeType, RubyString source,
-                @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
+        protected Object evalCached(Object mimeType, Object source,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsMimeType,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @Cached("stringsMimeType.getRope(mimeType)") Rope cachedMimeType,
+                @Cached("stringsSource.getRope(source)") Rope cachedSource,
+                @Cached("create(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode mimeTypeEqualNode,
                 @Cached RopeNodes.EqualNode sourceEqualNode) {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
-        @Specialization(replaces = "evalCached")
-        protected Object evalUncached(RubyString mimeType, RubyString source,
+        @Specialization(
+                guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
+                replaces = "evalCached")
+        protected Object evalUncached(Object mimeType, RubyString source,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsMimeType,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(mimeType, source), EMPTY_ARGUMENTS);
+            return callNode
+                    .call(parse(stringsMimeType.getRope(mimeType), stringsSource.getRope(source)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(RubyString mimeType, RubyString code) {
-            final String mimeTypeString = mimeType.getJavaString();
-            final String codeString = code.getJavaString();
+        protected CallTarget parse(Rope ropeMimeType, Rope ropeCode) {
+            final String mimeTypeString = RopeOperations.decodeRope(ropeMimeType);
+            final String codeString = RopeOperations.decodeRope(ropeCode);
             String language = Source.findLanguage(mimeTypeString);
             if (language == null) {
                 // Give the original string to get the nice exception from Truffle
@@ -265,15 +285,16 @@ public abstract class InteropNodes {
     @Primitive(name = "interop_eval_nfi")
     public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        protected Object evalNFI(RubyString code,
+        @Specialization(guards = "library.isRubyString(code)")
+        protected Object evalNFI(Object code,
+                @CachedLibrary(limit = "2") RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(code), EMPTY_ARGUMENTS);
+            return callNode.call(parse(library.getRope(code)), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(RubyString code) {
-            final String codeString = code.getJavaString();
+        protected CallTarget parse(Rope code) {
+            final String codeString = RopeOperations.decodeRope(code);
             final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
 
             try {
@@ -1848,6 +1869,12 @@ public abstract class InteropNodes {
             return javaType(name.getJavaString());
         }
 
+        @TruffleBoundary
+        @Specialization
+        protected Object javaTypeString(ImmutableRubyString name) {
+            return javaType(name.getJavaString());
+        }
+
         private Object javaType(String name) {
             final TruffleLanguage.Env env = getContext().getEnv();
 
@@ -1887,16 +1914,17 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object metaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
-                @Cached BranchProfile errorProfile) {
+                @Cached BranchProfile errorProfile,
+                @Cached LogicalClassNode logicalClassNode) {
             if (interop.hasMetaObject(value)) {
                 try {
                     return interop.getMetaObject(value);
                 } catch (UnsupportedMessageException e) {
                     errorProfile.enter();
-                    return coreLibrary().getLogicalClass(value);
+                    return logicalClassNode.executeLogicalClass(value);
                 }
             } else {
-                return coreLibrary().getLogicalClass(value);
+                return logicalClassNode.executeLogicalClass(value);
             }
         }
     }

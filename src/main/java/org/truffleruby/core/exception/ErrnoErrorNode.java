@@ -15,6 +15,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -28,10 +29,10 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     @Child private DispatchNode formatMessageNode;
 
-    public abstract RubySystemCallError execute(int errno, RubyString extraMessage, Backtrace backtrace);
+    public abstract RubySystemCallError execute(int errno, Object extraMessage, Backtrace backtrace);
 
     @Specialization
-    protected RubySystemCallError errnoError(int errno, RubyString extraMessage, Backtrace backtrace) {
+    protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;
@@ -54,7 +55,8 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
                 .createSystemCallError(getContext(), errnoClass, errorMessage, errno, backtrace);
     }
 
-    private RubyString formatMessage(Object errnoDescription, int errno, RubyString extraMessage) {
+    private RubyString formatMessage(Object errnoDescription, int errno, Object extraMessage) {
+        assert extraMessage instanceof RubyString || extraMessage instanceof ImmutableRubyString;
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             formatMessageNode = insert(DispatchNode.create());

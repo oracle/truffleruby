@@ -60,11 +60,12 @@ import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -511,8 +512,8 @@ public class BodyTranslator extends Translator {
             final Rope nodeRope = strNode.getValue();
             final CodeRange codeRange = strNode.getCodeRange();
 
-            final Rope rope = language.ropeCache.getRope(nodeRope, codeRange);
-            final RubyString frozenString = context.getFrozenStringLiteral(rope);
+            final LeafRope rope = language.ropeCache.getRope(nodeRope, codeRange);
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(rope);
 
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
@@ -1335,7 +1336,7 @@ public class BodyTranslator extends Translator {
 
         if (node.getBody() == null) { // "#{}"
             final SourceIndexLength sourceSection = node.getPosition();
-            ret = new ObjectLiteralNode(context.getFrozenStringLiteral(RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+            ret = new ObjectLiteralNode(language.getFrozenStringLiteral(RopeConstants.EMPTY_ASCII_8BIT_ROPE));
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = node.getBody().accept(this);
@@ -2937,11 +2938,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final Rope rope = language.ropeCache.getRope(node.getValue(), node.getCodeRange());
+        final LeafRope rope = language.ropeCache.getRope(node.getValue(), node.getCodeRange());
         final RubyNode ret;
 
         if (node.isFrozen()) {
-            final RubyString frozenString = context.getFrozenStringLiteral(rope);
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(rope);
 
             ret = new DefinedWrapperNode(
                     language.coreStrings.EXPRESSION,

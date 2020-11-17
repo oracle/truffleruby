@@ -17,10 +17,10 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -34,6 +34,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @NodeChild(value = "value", type = RubyNode.class)
@@ -196,18 +197,23 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return createNormalBigDecimal(round(value.value, BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
-    @Specialization
-    protected RubyBigDecimal createString(RubyString value, NotProvided digits, boolean strict) {
-        return createString(value, 0, strict);
+    @Specialization(guards = "strings.isRubyString(value)")
+    protected RubyBigDecimal createString(Object value, NotProvided digits, boolean strict,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+        return createString(value, 0, strict, strings);
     }
 
     @TruffleBoundary
-    @Specialization
-    protected RubyBigDecimal createString(RubyString value, int digits, boolean strict) {
-        return executeCreate(getValueFromString(value.getJavaString(), digits, strict), digits, strict);
+    @Specialization(guards = "strings.isRubyString(value)")
+    protected RubyBigDecimal createString(Object value, int digits, boolean strict,
+            @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+        return executeCreate(
+                getValueFromString(strings.getJavaString(value), digits, strict),
+                digits,
+                strict);
     }
 
-    @Specialization(guards = { "!isRubyBignum(value)", "!isRubyBigDecimal(value)", "!isRubyString(value)" })
+    @Specialization(guards = { "!isRubyBignum(value)", "!isRubyBigDecimal(value)", "isNotRubyString(value)" })
     protected RubyBigDecimal create(RubyDynamicObject value, int digits, boolean strict,
             @Cached BigDecimalCastNode bigDecimalCastNode,
             @Cached ConditionProfile castProfile) {

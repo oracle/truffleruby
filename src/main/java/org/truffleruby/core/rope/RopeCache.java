@@ -18,7 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class RopeCache {
 
-    private final WeakValueCache<BytesKey, Rope> bytesToRope = new WeakValueCache<>();
+    private final WeakValueCache<BytesKey, LeafRope> bytesToRope = new WeakValueCache<>();
 
     private int byteArrayReusedCount;
     private int ropesReusedCount;
@@ -30,16 +30,16 @@ public class RopeCache {
     }
 
     private void addRopeConstants() {
-        for (Rope rope : RopeConstants.UTF8_SINGLE_BYTE_ROPES) {
+        for (LeafRope rope : RopeConstants.UTF8_SINGLE_BYTE_ROPES) {
             register(rope);
         }
-        for (Rope rope : RopeConstants.US_ASCII_SINGLE_BYTE_ROPES) {
+        for (LeafRope rope : RopeConstants.US_ASCII_SINGLE_BYTE_ROPES) {
             register(rope);
         }
-        for (Rope rope : RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES) {
+        for (LeafRope rope : RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES) {
             register(rope);
         }
-        for (Rope rope : RopeConstants.ROPE_CONSTANTS.values()) {
+        for (LeafRope rope : RopeConstants.ROPE_CONSTANTS.values()) {
             register(rope);
         }
     }
@@ -50,7 +50,7 @@ public class RopeCache {
         }
     }
 
-    private void register(Rope rope) {
+    private void register(LeafRope rope) {
         final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
         final Rope existing = bytesToRope.put(key, rope);
         if (existing != null && existing != rope) {
@@ -58,21 +58,21 @@ public class RopeCache {
         }
     }
 
-    public Rope getRope(Rope string) {
+    public LeafRope getRope(Rope string) {
         return getRope(string.getBytes(), string.getEncoding(), string.getCodeRange());
     }
 
-    public Rope getRope(Rope string, CodeRange codeRange) {
+    public LeafRope getRope(Rope string, CodeRange codeRange) {
         return getRope(string.getBytes(), string.getEncoding(), codeRange);
     }
 
     @TruffleBoundary
-    public Rope getRope(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+    public LeafRope getRope(byte[] bytes, Encoding encoding, CodeRange codeRange) {
         assert encoding != null;
 
         final BytesKey key = new BytesKey(bytes, encoding);
 
-        final Rope rope = bytesToRope.get(key);
+        final LeafRope rope = bytesToRope.get(key);
         if (rope != null) {
             ++ropesReusedCount;
             ropeBytesSaved += rope.byteLength();
@@ -87,7 +87,7 @@ public class RopeCache {
         // for our purposes.
         final Rope ropeWithSameBytesButDifferentEncoding = bytesToRope.get(new BytesKey(bytes, null));
 
-        final Rope newRope;
+        final LeafRope newRope;
         if (ropeWithSameBytesButDifferentEncoding != null) {
             newRope = RopeOperations.create(ropeWithSameBytesButDifferentEncoding.getBytes(), encoding, codeRange);
 

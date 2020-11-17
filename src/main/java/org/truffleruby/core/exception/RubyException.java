@@ -30,6 +30,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -57,7 +58,8 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
     public RubyException(RubyClass rubyClass, Shape shape, Object message, Backtrace backtrace, Object cause) {
         super(rubyClass, shape);
         // TODO (eregon, 9 Aug 2020): it should probably be null or RubyString, not nil, and the field can then be typed
-        assert message == null || message == Nil.INSTANCE || message instanceof RubyString;
+        assert message == null || message == Nil.INSTANCE || message instanceof RubyString ||
+                message instanceof ImmutableRubyString;
         assert cause != null;
         this.message = message;
         this.backtrace = backtrace;
