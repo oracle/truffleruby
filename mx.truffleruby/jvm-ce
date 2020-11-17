@@ -1,2 +1,2 @@
 DYNAMIC_IMPORTS=/compiler,/tools
-COMPONENTS=TruffleRuby,GraalVM compiler,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage,VisualVM
+COMPONENTS=TruffleRuby,GraalVM compiler,suite:tools
