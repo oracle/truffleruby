@@ -65,37 +65,55 @@ describe "Interop special forms" do
 
   it description['[index]', :readArrayElement, [:index]] do
     pfo, pa, l  = proxy[TruffleInteropSpecs::PolyglotArray.new]
-    -> { pfo[0] }.should raise_error(IndexError)
+    pfo[0] = 1
+    pfo[0]
     l.log.should include(['readArrayElement', 0])
+    l.log.should include(['getArraySize'])
+    l.log.should include(['hasArrayElements'])
+    pa.log.should include([:polyglot_array_size])
+    pa.log.should include([:polyglot_has_array_elements?])
+    pa.log.should include([:polyglot_array_element_readable?, 0])
     pa.log.should include([:polyglot_read_array_element, 0])
   end
 
-  it description['.at(index)', :at, (:index)] do
+  it description['.at(index)', :readArrayElement, [:index]] do
     pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
-    -> { pfo.at 0 }.should raise_error(IndexError)
+    pfo[0] = 1
+    pfo[0]
+    l.log.should include(['readArrayElement', 0])
+    l.log.should include(['getArraySize'])
+    l.log.should include(['hasArrayElements'])
+    pa.log.should include([:polyglot_array_size])
+    pa.log.should include([:polyglot_has_array_elements?])
+    pa.log.should include([:polyglot_array_element_readable?, 0])
+    pa.log.should include([:polyglot_read_array_element, 0])
+  end
+
+  it description['.fetch(index)', :readArrayElement, [:index]] do
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo.fetch 0 }.should raise_error(IndexError)
     l.log.should include(['getArraySize'])
     pa.log.should include([:polyglot_array_size])
   end
 
-  it description['.fetch(index)', :fetch, (:index)] do
+  it description['.first', :readArrayElement, [0]] do
     pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
-    -> { pfo.at 0 }.should raise_error(IndexError)
-    l.log.should include(['getArraySize'])
-    pa.log.should include([:polyglot_array_size])
+    -> { pfo.first }.should raise_error(IndexError)
+    l.log.should include(['isArrayElementReadable', 0])
+    l.log.should include(['readArrayElement', 0])
+    pa.log.should include([:polyglot_array_element_readable?, 0])
+    pa.log.should include([:polyglot_read_array_element, 0])
   end
 
-  it description['.first', :first] do
+  it description['.last', :readArrayElement, [":getArraySize - 1"]] do
     pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
-    -> { pfo.at 0 }.should raise_error(IndexError)
+    -> { pfo.last }.should raise_error(IndexError)
     l.log.should include(['getArraySize'])
-    pa.log.should include([:polyglot_array_size])
-  end
-
-  it description['.last', :last] do
-    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
-    -> { pfo.at 0 }.should raise_error(IndexError)
-    l.log.should include(['getArraySize'])
-    pa.log.should include([:polyglot_array_size])
+    l.log.should include(['hasArrayElements'])
+    l.log.should include(['isArrayElementReadable', -1])
+    l.log.should include(['readArrayElement', -1])
+    pa.log.should include([:polyglot_array_element_readable?, -1])
+    pa.log.should include([:polyglot_read_array_element, -1])
   end
 
   it description['[name] = value', :writeMember, [:name, :value]] do

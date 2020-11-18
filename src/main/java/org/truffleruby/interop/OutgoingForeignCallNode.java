@@ -16,6 +16,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
+import org.truffleruby.core.cast.LongCastNode;
+import org.truffleruby.core.cast.LongCastNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -124,14 +126,14 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
         try {
+            long args0 = (LongCastNodeGen.create()).executeCastLong(args[0]);
             long size = interop.getArraySize(receiver);
-            long bound = (size != 0) ? size : 0;
-            if (((int) args[0]) < -bound || (int) args[0] >= bound) {
+            if (args0 < -size || args0 >= size) {
                 return nil;
             }
-            return ((int) args[0] < 0)
-                    ? readNode.execute(receiver, size + (int) args[0])
-                    : readNode.execute(receiver, args[0]);
+            return (args0 < 0)
+                    ? readNode.execute(receiver, size + args0)
+                    : readNode.execute(receiver, args0);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
@@ -151,17 +153,11 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode fetchNode) {
         try {
+            long args0 = (LongCastNodeGen.create()).executeCastLong(args[0]);
             long size = interop.getArraySize(receiver);
-            long bound = (size != 0) ? size : 0;
-            if (((int) args[0]) < -bound || (int) args[0] >= bound) {
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().indexError("Index " + (int) args[0] +
-                                " outside of array bounds: -" + bound + "..." + bound, this));
-            }
-            return ((int) args[0] < 0)
-                    ? fetchNode.execute(receiver, size + (int) args[0])
-                    : fetchNode.execute(receiver, args[0]);
+            return (args0 < 0)
+                    ? fetchNode.execute(receiver, size + args0)
+                    : fetchNode.execute(receiver, args0);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
@@ -390,6 +386,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case TO_ARY:
             case SIZE:
             case LENGTH:
+            case FIRST:
+            case LAST:
             case KEYS:
             case INSPECT:
             case CLASS:
@@ -401,6 +399,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case OBJECT_ID:
             case ID:
                 return 0;
+            case AT:
+            case FETCH:
             case RESPOND_TO:
             case DELETE:
             case IS_A:

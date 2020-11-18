@@ -10,10 +10,10 @@ Format: `Ruby code` sends `InteropLibrary message`
 
 - `foreign_object[name]` sends `readMember(foreign_object, name)`
 - `foreign_object[index]` sends `readArrayElement(foreign_object, index)`
-- `foreign_object.at(index)` sends `at(foreign_object, index)`
-- `foreign_object.fetch(index)` sends `fetch(foreign_object, index)`
-- `foreign_object.first` sends `first(foreign_object)`
-- `foreign_object.last` sends `last(foreign_object)`
+- `foreign_object.at(index)` sends `readArrayElement(foreign_object, index)`
+- `foreign_object.fetch(index)` sends `readArrayElement(foreign_object, index)`
+- `foreign_object.first` sends `readArrayElement(foreign_object, 0)`
+- `foreign_object.last` sends `readArrayElement(foreign_object, :getArraySize - 1)`
 - `foreign_object[name] = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object[index] = value` sends `writeArrayElement(foreign_object, index, value)`
 - `foreign_object.name = value` sends `writeMember(foreign_object, name, value)`

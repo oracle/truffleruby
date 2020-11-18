@@ -3,9 +3,6 @@
 
 # Editors
 *~
-*.#
-*/**/#*
-*/**/.#*
 
 # IntelliJ
 .idea

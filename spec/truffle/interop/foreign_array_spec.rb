@@ -18,7 +18,6 @@ describe "Non empty foreign arrays" do
   end
 
   it "can be printed with #print" do
-    @foreign
     -> {
       print @foreign
     }.should output_to_fd(@foreign.to_s)
@@ -31,14 +30,12 @@ describe "Non empty foreign arrays" do
   end
 
   it "can be printed with #p" do
-    @foreign
     -> {
       p @foreign
     }.should output_to_fd("#{@foreign.inspect}\n")
   end
 
   it "can call #size" do
-    @foreign
     @foreign.size.should == 3
   end
 
@@ -46,13 +43,13 @@ describe "Non empty foreign arrays" do
     @foreign.length.should == 3
   end
 
-  it "can access elements by indexing #[]" do
+  it "can access elements by indexing with #[]" do
     @foreign[0].should == 1
     @foreign[2].should == 3
     @foreign[4].should == nil
   end
 
-  it "can access elements by indexing #[] with negative indices" do
+  it "can access elements by indexing with #[] and negative indices" do
     @foreign[-1].should == 3
     @foreign[-2].should == 2
     @foreign[-3].should == 1
@@ -84,11 +81,10 @@ describe "Non empty foreign arrays" do
   end
 
   it "should raise IndexError when indexing #fetch out of bounds" do
-    @foreign
     -> {
       @foreign.fetch(-5)
     }.should raise_error(IndexError) { |e|
-      e.message.should.include?("Index -5 outside of array bounds: -3...3")
+      e.message.should.include?("invalid array index -2")
     }
   end
 
@@ -115,22 +111,23 @@ describe "Empty foreign arrays" do
   end
 
   it "should raise IndexError when using #fetch to access an empty array" do
-    # foreign = Truffle::Interop.to_java_array([])
-    @foreign
     -> {
       @foreign.fetch(0)
     }.should raise_error(IndexError) { |e|
-      e.message.should.include?("Index 0 outside of array bounds: -0...0")
+      e.message.should.include?("invalid array index 0")
     }
   end
 end
 
 describe "Foreign arrays that are also pointers" do
+  before do
+    @foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+  end
+
   it "can be printed with #print" do
-    foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
     -> {
-      print foreign
-    }.should output_to_fd(foreign.to_s)
+      print @foreign
+    }.should output_to_fd(@foreign.to_s)
   end
 
   it "can be printed with #puts" do
@@ -140,9 +137,8 @@ describe "Foreign arrays that are also pointers" do
   end
 
   it "can be printed with #p" do
-    foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
     -> {
-      p foreign
-    }.should output_to_fd("#{foreign.inspect}\n")
+      p @foreign
+    }.should output_to_fd("#{@foreign.inspect}\n")
   end
 end
