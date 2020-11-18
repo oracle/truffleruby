@@ -1,2 +1,0 @@
-fails:FrozenError.new should take optional receiver argument
-fails:FrozenError#receiver should return frozen object that modification was attempted on

@@ -203,10 +203,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void checkFrozen(RubyContext context, Node currentNode) {
         if (context.getCoreLibrary() != null && RubyLibrary.getUncached().isFrozen(rubyModule)) {
             String name;
+            Object receiver = rubyModule;
             if (rubyModule instanceof RubyClass) {
                 final RubyClass cls = (RubyClass) rubyModule;
                 name = "object";
                 if (cls.isSingleton) {
+                    receiver = cls.attached;
                     if (cls.attached instanceof RubyClass) {
                         name = "Class";
                     } else if (cls.attached instanceof RubyModule) {
@@ -222,7 +224,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     context,
                     context.getCoreExceptions().frozenError(
                             StringUtils.format("can't modify frozen %s", name),
-                            currentNode));
+                            currentNode,
+                            receiver));
         }
     }
 
