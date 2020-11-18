@@ -46,6 +46,10 @@ public class RubyString extends RubyDynamicObject {
         this.rope = rope;
     }
 
+    public void setRope(Rope rope) {
+        this.rope = rope;
+    }
+
     /** should only be used for debugging */
     @Override
     public String toString() {

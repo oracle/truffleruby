@@ -123,10 +123,6 @@ public abstract class StringOperations {
         return encodeRope(value, encoding, CodeRange.CR_UNKNOWN);
     }
 
-    public static void setRope(RubyString string, Rope rope) {
-        string.rope = rope;
-    }
-
     public static boolean isAsciiOnly(String string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);
