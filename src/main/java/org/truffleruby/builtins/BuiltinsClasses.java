@@ -54,8 +54,12 @@ import org.truffleruby.core.exception.NameErrorNodesBuiltins;
 import org.truffleruby.core.exception.NameErrorNodesFactory;
 import org.truffleruby.core.exception.NoMethodErrorNodesBuiltins;
 import org.truffleruby.core.exception.NoMethodErrorNodesFactory;
+import org.truffleruby.core.exception.SyntaxErrorNodesBuiltins;
+import org.truffleruby.core.exception.SyntaxErrorNodesFactory;
 import org.truffleruby.core.exception.SystemCallErrorNodesBuiltins;
 import org.truffleruby.core.exception.SystemCallErrorNodesFactory;
+import org.truffleruby.core.exception.SystemExitNodesBuiltins;
+import org.truffleruby.core.exception.SystemExitNodesFactory;
 import org.truffleruby.core.fiber.FiberNodesBuiltins;
 import org.truffleruby.core.fiber.FiberNodesFactory;
 import org.truffleruby.core.hash.HashNodesBuiltins;
@@ -215,7 +219,9 @@ public abstract class BuiltinsClasses {
         SizedQueueNodesBuiltins.setup(coreManager);
         StringNodesBuiltins.setup(coreManager);
         SymbolNodesBuiltins.setup(coreManager);
+        SyntaxErrorNodesBuiltins.setup(coreManager);
         SystemCallErrorNodesBuiltins.setup(coreManager);
+        SystemExitNodesBuiltins.setup(coreManager);
         ThreadBacktraceLocationNodesBuiltins.setup(coreManager);
         ThreadNodesBuiltins.setup(coreManager);
         TimeNodesBuiltins.setup(coreManager);
@@ -291,7 +297,9 @@ public abstract class BuiltinsClasses {
         SizedQueueNodesBuiltins.setupPrimitives(primitiveManager);
         StringNodesBuiltins.setupPrimitives(primitiveManager);
         SymbolNodesBuiltins.setupPrimitives(primitiveManager);
+        SyntaxErrorNodesBuiltins.setupPrimitives(primitiveManager);
         SystemCallErrorNodesBuiltins.setupPrimitives(primitiveManager);
+        SystemExitNodesBuiltins.setupPrimitives(primitiveManager);
         ThreadBacktraceLocationNodesBuiltins.setupPrimitives(primitiveManager);
         ThreadNodesBuiltins.setupPrimitives(primitiveManager);
         TimeNodesBuiltins.setupPrimitives(primitiveManager);
@@ -368,7 +376,9 @@ public abstract class BuiltinsClasses {
                 SizedQueueNodesFactory.getFactories(),
                 StringNodesFactory.getFactories(),
                 SymbolNodesFactory.getFactories(),
+                SyntaxErrorNodesFactory.getFactories(),
                 SystemCallErrorNodesFactory.getFactories(),
+                SystemExitNodesFactory.getFactories(),
                 ThreadBacktraceLocationNodesFactory.getFactories(),
                 ThreadNodesFactory.getFactories(),
                 TimeNodesFactory.getFactories(),

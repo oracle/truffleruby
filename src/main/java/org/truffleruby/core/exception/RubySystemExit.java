@@ -21,13 +21,21 @@ import com.oracle.truffle.api.object.Shape;
 @ExportLibrary(InteropLibrary.class)
 public class RubySystemExit extends RubyException {
 
-    public int exitStatus = 1;
+    public int exitStatus;
 
-    public RubySystemExit(RubyClass rubyClass, Shape shape, Object message, Backtrace backtrace, Object cause) {
+    public RubySystemExit(
+            RubyClass rubyClass,
+            Shape shape,
+            Object message,
+            Backtrace backtrace,
+            Object cause,
+            int exitStatus) {
         super(rubyClass, shape, message, backtrace, cause);
+        this.exitStatus = exitStatus;
     }
 
     // region Exception interop
+    @Override
     @ExportMessage
     public ExceptionType getExceptionType() {
         return ExceptionType.EXIT;

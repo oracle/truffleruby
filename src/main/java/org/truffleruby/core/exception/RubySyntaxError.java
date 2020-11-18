@@ -18,18 +18,27 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubySyntaxError extends RubyException {
 
-    public RubySyntaxError(RubyClass rubyClass, Shape shape, Object message, Backtrace backtrace, Object cause) {
+    private final SourceSection sourceLocation; // this is where the syntax error happened in the file being parsed
+
+    public RubySyntaxError(
+            RubyClass rubyClass,
+            Shape shape,
+            Object message,
+            Backtrace backtrace,
+            Object cause,
+            SourceSection sourceLocation) {
         super(rubyClass, shape, message, backtrace, cause);
+        this.sourceLocation = sourceLocation;
     }
 
     // region Exception interop
+    @Override
     @ExportMessage
     public ExceptionType getExceptionType() {
         return ExceptionType.PARSE_ERROR;
@@ -40,30 +49,18 @@ public class RubySyntaxError extends RubyException {
         return false; // Unknown
     }
 
-    @TruffleBoundary
     @ExportMessage
     public boolean hasSourceLocation() {
-        if (backtrace != null && backtrace.getSourceLocation() != null) {
-            return true;
-        } else {
-            final Node location = getLocation();
-            return location != null && location.getEncapsulatingSourceSection() != null;
-        }
+        return sourceLocation != null;
     }
 
     @TruffleBoundary
     @ExportMessage
     public SourceSection getSourceLocation() throws UnsupportedMessageException {
-        if (backtrace != null && backtrace.getSourceLocation() != null) {
-            return backtrace.getSourceLocation();
+        if (sourceLocation != null) {
+            return sourceLocation;
         } else {
-            final Node location = getLocation();
-            SourceSection sourceSection = location != null ? location.getEncapsulatingSourceSection() : null;
-            if (sourceSection != null) {
-                return sourceSection;
-            } else {
-                throw UnsupportedMessageException.create();
-            }
+            throw UnsupportedMessageException.create();
         }
     }
     // endregion

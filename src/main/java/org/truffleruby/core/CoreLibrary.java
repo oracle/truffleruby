@@ -386,7 +386,7 @@ public class CoreLibrary {
         RubyClass scriptErrorClass = defineClass(exceptionClass, "ScriptError");
         loadErrorClass = defineClass(scriptErrorClass, "LoadError");
         notImplementedErrorClass = defineClass(scriptErrorClass, "NotImplementedError");
-        syntaxErrorClass = defineClass(scriptErrorClass, "SyntaxError");
+        syntaxErrorClass = defineClass(scriptErrorClass, "SyntaxError", language.syntaxErrorShape);
 
         // SecurityError
         securityErrorClass = defineClass(exceptionClass, "SecurityError");
@@ -396,7 +396,7 @@ public class CoreLibrary {
         defineClass(signalExceptionClass, "Interrupt");
 
         // SystemExit
-        systemExitClass = defineClass(exceptionClass, "SystemExit");
+        systemExitClass = defineClass(exceptionClass, "SystemExit", language.systemExitShape);
 
         // SystemStackError
         systemStackErrorClass = defineClass(exceptionClass, "SystemStackError");

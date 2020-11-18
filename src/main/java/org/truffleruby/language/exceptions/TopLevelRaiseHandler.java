@@ -12,9 +12,8 @@ package org.truffleruby.language.exceptions;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextNode;
@@ -26,7 +25,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.language.objects.IsANodeGen;
 
 import java.io.PrintStream;
 import java.util.EnumSet;
@@ -82,9 +80,8 @@ public class TopLevelRaiseHandler extends RubyContextNode {
     }
 
     private int statusFromException(RubyException exception) {
-        if (IsANodeGen.getUncached().executeIsA(exception, coreLibrary().systemExitClass)) {
-            final Object status = DynamicObjectLibrary.getUncached().getOrDefault(exception, "@status", null);
-            return IntegerCastNodeGen.getUncached().executeCastInt(status);
+        if (exception instanceof RubySystemExit) {
+            return ((RubySystemExit) exception).exitStatus;
         } else {
             return 1;
         }

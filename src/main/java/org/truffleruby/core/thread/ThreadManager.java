@@ -26,6 +26,7 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
@@ -357,8 +358,7 @@ public class ThreadManager {
         final RubyThread mainThread = context.getThreadManager().getRootThread();
 
         if (thread != mainThread) {
-            final boolean isSystemExit = exception.getLogicalClass() == context
-                    .getCoreLibrary().systemExitClass;
+            final boolean isSystemExit = exception instanceof RubySystemExit;
 
             if (!isSystemExit && thread.reportOnException) {
                 context.send(
