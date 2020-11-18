@@ -15,6 +15,7 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
+import com.oracle.truffle.api.TruffleLogger;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
@@ -117,6 +118,111 @@ public class LanguageOptions {
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY));
+    }
+
+    public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
+        Object oldValue;
+        Object newValue;
+
+        oldValue = oldOptions.FROZEN_STRING_LITERALS;
+        newValue = newOptions.FROZEN_STRING_LITERALS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --frozen-string-literals differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.DEFAULT_LAZY;
+        newValue = newOptions.DEFAULT_LAZY;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-default differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_TRANSLATION_USER;
+        newValue = newOptions.LAZY_TRANSLATION_USER;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-translation-user differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.BACKTRACES_OMIT_UNUSED;
+        newValue = newOptions.BACKTRACES_OMIT_UNUSED;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --backtraces-omit-unused differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_TRANSLATION_LOG;
+        newValue = newOptions.LAZY_TRANSLATION_LOG;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-translation-log differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LOG_DYNAMIC_CONSTANT_LOOKUP;
+        newValue = newOptions.LOG_DYNAMIC_CONSTANT_LOOKUP;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --constant-dynamic-lookup-log differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_BUILTINS;
+        newValue = newOptions.LAZY_BUILTINS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-builtins differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_TRANSLATION_CORE;
+        newValue = newOptions.LAZY_TRANSLATION_CORE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-translation-core differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.BASICOPS_INLINE;
+        newValue = newOptions.BASICOPS_INLINE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --basic-ops-inline differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.PROFILE_ARGUMENTS;
+        newValue = newOptions.PROFILE_ARGUMENTS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --profile-arguments differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.HASH_PACKED_ARRAY_MAX;
+        newValue = newOptions.HASH_PACKED_ARRAY_MAX;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --hash-packed-array-max differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.SHARED_OBJECTS_ENABLED;
+        newValue = newOptions.SHARED_OBJECTS_ENABLED;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --shared-objects differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.SHARED_OBJECTS_DEBUG;
+        newValue = newOptions.SHARED_OBJECTS_DEBUG;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --shared-objects-debug differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.SHARED_OBJECTS_FORCE;
+        newValue = newOptions.SHARED_OBJECTS_FORCE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --shared-objects-force differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        return true;
     }
 }
 // @formatter:on

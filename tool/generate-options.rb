@@ -130,6 +130,8 @@ import org.truffleruby.shared.options.OptionsCatalog;
 <% if class_prefix == '' -%>
 import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.shared.options.Profile;
+<% else -%>
+import com.oracle.truffle.api.TruffleLogger;
 <% end -%>
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
@@ -164,6 +166,20 @@ public class <%= class_prefix %>Options {
 <% if class_prefix == 'Language' -%>
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
         return <%= options.map { |o| "one.get(OptionsCatalog.#{o.constant}_KEY).equals(two.get(OptionsCatalog.#{o.constant}_KEY))"  }.join(" &&\n               ") %>;
+    }
+
+    public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
+        Object oldValue;
+        Object newValue;
+<%= options.map { |o| "
+        oldValue = oldOptions.#{o.constant};
+        newValue = newOptions.#{o.constant};
+        if (!newValue.equals(oldValue)) {
+            logger.fine(\"not reusing pre-initialized context: --#{o.name} differs, was: \" + oldValue + \" and is now: \" + newValue);
+            return false;
+        }" }.join("\n") %>
+
+        return true;
     }
 <% end -%>
 }
