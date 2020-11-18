@@ -45,6 +45,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
@@ -133,7 +134,7 @@ public class TranslatorDriver {
 
             parentEnvironment = environmentForFrame(context, parentFrame);
         } else {
-            parentEnvironment = environmentForFrame(context, null);
+            parentEnvironment = null;
         }
 
         if (argumentNames != null) {
@@ -151,7 +152,7 @@ public class TranslatorDriver {
                 !isEvalParse,
                 false);
 
-        if (context.getOptions().FROZEN_STRING_LITERALS) {
+        if (language.options.FROZEN_STRING_LITERALS) {
             parserConfiguration.setFrozenStringLiteral(true);
         }
 
@@ -438,7 +439,7 @@ public class TranslatorDriver {
             return null;
         } else {
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
-                    context.getCoreLibrary().sourceSection,
+                    CoreLibrary.SOURCE_SECTION,
                     context.getRootLexicalScope(),
                     Arity.NO_ARGUMENTS,
                     null,

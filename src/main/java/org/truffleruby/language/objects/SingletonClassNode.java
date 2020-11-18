@@ -158,7 +158,7 @@ public abstract class SingletonClassNode extends RubySourceNode {
                 RubyLibrary.getUncached().freeze(singletonClass);
             }
 
-            SharedObjects.propagate(context, object, singletonClass);
+            SharedObjects.propagate(context.getLanguageSlow(), object, singletonClass);
             object.setMetaClass(singletonClass);
 
             return singletonClass;

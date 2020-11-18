@@ -318,14 +318,16 @@ public abstract class TruffleBootNodes {
 
             final String optionNameString = libOptionName.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
-
             if (descriptor == null) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameError("option not defined", nil, optionNameString, this));
             }
 
-            final Object value = getContext().getOptions().fromDescriptor(descriptor);
+            Object value = getContext().getOptions().fromDescriptor(descriptor);
+            if (value == null) {
+                value = getLanguage().options.fromDescriptor(descriptor);
+            }
 
             if (value instanceof Boolean || value instanceof Integer) {
                 return value;
@@ -336,7 +338,8 @@ public abstract class TruffleBootNodes {
             } else if (value instanceof String[]) {
                 return toRubyArray((String[]) value);
             } else {
-                throw CompilerDirectives.shouldNotReachHere();
+                throw CompilerDirectives
+                        .shouldNotReachHere("Unknown value for option " + optionNameString + ": " + value);
             }
         }
 

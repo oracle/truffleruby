@@ -251,8 +251,8 @@ public class RubyContext {
         Metrics.printTime("after-load-core");
 
         // Share once everything is loaded
-        if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
-            sharedObjects.startSharing(OptionsCatalog.SHARED_OBJECTS_FORCE.getName() + " being true");
+        if (language.options.SHARED_OBJECTS_ENABLED && language.options.SHARED_OBJECTS_FORCE) {
+            sharedObjects.startSharing(language, OptionsCatalog.SHARED_OBJECTS_FORCE.getName() + " being true");
         }
 
         if (isPreInitializing()) {

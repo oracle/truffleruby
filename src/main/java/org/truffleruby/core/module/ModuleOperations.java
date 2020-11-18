@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.klass.RubyClass;
@@ -625,11 +626,11 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static void setClassVariable(final RubyContext context, RubyModule module, final String name,
-            final Object value, final Node currentNode) {
+    public static void setClassVariable(RubyLanguage language, RubyContext context, RubyModule module, String name,
+            Object value, Node currentNode) {
         ModuleFields moduleFields = module.fields;
         moduleFields.checkFrozen(context, currentNode);
-        SharedObjects.propagate(context, module, value);
+        SharedObjects.propagate(language, module, value);
 
         // if the cvar is not already defined we need to take lock and ensure there is only one
         // defined in the class tree

@@ -9,15 +9,13 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import org.truffleruby.RubyContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -36,13 +34,11 @@ public abstract class IsSharedNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "object.getShape() == cachedShape", "contextReference.get() == cachedContext" },
+            guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
     protected boolean isShareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
-            @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
-            @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("cachedShape.isShared()") boolean shared) {
         return shared;
     }
@@ -54,8 +50,8 @@ public abstract class IsSharedNode extends RubyBaseNode {
 
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
     protected boolean isSharedUncached(RubyDynamicObject object,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getOptions().SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
+            @CachedLanguage RubyLanguage language) {
+        return language.options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
     }
 
 }

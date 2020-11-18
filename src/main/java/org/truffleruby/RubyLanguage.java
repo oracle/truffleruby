@@ -302,6 +302,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         LOGGER.fine("patchContext()");
         Metrics.printTime("before-patch-context");
+        final LanguageOptions oldOptions = Objects.requireNonNull(this.options);
+        final LanguageOptions newOptions = new LanguageOptions(newEnv, newEnv.getOptions());
+        if (!LanguageOptions.areOptionsCompatibleOrLog(LOGGER, oldOptions, newOptions)) {
+            return false;
+        }
+
         boolean patched = context.patchContext(newEnv);
         Metrics.printTime("after-patch-context");
         return patched;

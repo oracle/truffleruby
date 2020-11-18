@@ -121,7 +121,7 @@ public class CoreLibrary {
     private final RubyContext context;
     private final RubyLanguage language;
 
-    public final SourceSection sourceSection = initCoreSourceSection();
+    public static final SourceSection SOURCE_SECTION = initCoreSourceSection();
 
     public final RubyClass argumentErrorClass;
     public final RubyClass arrayClass;
@@ -259,7 +259,7 @@ public class CoreLibrary {
     public final String corePath;
 
     @TruffleBoundary
-    private SourceSection initCoreSourceSection() {
+    private static SourceSection initCoreSourceSection() {
         final Source.SourceBuilder builder = Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
         builder.internal(true);
 

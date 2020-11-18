@@ -240,7 +240,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     context.getCoreExceptions().argumentError("cyclic include detected", currentNode));
         }
 
-        SharedObjects.propagate(context, rubyModule, module);
+        SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
         // We need to include the module ancestors in reverse order for a given inclusionPoint
         ModuleChain inclusionPoint = this;
@@ -299,7 +299,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     context.getCoreExceptions().argumentError("cyclic prepend detected", currentNode));
         }
 
-        SharedObjects.propagate(context, rubyModule, module);
+        SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
         ModuleChain mod = module.fields.start;
         final ModuleChain topPrependedModule = start.getParentModule();
@@ -369,7 +369,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             boolean autoload) {
         checkFrozen(context, currentNode);
 
-        SharedObjects.propagate(context, rubyModule, value);
+        SharedObjects.propagate(context.getLanguageSlow(), rubyModule, value);
 
         final String autoloadPath = autoload
                 ? RubyStringLibrary.getUncached().getJavaString(value)
@@ -426,7 +426,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             Set<Object> adjacent = ObjectGraph.newObjectSet();
             ObjectGraph.addProperty(adjacent, method);
             for (Object object : adjacent) {
-                SharedObjects.writeBarrier(context, object);
+                SharedObjects.writeBarrier(context.getLanguageSlow(), object);
             }
         }
 

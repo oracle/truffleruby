@@ -15,12 +15,15 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
+import com.oracle.truffle.api.TruffleLogger;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
 // @formatter:off
 public class LanguageOptions {
 
+    /** --frozen-string-literals=false */
+    public final boolean FROZEN_STRING_LITERALS;
     /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
     /** --lazy-translation-user=DEFAULT_LAZY */
@@ -41,8 +44,15 @@ public class LanguageOptions {
     public final boolean PROFILE_ARGUMENTS;
     /** --hash-packed-array-max=3 */
     public final int HASH_PACKED_ARRAY_MAX;
+    /** --shared-objects=true */
+    public final boolean SHARED_OBJECTS_ENABLED;
+    /** --shared-objects-debug=false */
+    public final boolean SHARED_OBJECTS_DEBUG;
+    /** --shared-objects-force=false */
+    public final boolean SHARED_OBJECTS_FORCE;
 
     public LanguageOptions(Env env, OptionValues options) {
+        FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
         LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : DEFAULT_LAZY;
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
@@ -53,10 +63,15 @@ public class LanguageOptions {
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
+        SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
+        SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
+        SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
         switch (descriptor.getName()) {
+            case "ruby.frozen-string-literals":
+                return FROZEN_STRING_LITERALS;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
             case "ruby.lazy-translation-user":
@@ -77,13 +92,20 @@ public class LanguageOptions {
                 return PROFILE_ARGUMENTS;
             case "ruby.hash-packed-array-max":
                 return HASH_PACKED_ARRAY_MAX;
+            case "ruby.shared-objects":
+                return SHARED_OBJECTS_ENABLED;
+            case "ruby.shared-objects-debug":
+                return SHARED_OBJECTS_DEBUG;
+            case "ruby.shared-objects-force":
+                return SHARED_OBJECTS_FORCE;
             default:
                 return null;
         }
     }
 
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
-        return one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
+        return one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
+               one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY)) &&
                one.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY).equals(two.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY)) &&
@@ -92,7 +114,115 @@ public class LanguageOptions {
                one.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY)) &&
                one.get(OptionsCatalog.BASICOPS_INLINE_KEY).equals(two.get(OptionsCatalog.BASICOPS_INLINE_KEY)) &&
                one.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY).equals(two.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY)) &&
-               one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY));
+               one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY)) &&
+               one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
+               one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
+               one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY));
+    }
+
+    public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
+        Object oldValue;
+        Object newValue;
+
+        oldValue = oldOptions.FROZEN_STRING_LITERALS;
+        newValue = newOptions.FROZEN_STRING_LITERALS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --frozen-string-literals differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.DEFAULT_LAZY;
+        newValue = newOptions.DEFAULT_LAZY;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-default differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_TRANSLATION_USER;
+        newValue = newOptions.LAZY_TRANSLATION_USER;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-translation-user differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.BACKTRACES_OMIT_UNUSED;
+        newValue = newOptions.BACKTRACES_OMIT_UNUSED;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --backtraces-omit-unused differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_TRANSLATION_LOG;
+        newValue = newOptions.LAZY_TRANSLATION_LOG;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-translation-log differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LOG_DYNAMIC_CONSTANT_LOOKUP;
+        newValue = newOptions.LOG_DYNAMIC_CONSTANT_LOOKUP;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --constant-dynamic-lookup-log differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_BUILTINS;
+        newValue = newOptions.LAZY_BUILTINS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-builtins differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_TRANSLATION_CORE;
+        newValue = newOptions.LAZY_TRANSLATION_CORE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-translation-core differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.BASICOPS_INLINE;
+        newValue = newOptions.BASICOPS_INLINE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --basic-ops-inline differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.PROFILE_ARGUMENTS;
+        newValue = newOptions.PROFILE_ARGUMENTS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --profile-arguments differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.HASH_PACKED_ARRAY_MAX;
+        newValue = newOptions.HASH_PACKED_ARRAY_MAX;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --hash-packed-array-max differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.SHARED_OBJECTS_ENABLED;
+        newValue = newOptions.SHARED_OBJECTS_ENABLED;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --shared-objects differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.SHARED_OBJECTS_DEBUG;
+        newValue = newOptions.SHARED_OBJECTS_DEBUG;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --shared-objects-debug differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.SHARED_OBJECTS_FORCE;
+        newValue = newOptions.SHARED_OBJECTS_FORCE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --shared-objects-force differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        return true;
     }
 }
 // @formatter:on

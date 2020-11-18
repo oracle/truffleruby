@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -31,14 +32,14 @@ import com.oracle.truffle.api.source.Source;
 
 public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final RubyContext context;
+    private final ContextReference<RubyContext> contextReference;
     private final InternalMethod method;
 
     @Child private DirectCallNode callNode;
 
     public RubyParsingRequestNode(RubyLanguage language, RubyContext context, Source source, String[] argumentNames) {
         super(language, null, null);
-        this.context = context;
+        this.contextReference = lookupContextReference(RubyLanguage.class);
 
         final TranslatorDriver translator = new TranslatorDriver(context);
 
@@ -70,7 +71,8 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
     @Override
     public Object execute(VirtualFrame frame) {
-        assert RubyLanguage.getCurrentContext() == context;
+        final RubyLanguage language = getLanguage(RubyLanguage.class);
+        final RubyContext context = contextReference.get();
 
         printTimeMetric("before-script");
         try {
@@ -85,8 +87,8 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
 
             // The return value will be leaked to Java, so share it if the Context API is used.
             // We share conditionally on EMBEDDED to avoid sharing return values used in RubyLauncher.
-            if (context.getOptions().SHARED_OBJECTS_ENABLED && context.getOptions().EMBEDDED) {
-                SharedObjects.writeBarrier(context, value);
+            if (language.options.SHARED_OBJECTS_ENABLED && context.getOptions().EMBEDDED) {
+                SharedObjects.writeBarrier(language, value);
             }
 
             return value;

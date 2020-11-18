@@ -45,8 +45,6 @@ public class Options {
     public final String LAUNCHER;
     /** --core-load-path="resource:/truffleruby" */
     public final String CORE_LOAD_PATH;
-    /** --frozen-string-literals=false */
-    public final boolean FROZEN_STRING_LITERALS;
     /** --rubygems=true */
     public final boolean RUBYGEMS;
     /** --lazy-rubygems=RUBYGEMS && DEFAULT_LAZY */
@@ -249,12 +247,6 @@ public class Options {
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */
     public final boolean METRICS_TIME_REQUIRE;
-    /** --shared-objects=true */
-    public final boolean SHARED_OBJECTS_ENABLED;
-    /** --shared-objects-debug=false */
-    public final boolean SHARED_OBJECTS_DEBUG;
-    /** --shared-objects-force=false */
-    public final boolean SHARED_OBJECTS_FORCE;
     /** --testing-rubygems=false */
     public final boolean TESTING_RUBYGEMS;
 
@@ -270,7 +262,6 @@ public class Options {
         NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
-        FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
         LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : languageOptions.DEFAULT_LAZY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
@@ -372,9 +363,6 @@ public class Options {
         REGEXP_INSTRUMENT_MATCH = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_KEY);
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
-        SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
-        SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
-        SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
     }
 
@@ -402,8 +390,6 @@ public class Options {
                 return LAUNCHER;
             case "ruby.core-load-path":
                 return CORE_LOAD_PATH;
-            case "ruby.frozen-string-literals":
-                return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
             case "ruby.lazy-rubygems":
@@ -606,12 +592,6 @@ public class Options {
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":
                 return METRICS_TIME_REQUIRE;
-            case "ruby.shared-objects":
-                return SHARED_OBJECTS_ENABLED;
-            case "ruby.shared-objects-debug":
-                return SHARED_OBJECTS_DEBUG;
-            case "ruby.shared-objects-force":
-                return SHARED_OBJECTS_FORCE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
             default:

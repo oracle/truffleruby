@@ -256,7 +256,7 @@ public abstract class VMPrimitiveNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libSignalString) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
-                SharedObjects.writeBarrier(getContext(), action);
+                SharedObjects.writeBarrier(getLanguage(), action);
             }
 
             final RubyContext context = getContext();
@@ -422,7 +422,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected RubyDynamicObject setClass(RubyDynamicObject object, RubyClass newClass) {
-            SharedObjects.propagate(getContext(), object, newClass);
+            SharedObjects.propagate(getLanguage(), object, newClass);
             synchronized (object) {
                 object.setMetaClass(newClass);
             }

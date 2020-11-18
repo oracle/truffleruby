@@ -9,15 +9,13 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import org.truffleruby.RubyContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -41,16 +39,11 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     public abstract void executeWriteBarrier(Object value);
 
     @Specialization(
-            guards = {
-                    "value.getShape() == cachedShape",
-                    "contextReference.get() == cachedContext",
-                    "getDepth() < MAX_DEPTH" },
+            guards = { "value.getShape() == cachedShape", "getDepth() < MAX_DEPTH" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
     protected void writeBarrierCached(RubyDynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
-            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextReference,
-            @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("cachedShape.isShared()") boolean alreadyShared,
             @Cached("createShareObjectNode(alreadyShared)") ShareObjectNode shareObjectNode) {
         if (!alreadyShared) {
@@ -65,8 +58,8 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     @Specialization(replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
     protected void writeBarrierUncached(RubyDynamicObject value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        SharedObjects.writeBarrier(context, value);
+            @CachedLanguage RubyLanguage language) {
+        SharedObjects.writeBarrier(language, value);
     }
 
     @Specialization(guards = "!isRubyDynamicObject(value)")
