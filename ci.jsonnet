@@ -30,7 +30,7 @@ local common = (import "common.json");
 local part_definitions = {
   local jt = function(args) [["ruby", "tool/jt.rb"] + args],
   local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
-  local mri_version = "2.6.5",
+  local mri_version = "2.7.2",
 
   use: {
     common: {
@@ -221,7 +221,6 @@ local part_definitions = {
       packages+: {
         git: ">=1.8.3",
         mercurial: ">=3.2.4",
-        ruby: ">=" + mri_version,
         binutils: ">=2.30",
       },
     },
@@ -230,6 +229,9 @@ local part_definitions = {
       platform_name:: "LinuxAMD64",
       platform: "linux",
       arch:: "amd64",
+      packages+: {
+        ruby: ">=" + mri_version,
+      },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
@@ -239,6 +241,9 @@ local part_definitions = {
       platform_name:: "LinuxARM64",
       platform: "linux",
       arch:: "aarch64",
+      packages+: {
+        ruby: ">=2.6",
+      },
       "$.cap":: {
         normal_machine: ["linux", "aarch64"],
       },

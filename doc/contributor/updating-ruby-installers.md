@@ -29,7 +29,7 @@ There is a handy script in the repo that does everything needed:
 
 ```bash
 ./update.sh truffleruby $VERSION
-./update.sh graalvm $VERSION
+./update.sh truffleruby-graalvm $VERSION
 ```
 
 ## ruby-build
