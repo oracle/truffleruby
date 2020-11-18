@@ -31,6 +31,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.objects.LogicalClassNode;
 
 /** This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes. */
 public abstract class CmpIntNode extends RubyContextNode {
@@ -73,8 +74,8 @@ public abstract class CmpIntNode extends RubyContextNode {
     private String formatMessage(Object receiver, Object other) {
         return StringUtils.format(
                 "comparison of %s with %s failed",
-                coreLibrary().getLogicalClass(receiver).fields.getName(),
-                coreLibrary().getLogicalClass(other).fields.getName());
+                LogicalClassNode.getUncached().execute(receiver).fields.getName(),
+                LogicalClassNode.getUncached().execute(other).fields.getName());
     }
 
     @Specialization(guards = { "!isRubyInteger(value)", "!isNil(value)" })

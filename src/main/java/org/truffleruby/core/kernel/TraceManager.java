@@ -213,7 +213,7 @@ public class TraceManager {
                 logicalClassNode = insert(LogicalClassNode.create());
             }
 
-            return logicalClassNode.executeLogicalClass(object);
+            return logicalClassNode.execute(object);
         }
 
     }

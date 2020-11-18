@@ -230,7 +230,7 @@ public abstract class MethodNodes {
 
         @Specialization
         protected RubyUnboundMethod unbind(RubyMethod method) {
-            final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
+            final RubyClass receiverClass = classNode.execute(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
                     getLanguage().unboundMethodShape,

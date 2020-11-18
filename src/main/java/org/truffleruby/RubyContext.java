@@ -70,6 +70,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.options.Options;
@@ -424,7 +425,7 @@ public class RubyContext {
     @TruffleBoundary
     public Object send(Object object, String methodName, Object... arguments) {
         final InternalMethod method = ModuleOperations
-                .lookupMethodUncached(coreLibrary.getMetaClass(object), methodName, null);
+                .lookupMethodUncached(MetaClassNode.getUncached().execute(object), methodName, null);
         if (method == null || method.isUndefined()) {
             return null;
         }

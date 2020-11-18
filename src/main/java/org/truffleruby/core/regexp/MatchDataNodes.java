@@ -264,7 +264,7 @@ public abstract class MatchDataNodes {
                 final int end = region.end[index];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
+                    final RubyClass logicalClass = logicalClassNode.execute(source);
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
                     final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
                     AllocationTracing.trace(string, this);
@@ -479,7 +479,7 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
+                    final RubyClass logicalClass = logicalClassNode.execute(source);
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
                     final RubyString string = new RubyString(logicalClass, shape, false, isTainted, rope);
                     AllocationTracing.trace(string, this);
@@ -597,7 +597,7 @@ public abstract class MatchDataNodes {
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
+            final RubyClass logicalClass = logicalClassNode.execute(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
             AllocationTracing.trace(string, this);
@@ -623,7 +623,7 @@ public abstract class MatchDataNodes {
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
+            final RubyClass logicalClass = logicalClassNode.execute(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
             AllocationTracing.trace(string, this);

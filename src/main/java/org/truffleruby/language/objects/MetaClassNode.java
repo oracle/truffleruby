@@ -31,6 +31,10 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return MetaClassNodeGen.create();
     }
 
+    public static MetaClassNode getUncached() {
+        return MetaClassNodeGen.getUncached();
+    }
+
     public abstract RubyClass execute(Object value);
 
     // Cover all primitives, nil and symbols

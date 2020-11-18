@@ -311,7 +311,7 @@ public abstract class StringNodes {
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Rope rope = libSource.getRope(source);
 
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(source);
+            final RubyClass logicalClass = logicalClassNode.execute(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString string = new RubyString(
                     logicalClass,
@@ -390,7 +390,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached LogicalClassNode logicalClassNode) {
 
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString instance = new RubyString(
                     logicalClass,
@@ -421,7 +421,7 @@ public abstract class StringNodes {
             }
 
             final Rope repeated = repeatNode.executeRepeat(stringRope, times);
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString instance = new RubyString(logicalClass, shape, false, false, repeated);
             AllocationTracing.trace(instance, this);
@@ -435,7 +435,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope repeated = repeatNode.executeRepeat(libString.getRope(string), 0);
 
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString instance = new RubyString(logicalClass, shape, false, false, repeated);
             AllocationTracing.trace(instance, this);
@@ -1352,7 +1352,7 @@ public abstract class StringNodes {
                         rope,
                         i,
                         n,
-                        logicalClassNode.executeLogicalClass(string),
+                        logicalClassNode.execute(string),
                         library.isTainted(string)));
             }
 
@@ -2090,7 +2090,7 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString result = new RubyString(logicalClass, shape, false, false, rope);
             AllocationTracing.trace(result, this);
@@ -2121,7 +2121,7 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString result = new RubyString(logicalClass, shape, false, false, rope);
             AllocationTracing.trace(result, this);
@@ -5285,7 +5285,7 @@ public abstract class StringNodes {
                 substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
-            final RubyClass logicalClass = logicalClassNode.executeLogicalClass(string);
+            final RubyClass logicalClass = logicalClassNode.execute(string);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyString ret = new RubyString(
                     logicalClass,

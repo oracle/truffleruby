@@ -87,7 +87,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             UnsupportedTypeException, ArityException;
 
     @Specialization(
-            guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
+            guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
             limit = "1")
     protected AssertionError unsupportedMessageExceptionClass(
             RaiseException exception,
@@ -100,7 +100,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().invalidArrayIndexExceptionClass",
+            guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().invalidArrayIndexExceptionClass",
             limit = "1")
     protected AssertionError invalidArrayIndexExceptionClass(
             RaiseException exception,
@@ -113,7 +113,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unknownIdentifierExceptionClass",
+            guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unknownIdentifierExceptionClass",
             limit = "1")
     protected AssertionError unknownIdentifierExceptionClass(
             RaiseException exception,
@@ -126,7 +126,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedTypeExceptionClass",
+            guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unsupportedTypeExceptionClass",
             limit = "1")
     protected AssertionError unsupportedTypeExceptionClass(
             RaiseException exception,
@@ -139,7 +139,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().arityExceptionClass",
+            guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().arityExceptionClass",
             limit = "1")
     protected AssertionError arityExceptionClass(
             RaiseException exception,

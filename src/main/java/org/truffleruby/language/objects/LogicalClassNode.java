@@ -30,7 +30,11 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return LogicalClassNodeGen.create();
     }
 
-    public abstract RubyClass executeLogicalClass(Object value);
+    public static LogicalClassNode getUncached() {
+        return LogicalClassNodeGen.getUncached();
+    }
+
+    public abstract RubyClass execute(Object value);
 
     @Specialization(guards = "value")
     protected RubyClass logicalClassTrue(boolean value,

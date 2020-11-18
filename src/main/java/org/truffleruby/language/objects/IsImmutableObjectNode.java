@@ -60,7 +60,7 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
             logicalClassNode = insert(LogicalClassNode.create());
         }
 
-        return logicalClassNode.executeLogicalClass(object);
+        return logicalClassNode.execute(object);
     }
 
 
