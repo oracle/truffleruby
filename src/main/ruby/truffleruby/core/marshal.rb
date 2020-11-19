@@ -650,7 +650,7 @@ module Marshal
 
       @proc.call(obj) if call_proc and @proc and @call
 
-      @stream.tainted? && !obj.frozen? ? obj.taint : obj
+      obj
     end
 
     def construct_class
@@ -995,7 +995,7 @@ module Marshal
 
       @depth += 1
 
-      Primitive.infect(str, obj)
+      str
     end
 
     def serialize_extended_object(obj)

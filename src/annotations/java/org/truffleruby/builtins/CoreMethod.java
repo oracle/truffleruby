@@ -60,9 +60,6 @@ public @interface CoreMethod {
     /** Raise an error if self is frozen. */
     boolean raiseIfFrozenSelf() default false;
 
-    /** Taint the result if argument <code>i</code> (starting at 1) is tainted. Use 0 for <code>self</code>. */
-    int taintFrom() default -1;
-
     UnsupportedOperationBehavior unsupportedOperationBehavior() default UnsupportedOperationBehavior.TYPE_ERROR;
 
     boolean returnsEnumeratorIfNoBlock() default false;

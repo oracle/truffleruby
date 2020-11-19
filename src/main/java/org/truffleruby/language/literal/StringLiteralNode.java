@@ -39,7 +39,6 @@ public class StringLiteralNode extends RubyContextSourceNode {
                 coreLibrary().stringClass,
                 getLanguage().stringShape,
                 false,
-                false,
                 rope);
         AllocationTracing.trace(string, this);
         return string;

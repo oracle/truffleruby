@@ -21,8 +21,6 @@ public class FormatFrameDescriptor {
             .addFrameSlot("source-length", FrameSlotKind.Int);
     public static final FrameSlot SOURCE_POSITION_SLOT = FRAME_DESCRIPTOR
             .addFrameSlot("source-position", FrameSlotKind.Int);
-    public static final FrameSlot SOURCE_TAINTED_SLOT = FRAME_DESCRIPTOR
-            .addFrameSlot("source-tainted", FrameSlotKind.Boolean);
     public static final FrameSlot SOURCE_ASSOCIATED_SLOT = FRAME_DESCRIPTOR
             .addFrameSlot("source-remembered", FrameSlotKind.Object);
     public static final FrameSlot OUTPUT_SLOT = FRAME_DESCRIPTOR.addFrameSlot("output", FrameSlotKind.Object);
@@ -32,7 +30,6 @@ public class FormatFrameDescriptor {
             .addFrameSlot("string-length", FrameSlotKind.Int);
     public static final FrameSlot STRING_CODE_RANGE_SLOT = FRAME_DESCRIPTOR
             .addFrameSlot("string-code-range", FrameSlotKind.Int);
-    public static final FrameSlot TAINT_SLOT = FRAME_DESCRIPTOR.addFrameSlot("taint", FrameSlotKind.Boolean);
     public static final FrameSlot ASSOCIATED_SLOT = FRAME_DESCRIPTOR.addFrameSlot("remembered", FrameSlotKind.Object);
 
 }

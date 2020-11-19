@@ -50,10 +50,8 @@ VALUE rb_str_new(const char *string, long length) {
 }
 
 VALUE rb_tainted_str_new(const char *ptr, long len) {
-    VALUE str = rb_str_new(ptr, len);
-
-    OBJ_TAINT(str);
-    return str;
+    rb_warning("rb_tainted_str_new is deprecated and will be removed in Ruby 3.2.");
+    return rb_str_new(ptr, len);
 }
 
 VALUE rb_str_new_cstr(const char *string) {
@@ -71,10 +69,8 @@ VALUE rb_str_new_with_class(VALUE str, const char *string, long len) {
 }
 
 VALUE rb_tainted_str_new_cstr(const char *ptr) {
-    VALUE str = rb_str_new_cstr(ptr);
-
-    OBJ_TAINT(str);
-    return str;
+    rb_warning("rb_tainted_str_new_cstr is deprecated and will be removed in Ruby 3.2.");
+    return rb_str_new_cstr(ptr);
 }
 
 VALUE rb_str_dup(VALUE string) {
@@ -191,16 +187,9 @@ VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ec
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_conv_enc_opts", rb_tr_unwrap(str), rb_tr_unwrap(rb_enc_from_encoding(from)), rb_tr_unwrap(rb_enc_from_encoding(to)), ecflags, rb_tr_unwrap(ecopts)));
 }
 
-VALUE
-rb_tainted_str_new_with_enc(const char *ptr, long len, rb_encoding *enc) {
-  VALUE str = rb_enc_str_new(ptr, len, enc);
-  OBJ_TAINT(str);
-  return str;
-}
-
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *eenc) {
   VALUE str;
-  str = rb_tainted_str_new_with_enc(ptr, len, eenc);
+  str = rb_enc_str_new(ptr, len, eenc);
   str = rb_external_str_with_enc(str, eenc);
   return str;
 }

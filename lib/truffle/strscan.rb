@@ -78,7 +78,6 @@ class StringScanner
     if @match
       raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
       str = @match[n]
-      str.taint if @string.tainted?
       str
     end
   end
@@ -174,7 +173,6 @@ class StringScanner
         end
       end
 
-      str.taint if @string.tainted?
       str
     else
       "#<#{self.class} (uninitialized)>"
@@ -188,7 +186,6 @@ class StringScanner
   def matched
     if @match
       matched = @match.to_s
-      matched.taint if @string.tainted?
       matched
     end
   end

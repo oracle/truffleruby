@@ -377,7 +377,7 @@ module Kernel
     ivars = Primitive.object_ivars self
 
     if ivars.empty?
-      return Primitive.infect "#{prefix}>", self
+      return "#{prefix}>"
     end
 
     Truffle::ThreadOperations.detect_recursion(self) do
@@ -385,8 +385,7 @@ module Kernel
         value = Primitive.object_ivar_get self, var
         "#{var}=#{value.inspect}"
       end
-      str = "#{prefix} #{parts.join(', ')}>"
-      return Primitive.infect str, self
+      return "#{prefix} #{parts.join(', ')}>"
     end
 
     # If it's already been inspected, return the ...
@@ -725,10 +724,6 @@ module Kernel
     require 'pp'
     pp(*args)
   end
-
-  alias_method :trust, :untaint
-  alias_method :untrust, :taint
-  alias_method :untrusted?, :tainted?
 
   def caller(start = 1, limit = nil)
     args = if start.is_a? Range

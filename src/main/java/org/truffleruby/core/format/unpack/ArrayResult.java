@@ -13,12 +13,10 @@ public class ArrayResult {
 
     private final Object output;
     private final int outputLength;
-    private final boolean tainted;
 
-    public ArrayResult(Object output, int outputLength, boolean tainted) {
+    public ArrayResult(Object output, int outputLength) {
         this.output = output;
         this.outputLength = outputLength;
-        this.tainted = tainted;
     }
 
     public Object getOutput() {
@@ -27,10 +25,6 @@ public class ArrayResult {
 
     public int getOutputLength() {
         return outputLength;
-    }
-
-    public boolean isTainted() {
-        return tainted;
     }
 
 }

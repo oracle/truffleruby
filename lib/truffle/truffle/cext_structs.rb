@@ -158,7 +158,6 @@ class Truffle::CExt::RBasic
   def compute_flags
     flags = 0
     flags |= RUBY_FL_FREEZE if @object.frozen?
-    flags |= RUBY_FL_TAINT  if @object.tainted?
     flags | user_flags
   end
 
@@ -194,10 +193,7 @@ class Truffle::CExt::RBasic
 
   def set_flags(flags)
     if flags & RUBY_FL_TAINT != 0
-      @object.taint
       flags &= ~RUBY_FL_TAINT
-    elsif @object.tainted?
-      @object.untaint
     end
 
     set_user_flags(flags & USER_FLAGS_MASK)

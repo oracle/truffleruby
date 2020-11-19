@@ -45,7 +45,6 @@ import org.truffleruby.core.format.read.bytes.ReadMIMEStringNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadStringPointerNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUTF8CharacterNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUUStringNodeGen;
-import org.truffleruby.core.format.read.bytes.TaintFromSourceNodeGen;
 import org.truffleruby.core.format.write.OutputNode;
 import org.truffleruby.core.format.write.array.WriteValueNodeGen;
 import org.truffleruby.language.control.RaiseException;
@@ -138,10 +137,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, true, true, false, source);
         }
 
-        appendNode(WriteValueNodeGen.create(
-                new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        readNode)));
+        appendNode(WriteValueNodeGen.create(new OutputNode(), readNode));
     }
 
     @Override
@@ -157,10 +153,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, false, false, false, source);
         }
 
-        appendNode(WriteValueNodeGen.create(
-                new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        readNode)));
+        appendNode(WriteValueNodeGen.create(new OutputNode(), readNode));
     }
 
     @Override
@@ -176,10 +169,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
             readNode = ReadBinaryStringNodeGen.create(false, false, count, false, true, true, source);
         }
 
-        appendNode(WriteValueNodeGen.create(
-                new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        readNode)));
+        appendNode(WriteValueNodeGen.create(new OutputNode(), readNode));
     }
 
     @Override
@@ -207,24 +197,21 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
         appendNode(
                 WriteValueNodeGen.create(
                         new OutputNode(),
-                        TaintFromSourceNodeGen.create(
-                                ReadUUStringNodeGen.create(new SourceNode()))));
+                        ReadUUStringNodeGen.create(new SourceNode())));
     }
 
     @Override
     public void mimeString(int count) {
         appendNode(WriteValueNodeGen.create(
                 new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        ReadMIMEStringNodeGen.create(new SourceNode()))));
+                ReadMIMEStringNodeGen.create(new SourceNode())));
     }
 
     @Override
     public void base64String(int count) {
         appendNode(WriteValueNodeGen.create(
                 new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        ReadBase64StringNodeGen.create(count, new SourceNode()))));
+                ReadBase64StringNodeGen.create(count, new SourceNode())));
     }
 
     @Override
@@ -374,12 +361,11 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteValueNodeGen.create(
                 new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        ReadBitStringNodeGen.create(
-                                byteOrder,
-                                starLength.isStar(),
-                                starLength.getLength(),
-                                new SourceNode()))));
+                ReadBitStringNodeGen.create(
+                        byteOrder,
+                        starLength.isStar(),
+                        starLength.getLength(),
+                        new SourceNode())));
     }
 
     private void hexString(ByteOrder byteOrder, int count) {
@@ -387,12 +373,11 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteValueNodeGen.create(
                 new OutputNode(),
-                TaintFromSourceNodeGen.create(
-                        ReadHexStringNodeGen.create(
-                                byteOrder,
-                                starLength.isStar(),
-                                starLength.getLength(),
-                                new SourceNode()))));
+                ReadHexStringNodeGen.create(
+                        byteOrder,
+                        starLength.isStar(),
+                        starLength.getLength(),
+                        new SourceNode())));
 
     }
 

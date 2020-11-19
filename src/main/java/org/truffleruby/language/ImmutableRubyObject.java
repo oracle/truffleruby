@@ -64,19 +64,6 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public boolean isFrozen() {
         return true;
     }
-
-    @ExportMessage
-    public boolean isTainted() {
-        return false;
-    }
-
-    @ExportMessage
-    public void taint() {
-    }
-
-    @ExportMessage
-    public void untaint() {
-    }
     // endregion
 
     // region InteropLibrary messages

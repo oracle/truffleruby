@@ -355,7 +355,6 @@ class << ENV
     elsif value.encoding != Encoding::LOCALE
       value = value.dup.force_encoding(Encoding::LOCALE)
     end
-    value.taint unless value.tainted?
     value.freeze
   end
   private :set_encoding

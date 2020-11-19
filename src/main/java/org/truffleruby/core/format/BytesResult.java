@@ -18,7 +18,6 @@ public class BytesResult {
     private final int outputLength;
     private final int stringLength;
     private final CodeRange stringCodeRange;
-    private final boolean tainted;
     private final FormatEncoding encoding;
 
     private final Pointer[] associated;
@@ -28,14 +27,12 @@ public class BytesResult {
             int outputLength,
             int stringLength,
             CodeRange stringCodeRange,
-            boolean tainted,
             FormatEncoding encoding,
             Pointer[] associated) {
         this.output = output;
         this.outputLength = outputLength;
         this.stringLength = stringLength;
         this.stringCodeRange = stringCodeRange;
-        this.tainted = tainted;
         this.encoding = encoding;
         this.associated = associated;
     }
@@ -54,10 +51,6 @@ public class BytesResult {
 
     public CodeRange getStringCodeRange() {
         return stringCodeRange;
-    }
-
-    public boolean isTainted() {
-        return tainted;
     }
 
     public FormatEncoding getEncoding() {

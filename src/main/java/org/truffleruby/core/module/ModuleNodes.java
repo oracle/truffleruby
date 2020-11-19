@@ -33,7 +33,6 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
@@ -368,8 +367,6 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "append_features", required = 1, visibility = Visibility.PRIVATE, split = Split.NEVER)
     public abstract static class AppendFeaturesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
-
         @Specialization
         protected Object appendFeatures(RubyModule features, RubyModule target,
                 @Cached BranchProfile errorProfile) {
@@ -380,7 +377,6 @@ public abstract class ModuleNodes {
                         coreExceptions().typeError("append_features must be called only on modules", this));
             }
             target.fields.include(getContext(), this, features);
-            taintResultNode.maybeTaint(features, target);
             return nil;
         }
     }
@@ -1569,8 +1565,6 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "prepend_features", required = 1, visibility = Visibility.PRIVATE, split = Split.NEVER)
     public abstract static class PrependFeaturesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
-
         @Specialization
         protected Object prependFeatures(RubyModule features, RubyModule target,
                 @Cached BranchProfile errorProfile) {
@@ -1581,7 +1575,6 @@ public abstract class ModuleNodes {
                         coreExceptions().typeError("prepend_features must be called only on modules", this));
             }
             target.fields.prepend(getContext(), this, features);
-            taintResultNode.maybeTaint(features, target);
             return nil;
         }
     }

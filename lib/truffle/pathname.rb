@@ -223,12 +223,20 @@ class Pathname
 
     @path = path.dup
 
-    self.taint if @path.tainted?
+    self
   end
 
   def freeze() super; @path.freeze; self end
-  def taint() super; @path.taint; self end
-  def untaint() super; @path.untaint; self end
+
+  def taint
+    warn 'Pathname#taint is deprecated and will be removed in Ruby 3.2.', uplevel: 1 if $VERBOSE
+    self
+  end
+
+  def untaint
+    warn 'Pathname#untaint is deprecated and will be removed in Ruby 3.2.', uplevel: 1 if $VERBOSE
+    self
+  end
 
   #
   # Compare this pathname with +other+.  The comparison is string-based.

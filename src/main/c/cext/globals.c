@@ -69,13 +69,11 @@ void rb_set_safe_level(int level) {
 }
 
 void rb_check_safe_obj(VALUE object) {
-  if (rb_safe_level() > 0 && OBJ_TAINTED(object)) {
-    rb_insecure_operation();
-  }
+  rb_warn("rb_check_safe_obj will be removed in Ruby 3.0");
 }
 
 void rb_check_trusted(VALUE obj) {
-  // This function intentionally does nothing to match MRI.
+  rb_warning("rb_check_trusted is deprecated and will be removed in Ruby 3.2.");
 }
 
 // $VERBOSE

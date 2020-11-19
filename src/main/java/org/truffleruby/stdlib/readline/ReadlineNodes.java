@@ -44,7 +44,6 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -139,8 +138,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object readline(String prompt, boolean addToHistory,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
+        protected Object readline(String prompt, boolean addToHistory) {
             final LineReader readline = getContext().getConsoleHolder().getReadline();
 
             // Use a Memo as readLine() can return null on Ctrl+D and we should not retry
@@ -167,12 +165,10 @@ public abstract class ReadlineNodes {
                     readline.getHistory().add(value);
                 }
 
-                final RubyString ret = makeStringNode.executeMake(
+                return makeStringNode.executeMake(
                         value,
                         getContext().getEncodingManager().getDefaultExternalEncoding(),
                         CodeRange.CR_UNKNOWN);
-                rubyLibrary.taint(ret);
-                return ret;
             }
         }
 
@@ -227,14 +223,11 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object lineBuffer(
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
+        protected Object lineBuffer() {
             final Buffer buffer = getContext().getConsoleHolder().getReadline().getBuffer();
 
-            final RubyString ret = makeStringNode
+            return makeStringNode
                     .executeMake(buffer.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-            rubyLibrary.taint(ret);
-            return ret;
         }
 
     }

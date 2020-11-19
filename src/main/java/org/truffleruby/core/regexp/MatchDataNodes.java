@@ -46,7 +46,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -228,7 +227,6 @@ public abstract class MatchDataNodes {
             required = 1,
             optional = 1,
             lowerFixnum = { 1, 2 },
-            taintFrom = 0,
             argumentNames = { "index_start_range_or_name", "length" })
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
@@ -266,7 +264,7 @@ public abstract class MatchDataNodes {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-                    final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
+                    final RubyString string = new RubyString(logicalClass, shape, false, rope);
                     AllocationTracing.trace(string, this);
                     return string;
                 } else {
@@ -464,14 +462,12 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization
         protected Object[] getValuesSlow(RubyMatchData matchData,
-                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached LogicalClassNode logicalClassNode) {
             final Object source = matchData.source;
             final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
-            boolean isTainted = rubyLibrary.isTainted(source);
 
             for (int n = 0; n < region.numRegs; n++) {
                 final int start = region.beg[n];
@@ -481,7 +477,7 @@ public abstract class MatchDataNodes {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
                     final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-                    final RubyString string = new RubyString(logicalClass, shape, false, isTainted, rope);
+                    final RubyString string = new RubyString(logicalClass, shape, false, rope);
                     AllocationTracing.trace(string, this);
                     values[n] = string;
                 } else {
@@ -579,7 +575,7 @@ public abstract class MatchDataNodes {
 
     }
 
-    @CoreMethod(names = "pre_match", taintFrom = 0)
+    @CoreMethod(names = "pre_match")
     public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -599,13 +595,13 @@ public abstract class MatchDataNodes {
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-            final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
+            final RubyString string = new RubyString(logicalClass, shape, false, rope);
             AllocationTracing.trace(string, this);
             return string;
         }
     }
 
-    @CoreMethod(names = "post_match", taintFrom = 0)
+    @CoreMethod(names = "post_match")
     public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -625,7 +621,7 @@ public abstract class MatchDataNodes {
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
             final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-            final RubyString string = new RubyString(logicalClass, shape, false, false, rope);
+            final RubyString string = new RubyString(logicalClass, shape, false, rope);
             AllocationTracing.trace(string, this);
             return string;
         }

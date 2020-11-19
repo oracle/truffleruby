@@ -48,7 +48,6 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -304,29 +303,6 @@ public abstract class TypeNodes {
         protected RubyString toS(Object obj,
                 @Cached ToSNode kernelToSNode) {
             return kernelToSNode.executeToS(obj);
-        }
-
-    }
-
-    @Primitive(name = "infect")
-    public static abstract class InfectNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private RubyLibrary rubyLibraryTaint;
-
-        @Specialization(limit = "getRubyLibraryCacheLimit()")
-        protected Object infect(Object host, Object source,
-                @CachedLibrary("source") RubyLibrary rubyLibrary) {
-            if (rubyLibrary.isTainted(source)) {
-                // This lazy node allocation effectively gives us a branch profile
-
-                if (rubyLibraryTaint == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    rubyLibraryTaint = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
-                }
-                rubyLibraryTaint.taint(host);
-            }
-
-            return host;
         }
 
     }
