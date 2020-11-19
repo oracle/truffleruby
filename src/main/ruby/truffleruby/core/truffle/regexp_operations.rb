@@ -177,9 +177,10 @@ module Truffle
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       begin
-        re_source = StringOperations::java_string(re.source)
+        processed_re_source = preprocess_regexp_source(re.source)
+        re_source = StringOperations::java_string(processed_re_source)
         java_string = StringOperations::java_string(str)
-        if (re.source.length != Truffle::Interop::from_java_string(re_source).length) ||
+        if (processed_re_source.length != Truffle::Interop::from_java_string(re_source).length) ||
            (str.length != Truffle::Interop::from_java_string(java_string).length) then
           # Calling java_string with certain string and certain encodings (e.g. non-ASCII characters in BINARY encoding)
           # can lead to differences in escape behavior, yielding different strings. These result in strings of different

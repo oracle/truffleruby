@@ -35,6 +35,7 @@ import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -180,6 +181,23 @@ public class TruffleRegexpNodes {
         @Specialization
         public Object getTRegexEngine(VirtualFrame frame) {
             return getContext().getRegexEngine();
+        }
+    }
+
+    @CoreMethod(names = "preprocess_regexp_source", onSingleton = true, required = 1)
+    public abstract static class PreprocessRegexpSourceNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString preprocessRegexpSource(RubyString regexpSource) {
+            Rope inputRope = regexpSource.rope;
+            Encoding[] fixedEnc = new Encoding[]{ null };
+            RopeBuilder ropeBuilder = ClassicRegexp
+                    .preprocess(getContext(), inputRope, inputRope.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+            Rope outputRope = ropeBuilder.toRope();
+            RubyClass stringClass = regexpSource.getLogicalClass();
+            RubyString processedRegexpSource = new RubyString(stringClass, getLanguage().stringShape, false, outputRope);
+            AllocationTracing.trace(processedRegexpSource, this);
+            return processedRegexpSource;
         }
     }
 
