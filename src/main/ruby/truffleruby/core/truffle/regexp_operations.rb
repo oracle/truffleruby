@@ -173,7 +173,7 @@ module Truffle
     end
 
     def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-      if to < from || to != str.bytes.length || start != 0
+      if to < from || to != str.bytes.length || start != 0 || from < 0
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       begin
