@@ -169,56 +169,17 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
         protected Rope substringConcatRope(ConcatRope base, int byteOffset, int byteLength,
+                @Cached BytesNode bytesNode,
                 @Cached WithEncodingNode withEncodingNode,
                 @Cached MakeSubstringRopeNode makeSubstringRopeNode,
                 @Cached ConditionProfile matchesChildProfile) {
-            Rope root = base;
-
-            while (root instanceof ConcatRope) {
-                ConcatRope concatRoot = (ConcatRope) root;
-                Rope left = concatRoot.getLeft();
-                Rope right = concatRoot.getRight();
-
-                // CASE 1: Fits in left.
-                if (byteOffset + byteLength <= left.byteLength()) {
-                    root = left;
-                    continue;
-                }
-
-                // CASE 2: Fits in right.
-                if (byteOffset >= left.byteLength()) {
-                    byteOffset -= left.byteLength();
-                    root = right;
-                    continue;
-                }
-
-                // CASE 3: Spans left and right.
-                if (byteLength == root.byteLength()) {
-                    return withEncodingNode.executeWithEncoding(root, base.getEncoding());
-                } else {
-                    return makeSubstringRopeNode.executeMake(base.getEncoding(), root, byteOffset, byteLength);
-                }
-            }
-
-            if (root instanceof SubstringRope) {
-                return substringSubstringRopeWithEncoding(
-                        base.getEncoding(),
-                        (SubstringRope) root,
-                        byteOffset,
-                        byteLength,
-                        makeSubstringRopeNode);
-            } else if (root instanceof RepeatingRope) {
-                return substringRepeatingRopeWithEncoding(
-                        base.getEncoding(),
-                        (RepeatingRope) root,
-                        byteOffset,
-                        byteLength,
-                        matchesChildProfile,
-                        makeSubstringRopeNode,
-                        withEncodingNode);
-            }
-
-            return makeSubstringRopeNode.executeMake(base.getEncoding(), root, byteOffset, byteLength);
+            // NOTE(norswap, 19 Nov 2020):
+            //  We flatten the rope here. This avoids issue in the (fairly common) case where the rope tree is basically
+            //  a linked list. In that case, reading successive substrings causes increasingly bigger concat ropes
+            //  to be flattened. So better to preventively flatten at the top. This is also generally beneficial if
+            //  we shift from a write-heavy load (rope tree creation) to a read-heavy load.
+            bytesNode.execute(base); // flatten rope
+            return makeSubstringRopeNode.executeMake(base.getEncoding(), base, byteOffset, byteLength);
         }
 
         protected static boolean sameAsBase(Rope base, int byteLength) {
