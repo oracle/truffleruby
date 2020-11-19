@@ -105,6 +105,8 @@ class Proc
   end
 
   def >>(other)
+    raise(TypeError, 'callable object is expected') unless other.respond_to?(:call)
+
     if lambda?
       -> (*args, &block) do
         other.call(call(*args, &block))
@@ -117,6 +119,8 @@ class Proc
   end
 
   def <<(other)
+    raise(TypeError, 'callable object is expected') unless other.respond_to?(:call)
+
     if lambda?
       -> (*args, &block) do
         call(other.call(*args, &block))

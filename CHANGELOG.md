@@ -23,6 +23,7 @@ Compatibility:
 * Implement `Complex#<=>` (#2004, @ssnickolay).
 * Add warning for `proc` without block (#2004, @ssnickolay).
 * Implemented `FrozenError#receiver`.
+* `Proc#<<` and `Proc#>>` raises TypeError if passed not callable object (#2004, @ssnickolay).
 
 Performance:
 
