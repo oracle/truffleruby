@@ -501,7 +501,7 @@ public class CExtNodes {
                 @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
             nativeRope.clearCodeRange();
-            StringOperations.setRope(string, nativeRope);
+            string.setRope(nativeRope);
 
             return string;
         }
@@ -623,7 +623,7 @@ public class CExtNodes {
             }
 
             final NativeRope newNativeRope = nativeRope.withByteLength(newByteLength, newCharacterLength, newCodeRange);
-            StringOperations.setRope(string, newNativeRope);
+            string.setRope(newNativeRope);
 
             return string;
         }
@@ -648,7 +648,7 @@ public class CExtNodes {
                 // Like MRI's rb_str_resize()
                 newRope.clearCodeRange();
 
-                StringOperations.setRope(string, newRope);
+                string.setRope(newRope);
                 return string;
             }
         }
@@ -1001,7 +1001,7 @@ public class CExtNodes {
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
                         codeRangeNode.execute(currentRope));
-                StringOperations.setRope(string, nativeRope);
+                string.setRope(nativeRope);
             }
 
             return nativeRope;
@@ -1102,7 +1102,7 @@ public class CExtNodes {
 
             final Rope newRope = setByteNode.executeSetByte(rope, index, value);
             if (newRopeProfile.profile(newRope != rope)) {
-                StringOperations.setRope(string, newRope);
+                string.setRope(newRope);
             }
 
             return value;

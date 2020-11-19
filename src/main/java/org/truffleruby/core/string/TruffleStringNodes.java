@@ -49,7 +49,7 @@ public class TruffleStringNodes {
                         "!isNewLengthTooLarge(string, newByteLength)" })
         protected RubyString stealStorage(RubyString string, int newByteLength,
                 @Cached RopeNodes.SubstringNode substringNode) {
-            StringOperations.setRope(string, substringNode.executeSubstring(string.rope, 0, newByteLength));
+            string.setRope(substringNode.executeSubstring(string.rope, 0, newByteLength));
             return string;
         }
 

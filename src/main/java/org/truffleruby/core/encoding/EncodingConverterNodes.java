@@ -46,7 +46,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -314,7 +313,7 @@ public abstract class EncodingConverterNodes {
 
                 if (nonNullSource) {
                     sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
-                    StringOperations.setRope((RubyString) source, sourceRope);
+                    ((RubyString) source).setRope(sourceRope);
                 }
 
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
@@ -331,7 +330,7 @@ public abstract class EncodingConverterNodes {
                     outBytes.setEncoding(ec.destinationEncoding);
                 }
 
-                StringOperations.setRope(target, RopeOperations.ropeFromRopeBuilder(outBytes));
+                target.setRope(RopeOperations.ropeFromRopeBuilder(outBytes));
 
                 return getSymbol(res.symbolicName());
             }

@@ -1175,7 +1175,7 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            StringOperations.setRope(string, processedRope);
+            string.setRope(processedRope);
             return string;
         }
 
@@ -1203,7 +1203,7 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            StringOperations.setRope(string, processedRope);
+            string.setRope(processedRope);
 
             return string;
         }
@@ -1249,8 +1249,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.downcaseMultiByteAsciiSimple(encoding, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
@@ -1279,8 +1278,7 @@ public abstract class StringNodes {
                     .downcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
 
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
@@ -1424,7 +1422,7 @@ public abstract class StringNodes {
 
             if (differentEncodingProfile.profile(rope.getEncoding() != javaEncoding)) {
                 final Rope newRope = withEncodingNode.executeWithEncoding(rope, javaEncoding);
-                StringOperations.setRope(string, newRope);
+                string.setRope(newRope);
             }
 
             return string;
@@ -1487,8 +1485,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding) {
-            StringOperations
-                    .setRope(string, StringOperations.encodeRope(from, encoding.encoding));
+            string.setRope(StringOperations.encodeRope(from, encoding.encoding));
             return string;
         }
 
@@ -1504,7 +1501,7 @@ public abstract class StringNodes {
         @Specialization(guards = "stringsFrom.isRubyString(from)")
         protected RubyString initialize(RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom) {
-            StringOperations.setRope(string, stringsFrom.getRope(from));
+            string.setRope(stringsFrom.getRope(from));
             return string;
         }
 
@@ -1512,7 +1509,7 @@ public abstract class StringNodes {
         protected RubyString initialize(VirtualFrame frame, RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached ToStrNode toStrNode) {
-            StringOperations.setRope(string, stringLibrary.getRope(toStrNode.executeToStr(from)));
+            string.setRope(stringLibrary.getRope(toStrNode.executeToStr(from)));
             return string;
         }
 
@@ -1579,7 +1576,7 @@ public abstract class StringNodes {
         protected Object initializeCopy(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
-            StringOperations.setRope(self, stringsFrom.getRope(from));
+            self.setRope(stringsFrom.getRope(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;
@@ -1593,8 +1590,7 @@ public abstract class StringNodes {
         protected Object initializeCopyFromNative(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
-            StringOperations.setRope(
-                    self,
+            self.setRope(
                     ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext().getFinalizationService()));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
@@ -1659,7 +1655,7 @@ public abstract class StringNodes {
                 p++;
             }
 
-            StringOperations.setRope(string, substringNode.executeSubstring(rope, p, end - p));
+            string.setRope(substringNode.executeSubstring(rope, p, end - p));
 
             return string;
         }
@@ -1687,7 +1683,7 @@ public abstract class StringNodes {
             }
 
             if (p > s) {
-                StringOperations.setRope(string, substringNode.executeSubstring(rope, p - s, end - p));
+                string.setRope(substringNode.executeSubstring(rope, p - s, end - p));
 
                 return string;
             }
@@ -1733,13 +1729,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "string != other" })
         protected RubyString replace(RubyString string, RubyString other) {
-            StringOperations.setRope(string, other.rope);
+            string.setRope(other.rope);
             return string;
         }
 
         @Specialization
         protected RubyString replace(RubyString string, ImmutableRubyString other) {
-            StringOperations.setRope(string, other.rope);
+            string.setRope(other.rope);
             return string;
         }
 
@@ -1785,7 +1781,7 @@ public abstract class StringNodes {
                 endp--;
             }
 
-            StringOperations.setRope(string, substringNode.executeSubstring(rope, 0, endp + 1));
+            string.setRope(substringNode.executeSubstring(rope, 0, endp + 1));
 
             return string;
         }
@@ -1822,7 +1818,7 @@ public abstract class StringNodes {
             }
 
             if (endp < end) {
-                StringOperations.setRope(string, substringNode.executeSubstring(rope, 0, endp - start));
+                string.setRope(substringNode.executeSubstring(rope, 0, endp - start));
 
                 return string;
             }
@@ -2027,8 +2023,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.swapcaseMultiByteAsciiSimple(enc, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode.executeMake(outputBytes, enc, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
@@ -2059,8 +2054,7 @@ public abstract class StringNodes {
                     .swapCaseMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
 
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
@@ -2328,7 +2322,7 @@ public abstract class StringNodes {
 
             final Rope newRope = setByteNode.executeSetByte(rope, normalizedIndex, value);
             if (newRopeProfile.profile(newRope != rope)) {
-                StringOperations.setRope(string, newRope);
+                string.setRope(newRope);
             }
 
             return value;
@@ -2434,7 +2428,7 @@ public abstract class StringNodes {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
                 if (!StringSupport
@@ -2447,7 +2441,7 @@ public abstract class StringNodes {
                                 false)) {
                     return nil;
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             }
 
@@ -2498,13 +2492,13 @@ public abstract class StringNodes {
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
                 if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc, true)) {
                     return nil;
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
+                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             }
 
@@ -2530,7 +2524,7 @@ public abstract class StringNodes {
                         rope.getEncoding(),
                         CodeRange.CR_UNKNOWN,
                         NotProvided.INSTANCE);
-                StringOperations.setRope(string, newRope);
+                string.setRope(newRope);
             }
 
             return string;
@@ -2707,8 +2701,7 @@ public abstract class StringNodes {
                 reversedBytes[len - i - 1] = originalBytes[i];
             }
 
-            StringOperations.setRope(
-                    string,
+            string.setRope(
                     makeLeafRopeNode.executeMake(
                             reversedBytes,
                             rope.getEncoding(),
@@ -2750,8 +2743,7 @@ public abstract class StringNodes {
                 }
             }
 
-            StringOperations.setRope(
-                    string,
+            string.setRope(
                     makeLeafRopeNode.executeMake(
                             reversedBytes,
                             rope.getEncoding(),
@@ -3093,7 +3085,7 @@ public abstract class StringNodes {
                         rope.getEncoding(),
                         codeRangeNode.execute(rope),
                         characterLengthNode.execute(rope));
-                StringOperations.setRope(string, newRope);
+                string.setRope(newRope);
 
                 return string;
             }
@@ -3136,8 +3128,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(encoding, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
@@ -3165,8 +3156,7 @@ public abstract class StringNodes {
             final boolean modified = StringSupport
                     .upcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
 
@@ -3241,8 +3231,7 @@ public abstract class StringNodes {
                 finalBytes[0] ^= 0x20;
             }
 
-            StringOperations.setRope(
-                    string,
+            string.setRope(
                     makeLeafRopeNode.executeMake(
                             finalBytes,
                             rope.getEncoding(),
@@ -3278,8 +3267,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(enc, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode.executeMake(
                                 outputBytes,
                                 enc,
@@ -3314,8 +3302,7 @@ public abstract class StringNodes {
             final boolean modified = StringSupport
                     .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(
-                        string,
+                string.setRope(
                         makeLeafRopeNode
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
                 return string;
@@ -3333,7 +3320,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString clear(RubyString string) {
-            StringOperations.setRope(string, substringNode.executeSubstring(string.rope, 0, 0));
+            string.setRope(substringNode.executeSubstring(string.rope, 0, 0));
             return string;
         }
     }
@@ -3353,7 +3340,7 @@ public abstract class StringNodes {
                 return Nil.INSTANCE;
             }
 
-            StringOperations.setRope(self, ret);
+            self.setRope(ret);
             return self;
         }
     }
@@ -3397,7 +3384,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString stringAppend(RubyString string, Object other) {
-            StringOperations.setRope(string, stringAppendNode.executeStringAppend(string, other));
+            string.setRope(stringAppendNode.executeStringAppend(string, other));
             return string;
         }
 
@@ -4950,7 +4937,7 @@ public abstract class StringNodes {
             final Rope right = prependSubstringNode
                     .executeSubstring(original, byteCountToReplace, original.byteLength() - byteCountToReplace);
 
-            StringOperations.setRope(string, prependConcatNode.executeConcat(left, right, encoding));
+            string.setRope(prependConcatNode.executeConcat(left, right, encoding));
 
             return string;
         }
@@ -4968,7 +4955,7 @@ public abstract class StringNodes {
             final Rope left = string.rope;
             final Rope right = libOther.getRope(other);
 
-            StringOperations.setRope(string, appendConcatNode.executeConcat(left, right, encoding));
+            string.setRope(appendConcatNode.executeConcat(left, right, encoding));
 
             return string;
         }
@@ -5011,7 +4998,7 @@ public abstract class StringNodes {
                 joinedRight = rightConcatNode.executeConcat(joinedLeft, splitRight, encoding);
             }
 
-            StringOperations.setRope(string, joinedRight);
+            string.setRope(joinedRight);
             return string;
         }
 
@@ -5072,7 +5059,7 @@ public abstract class StringNodes {
 
             // The semantics of this primitive are such that the original string's byte[] should be extended without
             // negotiating the encoding.
-            StringOperations.setRope(string, concatNode.executeConcat(left, right, left.getEncoding()));
+            string.setRope(concatNode.executeConcat(left, right, left.getEncoding()));
             return string;
         }
 
