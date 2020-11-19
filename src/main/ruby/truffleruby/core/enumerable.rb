@@ -73,7 +73,7 @@ module Enumerable
   end
 
   def chunk_while(&block)
-    block = Proc.new(block)
+    raise ArgumentError, 'tried to create Proc object without a block' unless block
     Enumerator.new do |yielder|
       accumulator = nil
       prev = nil
@@ -245,7 +245,7 @@ module Enumerable
   end
 
   def slice_when(&block)
-    block = Proc.new(block)
+    raise ArgumentError, 'tried to create Proc object without a block' unless block
     Enumerator.new do |yielder|
       accumulator = nil
       prev = nil
