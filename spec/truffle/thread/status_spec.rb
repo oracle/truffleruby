@@ -15,9 +15,13 @@ describe "Thread#status" do
     # from https://swtch.com/~rsc/regexp/regexp1.html
     # Takes around 100 ms so the main thread can observe the status
     # while this thread is matching.
+    # NB: We include backreferences, so that TRegex can't "cheat" by
+    # using a DFA and executing this in linear time. We also replace
+    # 'a?' * 23 with '(a?)' * 23 so that TRegex can't replace 'a?' * 23
+    # with 'a{0,23}' and execute in quadratic time.
     n = 23
-    regexp = /#{'a?' * n}#{'a' * n}/
-    string = 'a' * n
+    regexp = /(f)\1#{'(a?)' * n}#{'a' * n}\1/
+    string = 'ff' + 'a' * n
 
     t = Thread.new do
       regexp =~ string
