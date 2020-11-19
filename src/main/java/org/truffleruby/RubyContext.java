@@ -26,6 +26,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.utilities.AssumedValue;
 import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
@@ -81,6 +82,7 @@ import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.RubyOptionTypes;
+import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -150,6 +152,9 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
+    private final AssumedValue<Boolean> warningCategoryDeprecated;
+    private final AssumedValue<Boolean> warningCategoryExperimental;
+
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
     private static boolean isPreInitializingContext() {
@@ -171,6 +176,9 @@ public class RubyContext {
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
 
         options = createOptions(env, language.options);
+
+        warningCategoryDeprecated = new AssumedValue<>(options.VERBOSITY == Verbosity.TRUE);
+        warningCategoryExperimental = new AssumedValue<>(options.VERBOSITY != Verbosity.NIL);
 
         safepointManager = new SafepointManager(this, language);
         coreExceptions = new CoreExceptions(this, language);
@@ -812,6 +820,14 @@ public class RubyContext {
 
     public Object getTopScopeObject() {
         return coreLibrary.topScopeObject;
+    }
+
+    public AssumedValue<Boolean> getWarningCategoryDeprecated() {
+        return warningCategoryDeprecated;
+    }
+
+    public AssumedValue<Boolean> getWarningCategoryExperimental() {
+        return warningCategoryExperimental;
     }
 
     @TruffleBoundary

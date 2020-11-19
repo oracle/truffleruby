@@ -53,6 +53,8 @@ public class CoreSymbols {
     public final RubySymbol LINE = createRubySymbol("line");
     public final RubySymbol NEVER = createRubySymbol("never");
     public final RubySymbol ON_BLOCKING = createRubySymbol("on_blocking");
+    public final RubySymbol DEPRECATED = createRubySymbol("deprecated");
+    public final RubySymbol EXPERIMENTAL = createRubySymbol("experimental");
 
 JAVA
 lines = []
