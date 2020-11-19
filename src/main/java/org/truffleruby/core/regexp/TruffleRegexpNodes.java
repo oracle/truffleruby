@@ -179,7 +179,7 @@ public class TruffleRegexpNodes {
     public static abstract class TRegexEngine extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object getTRegexEngine(VirtualFrame frame) {
+        protected Object getTRegexEngine(VirtualFrame frame) {
             return getContext().getRegexEngine();
         }
     }
