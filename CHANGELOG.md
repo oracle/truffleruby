@@ -11,6 +11,7 @@ Bug fixes:
 * Fixed return value of `Enumerable#count` and `Enumerable#uniq` with multiple yielded arguments (#2145, @LillianZ).
 * Fixed `String#unpack` for `w*` format (#2143).
 * Fixed issue with ``Kernel#` `` when invalid UTF-8 given (#2118).
+* Fixed issue with `Method#to_proc` and special variable storage (#2156).
 
 Compatibility:
 

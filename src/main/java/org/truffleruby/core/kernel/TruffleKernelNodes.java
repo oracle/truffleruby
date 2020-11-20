@@ -247,6 +247,22 @@ public abstract class TruffleKernelNodes {
             } else {
                 MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
 
+                if (storageFrame == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    int depth = 0;
+                    MaterializedFrame currentFrame = RubyArguments.getDeclarationFrame(frame);
+                    while (currentFrame != null) {
+                        depth += 1;
+                        currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
+                    }
+
+                    String message = String.format(
+                            "Expected %d declaration frames but only found %d frames.",
+                            declarationFrameDepth,
+                            depth);
+                    throw CompilerDirectives.shouldNotReachHere(message.toString());
+                }
+
                 variables = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);
                 if (variables == nil) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();

@@ -366,6 +366,9 @@ public abstract class MethodNodes {
         public Object execute(VirtualFrame frame) {
             Object receiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
             RubyArguments.setSelf(frame, receiver);
+            /* Remove the declaration frame from the arguments so that the method will not see the special variables
+             * associated with the proc. This matches the behaviour in MRI. */
+            RubyArguments.setDeclarationFrame(frame, null);
             return methodCallNode.call(frame.getArguments());
         }
 
