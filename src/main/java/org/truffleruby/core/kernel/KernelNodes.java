@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.utilities.AssumedValue;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -2100,6 +2101,44 @@ public abstract class KernelNodes {
                         "Object#untrust is deprecated and will be removed in Ruby 3.2.");
             }
             return object;
+        }
+
+    }
+
+    @Primitive(name = "warning_get_category")
+    public abstract static class WarningGetCategoryNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "category == coreSymbols().DEPRECATED")
+        protected boolean getCategoryDeprecated(RubySymbol category) {
+            return getContext().getWarningCategoryDeprecated().get();
+        }
+
+        @Specialization(guards = "category == coreSymbols().EXPERIMENTAL")
+        protected boolean getCategoryExperimental(RubySymbol category) {
+            return getContext().getWarningCategoryExperimental().get();
+        }
+
+    }
+
+    @Primitive(name = "warning_set_category")
+    public abstract static class WarningSetCategoryNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected boolean setCategory(RubySymbol category, boolean newValue) {
+            final AssumedValue<Boolean> existingValue;
+            if (category == coreSymbols().DEPRECATED) {
+                existingValue = getContext().getWarningCategoryDeprecated();
+            } else if (category == coreSymbols().EXPERIMENTAL) {
+                existingValue = getContext().getWarningCategoryExperimental();
+            } else {
+                throw CompilerDirectives.shouldNotReachHere("unexpected warning category");
+            }
+
+            if (existingValue.get() != newValue) {
+                existingValue.set(newValue);
+            }
+            return newValue;
         }
 
     }

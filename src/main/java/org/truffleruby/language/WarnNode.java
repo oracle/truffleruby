@@ -36,8 +36,13 @@ public class WarnNode extends RubyContextNode {
         return verbosity != nil;
     }
 
-    /** Must only be called if {@link #shouldWarn()} is true, in order to avoid computing a SourceSection and message if
-     * not needed. */
+    public boolean shouldWarnForDeprecation() {
+        final Object verbosity = readVerboseNode.execute();
+        return verbosity != nil && getContext().getWarningCategoryDeprecated().get();
+    }
+
+    /** Must only be called if {@link #shouldWarn()} or {@link #shouldWarnForDeprecation()} is true, in order to avoid
+     * computing a SourceSection and message if not needed. */
     public void warningMessage(SourceSection sourceSection, String message) {
         assert shouldWarn();
         callWarn(sourceSection, message);

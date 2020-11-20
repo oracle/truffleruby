@@ -82,7 +82,7 @@ public abstract class ProcNodes {
             if (parentBlock == nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
             } else {
-                if (warnNode.shouldWarn()) {
+                if (warnNode.shouldWarnForDeprecation()) {
                     warnNode.warningMessage(
                             getContext().getCallStack().getTopMostUserSourceSection(),
                             "Capturing the given block using Kernel#proc is deprecated; use `&block` instead");
