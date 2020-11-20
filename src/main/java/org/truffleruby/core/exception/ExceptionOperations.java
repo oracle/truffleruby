@@ -21,7 +21,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
@@ -68,12 +67,7 @@ public abstract class ExceptionOperations {
 
     public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Node node, Throwable javaException) {
-        return createRubyException(context, rubyClass, message, node, null, javaException);
-    }
-
-    public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
-            Node node, SourceSection sourceLocation, Throwable javaException) {
-        final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(node, 0, javaException);
         return createRubyException(context, rubyClass, message, backtrace);
     }
 

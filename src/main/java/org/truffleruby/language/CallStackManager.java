@@ -189,25 +189,21 @@ public class CallStackManager {
     // Backtraces
 
     public Backtrace getBacktrace(Node currentNode) {
-        return getBacktrace(currentNode, null, 0, null);
+        return getBacktrace(currentNode, 0, null);
     }
 
     public Backtrace getBacktrace(Node currentNode, int omit) {
-        return getBacktrace(currentNode, null, omit, null);
+        return getBacktrace(currentNode, omit, null);
     }
 
-    public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, Throwable javaThrowable) {
-        return getBacktrace(currentNode, sourceLocation, 0, javaThrowable);
-    }
-
-    public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, Throwable javaThrowable) {
+    public Backtrace getBacktrace(Node currentNode, int omit, Throwable javaThrowable) {
         if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
             if (javaThrowable == null) {
                 javaThrowable = newException();
             }
         }
 
-        return new Backtrace(currentNode, sourceLocation, omit, javaThrowable);
+        return new Backtrace(currentNode, omit, javaThrowable);
     }
 
     @SuppressFBWarnings("ES")
