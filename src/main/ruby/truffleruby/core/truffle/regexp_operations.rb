@@ -77,9 +77,6 @@ module Truffle
             return false
           end
         end
-        if md1.tainted? != md2.tainted? then
-          return false
-        end
         true
       end
     end
@@ -218,11 +215,7 @@ module Truffle
           starts << self.code_unit_index_to_byte_index(str, java_string, tr_match.getStart(pos))
           ends << self.code_unit_index_to_byte_index(str, java_string, tr_match.getEnd(pos))
         end
-        md = Primitive.matchdata_create(re, str.dup, starts, ends)
-        if str.tainted? then
-          md.taint
-        end
-        md
+        Primitive.matchdata_create(re, str.dup, starts, ends)
       else
         nil
       end
