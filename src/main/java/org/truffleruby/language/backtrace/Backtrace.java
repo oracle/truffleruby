@@ -171,7 +171,7 @@ public class Backtrace {
 
     /** Used to copy the backtrace when copying {@code exception}. */
     @TruffleBoundary
-    public Backtrace copy(RubyContext context, RubyException exception) {
+    public Backtrace copy(RubyException exception) {
         Backtrace copy = new Backtrace(location, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
         // Copy the RaiseException

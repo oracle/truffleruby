@@ -37,7 +37,7 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    private static String messageFieldToString(RubyContext context, RubyException exception) {
+    private static String messageFieldToString(RubyException exception) {
         Object message = exception.message;
         RubyStringLibrary strings = RubyStringLibrary.getUncached();
         if (message == null || message == Nil.INSTANCE) {
@@ -62,7 +62,7 @@ public abstract class ExceptionOperations {
         } catch (Throwable e) {
             // Fall back to the internal message field
         }
-        return messageFieldToString(context, exception);
+        return messageFieldToString(exception);
     }
 
     public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
