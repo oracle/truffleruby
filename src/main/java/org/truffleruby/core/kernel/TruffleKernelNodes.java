@@ -249,7 +249,6 @@ public abstract class TruffleKernelNodes {
 
                 if (storageFrame == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    StringBuilder message = new StringBuilder();
                     int depth = 0;
                     MaterializedFrame currentFrame = RubyArguments.getDeclarationFrame(frame);
                     while (currentFrame != null) {
@@ -257,11 +256,10 @@ public abstract class TruffleKernelNodes {
                         currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
                     }
 
-                    message.append(
-                            String.format(
-                                    "Expected %d declaration frames but only found %d frames.",
-                                    declarationFrameDepth,
-                                    depth));
+                    String message = String.format(
+                            "Expected %d declaration frames but only found %d frames.",
+                            declarationFrameDepth,
+                            depth);
                     CompilerDirectives.shouldNotReachHere(message.toString());
                 }
 
