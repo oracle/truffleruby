@@ -67,6 +67,13 @@ The script must be run after running the `ruby-versions` script above.
 
 cc `@havenwood, @pkuczynski` in the PR description.
 
+## ruby/setup-ruby
+
+Trigger the builds on [ruby/ruby-builder](https://github.com/ruby/ruby-builder) and once done,
+add the version in [ruby-builder-versions.js](https://github.com/ruby/setup-ruby/blob/master/ruby-builder-versions.js),
+update the [README](https://github.com/ruby/setup-ruby/blob/master/README.md#supported-versions),
+and make a release.
+
 ## Conclusion
 
 This is easy enough but feels a bit redundant and requires manual steps for
