@@ -126,8 +126,8 @@ describe "Range#bsearch" do
         inf = Float::INFINITY
         (0..inf).bsearch { |x| x == inf }.should == inf
         (0...inf).bsearch { |x| x == inf }.should == nil
-        (-inf..0).bsearch { |x| x == -inf }.should == nil
-        (-inf...0).bsearch { |x| x == -inf }.should == nil
+        (-inf..0).bsearch { |x| x != -inf }.should == -Float::MAX
+        (-inf...0).bsearch { |x| x != -inf }.should == -Float::MAX
         (inf..inf).bsearch { |x| true }.should == inf
         (inf...inf).bsearch { |x| true }.should == nil
         (-inf..-inf).bsearch { |x| true }.should == -inf
@@ -194,10 +194,10 @@ describe "Range#bsearch" do
 
       it "works with infinity bounds" do
         inf = Float::INFINITY
-        (0..inf).bsearch { |x| x == inf ? 0 : -1 }.should == nil
-        (0...inf).bsearch { |x| x == inf ? 0 : -1 }.should == nil
-        (-inf...0).bsearch { |x| x == -inf ? 0 : 1 }.should == nil
-        (-inf..0).bsearch { |x| x == -inf ? 0 : 1 }.should == nil
+        (0..inf).bsearch { |x| x == inf ? 0 : 1 }.should == inf
+        (0...inf).bsearch { |x| x == inf ? 0 : 1 }.should == nil
+        (-inf...0).bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
+        (-inf..0).bsearch { |x| x == -inf ? 0 : -1 }.should == -inf
         (inf..inf).bsearch { 0 }.should == inf
         (inf...inf).bsearch { 0 }.should == nil
         (-inf..-inf).bsearch { 0 }.should == -inf
