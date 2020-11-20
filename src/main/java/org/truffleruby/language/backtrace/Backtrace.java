@@ -12,10 +12,7 @@ package org.truffleruby.language.backtrace;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -32,7 +29,6 @@ import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.objects.AllocationTracing;
 
 /** Represents a backtrace: a list of activations (~ call sites).
@@ -75,7 +71,6 @@ public class Backtrace {
     // See accessors for info on most undocumented fields.
 
     private final Node location;
-    private final SourceSection sourceLocation;
     private final int omitted;
     private RaiseException raiseException;
     private final Throwable javaThrowable;
@@ -86,25 +81,17 @@ public class Backtrace {
     // region Constructors
 
     /** Fully explicit constructor. */
-    public Backtrace(Node location, SourceSection sourceLocation, int omitted, Throwable javaThrowable) {
+    public Backtrace(Node location, int omitted, Throwable javaThrowable) {
         this.location = location;
-        this.sourceLocation = sourceLocation;
         this.omitted = omitted;
         this.javaThrowable = javaThrowable;
     }
 
-    /** Creates a backtrace for the given foreign exception, setting the {@link #getLocation() location} and
-     * {@link #getSourceLocation() source location} accordingly, and computing the activations eagerly (since the
-     * exception itself is not retained). */
+    /** Creates a backtrace for the given foreign exception, setting the {@link #getLocation() location} accordingly,
+     * and computing the activations eagerly (since the exception itself is not retained). */
     public Backtrace(AbstractTruffleException exception) {
         assert !(exception instanceof RaiseException);
         this.location = exception.getLocation();
-        try {
-            final InteropLibrary interop = InteropLibrary.getUncached();
-            this.sourceLocation = interop.hasSourceLocation(exception) ? interop.getSourceLocation(exception) : null;
-        } catch (UnsupportedMessageException e) {
-            throw CompilerDirectives.shouldNotReachHere(e);
-        }
         this.omitted = 0;
         this.javaThrowable = null;
         this.stackTrace = getStackTrace(exception);
@@ -114,7 +101,6 @@ public class Backtrace {
      * retrieved. The activations are computed eagerly, since the exception itself is not retained. */
     public Backtrace(Throwable exception) {
         this.location = null;
-        this.sourceLocation = null;
         this.omitted = 0;
         this.javaThrowable = null;
         this.stackTrace = getStackTrace(exception);
@@ -126,12 +112,6 @@ public class Backtrace {
     /** AST node that caused the associated exception, if the info is available, or null. */
     public Node getLocation() {
         return location;
-    }
-
-    /** Only set for {@code SyntaxError}, where it represents where the error occurred (while {@link #getLocation()}
-     * does not). */
-    public SourceSection getSourceLocation() {
-        return sourceLocation;
     }
 
     /** Returns the wrapper for the Ruby exception associated with this backtrace, if any, and null otherwise. */
@@ -191,8 +171,8 @@ public class Backtrace {
 
     /** Used to copy the backtrace when copying {@code exception}. */
     @TruffleBoundary
-    public Backtrace copy(RubyContext context, RubyException exception) {
-        Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
+    public Backtrace copy(RubyException exception) {
+        Backtrace copy = new Backtrace(location, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
         // Copy the RaiseException
         RaiseException newRaiseException = new RaiseException(this.raiseException, exception);

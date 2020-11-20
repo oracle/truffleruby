@@ -921,17 +921,25 @@ public class CoreExceptions {
     // SyntaxError
 
     @TruffleBoundary
-    public RubyException syntaxErrorInvalidRetry(Node currentNode) {
+    public RubySyntaxError syntaxErrorInvalidRetry(Node currentNode) {
         return syntaxError("Invalid retry", currentNode, currentNode.getEncapsulatingSourceSection());
     }
 
     @TruffleBoundary
-    public RubyException syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
+    public RubySyntaxError syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
-        RubyString errorMessage = StringOperations
+        final RubyString messageString = StringOperations
                 .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        return ExceptionOperations
-                .createRubyException(context, exceptionClass, errorMessage, currentNode, sourceLocation, null);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        showExceptionIfDebug(exceptionClass, messageString, backtrace);
+        return new RubySyntaxError(
+                exceptionClass,
+                language.syntaxErrorShape,
+                messageString,
+                backtrace,
+                cause,
+                sourceLocation);
     }
 
     // FloatDomainError
@@ -1174,14 +1182,20 @@ public class CoreExceptions {
     // SystemExit
 
     @TruffleBoundary
-    public RubyException systemExit(int exitStatus, Node currentNode) {
+    public RubySystemExit systemExit(int exitStatus, Node currentNode) {
         final RubyString message = StringOperations
                 .createString(context, language, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
-        RubyClass exceptionClass = context.getCoreLibrary().systemExitClass;
-        final RubyException systemExit = ExceptionOperations
-                .createRubyException(context, exceptionClass, message, currentNode, null);
-        DynamicObjectLibrary.getUncached().put(systemExit, "@status", exitStatus);
-        return systemExit;
+        final RubyClass exceptionClass = context.getCoreLibrary().systemExitClass;
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        showExceptionIfDebug(exceptionClass, message, backtrace);
+        return new RubySystemExit(
+                exceptionClass,
+                language.systemExitShape,
+                message,
+                backtrace,
+                cause,
+                exitStatus);
     }
 
     // ClosedQueueError

@@ -21,7 +21,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
@@ -38,7 +37,7 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    private static String messageFieldToString(RubyContext context, RubyException exception) {
+    private static String messageFieldToString(RubyException exception) {
         Object message = exception.message;
         RubyStringLibrary strings = RubyStringLibrary.getUncached();
         if (message == null || message == Nil.INSTANCE) {
@@ -63,17 +62,12 @@ public abstract class ExceptionOperations {
         } catch (Throwable e) {
             // Fall back to the internal message field
         }
-        return messageFieldToString(context, exception);
+        return messageFieldToString(exception);
     }
 
     public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Node node, Throwable javaException) {
-        return createRubyException(context, rubyClass, message, node, null, javaException);
-    }
-
-    public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
-            Node node, SourceSection sourceLocation, Throwable javaException) {
-        final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(node, 0, javaException);
         return createRubyException(context, rubyClass, message, backtrace);
     }
 

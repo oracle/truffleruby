@@ -11,18 +11,12 @@ package org.truffleruby.core.exception;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
@@ -34,7 +28,6 @@ import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -100,78 +93,9 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
         throw VMRaiseExceptionNode.reRaiseException(context, this);
     }
 
-    // TODO (eregon, 01 Nov 2020): these message implementations would be nicer with separate subclasses for SystemExit and SyntaxError.
-
     @ExportMessage
-    public ExceptionType getExceptionType(
-            @Cached IsANode isANode) {
-        // @CachedContext does not work here when running "mx tck"
-        final RubyContext context = getMetaClass().fields.getContext();
-        if (isANode.executeIsA(this, context.getCoreLibrary().systemExitClass)) {
-            return ExceptionType.EXIT;
-        } else if (isANode.executeIsA(this, context.getCoreLibrary().syntaxErrorClass)) {
-            return ExceptionType.PARSE_ERROR;
-        } else {
-            return ExceptionType.RUNTIME_ERROR;
-        }
-    }
-
-    @ExportMessage
-    public int getExceptionExitStatus(
-            @CachedLibrary("this") InteropLibrary interopLibrary,
-            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnsupportedMessageException {
-        if (interopLibrary.getExceptionType(this) == ExceptionType.EXIT) {
-            return (int) objectLibrary.getOrDefault(this, "@status", 1);
-        } else {
-            throw UnsupportedMessageException.create();
-        }
-    }
-
-    @ExportMessage
-    public boolean isExceptionIncompleteSource(
-            @CachedLibrary("this") InteropLibrary interopLibrary) throws UnsupportedMessageException {
-        if (interopLibrary.getExceptionType(this) == ExceptionType.PARSE_ERROR) {
-            return false; // Unknown
-        } else {
-            throw UnsupportedMessageException.create();
-        }
-    }
-
-    @TruffleBoundary
-    @ExportMessage
-    public boolean hasSourceLocation(
-            @CachedLibrary("this") InteropLibrary interopLibrary) {
-        try {
-            if (interopLibrary.getExceptionType(this) == ExceptionType.PARSE_ERROR &&
-                    backtrace != null &&
-                    backtrace.getSourceLocation() != null) {
-                return true;
-            } else {
-                final Node location = getLocation();
-                return location != null && location.getEncapsulatingSourceSection() != null;
-            }
-        } catch (UnsupportedMessageException e) {
-            throw CompilerDirectives.shouldNotReachHere(e);
-        }
-    }
-
-    @TruffleBoundary
-    @ExportMessage
-    public SourceSection getSourceLocation(
-            @CachedLibrary("this") InteropLibrary interopLibrary) throws UnsupportedMessageException {
-        if (interopLibrary.getExceptionType(this) == ExceptionType.PARSE_ERROR &&
-                backtrace != null &&
-                backtrace.getSourceLocation() != null) {
-            return backtrace.getSourceLocation();
-        } else {
-            final Node location = getLocation();
-            SourceSection sourceSection = location != null ? location.getEncapsulatingSourceSection() : null;
-            if (sourceSection != null) {
-                return sourceSection;
-            } else {
-                throw UnsupportedMessageException.create();
-            }
-        }
+    public ExceptionType getExceptionType() {
+        return ExceptionType.RUNTIME_ERROR;
     }
     // endregion
 

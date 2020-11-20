@@ -127,7 +127,7 @@ public abstract class ExceptionNodes {
         private void initializeExceptionCopy(RubyException self, RubyException from) {
             Backtrace backtrace = from.backtrace;
             if (backtrace != null) {
-                self.backtrace = backtrace.copy(getContext(), self);
+                self.backtrace = backtrace.copy(self);
             } else {
                 self.backtrace = null;
             }
