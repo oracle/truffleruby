@@ -58,7 +58,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -66,23 +65,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Encoding", isClass = true)
 public abstract class EncodingNodes {
 
-    @ReportPolymorphism
     @CoreMethod(names = "ascii_compatible?")
     public abstract static class AsciiCompatibleNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "encoding == cachedEncoding", limit = "getIdentityCacheLimit()")
-        protected boolean isAsciiCompatibleCached(RubyEncoding encoding,
-                @Cached("encoding") RubyEncoding cachedEncoding,
-                @Cached("isAsciiCompatible(cachedEncoding)") boolean isAsciiCompatible) {
-            return isAsciiCompatible;
-        }
-
-        @Specialization(replaces = "isAsciiCompatibleCached")
-        protected boolean isAsciiCompatibleUncached(RubyEncoding encoding) {
-            return isAsciiCompatible(encoding);
-        }
-
-        protected static boolean isAsciiCompatible(RubyEncoding encoding) {
+        @Specialization
+        protected boolean isAsciiCompatible(RubyEncoding encoding) {
             return encoding.encoding.isAsciiCompatible();
         }
     }
@@ -432,32 +418,20 @@ public abstract class EncodingNodes {
         }
     }
 
-    @ReportPolymorphism
     @CoreMethod(names = "dummy?")
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "encoding == cachedEncoding", limit = "getIdentityCacheLimit()")
-        protected boolean isDummyCached(RubyEncoding encoding,
-                @Cached("encoding") RubyEncoding cachedEncoding,
-                @Cached("isDummyUncached(cachedEncoding)") boolean isDummy) {
-            return isDummy;
-        }
-
-        @Specialization(replaces = "isDummyCached")
-        protected boolean isDummyUncached(RubyEncoding encoding) {
+        @Specialization
+        protected boolean isDummy(RubyEncoding encoding) {
             return encoding.encoding.isDummy();
         }
-
     }
 
     @CoreMethod(names = { "name", "to_s" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected ImmutableRubyString toS(RubyEncoding encoding) {
             return encoding.name;
         }
-
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
@@ -494,12 +468,10 @@ public abstract class EncodingNodes {
 
     @Primitive(name = "encoding_is_unicode")
     public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected boolean isUnicode(RubyEncoding encoding) {
             return encoding.encoding.isUnicode();
         }
-
     }
 
     @Primitive(name = "get_actual_encoding")
@@ -759,22 +731,18 @@ public abstract class EncodingNodes {
 
     @Primitive(name = "encoding_get_encoding_by_index", lowerFixnum = 0)
     public static abstract class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected RubyEncoding getEncoding(int index) {
             return getContext().getEncodingManager().getRubyEncoding(index);
         }
-
     }
 
     @Primitive(name = "encoding_get_encoding_index")
     public static abstract class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected int getIndex(RubyEncoding encoding) {
             return encoding.encoding.getIndex();
         }
-
     }
 
     public static abstract class CheckRopeEncodingNode extends RubyContextNode {
