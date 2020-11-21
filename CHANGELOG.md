@@ -25,6 +25,7 @@ Compatibility:
 * Add warning for `proc` without block (#2004, @ssnickolay).
 * Implemented `FrozenError#receiver`.
 * `Proc#<<` and `Proc#>>` raises TypeError if passed not callable object (#2004, @ssnickolay).
+* Support time and date related messages for `Time` (#2166).
 
 Performance:
 

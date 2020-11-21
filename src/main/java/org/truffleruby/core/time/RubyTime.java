@@ -9,14 +9,23 @@
  */
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+@ExportLibrary(InteropLibrary.class)
 public class RubyTime extends RubyDynamicObject {
 
     ZonedDateTime dateTime;
@@ -41,5 +50,46 @@ public class RubyTime extends RubyDynamicObject {
         this.relativeOffset = relativeOffset;
         this.isUtc = isUtc;
     }
+
+    // region Date and Time messages
+    @TruffleBoundary
+    @ExportMessage
+    public Instant asInstant() {
+        return dateTime.toInstant();
+    }
+
+    @ExportMessage
+    public boolean isDate() {
+        return true;
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    public LocalDate asDate() {
+        return dateTime.toLocalDate();
+    }
+
+    @ExportMessage
+    public boolean isTime() {
+        return true;
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    public LocalTime asTime() {
+        return dateTime.toLocalTime();
+    }
+
+    @ExportMessage
+    public boolean isTimeZone() {
+        return true;
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    public ZoneId asTimeZone() {
+        return dateTime.getZone();
+    }
+    // endregion
 
 }
