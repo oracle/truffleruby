@@ -25,6 +25,7 @@ Compatibility:
 * Add warning for `proc` without block (#2004, @ssnickolay).
 * Implemented `FrozenError#receiver`.
 * `Proc#<<` and `Proc#>>` raises TypeError if passed not callable object (#2004, @ssnickolay).
+* `Kernel#lambda` with no block in a method called with a block raises an exception (#2004, @ssnickolay).
 
 Performance:
 
