@@ -96,9 +96,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     }
 
     private static Object readIndex(Object receiver, Object[] args, boolean ignoreBoundError, InteropLibrary interop,
-                                    TranslateInteropExceptionNode translateInteropException,
-                                    ConditionProfile negativeIndexProfile, LongCastNode longCastNode,
-                                    RubyContext context, InteropNodes.ReadArrayElementNode readNode) {
+            TranslateInteropExceptionNode translateInteropException,
+            ConditionProfile negativeIndexProfile, LongCastNode longCastNode,
+            RubyContext context, InteropNodes.ReadArrayElementNode readNode) {
         try {
             long index = longCastNode.executeCastLong(args[0]);
             long size = interop.getArraySize(receiver);
