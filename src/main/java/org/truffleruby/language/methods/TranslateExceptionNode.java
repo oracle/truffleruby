@@ -111,11 +111,11 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             throw exception;
         } catch (Throwable exception) {
             errorProfile.enter();
-            if (exception instanceof AbstractTruffleException) {
+            if (exception instanceof com.oracle.truffle.api.TruffleException) {
                 // A foreign exception
                 return new RaiseException(
                         context,
-                        translateForeignException(context, language, (AbstractTruffleException) exception));
+                        translateForeignException(context, language, exception));
             } else {
                 // An internal exception
                 CompilerDirectives.transferToInterpreter(/* internal exceptions are fatal */);
@@ -241,8 +241,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private RubyException translateForeignException(RubyContext context, RubyLanguage language,
-            AbstractTruffleException exception) {
+    private RubyException translateForeignException(RubyContext context, RubyLanguage language, Throwable exception) {
         logJavaException(context, this, exception);
 
         // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
