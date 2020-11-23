@@ -227,7 +227,8 @@ class Dir
       if patterns.size == 1
         pattern = Truffle::Type.coerce_to_path(patterns[0], false)
         return [] if pattern.empty?
-        patterns = glob_split pattern
+        raise ArgumentError, 'nul-separated glob pattern is deprecated' if pattern.include? "\0"
+        patterns = [pattern]
       end
 
       glob patterns, base: base
@@ -240,8 +241,8 @@ class Dir
         pattern = Truffle::Type.coerce_to_path(pattern, false)
 
         return [] if pattern.empty?
-
-        patterns = glob_split pattern
+        raise ArgumentError, 'nul-separated glob pattern is deprecated' if pattern.include? "\0"
+        patterns = [pattern]
       end
 
       matches = []
@@ -272,16 +273,6 @@ class Dir
       else
         matches
       end
-    end
-
-    def glob_split(pattern)
-      result = []
-      start = 0
-      while idx = Primitive.find_string(pattern, "\0", start)
-        result << pattern.byteslice(start, idx)
-        start = idx + 1
-      end
-      result << pattern.byteslice(start, pattern.bytesize)
     end
 
     def foreach(path)
