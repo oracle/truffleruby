@@ -93,7 +93,7 @@ class Proc
     if sym = Primitive.proc_symbol_to_proc_symbol(self)
       suffix << "(&#{sym.inspect})"
     elsif file and line
-      suffix << "@#{file}:#{line}"
+      suffix << " #{file}:#{line}"
     end
     suffix << ' (lambda)' if lambda?
     base.b.insert(-2, suffix)
