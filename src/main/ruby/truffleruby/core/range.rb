@@ -99,7 +99,7 @@ class Range
   end
 
   private def bsearch_float(&block)
-    normalized_begin = Primitive.nil?(self.begin) ? -Float::INFINITY : self.begin.to_f
+    normalized_begin = Truffle::RangeOperations.beginless?(self) ? -Float::INFINITY : self.begin.to_f
     normalized_end = Truffle::RangeOperations.endless?(self) ? Float::INFINITY : self.end.to_f
     normalized_end = normalized_end.prev_float if self.exclude_end?
     min = normalized_begin
@@ -262,6 +262,16 @@ class Range
     last_admissible
   end
 
+  def count(item = undefined)
+    if Truffle::RangeOperations.beginless?(self) || Truffle::RangeOperations.endless?(self)
+      return Float::INFINITY unless block_given? || !Primitive.undefined?(item)
+    end
+
+    p "count for here"
+
+    super
+  end
+
   private def each_internal(&block)
     return to_enum { size } unless block_given?
     first, last = self.begin, self.end
@@ -325,6 +335,7 @@ class Range
   end
 
   def first(n=undefined)
+    raise RangeError, 'cannot get the first element of beginless range' if Primitive.nil?(self.begin)
     return self.begin if Primitive.undefined? n
 
     super
@@ -383,6 +394,10 @@ class Range
 
   def max
     raise RangeError, 'cannot get the maximum of endless range' if Truffle::RangeOperations.endless?(self)
+    if Truffle::RangeOperations.beginless?(self)
+      raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' if block_given?
+      return exclude_end? ? self.end - 1 : self.end
+    end
     return super if block_given? || (exclude_end? && !self.end.kind_of?(Numeric))
     return nil if Comparable.compare_int(self.end <=> self.begin) < 0
     return nil if exclude_end? && Comparable.compare_int(self.end <=> self.begin) == 0
@@ -400,8 +415,13 @@ class Range
   end
 
   def min
+    raise RangeError, 'cannot get the minimum of beginless range' if Truffle::RangeOperations.beginless?(self)
+    if Truffle::RangeOperations.endless?(self)
+      raise RangeError, 'cannot get the minimum of endless range with custom comparison method' if block_given?
+      return self.begin
+    end
     return super if block_given?
-    if !Truffle::RangeOperations.endless?(self) && Comparable.compare_int(self.end <=> self.begin) < 0
+    if Comparable.compare_int(self.end <=> self.begin) < 0
       return nil
     elsif exclude_end? && self.end == self.begin
       return nil
@@ -499,6 +519,7 @@ class Range
   end
 
   def size
+    return Float::INFINITY if Truffle::RangeOperations.beginless?(self)
     return nil unless self.begin.kind_of?(Numeric)
     return Float::INFINITY if Truffle::RangeOperations.endless?(self)
 

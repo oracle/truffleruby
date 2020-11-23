@@ -126,6 +126,10 @@ module Truffle
       false
     end
 
+    def self.beginless?(range)
+      Primitive.nil? range.begin
+    end
+
     def self.endless?(range)
       Primitive.nil? range.end
     end
