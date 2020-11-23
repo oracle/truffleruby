@@ -364,7 +364,14 @@ class Range
   end
 
   def inspect
-    "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{Truffle::RangeOperations.endless?(self) ? "" : self.end.inspect}"
+    sep = exclude_end? ? '...' : '..'
+    if (Primitive.nil?(self.begin) && Primitive.nil?(self.end))
+      result = "nil#{sep}nil"
+    else
+      result = (Primitive.nil?(self.begin) ? '' : self.begin.inspect) + sep +
+               (Primitive.nil?(self.end) ? '' : self.end.inspect)
+    end
+    Primitive.infect(result, self)
   end
 
   def last(n=undefined)
