@@ -340,26 +340,46 @@ public class CommandLineParser {
                     break;
                 case 'w':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
+                    setAllWarningCategories(true);
                     break;
                 case 'W': {
                     String temp = grabOptionalValue();
                     if (temp == null) {
-                        config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
+                        temp = "2";
+                    }
+                    if (temp.startsWith(":")) {
+                        switch (temp) {
+                            case ":deprecated":
+                                config.setOption(OptionsCatalog.WARN_DEPRECATED, true);
+                                break;
+                            case ":no-deprecated":
+                                config.setOption(OptionsCatalog.WARN_DEPRECATED, false);
+                                break;
+                            case ":experimental":
+                                config.setOption(OptionsCatalog.WARN_EXPERIMENTAL, true);
+                                break;
+                            case ":no-experimental":
+                                config.setOption(OptionsCatalog.WARN_EXPERIMENTAL, false);
+                                break;
+                            default:
+                                LOGGER.warning("unknown warning category: `" + temp.substring(1) + "'");
+                                break;
+                        }
                     } else {
                         switch (temp) {
                             case "0":
                                 config.setOption(OptionsCatalog.VERBOSITY, Verbosity.NIL);
-                                break;
-                            case "1":
-                                config.setOption(OptionsCatalog.VERBOSITY, Verbosity.FALSE);
+                                setAllWarningCategories(false);
                                 break;
                             case "2":
                                 config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
+                                setAllWarningCategories(true);
                                 break;
+                            case "1":
                             default:
-                                throw new CommandLineException(
-                                        getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"),
-                                        true);
+                                config.setOption(OptionsCatalog.VERBOSITY, Verbosity.FALSE);
+                                config.setOption(OptionsCatalog.WARN_DEPRECATED, false);
+                                break;
                         }
                     }
                     break FOR;
@@ -464,6 +484,11 @@ public class CommandLineParser {
                     break FOR;
             }
         }
+    }
+
+    private void setAllWarningCategories(boolean value) {
+        config.setOption(OptionsCatalog.WARN_DEPRECATED, value);
+        config.setOption(OptionsCatalog.WARN_EXPERIMENTAL, value);
     }
 
     private void enableDisableFeature(String name, boolean enable) {
