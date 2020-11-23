@@ -16,7 +16,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
-import org.truffleruby.core.cast.LongCastNodeGen;
+import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -106,9 +106,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
+            @Cached ConditionProfile negativeIndexProfile,
+            @Cached ("create()") LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
-        return at(receiver, name, args, cachedName, interop, translateInteropException, context, readNode);
+        return at(receiver, name, args, cachedName, interop, translateInteropException, negativeIndexProfile,
+                longCastNode, context, readNode);
     }
 
     @Specialization(
@@ -119,20 +122,24 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "isBasicInteger(first(args))" },
             limit = "1")
     protected Object at(Object receiver, String name, Object[] args,
-            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedLibrary("receiver") InteropLibrary interop,
-            @Cached TranslateInteropExceptionNode translateInteropException,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached InteropNodes.ReadArrayElementNode readNode) {
+                        @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+                        @CachedLibrary("receiver") InteropLibrary interop,
+                        @Cached TranslateInteropExceptionNode translateInteropException,
+                        @Cached ConditionProfile negativeIndexProfile,
+                        @Cached ("create()") LongCastNode longCastNode,
+                        @CachedContext(RubyLanguage.class) RubyContext context,
+                        @Cached InteropNodes.ReadArrayElementNode readNode) {
         try {
-            long args0 = (LongCastNodeGen.create()).executeCastLong(args[0]);
+            long index = longCastNode.executeCastLong(args[0]);
             long size = interop.getArraySize(receiver);
-            if (args0 < -size || args0 >= size) {
+            if (index < -size || index >= size) {
                 return nil;
             }
-            return (args0 < 0)
-                    ? readNode.execute(receiver, size + args0)
-                    : readNode.execute(receiver, args0);
+            if (negativeIndexProfile.profile (index < 0)) {
+                index += size;
+            }
+            return readNode.execute(receiver, index);
+            // return readIndex(receiver, index, size, negativeIndexProfile, readNode);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
@@ -149,14 +156,16 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
+            @Cached ConditionProfile negativeIndexProfile,
+            @Cached ("create()") LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode fetchNode) {
         try {
-            long args0 = (LongCastNodeGen.create()).executeCastLong(args[0]);
+            long index = longCastNode.executeCastLong(args[0]);
             long size = interop.getArraySize(receiver);
-            return (args0 < 0)
-                    ? fetchNode.execute(receiver, size + args0)
-                    : fetchNode.execute(receiver, args0);
+            return (index < 0)
+                    ? fetchNode.execute(receiver, size + index)
+                    : fetchNode.execute(receiver, index);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
