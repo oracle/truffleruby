@@ -203,8 +203,6 @@ public class CoreLibrary {
     public final RubyModule truffleStringOperationsModule;
     public final RubyModule truffleRegexpOperationsModule;
     public final RubyModule truffleThreadOperationsModule;
-    public final RubyClass bigDecimalClass;
-    public final RubyModule bigDecimalOperationsModule;
     public final RubyClass encodingCompatibilityErrorClass;
     public final RubyClass encodingUndefinedConversionErrorClass;
     public final RubyClass methodClass;
@@ -532,9 +530,6 @@ public class CoreLibrary {
         defineModule(truffleModule, "WeakRefOperations");
         handleClass = defineClass(truffleModule, objectClass, "Handle", language.handleShape);
         warningModule = defineModule("Warning");
-
-        bigDecimalClass = defineClass(numericClass, "BigDecimal", language.bigDecimalShape);
-        bigDecimalOperationsModule = defineModule(truffleModule, "BigDecimalOperations");
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
         RubyClass truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");

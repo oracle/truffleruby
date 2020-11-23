@@ -257,7 +257,7 @@ describe 'Interop:' do
 
   immediate_subjects     = [:false, :true, :zero, :small_integer, :zero_float, :small_float]
   non_immediate_subjects = SUBJECTS.keys - immediate_subjects
-  frozen_subjects        = [:nil, :symbol, :strange_symbol, :frozen_object]
+  frozen_subjects        = [:big_decimal, :nil, :symbol, :strange_symbol, :frozen_object]
 
   # not part of the standard matrix, not considered in last rest case
   EXTRA_SUBJECTS = {

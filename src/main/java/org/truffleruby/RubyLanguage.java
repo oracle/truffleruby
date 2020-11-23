@@ -98,7 +98,6 @@ import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 import org.truffleruby.stdlib.digest.RubyDigest;
 
 @TruffleLanguage.Registration(
@@ -171,7 +170,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public final Shape arrayShape = createShape(RubyArray.class);
     public final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
-    public final Shape bigDecimalShape = createShape(RubyBigDecimal.class);
     public final Shape bindingShape = createShape(RubyBinding.class);
     public final Shape byteArrayShape = createShape(RubyByteArray.class);
     public final Shape conditionVariableShape = createShape(RubyConditionVariable.class);

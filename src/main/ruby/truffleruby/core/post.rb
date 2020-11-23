@@ -125,7 +125,3 @@ Truffle::Boot.delay do
     $LOAD_PATH.unshift(*extra_load_paths.map { |path| File.expand_path(path) })
   end
 end
-
-# Remove BigDecimal from the root module namespace until it is required.
-Truffle::BigDecimal = BigDecimal
-Object.send(:remove_const, :BigDecimal)

@@ -153,8 +153,6 @@ import org.truffleruby.stdlib.CoverageNodesBuiltins;
 import org.truffleruby.stdlib.CoverageNodesFactory;
 import org.truffleruby.stdlib.ObjSpaceNodesBuiltins;
 import org.truffleruby.stdlib.ObjSpaceNodesFactory;
-import org.truffleruby.stdlib.bigdecimal.BigDecimalNodesBuiltins;
-import org.truffleruby.stdlib.bigdecimal.BigDecimalNodesFactory;
 import org.truffleruby.stdlib.digest.DigestNodesBuiltins;
 import org.truffleruby.stdlib.digest.DigestNodesFactory;
 import org.truffleruby.stdlib.readline.ReadlineHistoryNodesBuiltins;
@@ -174,7 +172,6 @@ public abstract class BuiltinsClasses {
         ArrayNodesBuiltins.setup(coreManager);
         AtomicReferenceNodesBuiltins.setup(coreManager);
         BasicObjectNodesBuiltins.setup(coreManager);
-        BigDecimalNodesBuiltins.setup(coreManager);
         BindingNodesBuiltins.setup(coreManager);
         ByteArrayNodesBuiltins.setup(coreManager);
         CExtNodesBuiltins.setup(coreManager);
@@ -252,7 +249,6 @@ public abstract class BuiltinsClasses {
         ArrayNodesBuiltins.setupPrimitives(primitiveManager);
         AtomicReferenceNodesBuiltins.setupPrimitives(primitiveManager);
         BasicObjectNodesBuiltins.setupPrimitives(primitiveManager);
-        BigDecimalNodesBuiltins.setupPrimitives(primitiveManager);
         BindingNodesBuiltins.setupPrimitives(primitiveManager);
         ByteArrayNodesBuiltins.setupPrimitives(primitiveManager);
         CExtNodesBuiltins.setupPrimitives(primitiveManager);
@@ -331,7 +327,6 @@ public abstract class BuiltinsClasses {
                 ArrayNodesFactory.getFactories(),
                 AtomicReferenceNodesFactory.getFactories(),
                 BasicObjectNodesFactory.getFactories(),
-                BigDecimalNodesFactory.getFactories(),
                 BindingNodesFactory.getFactories(),
                 ByteArrayNodesFactory.getFactories(),
                 CExtNodesFactory.getFactories(),

@@ -33,7 +33,7 @@ IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && fal
 
 all: $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
 			psych/psych.$(DLEXT) ripper/ripper.$(DLEXT) syslog/syslog.$(DLEXT) nkf/nkf.$(DLEXT) \
-			etc/etc.$(DLEXT) rbconfig-sizeof/sizeof.$(DLEXT)
+			bigdecimal/bigdecimal.$(DLEXT) etc/etc.$(DLEXT) rbconfig-sizeof/sizeof.$(DLEXT)
 
 clean: clean_cexts clean_truffleposix
 
@@ -48,6 +48,7 @@ clean_cexts:
 	$(Q) rm -f ripper/Makefile ripper/*.o ripper/ripper.$(DLEXT)
 	$(Q) rm -f syslog/Makefile syslog/*.o syslog/syslog.$(DLEXT)
 	$(Q) rm -f nkf/Makefile nkf/*.o nkf/nkf.$(DLEXT)
+	$(Q) rm -f bigdecimal/Makefile bigdecimal/*.o bigdecimal/bigdecimal.$(DLEXT)
 	$(Q) rm -f etc/Makefile etc/*.o etc/etc.$(DLEXT) etc/constdefs.h
 	$(Q) rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.o rbconfig-sizeof/sizeof.$(DLEXT)
 
@@ -100,6 +101,13 @@ nkf/Makefile: nkf/extconf.rb $(EXTCONF_DEPS)
 
 nkf/nkf.$(DLEXT): nkf/Makefile nkf/nkf.c nkf/nkf-utf8/*.c nkf/nkf-utf8/*.h
 	$(Q) cd nkf && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+
+# bigdecimal
+bigdecimal/Makefile: bigdecimal/extconf.rb $(EXTCONF_DEPS)
+	$(Q) cd bigdecimal && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+
+bigdecimal/bigdecimal.$(DLEXT): bigdecimal/Makefile bigdecimal/bigdecimal.c
+	$(Q) cd bigdecimal && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # etc
 etc/Makefile: etc/extconf.rb $(EXTCONF_DEPS)

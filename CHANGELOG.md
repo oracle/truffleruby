@@ -27,6 +27,7 @@ Compatibility:
 * `Proc#<<` and `Proc#>>` raises TypeError if passed not callable object (#2004, @ssnickolay).
 * Support time and date related messages for `Time` (#2166).
 * Updated `Dir.{glob,[]}` to raise `ArgumentError` for nul-separated strings.
+* Implemented `BigDecimal` as C extension to improve compatibility.
 
 Performance:
 

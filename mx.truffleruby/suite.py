@@ -281,6 +281,7 @@ suite = {
                 "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/cext/<lib:truffleruby>",
+                "src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                 "src/main/c/etc/<extsuffix:etc>",
                 "src/main/c/nkf/<extsuffix:nkf>",
                 "src/main/c/openssl/<extsuffix:openssl>",
@@ -441,6 +442,7 @@ suite = {
                     "file:lib/cext/include/*.h",
                 ],
                 "lib/mri/": [
+                    "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                     "dependency:org.truffleruby.cext/src/main/c/etc/<extsuffix:etc>",
                     "dependency:org.truffleruby.cext/src/main/c/nkf/<extsuffix:nkf>",
                     "dependency:org.truffleruby.cext/src/main/c/openssl/<extsuffix:openssl>",
