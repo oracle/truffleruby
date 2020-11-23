@@ -1,2 +1,0 @@
-fails:TrueClass#to_s returns a frozen string
-fails:TrueClass#to_s always returns the same string
