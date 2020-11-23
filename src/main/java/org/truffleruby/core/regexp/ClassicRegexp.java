@@ -60,6 +60,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
@@ -92,10 +93,8 @@ public class ClassicRegexp implements ReOptions {
                     Syntax.RUBY,
                     new RegexWarnCallback(context));
         } catch (Exception e) {
-            String errorMessage = '/' + RopeOperations.decodeRope(source) + '/';
-            if (e.getMessage() != null) {
-                errorMessage = e.getMessage() + ": " + errorMessage;
-            }
+            String errorMessage = BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" +
+                    RopeOperations.decodeRope(source) + "/";
             throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
         }
     }
