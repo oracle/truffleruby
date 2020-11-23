@@ -81,6 +81,8 @@ class Range
       else
         raise TypeError, "bsearch is not available for #{stop.class}"
       end
+    elsif Primitive.nil?(start) && Integer === stop
+      bsearch_beginless(&block)
     else
       raise TypeError, "bsearch is not available for #{start.class}"
     end
@@ -97,7 +99,7 @@ class Range
   end
 
   private def bsearch_float(&block)
-    normalized_begin = self.begin.to_f
+    normalized_begin = Primitive.nil?(self.begin) ? -Float::INFINITY : self.begin.to_f
     normalized_end = Truffle::RangeOperations.endless?(self) ? Float::INFINITY : self.end.to_f
     normalized_end = normalized_end.prev_float if self.exclude_end?
     min = normalized_begin
@@ -200,6 +202,26 @@ class Range
         return (min..cur).bsearch(&block)
       end
       cur += diff
+      diff *= 2
+    end
+  end
+
+  private def bsearch_beginless(&block)
+    max = self.end
+    cur = max
+    diff = 1
+
+    while true
+      result = yield cur
+      case result
+      when 0
+        return cur
+      when Numeric
+        return (cur..max).bsearch(&block) if result > 0
+      when false
+        return (cur..max).bsearch(&block)
+      end
+      cur -= diff
       diff *= 2
     end
   end
