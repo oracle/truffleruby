@@ -46,6 +46,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
+import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -96,6 +97,17 @@ public abstract class TypeNodes {
         @Specialization
         protected RubyClass objectClass(Object object) {
             return classNode.execute(object);
+        }
+
+    }
+
+    @Primitive(name = "class_of")
+    public abstract static class ClassOfNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyClass classOf(Object object,
+                @Cached MetaClassNode metaClassNode) {
+            return metaClassNode.execute(object);
         }
 
     }

@@ -386,6 +386,10 @@ module Truffle::CExt
     object.class.name
   end
 
+  def rb_class_of(object)
+    Primitive.class_of(object)
+  end
+
   def rb_class_real(ruby_class)
     while ruby_class.singleton_class?
       ruby_class = ruby_class.superclass

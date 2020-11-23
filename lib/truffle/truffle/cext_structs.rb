@@ -224,7 +224,7 @@ class Truffle::CExt::RBasic
     when 'flags'
       compute_flags
     when 'klass'
-      Primitive.cext_wrap(Truffle::CExt.rb_class_of(@object))
+      Primitive.cext_wrap(Primitive.class_of(@object))
     else
       raise Truffle::Interop::UnknownIdentifierException
     end

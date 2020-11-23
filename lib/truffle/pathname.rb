@@ -1,3 +1,4 @@
+# truffleruby_primitives: true
 #
 # = pathname.rb
 #
@@ -1068,6 +1069,7 @@ module Kernel
   #
   # This method is available since 1.8.5.
   def Pathname(path) # :doc:
+    return path if Primitive.class_of(path) == Pathname
     Pathname.new(path)
   end
   private :Pathname # Truffle: private as in MRI
