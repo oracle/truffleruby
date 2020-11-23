@@ -163,7 +163,7 @@ class Dir
             full = path_join(path, ent)
             mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
 
-            if Truffle::StatOperations.directory?(mode) and ent.getbyte(0) != 46  # ?.
+            if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.call matches, full, glob_base_dir
             end
