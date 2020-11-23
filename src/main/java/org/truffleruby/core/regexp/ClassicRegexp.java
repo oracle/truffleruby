@@ -64,6 +64,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
@@ -79,25 +80,30 @@ public class ClassicRegexp implements ReOptions {
         return pattern.getEncoding();
     }
 
-    private static Regex makeRegexp(RubyContext context, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
+    public static Regex makeRegexp(RubyContext context, RopeBuilder processedSource, RegexpOptions options,
+            Encoding enc, Rope source, Node currentNode) {
         try {
             return new Regex(
-                    bytes.getUnsafeBytes(),
+                    processedSource.getUnsafeBytes(),
                     0,
-                    bytes.getLength(),
+                    processedSource.getLength(),
                     options.toJoniOptions(),
                     enc,
-                    Syntax.DEFAULT,
+                    Syntax.RUBY,
                     new RegexWarnCallback(context));
         } catch (Exception e) {
-            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), null));
+            String errorMessage = '/' + RopeOperations.decodeRope(source) + '/';
+            if (e.getMessage() != null) {
+                errorMessage = e.getMessage() + ": " + errorMessage;
+            }
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
         }
     }
 
     private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding,
-            RegexpOptions options) {
+            RegexpOptions options, Rope source) {
         if (context == null) {
-            final Regex regex = makeRegexp(null, bytes, options, encoding);
+            final Regex regex = makeRegexp(null, bytes, options, encoding, source, null);
             regex.setUserObject(bytes);
             return regex;
         }
@@ -114,7 +120,7 @@ public class ClassicRegexp implements ReOptions {
         if (regex != null) {
             return regex;
         } else {
-            final Regex newRegex = makeRegexp(context, bytes, options, encoding);
+            final Regex newRegex = makeRegexp(context, bytes, options, encoding, source, null);
             newRegex.setUserObject(bytes);
             return context.getRegexpCache().addInCacheIfAbsent(cacheKey, newRegex);
         }
@@ -133,7 +139,7 @@ public class ClassicRegexp implements ReOptions {
         RopeBuilder unescaped = preprocess(context, str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         enc = computeRegexpEncoding(options, enc, fixedEnc, context);
 
-        this.pattern = getRegexpFromCache(context, unescaped, enc, options);
+        this.pattern = getRegexpFromCache(context, unescaped, enc, options, str);
         this.str = str;
     }
 

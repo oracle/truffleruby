@@ -23,9 +23,6 @@ import org.joni.Matcher;
 import org.joni.Option;
 import org.joni.Regex;
 import org.joni.Region;
-import org.joni.Syntax;
-import org.joni.exception.SyntaxException;
-import org.joni.exception.ValueException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -50,7 +47,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -101,17 +97,7 @@ public class TruffleRegexpNodes {
         final RopeBuilder preprocessed = ClassicRegexp
                 .preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RegexpOptions options = regexp.options;
-        try {
-            return new Regex(
-                    preprocessed.getUnsafeBytes(),
-                    0,
-                    preprocessed.getLength(),
-                    options.toJoniOptions(),
-                    enc,
-                    new RegexWarnCallback(context));
-        } catch (SyntaxException e) {
-            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
-        }
+        return ClassicRegexp.makeRegexp(context, preprocessed, options, enc, sourceRope, currentNode);
     }
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
@@ -433,45 +419,28 @@ public class TruffleRegexpNodes {
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
     public static Regex compile(RubyContext context, Rope bytes, RegexpOptions options, Node currentNode) {
-        try {
-            if (options.isEncodingNone()) {
-                bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);
-            }
-            Encoding enc = bytes.getEncoding();
-            Encoding[] fixedEnc = new Encoding[]{ null };
-            RopeBuilder unescaped = ClassicRegexp
-                    .preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-            enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc, context);
-
-            Regex regexp = new Regex(
-                    unescaped.getUnsafeBytes(),
-                    0,
-                    unescaped.getLength(),
-                    options.toJoniOptions(),
-                    enc,
-                    Syntax.RUBY,
-                    new RegexWarnCallback(context));
-            regexp.setUserObject(RopeOperations.withEncoding(bytes, enc));
-
-            if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {
-                final RegexpCacheKey key = new RegexpCacheKey(
-                        bytes,
-                        enc,
-                        options.toJoniOptions(),
-                        context.getHashing(REHASH_COMPILED_REGEXPS));
-                ConcurrentOperations.getOrCompute(compiledRegexps, key, x -> new AtomicInteger()).incrementAndGet();
-            }
-
-            return regexp;
-        } catch (ValueException e) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().regexpError(
-                            e.getMessage() + ": " + '/' + RopeOperations.decodeRope(bytes) + '/',
-                            currentNode));
-        } catch (SyntaxException e) {
-            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
+        if (options.isEncodingNone()) {
+            bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);
         }
+        Encoding enc = bytes.getEncoding();
+        Encoding[] fixedEnc = new Encoding[]{ null };
+        RopeBuilder unescaped = ClassicRegexp
+                .preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc, context);
+
+        Regex regexp = ClassicRegexp.makeRegexp(context, unescaped, options, enc, bytes, currentNode);
+        regexp.setUserObject(RopeOperations.withEncoding(bytes, enc));
+
+        if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {
+            final RegexpCacheKey key = new RegexpCacheKey(
+                    bytes,
+                    enc,
+                    options.toJoniOptions(),
+                    context.getHashing(REHASH_COMPILED_REGEXPS));
+            ConcurrentOperations.getOrCompute(compiledRegexps, key, x -> new AtomicInteger()).incrementAndGet();
+        }
+
+        return regexp;
     }
 
 }
