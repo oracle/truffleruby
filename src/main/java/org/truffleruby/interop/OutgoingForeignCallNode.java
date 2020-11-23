@@ -95,6 +95,25 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
     }
 
+    private static Object readIndex(Object receiver, Object[] args, boolean ignoreBoundError, InteropLibrary interop,
+                                    TranslateInteropExceptionNode translateInteropException,
+                                    ConditionProfile negativeIndexProfile, LongCastNode longCastNode,
+                                    RubyContext context, InteropNodes.ReadArrayElementNode readNode) {
+        try {
+            long index = longCastNode.executeCastLong(args[0]);
+            long size = interop.getArraySize(receiver);
+            if (negativeIndexProfile.profile(index < 0)) {
+                index += size;
+            }
+            if (ignoreBoundError && (index < 0 || index >= size)) {
+                return nil;
+            }
+            return readNode.execute(receiver, index);
+        } catch (UnsupportedMessageException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -107,11 +126,19 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
             @Cached ConditionProfile negativeIndexProfile,
-            @Cached ("create()") LongCastNode longCastNode,
+            @Cached("create()") LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
-        return at(receiver, name, args, cachedName, interop, translateInteropException, negativeIndexProfile,
-                longCastNode, context, readNode);
+        return readIndex(
+                receiver,
+                args,
+                true,
+                interop,
+                translateInteropException,
+                negativeIndexProfile,
+                longCastNode,
+                context,
+                readNode);
     }
 
     @Specialization(
@@ -122,27 +149,23 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "isBasicInteger(first(args))" },
             limit = "1")
     protected Object at(Object receiver, String name, Object[] args,
-                        @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-                        @CachedLibrary("receiver") InteropLibrary interop,
-                        @Cached TranslateInteropExceptionNode translateInteropException,
-                        @Cached ConditionProfile negativeIndexProfile,
-                        @Cached ("create()") LongCastNode longCastNode,
-                        @CachedContext(RubyLanguage.class) RubyContext context,
-                        @Cached InteropNodes.ReadArrayElementNode readNode) {
-        try {
-            long index = longCastNode.executeCastLong(args[0]);
-            long size = interop.getArraySize(receiver);
-            if (index < -size || index >= size) {
-                return nil;
-            }
-            if (negativeIndexProfile.profile (index < 0)) {
-                index += size;
-            }
-            return readNode.execute(receiver, index);
-            // return readIndex(receiver, index, size, negativeIndexProfile, readNode);
-        } catch (UnsupportedMessageException e) {
-            throw translateInteropException.execute(e);
-        }
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @Cached ConditionProfile negativeIndexProfile,
+            @Cached("create()") LongCastNode longCastNode,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached InteropNodes.ReadArrayElementNode readNode) {
+        return readIndex(
+                receiver,
+                args,
+                true,
+                interop,
+                translateInteropException,
+                negativeIndexProfile,
+                longCastNode,
+                context,
+                readNode);
     }
 
     @Specialization(
@@ -157,18 +180,19 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
             @Cached ConditionProfile negativeIndexProfile,
-            @Cached ("create()") LongCastNode longCastNode,
+            @Cached("create()") LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached InteropNodes.ReadArrayElementNode fetchNode) {
-        try {
-            long index = longCastNode.executeCastLong(args[0]);
-            long size = interop.getArraySize(receiver);
-            return (index < 0)
-                    ? fetchNode.execute(receiver, size + index)
-                    : fetchNode.execute(receiver, index);
-        } catch (UnsupportedMessageException e) {
-            throw translateInteropException.execute(e);
-        }
+            @Cached InteropNodes.ReadArrayElementNode readNode) {
+        return readIndex(
+                receiver,
+                args,
+                false,
+                interop,
+                translateInteropException,
+                negativeIndexProfile,
+                longCastNode,
+                context,
+                readNode);
     }
 
     @Specialization(
@@ -179,8 +203,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object first(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.ReadArrayElementNode firstNode) {
-        return firstNode.execute(receiver, 0);
+            @Cached InteropNodes.ReadArrayElementNode readNode) {
+        return readNode.execute(receiver, 0);
     }
 
     @Specialization(
@@ -193,9 +217,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
-            @Cached InteropNodes.ReadArrayElementNode lastNode) {
+            @Cached InteropNodes.ReadArrayElementNode readNode) {
         try {
-            return lastNode.execute(receiver, interop.getArraySize(receiver) - 1);
+            return readNode.execute(receiver, interop.getArraySize(receiver) - 1);
         } catch (UnsupportedMessageException e) {
             throw translateInteropException.execute(e);
         }
