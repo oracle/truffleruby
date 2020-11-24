@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.control;
 
-public class ReturnID {
+public final class ReturnID {
+
+    /** Returning to or through class/module bodies is a LocalJumpError. However, the surrounding block might be turned
+     * into a lambda, in which case it becomes valid and returns from the lambda. */
+    public static final ReturnID MODULE_BODY = new ReturnID();
 
 }
