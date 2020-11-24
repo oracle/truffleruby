@@ -1,3 +1,0 @@
-fails:delegation with def(...) delegates rest and kwargs
-fails:delegation with def(...) delegates block
-fails:delegation with def(...) parses as open endless Range when brackets are omitted

@@ -1,1 +1,0 @@
-fails:The for expression does not try to access variables outside the method

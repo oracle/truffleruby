@@ -85,6 +85,7 @@ import org.truffleruby.language.control.ElidableResultNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfNode;
+import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NotNode;
@@ -846,18 +847,10 @@ public class BodyTranslator extends Translator {
                     null,
                     null);
 
-            final ReturnID returnId;
-
-            if (type == OpenModule.SINGLETON_CLASS) {
-                returnId = environment.getReturnID();
-            } else {
-                returnId = environment.getParseEnvironment().allocateReturnID();
-            }
-
             final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                     environment,
                     environment.getParseEnvironment(),
-                    returnId,
+                    ReturnID.MODULE_BODY,
                     true,
                     true,
                     true,
@@ -2872,7 +2865,12 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
 
         if (environment.isBlock()) {
-            ret = new DynamicReturnNode(environment.getReturnID(), translatedChild);
+            final ReturnID returnID = environment.getReturnID();
+            if (returnID == ReturnID.MODULE_BODY) {
+                ret = new InvalidReturnNode(translatedChild);
+            } else {
+                ret = new DynamicReturnNode(returnID, translatedChild);
+            }
         } else {
             ret = new LocalReturnNode(translatedChild);
         }

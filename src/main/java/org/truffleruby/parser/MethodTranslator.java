@@ -24,7 +24,9 @@ import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
 import org.truffleruby.language.control.AndNode;
+import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.IfElseNode;
+import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
@@ -172,9 +174,9 @@ public class MethodTranslator extends BodyTranslator {
         body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
 
         // Procs
-        final RubyNode bodyProc = new CatchForProcNode(
-                composeBody(sourceSection, preludeProc, NodeUtil.cloneNode(body)));
-        bodyProc.unsafeSetSourceSection(enclosing(sourceSection, body));
+        final RubyNode bodyCopyForProc = NodeUtil.cloneNode(body);
+        final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, bodyCopyForProc));
+        bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyCopyForProc));
 
         final RubyRootNode newRootNodeForProcs = new RubyRootNode(
                 language,
@@ -185,7 +187,8 @@ public class MethodTranslator extends BodyTranslator {
                 Split.HEURISTIC);
 
         // Lambdas
-        RubyNode composed = composeBody(sourceSection, preludeLambda, body /* no copy, last usage */);
+        RubyNode bodyForLambda = body; // no copy, last usage
+        RubyNode composed = composeBody(sourceSection, preludeLambda, bodyForLambda);
 
         composed = new CatchForLambdaNode(environment.getReturnID(), environment.getBreakID(), composed);
 
@@ -201,6 +204,14 @@ public class MethodTranslator extends BodyTranslator {
         final RootCallTarget callTargetAsLambda = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
         final RootCallTarget callTargetAsProc = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
 
+        if (isProc) {
+            // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
+            // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
+            // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
+            for (InvalidReturnNode returnNode : NodeUtil.findAllNodeInstances(bodyForLambda, InvalidReturnNode.class)) {
+                returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
+            }
+        }
 
         Object frameOnStackMarkerSlot;
 
