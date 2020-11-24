@@ -128,7 +128,7 @@ module RbConfig
 
   # Link to libtruffleruby by absolute path
   libtruffleruby_dir = File.dirname(libtruffleruby)
-  librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lpolyglot-mock"
+  librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lgraalvm-llvm"
 
   warnflags = warnflags.join(' ')
 

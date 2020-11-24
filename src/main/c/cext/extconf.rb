@@ -24,14 +24,14 @@ require 'mkmf'
 $CFLAGS << " -DRUBY_EXPORT"
 
 # Do no link against libtruffleruby for libtruffleruby itself.
-# We still need libtruffleruby to link against libpolyglot-mock,
+# We still need libtruffleruby to link against libgraalvm-llvm,
 # otherwise linking fails with "Undefined symbols" on macOS.
 if Truffle::Platform.darwin?
   # Set the install_name of libtruffleruby on macOS, so C exts linking to it
   # will know they need to look at the rpath to find it.
-  $LIBRUBYARG = "-Wl,-install_name,@rpath/libtruffleruby.dylib -lpolyglot-mock"
+  $LIBRUBYARG = "-Wl,-install_name,@rpath/libtruffleruby.dylib -lgraalvm-llvm"
 else
-  $LIBRUBYARG = "-lpolyglot-mock"
+  $LIBRUBYARG = "-lgraalvm-llvm"
 end
 
 create_makefile('libtruffleruby')
