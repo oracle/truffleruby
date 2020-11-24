@@ -1049,6 +1049,10 @@ module Truffle::CExt
     Truffle::Type.set_last_exception(error)
   end
 
+  def rb_make_exception(args)
+    Truffle::ExceptionOperations.make_exception(args)
+  end
+
   def rb_errinfo
     $!
   end
