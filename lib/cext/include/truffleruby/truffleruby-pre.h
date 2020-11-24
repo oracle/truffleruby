@@ -20,7 +20,7 @@ extern "C" {
 
 #define TRUFFLERUBY
 
-#include <polyglot.h>
+#include <graalvm/llvm/polyglot.h>
 
 #include <ctype.h> // isdigit
 
