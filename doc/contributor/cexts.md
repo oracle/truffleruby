@@ -123,7 +123,7 @@ not a `VALUE`.
 
 `polyglot_*` 
 
-See [polyglot.h](https://github.com/oracle/graal/blob/master/sulong/projects/com.oracle.truffle.llvm.libraries.bitcode/include/polyglot.h) for documentation regarding the `polyglot_*` methods.
+See [polyglot.h](https://github.com/oracle/graal/blob/master/sulong/projects/com.oracle.truffle.llvm.libraries.graalvm.llvm/include/graalvm/llvm/polyglot.h) for documentation regarding the `polyglot_*` methods.
 
 
 ##### ValueWrapper Long Representation
