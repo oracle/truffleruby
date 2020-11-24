@@ -54,6 +54,12 @@ describe "Range#each" do
     end
   end
 
+  ruby_version_is "2.7" do
+    it "raises a TypeError beginless ranges" do
+      -> { eval("(..2)").each { |x| x } }.should raise_error(TypeError)
+    end
+  end
+
   it "raises a TypeError if the first element does not respond to #succ" do
     -> { (0.5..2.4).each { |i| i } }.should raise_error(TypeError)
 
