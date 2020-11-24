@@ -70,6 +70,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Specialization
     protected RuntimeException translate(Throwable throwable, UnsupportedOperationBehavior unsupportedOperationBehavior,
             @Cached BranchProfile controlProfile,
