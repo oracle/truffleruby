@@ -96,7 +96,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -148,7 +147,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -1191,33 +1189,9 @@ public abstract class KernelNodes {
     @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true)
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private WarnNode warnNode;
-
-        @TruffleBoundary
         @Specialization
-        protected RubyProc lambda(NotProvided block,
-                @Cached FindAndReadDeclarationVariableNode readNode) {
-            final MaterializedFrame parentFrame = getContext()
-                    .getCallStack()
-                    .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
-                    .materialize();
-            Object parentBlock = readNode
-                    .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil);
-
-            if (parentBlock == nil) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError("tried to create Proc object without a block", this));
-            } else {
-                warnProcWithoutBlock();
-            }
-
-            Node callNode = getContext().getCallStack().getCallerNode(2, true);
-            if (isLiteralBlock(callNode)) {
-                return lambdaFromBlock((RubyProc) parentBlock);
-            } else {
-                return (RubyProc) parentBlock;
-            }
+        protected RubyProc lambda(NotProvided block) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
         @Specialization(guards = "isLiteralBlock(block)")
@@ -1240,19 +1214,6 @@ public abstract class KernelNodes {
             RubyCallNode rubyCallNode = NodeUtil.findParent(callNode, RubyCallNode.class);
             return rubyCallNode != null && rubyCallNode.hasLiteralBlock();
         }
-
-        private void warnProcWithoutBlock() {
-            if (warnNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                warnNode = insert(new WarnNode());
-            }
-
-            if (warnNode.shouldWarn()) {
-                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-                warnNode.warningMessage(sourceSection, "tried to create Proc object without a block");
-            }
-        }
-
     }
 
     @CoreMethod(names = "__method__", isModuleFunction = true)

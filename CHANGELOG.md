@@ -27,6 +27,7 @@ Compatibility:
 * `Proc#<<` and `Proc#>>` raises TypeError if passed not callable object (#2004, @ssnickolay).
 * Support time and date related messages for `Time` (#2166).
 * Updated `Dir.{glob,[]}` to raise `ArgumentError` for nul-separated strings.
+* `Kernel#lambda` with no block in a method called with a block raises an exception (#2004, @ssnickolay).
 
 Performance:
 
