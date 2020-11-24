@@ -126,7 +126,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
             @Cached ConditionProfile negativeIndexProfile,
-            @Cached("create()") LongCastNode longCastNode,
+            @Cached LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
         return readIndex(
@@ -153,7 +153,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
             @Cached ConditionProfile negativeIndexProfile,
-            @Cached("create()") LongCastNode longCastNode,
+            @Cached LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
         return readIndex(
@@ -180,7 +180,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @CachedLibrary("receiver") InteropLibrary interop,
             @Cached TranslateInteropExceptionNode translateInteropException,
             @Cached ConditionProfile negativeIndexProfile,
-            @Cached("create()") LongCastNode longCastNode,
+            @Cached LongCastNode longCastNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
         return readIndex(
