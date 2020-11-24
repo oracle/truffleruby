@@ -1,7 +1,5 @@
-fails:Pattern matching can be standalone in operator that deconstructs value
 fails:Pattern matching extends case expression with case/in construction
 fails:Pattern matching allows using then operator
-fails:Pattern matching warns about pattern matching is experimental feature
 fails:Pattern matching binds variables
 fails:Pattern matching cannot mix in and when operators
 fails:Pattern matching checks patterns until the first matching
@@ -41,7 +39,6 @@ fails:Pattern matching Array pattern does not match object without #deconstruct 
 fails:Pattern matching Array pattern raises TypeError if #deconstruct method does not return array
 fails:Pattern matching Array pattern does not match object if elements of array returned by #deconstruct method does not match elements in pattern
 fails:Pattern matching Array pattern binds variables
-fails:Pattern matching Array pattern binds variable even if patter matches only partially
 fails:Pattern matching Array pattern supports splat operator *rest
 fails:Pattern matching Array pattern does not match partially by default
 fails:Pattern matching Array pattern does match partially from the array beginning if list + , syntax used
@@ -66,7 +63,6 @@ fails:Pattern matching Hash pattern passes keys specified in pattern as argument
 fails:Pattern matching Hash pattern passes keys specified in pattern to #deconstruct_keys method if pattern contains double splat operator **
 fails:Pattern matching Hash pattern passes nil to #deconstruct_keys method if pattern contains double splat operator **rest
 fails:Pattern matching Hash pattern binds variables
-fails:Pattern matching Hash pattern binds variable even if pattern matches only partially
 fails:Pattern matching Hash pattern supports double splat operator **rest
 fails:Pattern matching Hash pattern treats **nil like there should not be any other keys in a matched Hash
 fails:Pattern matching Hash pattern can match partially

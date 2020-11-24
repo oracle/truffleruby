@@ -1,4 +1,3 @@
-fails:top-level constant lookup on a class searches Object successfully after searching other scopes
 fails:Module#private_constant marked constants NameError by #private_constant has the defined class as the :name attribute
 fails:top-level constant lookup on a class does not search Object after searching other scopes
 fails:Module#private_constant marked constants sends #const_missing to the original class or module
