@@ -458,17 +458,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_class_of", onSingleton = true, required = 1)
-    public abstract static class RBClassOfNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected RubyClass rb_class_of(Object object,
-                @Cached MetaClassNode metaClassNode) {
-            return metaClassNode.execute(object);
-        }
-
-    }
-
     @CoreMethod(names = "rb_long2int", onSingleton = true, required = 1)
     public abstract static class Long2Int extends CoreMethodArrayArgumentsNode {
 
