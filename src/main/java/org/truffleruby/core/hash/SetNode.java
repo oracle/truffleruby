@@ -22,6 +22,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
 public abstract class SetNode extends RubyContextNode {
+    /* On execution SetNode performs Hash#[]= and returns true if the key is newly added to hash,
+    and returns false if the key was found in the hash prior.
+    This is different from the return of Hash#[]=, which returns the right hand side value,
+    however this change allows get and set to happen concurrently. */
 
     @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
     @Child private LookupEntryNode lookupEntryNode;
@@ -35,10 +39,10 @@ public abstract class SetNode extends RubyContextNode {
         return SetNodeGen.create();
     }
 
-    public abstract Object executeSet(RubyHash hash, Object key, Object value, boolean byIdentity);
+    public abstract boolean executeSet(RubyHash hash, Object key, Object value, boolean byIdentity);
 
     @Specialization(guards = "isNullHash(hash)")
-    protected Object setNull(RubyHash hash, Object originalKey, Object value, boolean byIdentity) {
+    protected boolean setNull(RubyHash hash, Object originalKey, Object value, boolean byIdentity) {
         assert HashOperations.verifyStore(getContext(), hash);
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -55,12 +59,12 @@ public abstract class SetNode extends RubyContextNode {
         hash.lastInSequence = null;
 
         assert HashOperations.verifyStore(getContext(), hash);
-        return value;
+        return true;
     }
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(guards = "isPackedHash(hash)")
-    protected Object setPackedArray(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
+    protected boolean setPackedArray(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
             @Cached ConditionProfile strategyProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
@@ -82,7 +86,7 @@ public abstract class SetNode extends RubyContextNode {
                 if (equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     PackedArrayStrategy.setValue(store, n, value);
                     assert HashOperations.verifyStore(getContext(), hash);
-                    return value;
+                    return false;
                 }
             }
         }
@@ -90,7 +94,7 @@ public abstract class SetNode extends RubyContextNode {
         if (strategyProfile.profile(size < getLanguage().options.HASH_PACKED_ARRAY_MAX)) {
             PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
             hash.size += 1;
-            return value;
+            return true;
         } else {
             PackedArrayStrategy.promoteToBuckets(getContext(), hash, store, size);
             BucketsStrategy.addNewEntry(getContext(), hash, hashed, key, value);
@@ -98,11 +102,11 @@ public abstract class SetNode extends RubyContextNode {
 
         assert HashOperations.verifyStore(getContext(), hash);
 
-        return value;
+        return true;
     }
 
     @Specialization(guards = "isBucketHash(hash)")
-    protected Object setBuckets(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
+    protected boolean setBuckets(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
             @Cached ConditionProfile foundProfile,
             @Cached ConditionProfile bucketCollisionProfile,
             @Cached ConditionProfile appendingProfile,
@@ -146,13 +150,13 @@ public abstract class SetNode extends RubyContextNode {
             if (resizeProfile.profile(newSize / (double) entries.length > BucketsStrategy.LOAD_FACTOR)) {
                 BucketsStrategy.resize(getContext(), hash);
             }
+            assert HashOperations.verifyStore(getContext(), hash);
+            return true;
         } else {
             entry.setValue(value);
+            assert HashOperations.verifyStore(getContext(), hash);
+            return false;
         }
-
-        assert HashOperations.verifyStore(getContext(), hash);
-
-        return value;
     }
 
     private HashLookupResult lookup(RubyHash hash, Object key) {

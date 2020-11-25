@@ -255,7 +255,8 @@ public abstract class HashNodes {
 
         @Specialization
         protected Object set(RubyHash hash, Object key, Object value) {
-            return setNode.executeSet(hash, key, value, hash.compareByIdentity);
+            setNode.executeSet(hash, key, value, hash.compareByIdentity);
+            return value;
         }
 
     }
