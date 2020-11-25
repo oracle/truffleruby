@@ -9,10 +9,17 @@
  */
 package org.truffleruby.core.inlined;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
+
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.kernel.KernelNodes.DupNode;
+import org.truffleruby.core.klass.ClassNodes.NewNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.RubyNode;
@@ -20,10 +27,6 @@ import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.parser.TranslatorEnvironment;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 
 /** We inline basic operations directly in the AST (instead of a method call) as it makes little sense to compile them
  * in isolation without the surrounding method and it delays more interesting compilations by filling the compilation
@@ -149,6 +152,20 @@ public class CoreMethodAssumptions {
         final RubyNode self = callParameters.getReceiver();
         final RubyNode[] args = callParameters.getArguments();
         int n = 1 /* self */ + args.length;
+
+        if ("new".equals(callParameters.getMethodName())) {
+            return new InlinedCallNode(
+                    language,
+                    NewNode.create(),
+                    callParameters);
+        }
+
+        if ("dup".equals(callParameters.getMethodName())) {
+            return new InlinedCallNode(
+                    language,
+                    DupNode.create(),
+                    callParameters);
+        }
 
         if (callParameters.getBlock() != null) {
             if (callParameters.getMethodName().equals("lambda") && callParameters.isIgnoreVisibility() &&

@@ -17,12 +17,15 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.AllocateNodeFactory;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InitializeNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -318,13 +321,28 @@ public abstract class BasicObjectNodes {
     }
 
     @CoreMethod(names = "initialize", needsSelf = false)
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InitializeNode extends InlinedMethodNode {
+
+        public static InitializeNode create() {
+            return InitializeNodeFactory.create(null);
+        }
+
+        public abstract Object execute();
 
         @Specialization
         protected Object initialize() {
             return nil;
         }
 
+        @Override
+        public InternalMethod getMethod() {
+            return getContext().getCoreMethods().BASIC_OBJECT_INITIALIZE;
+        }
+
+        @Override
+        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
+            return execute();
+        }
     }
 
     @CoreMethod(
@@ -628,7 +646,13 @@ public abstract class BasicObjectNodes {
     // chain. We use a normal Ruby method, different that Class#allocate as Class#allocate
     // must be able to instantiate any Ruby object and should not be overridden.
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class AllocateNode extends InlinedMethodNode {
+
+        public static AllocateNode create() {
+            return AllocateNodeFactory.create(null);
+        }
+
+        public abstract Object execute(VirtualFrame frame, Object rubyClass);
 
         @Specialization
         protected RubyBasicObject allocate(RubyClass rubyClass,
@@ -639,6 +663,15 @@ public abstract class BasicObjectNodes {
             return instance;
         }
 
+        @Override
+        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
+            return execute(frame, proc);
+        }
+
+        @Override
+        public InternalMethod getMethod() {
+            return getContext().getCoreMethods().BASIC_OBJECT_ALLOCATE;
+        }
     }
 
 }
