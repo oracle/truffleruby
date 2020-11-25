@@ -257,7 +257,7 @@ suite = {
             "buildDependencies": [
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
-                "sulong:SULONG", # We need this jar to find the toolchain with Toolchain#getToolPath
+                "sulong:SULONG_NATIVE", # We need this jar to find the toolchain with Toolchain#getToolPath
             ],
             "license": ["EPL-2.0"],
         },
