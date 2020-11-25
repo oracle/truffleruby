@@ -398,7 +398,7 @@ rb_long2int_inline(long n)
 #endif
 
 #ifdef TRUFFLERUBY
-#define RB_FIX2LONG(x) (polyglot_as_i64(rb_tr_unwrap(x)))
+#define RB_FIX2LONG(x) ((long)polyglot_as_i64(rb_tr_unwrap(x)))
 #else
 #define RB_FIX2LONG(x) ((long)RSHIFT((SIGNED_VALUE)(x),1))
 #endif

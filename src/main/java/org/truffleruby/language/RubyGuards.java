@@ -26,7 +26,6 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 public abstract class RubyGuards {
 
@@ -86,10 +85,6 @@ public abstract class RubyGuards {
 
     public static boolean isRubyBignum(Object value) {
         return value instanceof RubyBignum;
-    }
-
-    public static boolean isRubyBigDecimal(Object value) {
-        return value instanceof RubyBigDecimal;
     }
 
     public static boolean isIntRange(Object value) {

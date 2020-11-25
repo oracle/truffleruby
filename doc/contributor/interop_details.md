@@ -198,7 +198,7 @@ When interop message `readMember` is sent
   it returns a method with the given name when the method is defined.
 - to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
   it fails with `UnknownIdentifierException` when the method is not defined.
-- to any non-immediate `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+- to any non-immediate `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
   it reads the given instance variable.
 - to **polyglot members**
   it reads the value stored with the given name.
@@ -208,13 +208,13 @@ When interop message `readMember` is sent
   it fails with `UnsupportedMessageError`.
 
 When interop message `writeMember` is sent
-- to any non-immediate non-frozen `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+- to any non-immediate non-frozen `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
   it writes the given instance variable.
 - to **polyglot members**
   it writes the given value under the given name.
 - to **a `StructWithValue`**
   it writes the value to the given struct member.
-- to **`nil`**, **`:symbol`** or **a frozen `Object`**
+- to **a `BigDecimal`**, **`nil`**, **`:symbol`** or **a frozen `Object`**
   it fails with `UnsupportedMessageError` when the receiver is frozen.
 - otherwise
   it fails with `UnsupportedMessageError`.

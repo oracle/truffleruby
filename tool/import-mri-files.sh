@@ -58,8 +58,9 @@ cp -r ../ruby/ext/ripper/lib/ripper lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
-rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,ripper,zlib}
-mkdir src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,ripper,zlib}
+rm -r src/main/c/{bigdecimal,etc,nkf,openssl,psych,rbconfig-sizeof,syslog,ripper,zlib}
+mkdir src/main/c/{bigdecimal,etc,nkf,openssl,psych,rbconfig-sizeof,syslog,ripper,zlib}
+cp ../ruby/ext/bigdecimal/*.{c,gemspec,h,rb} src/main/c/bigdecimal
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
 cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
