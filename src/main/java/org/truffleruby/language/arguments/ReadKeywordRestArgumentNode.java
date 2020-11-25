@@ -33,7 +33,6 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @Child private SetNode setNode = SetNode.create();
 
     private final ConditionProfile noHash = ConditionProfile.create();
-    private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
     public ReadKeywordRestArgumentNode(RubyLanguage language, int minimum, Arity arity) {
         this.excludedKeywords = CheckKeywordArityNode.keywordsAsSymbols(language, arity);
@@ -58,7 +57,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
-        if (isSymbolProfile.profile(key instanceof RubySymbol) && !keywordExcluded(key)) {
+        if (!keywordExcluded(key)) {
             setNode.executeSet((RubyHash) kwRest, key, value, false);
         }
     }

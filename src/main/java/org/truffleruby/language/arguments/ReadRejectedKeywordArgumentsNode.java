@@ -22,7 +22,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
 
-    @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
     @Child private SetNode setNode = SetNode.create();
 

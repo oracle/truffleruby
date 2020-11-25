@@ -27,6 +27,7 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
     private final int startIndex;
     private final int indexFromCount;
     private final boolean keywordArguments;
+    private final boolean considerRejectedKWArgs;
 
     private final BranchProfile noArgumentsLeftProfile = BranchProfile.create();
     private final BranchProfile subsetOfArgumentsProfile = BranchProfile.create();
@@ -41,17 +42,19 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
             int startIndex,
             int indexFromCount,
             boolean keywordArguments,
+            boolean considerRejectedKWArgs,
             int minimumForKWargs) {
         this.startIndex = startIndex;
         this.indexFromCount = indexFromCount;
         this.keywordArguments = keywordArguments;
+        this.considerRejectedKWArgs = considerRejectedKWArgs;
 
-        if (keywordArguments) {
+        if (considerRejectedKWArgs) {
             this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimumForKWargs);
         }
 
-        this.hasKeywordsProfile = keywordArguments ? ConditionProfile.create() : null;
-        this.hasRejectedKwargs = keywordArguments ? ConditionProfile.create() : null;
+        this.hasKeywordsProfile = considerRejectedKWArgs ? ConditionProfile.create() : null;
+        this.hasRejectedKwargs = considerRejectedKWArgs ? ConditionProfile.create() : null;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
 
         final RubyArray rest = createArray(resultStore, resultLength);
 
-        if (keywordArguments) {
+        if (considerRejectedKWArgs) {
             final RubyHash kwargsHash = readUserKeywordsHashNode.execute(frame);
 
             if (hasKeywordsProfile.profile(kwargsHash != null)) {

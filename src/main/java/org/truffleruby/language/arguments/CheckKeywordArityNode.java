@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.RubyHash;
@@ -42,9 +43,6 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
         this.arity = arity;
         this.body = body;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
-        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(language, arity);
-        this.eachKeyNode = EachKeyValueNode.create();
-
     }
 
     @Override
@@ -74,47 +72,59 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
         }
 
-        if (keywordArguments != null) {
-            receivedKeywordsProfile.enter();
-            eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
+        if (!arity.hasKeywordsRest() && keywordArguments != null) {
+            checkKeywordArguments(frame, keywordArguments);
         }
+    }
+
+    void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments) {
+        if (eachKeyNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            eachKeyNode = insert(EachKeyValueNode.create());
+        }
+        if (checkKeywordArgumentsNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(getLanguage(), arity));
+        }
+        eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
     }
 
     private static class CheckKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
 
-        private final boolean checkAllowedKeywords;
         private final boolean doesNotAcceptExtraArguments;
         private final int required;
         @CompilationFinal(dimensions = 1) private final RubySymbol[] allowedKeywords;
 
         private final ConditionProfile isSymbolProfile = ConditionProfile.create();
         private final BranchProfile tooManyKeywordsProfile = BranchProfile.create();
-        private final BranchProfile unknownKeywordProfile;
+        private final BranchProfile unknownKeywordProfile = BranchProfile.create();
 
         public CheckKeywordArgumentsNode(RubyLanguage language, Arity arity) {
-            checkAllowedKeywords = !arity.hasKeywordsRest();
+            assert !arity.hasKeywordsRest();
             doesNotAcceptExtraArguments = !arity.hasRest() && arity.getOptional() == 0;
             required = arity.getRequired();
-            allowedKeywords = checkAllowedKeywords ? keywordsAsSymbols(language, arity) : null;
-            unknownKeywordProfile = checkAllowedKeywords ? BranchProfile.create() : null;
+            allowedKeywords = keywordsAsSymbols(language, arity);
         }
 
         @Override
         public void accept(VirtualFrame frame, Object key, Object value, Object state) {
             if (isSymbolProfile.profile(key instanceof RubySymbol)) {
-                if (checkAllowedKeywords && !keywordAllowed(key)) {
+                if (!keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
                     throw new RaiseException(
                             getContext(),
                             coreExceptions().argumentErrorUnknownKeyword((RubySymbol) key, this));
                 }
             } else {
-                final int given = RubyArguments.getArgumentsCount(frame); // -1 for keyword hash, +1 for reject Hash with non-Symbol key
+                // the Hash would be split and a reject Hash be created to hold non-Symbols when there is no **kwrest parameter,
+                // so we need to check if an extra argument is allowed
+                final int given = RubyArguments.getArgumentsCount(frame); // -1 for keyword hash, +1 for reject Hash with non-Symbol keys
                 if (doesNotAcceptExtraArguments && given > required) {
                     tooManyKeywordsProfile.enter();
                     throw new RaiseException(getContext(), coreExceptions().argumentError(given, required, this));
                 }
             }
+
         }
 
         @ExplodeLoop
