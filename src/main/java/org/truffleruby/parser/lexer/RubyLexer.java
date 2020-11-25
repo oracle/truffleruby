@@ -880,6 +880,9 @@ public class RubyLexer implements MagicCommentHandler {
                             case '\13': /* '\v' */
                                 spaceSeen = true;
                                 continue;
+                            case '#':
+                                pushback(c);
+                                continue loop;
                             case '&':
                             case '.': {
                                 if (peek('.') == (c == '&')) {
