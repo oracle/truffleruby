@@ -79,8 +79,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         vals.add(createValueConstructor(context, "Complex(1, 2)", OBJECT));
         vals.add(createValueConstructor(context, "'test'", STRING));
         vals.add(createValueConstructor(context, "'0123456789' + '0123456789'", STRING));
-        vals.add(createValueConstructor(context, "Time.now", DATE_TIME_ZONE));
 
+        vals.add(createValueConstructor(context, "Time.now", DATE_TIME_ZONE_OBJECT));
         vals.add(createValueConstructor(context, "[1, 2]", NUMBER_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[1.2, 3.4]", NUMBER_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[1<<33, 1<<34]", NUMBER_ARRAY_OBJECT));
@@ -242,7 +242,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         }
     }
 
-    private static final TypeDescriptor DATE_TIME_ZONE = intersection(DATE, TIME, TIME_ZONE);
+    private static final TypeDescriptor DATE_TIME_ZONE_OBJECT = intersection(OBJECT, DATE, TIME, TIME_ZONE);
     private static final TypeDescriptor ARRAY_OBJECT = intersection(OBJECT, ARRAY);
     private static final TypeDescriptor NUMBER_ARRAY_OBJECT = intersection(OBJECT, array(NUMBER));
 
