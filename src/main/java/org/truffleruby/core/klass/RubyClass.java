@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.klass;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import com.oracle.truffle.api.source.SourceSection;
@@ -28,6 +29,8 @@ import com.oracle.truffle.api.object.Shape;
 @ExportLibrary(InteropLibrary.class)
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
+    private static final RubyClass[] EMPTY_CLASS_ARRAY = new RubyClass[0];
+
     public final boolean isSingleton;
     /** If this is an object's metaclass, then nonSingletonClass is the logical class of the object. */
     public final RubyClass nonSingletonClass;
@@ -35,6 +38,10 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     public Shape instanceShape;
     /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
     public Object superclass;
+    public RubyClass[] ancestorClasses;
+
+    /** Depth from BasicObject (= 0) in the inheritance hierarchy. */
+    public int depth;
 
     public RubyClass(
             RubyClass classClass,
@@ -50,20 +57,27 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         assert isSingleton == (instanceShape == null);
         this.isSingleton = isSingleton;
         this.attached = attached;
-        this.superclass = superclass;
         this.instanceShape = instanceShape;
+
+        if (superclass instanceof RubyClass) {
+            updateSuperclass((RubyClass) superclass);
+        } else { // BasicObject (nil superclass) or uninitialized class (null)
+            this.depth = 0;
+            this.superclass = superclass;
+            this.ancestorClasses = EMPTY_CLASS_ARRAY;
+        }
 
         this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
     }
 
-    /** Special constructor to build the 'Class' RubyClass itself */
+
+    /** Special constructor to build the 'Class' RubyClass itself. The superclass is set later. */
     RubyClass(RubyContext context, Shape classShape) {
         super(context, classShape, "constructor only for the class Class");
         this.isSingleton = false;
         this.attached = null;
         this.superclass = null;
         this.instanceShape = classShape;
-
         this.nonSingletonClass = this;
     }
 
@@ -86,8 +100,17 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     public void setSuperClass(RubyClass superclass) {
         assert this.superclass == null || this.superclass == superclass;
-        this.superclass = superclass;
+        updateSuperclass(superclass);
         fields.setSuperClass(superclass);
+    }
+
+    private void updateSuperclass(RubyClass superclass) {
+        final RubyClass[] superAncestors = superclass.ancestorClasses;
+        final RubyClass[] ancestors = Arrays.copyOf(superAncestors, superAncestors.length + 1);
+        ancestors[superAncestors.length] = superclass;
+        this.superclass = superclass;
+        this.depth = superclass.depth + 1;
+        this.ancestorClasses = ancestors;
     }
 
     @Override

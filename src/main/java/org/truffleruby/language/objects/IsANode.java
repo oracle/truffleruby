@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
@@ -40,7 +41,7 @@ public abstract class IsANode extends RubyBaseNode {
                     "module == cachedModule" },
             assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)",
             limit = "getCacheLimit()")
-    protected boolean isACached(Object self, RubyModule module,
+    protected boolean isAMetaClassCached(Object self, RubyModule module,
             @Cached MetaClassNode metaClassNode,
             @Cached("metaClassNode.execute(self)") RubyClass cachedMetaClass,
             @Cached("module") RubyModule cachedModule,
@@ -52,7 +53,38 @@ public abstract class IsANode extends RubyBaseNode {
         return module.fields.getHierarchyUnmodifiedAssumption();
     }
 
-    @Specialization(replaces = "isACached")
+    @Specialization(
+            guards = "klass == cachedClass",
+            replaces = "isAMetaClassCached",
+            limit = "getCacheLimit()")
+    protected boolean isAClassCached(Object self, RubyClass klass,
+            @Cached MetaClassNode metaClassNode,
+            @Cached ConditionProfile isMetaClass,
+            @Cached("klass") RubyClass cachedClass) {
+        return isAClassUncached(self, klass, metaClassNode, isMetaClass);
+    }
+
+    @Specialization(replaces = "isAClassCached")
+    protected boolean isAClassUncached(Object self, RubyClass klass,
+            @Cached MetaClassNode metaClassNode,
+            @Cached ConditionProfile isMetaClass) {
+        final RubyClass metaclass = metaClassNode.execute(self);
+
+        if (isMetaClass.profile(metaclass == klass)) {
+            return true;
+        }
+
+        assert metaclass.ancestorClasses != null;
+
+        final int depth = klass.depth;
+        if (depth < metaclass.depth) { // < and not <= as we checked for equality above
+            return metaclass.ancestorClasses[depth] == klass;
+        }
+
+        return false;
+    }
+
+    @Specialization(guards = "!isRubyClass(module)", replaces = "isAMetaClassCached")
     protected boolean isAUncached(Object self, RubyModule module,
             @Cached MetaClassNode metaClassNode) {
         return isA(metaClassNode.execute(self), module);
