@@ -7,7 +7,7 @@ ruby_version_is "2.7" do
       Hash.ruby2_keywords_hash?({}).should == false
     end
 
-    it "returns true if the Hash is a keywords Hash" do
+    it "returns true if the Hash is a keywords Hash marked by Module#ruby2_keywords" do
       obj = Class.new {
         ruby2_keywords def m(*args)
           args.last
