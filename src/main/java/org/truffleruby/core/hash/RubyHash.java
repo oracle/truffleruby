@@ -29,6 +29,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public Entry firstInSequence;
     public Entry lastInSequence;
     public boolean compareByIdentity;
+    public boolean ruby2_keywords = false;
 
     public RubyHash(
             RubyClass rubyClass,

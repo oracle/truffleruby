@@ -1,6 +1,1 @@
-fails:Hash.ruby2_keywords_hash? returns false if the Hash is not a keywords Hash
 fails:Hash.ruby2_keywords_hash? returns true if the Hash is a keywords Hash
-fails:Hash.ruby2_keywords_hash? raises TypeError for non-Hash
-fails:Hash.ruby2_keywords_hash returns a copy of a Hash and marks the copy as a keywords Hash
-fails:Hash.ruby2_keywords_hash raises TypeError for non-Hash
-fails:Hash.ruby2_keywords_hash returns an instance of the subclass if called on an instance of a subclass of Hash
