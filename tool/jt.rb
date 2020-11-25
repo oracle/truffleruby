@@ -146,9 +146,12 @@ module Utilities
   def jvmci_version
     @jvmci_version ||= begin
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      unless /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u(?:\d+(?:\+\d+)?)-(jvmci-[^"]+)"\s*,/ =~ ci
-        raise 'JVMCI version not found in common.json'
+      if @jdk_version == 8
+        regex = /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u.+-(jvmci-[^"]+)"\s*,/
+      else
+        regex = /{\s*"name"\s*:\s*"labsjdk"\s*,\s*"version"\s*:\s*"ce-11\..+-(jvmci-[^"]+)"\s*,/
       end
+      raise 'JVMCI version not found in common.json' unless regex =~ ci
       $1
     end
   end
@@ -530,7 +533,9 @@ module Utilities
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
-        install_jvmci('$JAVA_HOME is not set, downloading JDK8 with JVMCI', (@mx_env || @ruby_name || '').include?('ee'))
+        install_jvmci(
+            "$JAVA_HOME is not set, downloading JDK#{@jdk_version} with JVMCI",
+            (@mx_env || @ruby_name || '').include?('ee'))
       end
     end
   end
@@ -625,6 +630,7 @@ module Commands
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
+          --jdk                     Specifies which version of the JDK should be used: 8 (default) or 11
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
         jt build [parser|options] [options]
@@ -1937,7 +1943,11 @@ module Commands
   end
 
   private def install_jvmci(download_message, ee)
-    jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
+    if @jdk_version == 8
+      jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
+    else
+      jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
+    end
 
     java_home = "#{CACHE_EXTRA_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
@@ -2638,25 +2648,46 @@ class JT
     JT.new.gem_test_pack
   end
 
+  def process_pre_args(args)
+    needs_build = false
+    needs_rebuild = false
+    @silent = false
+    @jdk_version = 8
+
+    until args.empty?
+      arg = args.shift
+      case arg
+      when '--build'
+        needs_build = true
+      when '--rebuild'
+        needs_rebuild = true
+      when '-u', '--use'
+        @ruby_name = args.shift
+      when '--silent'
+        @silent = true
+      when '--jdk'
+        @jdk_version = Integer(args.shift)
+      when '-h', '-help', '--help'
+        help
+        exit
+      else
+        args.unshift arg
+        break
+      end
+    end
+
+    raise "Invalid JDK version: #{@jdk_version}" if @jdk_version != 8 && @jdk_version != 11
+
+    if needs_rebuild
+      rebuild
+    elsif needs_build
+      build
+    end
+  end
+
   def main(args)
     args = args.dup
-
-    if args.empty? or %w[-h -help --help].include? args.first
-      help
-      exit
-    end
-
-    if args.first =~ /^--((?:re)?build)$/
-      send $1
-      args.shift
-    end
-
-    if args.first == '--use' || args.first == '-u'
-      args.shift
-      @ruby_name = args.shift
-    end
-
-    @silent = !!args.delete('--silent')
+    process_pre_args(args)
 
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
