@@ -359,7 +359,9 @@ class Range
     if self.begin.respond_to?(:to_int) ||
        self.end.respond_to?(:to_int) ||
         self.begin.kind_of?(Numeric) ||
-       self.end.kind_of?(Numeric)
+       self.end.kind_of?(Numeric) ||
+        self.begin.kind_of?(Time) ||
+       self.end.kind_of?(Time)
       cover? value
     else
       super
