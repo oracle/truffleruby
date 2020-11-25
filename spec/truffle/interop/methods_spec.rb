@@ -13,7 +13,6 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop" do
   it "has a method for each InteropLibrary message" do
     all_methods = Primitive.interop_library_all_methods
-    all_methods -= %w[getFactory getUncached]
     expected = all_methods.map do |name|
       name = name.gsub(/([a-z])([A-Z])/) { "#{$1}_#{$2.downcase}" }
       if name.start_with?('is_', 'has_', 'fits_')

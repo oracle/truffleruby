@@ -123,7 +123,7 @@ public abstract class InteropNodes {
         private static String[] publicInteropLibraryMethods() {
             List<String> methods = new ArrayList<>();
             for (Method method : InteropLibrary.class.getDeclaredMethods()) {
-                if (Modifier.isPublic(method.getModifiers())) {
+                if (Modifier.isPublic(method.getModifiers()) && !Modifier.isStatic(method.getModifiers())) {
                     if (!methods.contains(method.getName())) {
                         methods.add(method.getName());
                     }
