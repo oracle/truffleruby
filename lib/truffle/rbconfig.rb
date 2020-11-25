@@ -192,7 +192,7 @@ module RbConfig
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
     'UNICODE_VERSION'   => '12.0.0',
-    'UNICODE_EMOJI_VERSION' => '12.0',
+    'UNICODE_EMOJI_VERSION' => '12.1',
     'warnflags'         => warnflags,
   }
 
