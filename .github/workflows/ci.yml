@@ -49,4 +49,4 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler: none
-      - run: CHECK_LEAKS=true tool/jt.rb -u ruby mspec -fdot spec/ruby
+      - run: CHECK_LEAKS=true tool/jt.rb -u ruby mspec -fdot --timeout 30 spec/ruby
