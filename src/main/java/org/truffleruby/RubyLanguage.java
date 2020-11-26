@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.object.Shape;
 import org.graalvm.options.OptionDescriptors;
+import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
@@ -53,7 +54,7 @@ import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
@@ -153,9 +154,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
     public final PrimitiveManager primitiveManager;
-    public final FrozenStringLiterals frozenStringLiterals;
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
+    public final FrozenStringLiterals frozenStringLiterals;
     @CompilationFinal public LanguageOptions options;
 
     @CompilationFinal private AllocationReporter allocationReporter;
@@ -212,9 +213,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         coreStrings = new CoreStrings(this);
         coreSymbols = new CoreSymbols();
         primitiveManager = new PrimitiveManager();
-        frozenStringLiterals = new FrozenStringLiterals();
         ropeCache = new RopeCache(coreSymbols);
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
+        frozenStringLiterals = new FrozenStringLiterals(ropeCache);
     }
 
     @TruffleBoundary
@@ -435,7 +436,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return allocationReporter;
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(LeafRope rope) {
+    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+        return frozenStringLiterals.getFrozenStringLiteral(bytes, encoding, codeRange);
+    }
+
+    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
         return frozenStringLiterals.getFrozenStringLiteral(rope);
     }
 

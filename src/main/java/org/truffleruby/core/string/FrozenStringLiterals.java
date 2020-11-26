@@ -9,20 +9,35 @@
  */
 package org.truffleruby.core.string;
 
+import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeCache;
 
 public class FrozenStringLiterals {
 
-    private final WeakValueCache<Rope, ImmutableRubyString> values = new WeakValueCache<>();
+    private final RopeCache ropeCache;
+    private final WeakValueCache<LeafRope, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public ImmutableRubyString getFrozenStringLiteral(LeafRope rope) {
-        final ImmutableRubyString string = values.get(rope);
+    public FrozenStringLiterals(RopeCache ropeCache) {
+        this.ropeCache = ropeCache;
+    }
+
+    public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
+        return getFrozenStringLiteral(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
+    }
+
+    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+        // Ensure all ImmutableRubyString have a Rope from the RopeCache
+        final LeafRope cachedRope = ropeCache.getRope(bytes, encoding, codeRange);
+
+        final ImmutableRubyString string = values.get(cachedRope);
         if (string != null) {
             return string;
         } else {
-            return values.addInCacheIfAbsent(rope, new ImmutableRubyString(rope));
+            return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope));
         }
     }
 

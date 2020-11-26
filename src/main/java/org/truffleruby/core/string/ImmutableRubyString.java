@@ -28,7 +28,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 /** All ImmutableRubyString are interned and must be created through
- * {@link FrozenStringLiterals#getFrozenStringLiteral(LeafRope)}. */
+ * {@link FrozenStringLiterals#getFrozenStringLiteral(Rope)}. */
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {

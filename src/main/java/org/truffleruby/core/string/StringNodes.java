@@ -5370,7 +5370,7 @@ public abstract class StringNodes {
         @Specialization
         protected ImmutableRubyString internString(RubyString string,
                 @Cached RopeNodes.FlattenNode flattenNode) {
-            final LeafRope flattened = flattenNode.executeFlatten(string.rope);
+            final Rope flattened = flattenNode.executeFlatten(string.rope);
             return getLanguage().getFrozenStringLiteral(flattened);
         }
 
