@@ -25,7 +25,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
 /*
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
@@ -36,8 +35,6 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RE
 public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
-
-    @Child private DispatchNode toArrayNode = DispatchNode.create(PRIVATE_RETURN_MISSING);
 
     public static ArrayCastNode create() {
         return ArrayCastNodeGen.create(null);
@@ -104,9 +101,10 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isRubyBignum(object)", "!isRubyArray(object)" })
     protected Object cast(RubyDynamicObject object,
-            @Cached BranchProfile errorProfile) {
-        final Object result = toArrayNode.call(object, "to_ary");
+            @Cached BranchProfile errorProfile,
+            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toArrayNode) {
 
+        final Object result = toArrayNode.call(object, "to_ary");
         if (result == nil) {
             return nil;
         }

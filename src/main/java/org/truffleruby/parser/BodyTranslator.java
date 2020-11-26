@@ -1615,7 +1615,6 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final List<RubyNode> hashConcats = new ArrayList<>();
-
         final List<RubyNode> keyValues = new ArrayList<>();
 
         for (ParseNodeTuple pair : node.getPairs()) {
