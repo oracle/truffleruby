@@ -692,7 +692,7 @@ public class BodyTranslator extends Translator {
         }
 
         // If the last argument is a splat, do not copy the array, to support m(*args, &args.pop)
-        if (isSplatted && argumentsTranslated.length > 0) {
+        if (isSplatted) {
             final RubyNode last = argumentsTranslated[argumentsTranslated.length - 1];
             if (last instanceof SplatCastNode) {
                 ((SplatCastNode) last).doNotCopy();
@@ -716,8 +716,8 @@ public class BodyTranslator extends Translator {
             frameOnStackMarkerSlot = null;
         } else if (iterNode != null) {
             frameOnStackMarkerSlot = environment.declareVar(environment.allocateLocalTemp("frame_on_stack_marker"));
-            frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
 
+            frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
             try {
                 blockTranslated = iterNode.accept(this);
             } finally {
