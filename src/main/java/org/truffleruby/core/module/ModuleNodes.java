@@ -1072,6 +1072,29 @@ public abstract class ModuleNodes {
 
     }
 
+    @CoreMethod(names = "const_source_location", required = 1, optional = 1)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
+    public abstract static class ConstSourceLocationNode extends CoreMethodNode {
+
+        @CreateCast("name")
+        protected RubyNode coerceToString(RubyNode name) {
+            return NameToJavaStringNode.create(name);
+        }
+
+        @CreateCast("inherit")
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
+            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        }
+
+        @Specialization
+        protected Object constSourceLocation(RubyModule module, String name, boolean inherit) {
+            return nil;
+        }
+
+    }
+
     @CoreMethod(names = "const_set", required = 2)
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
