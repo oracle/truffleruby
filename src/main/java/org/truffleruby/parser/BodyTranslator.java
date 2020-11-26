@@ -1614,15 +1614,23 @@ public class BodyTranslator extends Translator {
     public RubyNode visitHashNode(HashParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
+        if (node.isEmpty()) { // an empty Hash literal like h = {}
+            final RubyNode ret = HashLiteralNode.create(language, RubyNode.EMPTY_ARRAY);
+            ret.unsafeSetSourceSection(sourceSection);
+            return addNewlineIfNeeded(node, ret);
+        }
+
         final List<RubyNode> hashConcats = new ArrayList<>();
         final List<RubyNode> keyValues = new ArrayList<>();
 
         for (ParseNodeTuple pair : node.getPairs()) {
             if (pair.getKey() == null) {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
-                final RubyNode hashLiteralSoFar = HashLiteralNode
-                        .create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
-                hashConcats.add(hashLiteralSoFar);
+                if (!keyValues.isEmpty()) {
+                    final RubyNode hashLiteralSoFar = HashLiteralNode
+                            .create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+                    hashConcats.add(hashLiteralSoFar);
+                }
                 hashConcats.add(HashCastNodeGen.create(pair.getValue().accept(this)));
                 keyValues.clear();
             } else {
@@ -1636,8 +1644,10 @@ public class BodyTranslator extends Translator {
             }
         }
 
-        final RubyNode hashLiteralSoFar = HashLiteralNode.create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
-        hashConcats.add(hashLiteralSoFar);
+        if (!keyValues.isEmpty()) {
+            final RubyNode hashLiteralSoFar = HashLiteralNode.create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+            hashConcats.add(hashLiteralSoFar);
+        }
 
         if (hashConcats.size() == 1) {
             final RubyNode ret = hashConcats.get(0);
