@@ -32,6 +32,7 @@ Compatibility:
 * Comment lines can be placed between fluent dot now (#2004, @ssnickolay).
 * Implemented `rb_make_exception`.
 * `**kwargs` now accept non-Symbol keys like Ruby 2.7.
+* Updated the Unicode Emoji version (#2173, @wildmaples).
 
 Performance:
 
