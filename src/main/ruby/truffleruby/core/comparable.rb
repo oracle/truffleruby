@@ -79,7 +79,20 @@ module Comparable
     true
   end
 
-  def clamp(min, max)
+  def clamp(*args)
+    case args.count
+    when 1
+      range = args[0]
+      raise TypeError, "wrong argument type #{range.class.name} (expected Range)" unless range.kind_of?(Range)
+      raise ArgumentError, 'cannot clamp with an exclusive range' if range.exclude_end?
+
+      min, max = range.begin, range.end
+    when 2
+      min, max = args[0], args[1]
+    else
+      raise ArgumentError, "wrong number of arguments (given #{args.count}, expected 1..2)"
+    end
+
     comp = min <=> max
     raise ArgumentError, 'min argument must be smaller than max argument' if Primitive.nil?(comp) or comp > 0
     return min if self < min
