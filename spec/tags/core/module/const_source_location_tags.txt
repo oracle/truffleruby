@@ -30,3 +30,9 @@ fails:Module#const_source_location with statically assigned constants returns lo
 fails:Module#const_source_location with statically assigned constants returns location path a toplevel constant when the receiver is a Module
 fails:Module#const_source_location autoload returns the autoload location while not resolved
 fails:Module#const_source_location autoload returns where the constant was resolved when resolved
+fails:Module#const_source_location raises a NameError if the name does not start with a capital letter
+fails:Module#const_source_location raises a NameError if the name starts with a non-alphabetic character
+fails:Module#const_source_location raises a NameError if the name includes two successive scope separators
+fails:Module#const_source_location raises a NameError if only '::' is passed
+fails:Module#const_source_location raises a NameError if a Symbol has a toplevel scope qualifier
+fails:Module#const_source_location raises a NameError if a Symbol is a scoped constant name
