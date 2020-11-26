@@ -128,6 +128,10 @@ void rb_bug(const char *fmt, ...) {
   rb_tr_error("rb_bug not yet implemented");
 }
 
+VALUE rb_make_exception(int argc, const VALUE *argv) {
+  return RUBY_CEXT_INVOKE("rb_make_exception", rb_ary_new4(argc, argv));
+}
+
 void rb_tr_init_exception(void) {
   cext_rb_protect = polyglot_get_member(rb_tr_cext, "rb_protect");
   cext_rb_ensure = polyglot_get_member(rb_tr_cext, "rb_ensure");

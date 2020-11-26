@@ -29,6 +29,31 @@ module Truffle
       end
     end
 
+    def self.make_exception(args)
+      case args.size
+      when 0
+        nil
+      when 1
+        converted = Truffle::Type.rb_check_convert_type(args[0], String, :to_str)
+        return RuntimeError.new(converted) unless Primitive.nil?(converted)
+        call_exception(args[0])
+      when 2
+        call_exception(args[0], args[1])
+      when 3
+        exc = call_exception(args[0], args[1])
+        exc.set_backtrace(args[2])
+        exc
+      else
+        Truffle::Type.check_arity(args.size, 0, 3)
+      end
+    end
+
+    def self.call_exception(exc, *args)
+      res = Truffle::Type.check_funcall(exc, :exception, args)
+      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res) || !Primitive.object_kind_of?(res, Exception)
+      res
+    end
+
     # Avoid using #raise here to prevent infinite recursion
     def self.exception_class_object_expected!
       exc = ::TypeError.new('exception class/object expected')
