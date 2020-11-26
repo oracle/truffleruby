@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -22,8 +22,8 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -35,7 +35,7 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     public final LeafRope rope;
 
-    public ImmutableRubyString(LeafRope rope) {
+    ImmutableRubyString(LeafRope rope) {
         this.rope = rope;
     }
 
