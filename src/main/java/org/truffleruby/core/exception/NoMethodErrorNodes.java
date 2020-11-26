@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -18,10 +19,8 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "NoMethodError", isClass = true)
@@ -30,11 +29,9 @@ public abstract class NoMethodErrorNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final Shape shape = getLanguage().noMethodErrorShape;
             final RubyNoMethodError instance = new RubyNoMethodError(rubyClass, shape, nil, null, nil, null, nil, nil);
             AllocationTracing.trace(instance, this);
             return instance;

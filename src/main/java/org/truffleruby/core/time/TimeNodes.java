@@ -40,7 +40,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
 import java.time.DateTimeException;
@@ -64,12 +63,9 @@ public abstract class TimeNodes {
 
         private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, GetTimeZoneNode.UTC);
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyTime allocate(RubyClass rubyClass) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubyTime instance = new RubyTime(rubyClass, shape, ZERO, nil, 0, false, false);
+            final RubyTime instance = new RubyTime(rubyClass, getLanguage().timeShape, ZERO, nil, 0, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -179,7 +175,6 @@ public abstract class TimeNodes {
     @CoreMethod(names = "now", constructor = true)
     public static abstract class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -188,8 +183,7 @@ public abstract class TimeNodes {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dt, zoneAndName);
-            final Shape shape = allocateNode.getCachedShape(timeClass);
-            final RubyTime instance = new RubyTime(timeClass, shape, dt, zone, nil, false, false);
+            final RubyTime instance = new RubyTime(timeClass, getLanguage().timeShape, dt, zone, nil, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
 
@@ -206,7 +200,6 @@ public abstract class TimeNodes {
     public static abstract class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
@@ -215,15 +208,8 @@ public abstract class TimeNodes {
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final RubyString zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
 
-            final Shape shape = allocateNode.getCachedShape(timeClass);
-            final RubyTime instance = new RubyTime(
-                    timeClass,
-                    shape,
-                    dateTime,
-                    zone,
-                    nil,
-                    false,
-                    false);
+            final Shape shape = getLanguage().timeShape;
+            final RubyTime instance = new RubyTime(timeClass, shape, dateTime, zone, nil, false, false);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -478,7 +464,6 @@ public abstract class TimeNodes {
     public static abstract class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode;
 
         @Specialization(guards = "(isutc || !isRubyDynamicObject(utcoffset)) || isNil(utcoffset)")
@@ -591,15 +576,9 @@ public abstract class TimeNodes {
             if (envZone != null) {
                 zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
             }
-            final Shape shape = allocateNode.getCachedShape(timeClass);
-            final RubyTime instance = new RubyTime(
-                    timeClass,
-                    shape,
-                    dt,
-                    zoneToStore,
-                    utcoffset,
-                    relativeOffset,
-                    isutc);
+
+            final Shape shape = getLanguage().timeShape;
+            final RubyTime instance = new RubyTime(timeClass, shape, dt, zoneToStore, utcoffset, relativeOffset, isutc);
             AllocationTracing.trace(instance, this);
             return instance;
         }

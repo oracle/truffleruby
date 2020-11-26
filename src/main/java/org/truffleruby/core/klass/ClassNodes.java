@@ -271,9 +271,16 @@ public abstract class ClassNodes {
 
         @Child private DispatchNode allocateNode = DispatchNode.create();
 
-        @Specialization
-        protected Object newInstance(VirtualFrame frame, RubyClass rubyClass) {
+        @Specialization(guards = "!rubyClass.isSingleton")
+        protected Object newInstance(RubyClass rubyClass) {
             return allocateNode.call(rubyClass, "__allocate__");
+        }
+
+        @Specialization(guards = "rubyClass.isSingleton")
+        protected RubyClass newSingletonInstance(RubyClass rubyClass) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
         }
     }
 
@@ -289,14 +296,21 @@ public abstract class ClassNodes {
 
         public abstract Object execute(VirtualFrame frame, Object rubyClass, Object[] args, Object block);
 
-        @Specialization
+        @Specialization(guards = "!rubyClass.isSingleton")
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, NotProvided block) {
             return doNewInstance(frame, rubyClass, args, null);
         }
 
-        @Specialization
+        @Specialization(guards = "!rubyClass.isSingleton")
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, RubyProc block) {
             return doNewInstance(frame, rubyClass, args, block);
+        }
+
+        @Specialization(guards = "rubyClass.isSingleton")
+        protected RubyClass newSingletonInstance(RubyClass rubyClass, Object[] args, Object maybeBlock) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
         }
 
         @Override
@@ -409,6 +423,5 @@ public abstract class ClassNodes {
                     getEncapsulatingSourceSection(),
                     classClass);
         }
-
     }
 }

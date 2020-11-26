@@ -21,7 +21,6 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,11 +31,9 @@ public abstract class AtomicReferenceNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyAtomicReference allocate(RubyClass rubyClass) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final Shape shape = getLanguage().atomicReferenceShape;
             final RubyAtomicReference instance = new RubyAtomicReference(rubyClass, shape, new AtomicReference<>(nil));
             AllocationTracing.trace(instance, this);
             return instance;

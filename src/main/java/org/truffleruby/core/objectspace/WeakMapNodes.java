@@ -22,11 +22,9 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.objects.AllocationTracing;
 
 /** Note that WeakMap uses identity comparison semantics. See top comment in src/main/ruby/truffleruby/core/weakmap.rb
@@ -37,12 +35,9 @@ public abstract class WeakMapNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateHelperNode allocate = AllocateHelperNode.create();
-
         @Specialization
         protected RubyWeakMap allocate(RubyClass rubyClass) {
-            final Shape shape = allocate.getCachedShape(rubyClass);
-            final RubyWeakMap weakMap = new RubyWeakMap(rubyClass, shape, new WeakMapStorage());
+            final RubyWeakMap weakMap = new RubyWeakMap(rubyClass, getLanguage().weakMapShape, new WeakMapStorage());
             AllocationTracing.trace(weakMap, this);
             return weakMap;
         }

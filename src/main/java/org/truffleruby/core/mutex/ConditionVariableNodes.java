@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -27,12 +28,10 @@ import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.objects.AllocationTracing;
 
@@ -43,16 +42,14 @@ public abstract class ConditionVariableNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyConditionVariable allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateHelperNode) {
+        protected RubyConditionVariable allocate(RubyClass rubyClass) {
             // condLock is only held for a short number of non-blocking instructions,
             // so there is no need to poll for safepoints while locking it.
             // It is an internal lock and so locking should be done with condLock.lock()
             // to avoid changing the Ruby Thread status and consume Java thread interrupts.
             final ReentrantLock condLock = MutexOperations.newReentrantLock();
             final Condition condition = MutexOperations.newCondition(condLock);
-
-            final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
+            final Shape shape = getLanguage().conditionVariableShape;
             final RubyConditionVariable instance = new RubyConditionVariable(rubyClass, shape, condLock, condition);
             AllocationTracing.trace(instance, this);
             return instance;

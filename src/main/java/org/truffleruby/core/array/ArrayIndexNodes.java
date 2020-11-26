@@ -16,7 +16,6 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -96,8 +95,6 @@ public abstract class ArrayIndexNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ReadSliceNormalizedNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-
         public static ReadSliceNormalizedNode create() {
             return ArrayIndexNodesFactory.ReadSliceNormalizedNodeFactory.create(null);
         }
@@ -134,7 +131,7 @@ public abstract class ArrayIndexNodes {
             final RubyClass logicalClass = array.getLogicalClass();
             RubyArray newArray = new RubyArray(
                     logicalClass,
-                    helperNode.getCachedShape(logicalClass),
+                    getLanguage().arrayShape,
                     store,
                     size);
             AllocationTracing.trace(newArray, this);

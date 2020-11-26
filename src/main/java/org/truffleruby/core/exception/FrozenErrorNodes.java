@@ -10,6 +10,7 @@
 package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -19,11 +20,9 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 
 @CoreModule(value = "FrozenError", isClass = true)
 public abstract class FrozenErrorNodes {
@@ -31,11 +30,9 @@ public abstract class FrozenErrorNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyFrozenError allocateFrozenError(RubyClass rubyClass) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final Shape shape = getLanguage().frozenErrorShape;
             final RubyFrozenError instance = new RubyFrozenError(rubyClass, shape, nil, null, nil, null);
             AllocationTracing.trace(instance, this);
             return instance;

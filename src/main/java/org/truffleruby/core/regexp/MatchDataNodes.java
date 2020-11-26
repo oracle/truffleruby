@@ -47,7 +47,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -233,7 +232,6 @@ public abstract class MatchDataNodes {
         @Child private RegexpNode regexpNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private AllocateHelperNode allocateHelperNode = AllocateHelperNode.create();
 
         public static GetIndexNode create(RubyNode... nodes) {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
@@ -263,8 +261,7 @@ public abstract class MatchDataNodes {
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
-                    final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-                    final RubyString string = new RubyString(logicalClass, shape, false, rope);
+                    final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
                     AllocationTracing.trace(string, this);
                     return string;
                 } else {
@@ -451,7 +448,6 @@ public abstract class MatchDataNodes {
     public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private AllocateHelperNode allocateHelperNode = AllocateHelperNode.create();
 
         public static ValuesNode create() {
             return ValuesNodeFactory.create(null);
@@ -476,8 +472,7 @@ public abstract class MatchDataNodes {
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
-                    final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-                    final RubyString string = new RubyString(logicalClass, shape, false, rope);
+                    final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
                     AllocationTracing.trace(string, this);
                     values[n] = string;
                 } else {
@@ -579,7 +574,6 @@ public abstract class MatchDataNodes {
     public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private AllocateHelperNode allocateHelperNode = AllocateHelperNode.create();
 
         public abstract RubyString execute(RubyMatchData matchData);
 
@@ -594,8 +588,7 @@ public abstract class MatchDataNodes {
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
-            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-            final RubyString string = new RubyString(logicalClass, shape, false, rope);
+            final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
             AllocationTracing.trace(string, this);
             return string;
         }
@@ -605,7 +598,6 @@ public abstract class MatchDataNodes {
     public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
-        @Child private AllocateHelperNode allocateHelperNode = AllocateHelperNode.create();
 
         public abstract RubyString execute(RubyMatchData matchData);
 
@@ -620,8 +612,7 @@ public abstract class MatchDataNodes {
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
-            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
-            final RubyString string = new RubyString(logicalClass, shape, false, rope);
+            final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
             AllocationTracing.trace(string, this);
             return string;
         }
@@ -675,15 +666,9 @@ public abstract class MatchDataNodes {
     public abstract static class InternalAllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected RubyMatchData allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateNode) {
-            RubyMatchData matchData = new RubyMatchData(
-                    rubyClass,
-                    allocateNode.getCachedShape(rubyClass),
-                    null,
-                    null,
-                    null,
-                    null);
+        protected RubyMatchData allocate(RubyClass rubyClass) {
+            final Shape shape = getLanguage().matchDataShape;
+            RubyMatchData matchData = new RubyMatchData(rubyClass, shape, null, null, null, null);
             AllocationTracing.trace(matchData, this);
             return matchData;
         }

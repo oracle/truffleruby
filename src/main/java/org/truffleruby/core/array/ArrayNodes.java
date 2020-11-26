@@ -15,6 +15,7 @@ import static org.truffleruby.language.dispatch.DispatchNode.PUBLIC;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
@@ -78,7 +79,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -110,19 +110,13 @@ public abstract class ArrayNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyArray allocate(RubyClass rubyClass) {
-            RubyArray array = new RubyArray(
-                    rubyClass,
-                    helperNode.getCachedShape(rubyClass),
-                    ArrayStoreLibrary.INITIAL_STORE,
-                    0);
+            final Shape shape = getLanguage().arrayShape;
+            final RubyArray array = new RubyArray(rubyClass, shape, ArrayStoreLibrary.INITIAL_STORE, 0);
             AllocationTracing.trace(array, this);
             return array;
         }
-
     }
 
     @CoreMethod(names = "+", required = 1)
@@ -158,14 +152,12 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-
         @Specialization(guards = "count == 0")
         protected RubyArray mulZero(RubyArray array, int count) {
             final RubyClass logicalClass = array.getLogicalClass();
             return new RubyArray(
                     logicalClass,
-                    helperNode.getCachedShape(logicalClass),
+                    getLanguage().arrayShape,
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
         }
@@ -194,7 +186,7 @@ public abstract class ArrayNodes {
             final RubyClass logicalClass = array.getLogicalClass();
             return new RubyArray(
                     logicalClass,
-                    helperNode.getCachedShape(logicalClass),
+                    getLanguage().arrayShape,
                     newStore,
                     newSize);
         }
@@ -214,7 +206,7 @@ public abstract class ArrayNodes {
             final RubyClass logicalClass = array.getLogicalClass();
             return new RubyArray(
                     logicalClass,
-                    helperNode.getCachedShape(logicalClass),
+                    getLanguage().arrayShape,
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
         }
