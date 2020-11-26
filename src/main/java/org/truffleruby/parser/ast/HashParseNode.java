@@ -39,8 +39,8 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.parser.ParseNodeTuple;
 
-/** A Literal Hash that can represent either a {a=&amp;b, c=&amp;d} type expression or the list of default values in a
- * method call. */
+/** A Literal Hash that can represent either a {a=&amp;b, c=&amp;d} type expression or keyword arguments passed in a
+ * method call (foo(k: value), foo(**kw) or a mix of both). */
 public class HashParseNode extends ParseNode implements ILiteralNode {
     private final List<ParseNodeTuple> pairs;
 
