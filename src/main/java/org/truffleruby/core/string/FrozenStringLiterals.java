@@ -23,7 +23,7 @@ public class FrozenStringLiterals {
         if (string != null) {
             return string;
         } else {
-            return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(rope));
+            return values.addInCacheIfAbsent(rope, new ImmutableRubyString(rope));
         }
     }
 

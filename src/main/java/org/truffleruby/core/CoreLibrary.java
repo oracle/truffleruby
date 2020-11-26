@@ -740,7 +740,7 @@ public class CoreLibrary {
         // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
         final LeafRope rope = language.ropeCache.getRope(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        return StringOperations.createFrozenString(rope);
+        return language.getFrozenStringLiteral(rope);
     }
 
     private RubyClass defineClass(String name) {

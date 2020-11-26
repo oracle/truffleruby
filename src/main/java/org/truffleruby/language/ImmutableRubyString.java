@@ -22,11 +22,13 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-
+/** All ImmutableRubyString are interned and must be created through
+ * {@link FrozenStringLiterals#getFrozenStringLiteral(LeafRope)}. */
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {

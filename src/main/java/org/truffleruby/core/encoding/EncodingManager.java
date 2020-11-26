@@ -36,7 +36,6 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.platform.NativeConfiguration;
@@ -183,11 +182,11 @@ public class EncodingManager {
                 "; name.length = " + name.length + ")";
 
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        final LeafRope cachedRope = context.getLanguageSlow().ropeCache.getRope(
+        final LeafRope cachedRope = language.ropeCache.getRope(
                 rope.getBytes(),
                 rope.getEncoding(),
                 rope.getCodeRange());
-        final ImmutableRubyString string = StringOperations.createFrozenString(cachedRope);
+        final ImmutableRubyString string = language.getFrozenStringLiteral(cachedRope);
 
         final RubyEncoding instance = new RubyEncoding(
                 context.getCoreLibrary().encodingClass,
