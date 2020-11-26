@@ -45,7 +45,7 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     // region RubyStringLibrary messages
     @ExportMessage
-    public boolean isRubyString() {
+    protected boolean isRubyString() {
         return true;
     }
 
@@ -55,14 +55,14 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     }
 
     @ExportMessage
-    public String getJavaString() {
+    protected String getJavaString() {
         return RopeOperations.decodeRope(rope);
     }
     // endregion
 
     // region InteropLibrary messages
     @ExportMessage
-    public Object toDisplayString(boolean allowSideEffects,
+    protected Object toDisplayString(boolean allowSideEffects,
             @Cached DispatchNode dispatchNode,
             @Cached KernelNodes.ToSNode kernelToSNode) {
         if (allowSideEffects) {
@@ -73,12 +73,12 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     }
 
     @ExportMessage
-    public boolean hasMetaObject() {
+    protected boolean hasMetaObject() {
         return true;
     }
 
     @ExportMessage
-    public RubyClass getMetaObject(
+    protected RubyClass getMetaObject(
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().stringClass;
     }
@@ -86,12 +86,12 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     // region String messages
     @ExportMessage
-    public boolean isString() {
+    protected boolean isString() {
         return true;
     }
 
     @ExportMessage
-    public String asString(
+    protected String asString(
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(this);
     }

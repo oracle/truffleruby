@@ -49,7 +49,7 @@ public class RubyString extends RubyDynamicObject {
 
     // region RubyStringLibrary messages
     @ExportMessage
-    public boolean isRubyString() {
+    protected boolean isRubyString() {
         return true;
     }
 
@@ -59,31 +59,31 @@ public class RubyString extends RubyDynamicObject {
     }
 
     @ExportMessage
-    public String getJavaString() {
+    protected String getJavaString() {
         return RopeOperations.decodeRope(rope);
     }
     // endregion
 
     // region RubyLibrary messages
     @ExportMessage
-    public void freeze() {
+    protected void freeze() {
         frozen = true;
     }
 
     @ExportMessage
-    public boolean isFrozen() {
+    protected boolean isFrozen() {
         return frozen;
     }
     // endregion
 
     // region String messages
     @ExportMessage
-    public boolean isString() {
+    protected boolean isString() {
         return true;
     }
 
     @ExportMessage
-    public String asString(
+    protected String asString(
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(this);
     }
