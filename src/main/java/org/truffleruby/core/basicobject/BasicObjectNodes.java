@@ -10,6 +10,7 @@
 package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -56,7 +57,6 @@ import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfD
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -82,7 +82,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 
@@ -654,13 +653,18 @@ public abstract class BasicObjectNodes {
 
         public abstract Object execute(VirtualFrame frame, Object rubyClass);
 
-        @Specialization
-        protected RubyBasicObject allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateHelperNode) {
-            final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
-            final RubyBasicObject instance = new RubyBasicObject(rubyClass, shape);
+        @Specialization(guards = "!rubyClass.isSingleton")
+        protected RubyBasicObject allocate(RubyClass rubyClass) {
+            final RubyBasicObject instance = new RubyBasicObject(rubyClass, getLanguage().basicObjectShape);
             AllocationTracing.trace(instance, this);
             return instance;
+        }
+
+        @Specialization(guards = "rubyClass.isSingleton")
+        protected Shape allocateSingleton(RubyClass rubyClass) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
         }
 
         @Override
@@ -673,5 +677,4 @@ public abstract class BasicObjectNodes {
             return getContext().getCoreMethods().BASIC_OBJECT_ALLOCATE;
         }
     }
-
 }

@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -26,7 +25,6 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -38,12 +36,9 @@ public abstract class SizedQueueNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubySizedQueue allocate(RubyClass rubyClass) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
-            final RubySizedQueue instance = new RubySizedQueue(rubyClass, shape, null);
+            final RubySizedQueue instance = new RubySizedQueue(rubyClass, getLanguage().sizedQueueShape, null);
             AllocationTracing.trace(instance, this);
             return instance;
         }

@@ -36,7 +36,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -77,11 +76,9 @@ public abstract class PointerNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyPointer allocate(RubyClass pointerClass) {
-            final Shape shape = allocateNode.getCachedShape(pointerClass);
+            final Shape shape = getLanguage().truffleFFIPointerShape;
             final RubyPointer instance = new RubyPointer(pointerClass, shape, Pointer.NULL);
             AllocationTracing.trace(instance, this);
             return instance;

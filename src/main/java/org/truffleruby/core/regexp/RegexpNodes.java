@@ -45,7 +45,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -238,17 +237,10 @@ public abstract class RegexpNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyRegexp allocate(RubyClass rubyClass) {
-            RubyRegexp regexp = new RubyRegexp(
-                    rubyClass,
-                    allocateNode.getCachedShape(rubyClass),
-                    null,
-                    null,
-                    RegexpOptions.NULL_OPTIONS,
-                    null);
+            final Shape shape = getLanguage().regexpShape;
+            final RubyRegexp regexp = new RubyRegexp(rubyClass, shape, null, null, RegexpOptions.NULL_OPTIONS, null);
             AllocationTracing.trace(regexp, this);
             return regexp;
         }

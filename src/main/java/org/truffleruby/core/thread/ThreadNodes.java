@@ -86,7 +86,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -295,9 +294,8 @@ public abstract class ThreadNodes {
     public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyThread allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode allocateNode) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
+        protected RubyThread allocate(RubyClass rubyClass) {
+            final Shape shape = getLanguage().threadShape;
             final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, getLanguage());
             AllocationTracing.trace(instance, this);
             return instance;

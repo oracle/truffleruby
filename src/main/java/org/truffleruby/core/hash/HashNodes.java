@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -36,7 +37,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -60,32 +60,19 @@ public abstract class HashNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubyHash allocate(RubyClass rubyClass) {
-            RubyHash hash = new RubyHash(
-                    rubyClass,
-                    helperNode.getCachedShape(rubyClass),
-                    getContext(),
-                    null,
-                    0,
-                    null,
-                    null,
-                    nil,
-                    nil,
-                    false);
+            final Shape shape = getLanguage().hashShape;
+            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), null, 0, null, null, nil, nil, false);
             AllocationTracing.trace(hash, this);
             return hash;
         }
-
     }
 
     @CoreMethod(names = "[]", constructor = true, rest = true)
     @ImportStatic(HashGuards.class)
     public abstract static class ConstructNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
         @Child private DispatchNode fallbackNode = DispatchNode.create();
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
@@ -126,17 +113,8 @@ public abstract class HashNodes {
                 }
             }
 
-            return new RubyHash(
-                    hashClass,
-                    helperNode.getCachedShape(hashClass),
-                    getContext(),
-                    newStore,
-                    size,
-                    null,
-                    null,
-                    nil,
-                    nil,
-                    false);
+            final Shape shape = getLanguage().hashShape;
+            return new RubyHash(hashClass, shape, getContext(), newStore, size, null, null, nil, nil, false);
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args, getLanguage())")

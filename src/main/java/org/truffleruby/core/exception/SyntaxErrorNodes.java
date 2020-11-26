@@ -14,7 +14,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -26,11 +25,9 @@ public abstract class SyntaxErrorNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-
         @Specialization
         protected RubySyntaxError allocateSyntaxError(RubyClass rubyClass) {
-            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final Shape shape = getLanguage().syntaxErrorShape;
             final RubySyntaxError instance = new RubySyntaxError(rubyClass, shape, nil, null, nil, null);
             AllocationTracing.trace(instance, this);
             return instance;

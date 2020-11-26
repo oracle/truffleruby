@@ -27,13 +27,11 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -87,16 +85,13 @@ public abstract class FiberNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyFiber allocate(RubyClass rubyClass,
-                @Cached AllocateHelperNode helperNode) {
+        protected RubyFiber allocate(RubyClass rubyClass) {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
-            final Shape shape = helperNode.getCachedShape(rubyClass);
             final RubyFiber fiber = thread.fiberManager
-                    .createFiber(getLanguage(), getContext(), thread, rubyClass, shape);
+                    .createFiber(getLanguage(), getContext(), thread, rubyClass, getLanguage().fiberShape);
             AllocationTracing.trace(fiber, this);
             return fiber;
         }
-
     }
 
     @CoreMethod(

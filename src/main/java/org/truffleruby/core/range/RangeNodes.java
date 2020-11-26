@@ -32,7 +32,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -228,13 +227,11 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyObjectRange dup(RubyObjectRange range,
-                @Cached AllocateHelperNode allocateHelperNode) {
+        protected RubyObjectRange dup(RubyObjectRange range) {
             final RubyClass logicalClass = range.getLogicalClass();
-            final Shape shape = allocateHelperNode.getCachedShape(logicalClass);
             final RubyObjectRange copy = new RubyObjectRange(
                     logicalClass,
-                    shape,
+                    getLanguage().objectRangeShape,
                     range.excludedEnd,
                     range.begin,
                     range.end);
@@ -494,14 +491,13 @@ public abstract class RangeNodes {
 
         @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached AllocateHelperNode allocateHelperNode,
                 @Cached DispatchNode compare) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
-            final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
+            final Shape shape = getLanguage().objectRangeShape;
             final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, excludeEnd, begin, end);
             AllocationTracing.trace(range, this);
             return range;
@@ -517,12 +513,8 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyObjectRange allocate(RubyClass rubyClass) {
-            final RubyObjectRange range = new RubyObjectRange(
-                    rubyClass,
-                    getLanguage().objectRangeShape,
-                    false,
-                    nil,
-                    nil);
+            final Shape shape = getLanguage().objectRangeShape;
+            final RubyObjectRange range = new RubyObjectRange(rubyClass, shape, false, nil, nil);
             AllocationTracing.trace(range, this);
             return range;
         }
