@@ -371,7 +371,10 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :$SAFE,
-  -> { Thread.current.safe_level },
+  -> {
+    warn '$SAFE will become a normal global variable in Ruby 3.0', uplevel: 1
+    Thread.current.safe_level
+  },
   -> level {
     raise SecurityError, 'Setting $SAFE is no longer supported.' unless level == 0
   }

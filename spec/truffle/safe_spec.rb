@@ -9,8 +9,8 @@
 require_relative '../ruby/spec_helper'
 
 describe "The $SAFE variable" do
-  it "does not warn when set to 0 and remembers the value" do
-    ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level", args: "2>&1").should == "0\n0\n"
+  it "warns when set to 0 and remembers the value" do
+    ruby_exe("$SAFE = 0; puts $SAFE; puts Thread.current.safe_level", args: "2>&1").should include("warning: $SAFE will become a normal global variable in Ruby 3.0\n0\n0\n")
   end
 
   it "raises an error when set to 1" do
