@@ -66,7 +66,7 @@ import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -1150,7 +1150,8 @@ public class CExtNodes {
 
                     representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
                 } else if (RubyGuards.isRubyValue(object)) {
-                    representation = object.toString() + " (" + callToS(object).getJavaString() + ")";
+                    representation = object.toString() + " (" +
+                            RubyStringLibrary.getUncached().getJavaString(callToS(object)) + ")";
                 } else {
                     representation = object.toString();
                 }
@@ -1160,13 +1161,13 @@ public class CExtNodes {
             return nil;
         }
 
-        private RubyString callToS(Object object) {
+        private Object callToS(Object object) {
             if (toSCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toSCall = insert(DispatchNode.create());
             }
 
-            return (RubyString) toSCall.call(object, "to_s");
+            return toSCall.call(object, "to_s");
         }
 
     }

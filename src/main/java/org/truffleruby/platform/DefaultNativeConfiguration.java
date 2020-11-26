@@ -45,7 +45,7 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.RopeOperations;
 
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 
 public abstract class DefaultNativeConfiguration {
 

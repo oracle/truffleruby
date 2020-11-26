@@ -14,7 +14,7 @@ import java.util.Set;
 import org.joni.Region;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 

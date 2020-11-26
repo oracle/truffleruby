@@ -61,7 +61,7 @@ import org.truffleruby.debug.MetricsProfiler;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;

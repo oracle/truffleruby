@@ -11,7 +11,7 @@ package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;

@@ -260,10 +260,11 @@ public abstract class TruffleSystemNodes {
     public abstract static class SetProcessTitleNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected RubyString setProcessTitle(RubyString name) {
+        @Specialization(guards = "libString.isRubyString(name)")
+        protected Object setProcessTitle(Object name,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             if (TruffleOptions.AOT) {
-                ProcessProperties.setArgumentVectorProgramName(name.getJavaString());
+                ProcessProperties.setArgumentVectorProgramName(libString.getJavaString(name));
             } else {
                 // already checked in the caller
                 throw CompilerDirectives.shouldNotReachHere();

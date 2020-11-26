@@ -26,11 +26,11 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.RubySource;
 
@@ -122,7 +122,9 @@ public class BacktraceFormatter {
                 context.getCoreLibrary().truffleExceptionOperationsModule,
                 "get_formatted_backtrace",
                 rubyException);
-        final String formatted = fullMessage != null ? ((RubyString) fullMessage).getJavaString() : "<no message>";
+        final String formatted = fullMessage != null
+                ? RubyStringLibrary.getUncached().getJavaString(fullMessage)
+                : "<no message>";
         if (formatted.endsWith("\n")) {
             printer.print(formatted);
         } else {

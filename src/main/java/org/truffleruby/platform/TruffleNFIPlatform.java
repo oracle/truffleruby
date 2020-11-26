@@ -20,7 +20,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.source.Source;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 public class TruffleNFIPlatform {
 
@@ -84,7 +84,7 @@ public class TruffleNFIPlatform {
 
     public String resolveType(NativeConfiguration nativeConfiguration, String type) {
         final Object typedef = resolveTypeRaw(nativeConfiguration, type);
-        return toNFIType(((ImmutableRubyString) typedef).getJavaString());
+        return toNFIType(RubyStringLibrary.getUncached().getJavaString(typedef));
     }
 
     private String toNFIType(String type) {

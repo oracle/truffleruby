@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -23,17 +23,19 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-
+/** All ImmutableRubyString are interned and must be created through
+ * {@link FrozenStringLiterals#getFrozenStringLiteral(Rope)}. */
 @ExportLibrary(InteropLibrary.class)
 @ExportLibrary(RubyStringLibrary.class)
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
 
     public final LeafRope rope;
 
-    public ImmutableRubyString(LeafRope rope) {
+    ImmutableRubyString(LeafRope rope) {
         this.rope = rope;
     }
 
@@ -45,7 +47,7 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     // region RubyStringLibrary messages
     @ExportMessage
-    public boolean isRubyString() {
+    protected boolean isRubyString() {
         return true;
     }
 
@@ -55,14 +57,14 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     }
 
     @ExportMessage
-    public String getJavaString() {
+    protected String getJavaString() {
         return RopeOperations.decodeRope(rope);
     }
     // endregion
 
     // region InteropLibrary messages
     @ExportMessage
-    public Object toDisplayString(boolean allowSideEffects,
+    protected Object toDisplayString(boolean allowSideEffects,
             @Cached DispatchNode dispatchNode,
             @Cached KernelNodes.ToSNode kernelToSNode) {
         if (allowSideEffects) {
@@ -73,12 +75,12 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     }
 
     @ExportMessage
-    public boolean hasMetaObject() {
+    protected boolean hasMetaObject() {
         return true;
     }
 
     @ExportMessage
-    public RubyClass getMetaObject(
+    protected RubyClass getMetaObject(
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().stringClass;
     }
@@ -86,12 +88,12 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     // region String messages
     @ExportMessage
-    public boolean isString() {
+    protected boolean isString() {
         return true;
     }
 
     @ExportMessage
-    public String asString(
+    protected String asString(
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(this);
     }

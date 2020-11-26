@@ -33,7 +33,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -47,6 +47,7 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.LogicalClassNode;
 
 public class CoreExceptions {
@@ -97,11 +98,11 @@ public class CoreExceptions {
     }
 
     public String inspectReceiver(Object receiver) {
-        RubyString rubyString = (RubyString) context.send(
+        Object rubyString = context.send(
                 context.getCoreLibrary().truffleExceptionOperationsModule,
                 "receiver_string",
                 receiver);
-        return rubyString.getJavaString();
+        return RubyStringLibrary.getUncached().getJavaString(rubyString);
     }
 
     // ArgumentError
@@ -214,7 +215,7 @@ public class CoreExceptions {
     public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
         assert object instanceof RubyString || object instanceof ImmutableRubyString;
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
-        final String formattedObject = ((RubyString) context.send(object, "inspect")).getJavaString();
+        final String formattedObject = RubyStringLibrary.getUncached().getJavaString(context.send(object, "inspect"));
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
     }
 
@@ -615,7 +616,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
-        String formattedValues = ((RubyString) context.send(rubyArray, "inspect")).getJavaString();
+        String formattedValues = RubyStringLibrary.getUncached().getJavaString(context.send(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 

@@ -15,7 +15,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;

@@ -44,13 +44,12 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyRootNode;
@@ -737,10 +736,8 @@ public class CoreLibrary {
     }
 
     private ImmutableRubyString frozenUSASCIIString(String string) {
-        // NOTE(norswap, Nov. 2nd 2020): Okay for language access to be slow, currently only used during initialization.
-        final LeafRope rope = language.ropeCache.getRope(
+        return language.getFrozenStringLiteral(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        return StringOperations.createFrozenString(rope);
     }
 
     private RubyClass defineClass(String name) {

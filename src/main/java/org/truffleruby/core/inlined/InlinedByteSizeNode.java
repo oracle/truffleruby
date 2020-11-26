@@ -11,7 +11,7 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.dsl.Cached;

@@ -62,10 +62,6 @@ public class RopeCache {
         return getRope(string.getBytes(), string.getEncoding(), string.getCodeRange());
     }
 
-    public LeafRope getRope(Rope string, CodeRange codeRange) {
-        return getRope(string.getBytes(), string.getEncoding(), codeRange);
-    }
-
     @TruffleBoundary
     public LeafRope getRope(byte[] bytes, Encoding encoding, CodeRange codeRange) {
         assert encoding != null;

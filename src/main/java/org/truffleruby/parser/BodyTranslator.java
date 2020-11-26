@@ -58,13 +58,12 @@ import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.support.TypeNodes;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -510,10 +509,9 @@ public class BodyTranslator extends Translator {
         if (receiver instanceof StrParseNode && methodName.equals("freeze")) {
             final StrParseNode strNode = (StrParseNode) receiver;
             final Rope nodeRope = strNode.getValue();
-            final CodeRange codeRange = strNode.getCodeRange();
 
-            final LeafRope rope = language.ropeCache.getRope(nodeRope, codeRange);
-            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(rope);
+            final ImmutableRubyString frozenString = language
+                    .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), strNode.getCodeRange());
 
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
@@ -2934,17 +2932,18 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStrNode(StrParseNode node) {
-        final LeafRope rope = language.ropeCache.getRope(node.getValue(), node.getCodeRange());
+        final Rope nodeRope = node.getValue();
         final RubyNode ret;
 
         if (node.isFrozen()) {
-            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(rope);
+            final ImmutableRubyString frozenString = language
+                    .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
 
-            ret = new DefinedWrapperNode(
-                    language.coreStrings.EXPRESSION,
-                    new ObjectLiteralNode(frozenString));
+            ret = new DefinedWrapperNode(language.coreStrings.EXPRESSION, new ObjectLiteralNode(frozenString));
         } else {
-            ret = new StringLiteralNode(rope);
+            final LeafRope cachedRope = language.ropeCache
+                    .getRope(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
+            ret = new StringLiteralNode(cachedRope);
         }
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);

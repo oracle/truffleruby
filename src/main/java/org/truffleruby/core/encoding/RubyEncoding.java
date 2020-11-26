@@ -11,7 +11,7 @@ package org.truffleruby.core.encoding;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.ImmutableRubyString;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
