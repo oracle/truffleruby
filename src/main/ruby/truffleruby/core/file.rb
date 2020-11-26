@@ -475,6 +475,7 @@ class File < IO
   #
   #  File.extname("test.rb")         #=> ".rb"
   #  File.extname("a/b/d/test.rb")   #=> ".rb"
+  #  File.extname("foo.")            #=> "."
   #  File.extname("test")            #=> ""
   #  File.extname(".profile")        #=> ""
   def self.extname(path)
@@ -497,8 +498,15 @@ class File < IO
     # last component starts with a .
     return +'' if dot_idx == slash_idx + 1
 
-    # last component ends with a .
-    return +'' if dot_idx == path_size - 1
+    if dot_idx == path_size - 1
+      last_component = path.byteslice(slash_idx + 1, path_size - (slash_idx + 1))
+
+      # last component is entirely . characters
+      return +'' if last_component.each_char.all? { |c| c == '.' }
+
+      # last component ends with a .
+      return +'.'
+    end
 
     path.byteslice(dot_idx, path_size - dot_idx)
   end
