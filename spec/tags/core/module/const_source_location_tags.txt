@@ -1,15 +1,9 @@
 fails:Module#const_source_location return empty path if constant defined in C code
 fails:Module#const_source_location accepts a String or Symbol name
-fails:Module#const_source_location returns nil if no constant is defined in the search path
 fails:Module#const_source_location raises a NameError if the name contains non-alphabetic characters except '_'
 fails:Module#const_source_location calls #to_str to convert the given name to a String
-fails:Module#const_source_location raises a TypeError if conversion to a String by calling #to_str fails
-fails:Module#const_source_location does not search the singleton class of a Class or Module
 fails:Module#const_source_location does not search the containing scope
-fails:Module#const_source_location returns nil if the constant is defined in the receiver's superclass and the inherit flag is false
 fails:Module#const_source_location searches into the receiver superclasses if the inherit flag is true
-fails:Module#const_source_location returns nil when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false
-fails:Module#const_source_location returns nil when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false
 fails:Module#const_source_location accepts a toplevel scope qualifier
 fails:Module#const_source_location accepts a scoped constant name
 fails:Module#const_source_location does search private constants path
