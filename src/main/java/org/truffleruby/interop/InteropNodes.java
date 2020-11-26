@@ -44,7 +44,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -189,15 +188,10 @@ public abstract class InteropNodes {
     public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected boolean isMimeTypeSupported(RubyString mimeType) {
-            return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected boolean isMimeTypeSupportedImmutable(ImmutableRubyString mimeType) {
-            return getContext().getEnv().isMimeTypeSupported(mimeType.getJavaString());
+        @Specialization(guards = "strings.isRubyString(mimeType)")
+        protected boolean isMimeTypeSupported(RubyString mimeType,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            return getContext().getEnv().isMimeTypeSupported(strings.getJavaString(mimeType));
         }
 
     }
@@ -1857,24 +1851,18 @@ public abstract class InteropNodes {
 
         // TODO CS 17-Mar-18 we should cache this in the future
 
-        @TruffleBoundary
         @Specialization
         protected Object javaTypeSymbol(RubySymbol name) {
             return javaType(name.getString());
         }
 
-        @TruffleBoundary
-        @Specialization
-        protected Object javaTypeString(RubyString name) {
-            return javaType(name.getJavaString());
+        @Specialization(guards = "strings.isRubyString(name)")
+        protected Object javaTypeString(Object name,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            return javaType(strings.getJavaString(name));
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object javaTypeString(ImmutableRubyString name) {
-            return javaType(name.getJavaString());
-        }
-
         private Object javaType(String name) {
             final TruffleLanguage.Env env = getContext().getEnv();
 

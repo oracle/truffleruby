@@ -60,7 +60,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.language.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
@@ -593,16 +592,13 @@ public abstract class ModuleNodes {
             return isAutoload(module, name.getString());
         }
 
-        @Specialization
-        protected Object isAutoloadString(RubyModule module, RubyString name) {
-            return isAutoload(module, name.getJavaString());
+        @Specialization(guards = "strings.isRubyString(name)")
+        protected Object isAutoloadString(RubyModule module, Object name,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            return isAutoload(module, strings.getJavaString(name));
         }
 
-        @Specialization
-        protected Object isAutoloadString(RubyModule module, ImmutableRubyString name) {
-            return isAutoload(module, name.getJavaString());
-        }
-
+        @TruffleBoundary
         private Object isAutoload(RubyModule module, String name) {
             final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
@@ -1953,7 +1949,7 @@ public abstract class ModuleNodes {
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
-                    attachedName = ((RubyString) inspectResult).getJavaString();
+                    attachedName = RubyStringLibrary.getUncached().getJavaString(inspectResult);
                 }
                 moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {
