@@ -4,7 +4,7 @@ name: CI
 on: [push, pull_request]
 jobs:
   lint:
-    name: Lint
+    name: jt lint + jt test fast
     runs-on: ubuntu-20.04
     steps:
     - name: Clone TruffleRuby
@@ -34,7 +34,11 @@ jobs:
 
     - name: Install RuboCop
       run: gem install --no-document rubocop:0.66.0
-    - run: tool/jt.rb lint
+    - name: jt lint
+      run: tool/jt.rb lint
+
+    - name: jt test fast
+      run: tool/jt.rb test fast
 
   mri_specs:
     name: Run ruby/spec on CRuby ${{ matrix.ruby }}
