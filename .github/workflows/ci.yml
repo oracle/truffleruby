@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.5, 2.6]
+        ruby: [2.5, 2.6, 2.7]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
