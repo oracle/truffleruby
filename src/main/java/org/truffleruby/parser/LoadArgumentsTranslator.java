@@ -348,7 +348,8 @@ public class LoadArgumentsTranslator extends Translator {
         if (useArray()) {
             readNode = ArraySliceNodeGen.create(from, to, loadArray(sourceSection));
         } else {
-            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, required);
+            boolean considerRejectedKWArgs = considerRejectedKWArgs();
+            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs, required);
         }
 
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
@@ -441,7 +442,7 @@ public class LoadArgumentsTranslator extends Translator {
                         minimum += 1;
                     }
 
-                    final boolean considerRejectedKWArgs = firstOpt && hasKeywordArguments;
+                    final boolean considerRejectedKWArgs = firstOpt && considerRejectedKWArgs();
                     readNode = new ReadOptionalArgumentNode(
                             index,
                             minimum,
@@ -642,6 +643,11 @@ public class LoadArgumentsTranslator extends Translator {
                 arraySlotStack.peek().getArraySlot());
         node.unsafeSetSourceSection(sourceSection);
         return node;
+    }
+
+    private boolean considerRejectedKWArgs() {
+        // If there is **kwrest, there never are rejected kwargs
+        return argsNode.getKeywordCount() > 0 && !argsNode.hasKeyRest();
     }
 
 }

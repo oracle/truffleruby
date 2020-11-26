@@ -44,7 +44,6 @@ import org.truffleruby.core.cast.ToProcNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
-import org.truffleruby.core.hash.EnsureSymbolKeysNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
@@ -1627,8 +1626,7 @@ public class BodyTranslator extends Translator {
                 final RubyNode hashLiteralSoFar = HashLiteralNode
                         .create(language, keyValues.toArray(RubyNode.EMPTY_ARRAY));
                 hashConcats.add(hashLiteralSoFar);
-                hashConcats.add(new EnsureSymbolKeysNode(
-                        HashCastNodeGen.create(pair.getValue().accept(this))));
+                hashConcats.add(HashCastNodeGen.create(pair.getValue().accept(this)));
                 keyValues.clear();
             } else {
                 keyValues.add(pair.getKey().accept(this));

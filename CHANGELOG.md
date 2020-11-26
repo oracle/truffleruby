@@ -31,6 +31,7 @@ Compatibility:
 * Implemented `BigDecimal` as C extension to improve compatibility.
 * Comment lines can be placed between fluent dot now (#2004, @ssnickolay).
 * Implemented `rb_make_exception`.
+* `**kwargs` now accept non-Symbol keys like Ruby 2.7.
 
 Performance:
 

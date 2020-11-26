@@ -103,6 +103,10 @@ class Hash
   end
   private_class_method :_constructor_fallback
 
+  def self.ruby2_keywords_hash(hash)
+    Primitive.hash_mark_ruby2_keywords(hash.dup)
+  end
+
   alias_method :store, :[]=
 
   # Used internally to get around subclasses redefining #[]=
