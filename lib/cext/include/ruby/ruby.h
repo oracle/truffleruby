@@ -1418,7 +1418,12 @@ int rb_big_sign(VALUE);
 #define RDATA(obj)   (R_CAST(RData)(obj))
 #define RTYPEDDATA(obj)   (R_CAST(RTypedData)(obj))
 #endif
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RFile)
+#define RFILE(obj) polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj))
+#else
 #define RFILE(obj)   (R_CAST(RFile)(obj))
+#endif
 
 #define FL_SINGLETON    ((VALUE)RUBY_FL_SINGLETON)
 #define FL_WB_PROTECTED ((VALUE)RUBY_FL_WB_PROTECTED)

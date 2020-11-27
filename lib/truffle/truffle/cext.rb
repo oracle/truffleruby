@@ -18,6 +18,7 @@ module Truffle::CExt
   DATA_MEMSIZER = Primitive.object_hidden_var_create :data_memsizer
   RB_TYPE = Primitive.object_hidden_var_create :rb_type
   ALLOCATOR_FUNC = Primitive.object_hidden_var_create :allocator_func
+  RBIO_STRUCT = Primitive.object_hidden_var_create :rbio_struct
 
   extend self
 
@@ -1749,7 +1750,7 @@ module Truffle::CExt
   end
 
   def GetOpenFile(io)
-    RbIO.new(io)
+    Primitive.object_hidden_var_get(io, RBIO_STRUCT) || RbIO.new(io)
   end
 
   def rb_enc_from_encoding(rb_encoding)
