@@ -360,7 +360,14 @@ public abstract class RangeNodes {
                 result = range.end + 1;
             }
 
-            final int length = Math.toIntExact(result - begin);
+            final int length;
+            try {
+                length = Math.toIntExact(result - begin);
+            } catch (ArithmeticException e) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError("long too big to convert into `int'", this));
+            }
 
             if (length < 0) {
                 return createEmptyArray();
