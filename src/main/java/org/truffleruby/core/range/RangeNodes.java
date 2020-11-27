@@ -350,6 +350,31 @@ public abstract class RangeNodes {
             }
         }
 
+        @Specialization
+        protected RubyArray toA(RubyLongRange range) {
+            final long begin = range.begin;
+            long result;
+            if (range.excludedEnd) {
+                result = range.end;
+            } else {
+                result = range.end + 1;
+            }
+
+            final int length = Math.toIntExact(result - begin);
+
+            if (length < 0) {
+                return createEmptyArray();
+            } else {
+                final long[] values = new long[length];
+
+                for (int n = 0; n < length; n++) {
+                    values[n] = begin + n;
+                }
+
+                return createArray(values);
+            }
+        }
+
         @Specialization(guards = "range.isBounded()")
         protected Object boundedToA(RubyObjectRange range) {
             if (toAInternalCall == null) {
