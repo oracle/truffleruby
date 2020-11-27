@@ -524,30 +524,30 @@ describe :array_slice, shared: true do
   ruby_version_is "2.6" do
     it "can accept endless ranges" do
       a = [0, 1, 2, 3, 4, 5]
-      a.send(@method, eval("(2..nil)")).should == [2, 3, 4, 5]
-      a.send(@method, eval("(2...nil)")).should == [2, 3, 4, 5]
-      a.send(@method, eval("(-2..nil)")).should == [4, 5]
-      a.send(@method, eval("(-2...nil)")).should == [4, 5]
-      a.send(@method, eval("(9..nil)")).should == nil
-      a.send(@method, eval("(9...nil)")).should == nil
-      a.send(@method, eval("(-9..nil)")).should == nil
-      a.send(@method, eval("(-9...nil)")).should == nil
+      a.send(@method, eval("(2..)")).should == [2, 3, 4, 5]
+      a.send(@method, eval("(2...)")).should == [2, 3, 4, 5]
+      a.send(@method, eval("(-2..)")).should == [4, 5]
+      a.send(@method, eval("(-2...)")).should == [4, 5]
+      a.send(@method, eval("(9..)")).should == nil
+      a.send(@method, eval("(9...)")).should == nil
+      a.send(@method, eval("(-9..)")).should == nil
+      a.send(@method, eval("(-9...)")).should == nil
     end
   end
 
   ruby_version_is "2.7" do
     it "can accept beginless ranges" do
       a = [0, 1, 2, 3, 4, 5]
-      a.send(@method, eval("(nil..3)")).should == [0, 1, 2, 3]
-      a.send(@method, eval("(nil...3)")).should == [0, 1, 2]
-      a.send(@method, eval("(nil..-3)")).should == [0, 1, 2, 3]
-      a.send(@method, eval("(nil...-3)")).should == [0, 1, 2]
-      a.send(@method, eval("(nil..0)")).should == [0]
-      a.send(@method, eval("(nil...0)")).should == []
-      a.send(@method, eval("(nil..9)")).should == [0, 1, 2, 3, 4, 5]
-      a.send(@method, eval("(nil...9)")).should == [0, 1, 2, 3, 4, 5]
-      a.send(@method, eval("(nil..-9)")).should == []
-      a.send(@method, eval("(nil...-9)")).should == []
+      a.send(@method, eval("(..3)")).should == [0, 1, 2, 3]
+      a.send(@method, eval("(...3)")).should == [0, 1, 2]
+      a.send(@method, eval("(..-3)")).should == [0, 1, 2, 3]
+      a.send(@method, eval("(...-3)")).should == [0, 1, 2]
+      a.send(@method, eval("(..0)")).should == [0]
+      a.send(@method, eval("(...0)")).should == []
+      a.send(@method, eval("(..9)")).should == [0, 1, 2, 3, 4, 5]
+      a.send(@method, eval("(...9)")).should == [0, 1, 2, 3, 4, 5]
+      a.send(@method, eval("(..-9)")).should == []
+      a.send(@method, eval("(...-9)")).should == []
     end
 
     it "can accept nil...nil ranges" do
