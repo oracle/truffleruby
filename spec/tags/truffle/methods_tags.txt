@@ -92,7 +92,6 @@ fails:Public methods on Digest::Base should include reset
 fails:Public methods on Digest::MD5 should not include block_length
 fails:Public methods on Digest::SHA1 should not include block_length
 fails:Public methods on Array should include deconstruct
-fails:Public methods on Array should include minmax
 fails:Public methods on Complex should include <=>
 fails:Public methods on ENV.singleton_class should include freeze
 fails:Public methods on Enumerable should include filter_map
