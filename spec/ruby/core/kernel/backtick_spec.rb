@@ -35,11 +35,11 @@ describe "Kernel#`" do
     -> { `nonexistent_command` }.should raise_error(Errno::ENOENT)
   end
 
-  it "handles invalid UTF-8 bytes in command" do
-    `echo "testing\xC2 a non UTF-8 string"`.should == "testing\xC2 a non UTF-8 string\n"
-  end
-
   platform_is_not :windows do
+    it "handles invalid UTF-8 bytes in command" do
+      `echo "testing\xC2 a non UTF-8 string"`.should == "testing\xC2 a non UTF-8 string\n"
+    end
+
     it "sets $? to the exit status of the executed sub-process" do
       ip = 'world'
       `echo disc #{ip}`
