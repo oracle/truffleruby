@@ -2444,7 +2444,7 @@ module Commands
       each_file do |content|
         content
           .sub(/\n{3,}import /, "\n\nimport ")
-          .sub(/^(import .+;)\n{3,}public/, "\\1\n\npublic")
+          .sub(/^(import .+;)\n{3,}((?:(?:@|\/\/|\/\*).+\n)*)public/, "\\1\n\n\\2public")
       end
     end
 

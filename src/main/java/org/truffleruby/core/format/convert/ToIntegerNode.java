@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-
 @NodeChild("value")
 public abstract class ToIntegerNode extends FormatNode {
 

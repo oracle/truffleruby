@@ -41,7 +41,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.Locale;
 
-
 @CoreModule(value = "Float", isClass = true)
 public abstract class FloatNodes {
 

@@ -26,7 +26,6 @@ import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 @GenerateWrapper
 public abstract class RescueNode extends RubyContextSourceNode {
 

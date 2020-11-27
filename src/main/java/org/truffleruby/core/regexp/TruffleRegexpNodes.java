@@ -59,7 +59,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 
-
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 

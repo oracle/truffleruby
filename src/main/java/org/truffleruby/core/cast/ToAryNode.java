@@ -15,17 +15,13 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToAryNode extends RubyContextSourceNode {
-
-    @Child private DispatchNode toAryNode;
 
     public static ToAryNode createInternal() {
         return ToAryNodeGen.create(null);
@@ -40,12 +36,8 @@ public abstract class ToAryNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyArray(object)")
     protected RubyArray coerceObject(Object object,
-            @Cached BranchProfile errorProfile) {
-        if (toAryNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toAryNode = insert(DispatchNode.create());
-        }
-
+            @Cached BranchProfile errorProfile,
+            @Cached DispatchNode toAryNode) {
         final Object coerced;
         try {
             coerced = toAryNode.call(object, "to_ary");

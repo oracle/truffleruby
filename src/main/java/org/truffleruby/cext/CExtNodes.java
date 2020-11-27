@@ -115,7 +115,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
 

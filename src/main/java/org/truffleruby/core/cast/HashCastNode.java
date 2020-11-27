@@ -10,10 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -24,59 +21,27 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
-
-// TODO(CS): copy and paste of ArrayCastNode
-
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
-
-    @Child private DispatchNode toHashNode = DispatchNode.create(PRIVATE_RETURN_MISSING);
 
     protected abstract RubyNode getChild();
 
     @Specialization
-    protected Object cast(boolean value) {
-        return nil;
-    }
-
-    @Specialization
-    protected Object cast(int value) {
-        return nil;
-    }
-
-    @Specialization
-    protected Object cast(long value) {
-        return nil;
-    }
-
-    @Specialization
-    protected Object cast(double value) {
-        return nil;
-    }
-
-    @Specialization
-    protected Object castNil(Nil nil) {
-        return nil;
-    }
-
-    @Specialization
-    protected Object castBignum(RubyBignum value) {
-        return nil;
-    }
-
-    @Specialization
-    protected Object castHash(RubyHash hash) {
+    protected RubyHash castHash(RubyHash hash) {
         return hash;
     }
 
-    @Specialization(guards = { "!isRubyBignum(object)", "!isRubyHash(object)" })
-    protected Object cast(RubyDynamicObject object,
-            @Cached BranchProfile errorProfile) {
+    @Specialization(guards = "!isRubyHash(object)")
+    protected RubyHash cast(Object object,
+            @Cached BranchProfile errorProfile,
+            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toHashNode) {
         final Object result = toHashNode.call(object, "to_hash");
 
         if (result == DispatchNode.MISSING) {
-            return nil;
+            errorProfile.enter();
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeErrorNoImplicitConversion(object, "Hash", this));
         }
 
         if (!RubyGuards.isRubyHash(result)) {
@@ -86,7 +51,7 @@ public abstract class HashCastNode extends RubyContextSourceNode {
                     coreExceptions().typeErrorCantConvertTo(object, "Hash", "to_hash", result, this));
         }
 
-        return result;
+        return (RubyHash) result;
     }
 
     @Override

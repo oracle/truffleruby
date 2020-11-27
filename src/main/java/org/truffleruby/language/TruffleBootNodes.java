@@ -52,7 +52,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.llvm.api.Toolchain;
 
-
 @CoreModule("Truffle::Boot")
 public abstract class TruffleBootNodes {
 

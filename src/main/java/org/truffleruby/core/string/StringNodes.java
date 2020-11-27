@@ -199,7 +199,6 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
 
