@@ -1072,5 +1072,5 @@ module Kernel
     return path if Primitive.class_of(path) == Pathname
     Pathname.new(path)
   end
-  private :Pathname # Truffle: private as in MRI
+  module_function :Pathname
 end
