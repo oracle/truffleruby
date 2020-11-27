@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 /** Casts a value into a Ruby Float (double). */
 public abstract class NumericToFloatNode extends RubyContextNode {
 

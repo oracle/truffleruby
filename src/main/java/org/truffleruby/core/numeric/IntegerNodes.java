@@ -58,7 +58,6 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
 

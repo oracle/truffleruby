@@ -41,7 +41,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
 

@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToAryNode extends RubyContextSourceNode {
 

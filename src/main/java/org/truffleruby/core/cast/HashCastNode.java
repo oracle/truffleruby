@@ -24,9 +24,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
 // TODO(CS): copy and paste of ArrayCastNode
-
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 

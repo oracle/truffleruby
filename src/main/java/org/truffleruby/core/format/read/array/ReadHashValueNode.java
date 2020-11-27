@@ -22,7 +22,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadHashValueNode extends FormatNode {
 

@@ -126,7 +126,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-
 @CoreModule(value = "Module", isClass = true)
 public abstract class ModuleNodes {
 
