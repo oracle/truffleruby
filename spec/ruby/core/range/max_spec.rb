@@ -52,7 +52,7 @@ describe "Range#max" do
     end
   end
 
-  ruby_version_is "2.7.2" do
+  ruby_version_is "3.0" do
     it "returns the end point (or one less) for beginless ranges" do
       eval("(...1)").max.should == 0
       eval("(..1)").max.should == 1
