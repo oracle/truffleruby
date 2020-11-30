@@ -84,55 +84,69 @@ module Truffle
         case feature_ext
         when :rb
           if feature_provided?(feature, false)
-            return [:feature_loaded, nil]
+            return [:feature_loaded, nil, :rb]
           end
           path = find_file(feature)
-          return expanded_path_provided(path) if path
-          return [:not_found, nil]
+          return expanded_path_provided(path, :rb) if path
+          return [:not_found, nil, nil]
         when :so
           if feature_provided?(feature, false)
-            return [:feature_loaded, nil]
+            return [:feature_loaded, nil, :so]
           else
             feature_no_ext = feature[0...-3] # remove ".so"
             path = find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
-            return expanded_path_provided(path) if path
+            return expanded_path_provided(path, :so) if path
           end
         when :dlext
           if feature_provided?(feature, false)
-            return [:feature_loaded, nil]
+            return [:feature_loaded, nil, :so]
           else
             path = find_file(feature)
-            return expanded_path_provided(path) if path
+            return expanded_path_provided(path, :so) if path
           end
         end
       else
         found = feature_provided?(feature, false)
         if found == :rb
-          return [:feature_loaded, nil]
+          return [:feature_loaded, nil, :rb]
         end
       end
 
       path = find_file(feature)
       if path
-        if feature_provided?(path, true)
-          [:feature_loaded, nil]
+        ext_normalized = extension_symbol(path) == :rb ? :rb : :so
+        if found && ext_normalized != :rb
+          found = :so if found == :unknown
+          [:feature_loaded, path, found]
         else
-          [:feature_found, path]
+          found_expanded = feature_provided?(path, true)
+          if found_expanded
+            [:feature_loaded, path, ext_normalized]
+          else
+            [:feature_found, path, ext_normalized]
+          end
         end
       else
         if found
-          [:feature_loaded, nil]
+          found = :so if found == :unknown
+          [:feature_loaded, nil, found]
         else
-          [:not_found, nil]
+          found = feature_provided?(feature, true)
+          if found
+            found = :so if found == :unknown
+            [:feature_loaded, nil, found]
+          else
+            [:not_found, nil, nil]
+          end
         end
       end
     end
 
-    def self.expanded_path_provided(path)
+    def self.expanded_path_provided(path, ext)
       if feature_provided?(path, true)
-        [:feature_loaded, nil]
+        [:feature_loaded, path, ext]
       else
-        [:feature_found, path]
+        [:feature_found, path, ext]
       end
     end
 
