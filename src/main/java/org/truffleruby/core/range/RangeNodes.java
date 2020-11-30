@@ -325,6 +325,7 @@ public abstract class RangeNodes {
     public abstract static class ToANode extends CoreMethodArrayArgumentsNode {
 
         private final BranchProfile overflow = BranchProfile.create();
+        private final ConditionProfile emptyProfile = ConditionProfile.create();
 
         @Child private DispatchNode toAInternalCall;
 
@@ -372,7 +373,7 @@ public abstract class RangeNodes {
                         coreExceptions().rangeError("long too big to convert into `int'", this));
             }
 
-            if (length < 0) {
+            if (emptyProfile.profile(length < 0)) {
                 return createEmptyArray();
             } else {
                 final long[] values = new long[length];
