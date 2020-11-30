@@ -275,9 +275,14 @@ public abstract class ModuleOperations {
         return lookupConstantWithInherit(context, module, name, inherit, currentNode, false);
     }
 
-    @TruffleBoundary
     public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, RubyModule module, String name,
             boolean inherit, Node currentNode, boolean checkName) {
+        return lookupConstantWithInherit(context, module, name, inherit, currentNode, checkName, true);
+    }
+
+    @TruffleBoundary
+    public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, RubyModule module, String name,
+            boolean inherit, Node currentNode, boolean checkName, boolean lookInObject) {
         if (checkName && !Identifiers.isValidConstantName(name)) {
             throw new RaiseException(
                     context,
@@ -290,7 +295,11 @@ public abstract class ModuleOperations {
 
         final ArrayList<Assumption> assumptions = new ArrayList<>();
         if (inherit) {
-            return ModuleOperations.lookupConstantAndObject(context, module, name, assumptions);
+            if (lookInObject) {
+                return ModuleOperations.lookupConstantAndObject(context, module, name, assumptions);
+            } else {
+                return ModuleOperations.lookupConstant(context, module, name, assumptions);
+            }
         } else {
             final ModuleFields fields = module.fields;
             assumptions.add(fields.getConstantsUnmodifiedAssumption());

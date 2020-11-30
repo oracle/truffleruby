@@ -583,23 +583,33 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "autoload?", required = 1)
-    public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "autoload?", required = 1, optional = 1)
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
+    public abstract static class IsAutoloadNode extends CoreMethodNode {
+
+        @CreateCast("name")
+        protected RubyNode coerceToString(RubyNode name) {
+            return NameToJavaStringNode.create(name);
+        }
+
+        @CreateCast("inherit")
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
+            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        }
 
         @Specialization
-        protected Object isAutoloadSymbol(RubyModule module, RubySymbol name) {
-            return isAutoload(module, name.getString());
-        }
-
-        @Specialization(guards = "strings.isRubyString(name)")
-        protected Object isAutoloadString(RubyModule module, Object name,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return isAutoload(module, strings.getJavaString(name));
-        }
-
         @TruffleBoundary
-        private Object isAutoload(RubyModule module, String name) {
-            final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
+        protected Object isAutoload(RubyModule module, String name, boolean inherit) {
+            final ConstantLookupResult constant = ModuleOperations.lookupConstantWithInherit(
+                    getContext(),
+                    module,
+                    name,
+                    inherit,
+                    this,
+                    false,
+                    false);
 
             if (constant.isAutoload() && !constant.getConstant().getAutoloadConstant().isAutoloadingThread()) {
                 return constant.getConstant().getAutoloadConstant().getFeature();
