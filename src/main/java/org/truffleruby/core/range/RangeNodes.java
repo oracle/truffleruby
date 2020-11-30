@@ -324,6 +324,8 @@ public abstract class RangeNodes {
     @CoreMethod(names = "to_a")
     public abstract static class ToANode extends CoreMethodArrayArgumentsNode {
 
+        private final BranchProfile overflow = BranchProfile.create();
+
         @Child private DispatchNode toAInternalCall;
 
         @Specialization
@@ -364,6 +366,7 @@ public abstract class RangeNodes {
             try {
                 length = Math.toIntExact(result - begin);
             } catch (ArithmeticException e) {
+                overflow.enter();
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().rangeError("long too big to convert into `int'", this));
