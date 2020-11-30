@@ -360,7 +360,7 @@ public abstract class RangeNodes {
             return toAInternalCall.call(range, "to_a_internal");
         }
 
-        @Specialization(guards = "range.isEndless() || range.isNilNil()")
+        @Specialization(guards = "range.isEndless() || range.isBoundless()")
         protected Object endlessToA(RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
@@ -434,7 +434,7 @@ public abstract class RangeNodes {
                     end);
         }
 
-        @Specialization(guards = "range.isNilNil()")
+        @Specialization(guards = "range.isBoundless()")
         protected RubyIntRange nilNilObjectRange(RubyObjectRange range, RubyArray array) {
             int begin = 0;
             int end = array.size;
@@ -615,7 +615,7 @@ public abstract class RangeNodes {
             return normalize(0, toInt.execute(range.end), range.excludedEnd, size);
         }
 
-        @Specialization(guards = "range.isNilNil()")
+        @Specialization(guards = "range.isBoundless()")
         protected int[] normalizeNilNilRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
             return new int[]{ 0, size };
