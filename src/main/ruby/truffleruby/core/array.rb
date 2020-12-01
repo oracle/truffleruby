@@ -701,11 +701,11 @@ class Array
     super(n)
   end
 
-  def minmax(n=undefined, &block)
+  def minmax(&block)
     if block_given?
       super(&block)
     else
-      [self.min(n), self.max(n)]
+      [self.min, self.max]
     end
   end
 
