@@ -340,7 +340,7 @@ public abstract class RangeNodes {
             }
             final int length = result - begin;
 
-            if (length < 0) {
+            if (emptyProfile.profile(length < 0)) {
                 return createEmptyArray();
             } else {
                 final int[] values = new int[length];
