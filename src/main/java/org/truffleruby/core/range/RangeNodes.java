@@ -360,10 +360,17 @@ public abstract class RangeNodes {
             return toAInternalCall.call(range, "to_a_internal");
         }
 
-        @Specialization(guards = "range.isEndless()")
+        @Specialization(guards = "range.isEndless() || range.isBoundless()")
         protected Object endlessToA(RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
+                    this));
+        }
+
+        @Specialization(guards = "range.isBeginless()")
+        protected Object beginlessToA(RubyObjectRange range) {
+            throw new RaiseException(getContext(), coreExceptions().typeError(
+                    "can't iterate from NilClass",
                     this));
         }
     }
@@ -412,6 +419,30 @@ public abstract class RangeNodes {
                     getLanguage().intRangeShape,
                     true,
                     toInt(range.begin),
+                    end);
+        }
+
+        @Specialization(guards = "range.isBeginless()")
+        protected RubyIntRange beginlessObjectRange(RubyObjectRange range, RubyArray array) {
+            int begin = 0;
+            int end = toInt(range.end);
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    getLanguage().intRangeShape,
+                    range.excludedEnd,
+                    begin,
+                    end);
+        }
+
+        @Specialization(guards = "range.isBoundless()")
+        protected RubyIntRange nilNilObjectRange(RubyObjectRange range, RubyArray array) {
+            int begin = 0;
+            int end = array.size;
+            return new RubyIntRange(
+                    coreLibrary().rangeClass,
+                    getLanguage().intRangeShape,
+                    false,
+                    begin,
                     end);
         }
 
@@ -492,7 +523,7 @@ public abstract class RangeNodes {
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
                 @Cached DispatchNode compare) {
 
-            if (compare.call(begin, "<=>", end) == nil && end != nil) {
+            if (compare.call(begin, "<=>", end) == nil && end != nil && begin != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
@@ -576,6 +607,18 @@ public abstract class RangeNodes {
         protected int[] normalizeObjectRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
+        }
+
+        @Specialization(guards = "range.isBeginless()")
+        protected int[] normalizeBeginlessRange(RubyObjectRange range, int size,
+                @Cached ToIntNode toInt) {
+            return normalize(0, toInt.execute(range.end), range.excludedEnd, size);
+        }
+
+        @Specialization(guards = "range.isBoundless()")
+        protected int[] normalizeNilNilRange(RubyObjectRange range, int size,
+                @Cached ToIntNode toInt) {
+            return new int[]{ 0, size };
         }
 
         private int[] normalize(int begin, int end, boolean excludedEnd, int size) {

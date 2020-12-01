@@ -113,7 +113,7 @@ module Truffle
       return false unless beg_compare
 
       if Comparable.compare_int(beg_compare) <= 0
-        return true if endless?(range)
+        return true if Primitive.nil? range.end
         end_compare = (value <=> range.end)
 
         if range.exclude_end?
@@ -124,10 +124,6 @@ module Truffle
       end
 
       false
-    end
-
-    def self.endless?(range)
-      Primitive.nil? range.end
     end
 
     # MRI: r_less

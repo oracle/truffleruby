@@ -51,6 +51,14 @@ describe "Range#max" do
       -> { eval("(1..)").max }.should raise_error(RangeError)
     end
   end
+
+  ruby_version_is "3.0" do
+    it "returns the end point (or one less) for beginless ranges" do
+      eval("(...1)").max.should == 0
+      eval("(..1)").max.should == 1
+      eval("(..1.0)").max.should == 1.0
+    end
+  end
 end
 
 describe "Range#max given a block" do
@@ -84,5 +92,11 @@ describe "Range#max given a block" do
     (100..10).max {|x,y| x <=> y}.should be_nil
     ('z'..'l').max {|x,y| x <=> y}.should be_nil
     (5...5).max {|x,y| x <=> y}.should be_nil
+  end
+
+  ruby_version_is "2.7" do
+    it "raises RangeError when called with custom comparison method on an beginless range" do
+      -> { eval("(..1)").max {|a, b| a} }.should raise_error(RangeError)
+    end
   end
 end

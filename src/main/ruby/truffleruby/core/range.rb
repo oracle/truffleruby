@@ -81,6 +81,8 @@ class Range
       else
         raise TypeError, "bsearch is not available for #{stop.class}"
       end
+    elsif Primitive.nil?(start) && Integer === stop
+      bsearch_beginless(&block)
     else
       raise TypeError, "bsearch is not available for #{start.class}"
     end
@@ -97,8 +99,8 @@ class Range
   end
 
   private def bsearch_float(&block)
-    normalized_begin = self.begin.to_f
-    normalized_end = Truffle::RangeOperations.endless?(self) ? Float::INFINITY : self.end.to_f
+    normalized_begin = Primitive.nil?(self.begin) ? -Float::INFINITY : self.begin.to_f
+    normalized_end = Primitive.nil?(self.end) ? Float::INFINITY : self.end.to_f
     normalized_end = normalized_end.prev_float if self.exclude_end?
     min = normalized_begin
     max = normalized_end
@@ -204,6 +206,26 @@ class Range
     end
   end
 
+  private def bsearch_beginless(&block)
+    max = self.end
+    cur = max
+    diff = 1
+
+    while true
+      result = yield cur
+      case result
+      when 0
+        return cur
+      when Numeric
+        return (cur..max).bsearch(&block) if result > 0
+      when false
+        return (cur..max).bsearch(&block)
+      end
+      cur -= diff
+      diff *= 2
+    end
+  end
+
   private def bsearch_integer(&block)
     min = self.begin
     max = self.end
@@ -238,6 +260,14 @@ class Range
     end
 
     last_admissible
+  end
+
+  def count(item = undefined)
+    if Primitive.nil?(self.begin) || Primitive.nil?(self.end)
+      return Float::INFINITY unless block_given? || !Primitive.undefined?(item)
+    end
+
+    super
   end
 
   private def each_internal(&block)
@@ -303,6 +333,7 @@ class Range
   end
 
   def first(n=undefined)
+    raise RangeError, 'cannot get the first element of beginless range' if Primitive.nil?(self.begin)
     return self.begin if Primitive.undefined? n
 
     super
@@ -342,18 +373,27 @@ class Range
   end
 
   def inspect
-    "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{Truffle::RangeOperations.endless?(self) ? "" : self.end.inspect}"
+    sep = exclude_end? ? '...' : '..'
+    if (Primitive.nil?(self.begin) && Primitive.nil?(self.end))
+      "nil#{sep}nil"
+    else
+      (Primitive.nil?(self.begin) ? '' : self.begin.inspect) + sep + (Primitive.nil?(self.end) ? '' : self.end.inspect)
+    end
   end
 
   def last(n=undefined)
-    raise RangeError, 'cannot get the last element of endless range' if Truffle::RangeOperations.endless?(self)
+    raise RangeError, 'cannot get the last element of endless range' if Primitive.nil? self.end
     return self.end if Primitive.undefined? n
 
     to_a.last(n)
   end
 
   def max
-    raise RangeError, 'cannot get the maximum of endless range' if Truffle::RangeOperations.endless?(self)
+    raise RangeError, 'cannot get the maximum of endless range' if Primitive.nil? self.end
+    if Primitive.nil? self.begin
+      raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' if block_given?
+      return exclude_end? ? self.end - 1 : self.end
+    end
     return super if block_given? || (exclude_end? && !self.end.kind_of?(Numeric))
     return nil if Comparable.compare_int(self.end <=> self.begin) < 0
     return nil if exclude_end? && Comparable.compare_int(self.end <=> self.begin) == 0
@@ -371,8 +411,13 @@ class Range
   end
 
   def min
+    raise RangeError, 'cannot get the minimum of beginless range' if Primitive.nil? self.begin
+    if Primitive.nil? self.end
+      raise RangeError, 'cannot get the minimum of endless range with custom comparison method' if block_given?
+      return self.begin
+    end
     return super if block_given?
-    if !Truffle::RangeOperations.endless?(self) && Comparable.compare_int(self.end <=> self.begin) < 0
+    if Comparable.compare_int(self.end <=> self.begin) < 0
       return nil
     elsif exclude_end? && self.end == self.begin
       return nil
@@ -470,8 +515,9 @@ class Range
   end
 
   def size
+    return Float::INFINITY if Primitive.nil? self.begin
     return nil unless self.begin.kind_of?(Numeric)
-    return Float::INFINITY if Truffle::RangeOperations.endless?(self)
+    return Float::INFINITY if Primitive.nil? self.end
 
     delta = self.end - self.begin
     return 0 if delta < 0
