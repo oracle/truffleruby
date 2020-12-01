@@ -21,13 +21,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
@@ -79,6 +82,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private boolean hasFullName = false;
     private String name = null;
+    private ImmutableRubyString rubyStringName;
 
     /** Whether this is a refinement module (R), created by #refine */
     private boolean isRefinement = false;
@@ -141,9 +145,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             } else if (lexicalParent.fields.hasFullName()) {
                 this.setFullName(lexicalParent.fields.getName() + "::" + name);
                 updateAnonymousChildrenModules(context);
+            } else {
+                this.getOrComputeName();
             }
-            // else: Our lexicalParent is also an anonymous module
-            // and will name us when it gets named via updateAnonymousChildrenModules()
         }
         return previous;
     }
@@ -584,6 +588,15 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public String getName() {
+        return getTempClasspath(rubyModule);
+    }
+
+
+    public String getRawName() {
+        return this.name;
+    }
+
+    private String getOrComputeName() {
         final String name = this.name;
         if (name == null) {
             // Lazily compute the anonymous name because it is expensive
@@ -606,25 +619,66 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     private String getAnonymousName() {
         final String anonymousName = createAnonymousName();
-        this.name = anonymousName;
+        setName(anonymousName);
         return anonymousName;
     }
 
     public void setFullName(String name) {
         assert name != null;
         hasFullName = true;
+        setName(name);
+    }
+
+    private void setName(String name) {
         this.name = name;
+        if (hasPartialName()) {
+            this.rubyStringName = getContext()
+                    .getLanguageSlow()
+                    .getFrozenStringLiteral(name.getBytes(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+    }
+
+    public ImmutableRubyString getRubyStringName() {
+        return this.rubyStringName;
     }
 
     @TruffleBoundary
     private String createAnonymousName() {
         if (givenBaseName != null) {
-            return lexicalParent.fields.getName() + "::" + givenBaseName;
+            return lexicalParent.fields.getOrComputeName() + "::" + givenBaseName;
         } else if (getLogicalClass() == rubyModule) { // For the case of class Class during initialization
             return "#<cyclic>";
         } else {
-            return "#<" + getLogicalClass().fields.getName() + ":0x" +
-                    Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModule)) + ">";
+            return getTempClasspath(rubyModule);
+        }
+    }
+
+    /* MRI: rb_tmp_class_path */
+    @TruffleBoundary
+    public String getTempClasspath(RubyModule module) {
+        final String name = module.fields.getRawName();
+        final boolean isClass = module instanceof RubyClass;
+        String nestedName = null;
+        if (name != null) {
+            return name;
+        } else {
+            if (!isClass) {
+                if (module.getLogicalClass() != context.getCoreLibrary().moduleClass) {
+                    nestedName = getTempClasspath(module.getMetaClass());
+                }
+            }
+            final String id = Long.toHexString(BasicObjectNodes.ObjectIDNode.uncachedObjectID(
+                    context,
+                    module));
+            if (nestedName != null) {
+                return "#<" + nestedName + ":0x" + id + ">";
+            } else {
+                if (isClass) {
+                    return "#<Class:0x" + id + ">";
+                } else {
+                    return "#<Module:0x" + id + ">";
+                }
+            }
         }
     }
 

@@ -13,11 +13,9 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -142,17 +140,11 @@ public abstract class SingletonClassNode extends RubySourceNode {
 
             final RubyClass logicalClass = object.getLogicalClass();
 
-            final String name = StringUtils.format(
-                    "#<Class:#<%s:0x%x>>",
-                    logicalClass.fields.getName(),
-                    ObjectIDNode.getUncached().execute(object));
-
             final RubyClass singletonClass = ClassNodes.createSingletonClassOfObject(
                     context,
                     getEncapsulatingSourceSection(),
                     logicalClass,
-                    object,
-                    name);
+                    object);
 
             if (RubyLibrary.getUncached().isFrozen(object)) {
                 RubyLibrary.getUncached().freeze(singletonClass);
