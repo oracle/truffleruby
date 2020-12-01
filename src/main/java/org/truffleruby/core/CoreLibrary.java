@@ -1010,7 +1010,6 @@ public class CoreLibrary {
             "/core/truffle/numeric_operations.rb",
             "/core/truffle/proc_operations.rb",
             "/core/truffle/range_operations.rb",
-            "/core/truffle/regexp_operations.rb",
             "/core/truffle/stat_operations.rb",
             "/core/truffle/string_operations.rb",
             "/core/truffle/backward.rb",
@@ -1047,6 +1046,7 @@ public class CoreLibrary {
             "/core/object_space.rb",
             "/core/range.rb",
             "/core/struct.rb",
+            "/core/truffle/regexp_operations.rb", // Must load after /core/hash.rb and /core/struct.rb
             "/core/tms.rb",
             "/core/process.rb",
             "/core/truffle/process_operations.rb", // Must load after /core/regexp.rb

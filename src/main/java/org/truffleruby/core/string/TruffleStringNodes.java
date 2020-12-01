@@ -92,21 +92,24 @@ public class TruffleStringNodes {
         }
     }
 
-    @CoreMethod(names = "code_point_index_to_code_unit_index", onSingleton = true, required = 2, lowerFixnum = 2)
-    public abstract static class CodePointIndexToCodeUnitIndexNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "raw_bytes", onSingleton = true, required = 1)
+    public abstract static class RawBytesNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected int codePointIndexToCodeUnitIndex(String javaString, int codePointIndex) {
-            return javaString.offsetByCodePoints(0, codePointIndex);
+        @Specialization(guards = "libString.isRubyString(string)")
+        protected Object rawBytes(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            byte[] bytes = libString.getRope(string).getBytes();
+            return getContext().getEnv().asGuestValue(bytes);
         }
     }
 
-    @CoreMethod(names = "code_unit_index_to_code_point_index", onSingleton = true, required = 2, lowerFixnum = 2)
-    public abstract static class CodeUnitIndexToCodePointIndexNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "ascii_only?", onSingleton = true, required = 1)
+    public abstract static class AsciiOnlyNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected int codeUnitIndexToCodePointIndex(String javaString, int codeUnitIndex) {
-            return javaString.codePointCount(0, codeUnitIndex);
+        @Specialization(guards = "libString.isRubyString(string)")
+        protected boolean isAsciiOnly(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            return libString.getRope(string).isAsciiOnly();
         }
     }
 }

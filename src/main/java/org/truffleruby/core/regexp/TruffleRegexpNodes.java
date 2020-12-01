@@ -195,7 +195,11 @@ public class TruffleRegexpNodes {
                     .preprocess(getContext(), inputRope, inputRope.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
             Rope outputRope = ropeBuilder.toRope();
             RubyClass stringClass = regexpSource.getLogicalClass();
-            RubyString processedRegexpSource = new RubyString(stringClass, getLanguage().stringShape, false, outputRope);
+            RubyString processedRegexpSource = new RubyString(
+                    stringClass,
+                    getLanguage().stringShape,
+                    false,
+                    outputRope);
             AllocationTracing.trace(processedRegexpSource, this);
             return processedRegexpSource;
         }
