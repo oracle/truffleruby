@@ -1078,6 +1078,8 @@ public abstract class ModuleNodes {
     @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class ConstSourceLocationNode extends CoreMethodNode {
 
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNode.create(name);
@@ -1090,7 +1092,21 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object constSourceLocation(RubyModule module, String name, boolean inherit) {
-            return nil;
+            final RubyConstant constant = module.fields.getConstant(name);
+            if (constant == null) {
+                return nil;
+            }
+
+            final SourceSection sourceSection = constant.getSourceSection();
+            if (sourceSection == null || !sourceSection.isAvailable()) {
+                return createEmptyArray();
+            } else {
+                final RubyString file = makeStringNode.executeMake(
+                        getContext().getSourcePath(sourceSection.getSource()),
+                        UTF8Encoding.INSTANCE,
+                        CodeRange.CR_UNKNOWN);
+                return createArray(new Object[]{ file, sourceSection.getStartLine() });
+            }
         }
 
     }
