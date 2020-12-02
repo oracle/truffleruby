@@ -15,6 +15,7 @@ import org.truffleruby.language.RubyConstant;
 
 public interface LookupConstantInterface {
 
-    public abstract RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name);
+    public abstract RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name,
+            boolean checkName);
 
 }

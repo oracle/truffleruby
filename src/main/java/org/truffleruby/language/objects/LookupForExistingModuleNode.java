@@ -36,7 +36,7 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
     }
 
     @Override
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName) {
         final RubyModule lexicalParent = module;
         return deepConstantSearch(name, lexicalScope, lexicalParent);
     }

@@ -29,34 +29,33 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class LookupConstantNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final boolean ignoreVisibility;
-    private final boolean checkName;
     private final boolean lookInObject;
 
     public static LookupConstantNode create(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {
-        return LookupConstantNodeGen.create(ignoreVisibility, checkName, lookInObject);
+        return LookupConstantNodeGen.create(ignoreVisibility, lookInObject);
     }
 
-    public LookupConstantNode(boolean ignoreVisibility, boolean checkName, boolean lookInObject) {
+    public LookupConstantNode(boolean ignoreVisibility, boolean lookInObject) {
         this.ignoreVisibility = ignoreVisibility;
-        this.checkName = checkName;
         this.lookInObject = lookInObject;
     }
 
-    public abstract RubyConstant executeLookupConstant(Object module, String name);
+    public abstract RubyConstant executeLookupConstant(Object module, String name, boolean checkName);
 
     @Override
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name) {
-        return executeLookupConstant(module, name);
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName) {
+        return executeLookupConstant(module, name, checkName);
     }
 
     @Specialization(
             guards = { "module == cachedModule", "guardName(name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
-    protected RubyConstant lookupConstant(RubyModule module, String name,
+    protected RubyConstant lookupConstant(RubyModule module, String name, boolean checkName,
             @Cached("module") RubyModule cachedModule,
             @Cached("name") String cachedName,
-            @Cached("isValidConstantName(cachedName)") boolean isValidConstantName,
+            @Cached("checkName") boolean cachedCheckName,
+            @Cached("isValidName(cachedCheckName, cachedName)") boolean isValidConstantName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
             @Cached ConditionProfile sameNameProfile) {
@@ -72,7 +71,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     }
 
     @Specialization
-    protected RubyConstant lookupConstantUncached(RubyModule module, String name,
+    protected RubyConstant lookupConstantUncached(RubyModule module, String name, boolean checkName,
             @Cached ConditionProfile isValidConstantNameProfile,
             @Cached ConditionProfile isVisibleProfile,
             @Cached ConditionProfile isDeprecatedProfile) {
@@ -115,11 +114,14 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     }
 
     protected boolean isValidConstantName(String name) {
+        return Identifiers.isValidConstantName(name);
+    }
+
+    protected boolean isValidName(boolean checkName, String name) {
         if (checkName) {
-            return Identifiers.isValidConstantName(name);
+            return isValidConstantName(name);
         } else {
             return true;
         }
     }
-
 }

@@ -1090,6 +1090,14 @@ module Truffle::CExt
     sym.to_s
   end
 
+  def rb_const_defined?(mod, name)
+    Primitive.module_const_defined?mod, name, true, false
+  end
+
+  def rb_const_remove(mod, name)
+    Primitive.module_remove_const(mod, name)
+  end
+
   def rb_define_class_under(mod, name, superclass)
     # nil is TypeError (checked below), false is ArgumentError
     if false.equal?(superclass)
@@ -1111,14 +1119,14 @@ module Truffle::CExt
   end
 
   def rb_define_module_under(mod, name)
-    if mod.const_defined?(name, false)
-      val = mod.const_get(name, false)
+    if Primitive.module_const_defined?(mod, name, false, false)
+      val = Primitive.module_const_get(mod, name, false, false)
       unless val.class == Module
         raise TypeError, "#{mod}::#{name} is not a module"
       end
       val
     else
-      mod.const_set name, Module.new
+      rb_const_set mod, name, Module.new
     end
   end
 

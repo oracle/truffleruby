@@ -43,6 +43,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
@@ -917,27 +918,23 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "const_defined?", required = 1, optional = 1)
+    @Primitive(name = "module_const_defined?")
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
-    public abstract static class ConstDefinedNode extends CoreMethodNode {
+    @NodeChild(value = "check_name", type = RubyNode.class)
+    public abstract static class ConstDefinedNode extends PrimitiveNode {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNode.create(name);
         }
 
-        @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
-        }
-
         @TruffleBoundary
         @Specialization
-        protected boolean isConstDefined(RubyModule module, String fullName, boolean inherit) {
+        protected boolean isConstDefined(RubyModule module, String fullName, boolean inherit, boolean checkName) {
             final ConstantLookupResult constant = ModuleOperations
-                    .lookupScopedConstant(getContext(), module, fullName, inherit, this);
+                    .lookupScopedConstant(getContext(), module, fullName, inherit, this, checkName);
             return constant.isFound();
         }
 
@@ -947,6 +944,7 @@ public abstract class ModuleNodes {
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
+    @NodeChild(value = "check_name", type = RubyNode.class)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends PrimitiveNode {
 
@@ -959,21 +957,16 @@ public abstract class ModuleNodes {
             return ToStringOrSymbolNodeGen.create(name);
         }
 
-        @CreateCast("inherit")
-        protected RubyNode coerceToBoolean(RubyNode inherit) {
-            return BooleanCastWithDefaultNodeGen.create(true, inherit);
-        }
-
         // Symbol
 
         @Specialization(guards = "inherit")
-        protected Object getConstant(RubyModule module, RubySymbol name, boolean inherit) {
-            return getConstant(module, name.getString());
+        protected Object getConstant(RubyModule module, RubySymbol name, boolean inherit, boolean checkName) {
+            return getConstant(module, name.getString(), checkName);
         }
 
         @Specialization(guards = "!inherit")
-        protected Object getConstantNoInherit(RubyModule module, RubySymbol name, boolean inherit) {
-            return getConstantNoInherit(module, name.getString());
+        protected Object getConstantNoInherit(RubyModule module, RubySymbol name, boolean inherit, boolean checkName) {
+            return getConstantNoInherit(module, name.getString(), checkName);
         }
 
         // String
@@ -983,52 +976,56 @@ public abstract class ModuleNodes {
                         "stringsName.isRubyString(name)",
                         "inherit",
                         "equalNode.execute(stringsName.getRope(name), cachedRope)",
-                        "!scoped" },
+                        "!scoped",
+                        "checkName == cachedCheckName" },
                 limit = "getLimit()")
-        protected Object getConstantStringCached(RubyModule module, Object name, boolean inherit,
+        protected Object getConstantStringCached(RubyModule module, Object name, boolean inherit, boolean checkName,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsName,
                 @Cached("stringsName.getRope(name)") Rope cachedRope,
                 @Cached("stringsName.getJavaString(name)") String cachedString,
+                @Cached("checkName") boolean cachedCheckName,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("isScoped(cachedString)") boolean scoped) {
-            return getConstant(module, cachedString);
+            return getConstant(module, cachedString, checkName);
         }
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "inherit", "!isScoped(stringsName.getRope(name))" },
                 replaces = "getConstantStringCached")
-        protected Object getConstantString(RubyModule module, Object name, boolean inherit,
+        protected Object getConstantString(RubyModule module, Object name, boolean inherit, boolean checkName,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
-            return getConstant(module, stringsName.getJavaString(name));
+            return getConstant(module, stringsName.getJavaString(name), checkName);
         }
 
         @Specialization(
                 guards = { "stringsName.isRubyString(name)", "!inherit", "!isScoped(stringsName.getRope(name))" })
-        protected Object getConstantNoInheritString(RubyModule module, Object name, boolean inherit,
+        protected Object getConstantNoInheritString(RubyModule module, Object name, boolean inherit, boolean checkName,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
-            return getConstantNoInherit(module, stringsName.getJavaString(name));
+            return getConstantNoInherit(module, stringsName.getJavaString(name), checkName);
         }
 
         // Scoped String
         @Specialization(guards = { "stringsName.isRubyString(name)", "isScoped(stringsName.getRope(name))" })
-        protected Object getConstantScoped(RubyModule module, Object name, boolean inherit,
+        protected Object getConstantScoped(RubyModule module, Object name, boolean inherit, boolean checkName,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsName) {
             return FAILURE;
         }
 
-        private Object getConstant(RubyModule module, String name) {
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
+        private Object getConstant(RubyModule module, String name, boolean checkName) {
+            return getConstantNode
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName, lookupConstantNode);
         }
 
-        private Object getConstantNoInherit(RubyModule module, String name) {
+        private Object getConstantNoInherit(RubyModule module, String name, boolean checkName) {
             final LookupConstantInterface lookup = this::lookupConstantNoInherit;
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookup);
+            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, checkName, lookup);
         }
 
         @TruffleBoundary
-        private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, RubyModule module, String name) {
+        private RubyConstant lookupConstantNoInherit(LexicalScope lexicalScope, RubyModule module, String name,
+                boolean checkName) {
             return ModuleOperations
-                    .lookupConstantWithInherit(getContext(), module, name, false, this)
+                    .lookupConstantWithInherit(getContext(), module, name, false, this, checkName)
                     .getConstant();
         }
 
@@ -1075,7 +1072,7 @@ public abstract class ModuleNodes {
             return ConstSetNodeFactory.create(null, null, null);
         }
 
-        @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
+        @Child private ConstSetUncheckedNode uncheckedSetNode = ConstSetUncheckedNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -1092,11 +1089,26 @@ public abstract class ModuleNodes {
                                 .nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 
-            return setConstantNoCheckName(module, name, value);
+            return uncheckedSetNode.execute(module, name, value);
+        }
+    }
+
+    @NodeChild(value = "module", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class ConstSetUncheckedNode extends CoreMethodNode {
+
+        @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
+
+        public static ConstSetUncheckedNode create() {
+            return ConstSetUncheckedNodeFactory.create(null, null, null);
         }
 
+        public abstract Object execute(RubyModule module, String name, Object value);
+
         @TruffleBoundary
-        public Object setConstantNoCheckName(RubyModule module, String name, Object value) {
+        @Specialization
+        protected Object setConstantNoCheckName(RubyModule module, String name, Object value) {
             final RubyConstant previous = module.fields.setConstant(getContext(), this, name, value);
             if (previous != null && previous.hasValue()) {
                 warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
@@ -1849,10 +1861,10 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "remove_const", required = 1, visibility = Visibility.PRIVATE)
+    @Primitive(name = "module_remove_const")
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class RemoveConstNode extends CoreMethodNode {
+    public abstract static class RemoveConstNode extends PrimitiveNode {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
