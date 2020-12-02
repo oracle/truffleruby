@@ -1092,12 +1092,13 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object constSourceLocation(RubyModule module, String name, boolean inherit) {
-            final RubyConstant constant = module.fields.getConstant(name);
-            if (constant == null) {
+            final ConstantLookupResult lookupResult = ModuleOperations
+                    .lookupConstantWithInherit(getContext(), module, name, inherit, this, true);
+            if (!lookupResult.isFound()) {
                 return nil;
             }
 
-            final SourceSection sourceSection = constant.getSourceSection();
+            final SourceSection sourceSection = lookupResult.getConstant().getSourceSection();
             if (sourceSection == null || !sourceSection.isAvailable()) {
                 return createEmptyArray();
             } else {
