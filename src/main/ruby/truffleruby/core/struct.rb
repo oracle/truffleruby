@@ -337,6 +337,7 @@ class Struct
     _attrs.map { |var| Primitive.object_hidden_var_get(self, var) }
   end
   alias_method :values, :to_a
+  alias_method :deconstruct, :to_a
 
   def values_at(*args)
     to_a.values_at(*args)
