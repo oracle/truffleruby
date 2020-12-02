@@ -27,23 +27,80 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-class IO
-  module GenericReadable
+require 'io/console'
+
+Truffle::CExt.rb_const_get(IO, 'generic_readable').module_eval do
+  # This is why we need undefined in Ruby
+  Undefined = Object.new
+
+  def readchar
+    raise EOFError, 'end of file reached' if eof?
+    getc
   end
-  module GenericWritable
+
+  def readbyte
+    readchar.getbyte(0)
   end
+
+  def readline(sep=$/, limit=::Undefined)
+    check_readable
+    raise EOFError, 'end of file reached' if eof?
+
+    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(true, sep, limit))
+  end
+
+  def sysread(length = nil, buffer = nil)
+    str = read(length, buffer)
+
+    if str.nil?
+      raise EOFError, 'end of file reached'
+    end
+
+    str
+  end
+
+  alias_method :readpartial, :sysread
+
+end
+
+Truffle::CExt.rb_define_module_under(IO, 'generic_writable').module_eval do
+  def <<(str)
+    write(str)
+    self
+  end
+
+  def print(*args)
+    check_writable
+    args << Primitive.io_last_line_get(Primitive.caller_special_variables) if args.empty?
+    write((args << $\).flatten.join)
+    nil
+  end
+
+  def printf(*args)
+    check_writable
+
+    if args.size > 1
+      write(args.shift % args)
+    else
+      write(args.first)
+    end
+
+    nil
+  end
+
+  def puts(*args)
+    Truffle::IOOperations.puts(self, *args)
+  end
+
 end
 
 class StringIO
 
   include Enumerable
-  include IO::GenericReadable
-  include IO::GenericWritable
+  include Truffle::CExt.rb_const_get(IO, 'generic_readable')
+  include Truffle::CExt.rb_const_get(IO, 'generic_writable')
 
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
-
-  # This is why we need undefined in Ruby
-  Undefined = Object.new
 
   class Data
     attr_accessor :string, :pos, :lineno, :encoding
@@ -195,11 +252,6 @@ class StringIO
   alias_method :each_line, :each
   alias_method :lines, :each
 
-  def <<(str)
-    write(str)
-    self
-  end
-
   def binmode
     set_encoding(Encoding::BINARY)
     self
@@ -341,25 +393,6 @@ class StringIO
     @__data__.pos = pos
   end
 
-  def print(*args)
-    check_writable
-    args << Primitive.io_last_line_get(Primitive.caller_special_variables) if args.empty?
-    write((args << $\).flatten.join)
-    nil
-  end
-
-  def printf(*args)
-    check_writable
-
-    if args.size > 1
-      write(args.shift % args)
-    else
-      write(args.first)
-    end
-
-    nil
-  end
-
   def putc(obj)
     check_writable
 
@@ -388,10 +421,6 @@ class StringIO
     end
 
     obj
-  end
-
-  def puts(*args)
-    Truffle::IOOperations.puts(self, *args)
   end
 
   def read(length = nil, buffer = nil)
@@ -431,22 +460,6 @@ class StringIO
 
     d.pos += str.length
     str
-  end
-
-  def readchar
-    raise EOFError, 'end of file reached' if eof?
-    getc
-  end
-
-  def readbyte
-    readchar.getbyte(0)
-  end
-
-  def readline(sep=$/, limit=Undefined)
-    check_readable
-    raise EOFError, 'end of file reached' if eof?
-
-    Primitive.io_last_line_set(Primitive.caller_special_variables, getline(true, sep, limit))
   end
 
   def readlines(sep=$/, limit=Undefined)
@@ -524,18 +537,6 @@ class StringIO
   def sync=(val)
     val
   end
-
-  def sysread(length = nil, buffer = nil)
-    str = read(length, buffer)
-
-    if str.nil?
-      raise EOFError, 'end of file reached'
-    end
-
-    str
-  end
-
-  alias_method :readpartial, :sysread
 
   def read_nonblock(length, buffer = nil, exception: true)
     str = read(length, buffer)
