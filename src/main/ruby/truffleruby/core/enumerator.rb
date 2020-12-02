@@ -248,6 +248,10 @@ class Enumerator
 
       self
     end
+
+    def to_proc
+      self.method(:yield).to_proc
+    end
   end
 
   class Generator
