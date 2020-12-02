@@ -521,6 +521,7 @@ ruby_version_is "2.7" do
 
       it "does not match object without #deconstruct method" do
         obj = Object.new
+        obj.should_receive(:respond_to?).with(:deconstruct)
 
         eval(<<~RUBY).should == false
           case obj
@@ -791,6 +792,7 @@ ruby_version_is "2.7" do
 
       it "does not match object without #deconstruct_keys method" do
         obj = Object.new
+        obj.should_receive(:respond_to?).with(:deconstruct_keys)
 
         eval(<<~RUBY).should == false
           case obj
