@@ -202,7 +202,7 @@ public class RubyParser {
 %type <ParseNode> mrhs_arg
 %type <ParseNode> compstmt bodystmt stmts stmt expr arg primary command 
 %type <ParseNode> stmt_or_begin
-%type <ParseNode> expr_value primary_value opt_else cases if_tail exc_var rel_expr
+%type <ParseNode> expr_value primary_value opt_else cases p_cases if_tail exc_var rel_expr
 %type <ParseNode> call_args opt_ensure paren_args superclass
 %type <ParseNode> command_args var_ref opt_paren_args block_call block_command
 %type <ParseNode> command_rhs arg_rhs
@@ -211,7 +211,7 @@ public class RubyParser {
 %type <ParseNode> string_dvar backref
 %type <ArgsParseNode> f_args f_args_any f_larglist block_param block_param_def opt_block_param
 %type <Object> f_arglist
-%type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body exc_list aref_args
+%type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body p_case_body exc_list aref_args
 %type <ParseNode> lhs none args
 %type <ListParseNode> qword_list word_list
 %type <ListParseNode> f_arg f_optarg
@@ -1560,6 +1560,9 @@ primary         : literal
                 | keyword_case opt_terms case_body keyword_end {
                     $$ = support.newCaseNode($1, null, $3);
                 }
+                | keyword_case expr_value opt_terms p_case_body keyword_end {
+                    $$ = support.newCaseInNode($1, $2, $4);
+                }
                 | keyword_for for_var keyword_in {
                     lexer.getConditionState().begin();
                 } expr_value do {
@@ -2000,6 +2003,12 @@ case_body       : keyword_when args then compstmt cases {
                 }
 
 cases           : opt_else | case_body
+
+p_case_body     : keyword_in args then compstmt p_cases {
+                    $$ = support.newInNode($1, $2, $4, $5);
+                }
+
+p_cases         : opt_else | p_case_body
 
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;

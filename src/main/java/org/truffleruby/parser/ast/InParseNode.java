@@ -14,7 +14,7 @@
  *
  * Copyright (C) 2001-2002 Jan Arne Petersen <jpetersen@uni-bonn.de>
  * Copyright (C) 2001-2002 Benoit Cerrina <b.cerrina@wanadoo.fr>
- * Copyright (C) 2002 Anders Bengtsson <ndrsbngtssn@yahoo.se>
+ * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
  * Copyright (C) 2004 Thomas E Enebo <enebo@acm.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -28,41 +28,47 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
+ *
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
-
-import java.util.List;
 
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/** A Case statement. Represents a complete case statement, including the body with its when and in statements. */
-public class CaseParseNode extends ParseNode {
-    /** the case expression. **/
-    private final ParseNode caseNode;
-    /** A list of all choices including else */
-    private final ListParseNode cases;
-    private ParseNode elseNode = null;
+import java.util.List;
 
-    public CaseParseNode(SourceIndexLength position, ParseNode caseNode, ListParseNode cases) {
+/** Represents an in condition */
+public class InParseNode extends ParseNode {
+    protected final ParseNode expressionNodes;
+    protected final ParseNode bodyNode;
+    private final ParseNode nextCase;
+
+    public InParseNode(
+            SourceIndexLength position,
+            ParseNode expressionNodes,
+            ParseNode bodyNode,
+            ParseNode nextCase) {
         super(position);
 
-        assert cases != null : "caseBody is not null";
-        // TODO: Rewriter and compiler assume case when empty expression.  In MRI this is just
-        // a when.
-        //        assert caseNode != null : "caseNode is not null";
+        expressionNodes = ((ArrayParseNode) expressionNodes).get(0);
 
-        this.caseNode = caseNode;
-        this.cases = cases;
-    }
+        this.expressionNodes = expressionNodes;
+        this.bodyNode = bodyNode;
+        this.nextCase = nextCase;
 
-    public void setElseNode(ParseNode elseNode) {
-        this.elseNode = elseNode;
+        assert bodyNode != null : "bodyNode is not null";
     }
 
     @Override
     public NodeType getNodeType() {
-        return NodeType.CASENODE;
+        return NodeType.WHENNODE;
     }
 
     /** Accept for the visitor pattern.
@@ -70,27 +76,28 @@ public class CaseParseNode extends ParseNode {
      * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitCaseNode(this);
+        return iVisitor.visitInNode(this);
     }
 
-    /** Gets the caseNode.
+    /** Gets the bodyNode.
      * 
-     * @return caseNode the case expression */
-    public ParseNode getCaseNode() {
-        return caseNode;
+     * @return Returns a INode */
+    public ParseNode getBodyNode() {
+        return bodyNode;
     }
 
-    public ListParseNode getCases() {
-        return cases;
+    /** Gets the next case node (if any). */
+    public ParseNode getNextCase() {
+        return nextCase;
     }
 
-    public ParseNode getElseNode() {
-        return elseNode;
+    /** Get the expressionNode(s). */
+    public ParseNode getExpressionNodes() {
+        return expressionNodes;
     }
 
     @Override
     public List<ParseNode> childNodes() {
-        return ParseNode.createList(caseNode, cases);
+        return ParseNode.createList(expressionNodes, bodyNode, nextCase);
     }
-
 }

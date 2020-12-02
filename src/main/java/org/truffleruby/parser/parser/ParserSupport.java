@@ -76,6 +76,7 @@ import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.BlockPassParseNode;
 import org.truffleruby.parser.ast.CallParseNode;
+import org.truffleruby.parser.ast.CaseInParseNode;
 import org.truffleruby.parser.ast.CaseParseNode;
 import org.truffleruby.parser.ast.ClassVarParseNode;
 import org.truffleruby.parser.ast.Colon2ConstParseNode;
@@ -102,6 +103,7 @@ import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.KeywordArgParseNode;
@@ -985,6 +987,38 @@ public class ParserSupport {
         }
 
         return new WhenParseNode(position, expressionNodes, bodyNode, nextCase);
+    }
+
+    /** Ok I admit that this is somewhat ugly. We post-process a chain of in nodes and analyze them to re-insert them
+     * back into our new CaseInParseNode the way we want. The grammar is being difficult and until I go back into the
+     * depths of that this is where things are.
+     *
+     * @param expression of the case node (e.g. case foo)
+     * @param firstInNode first in (which could also be the else)
+     * @return a new case node */
+    public CaseInParseNode newCaseInNode(SourceIndexLength position, ParseNode expression, ParseNode firstInNode) {
+        ArrayParseNode cases = new ArrayParseNode(firstInNode != null ? firstInNode.getPosition() : position);
+        CaseInParseNode caseNode = new CaseInParseNode(position, expression, cases);
+
+        for (ParseNode current = firstInNode; current != null; current = ((InParseNode) current).getNextCase()) {
+            if (current instanceof InParseNode) {
+                cases.add(current);
+            } else {
+                caseNode.setElseNode(current);
+                break;
+            }
+        }
+
+        return caseNode;
+    }
+
+    public InParseNode newInNode(SourceIndexLength position, ParseNode expressionNodes, ParseNode bodyNode,
+            ParseNode nextCase) {
+        if (bodyNode == null) {
+            bodyNode = NilImplicitParseNode.NIL;
+        }
+
+        return new InParseNode(position, expressionNodes, bodyNode, nextCase);
     }
 
     // FIXME: Currently this is passing in position of receiver

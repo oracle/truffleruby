@@ -171,6 +171,7 @@ import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.BlockPassParseNode;
 import org.truffleruby.parser.ast.BreakParseNode;
 import org.truffleruby.parser.ast.CallParseNode;
+import org.truffleruby.parser.ast.CaseInParseNode;
 import org.truffleruby.parser.ast.CaseParseNode;
 import org.truffleruby.parser.ast.ClassParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
@@ -206,6 +207,7 @@ import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -823,6 +825,63 @@ public class BodyTranslator extends Translator {
 
             ret = elseNode;
         }
+
+        return addNewlineIfNeeded(node, ret);
+    }
+
+    @Override
+    public RubyNode visitCaseInNode(CaseInParseNode node) {
+        final SourceIndexLength sourceSection = node.getPosition();
+
+        RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+
+        final RubyNode ret;
+
+        // Evaluate the case expression and store it in a local
+
+        final String tempName = environment.allocateLocalTemp("case");
+        final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+        final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
+
+        /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
+         * its else clause. */
+
+        for (int n = node.getCases().size() - 1; n >= 0; n--) {
+            final InParseNode in = (InParseNode) node.getCases().get(n);
+
+            // JRuby AST always gives InParseNode with only one expression.
+            // "in 1,2; body" gets translated to 2 InParseNode.
+            final ParseNode expressionNode = in.getExpressionNodes();
+            final RubyNode rubyExpression = expressionNode.accept(this);
+
+            final RubyNode receiver;
+            final String method;
+            final RubyNode[] arguments;
+            receiver = rubyExpression;
+            method = "===";
+            arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
+            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                    receiver,
+                    method,
+                    null,
+                    arguments,
+                    false,
+                    true);
+            final RubyNode conditionNode = language.coreMethodAssumptions
+                    .createCallNode(callParameters, environment);
+
+            // Create the if node
+            final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
+            final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+
+            // This if becomes the else for the next if
+            elseNode = ifNode;
+        }
+
+        final RubyNode ifNode = elseNode;
+
+        // A top-level block assigns the temp then runs the if
+        ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
 
         return addNewlineIfNeeded(node, ret);
     }
