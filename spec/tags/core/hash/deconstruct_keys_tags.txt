@@ -1,3 +1,0 @@
-fails:Hash#deconstruct_keys returns self
-fails:Hash#deconstruct_keys requires one argument
-fails:Hash#deconstruct_keys ignores argument

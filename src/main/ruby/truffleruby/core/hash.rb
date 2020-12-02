@@ -215,6 +215,10 @@ class Hash
     end
   end
 
+  def deconstruct_keys(keys)
+    self
+  end
+
   def fetch(key, default=undefined)
     value = _get_or_undefined(key)
     unless Primitive.undefined?(value)
