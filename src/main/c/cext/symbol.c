@@ -54,6 +54,11 @@ int rb_is_instance_id(ID id) {
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_is_instance_id", ID2SYM(id)));
 }
 
+ID rb_check_id(volatile VALUE *namep) {
+  VALUE name = *namep;
+  return SYM2ID(name);
+}
+
 VALUE rb_check_symbol_cstr(const char *ptr, long len, rb_encoding *enc) {
   VALUE str = rb_enc_str_new(ptr, len, enc);
   return RUBY_CEXT_INVOKE("rb_check_symbol_cstr", str);

@@ -1831,4 +1831,8 @@ module Truffle::CExt
   def rb_thread_current_backtrace_locations
     Thread.current.backtrace_locations(4)
   end
+
+  def rb_syserr_new(errno, mesg)
+    SystemCallError.new(mesg, errno)
+  end
 end
