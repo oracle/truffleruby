@@ -851,13 +851,13 @@ public class BodyTranslator extends Translator {
 
             // JRuby AST always gives InParseNode with only one expression.
             // "in 1,2; body" gets translated to 2 InParseNode.
-            final ParseNode expressionNode = in.getExpressionNodes();
-            final RubyNode rubyExpression = expressionNode.accept(this);
+            final ParseNode patternNode = in.getExpressionNodes();
+            final RubyNode pattern = patternNode.accept(this);
 
             final RubyNode receiver;
             final String method;
             final RubyNode[] arguments;
-            receiver = rubyExpression;
+            receiver = pattern;
             method = "===";
             arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
             final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
