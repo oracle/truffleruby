@@ -127,15 +127,15 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
         if (methodMissing.profile(method == null || method.isUndefined())) {
-            if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
-                return callForeign(receiver, methodName, block, arguments);
-            }
-
             switch (config.missingBehavior) {
                 case RETURN_MISSING:
                     return MISSING;
                 case CALL_METHOD_MISSING:
-                    return callMethodMissing(frame, receiver, methodName, block, arguments);
+                    if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
+                        return callForeign(receiver, methodName, block, arguments);
+                    } else {
+                        return callMethodMissing(frame, receiver, methodName, block, arguments);
+                    }
             }
         }
 
