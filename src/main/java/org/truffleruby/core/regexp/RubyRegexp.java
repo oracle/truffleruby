@@ -22,6 +22,7 @@ public class RubyRegexp extends RubyDynamicObject {
     public Rope source;
     public RegexpOptions options;
     public EncodingCache cachedEncodings;
+    public TRegexCache tregexCache;
 
     public RubyRegexp(
             RubyClass rubyClass,
@@ -29,12 +30,14 @@ public class RubyRegexp extends RubyDynamicObject {
             Regex regex,
             Rope source,
             RegexpOptions options,
-            EncodingCache encodingCache) {
+            EncodingCache encodingCache,
+            TRegexCache tregexCache) {
         super(rubyClass, shape);
         this.regex = regex;
         this.source = source;
         this.options = options;
         this.cachedEncodings = encodingCache;
+        this.tregexCache = tregexCache;
     }
 
 }

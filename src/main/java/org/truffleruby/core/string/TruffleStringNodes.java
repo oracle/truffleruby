@@ -12,7 +12,6 @@ package org.truffleruby.core.string;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.control.RaiseException;
@@ -73,25 +72,6 @@ public class TruffleStringNodes {
 
     }
 
-    @CoreMethod(names = "java_string", onSingleton = true, required = 1)
-    public abstract static class JavaStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "libString.isRubyString(rubyString)")
-        protected String javaString(Object rubyString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            try {
-                return libString.getJavaString(rubyString);
-            } catch (CannotConvertBinaryRubyStringToJavaString e) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().argumentError(
-                                "cannot convert binary Ruby string to Java string",
-                                this,
-                                e));
-            }
-        }
-    }
-
     @CoreMethod(names = "raw_bytes", onSingleton = true, required = 1)
     public abstract static class RawBytesNode extends CoreMethodArrayArgumentsNode {
 
@@ -100,16 +80,6 @@ public class TruffleStringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             byte[] bytes = libString.getRope(string).getBytes();
             return getContext().getEnv().asGuestValue(bytes);
-        }
-    }
-
-    @CoreMethod(names = "ascii_only?", onSingleton = true, required = 1)
-    public abstract static class AsciiOnlyNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "libString.isRubyString(string)")
-        protected boolean isAsciiOnly(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            return libString.getRope(string).isAsciiOnly();
         }
     }
 }

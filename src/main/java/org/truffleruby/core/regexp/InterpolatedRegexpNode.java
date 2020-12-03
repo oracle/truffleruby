@@ -118,7 +118,8 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
                     regexp1,
                     (Rope) regexp1.getUserObject(),
                     options,
-                    new EncodingCache());
+                    new EncodingCache(),
+                    new TRegexCache());
 
             if (options.isEncodingNone()) {
                 final Rope source = regexp.source;

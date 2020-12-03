@@ -14,10 +14,6 @@ module Truffle
     COMPARE_ENGINES = false
     USE_TRUFFLE_REGEX = true
 
-    TREGEX_CACHE = Primitive.object_hidden_var_create :tregex_cache
-
-    TRegexCacheKey = Struct.new(:sticky, :encoding)
-
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?
@@ -133,86 +129,23 @@ module Truffle
       end
     end
 
-    def self.options_to_flags(options)
-      flags = ''
-      if options & Regexp::MULTILINE != 0
-        flags += 'm'
-      end
-      if options & Regexp::IGNORECASE != 0
-        flags += 'i'
-      end
-      if options & Regexp::EXTENDED != 0
-        flags += 'x'
-      end
-      flags
-    end
-
-    def self.select_encoding(re, str, encoding_conversion)
-      if encoding_conversion then
-        if re.encoding == Encoding::US_ASCII && StringOperations::ascii_only?(str) then
-          re.encoding
-        elsif str.encoding.ascii_compatible? && re.options & Regexp::FIXEDENCODING != 0 then
-          re.encoding
-        else
-          str.encoding
-        end
-      else
-        re.encoding
-      end
-    end
-
-    def self.to_tregex_encoding(encoding)
-      case encoding
-      when Encoding::UTF_8
-        'UTF-8'
-      when Encoding::US_ASCII, Encoding::ASCII_8BIT
-        'LATIN-1'
-      else
-        nil
-      end
-    end
-
     def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-      if to < from || to != str.bytes.length || start != 0 || from < 0 || !to_tregex_encoding(select_encoding(re, str, encoding_conversion)) then
+      if to < from || to != str.bytes.length || start != 0 || from < 0 then
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
-      begin
-        processed_re_source = preprocess_regexp_source(re.source)
-        re_source = StringOperations::java_string(processed_re_source)
-        if processed_re_source.length != Truffle::Interop::from_java_string(re_source).length then
-          # Calling java_string with certain string and certain encodings (e.g. non-ASCII characters in BINARY encoding)
-          # can lead to differences in escape behavior, yielding different strings. These result in strings of different
-          # sizes after the round trip. In such cases, we bail out.
-          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-        end
-      rescue => e
-        # Some strings might contain invalid (non-Unicode) characters, e.g. values higher than 127 in ASCII strings.
-        # These strings can then throw CannotConvertBinaryRubyStringToJavaString exception.
+      compiled_regex = tregex_compile(re, at_start, select_encoding(re, str, encoding_conversion))
+      if compiled_regex.nil? then
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
-      compiled_regex_cache = Primitive.object_hidden_var_get(re, TREGEX_CACHE)
-      if compiled_regex_cache == nil then
-        compiled_regex_cache = Hash.new do |cache, cache_key|
-          if cache_key.sticky then
-            flags = options_to_flags(re.options) + 'y'
-          else
-            flags = options_to_flags(re.options)
-          end
-          cache[cache_key] = tregex_engine.call(re_source, flags, to_tregex_encoding(cache_key.encoding))
-        end
-        Primitive.object_hidden_var_set(re, TREGEX_CACHE, compiled_regex_cache)
-      end
-      cache_key = TRegexCacheKey.new(at_start, select_encoding(re, str, encoding_conversion))
-      compiled_regex = compiled_regex_cache[cache_key]
       begin
         str_bytes = StringOperations::raw_bytes(str)
         regex_result = compiled_regex.execBytes(str_bytes, from)
       rescue => e
-        if !(e.message.index('UnsupportedRegexException'))
-          $stderr.puts "Failure to execute #{re.source} using tregex - generated error #{e}."
+        if e.message.index('UnsupportedRegexException')
+          return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        else
           raise e
         end
-        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       end
       if regex_result.isMatch
         starts = []
