@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.CodeRange;
@@ -25,10 +26,12 @@ public class FrozenStringLiterals {
         this.ropeCache = ropeCache;
     }
 
+    @TruffleBoundary
     public ImmutableRubyString getFrozenStringLiteral(Rope rope) {
         return getFrozenStringLiteral(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
     }
 
+    @TruffleBoundary
     public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, Encoding encoding, CodeRange codeRange) {
         // Ensure all ImmutableRubyString have a Rope from the RopeCache
         final LeafRope cachedRope = ropeCache.getRope(bytes, encoding, codeRange);
