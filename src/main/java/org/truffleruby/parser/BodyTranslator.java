@@ -852,104 +852,9 @@ public class BodyTranslator extends Translator {
             // JRuby AST always gives InParseNode with only one expression.
             // "in 1,2; body" gets translated to 2 InParseNode.
             final ParseNode patternNode = in.getExpressionNodes();
-            final RubyNode pattern = patternNode.accept(this);
 
-            final RubyNode deconstructed;
+            final RubyNode conditionNode = caseInPatternMatch(patternNode, node.getCaseNode(), readTemp, sourceSection);
 
-            switch (patternNode.getNodeType()) {
-                case ARRAYNODE:
-                    final RubyNode receiver;
-                    final String method;
-                    final RubyNode[] arguments;
-                    receiver = readTemp;
-                    method = "deconstruct";
-                    arguments = RubyNode.EMPTY_ARRAY;
-
-                    final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                            receiver,
-                            method,
-                            null,
-                            arguments,
-                            false,
-                            true);
-                    final RubyNode deconstructNode = language.coreMethodAssumptions
-                            .createCallNode(callParameters, environment);
-
-                    deconstructed = deconstructNode;
-                    break;
-                case HASHNODE:
-                    final RubyCallNodeParameters hashCallParameters = new RubyCallNodeParameters(
-                            readTemp,
-                            "deconstruct_keys",
-                            null,
-                            new RubyNode[]{ new NilLiteralNode(true) },
-                            false,
-                            true);
-                    deconstructed = language.coreMethodAssumptions
-                            .createCallNode(hashCallParameters, environment);
-                    break;
-                default:
-                    deconstructed = readTemp;
-            }
-
-            final RubyNode receiver;
-            final String method;
-            final RubyNode[] arguments;
-            final RubyNode conditionNode;
-            if (patternNode instanceof LocalVarParseNode) {
-                // Assigns the value of an existing variable pattern as the value of the expression.
-                // May need to add a case with same/similar logic for new variables.
-                final RubyNode assignmentNode = new LocalAsgnParseNode(
-                                patternNode.getPosition(),
-                                ((LocalVarParseNode) patternNode).getName(),
-                                ((LocalVarParseNode) patternNode).getDepth(),
-                                node.getCaseNode()).accept(this);
-                conditionNode = new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
-            } else if (patternNode instanceof ArrayParseNode) {
-                receiver = new TruffleInternalModuleLiteralNode();
-                receiver.unsafeSetSourceSection(sourceSection);
-                method = "array_pattern_matches?";
-                arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
-
-                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                        receiver,
-                        method,
-                        null,
-                        arguments,
-                        false,
-                        true);
-                conditionNode = language.coreMethodAssumptions
-                        .createCallNode(callParameters, environment);
-            } else if (patternNode instanceof HashParseNode) {
-                receiver = new TruffleInternalModuleLiteralNode();
-                receiver.unsafeSetSourceSection(sourceSection);
-                method = "hash_pattern_matches?";
-                arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
-
-                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                        receiver,
-                        method,
-                        null,
-                        arguments,
-                        false,
-                        true);
-                conditionNode = language.coreMethodAssumptions
-                        .createCallNode(callParameters, environment);
-            } else {
-                receiver = pattern;
-                method = "===";
-                arguments = new RubyNode[]{ NodeUtil.cloneNode(deconstructed) };
-
-                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                        receiver,
-                        method,
-                        null,
-                        arguments,
-                        false,
-                        true);
-                conditionNode = language.coreMethodAssumptions
-                        .createCallNode(callParameters, environment);
-            }
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
             final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
@@ -964,6 +869,107 @@ public class BodyTranslator extends Translator {
         ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
 
         return addNewlineIfNeeded(node, ret);
+    }
+
+    private RubyNode caseInPatternMatch(ParseNode patternNode, ParseNode expressionNode, RubyNode expressionValue,
+            SourceIndexLength sourceSection) {
+        final RubyNode pattern = patternNode.accept(this);
+
+        final RubyNode deconstructed;
+
+        switch (patternNode.getNodeType()) {
+            case ARRAYNODE:
+                final RubyNode receiver;
+                final String method;
+                final RubyNode[] arguments;
+                receiver = expressionValue;
+                method = "deconstruct";
+                arguments = RubyNode.EMPTY_ARRAY;
+
+                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                        receiver,
+                        method,
+                        null,
+                        arguments,
+                        false,
+                        true);
+                final RubyNode deconstructNode = language.coreMethodAssumptions
+                        .createCallNode(callParameters, environment);
+
+                deconstructed = deconstructNode;
+                break;
+            case HASHNODE:
+                final RubyCallNodeParameters hashCallParameters = new RubyCallNodeParameters(
+                        expressionValue,
+                        "deconstruct_keys",
+                        null,
+                        new RubyNode[]{ new NilLiteralNode(true) },
+                        false,
+                        true);
+                deconstructed = language.coreMethodAssumptions
+                        .createCallNode(hashCallParameters, environment);
+                break;
+            default:
+                deconstructed = expressionValue;
+        }
+
+        final RubyNode receiver;
+        final String method;
+        final RubyNode[] arguments;
+        if (patternNode instanceof LocalVarParseNode) {
+            // Assigns the value of an existing variable pattern as the value of the expression.
+            // May need to add a case with same/similar logic for new variables.
+            final RubyNode assignmentNode = new LocalAsgnParseNode(
+                    patternNode.getPosition(),
+                    ((LocalVarParseNode) patternNode).getName(),
+                    ((LocalVarParseNode) patternNode).getDepth(),
+                    expressionNode).accept(this);
+            return new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
+        } else if (patternNode instanceof ArrayParseNode) {
+            receiver = new TruffleInternalModuleLiteralNode();
+            receiver.unsafeSetSourceSection(sourceSection);
+            method = "array_pattern_matches?";
+            arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
+
+            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                    receiver,
+                    method,
+                    null,
+                    arguments,
+                    false,
+                    true);
+            return language.coreMethodAssumptions
+                    .createCallNode(callParameters, environment);
+        } else if (patternNode instanceof HashParseNode) {
+            receiver = new TruffleInternalModuleLiteralNode();
+            receiver.unsafeSetSourceSection(sourceSection);
+            method = "hash_pattern_matches?";
+            arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
+
+            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                    receiver,
+                    method,
+                    null,
+                    arguments,
+                    false,
+                    true);
+            return language.coreMethodAssumptions
+                    .createCallNode(callParameters, environment);
+        } else {
+            receiver = pattern;
+            method = "===";
+            arguments = new RubyNode[]{ NodeUtil.cloneNode(deconstructed) };
+
+            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                    receiver,
+                    method,
+                    null,
+                    arguments,
+                    false,
+                    true);
+            return language.coreMethodAssumptions
+                    .createCallNode(callParameters, environment);
+        }
     }
 
     private RubyNode openModule(SourceIndexLength sourceSection, RubyNode defineOrGetNode, String moduleName,
