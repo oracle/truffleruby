@@ -878,7 +878,16 @@ public class BodyTranslator extends Translator {
                     deconstructed = deconstructNode;
                     break;
                 case HASHNODE:
-                    // TODO call #deconstruct_keys on the value being matched against the pattern
+                    final RubyCallNodeParameters hashCallParameters = new RubyCallNodeParameters(
+                            readTemp,
+                            "deconstruct_keys",
+                            null,
+                            new RubyNode[]{ new NilLiteralNode(true) },
+                            false,
+                            true);
+                    deconstructed = language.coreMethodAssumptions
+                            .createCallNode(hashCallParameters, environment);
+                    break;
                 default:
                     deconstructed = readTemp;
             }
@@ -891,6 +900,21 @@ public class BodyTranslator extends Translator {
                 receiver = new TruffleInternalModuleLiteralNode();
                 receiver.unsafeSetSourceSection(sourceSection);
                 method = "array_pattern_matches?";
+                arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
+
+                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                        receiver,
+                        method,
+                        null,
+                        arguments,
+                        false,
+                        true);
+                conditionNode = language.coreMethodAssumptions
+                        .createCallNode(callParameters, environment);
+            } else if (patternNode instanceof HashParseNode) {
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+                method = "hash_pattern_matches?";
                 arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
 
                 final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(

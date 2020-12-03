@@ -38,7 +38,6 @@ fails:Pattern matching Hash pattern supports a: which means a: a
 fails:Pattern matching Hash pattern can mix key (a:) and key-value (a: b) declarations
 fails:Pattern matching Hash pattern does not support string interpolation in keys
 fails:Pattern matching Hash pattern raise SyntaxError when keys duplicate in pattern
-fails:Pattern matching Hash pattern matches an object with #deconstruct_keys method which returns a Hash with equal keys and each value in Hash matches value in pattern
 fails:Pattern matching Hash pattern does not match object if Constant === object returns false
 fails:Pattern matching Hash pattern does not match object without #deconstruct_keys method
 fails:Pattern matching Hash pattern does not match object if #deconstruct_keys method does not return Hash
@@ -50,11 +49,9 @@ fails:Pattern matching Hash pattern passes nil to #deconstruct_keys method if pa
 fails:Pattern matching Hash pattern binds variables
 fails:Pattern matching Hash pattern supports double splat operator **rest
 fails:Pattern matching Hash pattern treats **nil like there should not be any other keys in a matched Hash
-fails:Pattern matching Hash pattern can match partially
 fails:Pattern matching Hash pattern matches anything with **
 fails:Pattern matching refinements are used for #deconstruct_keys
 fails:Pattern matching warning warns about pattern matching is experimental feature
 fails:Pattern matching does not allow calculation or method calls in a pattern
 fails:Pattern matching Hash pattern does not support non-symbol keys
 fails:Pattern matching Array pattern accepts a subclass of Array from #deconstruct
-fails:Pattern matching Hash pattern calls #deconstruct_keys per pattern

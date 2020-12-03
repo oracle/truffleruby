@@ -97,4 +97,10 @@ module Truffle::Internal
       a === b
     end
   end
+
+  def self.hash_pattern_matches?(pattern, expression)
+    pattern.all? do |key, value|
+      expression.has_key?(key) && value === expression.fetch(key)
+    end
+  end
 end
