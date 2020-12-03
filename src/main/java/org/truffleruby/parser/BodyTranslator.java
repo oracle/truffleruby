@@ -873,8 +873,6 @@ public class BodyTranslator extends Translator {
 
     private RubyNode caseInPatternMatch(ParseNode patternNode, ParseNode expressionNode, RubyNode expressionValue,
             SourceIndexLength sourceSection) {
-        final RubyNode pattern = patternNode.accept(this);
-
         final RubyCallNodeParameters deconstructCallParameters;
         final RubyNode deconstructed;
 
@@ -924,7 +922,7 @@ public class BodyTranslator extends Translator {
                     receiver,
                     "array_pattern_matches?",
                     null,
-                    new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) },
+                    new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
                     false,
                     true);
             return language.coreMethodAssumptions
@@ -937,14 +935,14 @@ public class BodyTranslator extends Translator {
                     receiver,
                     "hash_pattern_matches?",
                     null,
-                    new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) },
+                    new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
                     false,
                     true);
             return language.coreMethodAssumptions
                     .createCallNode(matcherCallParameters, environment);
         } else {
             matcherCallParameters = new RubyCallNodeParameters(
-                    pattern,
+                    patternNode.accept(this),
                     "===",
                     null,
                     new RubyNode[]{ NodeUtil.cloneNode(deconstructed) },
