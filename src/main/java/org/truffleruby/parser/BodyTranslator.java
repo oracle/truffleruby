@@ -896,7 +896,16 @@ public class BodyTranslator extends Translator {
             final String method;
             final RubyNode[] arguments;
             final RubyNode conditionNode;
-            if (patternNode instanceof ArrayParseNode) {
+            if (patternNode instanceof LocalVarParseNode) {
+                // Assigns the value of an existing variable pattern as the value of the expression.
+                // May need to add a case with same/similar logic for new variables.
+                final RubyNode assignmentNode = new LocalAsgnParseNode(
+                                patternNode.getPosition(),
+                                ((LocalVarParseNode) patternNode).getName(),
+                                ((LocalVarParseNode) patternNode).getDepth(),
+                                node.getCaseNode()).accept(this);
+                conditionNode = new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
+            } else if (patternNode instanceof ArrayParseNode) {
                 receiver = new TruffleInternalModuleLiteralNode();
                 receiver.unsafeSetSourceSection(sourceSection);
                 method = "array_pattern_matches?";
