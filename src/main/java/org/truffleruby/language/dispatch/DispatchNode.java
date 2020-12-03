@@ -122,16 +122,15 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
-
         final RubyClass metaclass = metaclassNode.execute(receiver);
-
-        if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
-            return callForeign(receiver, methodName, block, arguments);
-        }
 
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
 
         if (methodMissing.profile(method == null || method.isUndefined())) {
+            if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
+                return callForeign(receiver, methodName, block, arguments);
+            }
+
             switch (config.missingBehavior) {
                 case RETURN_MISSING:
                     return MISSING;
