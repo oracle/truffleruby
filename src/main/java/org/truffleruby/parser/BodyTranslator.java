@@ -874,6 +874,8 @@ public class BodyTranslator extends Translator {
     private RubyNode caseInPatternMatch(ParseNode patternNode, ParseNode expressionNode, RubyNode expressionValue,
             SourceIndexLength sourceSection) {
         final RubyCallNodeParameters deconstructCallParameters;
+        final RubyCallNodeParameters matcherCallParameters;
+        final RubyNode receiver;
         final RubyNode deconstructed;
 
         switch (patternNode.getNodeType()) {
@@ -887,7 +889,19 @@ public class BodyTranslator extends Translator {
                         true);
                 deconstructed = language.coreMethodAssumptions
                         .createCallNode(deconstructCallParameters, environment);
-                break;
+
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+
+                matcherCallParameters = new RubyCallNodeParameters(
+                        receiver,
+                        "array_pattern_matches?",
+                        null,
+                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
             case HASHNODE:
                 deconstructCallParameters = new RubyCallNodeParameters(
                         expressionValue,
@@ -898,58 +912,38 @@ public class BodyTranslator extends Translator {
                         true);
                 deconstructed = language.coreMethodAssumptions
                         .createCallNode(deconstructCallParameters, environment);
-                break;
+
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+
+                matcherCallParameters = new RubyCallNodeParameters(
+                        receiver,
+                        "hash_pattern_matches?",
+                        null,
+                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
+            case LOCALVARNODE:
+                // Assigns the value of an existing variable pattern as the value of the expression.
+                // May need to add a case with same/similar logic for new variables.
+                final RubyNode assignmentNode = new LocalAsgnParseNode(
+                        patternNode.getPosition(),
+                        ((LocalVarParseNode) patternNode).getName(),
+                        ((LocalVarParseNode) patternNode).getDepth(),
+                        expressionNode).accept(this);
+                return new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
             default:
-                deconstructed = expressionValue;
-        }
-
-        final RubyCallNodeParameters matcherCallParameters;
-        final RubyNode receiver;
-        if (patternNode instanceof LocalVarParseNode) {
-            // Assigns the value of an existing variable pattern as the value of the expression.
-            // May need to add a case with same/similar logic for new variables.
-            final RubyNode assignmentNode = new LocalAsgnParseNode(
-                    patternNode.getPosition(),
-                    ((LocalVarParseNode) patternNode).getName(),
-                    ((LocalVarParseNode) patternNode).getDepth(),
-                    expressionNode).accept(this);
-            return new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
-        } else if (patternNode instanceof ArrayParseNode) {
-            receiver = new TruffleInternalModuleLiteralNode();
-            receiver.unsafeSetSourceSection(sourceSection);
-
-            matcherCallParameters = new RubyCallNodeParameters(
-                    receiver,
-                    "array_pattern_matches?",
-                    null,
-                    new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
-                    false,
-                    true);
-            return language.coreMethodAssumptions
-                    .createCallNode(matcherCallParameters, environment);
-        } else if (patternNode instanceof HashParseNode) {
-            receiver = new TruffleInternalModuleLiteralNode();
-            receiver.unsafeSetSourceSection(sourceSection);
-
-            matcherCallParameters = new RubyCallNodeParameters(
-                    receiver,
-                    "hash_pattern_matches?",
-                    null,
-                    new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
-                    false,
-                    true);
-            return language.coreMethodAssumptions
-                    .createCallNode(matcherCallParameters, environment);
-        } else {
-            matcherCallParameters = new RubyCallNodeParameters(
-                    patternNode.accept(this),
-                    "===",
-                    null,
-                    new RubyNode[]{ NodeUtil.cloneNode(deconstructed) },
-                    false,
-                    true);
-            return language.coreMethodAssumptions
-                    .createCallNode(matcherCallParameters, environment);
+                matcherCallParameters = new RubyCallNodeParameters(
+                        patternNode.accept(this),
+                        "===",
+                        null,
+                        new RubyNode[]{ NodeUtil.cloneNode(expressionValue) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
         }
     }
 
