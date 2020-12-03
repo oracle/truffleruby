@@ -33,6 +33,7 @@ Compatibility:
 * Implemented `rb_make_exception`.
 * `**kwargs` now accept non-Symbol keys like Ruby 2.7.
 * Updated the Unicode Emoji version (#2173, @wildmaples).
+* Added `Enumerator::Yielder#to_proc`.
 
 Performance:
 
