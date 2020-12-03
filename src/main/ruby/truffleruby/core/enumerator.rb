@@ -310,6 +310,10 @@ class Enumerator
       self
     end
 
+    def eager
+      Enumerator.instance_method(:enum_for).bind(self).call(:each) { size }
+    end
+
     # TODO: rewind and/or to_a/force behave improperly on outputs of take, drop, uniq, possibly more
 
     alias_method :force, :to_a
