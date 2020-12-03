@@ -78,7 +78,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     @Child protected ToSymbolNode toSymbol;
 
     protected final ConditionProfile methodMissing;
-    protected final ConditionProfile isForeignCall;
     protected final BranchProfile methodMissingMissing;
 
     protected DispatchNode(
@@ -87,14 +86,12 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             LookupMethodNode methodLookup,
             CallInternalMethodNode callNode,
             ConditionProfile methodMissing,
-            ConditionProfile isForeignCall,
             BranchProfile methodMissingMissing) {
         this.config = config;
         this.metaclassNode = metaclassNode;
         this.methodLookup = methodLookup;
         this.callNode = callNode;
         this.methodMissing = methodMissing;
-        this.isForeignCall = isForeignCall;
         this.methodMissingMissing = methodMissingMissing;
     }
 
@@ -104,7 +101,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                 MetaClassNode.create(),
                 LookupMethodNode.create(),
                 CallInternalMethodNode.create(),
-                ConditionProfile.create(),
                 ConditionProfile.create(),
                 BranchProfile.create());
     }
@@ -131,7 +127,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                 case RETURN_MISSING:
                     return MISSING;
                 case CALL_METHOD_MISSING:
-                    if (isForeignCall.profile(metaclass == getContext().getCoreLibrary().truffleInteropForeignClass)) {
+                    // Both branches implicitly profile through lazy node creation
+                    if (metaclass == getContext().getCoreLibrary().truffleInteropForeignClass) {
                         return callForeign(receiver, methodName, block, arguments);
                     } else {
                         return callMethodMissing(frame, receiver, methodName, block, arguments);
@@ -238,7 +235,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                     MetaClassNodeGen.getUncached(),
                     LookupMethodNodeGen.getUncached(),
                     CallInternalMethodNodeGen.getUncached(),
-                    ConditionProfile.getUncached(),
                     ConditionProfile.getUncached(),
                     BranchProfile.getUncached());
         }
