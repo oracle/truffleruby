@@ -25,7 +25,6 @@ fails:Pattern matching AS pattern binds a variable to a value if pattern matches
 fails:Pattern matching AS pattern can be used as a nested pattern
 fails:Pattern matching Array pattern supports form Constant(pat, pat, ...)
 fails:Pattern matching Array pattern supports form pat, pat, ...
-fails:Pattern matching Array pattern matches an object with #deconstruct method which returns an array and each element in array matches element in pattern
 fails:Pattern matching Array pattern does not match object if Constant === object returns false
 fails:Pattern matching Array pattern does not match object without #deconstruct method
 fails:Pattern matching Array pattern raises TypeError if #deconstruct method does not return array

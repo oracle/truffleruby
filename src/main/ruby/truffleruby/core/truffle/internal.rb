@@ -89,4 +89,12 @@ module Truffle::Internal
       c === expression
     end
   end
+
+  def self.array_pattern_matches?(pattern, expression)
+    return false unless pattern.length == expression.length
+
+    pattern.zip(expression).all? do |a, b|
+      a === b
+    end
+  end
 end

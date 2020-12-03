@@ -886,19 +886,37 @@ public class BodyTranslator extends Translator {
             final RubyNode receiver;
             final String method;
             final RubyNode[] arguments;
-            receiver = pattern;
-            method = "===";
-            arguments = new RubyNode[]{ NodeUtil.cloneNode(deconstructed) };
-            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
-                    receiver,
-                    method,
-                    null,
-                    arguments,
-                    false,
-                    true);
-            final RubyNode conditionNode = language.coreMethodAssumptions
-                    .createCallNode(callParameters, environment);
+            final RubyNode conditionNode;
+            if (patternNode instanceof ArrayParseNode) {
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+                method = "array_pattern_matches?";
+                arguments = new RubyNode[]{ pattern, NodeUtil.cloneNode(deconstructed) };
 
+                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                        receiver,
+                        method,
+                        null,
+                        arguments,
+                        false,
+                        true);
+                conditionNode = language.coreMethodAssumptions
+                        .createCallNode(callParameters, environment);
+            } else {
+                receiver = pattern;
+                method = "===";
+                arguments = new RubyNode[]{ NodeUtil.cloneNode(deconstructed) };
+
+                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                        receiver,
+                        method,
+                        null,
+                        arguments,
+                        false,
+                        true);
+                conditionNode = language.coreMethodAssumptions
+                        .createCallNode(callParameters, environment);
+            }
             // Create the if node
             final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
             final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
