@@ -875,11 +875,12 @@ public class BodyTranslator extends Translator {
             SourceIndexLength sourceSection) {
         final RubyNode pattern = patternNode.accept(this);
 
+        final RubyCallNodeParameters deconstructCallParameters;
         final RubyNode deconstructed;
 
         switch (patternNode.getNodeType()) {
             case ARRAYNODE:
-                final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                deconstructCallParameters = new RubyCallNodeParameters(
                         expressionValue,
                         "deconstruct",
                         null,
@@ -887,10 +888,10 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
-                        .createCallNode(callParameters, environment);
+                        .createCallNode(deconstructCallParameters, environment);
                 break;
             case HASHNODE:
-                final RubyCallNodeParameters hashCallParameters = new RubyCallNodeParameters(
+                deconstructCallParameters = new RubyCallNodeParameters(
                         expressionValue,
                         "deconstruct_keys",
                         null,
@@ -898,12 +899,13 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 deconstructed = language.coreMethodAssumptions
-                        .createCallNode(hashCallParameters, environment);
+                        .createCallNode(deconstructCallParameters, environment);
                 break;
             default:
                 deconstructed = expressionValue;
         }
 
+        final RubyCallNodeParameters matcherCallParameters;
         final RubyNode receiver;
         if (patternNode instanceof LocalVarParseNode) {
             // Assigns the value of an existing variable pattern as the value of the expression.
@@ -918,7 +920,7 @@ public class BodyTranslator extends Translator {
             receiver = new TruffleInternalModuleLiteralNode();
             receiver.unsafeSetSourceSection(sourceSection);
 
-            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+            matcherCallParameters = new RubyCallNodeParameters(
                     receiver,
                     "array_pattern_matches?",
                     null,
@@ -926,12 +928,12 @@ public class BodyTranslator extends Translator {
                     false,
                     true);
             return language.coreMethodAssumptions
-                    .createCallNode(callParameters, environment);
+                    .createCallNode(matcherCallParameters, environment);
         } else if (patternNode instanceof HashParseNode) {
             receiver = new TruffleInternalModuleLiteralNode();
             receiver.unsafeSetSourceSection(sourceSection);
 
-            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+            matcherCallParameters = new RubyCallNodeParameters(
                     receiver,
                     "hash_pattern_matches?",
                     null,
@@ -939,9 +941,9 @@ public class BodyTranslator extends Translator {
                     false,
                     true);
             return language.coreMethodAssumptions
-                    .createCallNode(callParameters, environment);
+                    .createCallNode(matcherCallParameters, environment);
         } else {
-            final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+            matcherCallParameters = new RubyCallNodeParameters(
                     pattern,
                     "===",
                     null,
@@ -949,7 +951,7 @@ public class BodyTranslator extends Translator {
                     false,
                     true);
             return language.coreMethodAssumptions
-                    .createCallNode(callParameters, environment);
+                    .createCallNode(matcherCallParameters, environment);
         }
     }
 
