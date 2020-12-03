@@ -854,12 +854,41 @@ public class BodyTranslator extends Translator {
             final ParseNode patternNode = in.getExpressionNodes();
             final RubyNode pattern = patternNode.accept(this);
 
+            final RubyNode deconstructed;
+
+            switch (patternNode.getNodeType()) {
+                case ARRAYNODE:
+                    final RubyNode receiver;
+                    final String method;
+                    final RubyNode[] arguments;
+                    receiver = readTemp;
+                    method = "deconstruct";
+                    arguments = RubyNode.EMPTY_ARRAY;
+
+                    final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
+                            receiver,
+                            method,
+                            null,
+                            arguments,
+                            false,
+                            true);
+                    final RubyNode deconstructNode = language.coreMethodAssumptions
+                            .createCallNode(callParameters, environment);
+
+                    deconstructed = deconstructNode;
+                    break;
+                case HASHNODE:
+                    // TODO call #deconstruct_keys on the value being matched against the pattern
+                default:
+                    deconstructed = readTemp;
+            }
+
             final RubyNode receiver;
             final String method;
             final RubyNode[] arguments;
             receiver = pattern;
             method = "===";
-            arguments = new RubyNode[]{ NodeUtil.cloneNode(readTemp) };
+            arguments = new RubyNode[]{ NodeUtil.cloneNode(deconstructed) };
             final RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
                     receiver,
                     method,
