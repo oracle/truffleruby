@@ -21,11 +21,24 @@ module Truffle
         end
       end
 
+      params = meth.parameters.map.with_index do |(type, name), i|
+        case type
+        when :req then "#{name || "param#{i+1}"}"
+        when :opt then "#{name || "param#{i+1}"}=..."
+        when :keyreq then "#{name || "kw#{i+1}"}:"
+        when :key then "#{name || "kwparam#{i+1}"}: ..."
+        when :rest then "*#{name || "rest"}"
+        when :keyrest then "**#{name || "kwrest"}"
+        when :block then "&#{name || "block"}"
+        when :nokey then '**nil'
+        end
+      end.join(', ').prepend('(') << ')'
+
       if !Primitive.undefined?(receiver) && owner.singleton_class?
-        "#<#{meth.class}: #{receiver.inspect}.#{meth.name}#{extra}>"
+        "#<#{meth.class}: #{receiver.inspect}.#{meth.name}#{params}#{extra}>"
       else
         origin_owner = origin == owner ? origin : "#{origin}(#{owner})"
-        "#<#{meth.class}: #{origin_owner}##{meth.name}#{extra}>"
+        "#<#{meth.class}: #{origin_owner}##{meth.name}#{params}#{extra}>"
       end
     end
   end

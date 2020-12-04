@@ -1,1 +1,0 @@
-fails:Method#inspect returns a String containing method arguments
