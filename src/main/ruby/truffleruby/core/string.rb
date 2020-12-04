@@ -507,7 +507,7 @@ class String
       end
     end
 
-    array = []
+    result = '"'.dup.force_encoding(result_encoding)
 
     index = 0
     total = bytesize
@@ -515,26 +515,19 @@ class String
       char = Primitive.string_chr_at(self, index)
 
       if char
-        index += inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
+        index += inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
       else
-        array << "\\x#{getbyte(index).to_s(16).upcase}"
+        result << "\\x#{getbyte(index).to_s(16).upcase}"
         index += 1
       end
     end
 
-    size = array.inject(0) { |s, chr| s + chr.bytesize }
-    result = String.pattern size + 2, ?".ord
-
-    index = 1
-    array.each do |chr|
-      Truffle::StringOperations.copy_from(result, chr, 0, chr.bytesize, index)
-      index += chr.bytesize
-    end
+    result << '"'
 
     result.force_encoding(result_encoding)
   end
 
-  def inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
+  private def inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
     consumed = char.bytesize
 
     if (ascii or unicode) and consumed == 1
@@ -578,14 +571,14 @@ class String
         end
 
         if escaped
-          array << escaped
+          result << escaped
           return consumed
         end
       end
     end
 
     if Primitive.character_printable_p(char) && (enc == result_encoding || (ascii && char.ascii_only?))
-      array << char
+      result << char
     else
       code = char.ord
       escaped = code.to_s(16).upcase
@@ -593,23 +586,22 @@ class String
       if unicode
         if code < 0x10000
           pad = '0' * (4 - escaped.bytesize)
-          array << "\\u#{pad}#{escaped}"
+          result << "\\u#{pad}#{escaped}"
         else
-          array << "\\u{#{escaped}}"
+          result << "\\u{#{escaped}}"
         end
       else
         if code < 0x100
           pad = '0' * (2 - escaped.bytesize)
-          array << "\\x#{pad}#{escaped}"
+          result << "\\x#{pad}#{escaped}"
         else
-          array << "\\x{#{escaped}}"
+          result << "\\x{#{escaped}}"
         end
       end
     end
 
     consumed
   end
-  private :inspect_char
 
   def prepend(*others)
     if others.size == 1

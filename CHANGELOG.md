@@ -39,6 +39,7 @@ Performance:
 
 * Refactor and implement more performant `MatchData#length` (#2147, @LillianZ).
 * Refactor and implement more performant `Array#sample` (#2148, @LillianZ).
+* `String#inspect` is now more efficient.
 
 Changes:
 
