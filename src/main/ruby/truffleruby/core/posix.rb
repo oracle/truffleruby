@@ -353,7 +353,7 @@ module Truffle::POSIX
       if TRY_AGAIN_ERRNOS.include? errno
         IO.select([io])
       else
-        Errno.handle
+        Errno.handle_errno(errno)
       end
     end
   end
@@ -368,7 +368,7 @@ module Truffle::POSIX
     elsif TRY_AGAIN_ERRNOS.include? errno
       raise IO::EAGAINWaitReadable
     else
-      Errno.handle
+      Errno.handle_errno(errno)
     end
   end
 
@@ -432,7 +432,7 @@ module Truffle::POSIX
               return written
             end
           else
-            Errno.handle
+            Errno.handle_errno(errno)
           end
         end
         written += ret
@@ -474,7 +474,7 @@ module Truffle::POSIX
         if TRY_AGAIN_ERRNOS.include? errno
           raise IO::EAGAINWaitWritable
         else
-          Errno.handle
+          Errno.handle_errno(errno)
         end
       end
       written

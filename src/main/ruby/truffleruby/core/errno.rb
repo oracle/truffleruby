@@ -48,6 +48,12 @@ module Errno
     raise SystemCallError.new(additional, err)
   end
 
+  def self.handle_errno(errno)
+    return if errno == 0
+
+    raise SystemCallError.new(nil, errno)
+  end
+
   def self.errno
     Truffle::POSIX.errno_address.read_int
   end
