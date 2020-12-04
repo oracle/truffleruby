@@ -880,6 +880,39 @@ public class BodyTranslator extends Translator {
 
         switch (patternNode.getNodeType()) {
             case ARRAYNODE:
+                // Pattern-match element-wise recursively if possible.
+                final int size = ((ArrayParseNode) patternNode).size();
+                if (expressionNode.getNodeType() == NodeType.ARRAYNODE &&
+                        ((ArrayParseNode) expressionNode).size() == size) {
+                    final ParseNode[] patternElements = ((ArrayParseNode) patternNode).children();
+                    final ParseNode[] expressionElements = ((ArrayParseNode) expressionNode).children();
+
+                    final RubyNode[] matches = new RubyNode[size];
+
+                    // For each element of the case expression, evaluate and assign it, then run the pattern-matching
+                    // on the element
+                    for (int n = 0; n < size; n++) {
+                        final String tempName = environment.allocateLocalTemp("caseElem" + n);
+                        final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+                        final RubyNode assignTemp = readTemp.makeWriteNode(expressionElements[n].accept(this));
+                        matches[n] = sequence(sourceSection, Arrays.asList(
+                                assignTemp,
+                                caseInPatternMatch(
+                                        patternElements[n],
+                                        expressionElements[n],
+                                        readTemp,
+                                        sourceSection)));
+                    }
+
+                    // Incorporate the element-wise pattern-matching into the AST, with the longer right leg since
+                    // AndNode is visited left to right
+                    RubyNode match = matches[size - 1];
+                    for (int n = size - 2; n >= 0; n--) {
+                        match = new AndNode(matches[n], match);
+                    }
+                    return match;
+                }
+
                 deconstructCallParameters = new RubyCallNodeParameters(
                         expressionValue,
                         "deconstruct",
