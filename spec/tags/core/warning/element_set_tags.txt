@@ -1,6 +1,5 @@
 slow:Warning.[]= emits and suppresses warnings for :deprecated
 slow:Warning.[]= emits and suppresses warnings for :experimental
-fails:Warning.[]= emits and suppresses warnings for :deprecated
 fails:Warning.[]= emits and suppresses warnings for :experimental
 slow:Warning.[]= :experimental emits and suppresses warnings for :experimental
 fails:Warning.[]= :experimental emits and suppresses warnings for :experimental

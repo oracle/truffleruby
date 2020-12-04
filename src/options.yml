@@ -91,6 +91,9 @@ EXPERT:
     CEXTS_LOG_LOAD: [cexts-log-load, boolean, false, Log loading of cexts]
     CEXTS_LOG_WARNINGS: [cexts-log-warnings, boolean, false, Log cexts warnings]
 
+    WARN_DEPRECATED: [[warn-deprecated, -W], boolean, false, 'Sets deprecated Warning category']
+    WARN_EXPERIMENTAL: [[warn-experimental, -W], boolean, true, 'Sets experimental Warning category']
+
 INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:
     # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher

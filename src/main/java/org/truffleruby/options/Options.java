@@ -121,6 +121,10 @@ public class Options {
     public final boolean CEXTS_LOG_LOAD;
     /** --cexts-log-warnings=false */
     public final boolean CEXTS_LOG_WARNINGS;
+    /** --warn-deprecated=false */
+    public final boolean WARN_DEPRECATED;
+    /** --warn-experimental=true */
+    public final boolean WARN_EXPERIMENTAL;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
     /** --chomp-loop=false */
@@ -300,6 +304,8 @@ public class Options {
         METRICS_PROFILE_REQUIRE = options.get(OptionsCatalog.METRICS_PROFILE_REQUIRE_KEY);
         CEXTS_LOG_LOAD = options.get(OptionsCatalog.CEXTS_LOG_LOAD_KEY);
         CEXTS_LOG_WARNINGS = options.get(OptionsCatalog.CEXTS_LOG_WARNINGS_KEY);
+        WARN_DEPRECATED = options.get(OptionsCatalog.WARN_DEPRECATED_KEY);
+        WARN_EXPERIMENTAL = options.get(OptionsCatalog.WARN_EXPERIMENTAL_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         CHOMP_LOOP = options.get(OptionsCatalog.CHOMP_LOOP_KEY);
         GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
@@ -466,6 +472,10 @@ public class Options {
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts-log-warnings":
                 return CEXTS_LOG_WARNINGS;
+            case "ruby.warn-deprecated":
+                return WARN_DEPRECATED;
+            case "ruby.warn-experimental":
+                return WARN_EXPERIMENTAL;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":

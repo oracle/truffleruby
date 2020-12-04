@@ -30,7 +30,6 @@ win32ole/test_word.rb
 
 # Failing since upgrade to 2.6.1
 
-ruby/test_rubyoptions.rb # uses RubyVM
 test_pp.rb # uses RubyVM
 ruby/test_time_tz.rb
 monitor/test_monitor.rb # hangs

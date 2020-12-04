@@ -73,6 +73,8 @@ public class OptionsCatalog {
     public static final OptionKey<Profile> METRICS_PROFILE_REQUIRE_KEY = new OptionKey<>(Profile.NONE, EnumOptionType.optionTypeFor(Profile.class));
     public static final OptionKey<Boolean> CEXTS_LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
@@ -515,6 +517,20 @@ public class OptionsCatalog {
     public static final OptionDescriptor CEXTS_LOG_WARNINGS = OptionDescriptor
             .newBuilder(CEXTS_LOG_WARNINGS_KEY, "ruby.cexts-log-warnings")
             .help("Log cexts warnings")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor WARN_DEPRECATED = OptionDescriptor
+            .newBuilder(WARN_DEPRECATED_KEY, "ruby.warn-deprecated")
+            .help("Sets deprecated Warning category (configured by the -W Ruby option)")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor WARN_EXPERIMENTAL = OptionDescriptor
+            .newBuilder(WARN_EXPERIMENTAL_KEY, "ruby.warn-experimental")
+            .help("Sets experimental Warning category (configured by the -W Ruby option)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1145,6 +1161,10 @@ public class OptionsCatalog {
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts-log-warnings":
                 return CEXTS_LOG_WARNINGS;
+            case "ruby.warn-deprecated":
+                return WARN_DEPRECATED;
+            case "ruby.warn-experimental":
+                return WARN_EXPERIMENTAL;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -1353,6 +1373,8 @@ public class OptionsCatalog {
             METRICS_PROFILE_REQUIRE,
             CEXTS_LOG_LOAD,
             CEXTS_LOG_WARNINGS,
+            WARN_DEPRECATED,
+            WARN_EXPERIMENTAL,
             ARGV_GLOBALS,
             CHOMP_LOOP,
             GETS_LOOP,

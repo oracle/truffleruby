@@ -82,7 +82,6 @@ import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.RubyOptionTypes;
-import org.truffleruby.shared.options.Verbosity;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -177,8 +176,8 @@ public class RubyContext {
 
         options = createOptions(env, language.options);
 
-        warningCategoryDeprecated = new AssumedValue<>(options.VERBOSITY == Verbosity.TRUE);
-        warningCategoryExperimental = new AssumedValue<>(options.VERBOSITY != Verbosity.NIL);
+        warningCategoryDeprecated = new AssumedValue<>(options.WARN_DEPRECATED);
+        warningCategoryExperimental = new AssumedValue<>(options.WARN_EXPERIMENTAL);
 
         safepointManager = new SafepointManager(this, language);
         coreExceptions = new CoreExceptions(this, language);
@@ -294,6 +293,12 @@ public class RubyContext {
             return false;
         }
         this.options = newOptions;
+        if (newOptions.WARN_DEPRECATED != oldOptions.WARN_DEPRECATED) {
+            warningCategoryDeprecated.set(newOptions.WARN_DEPRECATED);
+        }
+        if (newOptions.WARN_EXPERIMENTAL != oldOptions.WARN_EXPERIMENTAL) {
+            warningCategoryExperimental.set(newOptions.WARN_EXPERIMENTAL);
+        }
         this.rubyHome = newHome;
         this.rubyHomeTruffleFile = newHome == null ? null : newEnv.getInternalTruffleFile(newHome);
 
