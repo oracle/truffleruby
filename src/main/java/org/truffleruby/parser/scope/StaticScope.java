@@ -33,6 +33,7 @@ import java.util.Arrays;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
 import org.truffleruby.parser.ast.DVarParseNode;
@@ -71,6 +72,21 @@ public class StaticScope {
 
     private long commandArgumentStack;
 
+    /** Parameters (block, method) for the current scope. */
+    private ArgsParseNode argsParseNode;
+
+    /** Whether this <b>block</b> has parameters. Set to true before argsParseNode can be assigned, as we need this to
+     * handle default values in the parameter list. */
+    private boolean hasBlockParameter;
+
+    /** Whether this is a block scope that has sub-scopes (without intervening scope gates) that use numbered
+     * parameters. */
+    private boolean hasNumberedSubScope;
+
+    /** Whether this is a block scope that has enclosing scopes (without intervening scope gates) that use numbered
+     * parameters, <b>at the time where the block is entered</b>. */
+    private boolean hasNumberedSuperScope;
+
     public enum Type {
         LOCAL,
         BLOCK;
@@ -107,6 +123,8 @@ public class StaticScope {
         this.variableNames = names;
         this.type = type;
         this.isBlockOrEval = (type != Type.LOCAL);
+        this.hasNumberedSuperScope = isBlockOrEval && enclosingScope != null && (enclosingScope.hasNumberedSuperScope ||
+                enclosingScope.isNumberedBlockScope());
     }
 
     /** Check that all strings in the given array are the interned versions (for footprint and identity check reasons).
@@ -178,6 +196,19 @@ public class StaticScope {
 
         // Returns slot of variable
         return variableNames.length - 1;
+    }
+
+    public void addNumberedParameter(String name, SourceIndexLength position) {
+        assert argsParseNode != null;
+        addVariable(name);
+        argsParseNode.addNumberedParameter(name, position);
+
+        // Set the hasNumberedSubScope flag for this and enclosing scopes.
+        StaticScope scope = enclosingScope;
+        while (scope != null && scope.isBlockScope() && !scope.hasNumberedSubScope) {
+            scope.hasNumberedSubScope = true;
+            scope = scope.enclosingScope;
+        }
     }
 
     public String[] getVariables() {
@@ -320,12 +351,48 @@ public class StaticScope {
         return isBlockOrEval;
     }
 
+    /** Whether this is a block scope that uses numbered parameters. */
+    public boolean isNumberedBlockScope() {
+        return argsParseNode != null && argsParseNode.isNumbered();
+    }
+
     public void setCommandArgumentStack(long commandArgumentStack) {
         this.commandArgumentStack = commandArgumentStack;
     }
 
     public long getCommandArgumentStack() {
         return commandArgumentStack;
+    }
+
+    public void setArgsParseNode(ArgsParseNode argsParseNode) {
+        this.argsParseNode = argsParseNode;
+    }
+
+    public ArgsParseNode getArgsParseNode() {
+        return argsParseNode;
+    }
+
+    /** Whether this **block** has parameter. Set to true before argsParseNode can be assigned, as we need this to
+     * handle default values in the parameter list. */
+    public boolean hasBlockParameters() {
+        return hasBlockParameter;
+    }
+
+    /** see {@link #hasBlockParameter} */
+    public void setHasBlockParameters() {
+        hasBlockParameter = true;
+    }
+
+    /** Whether this is a block scope that has sub-scopes (without intervening scope gates) that use numbered
+     * parameters. */
+    public boolean hasNumberedSubScope() {
+        return hasNumberedSubScope;
+    }
+
+    /** Whether this is a block scope that has enclosing scopes (without intervening scope gates) that use numbered
+     * parameters, <b>at the time where the block is entered</b>. */
+    public boolean hasNumberedSuperScope() {
+        return hasNumberedSuperScope;
     }
 
     @SuppressFBWarnings("ES")
@@ -368,5 +435,4 @@ public class StaticScope {
     public String getFile() {
         return file;
     }
-
 }
