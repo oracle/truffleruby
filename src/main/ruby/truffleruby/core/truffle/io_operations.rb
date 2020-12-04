@@ -152,27 +152,29 @@ module Truffle
                                                remaining_timeout)
           end
 
-          result = if primitive_result < 0
-                     if Errno.errno == Errno::EINTR::Errno
-                       if timeout
-                         # Update timeout
-                         now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-                         waited = now - start
-                         if waited >= timeout
-                           nil # timeout
-                         else
-                           remaining_timeout = timeout - waited
-                           :retry
-                         end
-                       else
-                         :retry
-                       end
-                     else
-                       Errno.handle
-                     end
-                   else
-                     primitive_result
-                   end
+          result =
+            if primitive_result < 0
+              errno = Errno.errno
+              if errno == Errno::EINTR::Errno
+                if timeout
+                  # Update timeout
+                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+                  waited = now - start
+                  if waited >= timeout
+                    nil # timeout
+                  else
+                    remaining_timeout = timeout - waited
+                    :retry
+                  end
+                else
+                  :retry
+                end
+              else
+                Errno.handle_errno(errno)
+              end
+            else
+              primitive_result
+            end
         end while result == :retry
 
         if result == 0
