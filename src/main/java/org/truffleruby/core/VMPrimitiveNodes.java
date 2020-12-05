@@ -529,4 +529,15 @@ public abstract class VMPrimitiveNodes {
 
     }
 
+    @Primitive(name = "should_not_reach_here")
+    public abstract static class ShouldNotReachHereNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "libString.isRubyString(message)")
+        protected Object shouldNotReachHere(Object message,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            throw CompilerDirectives.shouldNotReachHere(libString.getJavaString(message));
+        }
+
+    }
+
 }

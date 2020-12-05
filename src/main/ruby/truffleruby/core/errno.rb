@@ -43,9 +43,15 @@ module Errno
   # Unlike rb_sys_fail(), handle does not raise an exception if errno is 0.
   def self.handle(additional = nil)
     err = errno
-    return if err == 0
+    Primitive.should_not_reach_here('Errno.handle called but errno was 0') if err == 0
 
     raise SystemCallError.new(additional, err)
+  end
+
+  def self.handle_errno(errno)
+    Primitive.should_not_reach_here('Errno.handle_errno called but errno was 0') if errno == 0
+
+    raise SystemCallError.new(nil, errno)
   end
 
   def self.errno
