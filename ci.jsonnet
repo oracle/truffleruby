@@ -10,7 +10,7 @@
 # https://github.com/google/jsonnet/releases and compiled.
 
 # CONFIGURATION
-local overlay = "a8ffba29647185aa9d6c1191be546ef5d9f18708";
+local overlay = "d5989079763330598ccb0183468cac6c2e97b054";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
@@ -44,6 +44,7 @@ local part_definitions = {
       },
 
       packages+: {
+        'mx': '5.279.2',
         "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
       },
 
