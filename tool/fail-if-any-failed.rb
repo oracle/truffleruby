@@ -36,10 +36,7 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-replace"],
 
   # JRuby
-  ["server", "default", "jruby", "indy", "micro", "micro/file/read.rb:core-read-gigabyte"],
-
-  # MultiTier
-  ["svm", "graal-core", "jruby", "truffle-multi-tier", "ruby-warmup", "blog6-rails-routes"], # GR-27140
+  ["server", "default", "jruby", "indy", "micro", "micro/file/read.rb:core-read-gigabyte"]
 ]
 
 if File.exist?('failures')
