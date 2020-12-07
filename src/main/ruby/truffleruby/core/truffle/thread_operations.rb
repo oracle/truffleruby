@@ -66,26 +66,13 @@ module Truffle::ThreadOperations
   # on obj.
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
-  def self.detect_recursion(obj)
+  def self.detect_recursion(obj, &block)
     unless Primitive.object_can_contain_object obj
       yield
       return false
     end
 
-    id = obj.object_id
-    objects = Primitive.thread_recursive_objects
-
-    if objects[id]
-      true
-    else
-      objects[id] = true
-      begin
-        yield
-      ensure
-        objects.delete id
-      end
-      false
-    end
+    Primitive.thread_detect_recursion_single obj, block
   end
   Truffle::Graal.always_split method(:detect_recursion)
 
