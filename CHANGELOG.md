@@ -35,6 +35,7 @@ Compatibility:
 * Updated the Unicode Emoji version (#2173, @wildmaples).
 * Added `Enumerator::Yielder#to_proc`.
 * Implemented `Enumerator::Lazy#eager`.
+* Updated `Method#inspect` to include paremeter information.
 
 Performance:
 
