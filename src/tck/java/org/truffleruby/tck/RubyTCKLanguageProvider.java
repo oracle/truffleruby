@@ -12,10 +12,13 @@ package org.truffleruby.tck;
 import static org.graalvm.polyglot.tck.TypeDescriptor.ANY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.ARRAY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.BOOLEAN;
+import static org.graalvm.polyglot.tck.TypeDescriptor.DATE;
 import static org.graalvm.polyglot.tck.TypeDescriptor.NULL;
 import static org.graalvm.polyglot.tck.TypeDescriptor.NUMBER;
 import static org.graalvm.polyglot.tck.TypeDescriptor.OBJECT;
 import static org.graalvm.polyglot.tck.TypeDescriptor.STRING;
+import static org.graalvm.polyglot.tck.TypeDescriptor.TIME;
+import static org.graalvm.polyglot.tck.TypeDescriptor.TIME_ZONE;
 import static org.graalvm.polyglot.tck.TypeDescriptor.array;
 import static org.graalvm.polyglot.tck.TypeDescriptor.executable;
 import static org.graalvm.polyglot.tck.TypeDescriptor.intersection;
@@ -81,7 +84,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         // Everything but interop primitives have members in Ruby, so they are also OBJECT
         vals.add(createValueConstructor(context, "Rational(1, 3)", OBJECT));
         vals.add(createValueConstructor(context, "Complex(1, 2)", OBJECT));
-        // vals.add(createValueConstructor(context, "Time.now", DATE_TIME_ZONE_OBJECT)); // GR-27681
+        vals.add(createValueConstructor(context, "Time.now", DATE_TIME_ZONE_OBJECT));
         vals.add(createValueConstructor(context, "[1, 2]", NUMBER_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[1.2, 3.4]", NUMBER_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[1<<33, 1<<34]", NUMBER_ARRAY_OBJECT));
@@ -286,7 +289,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         }
     }
 
-    // private static final TypeDescriptor DATE_TIME_ZONE_OBJECT = intersection(OBJECT, DATE, TIME, TIME_ZONE);
+    private static final TypeDescriptor DATE_TIME_ZONE_OBJECT = intersection(OBJECT, DATE, TIME, TIME_ZONE);
     private static final TypeDescriptor ARRAY_OBJECT = intersection(OBJECT, ARRAY);
     private static final TypeDescriptor NUMBER_ARRAY_OBJECT = intersection(OBJECT, array(NUMBER));
 
