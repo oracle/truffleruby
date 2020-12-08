@@ -1,3 +1,20 @@
+# 21.1.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+
+Changes:
+
+
 # 21.0.0
 
 New features:
@@ -48,9 +65,6 @@ Changes:
 * All `InteropLibrary` messages are now exposed consistently as methods on `Truffle::Interop` (#2139). Some methods were renamed to match the scheme described in the documentation.
 
 # 20.3.0
-
-New features:
-
 
 Bug fixes:
 
