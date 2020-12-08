@@ -38,6 +38,7 @@ Fixnum = Bignum = Integer
 Object.deprecate_constant :Fixnum, :Bignum
 
 class Integer < Numeric
+  FIXNUM_MAX = 0x3fffffff
 
   # Have a copy in Integer of the Numeric version, as MRI does
   alias_method :remainder, :remainder
@@ -59,9 +60,73 @@ class Integer < Numeric
     redo_coerced :**, o
   end
 
-  def [](index)
-    index = Primitive.rb_to_int(index)
-    index < 0 ? 0 : (self >> index) & 1
+  def [](index, len = undefined)
+    def cmp(a, b)
+      return FIXNUM_MAX if Primitive.nil?(b)
+      return a - b
+    end
+    def fix_aref(num, idx)
+      val = Primitive.rb_num2long(num)
+      idx = Primitive.rb_to_int idx
+      if !Truffle::Type.fits_into_long?(idx)
+        if idx < 0 || val >= 0
+          return 0
+        else
+          return 1
+        end
+      end
+      return 0 if idx < 0
+      return 1 if (val & (1 << idx) > 0)
+      return 0
+    end
+    if index.kind_of?(Range)
+      exclude_end = index.exclude_end?
+      lm = index.begin
+      rm = index.end
+      if Primitive.nil?(lm)
+        if !Primitive.nil?(rm) && rm >= 0
+          rm += 1 if !exclude_end
+          mask = (1 << rm) - 1
+          if (self & mask) == 0
+            return 0
+          else
+            raise ArgumentError,
+                  "The beginless range for Integer#[] results in infinity"
+          end
+        else
+          return 0
+        end
+      end
+      num = self >> lm
+      cmp = cmp(lm, rm)
+      if !Primitive.nil?(rm) && cmp < 0
+        len = rm - lm
+
+        len += 1 if !exclude_end
+
+        mask = (1 << len) - 1
+        num = num & mask
+      elsif cmp == 0
+        return 0 if exclude_end
+        num = self
+        arg = lm
+        return Truffle::Type.fits_into_long?(num) ? fix_aref(num, arg) : self[lm]
+
+      end
+      num
+
+    else
+      index = Primitive.rb_to_int(index)
+      if Primitive.undefined?(len)
+
+        return index < 0 ? 0 : (self >> index) & 1
+      else
+        num = self >> index
+        mask = (1 << len) - 1
+
+        return num & mask
+      end
+    end
   end
 
   def allbits?(mask)
