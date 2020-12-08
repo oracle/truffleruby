@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Implemented `$LOAD_PATH.resolve_feature_path`.
 
 Performance:
 
