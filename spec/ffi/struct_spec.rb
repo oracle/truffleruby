@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 #
 # This file is part of ruby-ffi.
 # For licensing, see LICENSE.SPECS
@@ -58,7 +59,6 @@ module StructSpecsStructTests
         attach_function :ptr_ret_int32_t, :ptr_ret___int32_t, [ :pointer, :int ], :int
       end
       attach_function :ptr_from_address, [ :ulong ], :pointer
-      attach_function :string_equals, [ :string, :string ], :int
       [ 's8', 's16', 's32', 's64', 'f32', 'f64', 'long' ].each do |t|
         attach_function "struct_align_#{t}", [ :pointer ], StructTypes[t]
       end
@@ -184,21 +184,18 @@ module StructSpecsStructTests
       expect(mp.get_int64(4)).to eq(0xfee1deadbeef)
     end
 
-    rb_maj, rb_min = RUBY_VERSION.split('.')
-    if rb_maj.to_i >= 1 && rb_min.to_i >= 9 || RUBY_PLATFORM =~ /java/
-      it "Struct#layout withs with a hash of :name => type" do
-        class HashLayout < FFI::Struct
-          layout :a => :int, :b => :long_long
-        end
-        ll_off = (FFI::TYPE_UINT64.alignment == 4 ? 4 : 8)
-        expect(HashLayout.size).to eq(ll_off + 8)
-        mp = FFI::MemoryPointer.new(HashLayout.size)
-        s = HashLayout.new mp
-        s[:a] = 0x12345678
-        expect(mp.get_int(0)).to eq(0x12345678)
-        s[:b] = 0xfee1deadbeef
-        expect(mp.get_int64(ll_off)).to eq(0xfee1deadbeef)
+    it "Struct#layout withs with a hash of :name => type" do
+      class HashLayout < FFI::Struct
+        layout :a => :int, :b => :long_long
       end
+      ll_off = (FFI::TYPE_UINT64.alignment == 4 ? 4 : 8)
+      expect(HashLayout.size).to eq(ll_off + 8)
+      mp = FFI::MemoryPointer.new(HashLayout.size)
+      s = HashLayout.new mp
+      s[:a] = 0x12345678
+      expect(mp.get_int(0)).to eq(0x12345678)
+      s[:b] = 0xfee1deadbeef
+      expect(mp.get_int64(ll_off)).to eq(0xfee1deadbeef)
     end
 
     it "subclass overrides initialize without calling super" do
@@ -709,7 +706,7 @@ describe FFI::Struct, ' with a nested array of structs'  do
 end
 
 # struct by value not yet supported on TruffleRuby
-describe FFI::Struct, ' by value', :if => RUBY_ENGINE != "truffleruby" do
+describe FFI::Struct, ' by value' do
   module LibTest
     extend FFI::Library
     ffi_lib TestLibrary::PATH
@@ -731,7 +728,7 @@ describe FFI::Struct, ' by value', :if => RUBY_ENGINE != "truffleruby" do
     attach_function :struct_s8s32_ret_s8s32, [ S8S32.by_value ], S8S32.by_value
     attach_function :struct_s32_ptr_s32_s8s32_ret_s32, [ :int, :pointer, :int, S8S32.by_value ], :int
     attach_function :struct_varargs_ret_struct_string, [ :int, :varargs ], StructString.by_value
-  end if RUBY_ENGINE != "truffleruby"
+  end
 
   it 'return using pre-set values' do
     s = LibTest.struct_return_s8s32
@@ -804,7 +801,7 @@ describe FFI::Struct, ' by value', :if => RUBY_ENGINE != "truffleruby" do
     expect(s[:len]).to eq(string.length)
     expect(s[:bytes]).to eq(string)
   end
-end
+end if RUBY_ENGINE != "truffleruby"
 
 describe FFI::Struct, ' with an array field'  do
   module LibTest
@@ -862,14 +859,14 @@ describe FFI::Struct, ' with a char array field'  do
 
   before do
     @s = LibTest::StructWithCharArray.new
-    @s.pointer.write_bytes([0, 1, 2, 3, 4, 0].pack("lC4l"))
+    @s.pointer.write_bytes([-1, 1, 2, 0, 255, -2].pack("lC4l"))
   end
 
   it 'should read values from memory' do
-    expect(@s[:before]).to eq(0)
-    expect(@s[:str].to_a).to eq([1, 2, 3, 4])
-    expect(@s[:str].to_s).to eq("\x01\x02\x03\x04".b)
-    expect(@s[:after]).to eq(0)
+    expect(@s[:before]).to eq(-1)
+    expect(@s[:str].to_a).to eq([1, 2, 0, -1])
+    expect(@s[:str].to_s).to eq("\x01\x02".b)
+    expect(@s[:after]).to eq(-2)
   end
 
   it 'should return the number of elements in the array field' do
@@ -877,7 +874,7 @@ describe FFI::Struct, ' with a char array field'  do
   end
 
   it 'should allow iteration through the array elements' do
-    @s[:str].each_with_index { |elem, i| expect(elem).to eq(i+1) }
+    @s[:str].each_with_index { |elem, i| expect(elem).to eq([1, 2, 0, -1][i]) }
   end
 
   it 'should return the pointer to the array' do
@@ -885,22 +882,21 @@ describe FFI::Struct, ' with a char array field'  do
   end
 
   it 'allows writing a shorter String to the char array' do
-    @s[:str] = "abc"
-    expect(@s[:before]).to eq(0)
-    expect(@s[:str].to_s).to eq("abc")
-    expect(@s[:after]).to eq(0)
+    @s[:str] = "äc"
+    expect(@s[:before]).to eq(-1)
+    expect(@s[:str].to_s).to eq("äc".b)
+    expect(@s[:after]).to eq(-2)
   end
 
   it 'allows writing a String of the same size to the char array' do
-    @s[:after] = -1
-    @s[:str] = "abcd"
-    expect(@s[:before]).to eq(0)
-    expect(@s[:str].to_s).to eq("abcd")
-    expect(@s[:after]).to eq(-1) # The above should not write to the next field
+    @s[:str] = "äcd"
+    expect(@s[:before]).to eq(-1)
+    expect(@s[:str].to_s).to eq("äcd".b)
+    expect(@s[:after]).to eq(-2) # The above should not write to the next field
   end
 
   it 'raises when writing a longer String to the char array' do
-    expect { @s[:str] = "abcdefg" }.to raise_error(IndexError)
+    expect { @s[:str] = "äcde" }.to raise_error(IndexError)
   end
 end
 
@@ -1030,4 +1026,58 @@ describe "variable-length arrays" do
     expect { expect(s[:data][1]).to == 0x12345678 }.to raise_error(IndexError)
   end
 end
+
+describe "Struct order" do
+  before :all do
+    @struct = Class.new(FFI::Struct) do
+      layout :value, :int32
+    end
+  end
+
+  before :each do
+    @pointer = @struct.new
+    @pointer.pointer.write_bytes("\x1\x2\x3\x4")
+    @pointer
+  end
+
+  it "should return the system order by default" do
+    expect(@pointer.order).to eq(OrderHelper::ORDER)
+  end
+
+  it "should return a new struct if there is no change" do
+    expect(@pointer.order(OrderHelper::ORDER)).to_not be @pointer
+  end
+
+  it "should return a new struct if there is a change" do
+    expect(@pointer.order(OrderHelper::OTHER_ORDER)).to_not be @pointer
+  end
+
+  it "can be set to :little" do
+    expect(@pointer.order(:little).order).to eq(:little)
+  end
+
+  it "can be set to :big" do
+    expect(@pointer.order(:big).order).to eq(:big)
+  end
+
+  it "can be set to :network, which sets it to :big" do
+    expect(@pointer.order(:network).order).to eq(:big)
+  end
+
+  it "cannot be set to other symbols" do
+    expect { @pointer.order(:unknown) }.to raise_error(ArgumentError)
+  end
+
+  it "can be used to read in little order" do
+    expect(@pointer.order(:little)[:value]).to eq(67305985)
+  end
+
+  it "can be used to read in big order" do
+    expect(@pointer.order(:big)[:value]).to eq(16909060)
+  end
+
+  it "can be used to read in network order" do
+    expect(@pointer.order(:network)[:value]).to eq(16909060)
+  end
+end if RUBY_ENGINE != "truffleruby"
 end

@@ -64,6 +64,20 @@ describe "Library" do
     end
   end
 
+  if RbConfig::CONFIG['host_os'] =~ /mingw/
+    # See https://github.com/ffi/ffi/issues/788
+    it "libc functions shouldn't call an invalid parameter handler" do
+      mod = Module.new do
+        extend FFI::Library
+        ffi_lib 'c'
+        attach_function(:get_osfhandle, :_get_osfhandle, [:int], :intptr_t)
+      end
+
+      expect( mod.get_osfhandle(42) ).to eq(-1)
+    end
+  end
+
+
   describe "ffi_lib" do
     it "empty name list should raise error" do
       expect {
@@ -74,6 +88,31 @@ describe "Library" do
       }.to raise_error(LoadError)
     end
 
+    it "interprets INPUT() in loader scripts", unless: FFI::Platform.windows? do
+      path = File.dirname(TestLibrary::PATH)
+      file = File.basename(TestLibrary::PATH)
+      script = File.join(path, "ldscript.so")
+      File.write script, "INPUT(#{file});\n"
+
+      m = Module.new do |m|
+        m.extend FFI::Library
+        ffi_lib script
+      end
+      expect(m.ffi_libraries.map(&:name)).to eq([file])
+    end
+
+    it "raises LoadError on garbage in library file" do
+      path = File.dirname(TestLibrary::PATH)
+      garbage = File.join(path, "garbage.so")
+      File.binwrite garbage, "\xDE\xAD\xBE\xEF"
+
+      expect {
+        Module.new do |m|
+          m.extend FFI::Library
+          ffi_lib garbage
+        end
+      }.to raise_error(LoadError)
+    end
   end
 
   unless RbConfig::CONFIG['target_os'] =~ /mswin|mingw/
