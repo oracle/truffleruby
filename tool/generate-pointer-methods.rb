@@ -170,7 +170,7 @@ RUBY
     add_aliases.call(:get_array_of)
 
     code << <<-RUBY
-  def put_array_of_#{type}(ary)
+  def put_array_of_#{type}(offset, ary)
     (self + offset).write_array_of_#{type}(ary)
     self
   end
