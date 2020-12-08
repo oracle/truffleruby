@@ -17,6 +17,10 @@ Changes:
 
 # 21.0.0
 
+Release notes:
+
+* The new IRB is quite slow when copy/pasting code into it. This is due to an inefficient `io/console` implementation which will be adressed in the next release.
+
 New features:
 
 * Updated to Ruby 2.7.2 (#2004).
