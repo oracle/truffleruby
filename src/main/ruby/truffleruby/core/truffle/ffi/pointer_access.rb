@@ -88,7 +88,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_int8, :get_array_of_char
 
-  def put_array_of_char(ary)
+  def put_array_of_char(offset, ary)
     (self + offset).write_array_of_char(ary)
     self
   end
@@ -145,7 +145,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_uint8, :get_array_of_uchar
 
-  def put_array_of_uchar(ary)
+  def put_array_of_uchar(offset, ary)
     (self + offset).write_array_of_uchar(ary)
     self
   end
@@ -202,7 +202,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_int16, :get_array_of_short
 
-  def put_array_of_short(ary)
+  def put_array_of_short(offset, ary)
     (self + offset).write_array_of_short(ary)
     self
   end
@@ -259,7 +259,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_uint16, :get_array_of_ushort
 
-  def put_array_of_ushort(ary)
+  def put_array_of_ushort(offset, ary)
     (self + offset).write_array_of_ushort(ary)
     self
   end
@@ -316,7 +316,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_int32, :get_array_of_int
 
-  def put_array_of_int(ary)
+  def put_array_of_int(offset, ary)
     (self + offset).write_array_of_int(ary)
     self
   end
@@ -373,7 +373,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_uint32, :get_array_of_uint
 
-  def put_array_of_uint(ary)
+  def put_array_of_uint(offset, ary)
     (self + offset).write_array_of_uint(ary)
     self
   end
@@ -437,7 +437,7 @@ class Truffle::FFI::Pointer
   alias_method :get_array_of_int64, :get_array_of_long
   alias_method :get_array_of_long_long, :get_array_of_long
 
-  def put_array_of_long(ary)
+  def put_array_of_long(offset, ary)
     (self + offset).write_array_of_long(ary)
     self
   end
@@ -502,7 +502,7 @@ class Truffle::FFI::Pointer
   alias_method :get_array_of_uint64, :get_array_of_ulong
   alias_method :get_array_of_ulong_long, :get_array_of_ulong
 
-  def put_array_of_ulong(ary)
+  def put_array_of_ulong(offset, ary)
     (self + offset).write_array_of_ulong(ary)
     self
   end
@@ -560,7 +560,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_float32, :get_array_of_float
 
-  def put_array_of_float(ary)
+  def put_array_of_float(offset, ary)
     (self + offset).write_array_of_float(ary)
     self
   end
@@ -617,7 +617,7 @@ class Truffle::FFI::Pointer
   end
   alias_method :get_array_of_float64, :get_array_of_double
 
-  def put_array_of_double(ary)
+  def put_array_of_double(offset, ary)
     (self + offset).write_array_of_double(ary)
     self
   end
@@ -681,7 +681,7 @@ class Truffle::FFI::Pointer
     (self + offset).read_array_of_pointer(length)
   end
 
-  def put_array_of_pointer(ary)
+  def put_array_of_pointer(offset, ary)
     (self + offset).write_array_of_pointer(ary)
     self
   end

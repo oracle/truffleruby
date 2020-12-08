@@ -141,6 +141,12 @@ module FFI
       "#{LIBPREFIX}c.#{LIBSUFFIX}"
     end
 
+    LITTLE_ENDIAN = 1234 unless defined?(LITTLE_ENDIAN)
+    BIG_ENDIAN = 4321 unless defined?(BIG_ENDIAN)
+    unless defined?(BYTE_ORDER)
+      BYTE_ORDER = [0x12345678].pack("I") == [0x12345678].pack("N") ? BIG_ENDIAN : LITTLE_ENDIAN
+    end
+
     # Test if current OS is a *BSD (include MAC)
     # @return [Boolean]
     def self.bsd?

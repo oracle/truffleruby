@@ -10,21 +10,23 @@ describe "String tests" do
     extend FFI::Library
     ffi_lib TestLibrary::PATH
     attach_function :ptr_ret_pointer, [ :pointer, :int], :string
-    attach_function :string_equals, [ :string, :string ], :int
-    attach_function :pointer_string_equals, :string_equals, [ :pointer, :string ], :int
+    attach_function :pointer_buffer_equals, :buffer_equals, [ :pointer, :string, :size_t ], :int
     attach_function :string_dummy, [ :string ], :void
     attach_function :string_null, [ ], :string
   end
 
   it "A String can be passed to a :pointer argument" do
     str = "string buffer"
-    expect(StrLibTest.pointer_string_equals(str, str)).to eq(1)
-    expect(StrLibTest.pointer_string_equals(str + "a", str)).to eq(0)
+    expect(StrLibTest.pointer_buffer_equals(str, str, str.bytesize)).to eq(1)
+    expect(StrLibTest.pointer_buffer_equals(str + "a", str + "a", str.bytesize + 1)).to eq(1)
+    expect(StrLibTest.pointer_buffer_equals(str + "\0", str, str.bytesize + 1)).to eq(1)
+    expect(StrLibTest.pointer_buffer_equals(str + "a", str + "b", str.bytesize + 1)).to eq(0)
   end
 
   it "Poison null byte raises error" do
     s = "123\0abc"
-    expect { StrLibTest.string_equals(s, s) }.to raise_error(ArgumentError)
+    expect{ StrLibTest.pointer_buffer_equals("", s, 0) }.to raise_error(ArgumentError)
+    expect( StrLibTest.pointer_buffer_equals(s, "", 0) ).to eq(1)
   end
 
   it "casts nil as NULL pointer" do

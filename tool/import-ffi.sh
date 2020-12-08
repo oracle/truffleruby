@@ -9,11 +9,15 @@ cp "$repo/LICENSE" doc/legal/ffi.txt
 
 # lib/
 rm -rf lib/truffle/ffi
-cp -R ../../ffi/lib/ffi lib/truffle
+cp -R "$repo/lib/ffi" lib/truffle
 
 # Keep the empty pointer.rb file, these methods are already defined in core
 # and they need to be in core as there are usages in core.
 git checkout lib/truffle/ffi/pointer.rb
+
+# Only keep files for the platforms TruffleRuby supports (see NativeConfiguration)
+rm -rf lib/truffle/ffi/platform/*
+cp -R "$repo"/lib/ffi/platform/{x86_64-darwin,x86_64-linux,aarch64-linux} lib/truffle/ffi/platform
 
 # spec/
 rm -rf spec/ffi
