@@ -1,2 +1,1 @@
 fails:The rescue keyword raises SyntaxError when else is used without rescue and ensure
-fails:The rescue keyword inline form rescues with multiple assignment

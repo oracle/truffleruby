@@ -122,14 +122,14 @@ module Process
             raise Errno::EINVAL
           else
             res_for_id = Truffle::POSIX.truffleposix_clock_getres(id)
-            if res_for_id == 0 then
+            if res_for_id == 0
               Errno.handle
             else
               res_for_id
             end
           end
 
-    if :hertz == unit then
+    if :hertz == unit
       1.0 / nanoseconds_to_unit(res,:float_second)
     else
       nanoseconds_to_unit(res,unit)

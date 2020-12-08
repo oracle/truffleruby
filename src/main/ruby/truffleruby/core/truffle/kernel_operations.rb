@@ -78,8 +78,24 @@ module Truffle
         if v && !Primitive.object_kind_of?(v, String)
           raise TypeError, '$, must be a String'
         end
+        warn "`$,' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
         Primitive.global_variable_set :$,, v
       })
+
+    define_read_only_global(:'$-W',
+      -> {
+        case $VERBOSE
+        when nil
+          0
+        when false
+          1
+        when true
+          2
+        else
+          nil
+        end
+      })
+
 
     $, = nil # It should be defined by the time boot has finished.
 
@@ -125,6 +141,14 @@ module Truffle
       -> v {
         raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stderr, v
+      })
+
+    define_hooked_variable(
+      :"$;",
+      -> { Primitive.global_variable_get :"$;" },
+      -> v {
+        warn "`$;' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
+        Primitive.global_variable_set :"$;", v
       })
 
     def self.load_error(name)

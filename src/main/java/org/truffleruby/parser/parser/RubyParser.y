@@ -434,6 +434,10 @@ stmt            : keyword_alias fitem {
                     value_expr(lexer, $3);
                     $$ = support.node_assign($1, $3);
                 }
+                | mlhs '=' mrhs_arg modifier_rescue stmt {
+                    value_expr(lexer, $3);
+                    $$ = support.node_assign($1, support.newRescueModNode($3, $5));
+                }
                 | mlhs '=' mrhs_arg {
                     $<AssignableParseNode>1.setValueNode($3);
                     $$ = $1;
