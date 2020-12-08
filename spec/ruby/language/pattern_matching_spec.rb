@@ -130,6 +130,19 @@ ruby_version_is "2.7" do
       }.should raise_error(SyntaxError, /unexpected/)
     end
 
+    it "evaluates the case expression once for multiple patterns, caching the result" do
+      eval(<<~RUBY).should == true
+        case (ScratchPad << :foo; 1)
+        in 0
+          false
+        in 1
+          true
+        end
+      RUBY
+
+      ScratchPad.recorded.should == [:foo]
+    end
+
     describe "guards" do
       it "supports if guard" do
         eval(<<~RUBY).should == false
