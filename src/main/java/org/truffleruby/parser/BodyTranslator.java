@@ -526,7 +526,10 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        final RubyNode translated = translateCallNode(node, false, false, false);
+        // Allow private getter method, self, as the receiver
+        final Boolean isFromSelfOrLocalNode = (receiver instanceof SelfParseNode) || (receiver instanceof LocalVarParseNode);
+
+        final RubyNode translated = translateCallNode(node, isFromSelfOrLocalNode, false, false);
 
         // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
         //  but can't figure it out here
