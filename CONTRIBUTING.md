@@ -6,8 +6,15 @@ See the [building instructions](doc/contributor/workflow.md) to build TruffleRub
 
 ## Contributor Agreement
 
-You will need to sign the Oracle Contributor Agreement for us to able to merge
-your work: http://www.graalvm.org/community/contributors/
+You will need to sign the [Oracle Contributor Agreement](https://www.oracle.com/technical-resources/oracle-contributor-agreement.html)
+for us to able to review and merge your work.
+
+Note that you can use for example the Adobe Fill & Sign app on a mobile phone or tablet so you don't need to print and scan.
+Also note both the `Telephone` and `Email` need to be provided in the same field in the form.
+There are plans to make this process easier using an online form, but that is not yet available.
+
+See [Contribute to GraalVM](https://www.graalvm.org/community/contributors/#ii-sign-the-oracle-contributor-agreement)
+for more details.
 
 We also have a [code of conduct for contributors](http://www.graalvm.org/community/conduct/).
 
