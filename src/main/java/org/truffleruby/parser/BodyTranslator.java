@@ -527,7 +527,7 @@ public class BodyTranslator extends Translator {
         }
 
         // Allow private getter method, self, as the receiver
-        final Boolean isFromSelfOrLocalNode = (receiver instanceof SelfParseNode) || (receiver instanceof LocalVarParseNode);
+        final boolean isFromSelfOrLocalNode = (receiver instanceof SelfParseNode) || (receiver instanceof LocalVarParseNode);
 
         final RubyNode translated = translateCallNode(node, isFromSelfOrLocalNode, false, false);
 
