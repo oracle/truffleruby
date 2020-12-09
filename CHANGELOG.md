@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `$LOAD_PATH.resolve_feature_path`.
+* Fixed issue with large `Integer`s in `Math.log` (#2184).
 
 Performance:
 

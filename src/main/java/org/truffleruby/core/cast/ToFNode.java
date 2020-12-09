@@ -10,8 +10,9 @@
 
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -46,18 +47,13 @@ public abstract class ToFNode extends RubyContextNode {
     }
 
     @Specialization
-    protected double coerceBoolean(boolean value,
-            @Cached BranchProfile errorProfile) {
-        return coerceObject(value, errorProfile);
+    protected double coerceRubyBignum(RubyBignum value) {
+        return BigIntegerOps.doubleValue(value);
     }
 
-    @Specialization
-    protected double coerceDynamicObject(RubyDynamicObject object,
+    @Specialization(guards = { "!isRubyBignum(object)", "!isBasicNumber(object)" })
+    protected double coerceObject(Object object,
             @Cached BranchProfile errorProfile) {
-        return coerceObject(object, errorProfile);
-    }
-
-    private double coerceObject(Object object, BranchProfile errorProfile) {
         if (toFNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toFNode = insert(DispatchNode.create());
