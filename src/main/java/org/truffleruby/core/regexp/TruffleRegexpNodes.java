@@ -226,6 +226,7 @@ public class TruffleRegexpNodes {
                     return "UTF-8";
                 case "US-ASCII":
                 case "ASCII-8BIT":
+                case "ISO-8859-1":
                     return "LATIN-1";
                 default:
                     return null;
