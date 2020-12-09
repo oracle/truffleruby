@@ -16,7 +16,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.Source;
 import org.graalvm.options.OptionDescriptors;
 import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -207,6 +212,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape truffleFFIPointerShape = createShape(RubyPointer.class);
     public final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
     public final Shape weakMapShape = createShape(RubyWeakMap.class);
+
+    @CompilationFinal private Object truffleRegexEngine;
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
@@ -466,6 +473,29 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
         return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
+    }
+
+    public Object getRegexEngine(Env env) {
+        if (truffleRegexEngine == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            truffleRegexEngine = createTRegexEngine(env);
+        }
+        return truffleRegexEngine;
+    }
+
+    @TruffleBoundary
+    public static Object createTRegexEngine(Env env) {
+        Source engineBuilderRequest = Source
+                .newBuilder("regex", "", "TRegex Engine Builder Request")
+                .internal(true)
+                .build();
+        Object regexEngineBuilder = env.parseInternal(engineBuilderRequest).call();
+        String regexOptions = "Flavor=Ruby";
+        try {
+            return InteropLibrary.getFactory().getUncached().execute(regexEngineBuilder, regexOptions);
+        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
+            throw new IllegalStateException("Failed to create regexp engine", e);
+        }
     }
 
 }

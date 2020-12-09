@@ -158,8 +158,6 @@ public class RubyContext {
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
 
-    @CompilationFinal private Object truffleRegexEngine;
-
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
     private static boolean isPreInitializingContext() {
@@ -869,31 +867,6 @@ public class RubyContext {
             } else {
                 return filename;
             }
-        }
-    }
-
-    private static final String REGEX_LANGUAGE_ID = "regex";
-
-    public Object getRegexEngine() {
-        if (truffleRegexEngine == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            truffleRegexEngine = createTRegexEngine(getEnv());
-        }
-        return truffleRegexEngine;
-    }
-
-    @TruffleBoundary
-    public static Object createTRegexEngine(Env env) {
-        Source engineBuilderRequest = Source
-                .newBuilder(REGEX_LANGUAGE_ID, "", "TRegex Engine Builder Request")
-                .internal(true)
-                .build();
-        Object regexEngineBuilder = env.parseInternal(engineBuilderRequest).call();
-        String regexOptions = "Flavor=Ruby";
-        try {
-            return InteropLibrary.getFactory().getUncached().execute(regexEngineBuilder, regexOptions);
-        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
-            throw new IllegalStateException("Failed to create regexp engine", e);
         }
     }
 

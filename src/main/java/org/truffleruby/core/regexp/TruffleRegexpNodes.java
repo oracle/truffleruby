@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -25,6 +26,7 @@ import org.joni.Option;
 import org.joni.Regex;
 import org.joni.Region;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -236,7 +238,8 @@ public class TruffleRegexpNodes {
         @Specialization
         @TruffleBoundary
         protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding,
-                @CachedLibrary(limit = "1") InteropLibrary libInterop) {
+                @CachedLibrary(limit = "1") InteropLibrary libInterop,
+                @CachedLanguage RubyLanguage rubyLanguage) {
             return re.tregexCache.getOrCreate(atStart, encoding.encoding, (sticky, enc) -> {
                 String processedRegexpSource;
                 Encoding[] fixedEnc = new Encoding[]{ null };
@@ -267,7 +270,11 @@ public class TruffleRegexpNodes {
 
                 try {
                     return libInterop
-                            .execute(getContext().getRegexEngine(), processedRegexpSource, flags, tRegexEncoding);
+                            .execute(
+                                    rubyLanguage.getRegexEngine(getContext().getEnv()),
+                                    processedRegexpSource,
+                                    flags,
+                                    tRegexEncoding);
                 } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
                     throw new IllegalStateException("Failed to invoke the regexp engine", e);
                 }
