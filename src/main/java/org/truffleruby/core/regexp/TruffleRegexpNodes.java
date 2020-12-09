@@ -236,14 +236,14 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding,
                 @CachedLibrary(limit = "1") InteropLibrary libInterop) {
-            return re.tregexCache.getOrCreate(new TRegexCache.Key(atStart, encoding.encoding), cacheKey -> {
+            return re.tregexCache.getOrCreate(atStart, encoding.encoding, (sticky, enc) -> {
                 String processedRegexpSource;
                 Encoding[] fixedEnc = new Encoding[]{ null };
                 RopeBuilder ropeBuilder = ClassicRegexp
                         .preprocess(
                                 getContext(),
                                 re.source,
-                                cacheKey.encoding,
+                                enc,
                                 fixedEnc,
                                 RegexpSupport.ErrorMode.RAISE);
                 Rope rope = ropeBuilder.toRope();
@@ -257,9 +257,9 @@ public class TruffleRegexpNodes {
                     return Nil.INSTANCE;
                 }
 
-                String flags = optionsToFlags(re.options, atStart);
+                String flags = optionsToFlags(re.options, sticky);
 
-                String tRegexEncoding = toTRegexEncoding(cacheKey.encoding);
+                String tRegexEncoding = toTRegexEncoding(enc);
                 if (tRegexEncoding == null) {
                     return Nil.INSTANCE;
                 }

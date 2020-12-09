@@ -11,46 +11,26 @@ package org.truffleruby.core.regexp;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.graalvm.collections.Pair;
 import org.jcodings.Encoding;
 import org.truffleruby.collections.ConcurrentOperations;
 
 public class TRegexCache {
 
-    public static class Key {
-        public final boolean sticky;
-        public final Encoding encoding;
-
-        public Key(boolean sticky, Encoding encoding) {
-            this.sticky = sticky;
-            this.encoding = encoding;
-        }
-
-        @Override
-        public int hashCode() {
-            return Boolean.hashCode(sticky) * 31 + encoding.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Key)) {
-                return false;
-            }
-            Key other = (Key) obj;
-            return this.sticky == other.sticky && this.encoding.equals(other.encoding);
-        }
-    }
-
-    private final Map<Key, Object> compiledRegexCache;
+    private final Map<Pair<Boolean, Encoding>, Object> compiledRegexCache;
 
     @TruffleBoundary
     public TRegexCache() {
         this.compiledRegexCache = new ConcurrentHashMap<>();
     }
 
-    public Object getOrCreate(Key cacheKey, Function<Key, Object> function) {
-        return ConcurrentOperations.getOrCompute(compiledRegexCache, cacheKey, function);
+    public Object getOrCreate(boolean sticky, Encoding encoding, BiFunction<Boolean, Encoding, Object> function) {
+        return ConcurrentOperations.getOrCompute(
+                compiledRegexCache,
+                Pair.create(sticky, encoding),
+                (key) -> function.apply(key.getLeft(), key.getRight()));
     }
 }
