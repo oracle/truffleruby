@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -21,7 +22,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
 public abstract class DeleteLastNode extends RubyContextNode {
-    /* For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most recently added key.
+    /* For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most recently added key,
+    because we are using the hash like a stack and guarantee that the last we added is the one we'll want to delete.
     When assertions are enabled checks that the deleted key is the one expected by the user.
     Does not handle blocks. A helper for detect_recursion.  */
 
@@ -35,9 +37,8 @@ public abstract class DeleteLastNode extends RubyContextNode {
 
     @Specialization(guards = "isNullHash(hash)")
     protected Object deleteNull(RubyHash hash, Object key) {
-        assert false;
-
-        return nil;
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException("Cannot delete the last node of an empty hash");
     }
 
     @Specialization(guards = "isPackedHash(hash)")
