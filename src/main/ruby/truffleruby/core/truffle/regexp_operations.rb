@@ -11,9 +11,6 @@
 module Truffle
   module RegexpOperations
 
-    COMPARE_ENGINES = false
-    USE_TRUFFLE_REGEX = true
-
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?
@@ -102,7 +99,7 @@ module Truffle
     end
 
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
-      if COMPARE_ENGINES
+      if Truffle::Boot.get_option('compare-regex-engines')
         begin
           md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
         rescue => e
@@ -122,7 +119,7 @@ module Truffle
           self.print_match_data(md2)
           return self.return_match_data(md2)
         end
-      elsif USE_TRUFFLE_REGEX
+      elsif Truffle::Boot.get_option('use-truffle-regex')
         match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)

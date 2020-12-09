@@ -120,6 +120,9 @@ EXPERT:
     WARN_DEPRECATED: [[warn-deprecated, -W], boolean, false, 'Sets deprecated Warning category']
     WARN_EXPERIMENTAL: [[warn-experimental, -W], boolean, true, 'Sets experimental Warning category']
 
+    # Controlling the regular expression engines
+    USE_TRUFFLE_REGEX: [use-truffle-regex, boolean, true, 'Use the Truffle regular expression engine for Regexp objects']
+
 INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:
     # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher
@@ -217,3 +220,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Options for testing
     TESTING_RUBYGEMS: [testing-rubygems, boolean, false, 'Indicates rubygems is being tested']
+
+    # Options for the regular expression engines
+    COMPARE_REGEX_ENGINES: [compare-regex-engines, boolean, false, 'Uses both Joni and the TRegex engine and compares their results']
