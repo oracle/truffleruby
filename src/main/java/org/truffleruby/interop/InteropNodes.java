@@ -48,7 +48,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -1299,9 +1298,9 @@ public abstract class InteropNodes {
             return InteropNodesFactory.ReadMemberNodeFactory.create(null);
         }
 
-        abstract Object execute(Object receiver, Object identifier);
+        public abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -1325,7 +1324,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -1345,11 +1344,9 @@ public abstract class InteropNodes {
             return InteropNodesFactory.WriteMemberNodeFactory.create(null);
         }
 
-        abstract Object execute(Object receiver, Object identifier, Object value);
+        public abstract Object execute(Object receiver, Object identifier, Object value);
 
-        @Specialization(
-                guards = "isRubySymbolOrString(identifier)",
-                limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1358,6 +1355,34 @@ public abstract class InteropNodes {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             try {
                 receivers.writeMember(receiver, name, valueToForeignNode.executeConvert(value));
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+
+            return value;
+        }
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "write_member_without_conversion", onSingleton = true, required = 3)
+    public abstract static class WriteMemberWithoutConversionNode extends RubySourceNode {
+
+        public static WriteMemberWithoutConversionNode create() {
+            return InteropNodesFactory.WriteMemberWithoutConversionNodeFactory.create(null);
+        }
+
+        public abstract Object execute(Object receiver, Object identifier, Object value);
+
+        @Specialization(limit = "getInteropCacheLimit()")
+        protected Object write(Object receiver, Object identifier, Object value,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ToJavaStringNode toJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            final String name = toJavaStringNode.executeToJavaString(identifier);
+            try {
+                receivers.writeMember(receiver, name, value);
             } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
@@ -1395,7 +1420,7 @@ public abstract class InteropNodes {
             return InteropNodesFactory.InvokeMemberNodeFactory.create(null);
         }
 
-        abstract Object execute(Object receiver, Object identifier, Object[] args);
+        public abstract Object execute(Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getInteropCacheLimit()")
         protected Object invokeCached(Object receiver, Object identifier, Object[] args,
@@ -1655,7 +1680,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
+    @Primitive(name = "interop_java_map?")
     public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isJavaMap(Object value) {

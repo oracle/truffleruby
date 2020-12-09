@@ -27,8 +27,8 @@ describe "Polyglot::InnerContext" do
     Polyglot::InnerContext.new do |context|
       obj = context.eval('ruby', "Object.new")
       Truffle::Interop.should.foreign?(obj)
-      obj.to_s.should.start_with?("#<Ruby #<Object:")
-      obj.inspect.should.start_with?("#<Ruby Object:")
+      obj.to_s.should.start_with?("#<Polyglot::ForeignObject[Ruby] #<Object:")
+      obj.inspect.should.start_with?("#<Polyglot::ForeignObject[Ruby] Object:")
     end
   end
 

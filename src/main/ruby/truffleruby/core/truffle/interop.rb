@@ -55,8 +55,7 @@ module Truffle
     end
 
     def self.members(object, internal = false)
-      keys = members_without_conversion(object, internal)
-      enumerable(keys).map { |key| from_java_string(key) }
+      members_without_conversion(object, internal).map { |key| from_java_string(key) }
     end
 
     def self.get_members_implementation(object, internal)
@@ -85,7 +84,6 @@ module Truffle
 
       keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
-
     private_class_method :get_members_implementation
 
     def self.lookup_symbol(name)
@@ -198,14 +196,6 @@ module Truffle
       ForeignEnumerable.new(foreign)
     end
 
-    class Foreign
-
-      # Currently you cannot add methods here, as method calls on this class
-      # (when the object is indeed foreign) are sent as interop messages,
-      # rather than looking them up in the class.
-
-    end
-
     def self.java_array(*array)
       to_java_array(array)
     end
@@ -228,164 +218,6 @@ module Truffle
       end
     end
 
-    def self.foreign_is_a?(receiver, klass)
-      receiver = Truffle::Interop.unbox_if_needed(receiver)
-      if Truffle::Interop.foreign?(receiver)
-        if Truffle::Interop.java_class?(klass)
-          # Checking against a Java class
-          Truffle::Interop.java_instanceof?(receiver, klass)
-        elsif Truffle::Interop.foreign?(klass)
-          # Checking a foreign (not Java) object against a foreign (not Java) class
-          raise TypeError, 'cannot check if a foreign object is an instance of a foreign class'
-        else
-          # Checking a foreign or Java object against a Ruby class
-          false
-        end
-      else
-        # The receiver unboxed to a Ruby object or a primitive
-        receiver.is_a?(klass)
-      end
-    end
-
-    private_class_method def self.basic_inspect_for(object)
-      if string?(object)
-        object.inspect
-      elsif has_array_elements?(object)
-        '[...]'
-      elsif (java?(object) && java_map?(object)) || has_members?(object)
-        '{...}'
-      else
-        object.inspect
-      end
-    end
-
-    private_class_method def self.recursive_string_for(object)
-      if has_array_elements?(object)
-        '[...]'
-      elsif java?(object) && java_map?(object) || has_members?(object)
-        '{...}'
-      else
-        # This last case should not currently be hit, but could be if we extend inspect with new cases.
-        hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
-        java?(object) ? "<Java:#{hash_code} ...>" : "<Foreign:#{hash_code} ...>"
-      end
-    end
-
-    private_class_method def self.foreign_inspect_nonrecursive(object)
-      object = Truffle::Interop.unbox_if_needed(object)
-
-      hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
-      language = Truffle::Interop.language(object) || 'Foreign'
-
-      if object.is_a?(String)
-        object.inspect
-      elsif Truffle::Interop.null?(object)
-        "#<#{language} null>"
-      elsif Truffle::Interop.java_class?(object)
-        "#<#{language} class #{object.class.getName}>"
-      else
-        string = +"#<#{language}"
-        meta_object = Truffle::Interop.meta_object(object)
-        unless Truffle::Interop::Foreign.equal?(meta_object) # no meta object
-          string << " #{Truffle::Interop.meta_qualified_name meta_object}"
-        end
-
-        if Truffle::Interop.pointer?(object)
-          string << " pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}"
-        else
-          string << ":#{hash_code}"
-        end
-
-        array_or_map = false
-        if Truffle::Interop.has_array_elements?(object)
-          array_or_map = true
-          string << " [#{to_array(object).map { |e| basic_inspect_for e }.join(', ')}]"
-        end
-        if java_map?(object)
-          array_or_map = true
-          string << " {#{pairs_from_java_map(object).map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
-        end
-        if Truffle::Interop.has_members?(object) and !array_or_map
-          pairs = pairs_from_object(object)
-          unless pairs.empty?
-            string << " #{pairs.map { |k, v| "#{k}=#{basic_inspect_for v}" }.join(', ')}"
-          end
-        end
-        if Truffle::Interop.executable?(object)
-          string << ' proc'
-        end
-
-        string << '>'
-      end
-    end
-
-    def self.foreign_inspect(object)
-      return recursive_string_for(object) if Truffle::ThreadOperations.detect_recursion self do
-        return foreign_inspect_nonrecursive(object)
-      end
-    end
-
-    def self.foreign_to_s(object)
-      object = Truffle::Interop.unbox_if_needed(object)
-      if object.is_a?(String)
-        object
-      else
-        language = Truffle::Interop.language(object) || 'Foreign'
-        # Let InteropLibrary#toDisplayString show the class and identity hash code if relevant
-        "#<#{language} #{Truffle::Interop.to_display_string(object)}>"
-      end
-    end
-
-    def self.foreign_to_str(object)
-      # object = as_string object if string? object
-      object = Truffle::Interop.unbox_if_needed(object)
-      if object.is_a?(String)
-        object
-      else
-        raise NoMethodError, 'no method to_str'
-      end
-    end
-
-    def self.foreign_class(receiver, *args)
-      if args.empty?
-        if Truffle::Interop.java_class?(receiver)
-          Truffle::Interop.read_member(receiver, :class)
-        else
-          Truffle::Interop.meta_object(receiver)
-        end
-      else
-        Truffle::Interop.invoke_member(receiver, :class, *args)
-      end
-    end
-
-    def self.foreign_respond_to?(object, name)
-      case name.to_sym
-      when :to_a, :to_ary
-        Truffle::Interop.has_array_elements?(object)
-      when :to_f
-        Truffle::Interop.fits_in_double?(object) || Truffle::Interop.fits_in_long?(object)
-      when :to_i
-        Truffle::Interop.fits_in_int?(object) || Truffle::Interop.fits_in_long?(object)
-      when :new
-        Truffle::Interop.instantiable?(object)
-      when :size
-        Truffle::Interop.has_array_elements?(object)
-      when :keys
-        Truffle::Interop.has_members?(object)
-      when :call
-        Truffle::Interop.executable?(object)
-      when :class
-        Truffle::Interop.java_class?(object)
-      when :to_str
-        object = Truffle::Interop.unbox_if_needed(object)
-        !Truffle::Interop.foreign?(object) && object.is_a?(String)
-      when :inspect, :to_s, :is_a?, :kind_of?
-        true
-      else
-        false
-      end
-    end
-
     def self.to_array(object)
       unless Truffle::Interop.has_array_elements?(object)
         raise 'foreign object returns false for hasArrayElements() and cannot be converted into an array'
@@ -400,19 +232,8 @@ module Truffle
       to_array(array)
     end
 
-    def self.pairs_from_java_map(map)
-      enumerable(map.entrySet.toArray).map do |key_value|
-        [key_value.getKey, key_value.getValue]
-      end
-    end
-
     def self.to_hash(object)
-      Hash[*pairs_from_object(object)]
-    end
-
-    def self.pairs_from_object(object)
-      readable_members = members(object).select { |member| Truffle::Interop.member_readable?(object, member) }
-      readable_members.map { |key| [key, object[key]] }
+      Hash[*Truffle::InteropOperations.pairs_from_object(object)]
     end
 
     def self.unbox_if_needed(object)
@@ -460,7 +281,5 @@ module Truffle
       end
       map
     end
-
   end
-
 end
