@@ -258,9 +258,9 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 .append('\n');
         rubyPrimitives.append("    # language=java").append('\n');
         rubyPrimitives
-                .append("    /** @see ")
+                .append("    \"/** @see ")
                 .append(klass.getQualifiedName().toString())
-                .append(" */")
+                .append(" */\"")
                 .append('\n');
         rubyPrimitives.append("  end").append('\n');
         rubyPrimitives.append('\n');
@@ -361,7 +361,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
         rubyStream.println("  def " + (onSingleton ? "self." : "") + coreMethod.names()[0] + "(" + args + ")");
         rubyStream.println("    # language=java");
-        rubyStream.println("    /** @see " + klass.getQualifiedName().toString() + " */");
+        rubyStream.println("    \"/** @see " + klass.getQualifiedName().toString() + " */\"");
         rubyStream.println("  end");
 
         for (int i = 1; i < coreMethod.names().length; i++) {
