@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.ISO8859_1Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
@@ -205,36 +206,6 @@ public class TruffleRegexpNodes {
     @CoreMethod(names = "tregex_compile", onSingleton = true, required = 3)
     public abstract static class TRegexCompileNode extends CoreMethodArrayArgumentsNode {
 
-        private String optionsToFlags(RegexpOptions options, boolean sticky) {
-            StringBuilder flags = new StringBuilder(3);
-            if (options.isMultiline()) {
-                flags.append('m');
-            }
-            if (options.isIgnorecase()) {
-                flags.append('i');
-            }
-            if (options.isExtended()) {
-                flags.append('x');
-            }
-            if (sticky) {
-                flags.append('y');
-            }
-            return flags.toString();
-        }
-
-        private String toTRegexEncoding(Encoding encoding) {
-            switch (encoding.toString()) {
-                case "UTF-8":
-                    return "UTF-8";
-                case "US-ASCII":
-                case "ASCII-8BIT":
-                case "ISO-8859-1":
-                    return "LATIN-1";
-                default:
-                    return null;
-            }
-        }
-
         @Specialization
         @TruffleBoundary
         protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding,
@@ -258,7 +229,7 @@ public class TruffleRegexpNodes {
                     // BINARY encoding containing characters higher than 127.
                     // Also, some charsets might not be supported on the JVM and therefore
                     // a conversion to j.l.String might be impossible.
-                    return Nil.INSTANCE;
+                    return nil;
                 }
 
                 String flags = optionsToFlags(re.options, sticky);
@@ -279,6 +250,35 @@ public class TruffleRegexpNodes {
                     throw new IllegalStateException("Failed to invoke the regexp engine", e);
                 }
             });
+        }
+
+        private String optionsToFlags(RegexpOptions options, boolean sticky) {
+            StringBuilder flags = new StringBuilder(4);
+            if (options.isMultiline()) {
+                flags.append('m');
+            }
+            if (options.isIgnorecase()) {
+                flags.append('i');
+            }
+            if (options.isExtended()) {
+                flags.append('x');
+            }
+            if (sticky) {
+                flags.append('y');
+            }
+            return flags.toString();
+        }
+
+        private String toTRegexEncoding(Encoding encoding) {
+            if (encoding == UTF8Encoding.INSTANCE) {
+                return "UTF-8";
+            } else if (encoding == USASCIIEncoding.INSTANCE || encoding == ISO8859_1Encoding.INSTANCE) {
+                return "LATIN-1";
+            } else if (encoding == ASCIIEncoding.INSTANCE) {
+                return "BYTES";
+            } else {
+                return null;
+            }
         }
     }
 
