@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `$LOAD_PATH.resolve_feature_path`.
+* Updated `Regexp.last_match` to support `Symbol` and `String` parameter (#2179).
 
 Performance:
 
