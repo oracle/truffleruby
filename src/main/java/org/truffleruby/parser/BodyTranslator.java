@@ -527,7 +527,7 @@ public class BodyTranslator extends Translator {
         }
 
         // Allow private getter method, self, as the receiver
-        final boolean isFromSelfOrLocalNode = (receiver instanceof SelfParseNode) || (receiver instanceof LocalVarParseNode);
+        final boolean isFromSelfOrLocalNode = receiver instanceof SelfParseNode;
 
         final RubyNode translated = translateCallNode(node, isFromSelfOrLocalNode, false, false);
 
@@ -2585,23 +2585,22 @@ public class BodyTranslator extends Translator {
     public RubyNode visitOpAsgnNode(OpAsgnParseNode node) {
         final SourceIndexLength pos = node.getPosition();
 
+        final ValueFromNode receiverValue = valueFromNode(node.getReceiverNode());
+
         final boolean isOrOperator = node.getOperatorName().equals("||");
         if (isOrOperator || node.getOperatorName().equals("&&")) {
             // Why does this ||= or &&= come through as a visitOpAsgnNode and not a visitOpAsgnOrNode?
 
-            final String temp = environment.allocateLocalTemp("opassign");
-            final ParseNode writeReceiverToTemp = new LocalAsgnParseNode(pos, temp, 0, node.getReceiverNode());
-            final ParseNode readReceiverFromTemp = new LocalVarParseNode(pos, 0, temp);
-
             final ParseNode readMethod = new CallParseNode(
                     pos,
-                    readReceiverFromTemp,
+                    receiverValue.get(pos),
                     node.getVariableName(),
                     null,
                     null);
+
             final ParseNode writeMethod = new AttrAssignParseNode(
                     pos,
-                    readReceiverFromTemp,
+                    receiverValue.get(pos),
                     node.getVariableName() + "=",
                     buildArrayNode(
                             pos,
@@ -2615,12 +2614,12 @@ public class BodyTranslator extends Translator {
             RubyNode rhs = writeMethod.accept(this);
 
             final RubyNode controlNode = isOrOperator ? new OrNode(lhs, rhs) : new AndNode(lhs, rhs);
+
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
-                    sequence(
-                            sourceSection,
-                            Arrays.asList(writeReceiverToTemp.accept(this), controlNode)));
+                    receiverValue.prepareAndThen(sourceSection, controlNode));
             ret.unsafeSetSourceSection(sourceSection);
+
             return addNewlineIfNeeded(node, ret);
         }
 
@@ -2629,12 +2628,7 @@ public class BodyTranslator extends Translator {
          *
          * temp = a; temp.foo = temp.foo + c */
 
-        final String temp = environment.allocateLocalTemp("opassign");
-        final ParseNode writeReceiverToTemp = new LocalAsgnParseNode(pos, temp, 0, node.getReceiverNode());
-
-        final ParseNode readReceiverFromTemp = new LocalVarParseNode(pos, 0, temp);
-
-        final ParseNode readMethod = new CallParseNode(pos, readReceiverFromTemp, node.getVariableName(), null, null);
+        final ParseNode readMethod = new CallParseNode(pos, receiverValue.get(pos), node.getVariableName(), null, null);
         final ParseNode operation = new CallParseNode(
                 pos,
                 readMethod,
@@ -2643,27 +2637,22 @@ public class BodyTranslator extends Translator {
                 null);
         final ParseNode writeMethod = new CallParseNode(
                 pos,
-                readReceiverFromTemp,
+                receiverValue.get(pos),
                 node.getVariableName() + "=",
                 buildArrayNode(pos, operation),
                 null);
 
-        final BlockParseNode block = new BlockParseNode(pos);
-        block.add(writeReceiverToTemp);
-
-        final RubyNode writeTemp = writeReceiverToTemp.accept(this);
         RubyNode body = writeMethod.accept(this);
 
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            ReadLocalNode readLocal = environment.findLocalVarNode(temp, sourceSection);
             body = new IfNode(
-                    new NotNode(new IsNilNode(readLocal)),
+                    new NotNode(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
-        final RubyNode ret = sequence(sourceSection, Arrays.asList(writeTemp, body));
+        final RubyNode ret = receiverValue.prepareAndThen(sourceSection, body);
 
         return addNewlineIfNeeded(node, ret);
     }
@@ -3341,6 +3330,73 @@ public class BodyTranslator extends Translator {
         }
 
         return node;
+    }
+
+    private interface ValueFromNode {
+
+        RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent);
+
+        ParseNode get(SourceIndexLength sourceSection);
+
+    }
+
+    private class ValueFromEffectNode implements ValueFromNode {
+
+        private final ParseNode node;
+        private final String temp = environment.allocateLocalTemp("value");
+
+        private boolean sequenced = false;
+
+        public ValueFromEffectNode(ParseNode node) {
+            this.node = node;
+        }
+
+        @Override
+        public RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent) {
+            if (sequenced) {
+                throw new UnsupportedOperationException("don't use a value more than once");
+            }
+            sequenced = true;
+            return sequence(
+                    sourceSection,
+                    Arrays.asList(
+                            new LocalAsgnParseNode(sourceSection, temp, 0, node).accept(BodyTranslator.this),
+                            subsequent));
+        }
+
+        @Override
+        public ParseNode get(SourceIndexLength sourceSection) {
+            return new LocalVarParseNode(sourceSection, 0, temp);
+        }
+
+    }
+
+    private class ValueFromSideEffectFreeNode implements ValueFromNode {
+
+        private final ParseNode node;
+
+        public <T extends ParseNode & SideEffectFree> ValueFromSideEffectFreeNode(T node) {
+            this.node = node;
+        }
+
+        @Override
+        public RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent) {
+            return subsequent;
+        }
+
+        @Override
+        public ParseNode get(SourceIndexLength sourceSection) {
+            return node;
+        }
+
+    }
+
+    private ValueFromNode valueFromNode(ParseNode node) {
+        if (node instanceof SideEffectFree) {
+            return new ValueFromSideEffectFreeNode((ParseNode & SideEffectFree) node);
+        } else {
+            return new ValueFromEffectNode(node);
+        }
     }
 
     @Override
