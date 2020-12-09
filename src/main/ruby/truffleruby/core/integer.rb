@@ -61,11 +61,11 @@ class Integer < Numeric
   end
 
   def [](index, len = undefined)
-    def cmp(a, b)
+    cmp = -> (a, b) {
       return FIXNUM_MAX if Primitive.nil?(b)
       return a - b
-    end
-    def fix_aref(num, idx)
+    }
+    fix_aref = -> (num, idx) {
       val = Primitive.rb_num2long(num)
       idx = Primitive.rb_to_int idx
       if !Truffle::Type.fits_into_long?(idx)
@@ -78,7 +78,8 @@ class Integer < Numeric
       return 0 if idx < 0
       return 1 if (val & (1 << idx) > 0)
       return 0
-    end
+    }
+
     if index.kind_of?(Range)
       exclude_end = index.exclude_end?
       lm = index.begin
@@ -91,14 +92,15 @@ class Integer < Numeric
             return 0
           else
             raise ArgumentError,
-                  "The beginless range for Integer#[] results in infinity"
+                  'The beginless range for Integer#[] results in infinity'
           end
         else
           return 0
         end
       end
       num = self >> lm
-      cmp = cmp(lm, rm)
+      cmp = cmp.call(lm, rm)
+
       if !Primitive.nil?(rm) && cmp < 0
         len = rm - lm
 
@@ -110,15 +112,14 @@ class Integer < Numeric
         return 0 if exclude_end
         num = self
         arg = lm
-        return Truffle::Type.fits_into_long?(num) ? fix_aref(num, arg) : self[lm]
+        return Truffle::Type.fits_into_long?(num) ? fix_aref.call(num, arg) : self[lm]
 
       end
       num
-
     else
+      #not range
       index = Primitive.rb_to_int(index)
       if Primitive.undefined?(len)
-
         return index < 0 ? 0 : (self >> index) & 1
       else
         num = self >> index
