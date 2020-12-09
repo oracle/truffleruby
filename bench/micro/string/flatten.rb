@@ -9,7 +9,7 @@
 if RUBY_ENGINE == 'truffleruby'
   str = "x"
   100.times do
-    str = "ab#{str}yz"[1...-1]
+    str = "ab#{str}yz"
   end
 
   flat = Truffle::Ropes.flatten_rope(str)
