@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `$LOAD_PATH.resolve_feature_path`.
+* Add `Pathname#/` alias to `Pathname#+` (#2178).
 
 Performance:
 

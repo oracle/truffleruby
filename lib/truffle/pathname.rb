@@ -601,6 +601,7 @@ class Pathname
     other = Pathname.new(other) unless Pathname === other
     Pathname.new(plus(@path, other.to_s))
   end
+  alias_method :/, :+
 
   def plus(path1, path2) # -> path
     prefix2 = path2
