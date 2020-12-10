@@ -467,7 +467,7 @@ public abstract class MathNodes {
             return doFunction(a);
         }
 
-        @Specialization
+        @Specialization(guards = { "!isRubyBignum(a)", "!isBasicNumber(a)" })
         protected double function(Object a, NotProvided b,
                 @Cached ToFNode toFNode) {
             if (!isANode.executeIsA(a, coreLibrary().numericClass)) {

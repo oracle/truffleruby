@@ -10,6 +10,7 @@ Compatibility:
 
 * Implemented `$LOAD_PATH.resolve_feature_path`.
 * Add `Pathname#/` alias to `Pathname#+` (#2178).
+* Fixed issue with large `Integer`s in `Math.log` (#2184).
 
 Performance:
 
