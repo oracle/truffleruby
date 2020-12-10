@@ -183,8 +183,8 @@ public abstract class RandomizerNodes {
         protected double randomFloat(RubyRandomizer randomizer) {
             // Logic copied from org.jruby.util.Random
             final Randomizer r = randomizer.randomizer;
-            final int a = randomInt(r) >>> 5;
-            final int b = randomInt(r) >>> 6;
+            final int a = r.genrandInt32() >>> 5;
+            final int b = r.genrandInt32() >>> 6;
             return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
         }
 
@@ -197,13 +197,13 @@ public abstract class RandomizerNodes {
         @Specialization
         protected int randomizerRandInt(RubyRandomizer randomizer, int limit) {
             final Randomizer r = randomizer.randomizer;
-            return (int) randInt(r, limit);
+            return (int) randLimitedFixnumInner(r, limit);
         }
 
         @Specialization
         protected long randomizerRandInt(RubyRandomizer randomizer, long limit) {
             final Randomizer r = randomizer.randomizer;
-            return randInt(r, limit);
+            return randLimitedFixnumInner(r, limit);
         }
 
         @Specialization
@@ -214,10 +214,6 @@ public abstract class RandomizerNodes {
         }
 
         @TruffleBoundary
-        protected static long randInt(Randomizer r, long limit) {
-            return randLimitedFixnumInner(r, limit);
-        }
-
         public static long randLimitedFixnumInner(Randomizer randomizer, long limit) {
             long val;
             if (limit == 0) {
@@ -242,6 +238,7 @@ public abstract class RandomizerNodes {
             return val;
         }
 
+        @TruffleBoundary
         private static BigInteger randLimitedBignum(Randomizer randomizer, BigInteger limit) {
             byte[] buf = BigIntegerOps.toByteArray(limit);
             byte[] bytes = new byte[buf.length];
@@ -366,11 +363,6 @@ public abstract class RandomizerNodes {
 
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
-    }
-
-    @TruffleBoundary
-    private static int randomInt(Randomizer randomizer) {
-        return randomizer.genrandInt32();
     }
 
 }

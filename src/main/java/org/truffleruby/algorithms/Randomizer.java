@@ -26,6 +26,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.algorithms;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public class Randomizer {
 
     private static final int N = 624;
@@ -84,6 +86,7 @@ public class Randomizer {
         return seed;
     }
 
+    @TruffleBoundary
     public int genrandInt32() {
         int y;
 
