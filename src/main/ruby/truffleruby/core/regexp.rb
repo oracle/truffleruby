@@ -80,8 +80,18 @@ class Regexp
   def self.last_match(index=nil)
     match = Primitive.regexp_last_match_get(Primitive.caller_special_variables)
     if index
-      index = Primitive.rb_to_int index
-      match[index] if match
+      if match
+        # cannot delegate all parameter conversion to MatchData#[] due to differing parameter types allowed
+        case index
+        when Symbol, String
+          # no conversion needed
+        else
+          index = Primitive.rb_to_int index
+        end
+        match[index]
+      else
+        nil
+      end
     else
       match
     end
