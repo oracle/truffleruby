@@ -121,7 +121,7 @@ EXPERT:
     WARN_EXPERIMENTAL: [[warn-experimental, -W], boolean, true, 'Sets experimental Warning category']
 
     # Controlling the regular expression engines
-    USE_TRUFFLE_REGEX: [use-truffle-regex, boolean, true, 'Use the Truffle regular expression engine for Regexp objects']
+    USE_TRUFFLE_REGEX: [use-truffle-regex, boolean, false, 'Use the Truffle regular expression engine for Regexp objects']
 
 INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:

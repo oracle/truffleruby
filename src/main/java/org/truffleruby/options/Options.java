@@ -127,7 +127,7 @@ public class Options {
     public final boolean WARN_DEPRECATED;
     /** --warn-experimental=true */
     public final boolean WARN_EXPERIMENTAL;
-    /** --use-truffle-regex=true */
+    /** --use-truffle-regex=false */
     public final boolean USE_TRUFFLE_REGEX;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;

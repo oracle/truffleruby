@@ -76,7 +76,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
