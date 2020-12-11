@@ -172,24 +172,22 @@ public abstract class TruffleBootNodes {
         private RubySource loadMainSourceSettingDollarZero(String kind, String toExecute) {
             final RubySource source;
             final Object dollarZeroValue;
+            final MainLoader mainLoader = new MainLoader(getContext(), getLanguage());
             try {
                 switch (kind) {
                     case "FILE": {
-                        final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
                         dollarZeroValue = utf8(toExecute);
                     }
                         break;
 
                     case "STDIN": {
-                        final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromStandardIn(this, "-");
                         dollarZeroValue = utf8("-");
                     }
                         break;
 
                     case "INLINE": {
-                        final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromCommandLineArgument(toExecute);
                         dollarZeroValue = utf8("-e");
                     }

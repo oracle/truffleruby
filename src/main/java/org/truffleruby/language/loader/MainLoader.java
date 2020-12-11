@@ -14,6 +14,7 @@ import java.io.IOException;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -31,9 +32,11 @@ import com.oracle.truffle.api.source.Source;
 public class MainLoader {
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
-    public MainLoader(RubyContext context) {
+    public MainLoader(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     public RubySource loadFromCommandLineArgument(String code) {
@@ -81,7 +84,7 @@ public class MainLoader {
     }
 
     public RubySource loadFromFile(Env env, Node currentNode, String mainPath) throws IOException {
-        final FileLoader fileLoader = new FileLoader(context);
+        final FileLoader fileLoader = new FileLoader(context, language);
 
         final TruffleFile file = env.getPublicTruffleFile(mainPath);
         FileLoader.ensureReadable(context, file, currentNode);
