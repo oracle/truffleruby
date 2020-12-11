@@ -43,7 +43,7 @@ ruby_version_is "2.7" do
       s.deconstruct_keys([0]      ).should == {0 => 10}
     end
 
-    it "returns a new hash when there are more keys than attributes" do
+    it "returns an empty hash when there are more keys than attributes" do
       struct = Struct.new(:x, :y)
       s = struct.new(1, 2)
 
