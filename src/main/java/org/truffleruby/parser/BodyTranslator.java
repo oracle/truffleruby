@@ -850,7 +850,8 @@ public class BodyTranslator extends Translator {
             final InParseNode in = (InParseNode) node.getCases().get(n);
 
             // JRuby AST always gives InParseNode with only one expression.
-            // "in 1,2; body" gets translated to 2 InParseNode.
+            // "in 1,2; body" gets translated to 2 InParseNode. This is a bug from
+            // us we-using the 'when' parser for 'in' temporarily.
             final ParseNode patternNode = in.getExpressionNodes();
 
             final RubyNode conditionNode = caseInPatternMatch(patternNode, node.getCaseNode(), readTemp, sourceSection);
