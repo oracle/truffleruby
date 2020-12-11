@@ -179,6 +179,7 @@ public abstract class RandomizerNodes {
     @CoreMethod(names = "random_float")
     public static abstract class RandomFloatNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         protected double randomFloat(RubyRandomizer randomizer) {
             // Logic copied from org.jruby.util.Random
