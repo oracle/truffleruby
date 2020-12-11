@@ -68,7 +68,7 @@ public class InParseNode extends ParseNode {
 
     @Override
     public NodeType getNodeType() {
-        return NodeType.WHENNODE;
+        return NodeType.INNODE;
     }
 
     /** Accept for the visitor pattern.

@@ -115,6 +115,7 @@ public enum NodeType {
     VALIASNODE,
     VCALLNODE,
     WHENNODE,
+    INNODE,
     WHILENODE,
     XSTRNODE,
     YIELDNODE,
