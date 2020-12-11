@@ -346,17 +346,16 @@ class Struct
 
     h = {}
     keys.each do |requested_key|
-      symbolized_key = requested_key
       case requested_key
       when Symbol
-        # ok
+        symbolized_key = requested_key
       when String
-        symbolized_key = symbolized_key.to_sym
+        symbolized_key = requested_key.to_sym
       else
-        symbolized_key = check_index_var(symbolized_key)
+        symbolized_key = check_index_var(requested_key)
       end
 
-      if _attrs.include? symbolized_key.to_sym
+      if _attrs.include?(symbolized_key)
         h[requested_key] = Primitive.object_hidden_var_get(self, symbolized_key)
       else
         return h
