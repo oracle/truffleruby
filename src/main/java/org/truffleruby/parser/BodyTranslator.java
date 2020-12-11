@@ -2013,9 +2013,9 @@ public class BodyTranslator extends Translator {
 
         if (readNode == null) {
             /* This happens for code such as:
-             * 
+             *
              * def destructure4r((*c,d)) [c,d] end
-             * 
+             *
              * We're going to just assume that it should be there and add it... */
 
             environment.declareVar(name);

@@ -1154,14 +1154,14 @@ public class ParserSupport {
     }
 
     /** Getter for property inSingle.
-     * 
+     *
      * @return Value of property inSingle. */
     public boolean isInSingle() {
         return inSingleton != 0;
     }
 
     /** Setter for property inSingle.
-     * 
+     *
      * @param inSingle New value of property inSingle. */
     public void setInSingle(int inSingle) {
         this.inSingleton = inSingle;
@@ -1188,28 +1188,28 @@ public class ParserSupport {
     }
 
     /** Getter for property inSingle.
-     * 
+     *
      * @return Value of property inSingle. */
     public int getInSingle() {
         return inSingleton;
     }
 
     /** Gets the result.
-     * 
+     *
      * @return Returns a RubyParserResult */
     public RubyParserResult getResult() {
         return result;
     }
 
     /** Sets the result.
-     * 
+     *
      * @param result The result to set */
     public void setResult(RubyParserResult result) {
         this.result = result;
     }
 
     /** Sets the configuration.
-     * 
+     *
      * @param configuration The configuration to set */
     public void setConfiguration(ParserConfiguration configuration) {
         this.configuration = configuration;
@@ -1516,7 +1516,7 @@ public class ParserSupport {
     }
 
     /** generate parsing error
-     * 
+     *
      * @param message text to be displayed.
      * @param expected list of acceptable tokens, if available. */
     public void yyerror(String message, String[] expected, String found) {
