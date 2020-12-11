@@ -50,7 +50,7 @@ public class ParserCache {
     private static RubySource loadSource(String feature) {
         try {
             final ResourceLoader resourceLoader = new ResourceLoader();
-            return resourceLoader.loadResource(feature, true);
+            return resourceLoader.loadResource(feature, OptionsCatalog.CORE_AS_INTERNAL_KEY.getDefaultValue());
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
