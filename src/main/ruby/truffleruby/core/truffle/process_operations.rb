@@ -61,35 +61,9 @@
 
 module Truffle
   module ProcessOperations
-
-    SHELL_META_CHARS = [
-      '*',  # Pathname Expansion
-      '?',  # Pathname Expansion
-      '{',  # Grouping Commands
-      '}',  # Grouping Commands
-      '[',  # Pathname Expansion
-      ']',  # Pathname Expansion
-      '<',  # Redirection
-      '>',  # Redirection
-      '(',  # Grouping Commands
-      ')',  # Grouping Commands
-      '~',  # Tilde Expansion
-      '&',  # AND Lists, Asynchronous Lists
-      '|',  # OR Lists, Pipelines
-      '\\', # Escape Character
-      '$',  # Parameter Expansion
-      ';',  # Sequential Lists
-      '\'', # Single-Quotes
-      '`',  # Command Substitution
-      '"',  # Double-Quotes
-      "\n", # Lists
-      '#',  # Comment
-      '=',  # Assignment preceding command name
-      '%'   # (used in Parameter Expansion)
-    ]
-    # A simplified version of Regexp.new("[#{SHELL_META_CHARS.map { |c| Regexp.escape(c) }.join}]")
-    # to avoid running too much code during initialization
-    SHELL_META_CHAR_PATTERN = /[*?{}\[\]<>()~&|\\$;'`"\n#=%]/n
+    # See https://github.com/ruby/ruby/blob/v2_7_2/process.c#L2514
+    # '=' is only considered if before the first space
+    SHELL_META_CHAR_PATTERN = /[*?{}\[\]<>()~&|\\$;'`"\n#]|\A\S*=/n
 
     def self.exec(*args)
       exe = Execute.new
