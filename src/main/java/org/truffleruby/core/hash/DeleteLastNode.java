@@ -10,15 +10,10 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
 public abstract class DeleteLastNode extends RubyContextNode {
