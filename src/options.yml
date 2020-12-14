@@ -13,6 +13,7 @@ LANGUAGE_OPTIONS:
 - SHARED_OBJECTS_ENABLED
 - SHARED_OBJECTS_DEBUG
 - SHARED_OBJECTS_FORCE
+- PATTERN_MATCHING
 
 USER:
   STABLE:
@@ -41,6 +42,7 @@ EXPERT:
     PATCHING: [patching, boolean, true, Use patching]
     DID_YOU_MEAN: [did-you-mean, boolean, true, Use did_you_mean]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
+    PATTERN_MATCHING: [pattern-matching, boolean, false, Enable pattern matching syntax]
 
     # Embedding options
     EMBEDDED: [embedded, boolean, true, 'Set default options for an embedded use of TruffleRuby, rather than top-level use']
