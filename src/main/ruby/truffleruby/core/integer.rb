@@ -61,73 +61,55 @@ class Integer < Numeric
   end
 
   def [](index, len = undefined)
-    cmp = -> (a, b) {
-      return FIXNUM_MAX if Primitive.nil?(b)
-      return a - b
-    }
-    fix_aref = -> (num, idx) {
-      val = Primitive.rb_num2long(num)
-      idx = Primitive.rb_to_int idx
-      if !Truffle::Type.fits_into_long?(idx)
-        if idx < 0 || val >= 0
-          return 0
-        else
-          return 1
-        end
-      end
-      return 0 if idx < 0
-      return 1 if (val & (1 << idx) > 0)
-      return 0
-    }
-
     if index.kind_of?(Range)
-      exclude_end = index.exclude_end?
-      lm = index.begin
-      rm = index.end
-      if Primitive.nil?(lm)
-        if !Primitive.nil?(rm) && rm >= 0
-          rm += 1 if !exclude_end
-          mask = (1 << rm) - 1
-          if (self & mask) == 0
-            return 0
-          else
-            raise ArgumentError,
-                  'The beginless range for Integer#[] results in infinity'
-          end
-        else
-          return 0
-        end
-      end
-      num = self >> lm
-      cmp = cmp.call(lm, rm)
-
-      if !Primitive.nil?(rm) && cmp < 0
-        len = rm - lm
-
-        len += 1 if !exclude_end
-
-        mask = (1 << len) - 1
-        num = num & mask
-      elsif cmp == 0
-        return 0 if exclude_end
-        num = self
-        arg = lm
-        return Truffle::Type.fits_into_long?(num) ? fix_aref.call(num, arg) : self[lm]
-
-      end
-      num
+      handle_range(index)
     else
-      #not range
-      index = Primitive.rb_to_int(index)
-      if Primitive.undefined?(len)
-        return index < 0 ? 0 : (self >> index) & 1
-      else
-        num = self >> index
-        mask = (1 << len) - 1
-
-        return num & mask
-      end
+      handle_aref(index, len)
     end
+  end
+
+  private def handle_aref(index, len)
+    index = Primitive.rb_to_int(index)
+    if Primitive.undefined?(len)
+      index < 0 ? 0 : (self >> index) & 1
+    else
+      num = self >> index
+      mask = (1 << len) - 1
+
+      num & mask
+    end
+  end
+
+  private def handle_range(range)
+    normalized_range = normalize_range(range)
+    puts range
+
+    start = normalized_range.begin
+    length = normalized_range.end - normalized_range.begin + 1
+
+    num = self >> start
+    mask = (1 << length) - 1
+    result = num & mask
+    if Primitive.nil?(range.begin)
+      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if result > 0
+      0
+    else
+      result
+    end
+  end
+
+  private def normalize_range(index)
+    raise FloatDomainError , 'Infinity' if index.begin == Float::INFINITY || index.end == Float::INFINITY
+    raise FloatDomainError , '-Infinity' if index.begin == -Float::INFINITY || index.end == -Float::INFINITY
+
+    start, length = Primitive.range_normalized_start_length(index, size)
+    puts start, length
+
+    return Range.new(start, index.end, index.exclude_end?) if Primitive.nil?(index.begin)
+    return Range.new(index.begin, index.begin + length, index.exclude_end?) if Primitive.nil?(index.end)
+    return normalize_range(Range.new(index.begin, nil, index.exclude_end?)) if index.end < 0
+    return normalize_range(Range.new(index.begin, nil, index.exclude_end?)) if index.end < index.begin
+    index
   end
 
   def allbits?(mask)
