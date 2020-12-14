@@ -618,8 +618,8 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected boolean detectRecursionSingle(Object obj, RubyProc block,
-                                                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                                                @Cached("createBinaryProfile()") ConditionProfile containsProfile) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("createBinaryProfile()") ConditionProfile containsProfile) {
             RubyHash objects = getCurrentRubyThreadNode.execute().recursiveObjectsSingle;
             if (containsProfile.profile(add(objects, obj, true))) {
                 try {

@@ -22,10 +22,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
 public abstract class DeleteLastNode extends RubyContextNode {
-    /* For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most recently added key,
-    because we are using the hash like a stack and guarantee that the last we added is the one we'll want to delete.
-    When assertions are enabled checks that the deleted key is the one expected by the user.
-    Does not handle blocks. A helper for detect_recursion.  */
+    /* For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most recently added key, because
+     * we are using the hash like a stack and guarantee that the last we added is the one we'll want to delete. When
+     * assertions are enabled checks that the deleted key is the one expected by the user. Does not handle blocks. A
+     * helper for detect_recursion. */
 
     @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
 
