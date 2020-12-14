@@ -62,18 +62,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
-    public static RubyRandomizer newRandomizer(RubyContext context, RubyLanguage language) {
+    public static RubyRandomizer newRandomizer(RubyContext context, RubyLanguage language, boolean threadSafe) {
         final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
-        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
+        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed, threadSafe);
         return new RubyRandomizer(
                 context.getCoreLibrary().randomizerClass,
                 language.randomizerShape,
-                randomizer);
+                randomizer,
+                threadSafe);
     }
 
     public static void resetSeed(RubyContext context, RubyRandomizer random) {
         final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
-        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
+        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed, random.threadSafe);
         random.randomizer = randomizer;
     }
 
@@ -82,7 +83,15 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
-            return new RubyRandomizer(coreLibrary().randomizerClass, getLanguage().randomizerShape, new Randomizer());
+            // Since this is a manually-created Truffle::Randomizer instance that can be shared by multiple threads,
+            // we enable thread-safe mode in the Randomizer.
+            final boolean threadSafe = true;
+
+            return new RubyRandomizer(
+                    coreLibrary().randomizerClass,
+                    getLanguage().randomizerShape,
+                    new Randomizer(threadSafe),
+                    threadSafe);
         }
 
     }
@@ -102,33 +111,33 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer setSeed(RubyRandomizer randomizer, long seed) {
-            randomizer.randomizer = randomFromLong(seed);
+            randomizer.randomizer = randomFromLong(seed, randomizer.threadSafe);
             return randomizer;
         }
 
         @Specialization
         protected RubyRandomizer setSeed(RubyRandomizer randomizer, RubyBignum seed) {
-            randomizer.randomizer = randomFromBignum(seed);
+            randomizer.randomizer = randomFromBignum(seed, randomizer.threadSafe);
             return randomizer;
         }
 
         @TruffleBoundary
-        public static Randomizer randomFromLong(long seed) {
+        static Randomizer randomFromLong(long seed, boolean threadSafe) {
             long v = Math.abs(seed);
             if (v == (v & 0xffffffffL)) {
-                return new Randomizer(seed, (int) v);
+                return new Randomizer(seed, (int) v, threadSafe);
             } else {
                 int[] ints = new int[2];
                 ints[0] = (int) v;
                 ints[1] = (int) (v >> 32);
-                return new Randomizer(seed, ints);
+                return new Randomizer(seed, ints, threadSafe);
             }
         }
 
-        public static final int N = 624;
+        private static final int N = 624;
 
         @TruffleBoundary
-        public static Randomizer randomFromBignum(RubyBignum seed) {
+        static Randomizer randomFromBignum(RubyBignum seed, boolean threadSafe) {
             BigInteger big = seed.value;
             if (big.signum() < 0) {
                 big = big.abs();
@@ -141,9 +150,9 @@ public abstract class RandomizerNodes {
             int len = Math.min((buflen + 3) / 4, N);
             int[] ints = bigEndianToInts(buf, len);
             if (len <= 1) {
-                return new Randomizer(seed, ints[0]);
+                return new Randomizer(seed, ints[0], threadSafe);
             } else {
-                return new Randomizer(seed, ints);
+                return new Randomizer(seed, ints, threadSafe);
             }
         }
 

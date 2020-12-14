@@ -18,10 +18,12 @@ import com.oracle.truffle.api.object.Shape;
 public final class RubyRandomizer extends RubyDynamicObject {
 
     public Randomizer randomizer;
+    public final boolean threadSafe; // Used to configure new Randomizer instances, e.g. when setting seed manually
 
-    public RubyRandomizer(RubyClass rubyClass, Shape shape, Randomizer randomizer) {
+    public RubyRandomizer(RubyClass rubyClass, Shape shape, Randomizer randomizer, boolean threadSafe) {
         super(rubyClass, shape);
         this.randomizer = randomizer;
+        this.threadSafe = threadSafe;
     }
 
 }

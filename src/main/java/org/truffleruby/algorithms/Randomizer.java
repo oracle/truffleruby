@@ -37,24 +37,26 @@ public class Randomizer {
     private static final int LMASK = 0x7fffffff; /* least significant r bits */
 
     private final int[] state = new int[N];
-
     private int left = 1;
-    private final Object seed;
 
-    public Randomizer() {
-        this(0L, 0);
+    private final Object seed;
+    private final boolean threadSafe;
+
+    public Randomizer(boolean threadSafe) {
+        this(0L, 0, threadSafe);
     }
 
-    public Randomizer(Object seed, int s) {
+    public Randomizer(Object seed, int s, boolean threadSafe) {
         this.seed = seed;
+        this.threadSafe = threadSafe;
         state[0] = s;
         for (int j = 1; j < N; j++) {
             state[j] = (1812433253 * (state[j - 1] ^ (state[j - 1] >>> 30)) + j);
         }
     }
 
-    public Randomizer(Object seed, int[] initKey) {
-        this(seed, 19650218);
+    public Randomizer(Object seed, int[] initKey, boolean threadSafe) {
+        this(seed, 19650218, threadSafe);
         int len = initKey.length;
         int i = 1;
         int j = 0;
@@ -90,7 +92,15 @@ public class Randomizer {
     public int genrandInt32() {
         int y;
 
-        synchronized (this) {
+        if (threadSafe) {
+            synchronized (this) {
+                if (--left <= 0) {
+                    nextState();
+                }
+
+                y = state[N - left];
+            }
+        } else {
             if (--left <= 0) {
                 nextState();
             }
