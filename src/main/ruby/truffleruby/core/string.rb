@@ -616,7 +616,7 @@ class String
     return to_enum :upto, stop, exclusive unless block_given?
     stop = StringValue(stop)
 
-    if stop.size == 1 && size == 1
+    if stop.bytesize == 1 && bytesize == 1 && self.ascii_only? && stop.ascii_only?
       enc = Primitive.encoding_ensure_compatible(self.encoding, stop.encoding)
 
       return self if self > stop

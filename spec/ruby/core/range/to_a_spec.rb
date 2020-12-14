@@ -20,6 +20,10 @@ describe "Range#to_a" do
     (:A..:z).to_a.size.should == 58
   end
 
+  it "works for non-ASCII ranges" do
+    ('Σ'..'Ω').to_a.should == ["Σ", "Τ", "Υ", "Φ", "Χ", "Ψ", "Ω"]
+  end
+
   ruby_version_is "2.6" do
     it "throws an exception for endless ranges" do
       -> { eval("(1..)").to_a }.should raise_error(RangeError)
