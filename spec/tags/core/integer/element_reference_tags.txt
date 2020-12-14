@@ -1,1 +1,0 @@
-fails:Integer#[] fixnum when range passed raises FloatDomainError if any boundary is infinity

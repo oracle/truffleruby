@@ -81,35 +81,40 @@ class Integer < Numeric
   end
 
   private def handle_range(range)
-    normalized_range = normalize_range(range)
-    puts range
+    validate_range(range)
 
-    start = normalized_range.begin
-    length = normalized_range.end - normalized_range.begin + 1
+    if !Primitive.nil?(range.begin) && !Primitive.nil?(range.end)
+      len = range.end - range.begin
+      num = self >> range.begin
+      mask = mask(range, len)
 
-    num = self >> start
-    mask = (1 << length) - 1
-    result = num & mask
-    if Primitive.nil?(range.begin)
-      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if result > 0
-      0
+      return num if range.end < 0
+      return num if range.end < range.begin
+      num & mask
+    elsif Primitive.nil? range.end
+      start = range.begin
+
+      return self >> start
     else
+      result = self & mask(range, range.end)
+      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if result != 0
+
       result
     end
+
   end
 
-  private def normalize_range(index)
+  private def validate_range(index)
     raise FloatDomainError , 'Infinity' if index.begin == Float::INFINITY || index.end == Float::INFINITY
     raise FloatDomainError , '-Infinity' if index.begin == -Float::INFINITY || index.end == -Float::INFINITY
+  end
 
-    start, length = Primitive.range_normalized_start_length(index, size)
-    puts start, length
-
-    return Range.new(start, index.end, index.exclude_end?) if Primitive.nil?(index.begin)
-    return Range.new(index.begin, index.begin + length, index.exclude_end?) if Primitive.nil?(index.end)
-    return normalize_range(Range.new(index.begin, nil, index.exclude_end?)) if index.end < 0
-    return normalize_range(Range.new(index.begin, nil, index.exclude_end?)) if index.end < index.begin
-    index
+  private def mask(range, idx)
+    if range.exclude_end?
+      (1 << idx) - 1
+    else
+      (1 << (idx +1)) - 1
+    end
   end
 
   def allbits?(mask)
