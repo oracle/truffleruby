@@ -24,7 +24,7 @@ Changes:
 
 Release notes:
 
-* The new IRB is quite slow when copy/pasting code into it. This is due to an inefficient `io/console` implementation which will be adressed in the next release.
+* The new IRB is quite slow when copy/pasting code into it. This is due to an inefficient `io/console` implementation which will be adressed in the next release. A workaround is to use `irb --readline`, which disables some IRB features but is much faster for copy/pasting code. 
 
 New features:
 
