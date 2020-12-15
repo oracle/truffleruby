@@ -238,8 +238,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             build_args=[
                 '-H:+DumpThreadStacksOnSignal',
                 '-H:+DetectUserDirectoriesInImageHeap',
-                '-H:+TruffleCheckBlackListedMethods',
-                '-H:+RemoveSaturatedTypeFlows',
+                '-H:+TruffleCheckBlackListedMethods'
             ],
             language='ruby',
             links=['bin/<exe:ruby>'],
