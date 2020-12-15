@@ -114,7 +114,7 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         version = TruffleRuby.LANGUAGE_VERSION,
         characterMimeTypes = TruffleRuby.MIME_TYPE,
         defaultMimeType = TruffleRuby.MIME_TYPE,
-        dependentLanguages = { "nfi", "llvm" },
+        dependentLanguages = { "nfi", "llvm", "regex" },
         fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
