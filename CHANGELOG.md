@@ -13,6 +13,7 @@ Compatibility:
 * Fixed issue with large `Integer`s in `Math.log` (#2184).
 * Updated `Regexp.last_match` to support `Symbol` and `String` parameter (#2179).
 * Added support for numbered block parameters (`_1` etc).
+* Fixed `String#upto` issue with non-ascii strings (#2183).
 
 Performance:
 

@@ -32,6 +32,12 @@ describe "Range#each" do
     a.should == [x, y]
   end
 
+  it "works for non-ASCII ranges" do
+    a = []
+    ('Σ'..'Ω').each { |i| a << i }
+    a.should == ["Σ", "Τ", "Υ", "Φ", "Χ", "Ψ", "Ω"]
+  end
+
   ruby_version_is "2.6" do
     it "works with endless ranges" do
       a = []
