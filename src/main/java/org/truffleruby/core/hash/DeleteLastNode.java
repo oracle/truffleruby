@@ -10,19 +10,18 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
+/** A helper for detect_recursion. For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most
+ * recently added key, because we are using the hash like a stack and guarantee that the last we added is the one we'll
+ * want to delete. When assertions are enabled, checks that the deleted key is the one expected by the user. Does not
+ * handle blocks. */
 @ImportStatic(HashGuards.class)
 public abstract class DeleteLastNode extends RubyContextNode {
-    /* For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most recently added key, because
-     * we are using the hash like a stack and guarantee that the last we added is the one we'll want to delete. When
-     * assertions are enabled checks that the deleted key is the one expected by the user. Does not handle blocks. A
-     * helper for detect_recursion. */
-
-    @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
 
     public static DeleteLastNode create() {
         return DeleteLastNodeGen.create();
@@ -32,8 +31,7 @@ public abstract class DeleteLastNode extends RubyContextNode {
 
     @Specialization(guards = "isNullHash(hash)")
     protected Object deleteNull(RubyHash hash, Object key) {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        throw new UnsupportedOperationException("Cannot delete the last node of an empty hash");
+        throw CompilerDirectives.shouldNotReachHere("Cannot delete the last node of an empty hash");
     }
 
     @Specialization(guards = "isPackedHash(hash)")
@@ -57,7 +55,7 @@ public abstract class DeleteLastNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isBucketHash(hash)")
-    protected Object delete(RubyHash hash, Object key) {
+    protected Object delete(RubyHash hash, Object key, @Cached LookupEntryNode lookupEntryNode) {
         assert HashOperations.verifyStore(getContext(), hash);
 
         final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);

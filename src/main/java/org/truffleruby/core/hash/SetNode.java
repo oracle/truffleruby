@@ -23,8 +23,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ImportStatic(HashGuards.class)
 public abstract class SetNode extends RubyContextNode {
     /* On execution SetNode performs Hash#[]= and returns true if the key is newly added to hash, and returns false if
-     * the key was found in the hash prior. This is different from the return of Hash#[]=, which returns the right hand
-     * side value, however this change allows get and set to happen concurrently. */
+     * the key was found in the hash prior. This is different from the return value of Hash#[]=, which returns the right
+     * hand side value, however this change does a set and returns the result of get without an extra lookup. */
 
     @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
     @Child private LookupEntryNode lookupEntryNode;

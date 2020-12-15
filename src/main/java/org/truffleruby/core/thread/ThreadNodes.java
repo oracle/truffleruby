@@ -599,33 +599,33 @@ public abstract class ThreadNodes {
 
     @Primitive(name = "thread_detect_recursion_single")
     public static abstract class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
-        @Child private YieldNode dispatchNode = YieldNode.create();
+        @Child private YieldNode yieldNode = YieldNode.create();
         @Child private SetNode addNode = SetNode.create();
         @Child private DeleteLastNode delNode = DeleteLastNode.create();
 
 
         public Object yield(RubyProc block, Object... arguments) {
-            return dispatchNode.executeDispatch(block, arguments);
+            return yieldNode.executeDispatch(block, arguments);
         }
 
         protected boolean add(RubyHash hash, Object key, Object value) {
             return addNode.executeSet(hash, key, value, true);
         }
 
-        protected Object remove_last(RubyHash hash, Object key) {
+        protected Object removeLast(RubyHash hash, Object key) {
             return delNode.executeDeleteLast(hash, key);
         }
 
         @Specialization
         protected boolean detectRecursionSingle(Object obj, RubyProc block,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile containsProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile insertedProfile) {
             RubyHash objects = getCurrentRubyThreadNode.execute().recursiveObjectsSingle;
-            if (containsProfile.profile(add(objects, obj, true))) {
+            if (insertedProfile.profile(add(objects, obj, true))) {
                 try {
                     yield(block);
                 } finally {
-                    remove_last(objects, obj);
+                    removeLast(objects, obj);
                 }
                 return false;
             } else {
