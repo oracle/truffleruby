@@ -244,6 +244,7 @@ public class ParserSupport {
                 if (currentArg != null && name.equals(currentArg.getString())) {
                     warn(node.getPosition(), "circular argument reference - " + name);
                 }
+                checkDeclarationForNumberedParameterMisuse(name, node);
                 return currentScope.declare(node.getPosition(), name);
             case CONSTDECLNODE: // CONSTANT
                 return new ConstParseNode(node.getPosition(), ((INameNode) node).getName());
@@ -260,16 +261,77 @@ public class ParserSupport {
         return null;
     }
 
+    private void checkDeclarationForNumberedParameterMisuse(String name, ParseNode node) {
+        if (isNumberedParameter(name)) {
+            int depth = currentScope.isDefined(name) >> 16;
+            if (depth < 0) { // not defined
+                SourceIndexLength position = node == null
+                        ? lexer.getPosition()
+                        : node.getPosition();
+                warnNumberedParameterLikeDeclaration(position, name);
+            } else if (depth == 0 && currentScope.isBlockScope() &&
+                    currentScope.isNumberedBlockScope()) {
+                // "real" implicit parameter
+                throw compile_error("Can't assign to numbered parameter " + name);
+            }
+        }
+    }
+
+    private void warnNumberedParameterLikeDeclaration(SourceIndexLength position, String name) {
+        warn(position, "`" + name + "' is reserved for numbered parameter; consider another name");
+    }
+
+    public static boolean isNumberedParameter(String name) {
+        return name.length() == 2 && name.charAt(0) == '_' && '1' <= name.charAt(1) && name.charAt(1) <= '9';
+    }
+
+    public void checkMethodName(Rope rope) {
+        String name = rope.getString();
+        if (isNumberedParameter(name)) {
+            warnNumberedParameterLikeDeclaration(lexer.getPosition(), name);
+        }
+    }
+
     public ParseNode declareIdentifier(Rope rope) {
         return declareIdentifier(rope.getString());
     }
 
+    // Despite the confusing name, called for every identifier use in expressions.
     public ParseNode declareIdentifier(String string) {
         String name = string.intern();
         final Rope currentArg = lexer.getCurrentArg();
         if (currentArg != null && name.equals(currentArg.getString())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
         }
+
+        if (currentScope.isBlockScope() && isNumberedParameter(name)) {
+
+            int definitionDepth = currentScope.isDefined(name) >> 16;
+
+            // Parameter not defined as a local variable: usable only if the block does not have ordinary parameters.
+            if (definitionDepth < 0) { // numbered parameter is not in scope
+                if (!currentScope.hasBlockParameters()) {
+                    currentScope.addNumberedParameter(name, lexer.getPosition());
+                } else {
+                    throw compile_error("ordinary parameter is defined");
+                }
+            }
+
+            // Numbered parameters may not be nested in another block that uses without an intervening scope gate.
+            // This is true even if there is a local declaration in between, e.g.
+            // "->{ p _1; ->{ _1 = 1; p _1 } }" will fail, even though "->{ p _1; ->{ _1 = 1 } }" will not.
+
+            // We need to check two cases:
+            // 1. There was a numbered inner scope, then we try using a numbered parameter in the this (outer) scope.
+            if (currentScope.hasNumberedSubScope()) {
+                throw compile_error("numbered parameter is already used in inner block");
+            }
+            // 2. There was a numbered outer scope, then we try using a numbered parameter in the this (inner) scope.
+            if (currentScope.hasNumberedSuperScope()) {
+                throw compile_error("numbered parameter is already used in outer block");
+            }
+        }
+
         return currentScope.declare(lexer.tokline, name);
     }
 
@@ -279,6 +341,7 @@ public class ParserSupport {
     }
 
     public AssignableParseNode assignableLabelOrIdentifier(String name, ParseNode value) {
+        checkDeclarationForNumberedParameterMisuse(name, value);
         return currentScope.assign(lexer.getPosition(), name, makeNullNil(value));
     }
 
@@ -358,6 +421,7 @@ public class ParserSupport {
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
     public AssignableParseNode assignableInCurr(Rope name, ParseNode value) {
         String nameString = name.getString().intern();
+        checkDeclarationForNumberedParameterMisuse(nameString, value);
         currentScope.addVariableThisScope(nameString);
         return currentScope.assign(lexer.getPosition(), nameString, makeNullNil(value));
     }
@@ -1085,6 +1149,10 @@ public class ParserSupport {
         this.inClass = inClass;
     }
 
+    public void enterBlockParameters() {
+        currentScope.setHasBlockParameters();
+    }
+
     /** Getter for property inSingle.
      * 
      * @return Value of property inSingle. */
@@ -1307,8 +1375,7 @@ public class ParserSupport {
     }
 
     public ParseNode new_args(SourceIndexLength position, ListParseNode pre, ListParseNode optional,
-            RestArgParseNode rest,
-            ListParseNode post, ArgsTailHolder tail) {
+            RestArgParseNode rest, ListParseNode post, ArgsTailHolder tail) {
         ArgsParseNode argsNode;
         if (tail == null) {
             argsNode = new ArgsParseNode(position, pre, optional, rest, post, null);
@@ -1323,7 +1390,7 @@ public class ParserSupport {
                     tail.getKeywordRestArgNode(),
                     tail.getBlockArg());
         }
-
+        currentScope.setArgsParseNode(argsNode);
         return argsNode;
     }
 
@@ -1475,6 +1542,7 @@ public class ParserSupport {
         return arg_var(rope.getString());
     }
 
+    // Called with parameter names
     @SuppressFBWarnings("ES")
     public ArgumentParseNode arg_var(String string) {
         String name = string.intern();
@@ -1489,6 +1557,10 @@ public class ParserSupport {
             while (current.exists(name) >= 0) {
                 name = ("_$" + count++).intern();
             }
+        }
+
+        if (isNumberedParameter(name)) {
+            warnNumberedParameterLikeDeclaration(lexer.getPosition(), name);
         }
 
         return new ArgumentParseNode(lexer.getPosition(), name, current.addVariableThisScope(name));

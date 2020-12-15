@@ -209,7 +209,7 @@ public class RubyParser {
 %type <ParseNode> f_opt
 %type <ParseNode> undef_list
 %type <ParseNode> string_dvar backref
-%type <ArgsParseNode> f_args f_larglist block_param block_param_def opt_block_param
+%type <ArgsParseNode> f_args f_args_any f_larglist block_param block_param_def opt_block_param
 %type <Object> f_arglist
 %type <ParseNode> mrhs mlhs_item mlhs_node arg_value case_body exc_list aref_args
 %type <ParseNode> lhs none args
@@ -1613,6 +1613,7 @@ primary         : literal
                     support.pushLocalScope();
                     $$ = lexer.getCurrentArg();
                     lexer.setCurrentArg(null);
+                    support.checkMethodName($2);
                 } {
                     $$ = support.isInDef();
                     support.setInDef(true);
@@ -1633,6 +1634,7 @@ primary         : literal
                     lexer.setState(EXPR_ENDFN|EXPR_LABEL); /* force for args */
                     $$ = lexer.getCurrentArg();
                     lexer.setCurrentArg(null);
+                    support.checkMethodName($5);
                 } f_arglist bodystmt keyword_end {
                     ParseNode body = $8;
                     if (body == null) body = NilImplicitParseNode.NIL;
@@ -1813,12 +1815,13 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                 }
 
 opt_block_param : none {
-    // was $$ = null;
-                    $$ = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
+                    $$ = support.new_args(lexer.getPosition(), null, null, null, null, null);
                 }
-                | block_param_def {
+                | /* none */ {
+                    support.enterBlockParameters();
+                } block_param_def {
                     lexer.commandStart = true;
-                    $$ = $1;
+                    $$ = $2;
                 }
 
 block_param_def : tPIPE opt_bv_decl tPIPE {
@@ -1871,11 +1874,18 @@ lambda          : /* none */  {
                     support.popCurrentScope();
                 }
 
-f_larglist      : tLPAREN2 f_args opt_bv_decl tRPAREN {
+f_larglist      : tLPAREN2 {
+                    support.enterBlockParameters();
+                } f_args opt_bv_decl tRPAREN {
+                    $$ = $3;
+                }
+                | /* none */ {
+                    support.enterBlockParameters();
+                } f_args_any {
                     $$ = $2;
                 }
-                | f_args {
-                    $$ = $1;
+                | /* none */ {
+                    $$ = support.new_args(lexer.getPosition(), null, null, null, null, null);
                 }
 
 lambda_body     : tLAMBEG compstmt tRCURLY {
@@ -2414,8 +2424,15 @@ opt_args_tail   : ',' args_tail {
                     $$ = support.new_args_tail(lexer.getPosition(), null, (Rope) null, null);
                 }
 
+f_args          : f_args_any {
+                    $$ = $1;
+                }
+                | /* none */ {
+                    $$ = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
+                }
+
 // [!null]
-f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
+f_args_any      : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, $3, $5, null, $6);
                 }
                 | f_arg ',' f_optarg ',' f_rest_arg ',' f_arg opt_args_tail {
@@ -2463,9 +2480,6 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                     BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
                     ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
                     $$ = support.new_args(position, null, null, splat, null, argsTail);
-                }
-                | /* none */ {
-                    $$ = support.new_args(lexer.getPosition(), null, null, null, null, (ArgsTailHolder) null);
                 }
 
 args_forward    : tBDOT3

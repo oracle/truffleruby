@@ -34,6 +34,7 @@
 
 package org.truffleruby.parser.ast;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.truffleruby.language.SourceIndexLength;
@@ -41,6 +42,8 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.parser.Helpers;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.parser.parser.ParserSupport;
+import org.truffleruby.parser.scope.StaticScope;
 
 /** Represents the argument declarations of a method. The fields: foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ...,
  * qn, k1:, ..., kn:, **K, &b)
@@ -49,16 +52,20 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * = keyword arguments K = keyword rest argument b = block arg */
 public class ArgsParseNode extends ParseNode {
 
-    private final ParseNode[] args;
-    private final short optIndex;
-    private final short postIndex;
-    private final short keywordsIndex;
+    private ParseNode[] args;
+    private short optIndex;
+    private short postIndex;
+    private short keywordsIndex;
+
+    /** Whether numbered parameters were used in the body (and therefore this has no other formal parameters, or a
+     * SyntaxError would have resulted. Can change as numbered parameters are encountered. */
+    private boolean isNumbered = false;
 
     protected final ArgumentParseNode restArgNode;
     private final KeywordRestArgParseNode keyRest;
     private final BlockArgParseNode blockArgNode;
 
-    private final Arity arity;
+    private Arity arity;
 
     private static final ParseNode[] NO_ARGS = ParseNode.EMPTY_ARRAY;
 
@@ -92,7 +99,7 @@ public class ArgsParseNode extends ParseNode {
         int size = preSize + optSize + postSize + keywordsSize;
 
         args = size > 0 ? new ParseNode[size] : NO_ARGS;
-        optIndex = (short) (preSize != 0 ? preSize : 0);
+        optIndex = (short) preSize;
         postIndex = (short) (optSize != 0 ? optIndex + optSize : optIndex);
         keywordsIndex = (short) (postSize != 0 ? postIndex + postSize : postIndex);
 
@@ -159,7 +166,9 @@ public class ArgsParseNode extends ParseNode {
     }
 
     public Arity getArity() {
-        return arity;
+        return arity.getPreRequired() == getPreCount()
+                ? arity
+                : (arity = createArity()); // numbered parameters were added
     }
 
     public ParseNode[] getArgs() {
@@ -179,7 +188,9 @@ public class ArgsParseNode extends ParseNode {
     }
 
     public int getPreCount() {
-        return optIndex;
+        return isNumbered()
+                ? args.length
+                : optIndex;
     }
 
     public int getOptionalArgsCount() {
@@ -241,6 +252,38 @@ public class ArgsParseNode extends ParseNode {
      * @return Returns a BlockArgParseNode */
     public BlockArgParseNode getBlock() {
         return blockArgNode;
+    }
+
+    /** Whether numbered parameters were used in the body (and therefore this has no other formal parameters, or a
+     * SyntaxError would have resulted. Can change as numbered parameters are encountered. */
+    public boolean isNumbered() {
+        return isNumbered;
+    }
+
+    /** Add a numbered parameter as a pre-argument (we do this after the node has been created, as numbered parameters
+     * are implicit and do not appear in the parameter list).
+     *
+     * Do NOT call this, call {@link StaticScope#addNumberedParameter} instead */
+    public void addNumberedParameter(String name, SourceIndexLength position) {
+        assert ParserSupport.isNumberedParameter(name);
+
+        if (!isNumbered) {
+            isNumbered = true;
+        }
+
+        int ordinal = name.charAt(1) - '0';
+
+        if (args.length < ordinal) { // new numbered parameter
+            int oldLength = args.length;
+            args = Arrays.copyOf(args, ordinal);
+            for (int i = oldLength; i < ordinal; ++i) {
+                // implicitly define the preceding arguments
+                args[i] = new ArgumentParseNode(position, ("_" + (char) ('0' + ordinal)).intern());
+                optIndex = postIndex = keywordsIndex = (short) ordinal;
+            }
+        }
+        // either new, or replaces a previously implicitly-defined argument (setting the proper position)
+        args[args.length - 1] = new ArgumentParseNode(position, name);
     }
 
     @Override
