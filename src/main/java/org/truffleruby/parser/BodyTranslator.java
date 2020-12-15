@@ -831,6 +831,16 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitCaseInNode(CaseInParseNode node) {
+        if (!language.options.PATTERN_MATCHING) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxError(
+                            "syntax error, unexpected keyword_in",
+                            currentNode,
+                            node.getPosition().toSourceSection(source)));
+        }
+
         final SourceIndexLength sourceSection = node.getPosition();
 
         RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
