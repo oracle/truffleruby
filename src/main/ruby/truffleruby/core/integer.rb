@@ -88,20 +88,16 @@ class Integer < Numeric
       num = self >> range.begin
       mask = mask(range, len)
 
-      return num if range.end < 0
-      return num if range.end < range.begin
-      num & mask
+      range.end < range.begin ? num : num & mask
     elsif Primitive.nil? range.end
-      start = range.begin
 
-      return self >> start
+      return self >> range.begin
     else
       result = self & mask(range, range.end)
-      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if result != 0
+      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if result != 0 && range.end >= 0
 
-      result
+      0
     end
-
   end
 
   private def validate_range(index)
