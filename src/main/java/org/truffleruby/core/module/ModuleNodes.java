@@ -37,7 +37,6 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
-import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -55,7 +54,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
@@ -1917,33 +1916,17 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
         @Specialization
-        protected RubyString toS(RubyModule module) {
-            final String moduleName;
-            final ModuleFields fields = module.fields;
-            if (RubyGuards.isSingletonClass(module) && !RubyGuards.isMetaClass(module)) {
-                final RubyDynamicObject attached = ((RubyClass) module).attached;
-                final String attachedName = KernelNodes.ToSNode.uncachedBasicToS(attached);
-                moduleName = "#<Class:" + attachedName + ">";
-            } else if (fields.isRefinement()) {
-                final String refinedModule = fields.getRefinedModule().fields.getName();
-                final String refinementNamespace = fields.getRefinementNamespace().fields.getName();
-                moduleName = "#<refinement:" + refinedModule + "@" + refinementNamespace + ">";
-            } else {
-                moduleName = fields.getName();
-            }
-
+        protected RubyString toS(RubyModule module,
+                @Cached MakeStringNode makeStringNode) {
+            String moduleName = module.fields.getName();
             return makeStringNode.executeMake(moduleName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
-
     }
 
     @CoreMethod(names = "undef_method", rest = true, split = Split.NEVER, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
+
         @TruffleBoundary
         @Specialization
         protected RubyModule undefMethods(RubyModule module, Object[] names,

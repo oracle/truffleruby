@@ -26,6 +26,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
@@ -648,11 +649,17 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return lexicalParent.fields.getName() + "::" + givenBaseName;
         } else if (getLogicalClass() == rubyModule) { // For the case of class Class during initialization
             return "#<cyclic>";
-        } else if (RubyGuards.isMetaClass(rubyModule)) {
-            // Only metaclasses are handled here, not singleton classes of objects,
-            // because that needs a call to #inspect, see Module#inspect.
-            RubyModule attached = (RubyModule) ((RubyClass) rubyModule).attached;
-            return "#<Class:" + attached.fields.getName() + ">";
+        } else if (RubyGuards.isSingletonClass(rubyModule)) {
+            RubyDynamicObject attached = ((RubyClass) rubyModule).attached;
+            final String attachedName;
+            if (RubyGuards.isMetaClass(rubyModule)) {
+                attachedName = ((RubyModule) attached).fields.getName();
+            } else {
+                attachedName = KernelNodes.ToSNode.uncachedBasicToS(attached);
+            }
+            return "#<Class:" + attachedName + ">";
+        } else if (isRefinement) {
+            return "#<refinement:" + refinedModule.fields.getName() + "@" + refinementNamespace.fields.getName() + ">";
         } else {
             return "#<" + getLogicalClass().fields.getName() + ":0x" +
                     Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModule)) + ">";
