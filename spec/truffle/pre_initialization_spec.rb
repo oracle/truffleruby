@@ -11,7 +11,7 @@ require_relative '../ruby/spec_helper'
 
 guard -> { TruffleRuby.native? } do
   describe "The pre-initialized context" do
-    it "can be used to run specs, as otherwise this spec run is meaningless" do
+    it "can be used to run specs, as otherwise this spec run will not have tested pre-initialization" do
       Truffle::Boot.was_preinitialized?.should == true
     end
 
