@@ -648,6 +648,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return lexicalParent.fields.getName() + "::" + givenBaseName;
         } else if (getLogicalClass() == rubyModule) { // For the case of class Class during initialization
             return "#<cyclic>";
+        } else if (RubyGuards.isMetaClass(rubyModule)) {
+            // Only metaclasses are handled here, not singleton classes of objects,
+            // because that needs a call to #inspect, see Module#inspect.
+            RubyModule attached = (RubyModule) ((RubyClass) rubyModule).attached;
+            return "#<Class:" + attached.fields.getName() + ">";
         } else {
             return "#<" + getLogicalClass().fields.getName() + ":0x" +
                     Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModule)) + ">";

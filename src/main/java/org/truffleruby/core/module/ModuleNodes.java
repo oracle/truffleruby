@@ -1925,20 +1925,16 @@ public abstract class ModuleNodes {
         protected RubyString toS(RubyModule module) {
             final String moduleName;
             final ModuleFields fields = module.fields;
-            if (RubyGuards.isSingletonClass(module)) {
+            if (RubyGuards.isSingletonClass(module) && !RubyGuards.isMetaClass(module)) {
                 final RubyDynamicObject attached = ((RubyClass) module).attached;
                 final String attachedName;
-                if (attached instanceof RubyModule) {
-                    attachedName = ((RubyModule) attached).fields.getName();
-                } else {
-                    if (callRbInspect == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        callRbInspect = insert(DispatchNode.create());
-                    }
-                    final Object inspectResult = callRbInspect
-                            .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
-                    attachedName = RubyStringLibrary.getUncached().getJavaString(inspectResult);
+                if (callRbInspect == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    callRbInspect = insert(DispatchNode.create());
                 }
+                final Object inspectResult = callRbInspect
+                        .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
+                attachedName = RubyStringLibrary.getUncached().getJavaString(inspectResult);
                 moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {
                 final String refinedModule = fields.getRefinedModule().fields.getName();
