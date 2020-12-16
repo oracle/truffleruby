@@ -42,4 +42,17 @@ describe "Module#to_s" do
     obj = ModuleSpecs::NamedClass.new
     obj.singleton_class.to_s.should =~ /\A#<Class:#<ModuleSpecs::NamedClass:0x\h+>>\z/
   end
+
+  it 'does not call #inspect or #to_s for singleton classes' do
+    klass = Class.new
+    obj = klass.new
+    def obj.to_s
+      "to_s"
+    end
+    def obj.inspect
+      "inspect"
+    end
+    sclass = obj.singleton_class
+    sclass.to_s.should =~ /\A#<Class:#<#{Regexp.escape klass.to_s}:0x\h+>>\z/
+  end
 end
