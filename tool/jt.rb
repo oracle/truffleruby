@@ -714,6 +714,7 @@ module Commands
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
+      jt igv                                        launches IdealGraphVisualizer
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt install [jvmci|eclipse]                    install [the right JVMCI JDK | Eclipse] in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
@@ -1929,6 +1930,12 @@ module Commands
     raw_sh "#{repo}/flamegraph.pl", *unit, flamegraph_data_file, out: svg_filename
 
     app_open svg_filename
+  end
+
+  def igv
+    clone_enterprise
+    graal_enterprise = File.expand_path '../graal-enterprise/graal-enterprise', TRUFFLERUBY_DIR
+    mx('igv', chdir: graal_enterprise)
   end
 
   def install(name, *options)
