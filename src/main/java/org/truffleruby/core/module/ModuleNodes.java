@@ -1081,8 +1081,8 @@ public abstract class ModuleNodes {
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNode.create(name);
+        protected RubyNode coerceToStringOrSymbol(RubyNode name) {
+            return ToStringOrSymbolNodeGen.create(name);
         }
 
         @CreateCast("inherit")
@@ -1090,15 +1090,25 @@ public abstract class ModuleNodes {
             return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
-        @Specialization
-        protected Object constSourceLocation(RubyModule module, String name, boolean inherit) {
+        @Specialization(guards = { "strings.isRubyString(name)" })
+        @TruffleBoundary
+        protected Object constSourceLocation(RubyModule module, Object name, boolean inherit,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final ConstantLookupResult lookupResult = ModuleOperations
-                    .lookupConstantWithInherit(getContext(), module, name, inherit, this, true);
+                    .lookupConstantWithInherit(getContext(), module, strings.getJavaString(name), inherit, this, true);
 
             return getLocation(lookupResult);
         }
 
+        @Specialization
         @TruffleBoundary
+        protected Object constSourceLocation(RubyModule module, RubySymbol name, boolean inherit) {
+            final ConstantLookupResult lookupResult = ModuleOperations
+                    .lookupConstantWithInherit(getContext(), module, name.getString(), inherit, this, true);
+
+            return getLocation(lookupResult);
+        }
+
         private Object getLocation(ConstantLookupResult lookupResult) {
             if (!lookupResult.isFound()) {
                 return nil;
