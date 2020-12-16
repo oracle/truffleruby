@@ -123,7 +123,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Module", isClass = true)
@@ -1469,17 +1468,9 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "name")
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
-        protected Object name(RubyModule module,
-                @Cached("createIdentityProfile()") ValueProfile fieldsProfile) {
-            final ModuleFields fields = fieldsProfile.profile(module.fields);
-
-            if (!fields.hasPartialName() || fields.getRubyStringName() == null) {
-                return nil;
-            }
-
-            return fields.getRubyStringName();
+        protected Object name(RubyModule module) {
+            return module.fields.getRubyStringName();
         }
     }
 
