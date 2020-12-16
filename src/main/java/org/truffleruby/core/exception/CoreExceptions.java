@@ -35,7 +35,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -48,7 +47,6 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.LogicalClassNode;
 
@@ -680,27 +678,12 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyNameError nameErrorUndefinedMethod(String name, RubyModule module, Node currentNode) {
-        String message;
-        if (module instanceof RubyClass && ((RubyClass) module).isSingleton) {
-            message = "class";
-            final RubyDynamicObject attached = ((RubyClass) module).attached;
-            if (attached instanceof RubyModule) {
-                module = (RubyModule) attached;
-            }
-        } else if (module instanceof RubyClass) {
-            message = "class";
-        } else {
-            message = "module";
-        }
-        final String moduleName = RubyStringLibrary
-                .getUncached()
-                .getJavaString(DispatchNode.getUncached().call(module, "to_s"));
         return nameError(
                 StringUtils.format(
                         "undefined method `%s' for %s `%s'",
                         name,
-                        message,
-                        moduleName),
+                        module instanceof RubyClass ? "class" : "module",
+                        module.fields.getName()),
                 module,
                 name,
                 currentNode);
