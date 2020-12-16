@@ -38,7 +38,6 @@ Fixnum = Bignum = Integer
 Object.deprecate_constant :Fixnum, :Bignum
 
 class Integer < Numeric
-  FIXNUM_MAX = 0x3fffffff
 
   # Have a copy in Integer of the Numeric version, as MRI does
   alias_method :remainder, :remainder
@@ -81,35 +80,27 @@ class Integer < Numeric
   end
 
   private def handle_range(range)
-    validate_range(range)
+    raise FloatDomainError , 'Infinity' if range.begin == Float::INFINITY || range.end == Float::INFINITY
+    raise FloatDomainError , '-Infinity' if range.begin == -Float::INFINITY || range.end == -Float::INFINITY
 
     if !Primitive.nil?(range.begin) && !Primitive.nil?(range.end)
       len = range.end - range.begin
+      len += 1 if !range.exclude_end?
       num = self >> range.begin
-      mask = mask(range, len)
+      mask = (1 << len) - 1
 
       range.end < range.begin ? num : num & mask
     elsif Primitive.nil? range.end
 
       return self >> range.begin
     else
-      result = self & mask(range, range.end)
-      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if result != 0 && range.end >= 0
+      len = range.end
+      len += 1 if !range.exclude_end?
+      mask = (1 << len) - 1
+
+      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if self & mask != 0 && range.end >= 0
 
       0
-    end
-  end
-
-  private def validate_range(index)
-    raise FloatDomainError , 'Infinity' if index.begin == Float::INFINITY || index.end == Float::INFINITY
-    raise FloatDomainError , '-Infinity' if index.begin == -Float::INFINITY || index.end == -Float::INFINITY
-  end
-
-  private def mask(range, idx)
-    if range.exclude_end?
-      (1 << idx) - 1
-    else
-      (1 << (idx +1)) - 1
     end
   end
 
