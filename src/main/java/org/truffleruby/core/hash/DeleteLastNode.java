@@ -55,15 +55,31 @@ public abstract class DeleteLastNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isBucketHash(hash)")
-    protected Object delete(RubyHash hash, Object key, @Cached LookupEntryNode lookupEntryNode) {
+    protected Object delete(RubyHash hash, Object key) {
         assert HashOperations.verifyStore(getContext(), hash);
 
-        final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
+        final Entry lastEntry = hash.lastInSequence;
+        assert key == lastEntry.getKey();
+        int hashed = lastEntry.getHashed();
 
-        final Entry entry = hashLookupResult.getEntry();
-        assert hash.lastInSequence == entry;
+        final Entry[] entries = (Entry[]) hash.store;
+        final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
+        Entry entry = entries[index];
 
-        // Remove from the sequence chain
+        Entry previousEntry = null;
+
+        // Lookup previous entry
+
+        while (entry != null) {
+            if (lastEntry == entry) {
+                break;
+            }
+
+            previousEntry = entry;
+            entry = entry.getNextInLookup();
+        }
+
+        // Remove entry from the sequence chain
 
         if (entry.getPreviousInSequence() == null) {
             assert hash.firstInSequence == entry;
@@ -75,12 +91,12 @@ public abstract class DeleteLastNode extends RubyContextNode {
 
         hash.lastInSequence = entry.getPreviousInSequence();
 
-        // Remove from the lookup chain
+        // Remove entry from the lookup chain
 
-        if (hashLookupResult.getPreviousEntry() == null) {
-            ((Entry[]) hash.store)[hashLookupResult.getIndex()] = entry.getNextInLookup();
+        if (previousEntry == null) {
+            ((Entry[]) hash.store)[index] = entry.getNextInLookup();
         } else {
-            hashLookupResult.getPreviousEntry().setNextInLookup(entry.getNextInLookup());
+            previousEntry.setNextInLookup(entry.getNextInLookup());
         }
 
         hash.size -= 1;
