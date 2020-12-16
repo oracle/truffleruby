@@ -1094,6 +1094,12 @@ public abstract class ModuleNodes {
         protected Object constSourceLocation(RubyModule module, String name, boolean inherit) {
             final ConstantLookupResult lookupResult = ModuleOperations
                     .lookupConstantWithInherit(getContext(), module, name, inherit, this, true);
+
+            return getLocation(lookupResult);
+        }
+
+        @TruffleBoundary
+        private Object getLocation(ConstantLookupResult lookupResult) {
             if (!lookupResult.isFound()) {
                 return nil;
             }
