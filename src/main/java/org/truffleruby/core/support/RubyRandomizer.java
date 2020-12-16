@@ -38,10 +38,10 @@ public final class RubyRandomizer extends RubyDynamicObject {
     public int genrandInt32() {
         if (threadSafe) {
             synchronized (this) {
-                return randomizer.genrandInt32();
+                return randomizer.unsynchronizedGenrandInt32();
             }
         } else {
-            return randomizer.genrandInt32();
+            return randomizer.unsynchronizedGenrandInt32();
         }
     }
 

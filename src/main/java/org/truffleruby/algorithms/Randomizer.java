@@ -84,7 +84,7 @@ public class Randomizer {
         return seed;
     }
 
-    public int genrandInt32() {
+    public int unsynchronizedGenrandInt32() {
         if (--left <= 0) {
             nextState();
         }
