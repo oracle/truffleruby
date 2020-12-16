@@ -248,9 +248,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
         for (String argument : argumentNames) {
             arguments.add(argument);
         }
-        if (primitive.needsBlock()) {
-            arguments.add("&block");
-        }
+
         rubyPrimitives
                 .append("  def self.")
                 .append(primitive.name())

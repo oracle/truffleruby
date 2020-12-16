@@ -20,8 +20,6 @@ public @interface Primitive {
 
     String name();
 
-    boolean needsBlock() default false;
-
     /** Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long. The argument at 0 is
      * usually the <code>receiver</code>. */
     int[] lowerFixnum() default {};
