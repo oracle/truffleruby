@@ -55,6 +55,8 @@ public class Options {
     public final boolean DID_YOU_MEAN;
     /** --hashing-deterministic=false */
     public final boolean HASHING_DETERMINISTIC;
+    /** --pattern-matching=false */
+    public final boolean PATTERN_MATCHING;
     /** --embedded=true */
     public final boolean EMBEDDED;
     /** --platform-native=env.isNativeAccessAllowed() && true */
@@ -271,6 +273,7 @@ public class Options {
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
+        PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
         EMBEDDED = options.get(OptionsCatalog.EMBEDDED_KEY);
         NATIVE_PLATFORM = env.isNativeAccessAllowed() && (options.get(OptionsCatalog.NATIVE_PLATFORM_KEY));
         NATIVE_INTERRUPT = options.hasBeenSet(OptionsCatalog.NATIVE_INTERRUPT_KEY) ? options.get(OptionsCatalog.NATIVE_INTERRUPT_KEY) : NATIVE_PLATFORM;
@@ -406,6 +409,8 @@ public class Options {
                 return DID_YOU_MEAN;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
+            case "ruby.pattern-matching":
+                return PATTERN_MATCHING;
             case "ruby.embedded":
                 return EMBEDDED;
             case "ruby.platform-native":

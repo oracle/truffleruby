@@ -831,7 +831,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitCaseInNode(CaseInParseNode node) {
-        if (!language.options.PATTERN_MATCHING) {
+        if (!RubyLanguage.getCurrentContext().getOptions().PATTERN_MATCHING) {
             final RubyContext context = RubyLanguage.getCurrentContext();
             throw new RaiseException(
                     context,
