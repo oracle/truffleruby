@@ -26,8 +26,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.algorithms;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 public class Randomizer {
 
     private static final int N = 624;
@@ -40,23 +38,21 @@ public class Randomizer {
     private int left = 1;
 
     private final Object seed;
-    private final boolean threadSafe;
 
-    public Randomizer(boolean threadSafe) {
-        this(0L, 0, threadSafe);
+    public Randomizer() {
+        this(0L, 0);
     }
 
-    public Randomizer(Object seed, int s, boolean threadSafe) {
+    public Randomizer(Object seed, int s) {
         this.seed = seed;
-        this.threadSafe = threadSafe;
         state[0] = s;
         for (int j = 1; j < N; j++) {
             state[j] = (1812433253 * (state[j - 1] ^ (state[j - 1] >>> 30)) + j);
         }
     }
 
-    public Randomizer(Object seed, int[] initKey, boolean threadSafe) {
-        this(seed, 19650218, threadSafe);
+    public Randomizer(Object seed, int[] initKey) {
+        this(seed, 19650218);
         int len = initKey.length;
         int i = 1;
         int j = 0;
@@ -88,25 +84,12 @@ public class Randomizer {
         return seed;
     }
 
-    @TruffleBoundary
     public int genrandInt32() {
-        int y;
-
-        if (threadSafe) {
-            synchronized (this) {
-                if (--left <= 0) {
-                    nextState();
-                }
-
-                y = state[N - left];
-            }
-        } else {
-            if (--left <= 0) {
-                nextState();
-            }
-
-            y = state[N - left];
+        if (--left <= 0) {
+            nextState();
         }
+
+        int y = state[N - left];
 
         /* Tempering */
         y ^= (y >>> 11);
