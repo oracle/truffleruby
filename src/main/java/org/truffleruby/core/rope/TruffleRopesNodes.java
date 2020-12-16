@@ -14,6 +14,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.rope.ConcatRope.ConcatChildren;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -119,7 +120,10 @@ public abstract class TruffleRopesNodes {
         }
 
         private static String getStructure(ConcatRope rope) {
-            return "(" + getStructure(rope.getLeft()) + " + " + getStructure(rope.getRight()) + ")";
+            final ConcatChildren children = rope.getChildrenOrNull();
+            return children != null
+                    ? "(" + getStructure(children.left) + " + " + getStructure(children.right) + ")"
+                    : "\"" + rope.toString() + "\" (flat concat)";
         }
 
         private static String getStructure(SubstringRope rope) {

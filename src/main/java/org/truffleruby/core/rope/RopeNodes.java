@@ -21,6 +21,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.Bind;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -28,6 +29,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.rope.ConcatRope.ConcatChildren;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.CompareRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
@@ -804,26 +806,46 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString) {
+        @Specialization(guards = "bytes != null")
+        protected Object debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString,
+                @Bind("rope.getBytesOrNull()") byte[] bytes) {
             printPreamble(currentLevel);
-
-            // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
-            final boolean bytesAreNull = rope.getRawBytes() == null;
 
             System.err
                     .println(StringUtils.format(
                             "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                             printString ? rope.toString() : "<skipped>",
                             rope.getClass().getSimpleName(),
-                            bytesAreNull,
+                            false,
                             rope.byteLength(),
                             rope.characterLength(),
                             rope.getCodeRange(),
                             rope.getEncoding()));
 
-            executeDebugPrint(rope.getLeft(), currentLevel + 1, printString);
-            executeDebugPrint(rope.getRight(), currentLevel + 1, printString);
+            return nil;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "children != null")
+        protected Object debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString,
+                @Bind("rope.getChildrenOrNull()") ConcatChildren children) {
+            printPreamble(currentLevel);
+
+
+            System.err
+                    .println(StringUtils.format(
+                            "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
+                            printString ? rope.toString() : "<skipped>",
+                            rope.getClass().getSimpleName(),
+                            // Note: converting a rope to a java.lang.String may populate the byte[].
+                            true, // are bytes null?
+                            rope.byteLength(),
+                            rope.characterLength(),
+                            rope.getCodeRange(),
+                            rope.getEncoding()));
+
+            executeDebugPrint(children.left, currentLevel + 1, printString);
+            executeDebugPrint(children.right, currentLevel + 1, printString);
 
             return nil;
         }
@@ -996,28 +1018,36 @@ public abstract class RopeNodes {
             return rope.getChild().getRawBytes()[index % rope.getChild().byteLength()] & 0xff;
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
+        @Specialization(guards = "children != null")
         protected int getByteConcatRope(ConcatRope rope, int index,
+                @Bind("rope.getChildrenOrNull()") ConcatChildren children,
                 @Cached ConditionProfile chooseLeftChildProfile,
                 @Cached ConditionProfile leftChildRawBytesNullProfile,
                 @Cached ConditionProfile rightChildRawBytesNullProfile,
                 @Cached ByteSlowNode byteSlowLeft,
                 @Cached ByteSlowNode byteSlowRight) {
-            if (chooseLeftChildProfile.profile(index < rope.getLeft().byteLength())) {
-                if (leftChildRawBytesNullProfile.profile(rope.getLeft().getRawBytes() == null)) {
-                    return byteSlowLeft.execute(rope.getLeft(), index) & 0xff;
+            if (chooseLeftChildProfile.profile(index < children.left.byteLength())) {
+                if (leftChildRawBytesNullProfile.profile(children.left.getRawBytes() == null)) {
+                    return byteSlowLeft.execute(children.left, index) & 0xff;
                 }
 
-                return rope.getLeft().getRawBytes()[index] & 0xff;
+                return children.left.getRawBytes()[index] & 0xff;
             }
 
-            if (rightChildRawBytesNullProfile.profile(rope.getRight().getRawBytes() == null)) {
-                return byteSlowRight.execute(rope.getRight(), index - rope.getLeft().byteLength()) & 0xff;
+            if (rightChildRawBytesNullProfile.profile(children.right.getRawBytes() == null)) {
+                return byteSlowRight.execute(children.right, index - children.left.byteLength()) & 0xff;
             }
 
-            return rope.getRight().getRawBytes()[index - rope.getLeft().byteLength()] & 0xff;
+            return children.right.getRawBytes()[index - children.left.byteLength()] & 0xff;
         }
 
+        // Necessary because getRawBytes() might return null, but then be populated and the children nulled
+        // before we get to run the other getByteConcatRope.
+        @Specialization(guards = "bytes != null")
+        protected int getByteConcatRope(ConcatRope rope, int index,
+                @Bind("rope.getBytesOrNull()") byte[] bytes) {
+            return bytes[index] & 0xff;
+        }
     }
 
     public abstract static class SetByteNode extends RubyContextNode {
