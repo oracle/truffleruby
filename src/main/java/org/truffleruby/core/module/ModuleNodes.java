@@ -1095,7 +1095,7 @@ public abstract class ModuleNodes {
         protected Object constSourceLocation(RubyModule module, Object name, boolean inherit,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final ConstantLookupResult lookupResult = ModuleOperations
-                    .lookupConstantWithInherit(getContext(), module, strings.getJavaString(name), inherit, this, true);
+                    .lookupScopedConstant(getContext(), module, strings.getJavaString(name), inherit, this, true);
 
             return getLocation(lookupResult);
         }
