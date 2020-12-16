@@ -635,7 +635,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public Object getRubyStringName() {
         if (hasPartialName()) {
-            getName(); // sets rubyStringName if this.name is still null
+            if (rubyStringName == null) {
+                getName(); // compute the name
+            }
             assert rubyStringName != null;
             return rubyStringName;
         } else {
@@ -650,9 +652,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } else if (getLogicalClass() == rubyModule) { // For the case of class Class during initialization
             return "#<cyclic>";
         } else if (RubyGuards.isSingletonClass(rubyModule)) {
-            RubyDynamicObject attached = ((RubyClass) rubyModule).attached;
+            final RubyDynamicObject attached = ((RubyClass) rubyModule).attached;
             final String attachedName;
-            if (RubyGuards.isMetaClass(rubyModule)) {
+            if (attached instanceof RubyModule) {
                 attachedName = ((RubyModule) attached).fields.getName();
             } else {
                 attachedName = KernelNodes.ToSNode.uncachedBasicToS(attached);
