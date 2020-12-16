@@ -20,9 +20,9 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/** On execution SetNode performs Hash#[]= and returns true if the key is newly added to hash, and returns false if
- * the key was found in the hash prior. This is different from the return value of Hash#[]=, which returns the right
- * hand side value, however this change does a set and returns the result of get without an extra lookup. */
+/** On execution SetNode performs Hash#[]= and returns true if the key is newly added to hash, and returns false if the
+ * key was found in the hash prior. This is different from the return value of Hash#[]=, which returns the right hand
+ * side value, however this change does a set and returns the result of get without an extra lookup. */
 @ImportStatic(HashGuards.class)
 public abstract class SetNode extends RubyContextNode {
 
