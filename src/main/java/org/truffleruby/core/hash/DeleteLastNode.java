@@ -10,7 +10,6 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
