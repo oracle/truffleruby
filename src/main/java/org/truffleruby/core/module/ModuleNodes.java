@@ -37,6 +37,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -1917,7 +1918,6 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode callRbInspect;
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
@@ -1927,14 +1927,7 @@ public abstract class ModuleNodes {
             final ModuleFields fields = module.fields;
             if (RubyGuards.isSingletonClass(module) && !RubyGuards.isMetaClass(module)) {
                 final RubyDynamicObject attached = ((RubyClass) module).attached;
-                final String attachedName;
-                if (callRbInspect == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    callRbInspect = insert(DispatchNode.create());
-                }
-                final Object inspectResult = callRbInspect
-                        .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
-                attachedName = RubyStringLibrary.getUncached().getJavaString(inspectResult);
+                final String attachedName = KernelNodes.ToSNode.uncachedBasicToS(attached);
                 moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {
                 final String refinedModule = fields.getRefinedModule().fields.getName();

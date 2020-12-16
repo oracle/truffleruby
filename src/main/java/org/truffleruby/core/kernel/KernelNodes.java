@@ -2064,6 +2064,10 @@ public abstract class KernelNodes {
             return KernelNodesFactory.ToHexStringNodeFactory.create(null);
         }
 
+        public static ToHexStringNode getUncached() {
+            return KernelNodesFactory.ToHexStringNodeFactory.getUncached();
+        }
+
         public abstract String executeToHexString(Object value);
 
         @Specialization
@@ -2102,14 +2106,31 @@ public abstract class KernelNodes {
                 @Cached MakeStringNode makeStringNode,
                 @Cached ObjectIDNode objectIDNode,
                 @Cached ToHexStringNode toHexStringNode) {
+            String javaString = basicToS(self, classNode, objectIDNode, toHexStringNode);
+
+            return makeStringNode.executeMake(
+                    javaString,
+                    UTF8Encoding.INSTANCE,
+                    CodeRange.CR_UNKNOWN);
+        }
+
+        private static String basicToS(Object self,
+                LogicalClassNode classNode,
+                ObjectIDNode objectIDNode,
+                ToHexStringNode toHexStringNode) {
             String className = classNode.execute(self).fields.getName();
             Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
-            return makeStringNode.executeMake(
-                    Utils.concat("#<", className, ":0x", hexID, ">"),
-                    UTF8Encoding.INSTANCE,
-                    CodeRange.CR_UNKNOWN);
+            return Utils.concat("#<", className, ":0x", hexID, ">");
+        }
+
+        public static String uncachedBasicToS(Object self) {
+            return basicToS(
+                    self,
+                    LogicalClassNode.getUncached(),
+                    ObjectIDNode.getUncached(),
+                    ToHexStringNode.getUncached());
         }
 
     }
