@@ -78,30 +78,16 @@ public abstract class DeleteLastNode extends RubyContextNode {
             entry = entry.getNextInLookup();
         }
 
-        // Remove entry from the sequence chain
-
-        if (entry.getPreviousInSequence() == null) {
-            assert hash.firstInSequence == entry;
-            hash.firstInSequence = entry.getNextInSequence();
-        } else {
-            assert hash.firstInSequence != entry;
-            entry.getPreviousInSequence().setNextInSequence(null);
-        }
+        BucketsStrategy.removeFromSequenceChain(hash, entry);
 
         hash.lastInSequence = entry.getPreviousInSequence();
 
-        // Remove entry from the lookup chain
-
-        if (previousEntry == null) {
-            ((Entry[]) hash.store)[index] = entry.getNextInLookup();
-        } else {
-            previousEntry.setNextInLookup(entry.getNextInLookup());
-        }
+        BucketsStrategy.removeFromLookupChain(hash, index, entry, previousEntry);
 
         hash.size -= 1;
 
         assert HashOperations.verifyStore(getContext(), hash);
-
         return entry.getValue();
     }
+
 }

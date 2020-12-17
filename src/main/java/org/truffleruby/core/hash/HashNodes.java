@@ -393,9 +393,10 @@ public abstract class HashNodes {
         protected Object delete(RubyHash hash, Object key, Object maybeBlock) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
+            final HashLookupResult lookupResult = lookupEntryNode.lookup(hash, key);
+            final Entry entry = lookupResult.getEntry();
 
-            if (hashLookupResult.getEntry() == null) {
+            if (entry == null) {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil;
                 } else {
@@ -403,9 +404,7 @@ public abstract class HashNodes {
                 }
             }
 
-            final Entry entry = hashLookupResult.getEntry();
-
-            removeFromSequenceChain(hash, entry);
+            BucketsStrategy.removeFromSequenceChain(hash, entry);
 
             if (entry.getNextInSequence() == null) {
                 hash.lastInSequence = entry.getPreviousInSequence();
@@ -413,31 +412,13 @@ public abstract class HashNodes {
                 entry.getNextInSequence().setPreviousInSequence(entry.getPreviousInSequence());
             }
 
-            removeFromLookupChain(hash, hashLookupResult);
+            BucketsStrategy
+                    .removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
 
             hash.size -= 1;
 
             assert HashOperations.verifyStore(getContext(), hash);
-
             return entry.getValue();
-        }
-
-        public static void removeFromSequenceChain(RubyHash hash, Entry entry) {
-            if (entry.getPreviousInSequence() == null) {
-                assert hash.firstInSequence == entry;
-                hash.firstInSequence = entry.getNextInSequence();
-            } else {
-                assert hash.firstInSequence != entry;
-                entry.getPreviousInSequence().setNextInSequence(entry.getNextInSequence());
-            }
-        }
-
-        public static void removeFromLookupChain(RubyHash hash, HashLookupResult hashLookupResult) {
-            if (hashLookupResult.getPreviousEntry() == null) {
-                ((Entry[]) hash.store)[hashLookupResult.getIndex()] = hashLookupResult.getEntry().getNextInLookup();
-            } else {
-                hashLookupResult.getPreviousEntry().setNextInLookup(hashLookupResult.getEntry().getNextInLookup());
-            }
         }
 
         protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
