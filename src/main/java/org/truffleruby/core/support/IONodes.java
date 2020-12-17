@@ -531,7 +531,7 @@ public abstract class IONodes {
         @Specialization
         protected Object getThreadBuffer(RubyPointer pointer,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile freeProfile) {
+                @Cached ConditionProfile freeProfile) {
             RubyThread thread = currentThreadNode.execute();
             final ThreadLocalBuffer threadBuffer = thread.ioBuffer;
             assert threadBuffer.start.getAddress() == pointer.pointer.getAddress();
