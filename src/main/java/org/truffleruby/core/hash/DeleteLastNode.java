@@ -15,10 +15,9 @@ import org.truffleruby.language.RubyContextNode;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
-/** A helper for detect_recursion. For BucketHash, behaves almost identical to DeleteNode. Otherwise, deletes the most
- * recently added key, because we are using the hash like a stack and guarantee that the last we added is the one we'll
- * want to delete. When assertions are enabled, checks that the deleted key is the one expected by the user. Does not
- * handle blocks. */
+/** A helper for detect_recursion. A variant of DeleteNode optimized for removing the most recently added key, because
+ * we are using the hash like a stack and guarantee that the last entry we added is the one we'll want to delete. Checks
+ * that the deleted key is the one expected by the user. */
 @ImportStatic(HashGuards.class)
 public abstract class DeleteLastNode extends RubyContextNode {
 
@@ -44,7 +43,11 @@ public abstract class DeleteLastNode extends RubyContextNode {
 
         // removable
         final Object otherKey = PackedArrayStrategy.getKey(store, n);
-        assert key == otherKey;
+        if (key != otherKey) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives
+                    .shouldNotReachHere("The last key was not " + key + " as expected but was " + otherKey);
+        }
 
         final Object value = PackedArrayStrategy.getValue(store, n);
         PackedArrayStrategy.removeEntry(getLanguage(), store, n);
@@ -58,7 +61,11 @@ public abstract class DeleteLastNode extends RubyContextNode {
         assert HashOperations.verifyStore(getContext(), hash);
 
         final Entry lastEntry = hash.lastInSequence;
-        assert key == lastEntry.getKey();
+        if (key != lastEntry.getKey()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives
+                    .shouldNotReachHere("The last key was not " + key + " as expected but was " + lastEntry.getKey());
+        }
         int hashed = lastEntry.getHashed();
 
         final Entry[] entries = (Entry[]) hash.store;
