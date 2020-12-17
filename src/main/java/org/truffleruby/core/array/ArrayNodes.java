@@ -1577,7 +1577,7 @@ public abstract class ArrayNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().PACK_CACHE;
+            return getLanguage().options.PACK_CACHE;
         }
 
     }

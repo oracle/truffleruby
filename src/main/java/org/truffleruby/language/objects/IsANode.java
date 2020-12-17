@@ -96,7 +96,7 @@ public abstract class IsANode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().IS_A_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.IS_A_CACHE;
     }
 
 }

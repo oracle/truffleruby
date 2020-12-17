@@ -239,7 +239,7 @@ public abstract class GetConstantNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().CONSTANT_CACHE;
+        return getLanguage().options.CONSTANT_CACHE;
     }
 
 }

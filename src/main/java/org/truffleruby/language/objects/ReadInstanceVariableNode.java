@@ -88,7 +88,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
             objectLibrary = insert(
                     DynamicObjectLibrary
                             .getFactory()
-                            .createDispatched(getContext().getOptions().INSTANCE_VARIABLE_CACHE));
+                            .createDispatched(getLanguage().options.INSTANCE_VARIABLE_CACHE));
         }
         return objectLibrary;
     }

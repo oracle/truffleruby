@@ -97,7 +97,7 @@ public abstract class EncodingNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().ENCODING_LOADED_CLASSES_CACHE;
+            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
         }
 
     }
@@ -181,7 +181,7 @@ public abstract class EncodingNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().ENCODING_COMPATIBLE_QUERY_CACHE;
+            return getLanguage().options.ENCODING_COMPATIBLE_QUERY_CACHE;
         }
 
     }
@@ -351,7 +351,7 @@ public abstract class EncodingNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().ENCODING_COMPATIBLE_QUERY_CACHE;
+            return getLanguage().options.ENCODING_COMPATIBLE_QUERY_CACHE;
         }
 
     }

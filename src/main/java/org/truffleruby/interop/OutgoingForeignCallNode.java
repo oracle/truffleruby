@@ -490,7 +490,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             RubyBaseNode {
 
         protected int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
         protected abstract Object executeCall(Object receiver, String name, Object[] args);

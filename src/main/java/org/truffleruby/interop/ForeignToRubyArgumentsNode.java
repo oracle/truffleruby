@@ -61,7 +61,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
     }
 
     protected int getLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
     }
 
 }

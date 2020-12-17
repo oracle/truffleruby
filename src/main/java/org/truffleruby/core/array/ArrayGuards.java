@@ -17,7 +17,7 @@ public class ArrayGuards {
     public static final int ARRAY_MAX_EXPLODE_SIZE = 16;
 
     public static int storageStrategyLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().ARRAY_STRATEGY_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.ARRAY_STRATEGY_CACHE;
     }
 
     // Storage strategies

@@ -128,7 +128,7 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
         }
 
         protected static int getLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.INTEROP_CONVERT_CACHE;
         }
     }
     // endregion

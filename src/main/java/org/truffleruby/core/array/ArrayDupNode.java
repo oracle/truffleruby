@@ -69,7 +69,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().ARRAY_DUP_CACHE;
+        return getLanguage().options.ARRAY_DUP_CACHE;
     }
 
 }

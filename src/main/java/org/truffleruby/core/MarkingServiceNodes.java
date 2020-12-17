@@ -74,7 +74,7 @@ public class MarkingServiceNodes {
         }
 
         public int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().THREAD_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.THREAD_CACHE;
         }
 
         public static GetMarkerThreadLocalDataNode create() {

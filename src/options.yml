@@ -13,6 +13,31 @@ LANGUAGE_OPTIONS:
 - SHARED_OBJECTS_ENABLED
 - SHARED_OBJECTS_DEBUG
 - SHARED_OBJECTS_FORCE
+- DEFAULT_CACHE
+- METHOD_LOOKUP_CACHE
+- DISPATCH_CACHE
+- YIELD_CACHE
+- METHOD_TO_PROC_CACHE
+- IS_A_CACHE
+- BIND_CACHE
+- CONSTANT_CACHE
+- INSTANCE_VARIABLE_CACHE
+- BINDING_LOCAL_VARIABLE_CACHE
+- SYMBOL_TO_PROC_CACHE
+- PACK_CACHE
+- UNPACK_CACHE
+- EVAL_CACHE
+- ENCODING_COMPATIBLE_QUERY_CACHE
+- ENCODING_LOADED_CLASSES_CACHE
+- INTEROP_CONVERT_CACHE
+- TIME_FORMAT_CACHE
+- POW_CACHE
+- RUBY_LIBRARY_CACHE
+- THREAD_CACHE
+- IDENTITY_CACHE
+- CLASS_CACHE
+- ARRAY_DUP_CACHE
+- ARRAY_STRATEGY_CACHE
 
 USER:
   STABLE:
@@ -137,16 +162,12 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     INSTANCE_VARIABLE_CACHE: [instance-variable-cache, integer, DEFAULT_CACHE, Instance variable cache size]
     BINDING_LOCAL_VARIABLE_CACHE: [binding-local-variable-cache, integer, DEFAULT_CACHE, Binding#local_variable_get/set cache size]
     SYMBOL_TO_PROC_CACHE: [symbol-to-proc-cache, integer, DEFAULT_CACHE, Symbol#to_proc cache size]
-    ALLOCATE_CLASS_CACHE: [allocate-class-cache, integer, DEFAULT_CACHE, Allocation size class cache size]
     PACK_CACHE: [pack-cache, integer, DEFAULT_CACHE, Array#pack cache size]
     UNPACK_CACHE: [unpack-cache, integer, DEFAULT_CACHE, String#unpack cache size]
     EVAL_CACHE: [eval-cache, integer, DEFAULT_CACHE, eval cache size]
     ENCODING_COMPATIBLE_QUERY_CACHE: [encoding-compatible-query-cache, integer, DEFAULT_CACHE, 'Encoding.compatible? cache size']
     ENCODING_LOADED_CLASSES_CACHE: [encoding-loaded-classes-cache, integer, DEFAULT_CACHE, Cache size of encoding operations based on anticipated number of total active encodings]
     INTEROP_CONVERT_CACHE: [interop-convert-cache, integer, DEFAULT_CACHE, Cache size for converting values for interop]
-    INTEROP_EXECUTE_CACHE: [interop-execute-cache, integer, DEFAULT_CACHE, Cache size for interop EXECUTE messages]
-    INTEROP_INVOKE_CACHE: [interop-invoke-cache, integer, DEFAULT_CACHE, Cache size for interop INVOKE messages]
-    INTEROP_NEW_CACHE: [interop-new-cache, integer, DEFAULT_CACHE, Cache size for interop NEW messages]
     TIME_FORMAT_CACHE: [time-format-cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
     POW_CACHE: [integer-pow-cache, integer, DEFAULT_CACHE, Cache size for Integer#** with a constant exponent]
     RUBY_LIBRARY_CACHE: [ruby-library-cache, integer, DEFAULT_CACHE, Ruby Library cache size]
@@ -156,7 +177,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing against an object identity]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
     ARRAY_DUP_CACHE: [array-dup-cache, integer, 3, Cache size for copying small arrays]
-    FRAME_VARIABLE_ACCESS_CACHE: [frame-variable-access-cache, integer, 5, Cache size for accessing variables in another frame]
     ARRAY_STRATEGY_CACHE: [array-strategy-cache, integer, 4, Cache size for array strategies]
 
     # Other caching and optimization limits

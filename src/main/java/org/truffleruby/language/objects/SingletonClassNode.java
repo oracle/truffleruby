@@ -166,11 +166,11 @@ public abstract class SingletonClassNode extends RubySourceNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().CLASS_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
     }
 
     protected int getIdentityCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().IDENTITY_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
     }
 
 }

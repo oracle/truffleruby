@@ -368,7 +368,7 @@ public abstract class TruffleDebugNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
+            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
 
     }

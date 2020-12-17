@@ -41,7 +41,7 @@ public abstract class CheckIVarNameNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 
 }

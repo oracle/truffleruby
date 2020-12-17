@@ -2911,7 +2911,7 @@ public abstract class StringNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().UNPACK_CACHE;
+            return getLanguage().options.UNPACK_CACHE;
         }
 
     }

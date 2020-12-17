@@ -1794,7 +1794,7 @@ public abstract class IntegerNodes {
         }
 
         protected int getLimit() {
-            return getContext().getOptions().POW_CACHE;
+            return getLanguage().options.POW_CACHE;
         }
 
     }

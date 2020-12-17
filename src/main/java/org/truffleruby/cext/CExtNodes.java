@@ -171,7 +171,7 @@ public class CExtNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
+            return getLanguage().options.DISPATCH_CACHE;
         }
     }
 
@@ -207,7 +207,7 @@ public class CExtNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
+            return getLanguage().options.DISPATCH_CACHE;
         }
 
     }
@@ -1233,7 +1233,7 @@ public class CExtNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
+            return getLanguage().options.DISPATCH_CACHE;
         }
 
     }

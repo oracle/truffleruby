@@ -106,7 +106,7 @@ public abstract class FormatCharacterNode extends FormatNode {
     }
 
     protected int getLimit() {
-        return getContext().getOptions().PACK_CACHE;
+        return getLanguage().options.PACK_CACHE;
     }
 
 }

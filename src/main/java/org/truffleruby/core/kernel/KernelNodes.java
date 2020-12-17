@@ -541,7 +541,7 @@ public abstract class KernelNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
+            return getLanguage().options.INSTANCE_VARIABLE_CACHE;
         }
 
         private DispatchingNode allocateNode() {
@@ -925,7 +925,7 @@ public abstract class KernelNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().EVAL_CACHE;
+            return getLanguage().options.EVAL_CACHE;
         }
     }
 

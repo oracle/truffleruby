@@ -76,6 +76,6 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.DISPATCH_CACHE;
     }
 }
