@@ -15,6 +15,7 @@ Compatibility:
 
 Performance:
 
+* Improve the performance of checks for recursion (#2189, @LillianZ).
 
 Changes:
 
