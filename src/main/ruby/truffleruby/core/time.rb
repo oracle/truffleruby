@@ -43,11 +43,8 @@ class Time
   }
 
   def inspect
-    if gmt?
-      str = strftime('%Y-%m-%d %H:%M:%S UTC')
-    else
-      str = strftime('%Y-%m-%d %H:%M:%S %z')
-    end
+    str = strftime('%Y-%m-%d %H:%M:%S')
+    str << (gmt? ? ' UTC' : strftime(' %z'))
     str.force_encoding Encoding::US_ASCII
   end
 
