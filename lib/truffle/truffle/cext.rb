@@ -1134,6 +1134,7 @@ module Truffle::CExt
     mod.define_method(name) do |*|
       raise NotImplementedError, "#{name}() function is unimplemented on this machine"
     end
+    Primitive.method_unimplement(mod.instance_method(name))
   end
 
   def rb_class_new_instance(klass, args)
