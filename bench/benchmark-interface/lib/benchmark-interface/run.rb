@@ -113,10 +113,18 @@ module BenchmarkInterface
     else
       to_load.each do |path|
         source = File.read(path)
-        if NON_MRI_INDICATORS.any? { |t| source.include?(t) } || source =~ /benchmark.*\{/ || source =~ /benchmark.*do/
+        begin
+          if NON_MRI_INDICATORS.any? { |t| source.include?(t) } || source =~ /benchmark.*\{/ || source =~ /benchmark.*do/
           set.load_benchmarks path
-        else
-          set.load_mri_benchmarks path, options
+          else
+            set.load_mri_benchmarks path, options
+          end
+        rescue => e
+          if command == :list
+            warn("Error while loading benchmark from #{path}:\n#{e.full_message}")
+          else
+            raise e
+          end
         end
       end
     end
