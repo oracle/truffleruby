@@ -63,17 +63,11 @@ public abstract class DeleteLastNode extends RubyContextNode {
 
         final Entry[] entries = (Entry[]) hash.store;
         final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
-        Entry entry = entries[index];
-
-        Entry previousEntry = null;
 
         // Lookup previous entry
-
-        while (entry != null) {
-            if (lastEntry == entry) {
-                break;
-            }
-
+        Entry entry = entries[index];
+        Entry previousEntry = null;
+        while (entry != lastEntry) {
             previousEntry = entry;
             entry = entry.getNextInLookup();
         }
