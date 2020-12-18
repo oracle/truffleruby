@@ -28,23 +28,31 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
+ *
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
-
-import java.util.List;
 
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
+import java.util.List;
+
 /** A Case statement. Represents a complete case statement, including the body with its when and in statements. */
-public class CaseParseNode extends ParseNode {
+public class CaseInParseNode extends ParseNode {
     /** the case expression. **/
     private final ParseNode caseNode;
     /** A list of all choices including else */
     private final ListParseNode cases;
     private ParseNode elseNode = null;
 
-    public CaseParseNode(SourceIndexLength position, ParseNode caseNode, ListParseNode cases) {
+    public CaseInParseNode(SourceIndexLength position, ParseNode caseNode, ListParseNode cases) {
         super(position);
 
         assert cases != null : "caseBody is not null";
@@ -70,7 +78,7 @@ public class CaseParseNode extends ParseNode {
      * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitCaseNode(this);
+        return iVisitor.visitCaseInNode(this);
     }
 
     /** Gets the caseNode.

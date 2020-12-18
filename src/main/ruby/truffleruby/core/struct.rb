@@ -337,6 +337,32 @@ class Struct
     _attrs.map { |var| Primitive.object_hidden_var_get(self, var) }
   end
   alias_method :values, :to_a
+  alias_method :deconstruct, :to_a
+
+  def deconstruct_keys(keys)
+    return to_h if Primitive.nil?(keys)
+    raise TypeError, "wrong argument type #{Truffle::Type.object_class(keys)} (expected Array or nil)" unless keys.is_a?(Array)
+    return {} if self.length < keys.length
+
+    h = {}
+    keys.each do |requested_key|
+      case requested_key
+      when Symbol
+        symbolized_key = requested_key
+      when String
+        symbolized_key = requested_key.to_sym
+      else
+        symbolized_key = check_index_var(requested_key)
+      end
+
+      if _attrs.include?(symbolized_key)
+        h[requested_key] = Primitive.object_hidden_var_get(self, symbolized_key)
+      else
+        return h
+      end
+    end
+    h
+  end
 
   def values_at(*args)
     to_a.values_at(*args)

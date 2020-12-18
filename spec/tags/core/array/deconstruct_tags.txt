@@ -1,1 +1,0 @@
-fails:Array#deconstruct returns self

@@ -1479,6 +1479,8 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
     vm_args << (truffleruby_native? ? '--vm.Xmx3G' : '--vm.Xmx2G')
     vm_args << '--polyglot' unless truffleruby_native?
+    # Until pattern matching is complete, we enable it in specs but not globally
+    vm_args << '--experimental-options' << '--pattern-matching'
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 

@@ -301,6 +301,10 @@ class Array
     end
   end
 
+  def deconstruct
+    self
+  end
+
   def each_index
     return to_enum(:each_index) { size } unless block_given?
 

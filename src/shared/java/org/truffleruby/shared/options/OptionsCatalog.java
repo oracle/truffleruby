@@ -38,6 +38,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> DID_YOU_MEAN_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PATTERN_MATCHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EMBEDDED_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> NATIVE_PLATFORM_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> NATIVE_INTERRUPT_KEY = new OptionKey<>(NATIVE_PLATFORM_KEY.getDefaultValue());
@@ -272,6 +273,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
             .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
             .help("Produce deterministic hash values")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PATTERN_MATCHING = OptionDescriptor
+            .newBuilder(PATTERN_MATCHING_KEY, "ruby.pattern-matching")
+            .help("Enable pattern matching syntax")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1091,6 +1099,8 @@ public class OptionsCatalog {
                 return DID_YOU_MEAN;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
+            case "ruby.pattern-matching":
+                return PATTERN_MATCHING;
             case "ruby.embedded":
                 return EMBEDDED;
             case "ruby.platform-native":
@@ -1338,6 +1348,7 @@ public class OptionsCatalog {
             PATCHING,
             DID_YOU_MEAN,
             HASHING_DETERMINISTIC,
+            PATTERN_MATCHING,
             EMBEDDED,
             NATIVE_PLATFORM,
             NATIVE_INTERRUPT,

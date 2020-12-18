@@ -171,6 +171,7 @@ import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.BlockPassParseNode;
 import org.truffleruby.parser.ast.BreakParseNode;
 import org.truffleruby.parser.ast.CallParseNode;
+import org.truffleruby.parser.ast.CaseInParseNode;
 import org.truffleruby.parser.ast.CaseParseNode;
 import org.truffleruby.parser.ast.ClassParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
@@ -206,6 +207,7 @@ import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
 import org.truffleruby.parser.ast.IArgumentNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -825,6 +827,168 @@ public class BodyTranslator extends Translator {
         }
 
         return addNewlineIfNeeded(node, ret);
+    }
+
+    @Override
+    public RubyNode visitCaseInNode(CaseInParseNode node) {
+        if (!RubyLanguage.getCurrentContext().getOptions().PATTERN_MATCHING) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxError(
+                            "syntax error, unexpected keyword_in",
+                            currentNode,
+                            node.getPosition().toSourceSection(source)));
+        }
+
+        final SourceIndexLength sourceSection = node.getPosition();
+
+        RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+
+        final RubyNode ret;
+
+        // Evaluate the case expression and store it in a local
+
+        final String tempName = environment.allocateLocalTemp("case");
+        final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+        final RubyNode assignTemp = readTemp.makeWriteNode(node.getCaseNode().accept(this));
+
+        /* Build an if expression from the ins and else. Work backwards because the first if contains all the others in
+         * its else clause. */
+
+        for (int n = node.getCases().size() - 1; n >= 0; n--) {
+            final InParseNode in = (InParseNode) node.getCases().get(n);
+
+            // JRuby AST always gives InParseNode with only one expression.
+            // "in 1,2; body" gets translated to 2 InParseNode. This is a bug from
+            // us we-using the 'when' parser for 'in' temporarily.
+            final ParseNode patternNode = in.getExpressionNodes();
+
+            final RubyNode conditionNode = caseInPatternMatch(patternNode, node.getCaseNode(), readTemp, sourceSection);
+
+            // Create the if node
+            final RubyNode thenNode = translateNodeOrNil(sourceSection, in.getBodyNode());
+            final IfElseNode ifNode = new IfElseNode(conditionNode, thenNode, elseNode);
+
+            // This if becomes the else for the next if
+            elseNode = ifNode;
+        }
+
+        final RubyNode ifNode = elseNode;
+
+        // A top-level block assigns the temp then runs the if
+        ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
+
+        return addNewlineIfNeeded(node, ret);
+    }
+
+    private RubyNode caseInPatternMatch(ParseNode patternNode, ParseNode expressionNode, RubyNode expressionValue,
+            SourceIndexLength sourceSection) {
+        final RubyCallNodeParameters deconstructCallParameters;
+        final RubyCallNodeParameters matcherCallParameters;
+        final RubyNode receiver;
+        final RubyNode deconstructed;
+
+        switch (patternNode.getNodeType()) {
+            case ARRAYNODE:
+                // Pattern-match element-wise recursively if possible.
+                final int size = ((ArrayParseNode) patternNode).size();
+                if (expressionNode.getNodeType() == NodeType.ARRAYNODE &&
+                        ((ArrayParseNode) expressionNode).size() == size) {
+                    final ParseNode[] patternElements = ((ArrayParseNode) patternNode).children();
+                    final ParseNode[] expressionElements = ((ArrayParseNode) expressionNode).children();
+
+                    final RubyNode[] matches = new RubyNode[size];
+
+                    // For each element of the case expression, evaluate and assign it, then run the pattern-matching
+                    // on the element
+                    for (int n = 0; n < size; n++) {
+                        final String tempName = environment.allocateLocalTemp("caseElem" + n);
+                        final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
+                        final RubyNode assignTemp = readTemp.makeWriteNode(expressionElements[n].accept(this));
+                        matches[n] = sequence(sourceSection, Arrays.asList(
+                                assignTemp,
+                                caseInPatternMatch(
+                                        patternElements[n],
+                                        expressionElements[n],
+                                        readTemp,
+                                        sourceSection)));
+                    }
+
+                    // Incorporate the element-wise pattern-matching into the AST, with the longer right leg since
+                    // AndNode is visited left to right
+                    RubyNode match = matches[size - 1];
+                    for (int n = size - 2; n >= 0; n--) {
+                        match = new AndNode(matches[n], match);
+                    }
+                    return match;
+                }
+
+                deconstructCallParameters = new RubyCallNodeParameters(
+                        expressionValue,
+                        "deconstruct",
+                        null,
+                        RubyNode.EMPTY_ARRAY,
+                        false,
+                        true);
+                deconstructed = language.coreMethodAssumptions
+                        .createCallNode(deconstructCallParameters, environment);
+
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+
+                matcherCallParameters = new RubyCallNodeParameters(
+                        receiver,
+                        "array_pattern_matches?",
+                        null,
+                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
+            case HASHNODE:
+                deconstructCallParameters = new RubyCallNodeParameters(
+                        expressionValue,
+                        "deconstruct_keys",
+                        null,
+                        new RubyNode[]{ new NilLiteralNode(true) },
+                        false,
+                        true);
+                deconstructed = language.coreMethodAssumptions
+                        .createCallNode(deconstructCallParameters, environment);
+
+                receiver = new TruffleInternalModuleLiteralNode();
+                receiver.unsafeSetSourceSection(sourceSection);
+
+                matcherCallParameters = new RubyCallNodeParameters(
+                        receiver,
+                        "hash_pattern_matches?",
+                        null,
+                        new RubyNode[]{ patternNode.accept(this), NodeUtil.cloneNode(deconstructed) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
+            case LOCALVARNODE:
+                // Assigns the value of an existing variable pattern as the value of the expression.
+                // May need to add a case with same/similar logic for new variables.
+                final RubyNode assignmentNode = new LocalAsgnParseNode(
+                        patternNode.getPosition(),
+                        ((LocalVarParseNode) patternNode).getName(),
+                        ((LocalVarParseNode) patternNode).getDepth(),
+                        expressionNode).accept(this);
+                return new OrNode(assignmentNode, new BooleanLiteralNode(true)); // TODO refactor to remove "|| true"
+            default:
+                matcherCallParameters = new RubyCallNodeParameters(
+                        patternNode.accept(this),
+                        "===",
+                        null,
+                        new RubyNode[]{ NodeUtil.cloneNode(expressionValue) },
+                        false,
+                        true);
+                return language.coreMethodAssumptions
+                        .createCallNode(matcherCallParameters, environment);
+        }
     }
 
     private RubyNode openModule(SourceIndexLength sourceSection, RubyNode defineOrGetNode, String moduleName,
@@ -1860,9 +2024,9 @@ public class BodyTranslator extends Translator {
 
         if (readNode == null) {
             /* This happens for code such as:
-             * 
+             *
              * def destructure4r((*c,d)) [c,d] end
-             * 
+             *
              * We're going to just assume that it should be there and add it... */
 
             environment.declareVar(name);

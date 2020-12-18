@@ -43,6 +43,7 @@ import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.BlockPassParseNode;
 import org.truffleruby.parser.ast.BreakParseNode;
 import org.truffleruby.parser.ast.CallParseNode;
+import org.truffleruby.parser.ast.CaseInParseNode;
 import org.truffleruby.parser.ast.CaseParseNode;
 import org.truffleruby.parser.ast.ClassParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
@@ -75,6 +76,7 @@ import org.truffleruby.parser.ast.GlobalAsgnParseNode;
 import org.truffleruby.parser.ast.GlobalVarParseNode;
 import org.truffleruby.parser.ast.HashParseNode;
 import org.truffleruby.parser.ast.IfParseNode;
+import org.truffleruby.parser.ast.InParseNode;
 import org.truffleruby.parser.ast.InstAsgnParseNode;
 import org.truffleruby.parser.ast.InstVarParseNode;
 import org.truffleruby.parser.ast.IterParseNode;
@@ -238,6 +240,11 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visitCaseNode(CaseParseNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public T visitCaseInNode(CaseInParseNode node) {
         return defaultVisit(node);
     }
 
@@ -638,6 +645,11 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visitWhenNode(WhenParseNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public T visitInNode(InParseNode node) {
         return defaultVisit(node);
     }
 
