@@ -60,47 +60,15 @@ class Integer < Numeric
   end
 
   def [](index, len = undefined)
-    if index.kind_of?(Range)
-      handle_range(index)
+    if Primitive.object_kind_of?(index, Range)
+      Truffle::IntegerOperations.bits_reference_range(self, index)
     else
-      handle_aref(index, len)
-    end
-  end
-
-  private def handle_aref(index, len)
-    index = Primitive.rb_to_int(index)
-    if Primitive.undefined?(len)
-      index < 0 ? 0 : (self >> index) & 1
-    else
-      num = self >> index
-      mask = (1 << len) - 1
-
-      num & mask
-    end
-  end
-
-  private def handle_range(range)
-    raise FloatDomainError , 'Infinity' if range.begin == Float::INFINITY || range.end == Float::INFINITY
-    raise FloatDomainError , '-Infinity' if range.begin == -Float::INFINITY || range.end == -Float::INFINITY
-
-    if !Primitive.nil?(range.begin) && !Primitive.nil?(range.end)
-      len = range.end - range.begin
-      len += 1 if !range.exclude_end?
-      num = self >> range.begin
-      mask = (1 << len) - 1
-
-      range.end < range.begin ? num : num & mask
-    elsif Primitive.nil? range.end
-
-      return self >> range.begin
-    else
-      len = range.end
-      len += 1 if !range.exclude_end?
-      mask = (1 << len) - 1
-
-      raise ArgumentError, 'The beginless range for Integer#[] results in infinity' if self & mask != 0 && range.end >= 0
-
-      0
+      index = Primitive.rb_to_int(index)
+      if Primitive.undefined?(len)
+        index < 0 ? 0 : (self >> index) & 1
+      else
+        (self >> index) & ((1 << len) - 1)
+      end
     end
   end
 
