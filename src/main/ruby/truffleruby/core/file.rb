@@ -1196,10 +1196,9 @@ class File < IO
         perm = undefined if options
       end
 
-      nmode, _binary, _external, _internal = IO.normalize_options(mode, options)
+      perm = nil if Primitive.undefined? perm
+      nmode, _binary, _external, _internal, _autoclose, perm = IO.normalize_options(mode, perm, options)
       nmode ||= 'r'
-
-      perm = 0666 if Primitive.undefined? perm
 
       fd = IO.sysopen(path, nmode, perm)
 
