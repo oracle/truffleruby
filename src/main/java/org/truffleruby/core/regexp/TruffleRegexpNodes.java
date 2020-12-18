@@ -15,8 +15,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.ISO8859_1Encoding;
@@ -60,10 +62,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -209,8 +208,7 @@ public class TruffleRegexpNodes {
         @Specialization
         @TruffleBoundary
         protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding,
-                @CachedLibrary(limit = "1") InteropLibrary libInterop,
-                @CachedLanguage RubyLanguage rubyLanguage) {
+                @CachedLibrary(limit = "2") InteropLibrary libInterop) {
             return re.tregexCache.getOrCreate(atStart, encoding.encoding, (sticky, enc) -> {
                 String processedRegexpSource;
                 Encoding[] fixedEnc = new Encoding[]{ null };
@@ -239,15 +237,17 @@ public class TruffleRegexpNodes {
                     return Nil.INSTANCE;
                 }
 
-                try {
-                    return libInterop
-                            .execute(
-                                    rubyLanguage.getRegexEngine(getContext().getEnv()),
-                                    processedRegexpSource,
-                                    flags,
-                                    tRegexEncoding);
-                } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
-                    throw new IllegalStateException("Failed to invoke the regexp engine", e);
+                String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
+                Source regexSource = Source
+                        .newBuilder("regex", regex, "Regexp")
+                        .mimeType("application/tregex")
+                        .internal(true)
+                        .build();
+                Object compiledRegex = getContext().getEnv().parseInternal(regexSource).call();
+                if (libInterop.isNull(compiledRegex)) {
+                    return nil;
+                } else {
+                    return compiledRegex;
                 }
             });
         }

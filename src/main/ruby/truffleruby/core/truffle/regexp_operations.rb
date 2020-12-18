@@ -92,16 +92,8 @@ module Truffle
         bail_out = compiled_regex.nil?
       end
       if !bail_out
-        begin
-          str_bytes = StringOperations.raw_bytes(str)
-          regex_result = compiled_regex.execBytes(str_bytes, from)
-        rescue => e
-          if e.message.include?('UnsupportedRegexException')
-            bail_out = true
-          else
-            raise e
-          end
-        end
+        str_bytes = StringOperations.raw_bytes(str)
+        regex_result = compiled_regex.execBytes(str_bytes, from)
       end
       if bail_out
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
