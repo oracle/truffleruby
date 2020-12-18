@@ -1,7 +1,6 @@
 # Development Tools for Ruby
 
-TruffleRuby gets tools automatically provided by GraalVM. Run `--help:tools`
-to see a full list of options.
+TruffleRuby acquires tools automatically provided by GraalVM. Run `--help:tools` to see a full list of options.
 
 The following program is used for illustration:
 
@@ -20,11 +19,11 @@ You need to use the `--jvm` runtime configuration and [install GraalVM](installi
 
 VisualVM is a GUI with many tools:
 
-* Monitoring such as CPU usage, heap size, time spent in GC etc (tab: Monitor)
-* Capturing and exploring heap dumps (tab: Monitor)
-* A list of threads and their status, and thread dumps (tab: Threads)
-* CPU and Memory sampling profilers at the Java level (tab: Sampler)
-* A CPU sampling profiler at the **Ruby** level (tab: Polyglot Sampler)
+* monitoring such as CPU usage, heap size, time spent in GC, etc (tab: Monitor)
+* capturing and exploring heap dumps (tab: Monitor)
+* a list of threads and their status, and thread dumps (tab: Threads)
+* CPU and memory sampling profilers at the Java level (tab: Sampler)
+* a CPU sampling profiler at the **Ruby** level (tab: Polyglot Sampler)
 
 There is more documentation about VisualVM on the [GraalVM website](https://www.graalvm.org/tools/visualvm/).
 
@@ -32,10 +31,10 @@ There is more documentation about VisualVM on the [GraalVM website](https://www.
 
 ### CPU Tracer
 
-The CPU tracer records the number of times methods, blocks, or statements are
-run and prints a histogram. Enable it with `--cputracer`.
+The CPU tracer records the number of times methods, blocks, or statements that are run, and prints a histogram.
+Enable it with `--cputracer`:
 
-```
+```shell
 -----------------------------------------------------------------------------------------------------------------------------------
 Tracing Histogram. Counted a total of 41663 element executions.
   Total Count: Number of times the element was executed and percentage of total executions.
@@ -72,15 +71,13 @@ Tracing Histogram. Counted a total of 41663 element executions.
  RB_NIL_P                                           |           138   0.3% |           138 100.0% |             0   0.0% | src/main/c/cext/ruby.c~413:11068-11094
  ```
 
-Note how the C function `strlen`, and the C preprocessor macro `RB_NIL_P`
-show up, being called by the `zlib` C extension.
+Note how the C function `strlen` and the C preprocessor macro `RB_NIL_P` show up, being called by the `zlib` C extension.
 
 ### CPU Sampler
 
-The CPU tracer records the cumulative time spent executing methods, blocks, or
-statements, and prints a histogram. Enable it with `--cpusampler`.
+The CPU tracer records the cumulative time spent executing methods, blocks, or statements, and prints a histogram. Enable it with `--cpusampler`:
 
-```
+```shell
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sampling Histogram. Recorded 3895 samples with period 1ms.
   Self Time: Time spent on the top of the stack.
@@ -88,7 +85,7 @@ Sampling Histogram. Recorded 3895 samples with period 1ms.
   Opt %: Percent of time spent in compiled and therefore non-interpreted code.
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Thread: Thread[main,5,main]
- Name                                                                                |      Total Time     |  Opt % ||       Self Time     |  Opt % | Location             
+ Name                                                                                |      Total Time     |  Opt % ||       Self Time     |  Opt % | Location
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  <main>                                                                              |       3635ms  93.3% |   0.0% ||       1086ms  27.9% |   0.0% | test.rb~1-6:0-140
  <top (required)>                                                                    |       1068ms  27.4% |   0.0% ||        708ms  18.2% |   0.0% | chunky_png.rb~1-179:0-5528
@@ -125,7 +122,7 @@ Sampling Histogram. Recorded 3895 samples with period 1ms.
 
 By default you see this histogram, but you can also see a call tree with `--cpusampler.Output=calltree`.
 
-```
+```shell
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Sampling CallTree. Recorded 3102 samples with period 1ms.
   Self Time: Time spent on the top of the stack.
@@ -133,7 +130,7 @@ Sampling CallTree. Recorded 3102 samples with period 1ms.
   Opt %: Percent of time spent in compiled and therefore non-interpreted code.
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Thread: Thread[main,5,main]
- Name                                                                                        |      Total Time     |  Opt % ||       Self Time     |  Opt % | Location             
+ Name                                                                                        |      Total Time     |  Opt % ||       Self Time     |  Opt % | Location
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ChunkyPNG::Canvas::PNGEncoding#save                                                        |        582ms  18.8% |   0.0% ||          5ms   0.2% |   0.0% | chunky_png/canvas/png_encoding.rb~42-44:1754-1871
    block in ChunkyPNG::Canvas::PNGEncoding#save                                              |        577ms  18.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~43:1797-1861
@@ -179,11 +176,11 @@ Sampling CallTree. Recorded 3102 samples with period 1ms.
 
 ### Coverage
 
-The coverage tool reports coverage by statement, line, and root. *Root* means
-the root of a function, so how many methods and blocks were covered. Enable
-it with `--coverage`.
+The coverage tool reports coverage by statement, line, and root.
+*Root* means the root of a function, i.e., how many methods and blocks were covered.
+Enable it with `--coverage`:
 
-```
+```shell
 -------------------------------------------------------------------------------------------------------------------------------------
 Code coverage histogram.
   Shows what percent of each element was covered during execution
@@ -220,23 +217,18 @@ Code coverage histogram.
 
 ### Chrome Inspector
 
-GraalVM lets you debug Ruby programs, and any other language supported by
-GraalVM, using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) to attach to
-debuggers such as [Chrome Developer Tools](https://developers.google.com/web/tools/chrome-devtools/).
+GraalVM lets you debug Ruby programs, and any other language supported by GraalVM, using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) to attach to debuggers such as [Chrome Developer Tools](https://developers.google.com/web/tools/chrome-devtools/).
 
-Run with `--inspect`, open the given URL in Chrome, drag your file system into
-the sources list, and then set a breakpoint and resume execution. Having the
-debugger attached and simple breakpoints set should not reduce performance.
+Run with `--inspect`, open the given URL in Chrome, drag your file system into the sources list, and then set a breakpoint and resume execution.
+Having the debugger attached and simple breakpoints set should not reduce performance.
 
-![Chrome Developer Tools debugger session](images/chrome.png)
+![Chrome Developer Tools debugger session](https://raw.githubusercontent.com/oracle/truffleruby/master/doc/user/images/chrome.png)
 
 ### NetBeans
 
-You can also debug GraalVM languages using NetBeans. Run with
-`--jvm --vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y`
-and attach to the process as if you were debugging a Java program. Then click
-*Toggle pause in GraalVM script* (the pause icon with a *G* superimposed) and
-break and you will break into the Ruby code, and see Ruby stack frames and
-local variables rather than Java stack frames and local variables.
+You can also debug GraalVM languages using NetBeans.
+Run with `--jvm --vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y` and attach to the process as if you were debugging a Java program.
+Then click *Toggle pause in GraalVM script* (the pause icon with a *G* superimposed) and break, and you will break into the Ruby code.
+You will see Ruby stack frames and local variables rather than Java stack frames and local variables.
 
-![NetBeans debugger session](images/netbeans.png)
+![NetBeans debugger session](https://raw.githubusercontent.com/oracle/truffleruby/master/doc/user/images/netbeans.png)
