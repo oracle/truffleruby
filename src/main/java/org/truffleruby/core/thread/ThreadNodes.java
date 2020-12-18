@@ -42,6 +42,7 @@ package org.truffleruby.core.thread;
 
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -64,7 +65,9 @@ import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.hash.DeleteLastNode;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.SetNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
@@ -592,6 +595,43 @@ public abstract class ThreadNodes {
             return getCurrentRubyThreadNode.execute().recursiveObjects;
         }
 
+    }
+
+    @Primitive(name = "thread_detect_recursion_single")
+    public static abstract class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private YieldNode yieldNode = YieldNode.create();
+        @Child private SetNode addNode = SetNode.create();
+        @Child private DeleteLastNode delNode = DeleteLastNode.create();
+
+        public Object yield(RubyProc block, Object... arguments) {
+            return yieldNode.executeDispatch(block, arguments);
+        }
+
+        protected boolean add(RubyHash hash, Object key, Object value) {
+            return addNode.executeSet(hash, key, value, true);
+        }
+
+        protected Object removeLast(RubyHash hash, Object key) {
+            return delNode.executeDeleteLast(hash, key);
+        }
+
+        @Specialization
+        protected boolean detectRecursionSingle(Object obj, RubyProc block,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached ConditionProfile insertedProfile) {
+            RubyHash objects = getCurrentRubyThreadNode.execute().recursiveObjectsSingle;
+            if (insertedProfile.profile(add(objects, obj, true))) {
+                try {
+                    yield(block);
+                } finally {
+                    removeLast(objects, obj);
+                }
+                return false;
+            } else {
+                return true;
+            }
+        }
     }
 
     @Primitive(name = "thread_get_report_on_exception")

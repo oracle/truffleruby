@@ -23,5 +23,3 @@ end
 
 example "detect_recursion_recursive(:each, [])", false
 example "detect_recursion_recursive(:each_value, {})", false
-example "a = []; a << a; detect_recursion_recursive(:each, a)", true
-example "a = {}; a[:a] = a; detect_recursion_recursive(:each_value, a)", true

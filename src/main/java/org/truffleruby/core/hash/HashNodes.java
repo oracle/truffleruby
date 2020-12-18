@@ -255,7 +255,8 @@ public abstract class HashNodes {
 
         @Specialization
         protected Object set(RubyHash hash, Object key, Object value) {
-            return setNode.executeSet(hash, key, value, hash.compareByIdentity);
+            setNode.executeSet(hash, key, value, hash.compareByIdentity);
+            return value;
         }
 
     }
@@ -392,9 +393,10 @@ public abstract class HashNodes {
         protected Object delete(RubyHash hash, Object key, Object maybeBlock) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
+            final HashLookupResult lookupResult = lookupEntryNode.lookup(hash, key);
+            final Entry entry = lookupResult.getEntry();
 
-            if (hashLookupResult.getEntry() == null) {
+            if (entry == null) {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil;
                 } else {
@@ -402,17 +404,7 @@ public abstract class HashNodes {
                 }
             }
 
-            final Entry entry = hashLookupResult.getEntry();
-
-            // Remove from the sequence chain
-
-            if (entry.getPreviousInSequence() == null) {
-                assert hash.firstInSequence == entry;
-                hash.firstInSequence = entry.getNextInSequence();
-            } else {
-                assert hash.firstInSequence != entry;
-                entry.getPreviousInSequence().setNextInSequence(entry.getNextInSequence());
-            }
+            BucketsStrategy.removeFromSequenceChain(hash, entry);
 
             if (entry.getNextInSequence() == null) {
                 hash.lastInSequence = entry.getPreviousInSequence();
@@ -420,18 +412,12 @@ public abstract class HashNodes {
                 entry.getNextInSequence().setPreviousInSequence(entry.getPreviousInSequence());
             }
 
-            // Remove from the lookup chain
-
-            if (hashLookupResult.getPreviousEntry() == null) {
-                ((Entry[]) hash.store)[hashLookupResult.getIndex()] = entry.getNextInLookup();
-            } else {
-                hashLookupResult.getPreviousEntry().setNextInLookup(entry.getNextInLookup());
-            }
+            BucketsStrategy
+                    .removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
 
             hash.size -= 1;
 
             assert HashOperations.verifyStore(getContext(), hash);
-
             return entry.getValue();
         }
 
