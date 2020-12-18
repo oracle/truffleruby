@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -39,6 +40,7 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Platform;
@@ -76,6 +78,8 @@ public class FeatureLoader {
     private String cwd = null;
     private NativeFunction getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
+
+    private @CompilationFinal RubyArray loadedFeatures = null;
 
     private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
 
@@ -242,7 +246,6 @@ public class FeatureLoader {
         return fileLocks;
     }
 
-
     @TruffleBoundary
     public String findFeature(String feature) {
         return context.getMetricsProfiler().callWithMetrics(
@@ -252,7 +255,7 @@ public class FeatureLoader {
     }
 
     @TruffleBoundary
-    public String findFeatureImpl(String feature) {
+    private String findFeatureImpl(String feature) {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             final String originalFeature = feature;
 
@@ -489,12 +492,12 @@ public class FeatureLoader {
         }
     }
 
-    // TODO (pitr-ch 16-Mar-2016): this protects the $LOADED_FEATURES only in this class,
-    // it can still be accessed and modified (rare) by Ruby code which may cause issues
-    private final Object loadedFeaturesLock = new Object();
-
     public Object getLoadedFeaturesLock() {
-        return loadedFeaturesLock;
+        if (loadedFeatures == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            GlobalVariables globals = context.getCoreLibrary().globalVariables;
+            loadedFeatures = (RubyArray) globals.getStorage("$LOADED_FEATURES").getValue();
+        }
+        return loadedFeatures;
     }
-
 }

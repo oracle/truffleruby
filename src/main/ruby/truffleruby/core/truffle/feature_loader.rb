@@ -295,19 +295,21 @@ module Truffle
     end
 
     def self.get_expanded_load_path
-      unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH) && same_working_directory_for_load_path?
-        @expanded_load_path = $LOAD_PATH.map do |path|
-          path = Truffle::Type.coerce_to_path(path)
-          unless @working_directory_copy
-            unless File.absolute_path?(path)
-              @working_directory_copy = Primitive.working_directory
+      with_synchronized_features do
+        unless Primitive.array_storage_equal?(@load_path_copy, $LOAD_PATH) && same_working_directory_for_load_path?
+          @expanded_load_path = $LOAD_PATH.map do |path|
+            path = Truffle::Type.coerce_to_path(path)
+            unless @working_directory_copy
+              unless File.absolute_path?(path)
+                @working_directory_copy = Primitive.working_directory
+              end
             end
+            Primitive.canonicalize_path(path)
           end
-          Primitive.canonicalize_path(path)
+          @load_path_copy = $LOAD_PATH.dup
         end
-        @load_path_copy = $LOAD_PATH.dup
+        @expanded_load_path
       end
-      @expanded_load_path
     end
 
     def self.same_working_directory_for_load_path?
