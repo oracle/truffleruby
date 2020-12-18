@@ -1030,6 +1030,7 @@ public class CoreLibrary {
             "/core/comparable.rb",
             "/core/numeric.rb",
             "/core/truffle/ctype.rb",
+            "/core/truffle/integer_operations.rb",
             "/core/integer.rb",
             "/core/regexp.rb",
             "/core/transcoding.rb",

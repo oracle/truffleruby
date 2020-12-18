@@ -59,9 +59,17 @@ class Integer < Numeric
     redo_coerced :**, o
   end
 
-  def [](index)
-    index = Primitive.rb_to_int(index)
-    index < 0 ? 0 : (self >> index) & 1
+  def [](index, len = undefined)
+    if Primitive.object_kind_of?(index, Range)
+      Truffle::IntegerOperations.bits_reference_range(self, index)
+    else
+      index = Primitive.rb_to_int(index)
+      if Primitive.undefined?(len)
+        index < 0 ? 0 : (self >> index) & 1
+      else
+        (self >> index) & ((1 << len) - 1)
+      end
+    end
   end
 
   def allbits?(mask)
