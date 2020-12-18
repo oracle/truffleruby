@@ -86,7 +86,7 @@ module Truffle
     end
 
     def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
-      bail_out = to < from || to != str.bytes.length || start != 0 || from < 0
+      bail_out = to < from || to != str.bytesize || start != 0 || from < 0
       if !bail_out
         compiled_regex = tregex_compile(re, at_start, select_encoding(re, str, encoding_conversion))
         bail_out = compiled_regex.nil?
