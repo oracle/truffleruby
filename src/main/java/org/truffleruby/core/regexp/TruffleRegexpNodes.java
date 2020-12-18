@@ -188,13 +188,19 @@ public class TruffleRegexpNodes {
     @CoreMethod(names = "select_encoding", onSingleton = true, required = 3)
     public abstract static class SelectEncodingNode extends CoreMethodArrayArgumentsNode {
 
+        @Child RopeNodes.CodeRangeNode codeRangeNode;
+
         @Specialization(guards = "libString.isRubyString(str)")
         protected RubyEncoding selectEncoding(RubyRegexp re, Object str, boolean encodingConversion,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             Encoding encoding;
             if (encodingConversion) {
                 Rope stringRope = libString.getRope(str);
-                encoding = checkEncoding(re, stringRope.getEncoding(), stringRope.getCodeRange());
+                if (codeRangeNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    codeRangeNode = RopeNodes.CodeRangeNode.create();
+                }
+                encoding = checkEncoding(re, stringRope.getEncoding(), codeRangeNode.execute(stringRope));
             } else {
                 encoding = re.regex.getEncoding();
             }
