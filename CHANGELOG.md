@@ -15,6 +15,7 @@ Compatibility:
 * Added support for numbered block parameters (`_1` etc).
 * Fixed `String#upto` issue with non-ascii strings (#2183).
 * Implemented partial support for pattern matching (#2186).
+* Make `File.extname` return `'.'` if the path ends with one (#2192, @tomstuart).
 
 Performance:
 
