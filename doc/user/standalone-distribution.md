@@ -25,7 +25,7 @@ Just add `truffleruby` in the build matrix, such as:
 ```yaml
 language: ruby
 rvm:
-  - 2.6.1
+  - 2.7.2
   - truffleruby
   - truffleruby-head
 ```
@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ 2.6, truffleruby, truffleruby-head ]
+        ruby: [ 2.7, truffleruby, truffleruby-head ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
