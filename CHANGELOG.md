@@ -14,6 +14,7 @@ Compatibility:
 * Updated `Regexp.last_match` to support `Symbol` and `String` parameter (#2179).
 * Added support for numbered block parameters (`_1` etc).
 * Fixed `String#upto` issue with non-ascii strings (#2183).
+* Include fractional seconds in `Time#inspect` output (#2194, @tomstuart).
 
 Performance:
 
