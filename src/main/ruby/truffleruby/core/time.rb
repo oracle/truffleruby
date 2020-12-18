@@ -46,7 +46,7 @@ class Time
     str = strftime('%Y-%m-%d %H:%M:%S')
 
     if nsec != 0
-      str << sprintf(".%09d", nsec)
+      str << sprintf('.%09d', nsec)
       str.chop! while str.end_with?('0')
     end
 
@@ -55,11 +55,9 @@ class Time
   end
 
   def to_s
-    if gmt?
-      str = strftime('%Y-%m-%d %H:%M:%S UTC')
-    else
-      str = strftime('%Y-%m-%d %H:%M:%S %z')
-    end
+    str = strftime('%Y-%m-%d %H:%M:%S')
+
+    str << (gmt? ? ' UTC' : strftime(' %z'))
     str.force_encoding Encoding::US_ASCII
   end
 
