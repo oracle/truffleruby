@@ -686,12 +686,12 @@ public class RopeOperations {
     public static boolean anyChildContains(Rope rope, String value) {
         if (rope instanceof SubstringRope) {
             return anyChildContains(((SubstringRope) rope).getChild(), value);
-        } else if (rope instanceof ConcatRope) {
-            ConcatChildren children = ((ConcatRope) rope).getChildrenOrNull();
-            if (children != null) {
-                return anyChildContains(children.left, value) || anyChildContains(children.right, value);
-            }
         }
-        return rope.byteLength() < value.length() && RopeOperations.decodeRope(rope).contains(value);
+        // NOTE(norswap, 18 Dec 2020): We do not treat ConcatRopes specially: `decodeRope` will flatten them
+        //   If we just search left and right, we risk missing the case where the value straddles the two children.
+        //
+        //   Because of the flattening, the references to the children ropes will be nulled, so we do not need
+        //   to worry about the risk of retaining a substring rope whose child contains the value.
+        return rope.byteLength() >= value.length() && RopeOperations.decodeRope(rope).contains(value);
     }
 }
