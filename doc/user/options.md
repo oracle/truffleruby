@@ -41,6 +41,9 @@ Features:
   rubyopt         RUBYOPT environment variable (default: enabled)
   frozen-string-literal
                   freeze all string literals (default: disabled)
+Warning categories:
+  deprecated      deprecated features
+  experimental    experimental features
 ```
 
 TruffleRuby also reads the `RUBYOPT` environment variable, as in standard
