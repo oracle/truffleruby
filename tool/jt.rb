@@ -48,6 +48,8 @@ RUBOCOP_INCLUDE_LIST = %w[
   spec/truffle
 ]
 
+RUBOCOP_VERSION = '0.66.0'
+
 DLEXT = RbConfig::CONFIG['DLEXT']
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
@@ -2235,7 +2237,10 @@ module Commands
       env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
       sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
     else
-      sh 'rubocop', '_0.66.0_', *args
+      unless sh('rubocop', "_#{RUBOCOP_VERSION}_", *args, continue_on_failure: true)
+        sh 'gem', 'install', 'rubocop', '-v', RUBOCOP_VERSION
+        sh 'rubocop', "_#{RUBOCOP_VERSION}_", *args
+      end
     end
   end
 
