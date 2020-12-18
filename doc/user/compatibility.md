@@ -29,7 +29,7 @@ In the C API, the preprocessor macro `TRUFFLERUBY` is defined, which can be chec
 
 ### Continuations and `callcc`
 
-Continuations are obsolete in MRI, and fibers are recommended instead.
+Continuations are obsolete in MRI, and Fibers are recommended instead.
 Continuations and `callcc` are unlikely to ever be implemented in TruffleRuby, as their semantics fundamentally do not match the JVM architecture.
 
 ### Fork
@@ -106,7 +106,7 @@ The `-y`, `--yydebug`, `--dump=`, and `--debug-frozen-string-literal` switches a
 
 Programs passed in `-e` arguments with magic-comments must have an encoding that is UTF-8 or a subset of UTF-8, as the JVM has already decoded arguments by the time we get them.
 
-The `--jit` option and the `jit` feature are not supported because TruffleRuby uses GraalVM as a JIT.
+The `--jit` option and the `jit` feature have no effect on TruffleRuby and warn. The GraalVM compiler is always used when available.
 
 ### Time is limited to millisecond precision
 
@@ -127,7 +127,7 @@ It may not work, or the title you try to set may be truncated.
 
 ### Polyglot standard I/O streams
 
-If you use standard I/O streams provided by the Polyglot engine, via the experimental `--polyglot-stdio` option, reads and writes to file descriptors 1, 2, and 3 will be redirected to these streams.
+If you use standard I/O streams provided by the Polyglot engine, via the experimental `--polyglot-stdio` option, reads and writes to file descriptors 0, 1, and 2 will be redirected to these streams.
 That means that other I/O operations on these file descriptors, such as `isatty`, may not be relevant for where these streams actually end up, and operations like `dup` may lose the connection to the polyglot stream.
 For example, if you `$stdout.reopen`, as some logging frameworks do, you will get the native standard-out, not the polyglot out.
 
@@ -135,14 +135,14 @@ Also, I/O buffer drains, writes on I/O objects with `sync` set, and `write_nonbl
 
 ### Error messages
 
-Error message strings will sometimes differ from MRI, as these are not generally covered by the Ruby specification suite or tests.
+Error message strings will sometimes differ from MRI, as these are not generally covered by the [Ruby Spec Suite](https://github.com/ruby/spec) or tests.
 
 ### Signals
 
 The set of signals that TruffleRuby can handle is different from MRI.
-When launched as a GraalVM native executable, TruffleRuby allows trapping all the same signals that MRI does, as well as a few that MRI doesn't.
+When using the native configuration, TruffleRuby allows trapping all the same signals that MRI does, as well as a few that MRI does not.
 The only signals that can't be trapped are `KILL`, `STOP`, and `VTALRM`.
-Consequently, any signal handling code that runs on MRI can run on TruffleRuby without modification in the GraalVM native image.
+Consequently, any signal handling code that runs on MRI can run on TruffleRuby without modification in the native configuration.
 
 However, when run on the JVM, TruffleRuby is unable to trap `USR1` or `QUIT`, as these signals are reserved by the JVM.
 In such a case `trap(:USR1) {}` will raise an `ArgumentError`.
@@ -222,8 +222,8 @@ par with one another.
 ## Java Interoperability With the Native Configuration
 
 Java interoperability works in the native configuration but requires more setup.
-First, only classes loaded in the image can be accessed.
-You can add more classes by compiling a native executable including TruffleRuby.
+By default, only some array classes are available in the image for Java interoperability.
+You can add more classes by compiling a native image including TruffleRuby.
 See [here](https://www.graalvm.org/reference-manual/embed-languages/#build-native-images-from-polyglot-applications) for more details.
 
 ## Spec Completeness
