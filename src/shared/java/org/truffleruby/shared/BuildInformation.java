@@ -14,9 +14,13 @@ import org.truffleruby.PopulateBuildInformation;
 @PopulateBuildInformation
 public interface BuildInformation {
 
+    String getBuildName();
+
     String getShortRevision();
 
     String getFullRevision();
+
+    String getCopyrightYear();
 
     String getCompileDate();
 

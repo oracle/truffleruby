@@ -46,9 +46,11 @@ public class BuildInformationProcessor extends AbstractProcessor {
     private final Set<String> processed = new HashSet<>();
 
     private File trufflerubyHome;
+    private String buildName;
     private String shortRevision;
     private String fullRevision;
     private String compileDate;
+    private String copyrightYear;
     private String kernelMajorVersion;
 
     @Override
@@ -56,18 +58,15 @@ public class BuildInformationProcessor extends AbstractProcessor {
         super.init(env);
         try {
             trufflerubyHome = findHome();
+            buildName = System.getenv("TRUFFLERUBY_BUILD_NAME");
             fullRevision = runCommand("git rev-parse HEAD");
             shortRevision = fullRevision.substring(0, 8);
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
+            copyrightYear = compileDate.split("\\-")[0];
             kernelMajorVersion = findKernelMajorVersion();
         } catch (Throwable e) {
             throw new Error(e);
         }
-    }
-
-    private String findKernelMajorVersion() throws IOException, InterruptedException {
-        final String kernelVersion = runCommand("uname -r");
-        return kernelVersion.split(Pattern.quote("."))[0];
     }
 
     private File findHome() throws URISyntaxException {
@@ -99,6 +98,11 @@ public class BuildInformationProcessor extends AbstractProcessor {
             }
         }
         return source.getParentFile();
+    }
+
+    private String findKernelMajorVersion() throws IOException, InterruptedException {
+        final String kernelVersion = runCommand("uname -r");
+        return kernelVersion.split(Pattern.quote("."))[0];
     }
 
     private String runCommand(String command) throws IOException, InterruptedException {
@@ -180,11 +184,17 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
                     final String value;
                     switch (name) {
+                        case "getBuildName":
+                            value = buildName;
+                            break;
                         case "getShortRevision":
                             value = shortRevision;
                             break;
                         case "getFullRevision":
                             value = fullRevision;
+                            break;
+                        case "getCopyrightYear":
+                            value = copyrightYear;
                             break;
                         case "getCompileDate":
                             value = compileDate;
@@ -198,7 +208,11 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
                     stream.println("    @Override");
                     stream.println("    public String " + name + "() {");
-                    stream.println("        return \"" + value + "\";");
+                    if (value == null) {
+                        stream.println("        return null;");
+                    } else {
+                        stream.println("        return \"" + value + "\";");
+                    }
                     stream.println("    }");
                     stream.println();
                 }

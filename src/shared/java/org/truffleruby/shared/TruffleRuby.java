@@ -21,24 +21,29 @@ public class TruffleRuby {
     public static final String LANGUAGE_VERSION = "2.7.2";
     public static final String LANGUAGE_REVISION = BuildInformationImpl.INSTANCE.getFullRevision();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
-    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
+    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-" +
+            BuildInformationImpl.INSTANCE.getCopyrightYear() + " Oracle and/or its affiliates";
     public static final boolean PRE_INITIALIZE_CONTEXTS = System
             .getProperty("polyglot.image-build-time.PreinitializeContexts") != null;
 
     public static String getVersionString(String implementationName) {
-        final String vm;
-        if (ImageInfo.inImageCode()) {
-            vm = implementationName + " Native";
+        final String buildName = BuildInformationImpl.INSTANCE.getBuildName();
+        final String nameExtra;
+
+        if (buildName == null) {
+            nameExtra = "";
         } else {
-            vm = implementationName + " JVM";
+            nameExtra = String.format(" (%s)", BuildInformationImpl.INSTANCE.getBuildName());
         }
 
         return String.format(
-                "%s %s, like ruby %s, %s [%s-%s]",
+                "%s%s %s, like ruby %s, %s %s [%s-%s]",
                 ENGINE_ID,
+                nameExtra,
                 getEngineVersion(),
                 LANGUAGE_VERSION,
-                vm,
+                implementationName,
+                ImageInfo.inImageCode() ? "Native" : "JVM",
                 BasicPlatform.getArchName(),
                 BasicPlatform.getOSName());
     }
