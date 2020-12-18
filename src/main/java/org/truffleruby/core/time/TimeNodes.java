@@ -416,7 +416,7 @@ public abstract class TimeNodes {
 
         @Specialization(
                 guards = { "equalNode.execute(libFormat.getRope(format), cachedFormat)" },
-                limit = "getContext().getOptions().TIME_FORMAT_CACHE")
+                limit = "getLanguage().options.TIME_FORMAT_CACHE")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,

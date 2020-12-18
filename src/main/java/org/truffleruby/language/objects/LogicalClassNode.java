@@ -103,7 +103,7 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().CLASS_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
     }
 
 }

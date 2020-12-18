@@ -151,66 +151,6 @@ public class Options {
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --preinit=true */
     public final boolean PREINITIALIZATION;
-    /** --default-cache=8 */
-    public final int DEFAULT_CACHE;
-    /** --method-lookup-cache=DEFAULT_CACHE */
-    public final int METHOD_LOOKUP_CACHE;
-    /** --dispatch-cache=DEFAULT_CACHE */
-    public final int DISPATCH_CACHE;
-    /** --yield-cache=DEFAULT_CACHE */
-    public final int YIELD_CACHE;
-    /** --to-proc-cache=DEFAULT_CACHE */
-    public final int METHOD_TO_PROC_CACHE;
-    /** --is-a-cache=DEFAULT_CACHE */
-    public final int IS_A_CACHE;
-    /** --bind-cache=DEFAULT_CACHE */
-    public final int BIND_CACHE;
-    /** --constant-cache=DEFAULT_CACHE */
-    public final int CONSTANT_CACHE;
-    /** --instance-variable-cache=DEFAULT_CACHE */
-    public final int INSTANCE_VARIABLE_CACHE;
-    /** --binding-local-variable-cache=DEFAULT_CACHE */
-    public final int BINDING_LOCAL_VARIABLE_CACHE;
-    /** --symbol-to-proc-cache=DEFAULT_CACHE */
-    public final int SYMBOL_TO_PROC_CACHE;
-    /** --allocate-class-cache=DEFAULT_CACHE */
-    public final int ALLOCATE_CLASS_CACHE;
-    /** --pack-cache=DEFAULT_CACHE */
-    public final int PACK_CACHE;
-    /** --unpack-cache=DEFAULT_CACHE */
-    public final int UNPACK_CACHE;
-    /** --eval-cache=DEFAULT_CACHE */
-    public final int EVAL_CACHE;
-    /** --encoding-compatible-query-cache=DEFAULT_CACHE */
-    public final int ENCODING_COMPATIBLE_QUERY_CACHE;
-    /** --encoding-loaded-classes-cache=DEFAULT_CACHE */
-    public final int ENCODING_LOADED_CLASSES_CACHE;
-    /** --interop-convert-cache=DEFAULT_CACHE */
-    public final int INTEROP_CONVERT_CACHE;
-    /** --interop-execute-cache=DEFAULT_CACHE */
-    public final int INTEROP_EXECUTE_CACHE;
-    /** --interop-invoke-cache=DEFAULT_CACHE */
-    public final int INTEROP_INVOKE_CACHE;
-    /** --interop-new-cache=DEFAULT_CACHE */
-    public final int INTEROP_NEW_CACHE;
-    /** --time-format-cache=DEFAULT_CACHE */
-    public final int TIME_FORMAT_CACHE;
-    /** --integer-pow-cache=DEFAULT_CACHE */
-    public final int POW_CACHE;
-    /** --ruby-library-cache=DEFAULT_CACHE */
-    public final int RUBY_LIBRARY_CACHE;
-    /** --thread-cache=1 */
-    public final int THREAD_CACHE;
-    /** --identity-cache=1 */
-    public final int IDENTITY_CACHE;
-    /** --class-cache=3 */
-    public final int CLASS_CACHE;
-    /** --array-dup-cache=3 */
-    public final int ARRAY_DUP_CACHE;
-    /** --frame-variable-access-cache=5 */
-    public final int FRAME_VARIABLE_ACCESS_CACHE;
-    /** --array-strategy-cache=4 */
-    public final int ARRAY_STRATEGY_CACHE;
     /** --array-uninitialized-size=16 */
     public final int ARRAY_UNINITIALIZED_SIZE;
     /** --array-small=3 */
@@ -321,36 +261,6 @@ public class Options {
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
-        DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
-        METHOD_LOOKUP_CACHE = options.hasBeenSet(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) ? options.get(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) : DEFAULT_CACHE;
-        DISPATCH_CACHE = options.hasBeenSet(OptionsCatalog.DISPATCH_CACHE_KEY) ? options.get(OptionsCatalog.DISPATCH_CACHE_KEY) : DEFAULT_CACHE;
-        YIELD_CACHE = options.hasBeenSet(OptionsCatalog.YIELD_CACHE_KEY) ? options.get(OptionsCatalog.YIELD_CACHE_KEY) : DEFAULT_CACHE;
-        METHOD_TO_PROC_CACHE = options.hasBeenSet(OptionsCatalog.METHOD_TO_PROC_CACHE_KEY) ? options.get(OptionsCatalog.METHOD_TO_PROC_CACHE_KEY) : DEFAULT_CACHE;
-        IS_A_CACHE = options.hasBeenSet(OptionsCatalog.IS_A_CACHE_KEY) ? options.get(OptionsCatalog.IS_A_CACHE_KEY) : DEFAULT_CACHE;
-        BIND_CACHE = options.hasBeenSet(OptionsCatalog.BIND_CACHE_KEY) ? options.get(OptionsCatalog.BIND_CACHE_KEY) : DEFAULT_CACHE;
-        CONSTANT_CACHE = options.hasBeenSet(OptionsCatalog.CONSTANT_CACHE_KEY) ? options.get(OptionsCatalog.CONSTANT_CACHE_KEY) : DEFAULT_CACHE;
-        INSTANCE_VARIABLE_CACHE = options.hasBeenSet(OptionsCatalog.INSTANCE_VARIABLE_CACHE_KEY) ? options.get(OptionsCatalog.INSTANCE_VARIABLE_CACHE_KEY) : DEFAULT_CACHE;
-        BINDING_LOCAL_VARIABLE_CACHE = options.hasBeenSet(OptionsCatalog.BINDING_LOCAL_VARIABLE_CACHE_KEY) ? options.get(OptionsCatalog.BINDING_LOCAL_VARIABLE_CACHE_KEY) : DEFAULT_CACHE;
-        SYMBOL_TO_PROC_CACHE = options.hasBeenSet(OptionsCatalog.SYMBOL_TO_PROC_CACHE_KEY) ? options.get(OptionsCatalog.SYMBOL_TO_PROC_CACHE_KEY) : DEFAULT_CACHE;
-        ALLOCATE_CLASS_CACHE = options.hasBeenSet(OptionsCatalog.ALLOCATE_CLASS_CACHE_KEY) ? options.get(OptionsCatalog.ALLOCATE_CLASS_CACHE_KEY) : DEFAULT_CACHE;
-        PACK_CACHE = options.hasBeenSet(OptionsCatalog.PACK_CACHE_KEY) ? options.get(OptionsCatalog.PACK_CACHE_KEY) : DEFAULT_CACHE;
-        UNPACK_CACHE = options.hasBeenSet(OptionsCatalog.UNPACK_CACHE_KEY) ? options.get(OptionsCatalog.UNPACK_CACHE_KEY) : DEFAULT_CACHE;
-        EVAL_CACHE = options.hasBeenSet(OptionsCatalog.EVAL_CACHE_KEY) ? options.get(OptionsCatalog.EVAL_CACHE_KEY) : DEFAULT_CACHE;
-        ENCODING_COMPATIBLE_QUERY_CACHE = options.hasBeenSet(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY) ? options.get(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY) : DEFAULT_CACHE;
-        ENCODING_LOADED_CLASSES_CACHE = options.hasBeenSet(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY) ? options.get(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY) : DEFAULT_CACHE;
-        INTEROP_CONVERT_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) : DEFAULT_CACHE;
-        INTEROP_EXECUTE_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_EXECUTE_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_EXECUTE_CACHE_KEY) : DEFAULT_CACHE;
-        INTEROP_INVOKE_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_INVOKE_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_INVOKE_CACHE_KEY) : DEFAULT_CACHE;
-        INTEROP_NEW_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_NEW_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_NEW_CACHE_KEY) : DEFAULT_CACHE;
-        TIME_FORMAT_CACHE = options.hasBeenSet(OptionsCatalog.TIME_FORMAT_CACHE_KEY) ? options.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY) : DEFAULT_CACHE;
-        POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
-        RUBY_LIBRARY_CACHE = options.hasBeenSet(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) ? options.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) : DEFAULT_CACHE;
-        THREAD_CACHE = options.get(OptionsCatalog.THREAD_CACHE_KEY);
-        IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
-        CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
-        ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);
-        FRAME_VARIABLE_ACCESS_CACHE = options.get(OptionsCatalog.FRAME_VARIABLE_ACCESS_CACHE_KEY);
-        ARRAY_STRATEGY_CACHE = options.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY);
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
@@ -505,66 +415,6 @@ public class Options {
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
                 return PREINITIALIZATION;
-            case "ruby.default-cache":
-                return DEFAULT_CACHE;
-            case "ruby.method-lookup-cache":
-                return METHOD_LOOKUP_CACHE;
-            case "ruby.dispatch-cache":
-                return DISPATCH_CACHE;
-            case "ruby.yield-cache":
-                return YIELD_CACHE;
-            case "ruby.to-proc-cache":
-                return METHOD_TO_PROC_CACHE;
-            case "ruby.is-a-cache":
-                return IS_A_CACHE;
-            case "ruby.bind-cache":
-                return BIND_CACHE;
-            case "ruby.constant-cache":
-                return CONSTANT_CACHE;
-            case "ruby.instance-variable-cache":
-                return INSTANCE_VARIABLE_CACHE;
-            case "ruby.binding-local-variable-cache":
-                return BINDING_LOCAL_VARIABLE_CACHE;
-            case "ruby.symbol-to-proc-cache":
-                return SYMBOL_TO_PROC_CACHE;
-            case "ruby.allocate-class-cache":
-                return ALLOCATE_CLASS_CACHE;
-            case "ruby.pack-cache":
-                return PACK_CACHE;
-            case "ruby.unpack-cache":
-                return UNPACK_CACHE;
-            case "ruby.eval-cache":
-                return EVAL_CACHE;
-            case "ruby.encoding-compatible-query-cache":
-                return ENCODING_COMPATIBLE_QUERY_CACHE;
-            case "ruby.encoding-loaded-classes-cache":
-                return ENCODING_LOADED_CLASSES_CACHE;
-            case "ruby.interop-convert-cache":
-                return INTEROP_CONVERT_CACHE;
-            case "ruby.interop-execute-cache":
-                return INTEROP_EXECUTE_CACHE;
-            case "ruby.interop-invoke-cache":
-                return INTEROP_INVOKE_CACHE;
-            case "ruby.interop-new-cache":
-                return INTEROP_NEW_CACHE;
-            case "ruby.time-format-cache":
-                return TIME_FORMAT_CACHE;
-            case "ruby.integer-pow-cache":
-                return POW_CACHE;
-            case "ruby.ruby-library-cache":
-                return RUBY_LIBRARY_CACHE;
-            case "ruby.thread-cache":
-                return THREAD_CACHE;
-            case "ruby.identity-cache":
-                return IDENTITY_CACHE;
-            case "ruby.class-cache":
-                return CLASS_CACHE;
-            case "ruby.array-dup-cache":
-                return ARRAY_DUP_CACHE;
-            case "ruby.frame-variable-access-cache":
-                return FRAME_VARIABLE_ACCESS_CACHE;
-            case "ruby.array-strategy-cache":
-                return ARRAY_STRATEGY_CACHE;
             case "ruby.array-uninitialized-size":
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array-small":

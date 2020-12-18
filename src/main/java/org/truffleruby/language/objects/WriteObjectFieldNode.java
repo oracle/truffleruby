@@ -68,6 +68,6 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 }

@@ -47,7 +47,7 @@ public abstract class CanBindMethodToModuleNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().BIND_CACHE;
+        return getLanguage().options.BIND_CACHE;
     }
 
 }

@@ -141,6 +141,6 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     protected int getDynamicObjectCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 }

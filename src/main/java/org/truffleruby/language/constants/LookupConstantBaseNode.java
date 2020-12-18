@@ -45,7 +45,7 @@ public abstract class LookupConstantBaseNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().CONSTANT_CACHE;
+        return getLanguage().options.CONSTANT_CACHE;
     }
 
 }

@@ -223,7 +223,7 @@ public abstract class SymbolNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().SYMBOL_TO_PROC_CACHE;
+            return getLanguage().options.SYMBOL_TO_PROC_CACHE;
         }
 
     }

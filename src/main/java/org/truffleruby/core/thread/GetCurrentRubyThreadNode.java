@@ -73,7 +73,7 @@ public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().THREAD_CACHE;
+        return getLanguage().options.THREAD_CACHE;
     }
 
 }

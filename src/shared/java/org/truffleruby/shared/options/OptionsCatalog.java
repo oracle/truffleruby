@@ -105,16 +105,12 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> INSTANCE_VARIABLE_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> BINDING_LOCAL_VARIABLE_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> SYMBOL_TO_PROC_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> ALLOCATE_CLASS_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> PACK_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> UNPACK_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> EVAL_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> ENCODING_COMPATIBLE_QUERY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> ENCODING_LOADED_CLASSES_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> INTEROP_CONVERT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> INTEROP_EXECUTE_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> INTEROP_INVOKE_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> INTEROP_NEW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> TIME_FORMAT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -122,7 +118,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_DUP_CACHE_KEY = new OptionKey<>(3);
-    public static final OptionKey<Integer> FRAME_VARIABLE_ACCESS_CACHE_KEY = new OptionKey<>(5);
     public static final OptionKey<Integer> ARRAY_STRATEGY_CACHE_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> ARRAY_UNINITIALIZED_SIZE_KEY = new OptionKey<>(16);
     public static final OptionKey<Integer> ARRAY_SMALL_KEY = new OptionKey<>(3);
@@ -746,13 +741,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor ALLOCATE_CLASS_CACHE = OptionDescriptor
-            .newBuilder(ALLOCATE_CLASS_CACHE_KEY, "ruby.allocate-class-cache")
-            .help("Allocation size class cache size")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor PACK_CACHE = OptionDescriptor
             .newBuilder(PACK_CACHE_KEY, "ruby.pack-cache")
             .help("Array#pack cache size")
@@ -791,27 +779,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor INTEROP_CONVERT_CACHE = OptionDescriptor
             .newBuilder(INTEROP_CONVERT_CACHE_KEY, "ruby.interop-convert-cache")
             .help("Cache size for converting values for interop")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor INTEROP_EXECUTE_CACHE = OptionDescriptor
-            .newBuilder(INTEROP_EXECUTE_CACHE_KEY, "ruby.interop-execute-cache")
-            .help("Cache size for interop EXECUTE messages")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor INTEROP_INVOKE_CACHE = OptionDescriptor
-            .newBuilder(INTEROP_INVOKE_CACHE_KEY, "ruby.interop-invoke-cache")
-            .help("Cache size for interop INVOKE messages")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor INTEROP_NEW_CACHE = OptionDescriptor
-            .newBuilder(INTEROP_NEW_CACHE_KEY, "ruby.interop-new-cache")
-            .help("Cache size for interop NEW messages")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -861,13 +828,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor ARRAY_DUP_CACHE = OptionDescriptor
             .newBuilder(ARRAY_DUP_CACHE_KEY, "ruby.array-dup-cache")
             .help("Cache size for copying small arrays")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor FRAME_VARIABLE_ACCESS_CACHE = OptionDescriptor
-            .newBuilder(FRAME_VARIABLE_ACCESS_CACHE_KEY, "ruby.frame-variable-access-cache")
-            .help("Cache size for accessing variables in another frame")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1233,8 +1193,6 @@ public class OptionsCatalog {
                 return BINDING_LOCAL_VARIABLE_CACHE;
             case "ruby.symbol-to-proc-cache":
                 return SYMBOL_TO_PROC_CACHE;
-            case "ruby.allocate-class-cache":
-                return ALLOCATE_CLASS_CACHE;
             case "ruby.pack-cache":
                 return PACK_CACHE;
             case "ruby.unpack-cache":
@@ -1247,12 +1205,6 @@ public class OptionsCatalog {
                 return ENCODING_LOADED_CLASSES_CACHE;
             case "ruby.interop-convert-cache":
                 return INTEROP_CONVERT_CACHE;
-            case "ruby.interop-execute-cache":
-                return INTEROP_EXECUTE_CACHE;
-            case "ruby.interop-invoke-cache":
-                return INTEROP_INVOKE_CACHE;
-            case "ruby.interop-new-cache":
-                return INTEROP_NEW_CACHE;
             case "ruby.time-format-cache":
                 return TIME_FORMAT_CACHE;
             case "ruby.integer-pow-cache":
@@ -1267,8 +1219,6 @@ public class OptionsCatalog {
                 return CLASS_CACHE;
             case "ruby.array-dup-cache":
                 return ARRAY_DUP_CACHE;
-            case "ruby.frame-variable-access-cache":
-                return FRAME_VARIABLE_ACCESS_CACHE;
             case "ruby.array-strategy-cache":
                 return ARRAY_STRATEGY_CACHE;
             case "ruby.array-uninitialized-size":
@@ -1415,16 +1365,12 @@ public class OptionsCatalog {
             INSTANCE_VARIABLE_CACHE,
             BINDING_LOCAL_VARIABLE_CACHE,
             SYMBOL_TO_PROC_CACHE,
-            ALLOCATE_CLASS_CACHE,
             PACK_CACHE,
             UNPACK_CACHE,
             EVAL_CACHE,
             ENCODING_COMPATIBLE_QUERY_CACHE,
             ENCODING_LOADED_CLASSES_CACHE,
             INTEROP_CONVERT_CACHE,
-            INTEROP_EXECUTE_CACHE,
-            INTEROP_INVOKE_CACHE,
-            INTEROP_NEW_CACHE,
             TIME_FORMAT_CACHE,
             POW_CACHE,
             RUBY_LIBRARY_CACHE,
@@ -1432,7 +1378,6 @@ public class OptionsCatalog {
             IDENTITY_CACHE,
             CLASS_CACHE,
             ARRAY_DUP_CACHE,
-            FRAME_VARIABLE_ACCESS_CACHE,
             ARRAY_STRATEGY_CACHE,
             ARRAY_UNINITIALIZED_SIZE,
             ARRAY_SMALL,

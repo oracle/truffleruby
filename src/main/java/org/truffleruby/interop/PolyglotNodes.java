@@ -84,7 +84,7 @@ public abstract class PolyglotNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().EVAL_CACHE;
+            return getLanguage().options.EVAL_CACHE;
         }
 
     }

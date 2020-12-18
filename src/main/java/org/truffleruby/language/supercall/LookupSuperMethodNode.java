@@ -77,6 +77,6 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().METHOD_LOOKUP_CACHE;
+        return getLanguage().options.METHOD_LOOKUP_CACHE;
     }
 }

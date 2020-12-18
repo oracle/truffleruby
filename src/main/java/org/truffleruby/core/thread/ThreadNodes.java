@@ -552,7 +552,7 @@ public abstract class ThreadNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
+            return getLanguage().options.DISPATCH_CACHE;
         }
     }
 

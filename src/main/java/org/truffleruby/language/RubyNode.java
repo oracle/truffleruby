@@ -267,19 +267,19 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
 
         default int getIdentityCacheLimit() {
-            return getContext().getOptions().IDENTITY_CACHE;
+            return getContext().getLanguageSlow().options.IDENTITY_CACHE;
         }
 
         default int getDefaultCacheLimit() {
-            return getContext().getOptions().DEFAULT_CACHE;
+            return getContext().getLanguageSlow().options.DEFAULT_CACHE;
         }
 
         default int getRubyLibraryCacheLimit() {
-            return getContext().getOptions().RUBY_LIBRARY_CACHE;
+            return getContext().getLanguageSlow().options.RUBY_LIBRARY_CACHE;
         }
 
         default int getDynamicObjectCacheLimit() {
-            return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
+            return getContext().getLanguageSlow().options.INSTANCE_VARIABLE_CACHE;
         }
     }
 

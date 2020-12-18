@@ -99,7 +99,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().YIELD_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.YIELD_CACHE;
     }
 
 }

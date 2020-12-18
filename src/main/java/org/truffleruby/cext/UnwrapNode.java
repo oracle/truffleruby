@@ -190,7 +190,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
+            return getLanguage().options.DISPATCH_CACHE;
         }
     }
 
@@ -229,6 +229,6 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.DISPATCH_CACHE;
     }
 }

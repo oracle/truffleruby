@@ -1044,7 +1044,7 @@ public abstract class ModuleNodes {
         }
 
         protected int getLimit() {
-            return getContext().getOptions().CONSTANT_CACHE;
+            return getLanguage().options.CONSTANT_CACHE;
         }
 
     }

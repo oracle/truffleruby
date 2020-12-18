@@ -83,13 +83,13 @@ public abstract class InteropNodes {
 
     private abstract static class InteropCoreMethodArrayArgumentsNode extends CoreMethodArrayArgumentsNode {
         protected int getCacheLimit() {
-            return getContext().getOptions().METHOD_LOOKUP_CACHE;
+            return getLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
     private abstract static class InteropPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
         protected int getCacheLimit() {
-            return getContext().getOptions().METHOD_LOOKUP_CACHE;
+            return getLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -271,7 +271,7 @@ public abstract class InteropNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().EVAL_CACHE;
+            return getLanguage().options.EVAL_CACHE;
         }
 
     }
@@ -531,7 +531,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -588,7 +588,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
     // endregion
@@ -650,7 +650,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -678,7 +678,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -709,7 +709,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -739,7 +739,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -1236,7 +1236,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
     }
@@ -1346,7 +1346,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
     }
@@ -1377,7 +1377,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
     }
@@ -1413,7 +1413,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
@@ -1469,7 +1469,7 @@ public abstract class InteropNodes {
         }
 
         protected static int getCacheLimit() {
-            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 

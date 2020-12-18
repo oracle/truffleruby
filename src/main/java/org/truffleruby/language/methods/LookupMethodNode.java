@@ -208,6 +208,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
     }
 }

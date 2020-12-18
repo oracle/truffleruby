@@ -55,7 +55,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     }
 
     protected int getCacheLimit() {
-        return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
+        return RubyLanguage.getCurrentLanguage().options.DISPATCH_CACHE;
     }
 
     protected DirectCallNode createCall(String methodName, RootCallTarget callTarget) {

@@ -408,7 +408,7 @@ public abstract class ClassNodes {
         }
 
         protected int getCacheLimit() {
-            return getContext().getOptions().CLASS_CACHE;
+            return getLanguage().options.CLASS_CACHE;
         }
     }
 
