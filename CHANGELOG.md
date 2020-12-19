@@ -16,6 +16,8 @@ Compatibility:
 * Fixed `String#upto` issue with non-ascii strings (#2183).
 * Implemented partial support for pattern matching (#2186).
 * Make `File.extname` return `'.'` if the path ends with one (#2192, @tomstuart).
+* Include fractional seconds in `Time#inspect` output (#2194, @tomstuart).
+* Add support for `Integer#[Range]` and `Integer#[start, length]` (#2182, @gogainda).
 
 Performance:
 
