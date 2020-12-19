@@ -999,6 +999,7 @@ public class CoreLibrary {
             "/core/type.rb",
             "/core/truffle/ffi/pointer.rb",
             "/core/truffle/ffi/pointer_access.rb",
+            "/core/truffle/ffi/pointer_extra.rb",
             "/core/truffle/io_operations.rb",
             "/core/truffle/internal.rb",
             "/core/kernel.rb",

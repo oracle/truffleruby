@@ -47,10 +47,6 @@ module Truffle::FFI
       Primitive.pointer_find_type_size(type)
     end
 
-    def self.size
-      SIZE
-    end
-
     def initialize(type = nil, address)
       if Truffle::Interop.pointer?(address)
         address = Truffle::Interop.as_pointer(address)
@@ -105,11 +101,6 @@ module Truffle::FFI
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
     end
 
-    # FFI's #to_ptr conversion
-    def to_ptr
-      self
-    end
-
     def null?
       address == 0x0
     end
@@ -157,33 +148,6 @@ module Truffle::FFI
     def put_string(offset, str)
       put_bytes(offset, str)
       put_char(offset + str.bytesize, 0)
-    end
-
-    def read_string(len = nil)
-      if len
-        return ''.b if len == 0
-        get_bytes(0, len)
-      else
-        get_string(0)
-      end
-    end
-
-    def read_string_length(len)
-      get_bytes(0, len)
-    end
-
-    def read_string_to_null
-      get_string(0)
-    end
-
-    def write_string_length(str, len)
-      put_bytes(0, str, 0, len)
-    end
-
-    def write_string(str, len = nil)
-      len = str.bytesize unless len
-      # Write the string data without NUL termination
-      put_bytes(0, str, 0, len)
     end
 
     def get_array_of_string(offset, count = nil)
@@ -245,34 +209,6 @@ module Truffle::FFI
 
     def __copy_from__(pointer, size)
       Primitive.pointer_copy_memory address, pointer.address, size
-    end
-
-    def read_array_of_type(type, reader, length)
-      ary = []
-      size = FFI.type_size(type)
-      tmp = self
-      length.times do |j|
-        ary << tmp.send(reader)
-        tmp += size unless j == length-1 # avoid OOB
-      end
-      ary
-    end
-
-    def write_array_of_type(type, writer, ary)
-      size = FFI.type_size(type)
-      ary.each_with_index do |val, i|
-        break unless i < self.size
-        self.send(writer, i * size, val)
-      end
-      self
-    end
-
-    def read(type)
-      get(type, 0)
-    end
-
-    def write(type, value)
-      put(type, 0, value)
     end
 
     def get(type, offset)
