@@ -526,10 +526,10 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        // Allow private getter method, self, as the receiver
-        final boolean isFromSelfOrLocalNode = receiver instanceof SelfParseNode;
+        // If the receiver is a literal 'self' then we can call private methods
+        final boolean ignoreVisibility = receiver instanceof SelfParseNode;
 
-        final RubyNode translated = translateCallNode(node, isFromSelfOrLocalNode, false, false);
+        final RubyNode translated = translateCallNode(node, ignoreVisibility, false, false);
 
         // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
         //  but can't figure it out here
@@ -2585,7 +2585,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitOpAsgnNode(OpAsgnParseNode node) {
         final SourceIndexLength pos = node.getPosition();
 
-        final ValueFromNode receiverValue = valueFromNode(node.getReceiverNode());
+        final ValueFromNode receiverValue = ValueFromNode.valueFromNode(this, node.getReceiverNode());
 
         final boolean isOrOperator = node.getOperatorName().equals("||");
         if (isOrOperator || node.getOperatorName().equals("&&")) {
@@ -3330,73 +3330,6 @@ public class BodyTranslator extends Translator {
         }
 
         return node;
-    }
-
-    private interface ValueFromNode {
-
-        RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent);
-
-        ParseNode get(SourceIndexLength sourceSection);
-
-    }
-
-    private class ValueFromEffectNode implements ValueFromNode {
-
-        private final ParseNode node;
-        private final String temp = environment.allocateLocalTemp("value");
-
-        private boolean sequenced = false;
-
-        public ValueFromEffectNode(ParseNode node) {
-            this.node = node;
-        }
-
-        @Override
-        public RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent) {
-            if (sequenced) {
-                throw new UnsupportedOperationException("don't use a value more than once");
-            }
-            sequenced = true;
-            return sequence(
-                    sourceSection,
-                    Arrays.asList(
-                            new LocalAsgnParseNode(sourceSection, temp, 0, node).accept(BodyTranslator.this),
-                            subsequent));
-        }
-
-        @Override
-        public ParseNode get(SourceIndexLength sourceSection) {
-            return new LocalVarParseNode(sourceSection, 0, temp);
-        }
-
-    }
-
-    private class ValueFromSideEffectFreeNode implements ValueFromNode {
-
-        private final ParseNode node;
-
-        public <T extends ParseNode & SideEffectFree> ValueFromSideEffectFreeNode(T node) {
-            this.node = node;
-        }
-
-        @Override
-        public RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent) {
-            return subsequent;
-        }
-
-        @Override
-        public ParseNode get(SourceIndexLength sourceSection) {
-            return node;
-        }
-
-    }
-
-    private ValueFromNode valueFromNode(ParseNode node) {
-        if (node instanceof SideEffectFree) {
-            return new ValueFromSideEffectFreeNode((ParseNode & SideEffectFree) node);
-        } else {
-            return new ValueFromEffectNode(node);
-        }
     }
 
     @Override
