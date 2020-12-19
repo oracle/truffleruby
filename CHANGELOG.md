@@ -15,6 +15,7 @@ Compatibility:
 * Added support for numbered block parameters (`_1` etc).
 * Fixed `String#upto` issue with non-ascii strings (#2183).
 * Include fractional seconds in `Time#inspect` output (#2194, @tomstuart).
+* Add support for `Integer#[Range]` and `Integer#[start, length]` (#2182, @gogainda).
 
 Performance:
 
