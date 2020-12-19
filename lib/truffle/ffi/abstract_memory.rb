@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008-2010 JRuby project
+# Copyright (C) 2020 Lars Kanis
 #
 # This file is part of ruby-ffi.
 #
@@ -26,22 +26,19 @@
 # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.#
 
-require 'ffi/platform'
-require 'ffi/data_converter'
-require 'ffi/types'
-require 'ffi/library'
-require 'ffi/errno'
-require 'ffi/abstract_memory'
-require 'ffi/pointer'
-require 'ffi/memorypointer'
-require 'ffi/struct'
-require 'ffi/union'
-require 'ffi/managedstruct'
-require 'ffi/callback'
-require 'ffi/io'
-require 'ffi/autopointer'
-require 'ffi/variadic'
-require 'ffi/enum'
-require 'ffi/version'
+
+module FFI
+  class AbstractMemory
+    LONG_MAX = FFI::Pointer.new(1).size
+    private_constant :LONG_MAX
+
+    # Return +true+ if +self+ has a size limit.
+    #
+    # @return [Boolean]
+    def size_limit?
+      size != LONG_MAX
+    end
+  end
+end
