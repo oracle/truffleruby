@@ -142,7 +142,7 @@ module Truffle::FFI
     end
 
     def get_string(offset, length = nil)
-      Primitive.pointer_read_string_to_null address + offset, length
+      Primitive.pointer_read_string_to_null address + offset, length || size
     end
 
     def put_string(offset, str)
