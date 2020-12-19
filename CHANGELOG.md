@@ -16,6 +16,7 @@ Compatibility:
 * Fixed `String#upto` issue with non-ascii strings (#2183).
 * Implemented partial support for pattern matching (#2186).
 * Make `File.extname` return `'.'` if the path ends with one (#2192, @tomstuart).
+* Allow private calls with `self` as an explicit receiver (#2196, @wildmaples).
 
 Performance:
 
