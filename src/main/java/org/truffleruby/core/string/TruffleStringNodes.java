@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -75,16 +74,10 @@ public class TruffleStringNodes {
 
     @CoreMethod(names = "raw_bytes", onSingleton = true, required = 1)
     public abstract static class RawBytesNode extends CoreMethodArrayArgumentsNode {
-
-        @Child RopeNodes.BytesNode bytesNode;
-
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object rawBytes(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            if (bytesNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                bytesNode = insert(RopeNodes.BytesNode.create());
-            }
+                @CachedLibrary(limit = "2") RubyStringLibrary libString,
+                @Cached RopeNodes.BytesNode bytesNode) {
             byte[] bytes = bytesNode.execute(libString.getRope(string));
             return getContext().getEnv().asGuestValue(bytes);
         }
