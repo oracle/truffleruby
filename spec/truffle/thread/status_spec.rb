@@ -19,7 +19,7 @@ describe "Thread#status" do
     # using a DFA and executing this in linear time. We also replace
     # 'a?' * 17 with '(a?)' * 17 so that TRegex can't replace 'a?' * 17
     # with 'a{0,17}' and execute in quadratic time.
-    n = 17
+    n = Truffle::Boot.get_option('use-truffle-regex') ? 17 : 23
     regexp = /(f)\1#{'(a?)' * n}#{'a' * n}\1/
     string = 'ff' + 'a' * n
     # Force compilation of the regex, as TRegex compiles regexes lazily.
