@@ -27,9 +27,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'io/console'
-
-Truffle::CExt.rb_const_get(IO, 'generic_readable').module_eval do
+Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   # This is why we need undefined in Ruby
   Undefined = Object.new
 
@@ -97,8 +95,8 @@ end
 class StringIO
 
   include Enumerable
-  include Truffle::CExt.rb_const_get(IO, 'generic_readable')
-  include Truffle::CExt.rb_const_get(IO, 'generic_writable')
+  include Truffle::CExt.rb_define_module_under(IO, 'generic_readable')
+  include Truffle::CExt.rb_define_module_under(IO, 'generic_writable')
 
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
 
