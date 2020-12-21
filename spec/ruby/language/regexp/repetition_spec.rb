@@ -74,50 +74,58 @@ describe "Regexps with repetition" do
   end
 
   it "supports nested quantifiers" do
-    /a***/.match("aaa")[0].should == "aaa"
+    suppress_warning do
+      eval <<-RUBY
+      /a***/.match("aaa")[0].should == "aaa"
 
-    # a+?* should not be reduced, it should be equivalent to (a+?)*
-    # NB: the capture group prevents regex engines from reducing the two quantifiers
-    # https://bugs.ruby-lang.org/issues/17341
-    /a+?*/.match("")[0].should   == ""
-    /(a+?)*/.match("")[0].should == ""
+      # a+?* should not be reduced, it should be equivalent to (a+?)*
+      # NB: the capture group prevents regex engines from reducing the two quantifiers
+      # https://bugs.ruby-lang.org/issues/17341
+      /a+?*/.match("")[0].should == ""
+      /(a+?)*/.match("")[0].should == ""
 
-    /a+?*/.match("a")[0].should   == "a"
-    /(a+?)*/.match("a")[0].should == "a"
+      /a+?*/.match("a")[0].should == "a"
+      /(a+?)*/.match("a")[0].should == "a"
 
-    /a+?*/.match("aa")[0].should   == "aa"
-    /(a+?)*/.match("aa")[0].should == "aa"
+      ruby_bug '#17341', ''...'3.0' do
+        /a+?*/.match("aa")[0].should == "aa"
+      end
+      /(a+?)*/.match("aa")[0].should == "aa"
 
-    # a+?+ should not be reduced, it should be equivalent to (a+?)+
-    # https://bugs.ruby-lang.org/issues/17341
-    /a+?+/.match("").should   == nil
-    /(a+?)+/.match("").should == nil
+      # a+?+ should not be reduced, it should be equivalent to (a+?)+
+      # https://bugs.ruby-lang.org/issues/17341
+      /a+?+/.match("").should == nil
+      /(a+?)+/.match("").should == nil
 
-    /a+?+/.match("a")[0].should   == "a"
-    /(a+?)+/.match("a")[0].should == "a"
+      /a+?+/.match("a")[0].should == "a"
+      /(a+?)+/.match("a")[0].should == "a"
 
-    /a+?+/.match("aa")[0].should   == "aa"
-    /(a+?)+/.match("aa")[0].should == "aa"
+      ruby_bug '#17341', ''...'3.0' do
+        /a+?+/.match("aa")[0].should == "aa"
+      end
+      /(a+?)+/.match("aa")[0].should == "aa"
 
-    # both a**? and a+*? should be equivalent to (a+)??
-    # this quantifier would rather match nothing, but if that's not possible,
-    # it will greedily take everything
-    /a**?/.match("")[0].should   == ""
-    /(a*)*?/.match("")[0].should == ""
-    /a+*?/.match("")[0].should   == ""
-    /(a+)*?/.match("")[0].should == ""
-    /(a+)??/.match("")[0].should == ""
+      # both a**? and a+*? should be equivalent to (a+)??
+      # this quantifier would rather match nothing, but if that's not possible,
+      # it will greedily take everything
+      /a**?/.match("")[0].should == ""
+      /(a*)*?/.match("")[0].should == ""
+      /a+*?/.match("")[0].should == ""
+      /(a+)*?/.match("")[0].should == ""
+      /(a+)??/.match("")[0].should == ""
 
-    /a**?/.match("aaa")[0].should   == ""
-    /(a*)*?/.match("aaa")[0].should == ""
-    /a+*?/.match("aaa")[0].should   == ""
-    /(a+)*?/.match("aaa")[0].should == ""
-    /(a+)??/.match("aaa")[0].should == ""
+      /a**?/.match("aaa")[0].should == ""
+      /(a*)*?/.match("aaa")[0].should == ""
+      /a+*?/.match("aaa")[0].should == ""
+      /(a+)*?/.match("aaa")[0].should == ""
+      /(a+)??/.match("aaa")[0].should == ""
 
-    /b.**?b/.match("baaabaaab")[0].should   == "baaabaaab"
-    /b(.*)*?b/.match("baaabaaab")[0].should == "baaabaaab"
-    /b.+*?b/.match("baaabaaab")[0].should   == "baaabaaab"
-    /b(.+)*?b/.match("baaabaaab")[0].should == "baaabaaab"
-    /b(.+)??b/.match("baaabaaab")[0].should == "baaabaaab"
+      /b.**?b/.match("baaabaaab")[0].should == "baaabaaab"
+      /b(.*)*?b/.match("baaabaaab")[0].should == "baaabaaab"
+      /b.+*?b/.match("baaabaaab")[0].should == "baaabaaab"
+      /b(.+)*?b/.match("baaabaaab")[0].should == "baaabaaab"
+      /b(.+)??b/.match("baaabaaab")[0].should == "baaabaaab"
+      RUBY
+    end
   end
 end
