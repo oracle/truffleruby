@@ -18,14 +18,12 @@ import org.truffleruby.parser.ast.SelfParseNode;
 
 import java.util.Arrays;
 
-/*
- * There are some patterns during translation where we want to produce a value once and use it many times. We may want
- * to implement this pattern in different ways depending on what produces the value. For example a complex expression
- * we don't control we'd want to translate and store in a local variable, but if it's something simpler like 'self'
- * we can execute it each time instead and skip storing and retrieving from a local variable. It also lets us see
- * what the original node was if it's simple, which we use to look for example if a receiver was originally self,
- * even when we've been desugaring.
- */
+/** There are some patterns during translation where we want to produce a value once and use it many times. We may want
+ * to implement this pattern in different ways depending on what produces the value. For example a complex expression we
+ * don't control we'd want to translate and store in a local variable, but if it's something simpler like 'self' we can
+ * execute it each time instead and skip storing and retrieving from a local variable. It also lets us see what the
+ * original node was if it's simple, which we use to look for example if a receiver was originally self, even when we've
+ * been desugaring. */
 public interface ValueFromNode {
 
     RubyNode prepareAndThen(SourceIndexLength sourceSection, RubyNode subsequent);
