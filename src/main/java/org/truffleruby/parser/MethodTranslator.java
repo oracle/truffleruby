@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.CachedSupplier;
@@ -67,6 +68,10 @@ public class MethodTranslator extends BodyTranslator {
     private boolean isBlock;
     private final boolean shouldLazyTranslate;
 
+    /** If this translates a literal block (but not a stabby lambda), this holds the name of the method to which the
+     * block was passed. */
+    // private final String methodNameForBlock;
+
     public MethodTranslator(
             RubyContext context,
             BodyTranslator parent,
@@ -75,10 +80,12 @@ public class MethodTranslator extends BodyTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            ArgsParseNode argsNode) {
+            ArgsParseNode argsNode,
+            String methodNameForBlock) {
         super(context, parent, environment, source, parserContext, currentNode);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
+        // this.methodNameForBlock = methodNameForBlock;
 
         if (parserContext == ParserContext.EVAL || context.getCoverageManager().isEnabled()) {
             shouldLazyTranslate = false;
@@ -169,49 +176,68 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
-
-        body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
+        final RubyNode body = new ExceptionTranslatingNode(
+                translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression(),
+                UnsupportedOperationBehavior.TYPE_ERROR);
 
         // Procs
-        final RubyNode bodyCopyForProc = NodeUtil.cloneNode(body);
-        final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, bodyCopyForProc));
-        bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyCopyForProc));
 
-        final RubyRootNode newRootNodeForProcs = new RubyRootNode(
-                language,
-                translateSourceSection(source, sourceSection),
-                environment.getFrameDescriptor(),
-                environment.getSharedMethodInfo(),
-                bodyProc,
-                Split.HEURISTIC);
+        final Supplier<RootCallTarget> procCompiler = () -> {
+            final RubyNode bodyCopyForProc = NodeUtil.cloneNode(body);
+            final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, bodyCopyForProc));
+            bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyCopyForProc));
+
+            final RubyRootNode newRootNodeForProcs = new RubyRootNode(
+                    language,
+                    translateSourceSection(source, sourceSection),
+                    environment.getFrameDescriptor(),
+                    environment.getSharedMethodInfo(),
+                    bodyProc,
+                    Split.HEURISTIC);
+
+            return Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+        };
 
         // Lambdas
-        RubyNode bodyForLambda = body; // no copy, last usage
-        RubyNode composed = composeBody(sourceSection, preludeLambda, bodyForLambda);
 
-        composed = new CatchForLambdaNode(environment.getReturnID(), environment.getBreakID(), composed);
+        final Supplier<RootCallTarget> lambdaCompiler = () -> {
+            final RubyNode bodyCopyForLambda = NodeUtil.cloneNode(body);
+            final RubyNode composed = new CatchForLambdaNode(
+                    environment.getReturnID(),
+                    environment.getBreakID(),
+                    composeBody(sourceSection, preludeLambda, bodyCopyForLambda));
 
-        final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
-                language,
-                translateSourceSection(source, sourceSection),
-                environment.getFrameDescriptor(),
-                environment.getSharedMethodInfo(),
-                composed,
-                Split.HEURISTIC);
+            final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
+                    language,
+                    translateSourceSection(source, sourceSection),
+                    environment.getFrameDescriptor(),
+                    environment.getSharedMethodInfo(),
+                    composed,
+                    Split.HEURISTIC);
 
-        // TODO CS 23-Nov-15 only the second one will get instrumented properly!
-        final RootCallTarget callTargetAsLambda = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
-        final RootCallTarget callTargetAsProc = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
-        if (isProc) {
-            // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
-            // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
-            // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
-            for (InvalidReturnNode returnNode : NodeUtil.findAllNodeInstances(bodyForLambda, InvalidReturnNode.class)) {
-                returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
+            // TODO(norswap, 18 Dec 2020): It ould be nice to precompile as lambda if using the `lambda` function.
+            //    We could determine this using #methodNameForBlock.
+            //    However, this entails that we need to to change the BlockDefinitionNode when
+            //        - rewriting an InlinedLambdaNode
+            //        - creating a call for a method named lambda that can't be an InlinedLambdaNode
+            //          (in CoreMethodAssumptions#createCallNode)
+            //    Otherwise, #methodNameForBlock should be removed.
+            //    If this optimization is done, another step is to ensure ProcOperations.createLambdaFromBlock is only
+            //    called when required, in InlinedLambda Node and KernelNode.LambdaNode, by specializing on block.type.
+
+            if (isProc) {
+                // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
+                // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
+                // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
+                for (InvalidReturnNode returnNode : NodeUtil.findAllNodeInstances(bodyCopyForLambda, InvalidReturnNode.class)) {
+                    returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
+                }
             }
-        }
+
+            return callTarget;
+        };
 
         Object frameOnStackMarkerSlot;
 
@@ -228,8 +254,8 @@ public class MethodTranslator extends BodyTranslator {
         final BlockDefinitionNode ret = new BlockDefinitionNode(
                 type,
                 environment.getSharedMethodInfo(),
-                callTargetAsProc,
-                callTargetAsLambda,
+                isProc ? procCompiler.get() : lambdaCompiler.get(),
+                isProc ? lambdaCompiler : procCompiler,
                 environment.getBreakID(),
                 (FrameSlot) frameOnStackMarkerSlot);
         ret.unsafeSetSourceSection(sourceSection);

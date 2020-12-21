@@ -36,6 +36,7 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
             @Cached LookupMethodOnSelfNode lookupNode) {
+        // InlinedLambdaNode is only used for `lambda` calls with a literal block
         return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
     }
 

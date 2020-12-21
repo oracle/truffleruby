@@ -712,7 +712,6 @@ public class BodyTranslator extends Translator {
 
         currentCallMethodName = nameToSetWhenTranslatingBlock;
 
-
         final FrameSlot frameOnStackMarkerSlot;
         RubyNode blockTranslated;
 
@@ -738,6 +737,8 @@ public class BodyTranslator extends Translator {
             blockTranslated = null;
             frameOnStackMarkerSlot = null;
         }
+
+        currentCallMethodName = null;
 
         return new ArgumentsAndBlockTranslation(
                 blockTranslated,
@@ -1488,7 +1489,8 @@ public class BodyTranslator extends Translator {
                 source,
                 parserContext,
                 currentNode,
-                argsNode);
+                argsNode,
+                null);
 
         return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(
                 moduleNode,
@@ -1993,7 +1995,8 @@ public class BodyTranslator extends Translator {
                 source,
                 parserContext,
                 currentNode,
-                argsNode);
+                argsNode,
+                currentCallMethodName);
 
         if (isProc) {
             methodCompiler.translatingForStatement = translatingForStatement;

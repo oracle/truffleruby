@@ -17,6 +17,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyNode;
@@ -69,8 +70,7 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyProc splitProc(RubyProc rubyProc) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                ((RubyRootNode) rubyProc.callTargetForType.getRootNode()).setSplit(Split.ALWAYS);
-                ((RubyRootNode) rubyProc.callTargetForLambdas.getRootNode()).setSplit(Split.ALWAYS);
+                ((RubyRootNode) rubyProc.callTarget.getRootNode()).setSplit(Split.ALWAYS);
             }
             return rubyProc;
         }
@@ -103,8 +103,7 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyProc neverSplitProc(RubyProc rubyProc) {
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                ((RubyRootNode) rubyProc.callTargetForType.getRootNode()).setSplit(Split.NEVER);
-                ((RubyRootNode) rubyProc.callTargetForLambdas.getRootNode()).setSplit(Split.NEVER);
+                ((RubyRootNode) rubyProc.callTarget.getRootNode()).setSplit(Split.NEVER);
             }
             return rubyProc;
         }
@@ -123,7 +122,7 @@ public abstract class TruffleGraalNodes {
         @TruffleBoundary
         @Specialization
         protected RubyProc copyCapturedLocals(RubyProc proc) {
-            final RubyRootNode rootNode = (RubyRootNode) proc.callTargetForType.getRootNode();
+            final RubyRootNode rootNode = (RubyRootNode) proc.callTarget.getRootNode();
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
 
             assert NodeUtil.findAllNodeInstances(newBody, WriteDeclarationVariableNode.class).isEmpty();
@@ -142,11 +141,8 @@ public abstract class TruffleGraalNodes {
                     rootNode.getSharedMethodInfo(),
                     newBody,
                     Split.HEURISTIC);
-            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final RootCallTarget callTargetForLambdas = proc.type == ProcType.LAMBDA
-                    ? newCallTarget
-                    : proc.callTargetForLambdas;
+            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             SpecialVariableStorage variables = proc.declarationVariables;
 
@@ -173,8 +169,10 @@ public abstract class TruffleGraalNodes {
                     getLanguage().procShape,
                     proc.type,
                     proc.sharedMethodInfo,
+                    new ProcCallTargets(
+                            proc.type == ProcType.PROC ? newCallTarget : null,
+                            proc.type == ProcType.PROC ? null : newCallTarget),
                     newCallTarget,
-                    callTargetForLambdas,
                     newDeclarationFrame,
                     variables,
                     proc.method,

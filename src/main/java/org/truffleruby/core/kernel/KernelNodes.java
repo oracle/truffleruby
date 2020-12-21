@@ -1264,23 +1264,25 @@ public abstract class KernelNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
-        @Specialization(guards = "isLiteralBlock(block)")
-        protected RubyProc lambdaFromBlock(RubyProc block) {
+        @Specialization(guards = { "isLiteralBlock(block)", "block.isLambda()" })
+        protected RubyProc lambdaFromLambdaBlock(RubyProc block) {
+            return block;
+        }
+
+        @Specialization(guards = { "isLiteralBlock(block)", "block.isProc()" })
+        protected RubyProc lambdaFromProcBlock(RubyProc block) {
             return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")
         protected RubyProc lambdaFromExistingProc(RubyProc block) {
+            // If the argument isn't a literal, its original behaviour (proc or lambda) is preserved.
             return block;
         }
 
         @TruffleBoundary
         protected boolean isLiteralBlock(RubyProc block) {
             Node callNode = getContext().getCallStack().getCallerNodeIgnoringSend();
-            return isLiteralBlock(callNode);
-        }
-
-        private boolean isLiteralBlock(Node callNode) {
             RubyCallNode rubyCallNode = NodeUtil.findParent(callNode, RubyCallNode.class);
             return rubyCallNode != null && rubyCallNode.hasLiteralBlock();
         }

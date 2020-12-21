@@ -220,14 +220,14 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object astProc(RubyProc proc, NotProvided block) {
-            ast(proc.callTargetForType);
+            ast(proc.callTarget);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
         protected Object astBlock(NotProvided proc, RubyProc block) {
-            ast(block.callTargetForType);
+            ast(block.callTarget);
             return nil;
         }
 
@@ -282,14 +282,14 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object astProc(RubyProc proc, NotProvided block) {
-            printAst(proc.callTargetForType);
+            printAst(proc.callTarget);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
         protected Object astBlock(NotProvided proc, RubyProc block) {
-            printAst(block.callTargetForType);
+            printAst(block.callTarget);
             return nil;
         }
 

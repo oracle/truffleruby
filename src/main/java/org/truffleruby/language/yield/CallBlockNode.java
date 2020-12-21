@@ -79,13 +79,13 @@ public abstract class CallBlockNode extends RubyBaseNode {
     }
 
     protected static RootCallTarget getBlockCallTarget(RubyProc block) {
-        return block.callTargetForType;
+        return block.callTarget;
     }
 
     protected DirectCallNode createBlockCallNode(RubyContext context, RubyProc block, RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        final boolean clone = ((RubyRootNode) block.callTargetForType.getRootNode()).shouldAlwaysClone() ||
+        final boolean clone = ((RubyRootNode) block.callTarget.getRootNode()).shouldAlwaysClone() ||
                 context.getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();

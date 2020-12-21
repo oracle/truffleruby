@@ -46,7 +46,7 @@ public abstract class ProcOperations {
             frameOnStackMarker.setNoLongerOnStack();
         }
 
-        return proc.callTargetForType.call(packArguments(proc, args));
+        return proc.callTarget.call(packArguments(proc, args));
     }
 
     public static RubyProc createRubyProc(
@@ -54,8 +54,7 @@ public abstract class ProcOperations {
             Shape procShape,
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTargetForProcs,
-            RootCallTarget callTargetForLambdas,
+            ProcCallTargets holder,
             MaterializedFrame declarationFrame,
             SpecialVariableStorage variables,
             InternalMethod method,
@@ -67,10 +66,10 @@ public abstract class ProcOperations {
 
         switch (type) {
             case PROC:
-                callTargetForType = callTargetForProcs;
+                callTargetForType = holder.getCallTargetForProc();
                 break;
             case LAMBDA:
-                callTargetForType = callTargetForLambdas;
+                callTargetForType = holder.getCallTargetForLambda();
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -81,8 +80,8 @@ public abstract class ProcOperations {
                 procShape,
                 type,
                 sharedMethodInfo,
+                holder,
                 callTargetForType,
-                callTargetForLambdas,
                 declarationFrame,
                 variables,
                 method,
@@ -94,19 +93,19 @@ public abstract class ProcOperations {
     }
 
     public static RubyProc createLambdaFromBlock(RubyContext context, RubyLanguage language, RubyProc block) {
-        return ProcOperations.createRubyProc(
-                context.getCoreLibrary().procClass,
-                language.procShape,
-                ProcType.LAMBDA,
-                block.sharedMethodInfo,
-                block.callTargetForLambdas,
-                block.callTargetForLambdas,
-                block.declarationFrame,
-                block.declarationVariables,
-                block.method,
-                block.block,
-                null,
-                block.declarationContext);
+        return ProcOperations
+                .createRubyProc(
+                        context.getCoreLibrary().procClass,
+                        language.procShape,
+                        ProcType.LAMBDA,
+                        block.sharedMethodInfo,
+                        block.callTargets,
+                        block.declarationFrame,
+                        block.declarationVariables,
+                        block.method,
+                        block.block,
+                        type == ProcType.PROC ? block.frameOnStackMarker : null,
+                        block.declarationContext);
     }
 
     public static Object getSelf(RubyProc proc) {
