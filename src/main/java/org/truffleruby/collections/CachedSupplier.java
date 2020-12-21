@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 public class CachedSupplier<T> implements Supplier<T> {
 
-    private T value = null;
+    private volatile T value = null;
     private Supplier<T> supplier;
 
     public CachedSupplier(Supplier<T> supplier) {

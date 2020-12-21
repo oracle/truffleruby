@@ -432,6 +432,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return getLanguageHome();
     }
 
+    @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
     public AllocationReporter getAllocationReporter() {
         return allocationReporter;
     }

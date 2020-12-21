@@ -260,7 +260,7 @@ public abstract class TruffleKernelNodes {
                             "Expected %d declaration frames but only found %d frames.",
                             declarationFrameDepth,
                             depth);
-                    throw CompilerDirectives.shouldNotReachHere(message.toString());
+                    throw CompilerDirectives.shouldNotReachHere(message);
                 }
 
                 variables = FrameUtil.getObjectSafe(storageFrame, declarationFrameSlot);

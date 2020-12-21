@@ -2327,6 +2327,16 @@ public abstract class ArrayNodes {
     @Primitive(name = "array_flatten_helper", lowerFixnum = 2)
     public abstract static class FlattenHelperNode extends PrimitiveArrayArgumentsNode {
 
+        static class Entry {
+            final RubyArray array;
+            final int index;
+
+            private Entry(RubyArray array, int index) {
+                this.array = array;
+                this.index = index;
+            }
+        }
+
         @Specialization(guards = "!canContainObject.execute(array)")
         protected boolean flattenHelperPrimitive(RubyArray array, RubyArray out, int maxLevels,
                 @Cached ArrayAppendManyNode concat,
@@ -2345,15 +2355,6 @@ public abstract class ArrayNodes {
 
             boolean modified = false;
             final EconomicSet<RubyArray> visited = EconomicSet.create(Equivalence.IDENTITY);
-            class Entry {
-                final RubyArray array;
-                final int index;
-
-                Entry(RubyArray array, int index) {
-                    this.array = array;
-                    this.index = index;
-                }
-            }
             final SimpleStack<Entry> workStack = new SimpleStack<>();
             workStack.push(new Entry(array, 0));
 

@@ -60,11 +60,12 @@ public class ParseEnvironment {
         this.dynamicConstantLookup = dynamicConstantLookup;
     }
 
+    @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
     public ReturnID allocateReturnID() {
         return new ReturnID();
     }
 
-    @SuppressFBWarnings("ISC")
+    @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
     public BreakID allocateBreakID() {
         return new BreakID();
     }
