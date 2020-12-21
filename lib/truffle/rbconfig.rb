@@ -183,7 +183,7 @@ module RbConfig
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
-    'RUBYW_INSTALL_NAME'=> ruby_install_name,
+    'RUBYW_INSTALL_NAME'=> '',
     'ruby_version'      => ruby_abi_version.dup,
     'rubyarchhdrdir'    => "#{prefix}/lib/cext/include",
     'rubyhdrdir'        => "#{prefix}/lib/cext/include",

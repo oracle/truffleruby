@@ -337,7 +337,7 @@ end
 class Truffle::CExt::RbIO
   def initialize(io)
     @io = io
-    Primitive.object_hidden_var_set(io, Truffle::CExt::RBIO_STRUCT, self)
+    Primitive.object_hidden_var_set(io, Truffle::CExt::RB_IO_STRUCT, self)
     @tied_io_for_writing = false
   end
 
@@ -528,7 +528,6 @@ class Truffle::CExt::RbEncoding
 end
 
 class Truffle::CExt::RFile
-
   def initialize(basic, file)
     @basic = basic
     @fptr = file

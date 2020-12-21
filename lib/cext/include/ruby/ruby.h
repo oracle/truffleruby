@@ -1420,7 +1420,7 @@ int rb_big_sign(VALUE);
 #endif
 #ifdef TRUFFLERUBY
 POLYGLOT_DECLARE_STRUCT(RFile)
-#define RFILE(obj) polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj))
+#define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
 #else
 #define RFILE(obj)   (R_CAST(RFile)(obj))
 #endif
