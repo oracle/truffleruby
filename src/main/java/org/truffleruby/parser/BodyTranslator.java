@@ -526,7 +526,10 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        final RubyNode translated = translateCallNode(node, false, false, false);
+        // If the receiver is a literal 'self' then we can call private methods
+        final boolean ignoreVisibility = receiver instanceof SelfParseNode;
+
+        final RubyNode translated = translateCallNode(node, ignoreVisibility, false, false);
 
         // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
         //  but can't figure it out here
@@ -2582,23 +2585,22 @@ public class BodyTranslator extends Translator {
     public RubyNode visitOpAsgnNode(OpAsgnParseNode node) {
         final SourceIndexLength pos = node.getPosition();
 
+        final ValueFromNode receiverValue = ValueFromNode.valueFromNode(this, node.getReceiverNode());
+
         final boolean isOrOperator = node.getOperatorName().equals("||");
         if (isOrOperator || node.getOperatorName().equals("&&")) {
             // Why does this ||= or &&= come through as a visitOpAsgnNode and not a visitOpAsgnOrNode?
 
-            final String temp = environment.allocateLocalTemp("opassign");
-            final ParseNode writeReceiverToTemp = new LocalAsgnParseNode(pos, temp, 0, node.getReceiverNode());
-            final ParseNode readReceiverFromTemp = new LocalVarParseNode(pos, 0, temp);
-
             final ParseNode readMethod = new CallParseNode(
                     pos,
-                    readReceiverFromTemp,
+                    receiverValue.get(pos),
                     node.getVariableName(),
                     null,
                     null);
+
             final ParseNode writeMethod = new AttrAssignParseNode(
                     pos,
-                    readReceiverFromTemp,
+                    receiverValue.get(pos),
                     node.getVariableName() + "=",
                     buildArrayNode(
                             pos,
@@ -2612,12 +2614,12 @@ public class BodyTranslator extends Translator {
             RubyNode rhs = writeMethod.accept(this);
 
             final RubyNode controlNode = isOrOperator ? new OrNode(lhs, rhs) : new AndNode(lhs, rhs);
+
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
-                    sequence(
-                            sourceSection,
-                            Arrays.asList(writeReceiverToTemp.accept(this), controlNode)));
+                    receiverValue.prepareAndThen(sourceSection, controlNode));
             ret.unsafeSetSourceSection(sourceSection);
+
             return addNewlineIfNeeded(node, ret);
         }
 
@@ -2626,12 +2628,7 @@ public class BodyTranslator extends Translator {
          *
          * temp = a; temp.foo = temp.foo + c */
 
-        final String temp = environment.allocateLocalTemp("opassign");
-        final ParseNode writeReceiverToTemp = new LocalAsgnParseNode(pos, temp, 0, node.getReceiverNode());
-
-        final ParseNode readReceiverFromTemp = new LocalVarParseNode(pos, 0, temp);
-
-        final ParseNode readMethod = new CallParseNode(pos, readReceiverFromTemp, node.getVariableName(), null, null);
+        final ParseNode readMethod = new CallParseNode(pos, receiverValue.get(pos), node.getVariableName(), null, null);
         final ParseNode operation = new CallParseNode(
                 pos,
                 readMethod,
@@ -2640,27 +2637,22 @@ public class BodyTranslator extends Translator {
                 null);
         final ParseNode writeMethod = new CallParseNode(
                 pos,
-                readReceiverFromTemp,
+                receiverValue.get(pos),
                 node.getVariableName() + "=",
                 buildArrayNode(pos, operation),
                 null);
 
-        final BlockParseNode block = new BlockParseNode(pos);
-        block.add(writeReceiverToTemp);
-
-        final RubyNode writeTemp = writeReceiverToTemp.accept(this);
         RubyNode body = writeMethod.accept(this);
 
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            ReadLocalNode readLocal = environment.findLocalVarNode(temp, sourceSection);
             body = new IfNode(
-                    new NotNode(new IsNilNode(readLocal)),
+                    new NotNode(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
-        final RubyNode ret = sequence(sourceSection, Arrays.asList(writeTemp, body));
+        final RubyNode ret = receiverValue.prepareAndThen(sourceSection, body);
 
         return addNewlineIfNeeded(node, ret);
     }
