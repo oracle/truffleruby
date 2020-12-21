@@ -22,6 +22,7 @@ Compatibility:
 Performance:
 
 * Improve the performance of checks for recursion (#2189, @LillianZ).
+* Improve random number generation performance by avoiding synchronization (#2190, @ivoanjo).
 
 Changes:
 

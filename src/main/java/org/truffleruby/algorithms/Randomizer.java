@@ -26,8 +26,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.algorithms;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 public class Randomizer {
 
     private static final int N = 624;
@@ -37,8 +35,8 @@ public class Randomizer {
     private static final int LMASK = 0x7fffffff; /* least significant r bits */
 
     private final int[] state = new int[N];
-
     private int left = 1;
+
     private final Object seed;
 
     public Randomizer() {
@@ -86,17 +84,12 @@ public class Randomizer {
         return seed;
     }
 
-    @TruffleBoundary
-    public int genrandInt32() {
-        int y;
-
-        synchronized (this) {
-            if (--left <= 0) {
-                nextState();
-            }
-
-            y = state[N - left];
+    public int unsynchronizedGenrandInt32() {
+        if (--left <= 0) {
+            nextState();
         }
+
+        int y = state[N - left];
 
         /* Tempering */
         y ^= (y >>> 11);

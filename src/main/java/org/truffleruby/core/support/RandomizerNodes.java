@@ -62,19 +62,20 @@ import com.oracle.truffle.api.dsl.Specialization;
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
-    public static RubyRandomizer newRandomizer(RubyContext context, RubyLanguage language) {
+    public static RubyRandomizer newRandomizer(RubyContext context, RubyLanguage language, boolean threadSafe) {
         final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         return new RubyRandomizer(
                 context.getCoreLibrary().randomizerClass,
                 language.randomizerShape,
-                randomizer);
+                randomizer,
+                threadSafe);
     }
 
     public static void resetSeed(RubyContext context, RubyRandomizer random) {
         final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
-        random.randomizer = randomizer;
+        random.setRandomizer(randomizer);
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
@@ -82,7 +83,15 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
-            return new RubyRandomizer(coreLibrary().randomizerClass, getLanguage().randomizerShape, new Randomizer());
+            // Since this is a manually-created Truffle::Randomizer instance that can be shared by multiple threads,
+            // we enable thread-safe mode in the Randomizer.
+            final boolean threadSafe = true;
+
+            return new RubyRandomizer(
+                    coreLibrary().randomizerClass,
+                    getLanguage().randomizerShape,
+                    new Randomizer(),
+                    threadSafe);
         }
 
     }
@@ -92,7 +101,7 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected Object seed(RubyRandomizer randomizer) {
-            return randomizer.randomizer.getSeed();
+            return randomizer.getSeed();
         }
 
     }
@@ -102,18 +111,18 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected RubyRandomizer setSeed(RubyRandomizer randomizer, long seed) {
-            randomizer.randomizer = randomFromLong(seed);
+            randomizer.setRandomizer(randomFromLong(seed));
             return randomizer;
         }
 
         @Specialization
         protected RubyRandomizer setSeed(RubyRandomizer randomizer, RubyBignum seed) {
-            randomizer.randomizer = randomFromBignum(seed);
+            randomizer.setRandomizer(randomFromBignum(seed));
             return randomizer;
         }
 
         @TruffleBoundary
-        public static Randomizer randomFromLong(long seed) {
+        static Randomizer randomFromLong(long seed) {
             long v = Math.abs(seed);
             if (v == (v & 0xffffffffL)) {
                 return new Randomizer(seed, (int) v);
@@ -125,10 +134,10 @@ public abstract class RandomizerNodes {
             }
         }
 
-        public static final int N = 624;
+        private static final int N = 624;
 
         @TruffleBoundary
-        public static Randomizer randomFromBignum(RubyBignum seed) {
+        static Randomizer randomFromBignum(RubyBignum seed) {
             BigInteger big = seed.value;
             if (big.signum() < 0) {
                 big = big.abs();
@@ -183,9 +192,8 @@ public abstract class RandomizerNodes {
         @Specialization
         protected double randomFloat(RubyRandomizer randomizer) {
             // Logic copied from org.jruby.util.Random
-            final Randomizer r = randomizer.randomizer;
-            final int a = r.genrandInt32() >>> 5;
-            final int b = r.genrandInt32() >>> 6;
+            final int a = randomizer.genrandInt32() >>> 5;
+            final int b = randomizer.genrandInt32() >>> 6;
             return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
         }
 
@@ -197,25 +205,22 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected int randomizerRandInt(RubyRandomizer randomizer, int limit) {
-            final Randomizer r = randomizer.randomizer;
-            return (int) randLimitedFixnumInner(r, limit);
+            return (int) randLimitedFixnumInner(randomizer, limit);
         }
 
         @Specialization
         protected long randomizerRandInt(RubyRandomizer randomizer, long limit) {
-            final Randomizer r = randomizer.randomizer;
-            return randLimitedFixnumInner(r, limit);
+            return randLimitedFixnumInner(randomizer, limit);
         }
 
         @Specialization
         protected Object randomizerRandInt(RubyRandomizer randomizer, RubyBignum limit,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
-            final Randomizer r = randomizer.randomizer;
-            return fixnumOrBignum.fixnumOrBignum(randLimitedBignum(r, limit.value));
+            return fixnumOrBignum.fixnumOrBignum(randLimitedBignum(randomizer, limit.value));
         }
 
         @TruffleBoundary
-        public static long randLimitedFixnumInner(Randomizer randomizer, long limit) {
+        public static long randLimitedFixnumInner(RubyRandomizer randomizer, long limit) {
             long val;
             if (limit == 0) {
                 val = 0;
@@ -240,7 +245,7 @@ public abstract class RandomizerNodes {
         }
 
         @TruffleBoundary
-        private static BigInteger randLimitedBignum(Randomizer randomizer, BigInteger limit) {
+        private static BigInteger randLimitedBignum(RubyRandomizer randomizer, BigInteger limit) {
             byte[] buf = BigIntegerOps.toByteArray(limit);
             byte[] bytes = new byte[buf.length];
             int len = (buf.length + 3) / 4;
@@ -344,18 +349,17 @@ public abstract class RandomizerNodes {
         @Specialization
         protected RubyString genRandBytes(RubyRandomizer randomizer, int length,
                 @Cached MakeStringNode makeStringNode) {
-            final Randomizer random = randomizer.randomizer;
             final byte[] bytes = new byte[length];
             int idx = 0;
             for (; length >= 4; length -= 4) {
-                int r = random.genrandInt32();
+                int r = randomizer.genrandInt32();
                 for (int i = 0; i < 4; ++i) {
                     bytes[idx++] = (byte) (r & 0xff);
                     r >>>= 8;
                 }
             }
             if (length > 0) {
-                int r = random.genrandInt32();
+                int r = randomizer.genrandInt32();
                 for (int i = 0; i < length; ++i) {
                     bytes[idx++] = (byte) (r & 0xff);
                     r >>>= 8;

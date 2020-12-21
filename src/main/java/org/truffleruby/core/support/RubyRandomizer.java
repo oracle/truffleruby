@@ -13,15 +13,39 @@ import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
 
 public final class RubyRandomizer extends RubyDynamicObject {
 
-    public Randomizer randomizer;
+    private Randomizer randomizer;
 
-    public RubyRandomizer(RubyClass rubyClass, Shape shape, Randomizer randomizer) {
+    // Each thread keeps its own private RubyRandomizer instance, so we use this setting to skip synchronization
+    // for those
+    private final boolean threadSafe;
+
+    public RubyRandomizer(RubyClass rubyClass, Shape shape, Randomizer randomizer, boolean threadSafe) {
         super(rubyClass, shape);
+        this.randomizer = randomizer;
+        this.threadSafe = threadSafe;
+    }
+
+    public void setRandomizer(Randomizer randomizer) {
         this.randomizer = randomizer;
     }
 
+    @TruffleBoundary
+    public int genrandInt32() {
+        if (threadSafe) {
+            synchronized (this) {
+                return randomizer.unsynchronizedGenrandInt32();
+            }
+        } else {
+            return randomizer.unsynchronizedGenrandInt32();
+        }
+    }
+
+    public Object getSeed() {
+        return randomizer.getSeed();
+    }
 }
