@@ -332,12 +332,12 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, _binary, external, _internal, _autoclose = IO.normalize_options(nil, opts)
+    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts)
     unless mode
       mode = File::CREAT | File::RDWR | File::BINARY
       mode |= File::TRUNC unless offset
     end
-    File.open(file, mode, :encoding => (external || 'ASCII-8BIT')) do |f|
+    File.open(file, mode, :encoding => (external || 'ASCII-8BIT'), :perm => perm) do |f|
       f.seek(offset || 0)
       f.write(string)
     end
@@ -530,13 +530,13 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, _binary, external, _internal, _autoclose = IO.normalize_options(nil, opts)
+    mode, _binary, external, _internal, _autoclose, perm = IO.normalize_options(nil, nil, opts)
     unless mode
       mode = File::CREAT | File::WRONLY
       mode |= File::TRUNC unless offset
     end
 
-    open_args = opts[:open_args] || [mode, :encoding => (external || 'ASCII-8BIT')]
+    open_args = opts[:open_args] || [mode, :encoding => (external || 'ASCII-8BIT'), :perm => perm]
     File.open(file, *open_args) do |f|
       f.seek(offset) if offset
       f.write(string)
@@ -605,7 +605,7 @@ class IO
     Truffle::Type.rb_check_convert_type obj, IO, :to_io
   end
 
-  def self.normalize_options(mode, options)
+  def self.normalize_options(mode, perm, options)
     autoclose = true
 
     if Primitive.undefined?(options)
@@ -631,6 +631,16 @@ class IO
         raise ArgumentError, 'mode specified twice' if optmode
       else
         mode = optmode
+      end
+
+      if optperm = options[:perm]
+        optperm = Truffle::Type.try_convert(optperm, Integer, :to_int)
+      end
+
+      if perm
+        raise ArgumentError, 'perm specified twice' if optperm
+      else
+        perm = optperm
       end
 
       autoclose = !!options[:autoclose] if options.key?(:autoclose)
@@ -675,8 +685,8 @@ class IO
         end
       end
     end
-
-    [mode, binary, external, internal, autoclose]
+    perm ||= 0666
+    [mode, binary, external, internal, autoclose, perm]
   end
 
   def self.open(*args)
@@ -790,7 +800,7 @@ class IO
       end
     end
 
-    mode, binary, external, internal, _autoclose = IO.normalize_options(mode, io_options)
+    mode, binary, external, internal, _autoclose, _perm = IO.normalize_options(mode, nil, io_options)
     mode_int = parse_mode mode
 
     readable = false
@@ -1021,7 +1031,7 @@ class IO
     @external = nil
     @pid = nil
 
-    mode, binary, external, internal, autoclose_tmp = IO.normalize_options(mode, options)
+    mode, binary, external, internal, autoclose_tmp, _perm = IO.normalize_options(mode, nil, options)
 
     IO.setup self, Truffle::Type.coerce_to(fd, Integer, :to_int), mode
 
