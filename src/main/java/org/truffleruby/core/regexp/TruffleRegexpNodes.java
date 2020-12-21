@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
@@ -29,7 +28,6 @@ import org.joni.Option;
 import org.joni.Regex;
 import org.joni.Region;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -198,7 +196,7 @@ public class TruffleRegexpNodes {
                 Rope stringRope = libString.getRope(str);
                 if (codeRangeNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    codeRangeNode = RopeNodes.CodeRangeNode.create();
+                    codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
                 }
                 encoding = checkEncoding(re, stringRope.getEncoding(), codeRangeNode.execute(stringRope));
             } else {
