@@ -1,6 +1,6 @@
 # Migration from JRuby to TruffleRuby
 
-When trying TruffleRuby on your gems and applications, you are encouraged to [get in touch with the TruffleRuby team](../#contact) for help.
+When trying TruffleRuby on your gems and applications, you are encouraged to [get in touch with the TruffleRuby team](../../README.md#contact) for help.
 
 ## Deployment
 
@@ -374,7 +374,7 @@ In TruffleRuby you refer to classes explicitly.
 In both JRuby and TruffleRuby you call Java methods as you would a Ruby method.
 
 JRuby will rewrite method names such as `my_method` to the Java convention of `myMethod`, and convert `getFoo` to `foo`, and `setFoo` to `foo=`.
-TruffleRuby does not perdorm these conversions.
+TruffleRuby does not perform these conversions.
 
 ### Referring to Constants
 

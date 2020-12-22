@@ -128,7 +128,7 @@ ruby --version
 
 ### RVM
 
-RVM has a command for adding a precompiled Ruby to the list of available rubies:<!---rubies?--->
+RVM has a command for adding a precompiled Ruby to the list of available rubies:
 
 ```bash
 rvm mount "$ruby_home" -n truffleruby

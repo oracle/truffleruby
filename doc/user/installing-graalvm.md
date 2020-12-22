@@ -17,7 +17,7 @@ See [the website](https://www.graalvm.org/downloads) for a comparison.
 
 GraalVM starts with a base image which provides the platform for high-performance language runtimes.
 
-The Community Edition base image can be installed [from GitHub](https://github.com/graalvm/graalvm-ce-builds/releases/tag/vm-20.3.0), under an open source licence.
+The Community Edition base image can be installed [from GitHub] https://www.graalvm.org/downloads), under an open source licence.
 The Enterprise Edition base image can be installed from [Oracle Downloads](https://www.oracle.com/downloads/graalvm-downloads.html) page by accepting the Oracle License Agreement.
 
 Nightly builds of the GraalVM Community Edition are [also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
@@ -40,7 +40,7 @@ gu install ruby
 ```
 
 This command will show a message regarding running a post-install script.
-This is necessary to make the Ruby OpenSSL C extension work with your system libssl.
+This is necessary to make the Ruby `openssl` C extension work with your system libssl.
 Please run that script now.
 The path of the script will be:
 ```bash

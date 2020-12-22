@@ -20,7 +20,7 @@ sudo apt-get install make gcc
 
 ## Mandriva-based and other Linux distributions
 
-Note: Such distributions are not tested and not [supported](../#system-compatibility).
+Note: Such distributions are not tested and not [supported](../../README.md#system-compatibility).
 
 First, install the `make` and `gcc` dependencies.
 

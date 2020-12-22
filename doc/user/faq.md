@@ -35,7 +35,7 @@ See how to [install GraalVM and TruffleRuby](installing-graalvm.md).
 
 ### How do I get TruffleRuby?
 
-The easiest way to get TruffleRuby is with [GraalVM](installing-graalvm.md).
+There are three ways to get TruffleRuby. Please see [Getting Started](../../README.md#system-compatibility).
 
 ### Why is TruffleRuby slow on a standard JVM?
 

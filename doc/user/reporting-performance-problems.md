@@ -23,10 +23,10 @@ To experiment with how fast TruffleRuby can be, we recommend using the
 ## Using the JVM Configuration
 
 For the best peak performance, use the JVM configuration, using `--jvm`.
-The default native configuration starts faster but doesn't quite reach the same peak performance.
+The default native configuration starts faster but does not quite reach the same peak performance.
 However, you *must* then use a good benchmarking tool, like `benchmark-ips` described below, to run the benchmark, or the slower
-warm-up time will mean that you don't see TruffleRuby's true performance in the benchmark.
-If you want to write simpler benchmarks that just run a while loop with a simple timer (which we would not recommend anyway), then use the default native mode so that startup and warm-up time is shorter.
+warmup time will mean that you do not see TruffleRuby's true performance in the benchmark.
+If you want to write simpler benchmarks that just run a while loop with a simple timer (which we would not recommend anyway), then use the default native mode so that startup and warmup time is shorter.
 
 ## How to Check for Basic Performance Problems
 

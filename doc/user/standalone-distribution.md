@@ -1,6 +1,7 @@
 # Standalone Distribution
 
-For details regarding the three ways to install TruffleRuby, see [Getting Started](../#getting-started). The recommended way is to install [GraalVM](installing-graalvm.md) as it provides the most flexibility.
+For details regarding the three ways to install TruffleRuby, see [Getting Started](../../README.md#getting-started).
+The recommended way is to install [GraalVM](installing-graalvm.md) as it provides the most flexibility.
 However, you can also use what we call the standalone distribution of TruffleRuby, either via your Ruby manager/installer, or as a simple binary tarball.
 
 Releases of the standalone distribution are [available on GitHub](https://github.com/oracle/truffleruby/releases/latest).
@@ -87,4 +88,4 @@ for details.
 
 ## Dependencies
 
-[TruffleRuby's dependencies](../#dependencies) need to be installed for TruffleRuby to run correctly.
+[TruffleRuby's dependencies](../../README.md#dependencies) need to be installed for TruffleRuby to run correctly.

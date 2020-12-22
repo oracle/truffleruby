@@ -1,6 +1,6 @@
 # Development Tools for Ruby
 
-TruffleRuby acquires tools automatically provided by GraalVM. Run `--help:tools` to see a full list of options.
+TruffleRuby ships with tools automatically provided by GraalVM. Run `--help:tools` to see a full list of options.
 
 The following program is used for illustration:
 
@@ -222,7 +222,7 @@ GraalVM lets you debug Ruby programs, and any other language supported by GraalV
 Run with `--inspect`, open the given URL in Chrome, drag your file system into the sources list, and then set a breakpoint and resume execution.
 Having the debugger attached and simple breakpoints set should not reduce performance.
 
-![Chrome Developer Tools debugger session](https://raw.githubusercontent.com/oracle/truffleruby/master/doc/user/images/chrome.png)
+![Chrome Developer Tools debugger session](images/chrome.png)
 
 ### NetBeans
 
@@ -231,4 +231,4 @@ Run with `--jvm --vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,sus
 Then click *Toggle pause in GraalVM script* (the pause icon with a *G* superimposed) and break, and you will break into the Ruby code.
 You will see Ruby stack frames and local variables rather than Java stack frames and local variables.
 
-![NetBeans debugger session](https://raw.githubusercontent.com/oracle/truffleruby/master/doc/user/images/netbeans.png)
+![NetBeans debugger session](images/netbeans.png)
