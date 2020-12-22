@@ -76,6 +76,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
@@ -145,6 +146,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SHARED_OBJECTS_DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_FORCE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> TESTING_RUBYGEMS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
             .newBuilder(LOAD_PATHS_KEY, "ruby.load-paths")
@@ -534,6 +536,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor WARN_EXPERIMENTAL = OptionDescriptor
             .newBuilder(WARN_EXPERIMENTAL_KEY, "ruby.warn-experimental")
             .help("Sets experimental Warning category (configured by the -W Ruby option)")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor USE_TRUFFLE_REGEX = OptionDescriptor
+            .newBuilder(USE_TRUFFLE_REGEX_KEY, "ruby.use-truffle-regex")
+            .help("Use the Truffle regular expression engine for Regexp objects")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1021,6 +1030,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor COMPARE_REGEX_ENGINES = OptionDescriptor
+            .newBuilder(COMPARE_REGEX_ENGINES_KEY, "ruby.compare-regex-engines")
+            .help("Uses both Joni and the TRegex engine and compares their results")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static OptionDescriptor fromName(String name) {
         switch (name) {
             case "ruby.load-paths":
@@ -1135,6 +1151,8 @@ public class OptionsCatalog {
                 return WARN_DEPRECATED;
             case "ruby.warn-experimental":
                 return WARN_EXPERIMENTAL;
+            case "ruby.use-truffle-regex":
+                return USE_TRUFFLE_REGEX;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -1273,6 +1291,8 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_FORCE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
+            case "ruby.compare-regex-engines":
+                return COMPARE_REGEX_ENGINES;
             default:
                 return null;
         }
@@ -1336,6 +1356,7 @@ public class OptionsCatalog {
             CEXTS_LOG_WARNINGS,
             WARN_DEPRECATED,
             WARN_EXPERIMENTAL,
+            USE_TRUFFLE_REGEX,
             ARGV_GLOBALS,
             CHOMP_LOOP,
             GETS_LOOP,
@@ -1405,6 +1426,7 @@ public class OptionsCatalog {
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,
             TESTING_RUBYGEMS,
+            COMPARE_REGEX_ENGINES,
         };
     }
 }

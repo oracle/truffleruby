@@ -9,14 +9,18 @@
  */
 package org.truffleruby.core.regexp;
 
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.ISO8859_1Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
@@ -33,10 +37,12 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
+import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -46,6 +52,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -53,6 +60,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -65,7 +73,7 @@ public class TruffleRegexpNodes {
     @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
             boolean encodingConversion, int start, Node currentNode) {
-        final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange(), true);
+        final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange());
         Regex regex = regexp.regex;
 
         if (encodingConversion && regex.getEncoding() != enc) {
@@ -77,7 +85,7 @@ public class TruffleRegexpNodes {
     }
 
     @TruffleBoundary
-    public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange, boolean warn) {
+    public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange) {
         final Encoding regexEnc = regexp.regex.getEncoding();
 
         if (strEnc == regexEnc) {
@@ -170,7 +178,111 @@ public class TruffleRegexpNodes {
                     regex,
                     (Rope) regex.getUserObject(),
                     regexpOptions,
-                    new EncodingCache());
+                    new EncodingCache(),
+                    new TRegexCache());
+        }
+    }
+
+    @CoreMethod(names = "select_encoding", onSingleton = true, required = 3)
+    public abstract static class SelectEncodingNode extends CoreMethodArrayArgumentsNode {
+
+        @Child RopeNodes.CodeRangeNode codeRangeNode;
+
+        @Specialization(guards = "libString.isRubyString(str)")
+        protected RubyEncoding selectEncoding(RubyRegexp re, Object str, boolean encodingConversion,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            Encoding encoding;
+            if (encodingConversion) {
+                Rope stringRope = libString.getRope(str);
+                if (codeRangeNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
+                }
+                encoding = checkEncoding(re, stringRope.getEncoding(), codeRangeNode.execute(stringRope));
+            } else {
+                encoding = re.regex.getEncoding();
+            }
+            return getContext().getEncodingManager().getRubyEncoding(encoding);
+        }
+    }
+
+    @CoreMethod(names = "tregex_compile", onSingleton = true, required = 3)
+    public abstract static class TRegexCompileNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        @TruffleBoundary
+        protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding,
+                @CachedLibrary(limit = "2") InteropLibrary libInterop) {
+            return re.tregexCache.getOrCreate(atStart, encoding.encoding, (sticky, enc) -> {
+                String processedRegexpSource;
+                Encoding[] fixedEnc = new Encoding[]{ null };
+                RopeBuilder ropeBuilder = ClassicRegexp
+                        .preprocess(
+                                getContext(),
+                                re.source,
+                                enc,
+                                fixedEnc,
+                                RegexpSupport.ErrorMode.RAISE);
+                Rope rope = ropeBuilder.toRope();
+                try {
+                    processedRegexpSource = RopeOperations.decodeRope(rope);
+                } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
+                    // Some strings cannot be converted to Java strings, e.g. strings with the
+                    // BINARY encoding containing characters higher than 127.
+                    // Also, some charsets might not be supported on the JVM and therefore
+                    // a conversion to j.l.String might be impossible.
+                    return nil;
+                }
+
+                String flags = optionsToFlags(re.options, sticky);
+
+                String tRegexEncoding = toTRegexEncoding(enc);
+                if (tRegexEncoding == null) {
+                    return Nil.INSTANCE;
+                }
+
+                String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
+                Source regexSource = Source
+                        .newBuilder("regex", regex, "Regexp")
+                        .mimeType("application/tregex")
+                        .internal(true)
+                        .build();
+                Object compiledRegex = getContext().getEnv().parseInternal(regexSource).call();
+                if (libInterop.isNull(compiledRegex)) {
+                    return nil;
+                } else {
+                    return compiledRegex;
+                }
+            });
+        }
+
+        private String optionsToFlags(RegexpOptions options, boolean sticky) {
+            StringBuilder flags = new StringBuilder(4);
+            if (options.isMultiline()) {
+                flags.append('m');
+            }
+            if (options.isIgnorecase()) {
+                flags.append('i');
+            }
+            if (options.isExtended()) {
+                flags.append('x');
+            }
+            if (sticky) {
+                flags.append('y');
+            }
+            return flags.toString();
+        }
+
+        private String toTRegexEncoding(Encoding encoding) {
+            if (encoding == UTF8Encoding.INSTANCE) {
+                return "UTF-8";
+            } else if (encoding == USASCIIEncoding.INSTANCE || encoding == ISO8859_1Encoding.INSTANCE) {
+                return "LATIN-1";
+            } else if (encoding == ASCIIEncoding.INSTANCE) {
+                return "BYTES";
+            } else {
+                return null;
+            }
         }
     }
 

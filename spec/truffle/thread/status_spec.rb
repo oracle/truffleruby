@@ -15,9 +15,15 @@ describe "Thread#status" do
     # from https://swtch.com/~rsc/regexp/regexp1.html
     # Takes around 100 ms so the main thread can observe the status
     # while this thread is matching.
-    n = 23
-    regexp = /#{'a?' * n}#{'a' * n}/
-    string = 'a' * n
+    # NB: We include backreferences, so that TRegex can't "cheat" by
+    # using a DFA and executing this in linear time. We also replace
+    # 'a?' * 17 with '(a?)' * 17 so that TRegex can't replace 'a?' * 17
+    # with 'a{0,17}' and execute in quadratic time.
+    n = Truffle::Boot.get_option('use-truffle-regex') ? 17 : 23
+    regexp = /(f)\1#{'(a?)' * n}#{'a' * n}\1/
+    string = 'ff' + 'a' * n
+    # Force compilation of the regex, as TRegex compiles regexes lazily.
+    regexp =~ ''
 
     t = Thread.new do
       regexp =~ string

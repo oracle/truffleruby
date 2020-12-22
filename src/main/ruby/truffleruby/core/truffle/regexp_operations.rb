@@ -23,7 +23,7 @@ module Truffle
         from = end_index
         to = start_index
       end
-      Primitive.regexp_match_in_region(re, str, from, to, false, true, 0)
+      match_in_region(re, str, from, to, false, true, 0)
     end
 
     # This path is used by some string and scanner methods and allows
@@ -31,7 +31,7 @@ module Truffle
     # possible to refactor search region to offer the ability to
     # specify at start, we should investigate this at some point.
     def self.match_onwards(re, str, from, at_start)
-      md = Primitive.regexp_match_in_region(re, str, from, str.bytesize, at_start, true, from)
+      md = match_in_region(re, str, from, str.bytesize, at_start, true, from)
       Primitive.matchdata_fixup_positions(md, from) if md
       md
     end
@@ -51,6 +51,113 @@ module Truffle
       return nil unless str
 
       search_region(re, str, pos, str.bytesize, true)
+    end
+
+    Truffle::Boot.delay do
+      COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
+      USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
+    end
+
+    def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      if COMPARE_ENGINES
+        match_in_region_compare_engines(re, str, from, to, at_start, encoding_conversion, start)
+      elsif USE_TRUFFLE_REGEX
+        match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+      else
+        Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      end
+    end
+
+    def self.match_in_region_compare_engines(re, str, from, to, at_start, encoding_conversion, start)
+      begin
+        md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+      rescue => e
+        md1 = e
+      end
+      begin
+        md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      rescue => e
+        md2 = e
+      end
+      if self.results_match?(md1, md2)
+        return self.return_match_data(md1)
+      else
+        $stderr.puts "match_in_region(/#{re}/, \"#{str}\"@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
+        self.print_match_data(md1)
+        $stderr.puts 'but we expected'
+        self.print_match_data(md2)
+        return self.return_match_data(md2)
+      end
+    end
+
+    def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+      bail_out = to < from || to != str.bytesize || start != 0 || from < 0
+      if !bail_out
+        compiled_regex = tregex_compile(re, at_start, select_encoding(re, str, encoding_conversion))
+        bail_out = compiled_regex.nil?
+      end
+      if !bail_out
+        str_bytes = StringOperations.raw_bytes(str)
+        regex_result = compiled_regex.execBytes(str_bytes, from)
+      end
+      if bail_out
+        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      elsif regex_result.isMatch
+        starts = []
+        ends = []
+        compiled_regex.groupCount.times do |pos|
+          starts << regex_result.getStart(pos)
+          ends << regex_result.getEnd(pos)
+        end
+        Primitive.matchdata_create(re, str.dup, starts, ends)
+      else
+        nil
+      end
+    end
+
+    def self.results_match?(md1, md2)
+      if md1 == nil
+        md2 == nil
+      elsif md2 == nil
+        false
+      elsif md1.kind_of?(Exception)
+        md1.class == md2.class
+      elsif md2.kind_of?(Exception)
+        false
+      else
+        if md1.size != md2.size
+          return false
+        end
+        md1.size.times do |x|
+          if md1.begin(x) != md2.begin(x) || md1.end(x) != md2.end(x)
+            return false
+          end
+        end
+        true
+      end
+    end
+
+    def self.print_match_data(md)
+      if md == nil
+        $stderr.puts '    NO MATCH'
+      elsif md.kind_of?(Exception)
+        $stderr.puts "    EXCEPTION - #{md}"
+      else
+        md.size.times do |x|
+          $stderr.puts "    #{md.begin(x)} - #{md.end(x)}"
+        end
+        md.captures.each do |c|
+          $stderr.puts "    #{c}"
+        end
+      end
+    end
+
+    def self.return_match_data(md)
+      if md.kind_of?(Exception)
+        raise md
+      else
+        md
+      end
     end
 
     def self.compilation_stats

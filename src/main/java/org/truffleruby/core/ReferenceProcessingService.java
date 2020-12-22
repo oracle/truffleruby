@@ -198,7 +198,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         public boolean shutdownProcessingThread() {
-            final Thread javaThread = processingThread.thread;
+            final Thread javaThread = processingThread == null ? null : processingThread.thread;
             if (javaThread == null) {
                 return false;
             }

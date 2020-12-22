@@ -109,7 +109,7 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         version = TruffleRuby.LANGUAGE_VERSION,
         characterMimeTypes = TruffleRuby.MIME_TYPE,
         defaultMimeType = TruffleRuby.MIME_TYPE,
-        dependentLanguages = { "nfi", "llvm" },
+        dependentLanguages = { "nfi", "llvm", "regex" },
         fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
@@ -432,6 +432,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return getLanguageHome();
     }
 
+    @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
     public AllocationReporter getAllocationReporter() {
         return allocationReporter;
     }

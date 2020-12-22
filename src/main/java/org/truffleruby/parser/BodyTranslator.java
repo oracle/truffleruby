@@ -57,6 +57,7 @@ import org.truffleruby.core.regexp.RegexWarnCallback;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
+import org.truffleruby.core.regexp.TRegexCache;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
@@ -2914,7 +2915,8 @@ public class BodyTranslator extends Translator {
                 regex,
                 updatedRope,
                 options,
-                new EncodingCache());
+                new EncodingCache(),
+                new TRegexCache());
 
         final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
         literalNode.unsafeSetSourceSection(node.getPosition());

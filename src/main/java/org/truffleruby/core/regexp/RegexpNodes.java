@@ -71,11 +71,12 @@ public abstract class RegexpNodes {
         regexp.options = regexpOptions;
         regexp.regex = regex;
         regexp.cachedEncodings = new EncodingCache();
+        regexp.tregexCache = new TRegexCache();
     }
 
     public static RubyRegexp createRubyRegexp(RubyClass rubyClass, Shape shape, Regex regex, Rope source,
-            RegexpOptions options, EncodingCache cache) {
-        return new RubyRegexp(rubyClass, shape, regex, source, options, cache);
+            RegexpOptions options, EncodingCache cache, TRegexCache tregexCache) {
+        return new RubyRegexp(rubyClass, shape, regex, source, options, cache, tregexCache);
     }
 
     @CoreMethod(names = "hash")
@@ -240,7 +241,14 @@ public abstract class RegexpNodes {
         @Specialization
         protected RubyRegexp allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().regexpShape;
-            final RubyRegexp regexp = new RubyRegexp(rubyClass, shape, null, null, RegexpOptions.NULL_OPTIONS, null);
+            final RubyRegexp regexp = new RubyRegexp(
+                    rubyClass,
+                    shape,
+                    null,
+                    null,
+                    RegexpOptions.NULL_OPTIONS,
+                    null,
+                    null);
             AllocationTracing.trace(regexp, this);
             return regexp;
         }
@@ -301,6 +309,7 @@ public abstract class RegexpNodes {
             regexp.source = other.source;
             regexp.options = other.options;
             regexp.cachedEncodings = other.cachedEncodings;
+            regexp.tregexCache = other.tregexCache;
             return regexp;
         }
     }

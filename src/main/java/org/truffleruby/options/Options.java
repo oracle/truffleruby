@@ -127,6 +127,8 @@ public class Options {
     public final boolean WARN_DEPRECATED;
     /** --warn-experimental=true */
     public final boolean WARN_EXPERIMENTAL;
+    /** --use-truffle-regex=false */
+    public final boolean USE_TRUFFLE_REGEX;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
     /** --chomp-loop=false */
@@ -195,6 +197,8 @@ public class Options {
     public final boolean METRICS_TIME_REQUIRE;
     /** --testing-rubygems=false */
     public final boolean TESTING_RUBYGEMS;
+    /** --compare-regex-engines=false */
+    public final boolean COMPARE_REGEX_ENGINES;
 
     public Options(Env env, OptionValues options, LanguageOptions languageOptions) {
         LOAD_PATHS = options.get(OptionsCatalog.LOAD_PATHS_KEY);
@@ -249,6 +253,7 @@ public class Options {
         CEXTS_LOG_WARNINGS = options.get(OptionsCatalog.CEXTS_LOG_WARNINGS_KEY);
         WARN_DEPRECATED = options.get(OptionsCatalog.WARN_DEPRECATED_KEY);
         WARN_EXPERIMENTAL = options.get(OptionsCatalog.WARN_EXPERIMENTAL_KEY);
+        USE_TRUFFLE_REGEX = options.get(OptionsCatalog.USE_TRUFFLE_REGEX_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         CHOMP_LOOP = options.get(OptionsCatalog.CHOMP_LOOP_KEY);
         GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
@@ -283,6 +288,7 @@ public class Options {
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
+        COMPARE_REGEX_ENGINES = options.get(OptionsCatalog.COMPARE_REGEX_ENGINES_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -391,6 +397,8 @@ public class Options {
                 return WARN_DEPRECATED;
             case "ruby.warn-experimental":
                 return WARN_EXPERIMENTAL;
+            case "ruby.use-truffle-regex":
+                return USE_TRUFFLE_REGEX;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -459,6 +467,8 @@ public class Options {
                 return METRICS_TIME_REQUIRE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
+            case "ruby.compare-regex-engines":
+                return COMPARE_REGEX_ENGINES;
             default:
                 return null;
         }
