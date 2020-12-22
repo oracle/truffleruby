@@ -57,7 +57,7 @@ In 2017 the code was forked back out of JRuby after it had matured.
 
 ### Who do I ask about TruffleRuby?
 
-See the Contact section of this [README](../#contact) page.
+See the Contact section of this [README](../../README.md#contact) page.
 
 ### How do I know if I’m using TruffleRuby?
 
