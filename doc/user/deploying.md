@@ -35,9 +35,9 @@ You can select the JVM configuration by passing `--jvm`.
 If you are running a short-running program you probably want the default, *native*, configuration.
 If you are running a long-running program and want the highest possible performance you probably want the *JVM* configuration, by using `--jvm`.
 
-### Getting the Best Start-up Time Performance
+### Getting the Best Startup Time Performance
 
-To get the best start-up time in most cases you want to use the native configuration, which is the default.
+To get the best startup time in most cases you want to use the native configuration, which is the default.
 
 ### Getting the Lowest Memory Footprint
 

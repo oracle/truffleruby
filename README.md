@@ -7,20 +7,20 @@ of the [Ruby programming language](https://www.ruby-lang.org/en/).
 
 There are three ways to install TruffleRuby releases and nightly builds:
 
-* Via [GraalVM](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/installing-graalvm.md), which includes support for
+* Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
   other languages such as JavaScript, R, and Python, and supports both the
-  [Native Image and JVM configurations](#truffleruby-runtime-configurations).
+  [Native and JVM configurations](#truffleruby-runtime-configurations).
   Inside GraalVM will then be a `bin/ruby` command that runs TruffleRuby.
-  We recommend that you use a [Ruby manager](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution)
+  We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution)
   to use TruffleRuby inside GraalVM.
 
-* Via your [Ruby manager/installer](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/ruby-managers.md) (RVM, rbenv,
+* Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
   chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
   [native configuration](#truffleruby-runtime-configurations), making it a smaller
   download. It is meant for users who only want a Ruby implementation and are already
   using a Ruby manager.
 
-* Via the [standalone distribution](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/standalone-distribution.md)
+* Via the [standalone distribution](doc/user/standalone-distribution.md)
   as a simple binary tarball.
 
 We recommend trying TruffleRuby nightly builds which contain the latest fixes and improvements:
@@ -31,22 +31,24 @@ rbenv:  $ rbenv install truffleruby-dev
 chruby: $ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
 ```
 
-See the [Ruby installers](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/ruby-managers.md) documentation for more details.
+See the [Ruby installers](doc/user/ruby-managers.md) documentation for more details.
 
 Testing TruffleRuby in CI is easy.
 On [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can use:
-```yaml
+```
 language: ruby
 rvm:
   - truffleruby # or truffleruby-head
 ```
+
 And on GitHub Actions:
-```yaml
+```
 - uses: ruby/setup-ruby@v1
   with:
     ruby-version: truffleruby # or truffleruby-head
 ```
-See [Testing TruffleRuby in CI](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/standalone-distribution.md) for more details and other CIs.
+
+See [Testing TruffleRuby in CI](doc/user/standalone-distribution.md) for more details and other CIs.
 
 You can use `gem` and `bundle` to install gems, as usual.
 
@@ -63,9 +65,9 @@ TruffleRuby aims to:
 * Support C extensions.
   * Many C extensions work out of the box, including database drivers.
 * Add fast and low-overhead interoperability with languages like Java, JavaScript, Python, and R.
-  * Provided by GraalVM, see the [Polyglot documentation](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/polyglot.md).
+  * Provided by GraalVM, see the [Polyglot documentation](doc/user/polyglot.md).
 * Provide new tooling, such as debuggers and monitoring, that works across languages.
-  * Includes a profiler, debugger, VisualVM, and more. See the [Tools documentation](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/tools.md).
+  * Includes a profiler, debugger, VisualVM, and more. See the [Tools documentation](doc/user/tools.md).
 * Provide all of the above while maintaining very high compatibility with the standard implementation of Ruby.
 
 ## TruffleRuby Runtime Configurations
@@ -81,7 +83,7 @@ There are two main runtime configurations of TruffleRuby, Native and JVM, which 
 
 To find out which runtime configuration is being used, run `ruby --version` on the command line,
 or check the value of `RUBY_DESCRIPTION` or `TruffleRuby.native?` in Ruby code.
-Runtime configurations are further detailed in [Deploying TruffleRuby](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/deploying.md).
+Runtime configurations are further detailed in [Deploying TruffleRuby](doc/user/deploying.md).
 
 ## System Compatibility
 
@@ -104,16 +106,16 @@ environment, for example, by unmounting system filesystems such as `/dev/shm`.
 
 ## Dependencies
 
-* [make and gcc](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/installing-llvm.md) for building C and C++ extensions
-* [libssl](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/installing-libssl.md) for the `openssl` C extension
-* [zlib](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/installing-zlib.md) for the `zlib` C extension
+* [make and gcc](doc/user/installing-llvm.md) for building C and C++ extensions
+* [libssl](doc/user/installing-libssl.md) for the `openssl` C extension
+* [zlib](doc/user/installing-zlib.md) for the `zlib` C extension
 
 Without these dependencies, many libraries including RubyGems will not work.
 TruffleRuby will try to print a nice error message if a dependency is missing, but this can only be done on a best effort basis.
 
-You may also need to set up a [UTF-8 locale](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/utf8-locale.md).
+You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
-See the [contributor workflow](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/contributor/workflow.md) document if you wish to build TruffleRuby from source.
+See the [contributor workflow](doc/contributor/workflow.md) document if you wish to build TruffleRuby from source.
 
 ## Current Status
 
@@ -132,19 +134,28 @@ so there is a higher chance of hitting an area of TruffleRuby which has not been
 
 ## Releases
 
-TruffleRuby has the same version as, and is released at the same time as, GraalVM.
+TruffleRuby has the same version, and is released at the same time as GraalVM.
 There is a release every 3 months. See the [release roadmap](https://www.graalvm.org/docs/release-notes/version-roadmap/).
 
 ## Migration from MRI
 
 TruffleRuby should in most cases work as a drop-in replacement for MRI, but you
-should read about our [compatibility](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/compatibility.md).
+should read about our [compatibility](doc/user/compatibility.md).
 
 ## Migration from JRuby
 
 For many use cases TruffleRuby should work as a drop-in replacement for JRuby.
 However, our approach to integration with Java is different to JRuby so you
-should read our [migration guide](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/jruby-migration.md).
+should read our [migration guide](doc/user/jruby-migration.md).
+
+## Documentation
+
+Extensive user documentation is available in [`doc/user`](doc/user).
+
+See our [source code repository](https://github.com/oracle/truffleruby) and
+[contributor documentation](CONTRIBUTING.md) to contribute to TruffleRuby.
+In particular, see the [contributor workflow](doc/contributor/workflow.md)
+document for how to build and run TruffleRuby.
 
 ## Contact
 
@@ -163,13 +174,12 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 ## Authors
 
 The main authors of TruffleRuby ordered by first contribution are:
-Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan
-MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent, and Carol Chen.
+Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent, Carol Chen, Nikolay Sverchkov, and Lillian Zhang.
 
 ## Security
 
-See [SECURITY](https://github.com/oracle/truffleruby/blob/master/doc/user/SECURITY.md) for how to report security vulnerabilities to Oracle.
-For known vulnerabilities in Ruby, please refer to the [known-cves](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/user/known-cves.md) file.
+See [SECURITY](doc/user/SECURITY.md) for how to report security vulnerabilities to Oracle.
+For known vulnerabilities in Ruby, please refer to the [known-cves](doc/user/known-cves.md) file.
 
 ## Licence
 
@@ -180,8 +190,7 @@ available to you under the terms of any one of the following three licenses:
 * GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1.
 
-For further licensing information, see [LICENCE](https://github.com/oracle/truffleruby/blob/master/doc/user/LICENCE.md), [3rd_party_licenses](https://github.com/oracle/truffleruby/blob/master/doc/user/3rd_party_licenses.txt), and
-[doc/legal/legal](https://github.com/oracle/truffleruby/blob/master/doc/user/doc/legal/legal.md).
+For further licensing information, see [LICENCE](doc/user/LICENCE.md), [3rd_party_licenses](doc/user/3rd_party_licenses.txt), and [doc/legal/legal](doc/user/doc/legal/legal.md).
 
 ## Attribution
 
