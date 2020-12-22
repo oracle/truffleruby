@@ -118,17 +118,24 @@ public class BacktraceFormatter {
             printer.print(info);
         }
 
-        final Object fullMessage = context.send(
-                context.getCoreLibrary().truffleExceptionOperationsModule,
-                "get_formatted_backtrace",
-                rubyException);
-        final String formatted = fullMessage != null
-                ? RubyStringLibrary.getUncached().getJavaString(fullMessage)
-                : "<no message>";
-        if (formatted.endsWith("\n")) {
-            printer.print(formatted);
-        } else {
-            printer.println(formatted);
+        try {
+            final Object fullMessage = context.send(
+                    context.getCoreLibrary().truffleExceptionOperationsModule,
+                    "get_formatted_backtrace",
+                    rubyException);
+            final String formatted = fullMessage != null
+                    ? RubyStringLibrary.getUncached().getJavaString(fullMessage)
+                    : "<no message>";
+            if (formatted.endsWith("\n")) {
+                printer.print(formatted);
+            } else {
+                printer.println(formatted);
+            }
+        } catch (Throwable t) {
+            printer.println("Error while formatting Ruby exception:");
+            t.printStackTrace(printer);
+            printer.println("Original Ruby exception:");
+            printer.println(formatBacktrace(rubyException, rubyException.backtrace));
         }
     }
 

@@ -2069,7 +2069,7 @@ module Commands
     destination
   end
 
-  private def sforceimports? (mx_base_args)
+  private def sforceimports?(mx_base_args)
     scheckimports_output = mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only', capture: :both)
 
     unless scheckimports_output.empty?
