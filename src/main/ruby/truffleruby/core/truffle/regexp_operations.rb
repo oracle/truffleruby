@@ -53,8 +53,10 @@ module Truffle
       search_region(re, str, pos, str.bytesize, true)
     end
 
-    COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
-    USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
+    Truffle::Boot.delay do
+      COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
+      USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
+    end
 
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if COMPARE_ENGINES
