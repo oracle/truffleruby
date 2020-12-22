@@ -306,15 +306,6 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "libOptionName.isRubyString(optionName)")
         protected Object getOption(Object optionName,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOptionName) {
-            if (getContext().isPreInitializing()) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError(
-                                "Truffle::Boot.get_option() should not be called during pre-initialization as options might change at runtime.\n" +
-                                        "Use Truffle::Boot.{delay,redo} to delay such a check to runtime.",
-                                this));
-            }
-
             final String optionNameString = libOptionName.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
             if (descriptor == null) {
@@ -324,6 +315,15 @@ public abstract class TruffleBootNodes {
             }
 
             Object value = getContext().getOptions().fromDescriptor(descriptor);
+            if (value != null && getContext().isPreInitializing()) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError(
+                                "Truffle::Boot.get_option() should not be called during pre-initialization as context options might change at runtime.\n" +
+                                        "Use Truffle::Boot.{delay,redo} to delay such a check to runtime, or make the option a language option.",
+                                this));
+            }
+
             if (value == null) {
                 value = getLanguage().options.fromDescriptor(descriptor);
             }
