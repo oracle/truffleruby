@@ -68,6 +68,14 @@ public class RepeatingRope extends ManagedRope {
         return super.getBytesSlow();
     }
 
+    @Override
+    public Bytes getBytesObject(int offset, int length) {
+        int offsetInChild = offset % child.byteLength();
+        return offsetInChild + length < child.byteLength()
+            ? child.getBytesObject(offsetInChild, length)
+            : super.getBytesObject(offset, length);
+    }
+
     public ManagedRope getChild() {
         return child;
     }

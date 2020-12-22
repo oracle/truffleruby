@@ -282,13 +282,6 @@ public class RopeOperations {
         return new StringAttributes(end - start, codeRange);
     }
 
-    @TruffleBoundary
-    public static byte[] extractRange(Rope rope, int offset, int length) {
-        final byte[] result = new byte[length];
-        System.arraycopy(rope.getBytes(), offset, result, 0, length);
-        return result;
-    }
-
     /** This method should not be used directly, because it does not cache the result in the Rope. Use
      * {@link RopeNodes.BytesNode} or {@link Rope#getBytes()} instead.
      *

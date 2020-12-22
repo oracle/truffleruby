@@ -92,6 +92,25 @@ public class ConcatRope extends ManagedRope {
     }
 
     @Override
+    public Bytes getBytesObject(int offset, int length) {
+        final ConcatState state = getState();
+        if (state.bytes != null) {
+            return new Bytes(state.bytes, offset, length);
+        }
+
+        final ManagedRope left = state.left;
+        final ManagedRope right = state.right;
+
+        if (offset + length <= left.byteLength()) {
+            return left.getBytesObject(offset, length);
+        } else if (offset > left.byteLength()) {
+            return right.getBytesObject(offset - left.byteLength(), length);
+        } else {
+            return super.getBytesObject(offset, length);
+        }
+    }
+
+    @Override
     protected byte[] getBytesSlow() {
         bytes = RopeOperations.flattenBytes(this);
         Pointer.UNSAFE.storeFence();

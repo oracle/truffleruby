@@ -81,6 +81,11 @@ public class SubstringRope extends ManagedRope {
         return super.getBytesSlow();
     }
 
+    @Override
+    public Bytes getBytesObject(int offset, int length) {
+        return child.getBytesObject(byteOffset + offset, length);
+    }
+
     public ManagedRope getChild() {
         return child;
     }

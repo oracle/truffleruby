@@ -102,6 +102,11 @@ public class NativeRope extends Rope {
         return bytes;
     }
 
+    @Override
+    public Bytes getBytesObject() {
+        return new Bytes(getBytes());
+    }
+
     public CodeRange getRawCodeRange() {
         return codeRange;
     }
@@ -148,6 +153,11 @@ public class NativeRope extends Rope {
         final byte[] bytes = new byte[byteLength];
         copyTo(byteOffset, bytes, 0, byteLength);
         return bytes;
+    }
+
+    @Override
+    public Bytes getBytesObject(int offset, int length) {
+        return new Bytes(getBytes(offset, length));
     }
 
     @TruffleBoundary
