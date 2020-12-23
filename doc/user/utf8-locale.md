@@ -1,7 +1,7 @@
-# Setting up a UTF-8 Locale
+# Setting Up a UTF-8 Locale
 
-You may need a UTF-8 locale to run some Ruby applications. For example we've
-found that Ruby Spec needs such a locale.
+You may need a UTF-8 locale to run some Ruby applications.
+For example we have found that Ruby Spec needs such a locale.
 
 ### RedHat-based: Fedora, Oracle Linux, etc
 

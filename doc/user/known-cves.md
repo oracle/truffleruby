@@ -1,33 +1,27 @@
 # Security
 
-Please report security vulnerabilities via the process outlined at [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
-Specific guidelines for reporting security issues of the GraalVM project including TruffleRuby can be found in the [SECURITY.md file](https://github.com/oracle/truffleruby/blob/master/SECURITY.md).
+Please report security vulnerabilities via the process outlined in the [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
+Specific guidelines for reporting security issues of the GraalVM project, including TruffleRuby, can be found in the [SECURITY file](https://github.com/oracle/truffleruby/blob/master/SECURITY.md).
 
 ## Unimplemented Security Features
 
-Ruby's `$SAFE` feature adds additional checks around how tainted data is used.
-However tainting data correctly and then the checks for it are inconsistent
-and their implementation has been the subject of many vulnerabilities,
+Ruby's `$SAFE` feature adds additional checks regarding how tainted data is used, but they are not always correct.
+The checks for tainted data are likewise inconsistent and their implementation has been the subject of many vulnerabilities,
 including regressions of previously fixed vulnerabilities, as detailed below.
-Consensus in the Ruby community is that `$SAFE` is a broken security feature
-that does not provide genuine safety and it will eventually be removed.
+Consensus in the Ruby community is that `$SAFE` is a broken security feature that does not provide genuine safety and it will eventually be removed.
 
-For these reasons TruffleRuby will not let you enable the `$SAFE` feature.
-This does not disable a security feature that would normally be enabled - it
-prevents you from using a broken security feature.
+For these reasons, TruffleRuby will not let you enable the `$SAFE` feature.
+This does not disable a security feature that would normally be enabled - it prevents you from using a broken security feature.
 
-This has the effect that `$SAFE` and `Thread#safe_level` are `0` and no other
-levels are implemented. Trying to use level `1` will raise a `SecurityError`.
-Other levels will raise `ArgumentError` as in standard Ruby.
+This has the effect that `$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
+Trying to use level `1` will raise a `SecurityError`.
+Other levels will raise an `ArgumentError` as in standard Ruby.
 
 ## MRI Vulnerabilities
 
-Vulnerabilities reported against MRI may apply to the design of Ruby or to
-code that we share with MRI. We list reported MRI vulnerabilities here and
-document how MRI has mitigated the vulnerability, if the mitigation is tested
-by anything, and how TruffleRuby has mitigated. We have not investigated all
-legacy vulnerabilities, as it is often very hard to work out the details from
-older reports.
+Vulnerabilities reported against MRI may apply to the design of Ruby or to code that we share with MRI.
+We list reported MRI vulnerabilities here and document how MRI has mitigated the vulnerability, if the mitigation is tested
+by anything, and how TruffleRuby has mitigated. We have not investigated all legacy vulnerabilities, as it is often very hard to work out the details from older reports.
 
 Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/en/security/).
 
@@ -99,8 +93,7 @@ VU#160012 | Ruby vulnerability in the safe level settings | | | Not applicable a
 
 ## JRuby Vulnerabilities
 
-TruffleRuby uses code from JRuby, so vulnerabilities reported against JRuby may
-apply to TruffleRuby.
+TruffleRuby uses code from JRuby, so vulnerabilities reported against JRuby may apply to TruffleRuby.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
@@ -109,8 +102,7 @@ CVE-2011-4838 | JRuby before 1.6.5.1 computes hash values without restricting th
 
 ## Rubinius Vulnerabilities
 
-TruffleRuby uses code from Rubinius, so vulnerabilities reported against
-Rubinius may apply to TruffleRuby.
+TruffleRuby uses code from Rubinius, so vulnerabilities reported against Rubinius may apply to TruffleRuby.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
@@ -130,12 +122,11 @@ CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when `$KCOD
 
 ## Other Dependency Vulnerabilities
 
-### zlib
+### `zlib`
 
-No vulnerabilities are known, but consider potential
-vulnerabilities in your system `zlib`.
+No vulnerabilities are known, but consider potential vulnerabilities in your system `zlib`.
 
-### libssl
+### `libssl`
 
 Consider potential vulnerabilities in your system `libssl`.
 
@@ -147,6 +138,5 @@ CVE-2018-1000201 | A DLL loading issue can be hijacked on Windows when a `Symbol
 
 ## Notes on Hashing
 
-TruffleRuby uses `MurmurHash2` hashing with a seed from `/dev/urandom` - it
-cannot be configured to use any other hashing algorithm. For hashing strings,
-TruffleRuby uses Java's hash algorithm (and then `MurmurHash2` on top).
+TruffleRuby uses `MurmurHash2` hashing with a seed from `/dev/urandom` - it cannot be configured to use any other hashing algorithm.
+For hashing strings, TruffleRuby uses Java's hash algorithm (and then `MurmurHash2` on top).
