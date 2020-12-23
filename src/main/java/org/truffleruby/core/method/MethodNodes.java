@@ -39,7 +39,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -226,11 +225,11 @@ public abstract class MethodNodes {
     @CoreMethod(names = "unbind")
     public abstract static class UnbindNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private LogicalClassNode classNode = LogicalClassNode.create();
+        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
         protected RubyUnboundMethod unbind(RubyMethod method) {
-            final RubyClass receiverClass = classNode.execute(method.receiver);
+            final RubyClass receiverClass = metaClassNode.execute(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodClass,
                     getLanguage().unboundMethodShape,
