@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* `Range#to_a` wasn't working for `long` ranges (#2198, @tomstuart and @LillianZ).
 
 Compatibility:
 
