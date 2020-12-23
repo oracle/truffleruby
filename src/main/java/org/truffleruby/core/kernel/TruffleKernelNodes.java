@@ -93,7 +93,7 @@ public abstract class TruffleKernelNodes {
             final String feature = strings.getJavaString(file);
             final RubySource source;
             try {
-                final FileLoader fileLoader = new FileLoader(getContext());
+                final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 source = fileLoader.loadFile(getContext().getEnv(), feature);
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));

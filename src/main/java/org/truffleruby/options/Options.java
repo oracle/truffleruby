@@ -75,10 +75,6 @@ public class Options {
     public final boolean TRACE_CALLS;
     /** --coverage-global=false */
     public final boolean COVERAGE_GLOBAL;
-    /** --core-as-internal=false */
-    public final boolean CORE_AS_INTERNAL;
-    /** --stdlib-as-internal=false */
-    public final boolean STDLIB_AS_INTERNAL;
     /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;
     /** --exceptions-print-java=false */
@@ -227,8 +223,6 @@ public class Options {
         HOST_INTEROP = env.isHostLookupAllowed() && (options.get(OptionsCatalog.HOST_INTEROP_KEY));
         TRACE_CALLS = options.get(OptionsCatalog.TRACE_CALLS_KEY);
         COVERAGE_GLOBAL = options.get(OptionsCatalog.COVERAGE_GLOBAL_KEY);
-        CORE_AS_INTERNAL = options.get(OptionsCatalog.CORE_AS_INTERNAL_KEY);
-        STDLIB_AS_INTERNAL = options.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY);
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
         EXCEPTIONS_PRINT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_JAVA_KEY);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY);
@@ -345,10 +339,6 @@ public class Options {
                 return TRACE_CALLS;
             case "ruby.coverage-global":
                 return COVERAGE_GLOBAL;
-            case "ruby.core-as-internal":
-                return CORE_AS_INTERNAL;
-            case "ruby.stdlib-as-internal":
-                return STDLIB_AS_INTERNAL;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":

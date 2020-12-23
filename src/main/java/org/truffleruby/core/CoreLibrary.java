@@ -821,10 +821,10 @@ public class CoreLibrary {
                 return new RubySource(rootParseNode.getSource(), path);
             } else {
                 final ResourceLoader resourceLoader = new ResourceLoader();
-                return resourceLoader.loadResource(path, context.getOptions().CORE_AS_INTERNAL);
+                return resourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL);
             }
         } else {
-            final FileLoader fileLoader = new FileLoader(context);
+            final FileLoader fileLoader = new FileLoader(context, language);
             return fileLoader.loadFile(context.getEnv(), path);
         }
     }

@@ -34,9 +34,11 @@ import com.oracle.truffle.api.source.Source;
 public class FileLoader {
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
-    public FileLoader(RubyContext context) {
+    public FileLoader(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     public static void ensureReadable(RubyContext context, TruffleFile file, Node currentNode) {
@@ -152,13 +154,13 @@ public class FileLoader {
         }
 
         if (canonicalPath.startsWith(context.getCoreLibrary().coreLoadPath)) {
-            return context.getOptions().CORE_AS_INTERNAL;
+            return language.options.CORE_AS_INTERNAL;
         }
 
         // If the file is part of the standard library then we may consider it internal
         if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
                 !canonicalPath.startsWith(context.getRubyHome() + "/lib/gems/")) {
-            return context.getOptions().STDLIB_AS_INTERNAL;
+            return language.options.STDLIB_AS_INTERNAL;
         } else {
             return false;
         }

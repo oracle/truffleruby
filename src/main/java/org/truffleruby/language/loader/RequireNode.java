@@ -213,7 +213,7 @@ public abstract class RequireNode extends RubyContextNode {
             // All other files are assumed to be Ruby, the file type detection is not enough
             final RubySource source;
             try {
-                final FileLoader fileLoader = new FileLoader(getContext());
+                final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 source = fileLoader.loadFile(getContext().getEnv(), expandedPath);
             } catch (IOException e) {
                 return false;
