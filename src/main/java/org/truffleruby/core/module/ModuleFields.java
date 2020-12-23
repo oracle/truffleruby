@@ -25,7 +25,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -663,8 +662,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } else if (isRefinement) {
             return "#<refinement:" + refinedModule.fields.getName() + "@" + refinementNamespace.fields.getName() + ">";
         } else {
-            return "#<" + getLogicalClass().fields.getName() + ":0x" +
-                    Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModule)) + ">";
+            return KernelNodes.ToSNode.uncachedBasicToS(context, rubyModule);
         }
     }
 

@@ -2120,11 +2120,11 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         public static String uncachedBasicToS(RubyContext context, RubyDynamicObject self) {
-            String className = LogicalClassNode.getUncached().execute(self).fields.getName();
-            Object id = ObjectIDNode.uncachedObjectID(context, self);
-            String hexID = ToHexStringNode.getUncached().executeToHexString(id);
+            String className = self.getLogicalClass().fields.getName();
+            long id = ObjectIDNode.uncachedObjectID(context, self);
+            String hexID = Long.toHexString(id);
 
-            return Utils.concat("#<", className, ":0x", hexID, ">");
+            return "#<" + className + ":0x" + hexID + ">";
         }
 
     }
