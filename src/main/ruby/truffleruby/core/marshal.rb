@@ -235,7 +235,7 @@ module Marshal
           obj = STRING_ALLOCATE.bind_call(cls)
         else
           allocate = cls.method(:__allocate__)
-          if allocate.unbind == STRING_ALLOCATE
+          if Primitive.same_methods?(allocate, STRING_ALLOCATE)
             # For example, String.clone falls in this case
             obj = allocate.call
           else

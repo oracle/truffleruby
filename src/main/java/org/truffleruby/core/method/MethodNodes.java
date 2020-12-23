@@ -72,11 +72,34 @@ public abstract class MethodNodes {
         return internalMethod.getSharedMethodInfo().getArity().hashCode();
     }
 
+    @Primitive(name = "same_methods?")
+    public abstract static class SameMethodsNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected boolean same(RubyMethod self, RubyMethod other) {
+            return MethodNodes.areInternalMethodEqual(self.method, other.method);
+        }
+
+        @Specialization
+        protected boolean same(RubyMethod self, RubyUnboundMethod other) {
+            return MethodNodes.areInternalMethodEqual(self.method, other.method);
+        }
+
+        @Specialization
+        protected boolean same(RubyUnboundMethod self, RubyMethod other) {
+            return MethodNodes.areInternalMethodEqual(self.method, other.method);
+        }
+
+        @Specialization
+        protected boolean same(RubyUnboundMethod self, RubyUnboundMethod other) {
+            return MethodNodes.areInternalMethodEqual(self.method, other.method);
+        }
+    }
+
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean equal(VirtualFrame frame, RubyMethod a, RubyMethod b,
+        protected boolean equal(RubyMethod a, RubyMethod b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode
                     .executeReferenceEqual(a.receiver, b.receiver) &&
@@ -107,7 +130,7 @@ public abstract class MethodNodes {
         @Child private CallBoundMethodNode callBoundMethodNode = CallBoundMethodNode.create();
 
         @Specialization
-        protected Object call(VirtualFrame frame, RubyMethod method, Object[] arguments, Object maybeBlock) {
+        protected Object call(RubyMethod method, Object[] arguments, Object maybeBlock) {
             return callBoundMethodNode.executeCallBoundMethod(method, arguments, maybeBlock);
         }
 
