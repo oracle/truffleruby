@@ -2106,7 +2106,11 @@ public abstract class KernelNodes {
                 @Cached MakeStringNode makeStringNode,
                 @Cached ObjectIDNode objectIDNode,
                 @Cached ToHexStringNode toHexStringNode) {
-            String javaString = basicToS(self, classNode, objectIDNode, toHexStringNode);
+            String className = classNode.execute(self).fields.getName();
+            Object id = objectIDNode.execute(self);
+            String hexID = toHexStringNode.executeToHexString(id);
+
+            String javaString = Utils.concat("#<", className, ":0x", hexID, ">");
 
             return makeStringNode.executeMake(
                     javaString,
@@ -2114,23 +2118,13 @@ public abstract class KernelNodes {
                     CodeRange.CR_UNKNOWN);
         }
 
-        private static String basicToS(Object self,
-                LogicalClassNode classNode,
-                ObjectIDNode objectIDNode,
-                ToHexStringNode toHexStringNode) {
-            String className = classNode.execute(self).fields.getName();
-            Object id = objectIDNode.execute(self);
-            String hexID = toHexStringNode.executeToHexString(id);
+        @TruffleBoundary
+        public static String uncachedBasicToS(RubyContext context, RubyDynamicObject self) {
+            String className = LogicalClassNode.getUncached().execute(self).fields.getName();
+            Object id = ObjectIDNode.uncachedObjectID(context, self);
+            String hexID = ToHexStringNode.getUncached().executeToHexString(id);
 
             return Utils.concat("#<", className, ":0x", hexID, ">");
-        }
-
-        public static String uncachedBasicToS(Object self) {
-            return basicToS(
-                    self,
-                    LogicalClassNode.getUncached(),
-                    ObjectIDNode.getUncached(),
-                    ToHexStringNode.getUncached());
         }
 
     }

@@ -657,7 +657,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (attached instanceof RubyModule) {
                 attachedName = ((RubyModule) attached).fields.getName();
             } else {
-                attachedName = KernelNodes.ToSNode.uncachedBasicToS(attached);
+                attachedName = KernelNodes.ToSNode.uncachedBasicToS(context, attached);
             }
             return "#<Class:" + attachedName + ">";
         } else if (isRefinement) {
