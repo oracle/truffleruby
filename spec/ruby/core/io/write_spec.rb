@@ -91,9 +91,9 @@ describe "IO.write" do
   end
 
   it "writes the file with the permissions in the :perm parameter" do
-    filename = tmp("IO_syswrite_file")
-    IO.write(filename, 'hi', mode: "w", perm: 0o755).should == 2
-    (File.stat(filename).mode & 0o777) == 0o755
+    rm_r @filename
+    IO.write(@filename, 'write :perm spec', mode: "w", perm: 0o755).should == 16
+    (File.stat(@filename).mode & 0o777) == 0o755
   end
 
   it "writes binary data if no encoding is given" do
