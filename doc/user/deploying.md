@@ -16,7 +16,7 @@ When distributed as part of GraalVM, TruffleRuby by default runs in the *native*
 In this configuration, TruffleRuby is ahead-of-time compiled to a standalone native executable.
 This means that you do not need a JVM installed on your system to use it.
 
-The advantages of the Native configuration are that it [starts about as fast as MRI](https://eregon.me/blog/2019/04/24/how-truffleruby-startup-became-faster-than-mri.html), it may use less memory, and it becomes fast in less time than the *JVM*
+The advantages of the native configuration are that it [starts about as fast as MRI](https://eregon.me/blog/2019/04/24/how-truffleruby-startup-became-faster-than-mri.html), it may use less memory, and it becomes fast in less time than the *JVM*
 configuration.
 The disadvantages are that you can't use Java tools like VisualVM, it is less convenient for Java interoperability (see the details [here](compatibility.md#java-interoperability-with-the-native-configuration)), and *peak performance may be lower than on the JVM*.
 
@@ -26,7 +26,7 @@ To use polyglot programming with the *native* configuration, you need to pass th
 ### JVM Configuration
 
 TruffleRuby can also be used in the *JVM* configuration, where it runs as a normal Java application on the JVM.
-The advantages of the JVM configuration are that you can use Java interoperability easily, and *peak performance may be higher than the Native configuration*.
+The advantages of the JVM configuration are that you can use Java interoperability easily, and *peak performance may be higher than the native configuration*.
 The disadvantages are that it takes much longer to start and to get fast, and may use more memory.
 You can select the JVM configuration by passing `--jvm`.
 

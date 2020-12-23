@@ -16,7 +16,7 @@ There are three ways to install TruffleRuby releases and nightly builds:
 
 * Via your [Ruby manager/installer](doc/user/ruby-managers.md) (RVM, rbenv,
   chruby, ruby-build, ruby-install). This contains only TruffleRuby, in the
-  [native configuration](#truffleruby-runtime-configurations), making it a smaller
+  [Native configuration](#truffleruby-runtime-configurations), making it a smaller
   download. It is meant for users who only want a Ruby implementation and are already
   using a Ruby manager.
 
@@ -35,14 +35,16 @@ See the [Ruby installers](doc/user/ruby-managers.md) documentation for more deta
 
 Testing TruffleRuby in CI is easy.
 On [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can use:
-```
+
+```yaml
 language: ruby
 rvm:
   - truffleruby # or truffleruby-head
 ```
 
 And on GitHub Actions:
-```
+
+```yaml
 - uses: ruby/setup-ruby@v1
   with:
     ruby-version: truffleruby # or truffleruby-head
@@ -178,7 +180,7 @@ Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan Ma
 
 ## Security
 
-See [SECURITY](doc/user/SECURITY.md) for how to report security vulnerabilities to Oracle.
+See [SECURITY](SECURITY.md) for how to report security vulnerabilities to Oracle.
 For known vulnerabilities in Ruby, please refer to the [known-cves](doc/user/known-cves.md) file.
 
 ## Licence
@@ -190,7 +192,7 @@ available to you under the terms of any one of the following three licenses:
 * GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1.
 
-For further licensing information, see [LICENCE](doc/user/LICENCE.md), [3rd_party_licenses](doc/user/3rd_party_licenses.txt), and [doc/legal/legal](doc/user/doc/legal/legal.md).
+For further licensing information, see [LICENCE](LICENCE.md), [3rd_party_licenses](3rd_party_licenses.txt), and [doc/legal/legal](doc/legal/legal.md).
 
 ## Attribution
 

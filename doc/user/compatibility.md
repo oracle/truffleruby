@@ -35,7 +35,7 @@ Continuations and `callcc` are unlikely to ever be implemented in TruffleRuby, a
 ### Fork
 
 You cannot `fork` the TruffleRuby interpreter.
-The feature is unlikely to ever be supported when running on the JVM but could be supported in the future in the Native Image configuration.
+The feature is unlikely to ever be supported when running on the JVM but could be supported in the future in the native configuration.
 The correct and portable way to test if `fork` is available is:
 ```ruby
 Process.respond_to?(:fork)
