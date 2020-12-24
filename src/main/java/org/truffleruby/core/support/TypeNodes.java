@@ -37,8 +37,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -160,43 +158,8 @@ public abstract class TypeNodes {
             return createArray(nameSymbols);
         }
 
-        @Specialization
-        protected RubyArray instanceVariables(int object) {
-            return createEmptyArray();
-        }
-
-        @Specialization
-        protected RubyArray instanceVariables(long object) {
-            return createEmptyArray();
-        }
-
-        @Specialization
-        protected RubyArray instanceVariables(double object) {
-            return createEmptyArray();
-        }
-
-        @Specialization
-        protected RubyArray instanceVariables(boolean object) {
-            return createEmptyArray();
-        }
-
-        @Specialization
-        protected RubyArray instanceVariablesNil(Nil object) {
-            return createEmptyArray();
-        }
-
-        @Specialization
-        protected RubyArray instanceVariablesSymbol(RubySymbol object) {
-            return createEmptyArray();
-        }
-
-        @Specialization
-        protected RubyArray instanceVariablesImmutableString(ImmutableRubyString object) {
-            return createEmptyArray();
-        }
-
-        @Specialization(guards = "isForeignObject(object)")
-        protected RubyArray instanceVariablesForeign(Object object) {
+        @Specialization(guards = "!isRubyDynamicObject(object)")
+        protected RubyArray instanceVariablesNotDynamic(Object object) {
             return createEmptyArray();
         }
 

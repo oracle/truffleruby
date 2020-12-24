@@ -72,6 +72,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -91,6 +92,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -507,6 +509,12 @@ public abstract class KernelNodes {
             return (RubyDynamicObject) allocateNode().call(context.getCoreLibrary().stringClass, "__allocate__");
         }
 
+        @Specialization
+        protected RubyRegexp copyRubyRegexp(RubyRegexp regexp,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return (RubyRegexp) allocateNode().call(context.getCoreLibrary().regexpClass, "__allocate__");
+        }
+
         protected Property[] getCopiedProperties(Shape shape) {
             final List<Property> copiedProperties = new ArrayList<>();
 
@@ -634,31 +642,13 @@ public abstract class KernelNodes {
             return self;
         }
 
-        @Specialization
-        protected Object cloneNil(Nil nil, boolean freeze,
+        @Specialization(guards = "!isImmutableRubyString(value)")
+        protected Object cloneImmutableObject(ImmutableRubyObject value, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(nil);
+                raiseCantUnfreezeError(value);
             }
-            return nil;
-        }
-
-        @Specialization
-        protected Object cloneBignum(RubyBignum object, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(object);
-            }
-            return object;
-        }
-
-        @Specialization
-        protected Object cloneSymbol(RubySymbol symbol, boolean freeze,
-                @Cached ConditionProfile freezeProfile) {
-            if (freezeProfile.profile(!freeze)) {
-                raiseCantUnfreezeError(symbol);
-            }
-            return symbol;
+            return value;
         }
 
         @Specialization

@@ -9,14 +9,24 @@
  */
 package org.truffleruby.core.regexp;
 
-import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 
 import org.joni.Regex;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.ImmutableRubyObject;
+import org.truffleruby.language.dispatch.DispatchNode;
 
-public class RubyRegexp extends RubyDynamicObject {
+@ExportLibrary(InteropLibrary.class)
+public class RubyRegexp extends ImmutableRubyObject implements TruffleObject {
 
     public Regex regex;
     public Rope source;
@@ -25,19 +35,40 @@ public class RubyRegexp extends RubyDynamicObject {
     public TRegexCache tregexCache;
 
     public RubyRegexp(
-            RubyClass rubyClass,
-            Shape shape,
             Regex regex,
             Rope source,
             RegexpOptions options,
             EncodingCache encodingCache,
             TRegexCache tregexCache) {
-        super(rubyClass, shape);
         this.regex = regex;
         this.source = source;
         this.options = options;
         this.cachedEncodings = encodingCache;
         this.tregexCache = tregexCache;
     }
+
+    // region InteropLibrary messages
+    @ExportMessage
+    protected Object toDisplayString(boolean allowSideEffects,
+            @Cached DispatchNode dispatchNode,
+            @Cached KernelNodes.ToSNode kernelToSNode) {
+        if (allowSideEffects) {
+            return dispatchNode.call(this, "inspect");
+        } else {
+            return kernelToSNode.executeToS(this);
+        }
+    }
+
+    @ExportMessage
+    protected boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    protected RubyClass getMetaObject(
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().regexpClass;
+    }
+    // endregion
 
 }

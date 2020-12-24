@@ -30,7 +30,7 @@ public class RubySizedQueue extends RubyDynamicObject implements ObjectGraphNode
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         for (Object element : queue.getContents()) {
-            if (ObjectGraph.isSymbolOrDynamicObject(element)) {
+            if (ObjectGraph.isRubyObject(element)) {
                 reachable.add(element);
             }
         }

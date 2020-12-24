@@ -15,8 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -80,14 +79,8 @@ public abstract class SingletonClassNode extends RubySourceNode {
         return noSingletonClass(context);
     }
 
-    @Specialization
-    protected RubyClass singletonClassBignum(RubyBignum value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return noSingletonClass(context);
-    }
-
-    @Specialization
-    protected RubyClass singletonClassSymbol(RubySymbol value,
+    @Specialization(guards = "!isNil(value)")
+    protected RubyClass singletonClassImmutableObject(ImmutableRubyObject value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return noSingletonClass(context);
     }

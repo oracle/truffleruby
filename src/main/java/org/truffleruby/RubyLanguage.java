@@ -53,7 +53,6 @@ import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyMatchData;
-import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
@@ -194,7 +193,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape procShape = createShape(RubyProc.class);
     public final Shape queueShape = createShape(RubyQueue.class);
     public final Shape randomizerShape = createShape(RubyRandomizer.class);
-    public final Shape regexpShape = createShape(RubyRegexp.class);
     public final Shape sizedQueueShape = createShape(RubySizedQueue.class);
     public final Shape stringShape = createShape(RubyString.class);
     public final Shape syntaxErrorShape = createShape(RubySyntaxError.class);

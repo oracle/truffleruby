@@ -1,0 +1,1 @@
+fails(immutable regexp):String#match calls match on the regular expression

@@ -98,6 +98,12 @@ This [will be addressed](https://medium.com/graalvm/bringing-fibers-to-truffleru
 MRI provides some classes that are described in the documentation as being available only on MRI (CRuby).
 These classes are implemented if it is practical to do so, but this is not always the case. For example, `RubyVM` is not available.
 
+### `Regexp`
+
+`Regexp` instances are always immutable in TruffleRuby.
+In CRuby 3.0, all literal `Regexp` are immutable, but non-literal are still mutable.
+This limitation means that one cannot define singleton methods on a Regexp instance, and cannot create instances of subclasses of Regexp on TruffleRuby.
+
 ## Features with Subtle Differences
 
 ### Command line switches

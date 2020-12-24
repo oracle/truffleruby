@@ -75,7 +75,7 @@ public abstract class ObjectSpaceNodes {
             final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
 
             for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace._id2ref", getContext(), this)) {
-                assert ObjectGraph.isSymbolOrDynamicObject(object);
+                assert ObjectGraph.isRubyObject(object);
 
                 long objectID = 0L;
                 if (object instanceof RubyDynamicObject) {

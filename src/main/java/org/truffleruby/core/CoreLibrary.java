@@ -429,7 +429,7 @@ public class CoreLibrary {
         defineClass(queueClass, "SizedQueue", language.sizedQueueShape);
         rangeClass = defineClass("Range", language.objectRangeShape);
 
-        regexpClass = defineClass("Regexp", language.regexpShape);
+        regexpClass = defineClass("Regexp");
         stringClass = defineClass("String", language.stringShape);
         symbolClass = defineClass("Symbol");
 
