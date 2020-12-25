@@ -2357,7 +2357,7 @@ module Commands
         status = false
       end
     end
-    exit status
+    abort unless status
   end
 
   def shellcheck
