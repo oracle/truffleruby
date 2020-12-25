@@ -72,7 +72,7 @@ and language features. It is in `test/basictest`.
 
 Run basictest with `jt test basictest`.
 
-### MRI bootstraptest
+### MRI bootstraptest
 
 MRI's bootstraptest is a smaller set of tests for functionality they require
 to bootstrap their implementation, including some tests against regressions

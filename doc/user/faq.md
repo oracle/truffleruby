@@ -59,11 +59,11 @@ In 2017 the code was forked back out of JRuby after it had matured.
 
 See the Contact section of this [README](../../README.md#contact) page.
 
-### How do I know if I’m using TruffleRuby?
+### How do I know if I'm using TruffleRuby?
 
 `RUBY_ENGINE` will be `'truffleruby'`.
 
-### How do I know if I’m using a VM that has the GraalVM compiler?
+### How do I know if I'm using a VM that has the GraalVM compiler?
 
 `ruby --version` will report `GraalVM CE` or `EE`.
 
@@ -102,17 +102,17 @@ ruby --engine.TraceCompilation test.rb
 
 Here you can see that Truffle has decided to use the GraalVM compiler to compile the block of 127 - the loop to machine code - just 69 bytes of machine code in all.
 
-### Why doesn’t TruffleRuby perform well for my benchmark?
+### Why doesn't TruffleRuby perform well for my benchmark?
 
-Benchmarks that we haven’t looked at yet may require new code paths to be specialized.
-Currently we’ve added specialization for the code paths in the benchmarks and applications that we’ve been using.
+Benchmarks that we haven't looked at yet may require new code paths to be specialized.
+Currently we've added specialization for the code paths in the benchmarks and applications that we've been using.
 Adding them is generally not complicated and over time we will have specializations to cover a broad range of applications.
 
 Make sure that you are using the [Enterprise Edition of GraalVM, and have rebuilt the executable images](installing-graalvm.md) for the best performance.
 
 ### How is this related to `invokedynamic`?
 
-TruffleRuby doesn’t use `invokedynamic`, as it doesn't emit bytecode.
+TruffleRuby doesn't use `invokedynamic`, as it doesn't emit bytecode.
 However it does have an optimizing method dispatch mechanism that achieves a similar result.
 
 ### Why doesn't JRuby switch to Truffle as well?
