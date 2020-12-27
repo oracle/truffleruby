@@ -2328,6 +2328,26 @@ module Commands
     end
   end
 
+  def check_documentation
+    status = true
+    allowed = -> str {
+      str.ascii_only? or str.chars.all? { |c| c.ascii_only? or %w[± – → ⌥ ⌘ ⇧].include?(c) }
+    }
+
+    `git -C #{TRUFFLERUBY_DIR} ls-files '**/*.md'`.lines.map(&:chomp).each do |file|
+      next if file.start_with?('lib/gems/')
+      contents = File.read(file, encoding: Encoding::UTF_8)
+      unless allowed[contents]
+        non_ascii = contents.lines.reject(&allowed).map do |line|
+          line.chars.map { |c| allowed[c] ? c : "[#{c}]" }.join
+        end.join
+        status = false
+        puts "Non-US-ASCII character in #{file}:\n#{non_ascii}"
+      end
+    end
+    abort unless status
+  end
+
   def check_documentation_urls
     url_base = 'https://github.com/oracle/truffleruby/blob/master/doc/'
     # Explicit list of URLs, so they can be added manually
@@ -2357,7 +2377,7 @@ module Commands
         status = false
       end
     end
-    exit status
+    abort unless status
   end
 
   def shellcheck
@@ -2634,6 +2654,7 @@ module Commands
       check_parser
       check_options
       check_source_files if ci?
+      check_documentation
       check_documentation_urls
       check_license
     end

@@ -24,12 +24,12 @@ Then you can play the Lan Master game.
 
 On Linux:
 ```bash
-ruby --jvm bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+ruby --jvm bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 On macOS, you need an extra flag, `--vm.XstartOnFirstThread`, for the GUI to appear:
 ```bash
-ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 Note: `--audio=none` is used since the audio it not nice at non-60FPS speeds.
@@ -46,12 +46,12 @@ You can also run it on MRI for comparison.
 You will need to install the FFI gem with:
 ```bash
 gem install --user ffi
-ruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+ruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 You can also run it on JRuby if desired:
 ```bash
-jruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+jruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 ## Running as a Benchmark from the TruffleRuby Repository
