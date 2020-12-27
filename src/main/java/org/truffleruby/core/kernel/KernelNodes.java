@@ -2064,6 +2064,10 @@ public abstract class KernelNodes {
             return KernelNodesFactory.ToHexStringNodeFactory.create(null);
         }
 
+        public static ToHexStringNode getUncached() {
+            return KernelNodesFactory.ToHexStringNodeFactory.getUncached();
+        }
+
         public abstract String executeToHexString(Object value);
 
         @Specialization
@@ -2106,10 +2110,21 @@ public abstract class KernelNodes {
             Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
+            String javaString = Utils.concat("#<", className, ":0x", hexID, ">");
+
             return makeStringNode.executeMake(
-                    Utils.concat("#<", className, ":0x", hexID, ">"),
+                    javaString,
                     UTF8Encoding.INSTANCE,
                     CodeRange.CR_UNKNOWN);
+        }
+
+        @TruffleBoundary
+        public static String uncachedBasicToS(RubyContext context, RubyDynamicObject self) {
+            String className = self.getLogicalClass().fields.getName();
+            long id = ObjectIDNode.uncachedObjectID(context, self);
+            String hexID = Long.toHexString(id);
+
+            return "#<" + className + ":0x" + hexID + ">";
         }
 
     }

@@ -20,7 +20,6 @@ import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -81,7 +80,7 @@ public abstract class ClassNodes {
 
     @TruffleBoundary
     public static RubyClass createSingletonClassOfObject(RubyContext context, SourceSection sourceSection,
-            RubyClass superclass, RubyDynamicObject attached, String name) {
+            RubyClass superclass, RubyDynamicObject attached) {
         // We also need to create the singleton class of a singleton class for proper lookup and consistency.
         // See rb_singleton_class() documentation in MRI.
         // Allocator is null here, we cannot create instances of singleton classes.
@@ -94,7 +93,7 @@ public abstract class ClassNodes {
                         getClassClass(superclass),
                         null,
                         superclass,
-                        name,
+                        null,
                         true,
                         attached,
                         null));
@@ -229,14 +228,13 @@ public abstract class ClassNodes {
             singletonSuperclass = getLazyCreatedSingletonClass(context, superclass);
         }
 
-        String name = StringUtils.format("#<Class:%s>", rubyClass.fields.getName());
         RubyClass metaClass = ClassNodes.createRubyClass(
                 context,
                 rubyClass.fields.getSourceSection(),
                 getClassClass(rubyClass),
                 null,
                 singletonSuperclass,
-                name,
+                null,
                 true,
                 rubyClass,
                 null);

@@ -54,7 +54,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
@@ -123,7 +123,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Module", isClass = true)
@@ -1469,19 +1468,9 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "name")
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @Specialization
-        protected Object name(RubyModule module,
-                @Cached("createIdentityProfile()") ValueProfile fieldsProfile) {
-            final ModuleFields fields = fieldsProfile.profile(module.fields);
-
-            if (!fields.hasPartialName()) {
-                return nil;
-            }
-
-            return makeStringNode.executeMake(fields.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        protected Object name(RubyModule module) {
+            return module.fields.getRubyStringName();
         }
     }
 
@@ -1927,45 +1916,22 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode callRbInspect;
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
         @Specialization
-        protected RubyString toS(RubyModule module) {
+        protected RubyString toS(RubyModule module,
+                @Cached MakeStringNode makeStringNode) {
             final String moduleName;
-            final ModuleFields fields = module.fields;
-            if (RubyGuards.isSingletonClass(module)) {
-                final RubyDynamicObject attached = ((RubyClass) module).attached;
-                final String attachedName;
-                if (attached instanceof RubyModule) {
-                    attachedName = ((RubyModule) attached).fields.getName();
-                } else {
-                    if (callRbInspect == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        callRbInspect = insert(DispatchNode.create());
-                    }
-                    final Object inspectResult = callRbInspect
-                            .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
-                    attachedName = RubyStringLibrary.getUncached().getJavaString(inspectResult);
-                }
-                moduleName = "#<Class:" + attachedName + ">";
-            } else if (fields.isRefinement()) {
-                final String refinedModule = fields.getRefinedModule().fields.getName();
-                final String refinementNamespace = fields.getRefinementNamespace().fields.getName();
-                moduleName = "#<refinement:" + refinedModule + "@" + refinementNamespace + ">";
+            if (module.fields.isRefinement()) {
+                moduleName = module.fields.getRefinementName();
             } else {
-                moduleName = fields.getName();
+                moduleName = module.fields.getName();
             }
-
             return makeStringNode.executeMake(moduleName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
-
     }
 
     @CoreMethod(names = "undef_method", rest = true, split = Split.NEVER, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
+
         @TruffleBoundary
         @Specialization
         protected RubyModule undefMethods(RubyModule module, Object[] names,

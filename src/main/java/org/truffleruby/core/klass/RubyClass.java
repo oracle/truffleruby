@@ -55,6 +55,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
             Shape instanceShape) {
         super(classClass, classClass.instanceShape, context, sourceSection, lexicalParent, givenBaseName);
         assert isSingleton == (instanceShape == null);
+        assert !isSingleton || givenBaseName == null;
         this.isSingleton = isSingleton;
         this.attached = attached;
         this.instanceShape = instanceShape;

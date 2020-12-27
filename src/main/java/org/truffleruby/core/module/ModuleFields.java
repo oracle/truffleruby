@@ -21,15 +21,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -79,6 +83,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private boolean hasFullName = false;
     private String name = null;
+    private ImmutableRubyString rubyStringName;
 
     /** Whether this is a refinement module (R), created by #refine */
     private boolean isRefinement = false;
@@ -141,9 +146,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             } else if (lexicalParent.fields.hasFullName()) {
                 this.setFullName(lexicalParent.fields.getName() + "::" + name);
                 updateAnonymousChildrenModules(context);
+            } else {
+                // Our lexicalParent is also an anonymous module
+                // and will name us when it gets named via updateAnonymousChildrenModules(),
+                // or we'll compute an anonymous name on #getName() if needed
             }
-            // else: Our lexicalParent is also an anonymous module
-            // and will name us when it gets named via updateAnonymousChildrenModules()
         }
         return previous;
     }
@@ -606,14 +613,35 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     private String getAnonymousName() {
         final String anonymousName = createAnonymousName();
-        this.name = anonymousName;
+        setName(anonymousName);
         return anonymousName;
     }
 
     public void setFullName(String name) {
         assert name != null;
         hasFullName = true;
+        setName(name);
+    }
+
+    private void setName(String name) {
         this.name = name;
+        if (hasPartialName()) {
+            this.rubyStringName = getContext()
+                    .getLanguageSlow()
+                    .getFrozenStringLiteral(name.getBytes(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+    }
+
+    public Object getRubyStringName() {
+        if (hasPartialName()) {
+            if (rubyStringName == null) {
+                getName(); // compute the name
+            }
+            assert rubyStringName != null;
+            return rubyStringName;
+        } else {
+            return Nil.INSTANCE;
+        }
     }
 
     @TruffleBoundary
@@ -622,10 +650,26 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return lexicalParent.fields.getName() + "::" + givenBaseName;
         } else if (getLogicalClass() == rubyModule) { // For the case of class Class during initialization
             return "#<cyclic>";
+        } else if (RubyGuards.isSingletonClass(rubyModule)) {
+            final RubyDynamicObject attached = ((RubyClass) rubyModule).attached;
+            final String attachedName;
+            if (attached instanceof RubyModule) {
+                attachedName = ((RubyModule) attached).fields.getName();
+            } else {
+                attachedName = KernelNodes.ToSNode.uncachedBasicToS(context, attached);
+            }
+            return "#<Class:" + attachedName + ">";
+        } else if (isRefinement) {
+            return getRefinementName();
         } else {
-            return "#<" + getLogicalClass().fields.getName() + ":0x" +
-                    Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModule)) + ">";
+            return KernelNodes.ToSNode.uncachedBasicToS(context, rubyModule);
         }
+    }
+
+    @TruffleBoundary
+    public String getRefinementName() {
+        assert isRefinement;
+        return "#<refinement:" + refinedModule.fields.getName() + "@" + refinementNamespace.fields.getName() + ">";
     }
 
     public boolean hasFullName() {

@@ -1,3 +1,0 @@
-fails:Module#name returns nil for a singleton class
-fails:Module#name returns a frozen String
-fails:Module#name always returns the same String for a given Module

@@ -72,6 +72,7 @@ Compatibility:
 * Added `Enumerator::Yielder#to_proc`.
 * Implemented `Enumerator::Lazy#eager`.
 * Updated `Method#inspect` to include paremeter information.
+* Update `Module#name` to return the same frozen string.
 
 Performance:
 
