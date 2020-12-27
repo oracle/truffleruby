@@ -660,10 +660,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
             return "#<Class:" + attachedName + ">";
         } else if (isRefinement) {
-            return "#<refinement:" + refinedModule.fields.getName() + "@" + refinementNamespace.fields.getName() + ">";
+            return getRefinementName();
         } else {
             return KernelNodes.ToSNode.uncachedBasicToS(context, rubyModule);
         }
+    }
+
+    @TruffleBoundary
+    public String getRefinementName() {
+        assert isRefinement;
+        return "#<refinement:" + refinedModule.fields.getName() + "@" + refinementNamespace.fields.getName() + ">";
     }
 
     public boolean hasFullName() {

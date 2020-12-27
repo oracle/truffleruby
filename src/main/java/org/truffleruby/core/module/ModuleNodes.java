@@ -1919,7 +1919,12 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyString toS(RubyModule module,
                 @Cached MakeStringNode makeStringNode) {
-            String moduleName = module.fields.getName();
+            final String moduleName;
+            if (module.fields.isRefinement()) {
+                moduleName = module.fields.getRefinementName();
+            } else {
+                moduleName = module.fields.getName();
+            }
             return makeStringNode.executeMake(moduleName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
