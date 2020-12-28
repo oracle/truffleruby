@@ -131,11 +131,17 @@ public class BacktraceFormatter {
             } else {
                 printer.println(formatted);
             }
-        } catch (Throwable t) {
+        } catch (Throwable error) {
             printer.println("Error while formatting Ruby exception:");
-            t.printStackTrace(printer);
+            if (error instanceof RaiseException) {
+                RubyException errorRubyException = ((RaiseException) error).getException();
+                printer.println(formatBacktrace(errorRubyException, errorRubyException.backtrace));
+            } else {
+                error.printStackTrace(printer);
+            }
             printer.println("Original Ruby exception:");
             printer.println(formatBacktrace(rubyException, rubyException.backtrace));
+            printer.println(); // To make it easier to spot the end of both error + original
         }
     }
 
