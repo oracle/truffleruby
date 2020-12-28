@@ -5,7 +5,7 @@ ruby_version_is "2.7" do
     # TODO: Remove excessive eval calls when support of previous version
     #       Ruby 2.6 will be dropped
 
-    before do
+    before :each do
       ScratchPad.record []
     end
 
@@ -41,14 +41,20 @@ ruby_version_is "2.7" do
     end
 
     describe "warning" do
-      before do
+      before :each do
         ruby_version_is ""..."3.0" do
-          @src = 'case 0; in a; end'
+          @src = 'case [0, 1]; in [a, b]; end'
         end
 
         ruby_version_is "3.0" do
-          @src = '1 => a'
+          @src = '[0, 1] => [a, b]'
         end
+
+        @experimental, Warning[:experimental] = Warning[:experimental], true
+      end
+
+      after :each do
+        Warning[:experimental] = @experimental
       end
 
       it "warns about pattern matching is experimental feature" do
