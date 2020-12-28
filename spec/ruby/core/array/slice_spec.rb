@@ -163,6 +163,14 @@ describe "Array#slice!" do
       a = [1, 2, 3]
       a.slice!(eval("(2...)")).should == [3]
       a.should == [1, 2]
+
+      a = [1, 2, 3]
+      a.slice!(eval("(-2..)")).should == [2, 3]
+      a.should == [1]
+
+      a = [1, 2, 3]
+      a.slice!(eval("(-1...)")).should == [3]
+      a.should == [1, 2]
     end
   end
 

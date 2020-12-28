@@ -43,6 +43,16 @@ describe "Module#to_s" do
     obj.singleton_class.to_s.should =~ /\A#<Class:#<ModuleSpecs::NamedClass:0x\h+>>\z/
   end
 
+  it "always show the refinement name, even if the module is named" do
+    module ModuleSpecs::RefinementInspect
+      R = refine String do
+      end
+    end
+
+    ModuleSpecs::RefinementInspect::R.name.should == 'ModuleSpecs::RefinementInspect::R'
+    ModuleSpecs::RefinementInspect::R.to_s.should == '#<refinement:String@ModuleSpecs::RefinementInspect>'
+  end
+
   it 'does not call #inspect or #to_s for singleton classes' do
     klass = Class.new
     obj = klass.new
