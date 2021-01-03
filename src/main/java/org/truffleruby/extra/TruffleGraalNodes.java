@@ -236,5 +236,46 @@ public abstract class TruffleGraalNodes {
         }
     }
 
+    @NodeChild(value = "value", type = RubyNode.class)
+    @Primitive(name = "blackhole")
+    public abstract static class BlackholeNode extends PrimitiveNode {
+
+        boolean booleanField;
+        int intField;
+        long longField;
+        double doubleField;
+        Object objectField;
+
+        @Specialization
+        protected Object blackhole(boolean value) {
+            this.booleanField = value;
+            return nil;
+        }
+
+        @Specialization
+        protected Object blackhole(int value) {
+            this.intField = value;
+            return nil;
+        }
+
+        @Specialization
+        protected Object blackhole(long value) {
+            this.longField = value;
+            return nil;
+        }
+
+        @Specialization
+        protected Object blackhole(double value) {
+            this.doubleField = value;
+            return nil;
+        }
+
+        @Specialization
+        protected Object blackhole(Object value) {
+            this.objectField = value;
+            return nil;
+        }
+
+    }
 
 }
