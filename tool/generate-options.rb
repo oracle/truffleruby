@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -111,7 +111,7 @@ file = __FILE__
 
 TEMPLATE = <<'JAVA'
 /*
- * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, <%= Time.now.year %> Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -191,7 +191,7 @@ File.write('src/main/java/org/truffleruby/options/LanguageOptions.java', ERB.new
 
 File.write('src/shared/java/org/truffleruby/shared/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
 /*
- * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, <%= Time.now.year %> Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
