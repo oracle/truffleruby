@@ -701,6 +701,14 @@ class Array
     super(n)
   end
 
+  def minmax(&block)
+    if block_given?
+      super(&block)
+    else
+      [self.min, self.max]
+    end
+  end
+
   def permutation_size(num)
     n = self.size
     if Primitive.undefined? num

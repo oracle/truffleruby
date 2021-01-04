@@ -23,6 +23,7 @@ Compatibility:
 * Implemented `Time#floor` and `#ceil` (#2201, @wildmaples).
 * Allow `Range#include?` and `#member?` with `Time` (#2202, @wildmaples).
 * Implemented `Comparable#clamp(Range)` (#2200, @wildmaples).
+* Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
 
 Performance:
 
