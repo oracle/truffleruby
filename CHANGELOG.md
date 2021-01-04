@@ -22,6 +22,7 @@ Compatibility:
 * Fixed `:perm` parameter for `File.write`.
 * Implemented `Time#floor` and `#ceil` (#2201, @wildmaples).
 * Allow `Range#include?` and `#member?` with `Time` (#2202, @wildmaples).
+* Implemented `Comparable#clamp(Range)` (#2200, @wildmaples).
 
 Performance:
 
