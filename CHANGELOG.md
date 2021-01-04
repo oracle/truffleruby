@@ -21,6 +21,7 @@ Compatibility:
 * Allow private calls with `self` as an explicit receiver (#2196, @wildmaples).
 * Fixed `:perm` parameter for `File.write`.
 * Implemented `Time#floor` and `#ceil` (#2201, @wildmaples).
+* Allow `Range#include?` and `#member?` with `Time` (#2202, @wildmaples).
 
 Performance:
 
