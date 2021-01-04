@@ -324,6 +324,9 @@ public abstract class RangeNodes {
     @CoreMethod(names = "to_a")
     public abstract static class ToANode extends CoreMethodArrayArgumentsNode {
 
+        private final BranchProfile overflow = BranchProfile.create();
+        private final ConditionProfile emptyProfile = ConditionProfile.create();
+
         @Child private DispatchNode toAInternalCall;
 
         @Specialization
@@ -337,10 +340,43 @@ public abstract class RangeNodes {
             }
             final int length = result - begin;
 
-            if (length < 0) {
+            if (emptyProfile.profile(length < 0)) {
                 return createEmptyArray();
             } else {
                 final int[] values = new int[length];
+
+                for (int n = 0; n < length; n++) {
+                    values[n] = begin + n;
+                }
+
+                return createArray(values);
+            }
+        }
+
+        @Specialization
+        protected RubyArray toA(RubyLongRange range) {
+            final long begin = range.begin;
+            long result;
+            if (range.excludedEnd) {
+                result = range.end;
+            } else {
+                result = range.end + 1;
+            }
+
+            final int length;
+            try {
+                length = Math.toIntExact(result - begin);
+            } catch (ArithmeticException e) {
+                overflow.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError("long too big to convert into `int'", this));
+            }
+
+            if (emptyProfile.profile(length < 0)) {
+                return createEmptyArray();
+            } else {
+                final long[] values = new long[length];
 
                 for (int n = 0; n < length; n++) {
                     values[n] = begin + n;
