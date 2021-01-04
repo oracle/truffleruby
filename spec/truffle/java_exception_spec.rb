@@ -1,4 +1,4 @@
-# Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2020 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -23,9 +23,9 @@ please report it to https://github.com/oracle/truffleruby/issues.
     out.should.include? "\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.callingMethod(TruffleDebugNodes.java:LINE)\n"
     out.should.include? "\tfrom org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)\n"
 
-    out.should.include? "#{file}:2:in `throw_java_exception'\n"
-    out.should.include? "\tfrom #{file}:2:in `foo'\n"
-    out.should.include? "\tfrom #{file}:5:in `<main>'\n"
+    out.should.include? "#{file}:10:in `throw_java_exception'\n"
+    out.should.include? "\tfrom #{file}:10:in `foo'\n"
+    out.should.include? "\tfrom #{file}:13:in `<main>'\n"
   end
 
   it "show the cause" do
