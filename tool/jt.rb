@@ -2427,10 +2427,6 @@ module Commands
     end
   end
 
-  def spotbugs
-    mx 'ruby_spotbugs'
-  end
-
   module Formatting
     extend self
 
@@ -2643,11 +2639,6 @@ module Commands
     end
     shellcheck if changed['.sh'] or changed['.inc']
 
-    # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
-    #  - includes verifylibraryurls though
-    #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
-    spotbugs unless fast
-
     mx 'verify-ci' if changed['.py']
 
     unless fast
@@ -2659,6 +2650,11 @@ module Commands
       check_documentation_urls
       check_license
     end
+  end
+
+  # Separate from lint as it needs to build
+  def spotbugs
+    mx 'ruby_spotbugs'
   end
 
   def sync

@@ -29,8 +29,9 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
-import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -626,9 +627,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void setName(String name) {
         this.name = name;
         if (hasPartialName()) {
-            this.rubyStringName = getContext()
-                    .getLanguageSlow()
-                    .getFrozenStringLiteral(name.getBytes(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            LeafRope rope = StringOperations.encodeRope(name, UTF8Encoding.INSTANCE);
+            this.rubyStringName = getContext().getLanguageSlow().getFrozenStringLiteral(rope);
         }
     }
 
