@@ -4,44 +4,135 @@ name: CI
 on: [push, pull_request]
 jobs:
   lint:
-    name: jt lint + jt test fast
+    name: lint
     runs-on: ubuntu-20.04
     steps:
     - name: Clone TruffleRuby
       uses: actions/checkout@v2
     - name: Setup system Ruby
       uses: ruby/setup-ruby@v1
+    - name: Setup jt
+      run: echo "$PWD/bin" >> $GITHUB_PATH
 
     - name: Restore ~/.mx/cache
       uses: actions/cache@v2
       with:
         path: ~/.mx/cache
-        key: mx-cache-${{ runner.os }}-${{ hashFiles('common.json') }}
+        key: mx-cache-lint-${{ runner.os }}-${{ hashFiles('common.json') }}
 
-    - name: Install Eclipse
-      run: tool/jt.rb install eclipse
     - name: Install JVMCI
-      run: tool/jt.rb install jvmci
+      run: jt install jvmci
     - name: Set JAVA_HOME
-      run: echo "JAVA_HOME=$(tool/jt.rb install jvmci)" >> $GITHUB_ENV
-    - name: Clone mx
-      run: tool/jt.rb mx --version
+      run: echo "JAVA_HOME=$(jt install jvmci)" >> $GITHUB_ENV
     - name: Clone Graal
-      run: tool/jt.rb mx sforceimports
+      run: jt mx sforceimports
 
-    - name: Build TruffleRuby
-      run: tool/jt.rb build
-
+    - run: jt install eclipse
     - name: Install RuboCop
       run: gem install --no-document rubocop:0.66.0
-    - name: jt lint
-      run: tool/jt.rb lint
+    - run: jt lint
+    - run: jt spotbugs
 
-    - name: jt test fast
-      run: tool/jt.rb test fast
+  build:
+    name: build
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        # Ensure all build files are in build/.
+        # Test jobs don't have build/ to ensure nothing uses the build files.
+        working-directory: build
+    steps:
+    - name: Clone TruffleRuby
+      uses: actions/checkout@v2
+      with:
+        path: build
+    - name: Setup system Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        working-directory: build
+    - name: Setup jt
+      run: echo "$PWD/bin" >> $GITHUB_PATH
 
-  mri_specs:
-    name: Run ruby/spec on CRuby ${{ matrix.ruby }}
+    - name: Restore ~/.mx/cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.mx/cache
+        key: mx-cache-build-${{ runner.os }}-${{ hashFiles('build/common.json') }}
+
+    - name: Install JVMCI
+      run: jt install jvmci
+    - name: Set JAVA_HOME
+      run: echo "JAVA_HOME=$(jt install jvmci)" >> $GITHUB_ENV
+    - name: Clone Graal
+      run: jt mx sforceimports
+
+    - name: Build TruffleRuby
+      run: jt build
+
+    - name: Create archive
+      run: tar czf truffleruby-jvm.tar.gz truffleruby-jvm
+      working-directory: build/mxbuild
+    - uses: actions/upload-artifact@v2
+      with:
+        name: truffleruby-jvm
+        path: build/mxbuild/truffleruby-jvm.tar.gz
+
+  fast_specs:
+    name: fast specs
+    needs: [build]
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Clone TruffleRuby
+      uses: actions/checkout@v2
+    - name: Setup system Ruby
+      uses: ruby/setup-ruby@v1
+    - name: Setup jt
+      run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: truffleruby-jvm
+    - name: Extract, add to PATH, set RUBY_BIN
+      run: |
+        tar xf truffleruby-jvm.tar.gz && mv truffleruby-jvm truffleruby-build
+        echo "$PWD/truffleruby-build/bin" >> $GITHUB_PATH
+        echo "RUBY_BIN=$PWD/truffleruby-build/bin/truffleruby" >> $GITHUB_ENV
+
+    - run: jt test fast
+    - run: jt test :next
+
+  all_specs:
+    name: specs ${{ matrix.specs }}
+    needs: [build]
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        specs:
+        - :truffle # ~12min
+        - :language :core # ~3min + ~9min
+        - :library :cext :security :command_line # command_line ~5min, others < 2min
+    steps:
+      - name: Clone TruffleRuby
+        uses: actions/checkout@v2
+      - name: Setup system Ruby
+        uses: ruby/setup-ruby@v1
+      - name: Setup jt
+        run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: truffleruby-jvm
+      - name: Extract, add to PATH, set RUBY_BIN
+        run: |
+          tar xf truffleruby-jvm.tar.gz && mv truffleruby-jvm truffleruby-build
+          echo "$PWD/truffleruby-build/bin" >> $GITHUB_PATH
+          echo "RUBY_BIN=$PWD/truffleruby-build/bin/truffleruby" >> $GITHUB_ENV
+
+      - run: jt test specs --timeout 180 ${{ matrix.specs }}
+
+  ruby_spec_cruby:
+    name: ruby/spec on CRuby ${{ matrix.ruby }}
     strategy:
       fail-fast: false
       matrix:
@@ -53,4 +144,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler: none
-      - run: CHECK_LEAKS=true tool/jt.rb -u ruby mspec -fdot --timeout 30 spec/ruby
+      - name: Setup jt
+        run: echo "$PWD/bin" >> $GITHUB_PATH
+      - run: CHECK_LEAKS=true jt -u ruby mspec -fdot --timeout 30 spec/ruby
