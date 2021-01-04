@@ -228,6 +228,24 @@ class Time
     time + (rounded - original)
   end
 
+  def floor(places = 0)
+    original = to_i + subsec.to_r
+    floored = original.floor(places)
+
+    time = Time.allocate
+    time.send(:initialize_copy, self)
+    time + (floored - original)
+  end
+
+  def ceil(places = 0)
+    original = to_i + subsec.to_r
+    ceiled = original.ceil(places)
+
+    time = Time.allocate
+    time.send(:initialize_copy, self)
+    time + (ceiled - original)
+  end
+
   def self._load(data)
     # TODO: doesn't load ivars
     raise TypeError, 'marshaled time format differ' unless data.bytesize == 8
