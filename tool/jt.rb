@@ -678,7 +678,7 @@ module Commands
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
       jt test mri                                    run mri tests
-#{MRI_TEST_MODULES.map { |k, h| format ' ' * 10 + '%-16s%s', k, h[:help] }.join("\n")}
+      #{MRI_TEST_MODULES.map { |k, h| format ' ' * 4 + '%-16s%s', k, h[:help] }.join("\n")}
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
@@ -2730,6 +2730,7 @@ class JT
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
     command, *rest = args
+    command ||= 'help'
     command = "command_#{command}" if %w[p puts format].include? command
 
     abort "no command matched #{command.inspect}" unless commands.include?(command)
