@@ -732,6 +732,7 @@ module Commands
         JAVA_HOME                                    Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
+        SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
     TXT
   end
 
