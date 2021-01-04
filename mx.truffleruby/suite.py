@@ -421,7 +421,7 @@ suite = {
                     "file:mx.truffleruby/native-image.properties",
                 ],
                 "bin/": [
-                    "file:bin/*",
+                    "file:exe/*",
                 ],
                 "doc/": [
                     "file:doc/user",
