@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2019, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,6 +11,7 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -36,13 +37,19 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
             @Cached LookupMethodOnSelfNode lookupNode) {
-        // InlinedLambdaNode is only used for `lambda` calls with a literal block
-        return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
+        // NOTE(norswap): A lambda call target was created by default in MethodTranslator.
+        assert block.type == ProcType.LAMBDA;
+        return block;
     }
 
     // The lambda method might have been overriden, undefined, redefined, ...
     @Specialization
     protected Object fallback(VirtualFrame frame, Object self, RubyProc block) {
+        // NOTE(norswap): This can occur if the user overrides the lambda method and it does not resolve to
+        //   Kernel#lambda anymore. A lambda call target for the block was created by default in MethodTranslator,
+        //   and must be converted to a proc block here, as the user-defined method should receive a proc block.
+        assert block.type == ProcType.LAMBDA;
+        block = ProcOperations.createProcFromBlock(getContext(), getLanguage(), block);
         return rewriteAndCallWithBlock(frame, self, block);
     }
 

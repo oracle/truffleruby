@@ -70,7 +70,7 @@ public class MethodTranslator extends BodyTranslator {
 
     /** If this translates a literal block (but not a stabby lambda), this holds the name of the method to which the
      * block was passed. */
-    // private final String methodNameForBlock;
+    private final String methodNameForBlock;
 
     public MethodTranslator(
             RubyContext context,
@@ -85,7 +85,7 @@ public class MethodTranslator extends BodyTranslator {
         super(context, parent, environment, source, parserContext, currentNode);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
-        // this.methodNameForBlock = methodNameForBlock;
+        this.methodNameForBlock = methodNameForBlock;
 
         if (parserContext == ParserContext.EVAL || context.getCoverageManager().isEnabled()) {
             shouldLazyTranslate = false;
@@ -217,21 +217,12 @@ public class MethodTranslator extends BodyTranslator {
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
-            // TODO(norswap, 18 Dec 2020): It ould be nice to precompile as lambda if using the `lambda` function.
-            //    We could determine this using #methodNameForBlock.
-            //    However, this entails that we need to to change the BlockDefinitionNode when
-            //        - rewriting an InlinedLambdaNode
-            //        - creating a call for a method named lambda that can't be an InlinedLambdaNode
-            //          (in CoreMethodAssumptions#createCallNode)
-            //    Otherwise, #methodNameForBlock should be removed.
-            //    If this optimization is done, another step is to ensure ProcOperations.createLambdaFromBlock is only
-            //    called when required, in InlinedLambda Node and KernelNode.LambdaNode, by specializing on block.type.
-
             if (isProc) {
                 // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
                 // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
                 // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
-                for (InvalidReturnNode returnNode : NodeUtil.findAllNodeInstances(bodyCopyForLambda, InvalidReturnNode.class)) {
+                for (InvalidReturnNode returnNode : NodeUtil
+                        .findAllNodeInstances(bodyCopyForLambda, InvalidReturnNode.class)) {
                     returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
                 }
             }
@@ -251,11 +242,14 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
+        // isProc is false only for stabby lambdas.
+        final boolean emitProc = isProc && !methodNameForBlock.equals("lambda");
+
         final BlockDefinitionNode ret = new BlockDefinitionNode(
-                type,
+                emitProc ? ProcType.PROC : ProcType.LAMBDA,
                 environment.getSharedMethodInfo(),
-                isProc ? procCompiler.get() : lambdaCompiler.get(),
-                isProc ? lambdaCompiler : procCompiler,
+                emitProc ? procCompiler.get() : lambdaCompiler.get(),
+                emitProc ? lambdaCompiler : procCompiler,
                 environment.getBreakID(),
                 (FrameSlot) frameOnStackMarkerSlot);
         ret.unsafeSetSourceSection(sourceSection);

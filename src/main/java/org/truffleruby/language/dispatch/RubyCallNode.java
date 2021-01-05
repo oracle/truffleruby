@@ -17,6 +17,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
+import org.truffleruby.core.inlined.LambdaToProcNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
@@ -68,8 +69,9 @@ public class RubyCallNode extends RubyContextSourceNode {
             this.block = null;
             this.hasLiteralBlock = false;
         } else {
-            this.block = ProcOrNullNodeGen.create(parameters.getBlock());
-            this.hasLiteralBlock = parameters.getBlock() instanceof BlockDefinitionNode;
+            final RubyNode block = parameters.getBlock();
+            this.block = ProcOrNullNodeGen.create(block);
+            this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
         }
 
         this.isSplatted = parameters.isSplatted();

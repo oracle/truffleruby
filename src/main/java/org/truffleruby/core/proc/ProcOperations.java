@@ -92,12 +92,12 @@ public abstract class ProcOperations {
         // TODO(norswap, 04 Aug 2020): do allocation tracing (normally via AllocateHelper)?
     }
 
-    public static RubyProc createLambdaFromBlock(RubyContext context, RubyLanguage language, RubyProc block) {
+    public static RubyProc convertBlock(RubyContext context, RubyLanguage language, RubyProc block, ProcType type) {
         return ProcOperations
                 .createRubyProc(
                         context.getCoreLibrary().procClass,
                         language.procShape,
-                        ProcType.LAMBDA,
+                        type,
                         block.sharedMethodInfo,
                         block.callTargets,
                         block.declarationFrame,
@@ -106,6 +106,18 @@ public abstract class ProcOperations {
                         block.block,
                         type == ProcType.PROC ? block.frameOnStackMarker : null,
                         block.declarationContext);
+    }
+
+    public static RubyProc createLambdaFromBlock(RubyContext context, RubyLanguage language, RubyProc block) {
+        // Inefficient otherwise, check upstream, in a guard if possible.
+        assert block.type == ProcType.PROC;
+        return convertBlock(context, language, block, ProcType.LAMBDA);
+    }
+
+    public static RubyProc createProcFromBlock(RubyContext context, RubyLanguage language, RubyProc block) {
+        // Inefficient otherwise, check upstream, in a guard if possible.
+        assert block.type == ProcType.LAMBDA;
+        return convertBlock(context, language, block, ProcType.PROC);
     }
 
     public static Object getSelf(RubyProc proc) {
