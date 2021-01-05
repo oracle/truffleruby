@@ -79,11 +79,10 @@ module Truffle
       other_e = other.end
 
       return false if !Primitive.nil?(e) && Primitive.nil?(other_e)
-
-      return false if !Primitive.nil?(other_e) &&
+      return false if !Primitive.nil?(range.begin) && Primitive.nil?(other_b)
+      return false if !Primitive.nil?(other_b) && !Primitive.nil?(other_e) &&
           range_less(other_b, other_e) > (other.exclude_end? ? -1 : 0)
-
-      return false unless cover?(range, other_b)
+      return false if !Primitive.nil?(other_b) && !cover?(range, other_b)
 
       compare_end = range_less(e, other_e)
 
@@ -110,7 +109,11 @@ module Truffle
     def self.cover?(range, value)
       # MRI uses <=> to compare, so must we.
       beg_compare = (range.begin <=> value)
-      return false unless beg_compare
+
+      unless beg_compare
+        return false if range.begin # not beginless
+        beg_compare = -1
+      end
 
       if Comparable.compare_int(beg_compare) <= 0
         return true if Primitive.nil? range.end
