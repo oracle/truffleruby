@@ -20,12 +20,7 @@ jobs:
         path: ~/.mx/cache
         key: mx-cache-lint-${{ runner.os }}-${{ hashFiles('common.json') }}
 
-    - name: Install JVMCI
-      run: jt install jvmci
-    - name: Set JAVA_HOME
-      run: echo "JAVA_HOME=$(jt install jvmci)" >> $GITHUB_ENV
-    - name: Clone Graal
-      run: jt mx sforceimports
+    - uses: ./.github/actions/setup-jvmci-graal
 
     - run: jt install eclipse
     - name: Install RuboCop
@@ -59,12 +54,7 @@ jobs:
         path: ~/.mx/cache
         key: mx-cache-build-${{ runner.os }}-${{ hashFiles('build/common.json') }}
 
-    - name: Install JVMCI
-      run: jt install jvmci
-    - name: Set JAVA_HOME
-      run: echo "JAVA_HOME=$(jt install jvmci)" >> $GITHUB_ENV
-    - name: Clone Graal
-      run: jt mx sforceimports
+    - uses: ./build/.github/actions/setup-jvmci-graal
 
     - name: Build TruffleRuby
       run: jt build
@@ -92,11 +82,7 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: truffleruby-jvm
-    - name: Extract, add to PATH, set RUBY_BIN
-      run: |
-        tar xf truffleruby-jvm.tar.gz && mv truffleruby-jvm truffleruby-build
-        echo "$PWD/truffleruby-build/bin" >> $GITHUB_PATH
-        echo "RUBY_BIN=$PWD/truffleruby-build/bin/truffleruby" >> $GITHUB_ENV
+    - uses: ./.github/actions/setup-truffleruby
 
     - run: jt test fast
     - run: jt test :next
@@ -123,11 +109,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: truffleruby-jvm
-      - name: Extract, add to PATH, set RUBY_BIN
-        run: |
-          tar xf truffleruby-jvm.tar.gz && mv truffleruby-jvm truffleruby-build
-          echo "$PWD/truffleruby-build/bin" >> $GITHUB_PATH
-          echo "RUBY_BIN=$PWD/truffleruby-build/bin/truffleruby" >> $GITHUB_ENV
+      - uses: ./.github/actions/setup-truffleruby
 
       - run: jt test specs --timeout 180 ${{ matrix.specs }}
 
