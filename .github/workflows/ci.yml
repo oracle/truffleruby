@@ -29,7 +29,7 @@ jobs:
     - run: jt spotbugs
 
   build:
-    name: build
+    name: build jvm
     runs-on: ubuntu-20.04
     defaults:
       run:
@@ -66,6 +66,45 @@ jobs:
       with:
         name: truffleruby-jvm
         path: build/mxbuild/truffleruby-jvm.tar
+
+  build_native:
+    name: build native
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        # Ensure all build files are in build/.
+        # Test jobs don't have build/ to ensure nothing uses the build files.
+        working-directory: build
+    steps:
+      - name: Clone TruffleRuby
+        uses: actions/checkout@v2
+        with:
+          path: build
+      - name: Setup system Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: build
+      - name: Setup jt
+        run: echo "$PWD/bin" >> $GITHUB_PATH
+
+      - name: Restore ~/.mx/cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.mx/cache
+          key: mx-cache-build-native-${{ runner.os }}-${{ hashFiles('build/common.json') }}
+
+      - uses: ./build/.github/actions/setup-jvmci-graal
+
+      - name: Build TruffleRuby
+        run: jt build --env native
+
+      - name: Create archive
+        run: tar cf truffleruby-native.tar truffleruby-native
+        working-directory: build/mxbuild
+      - uses: actions/upload-artifact@v2
+        with:
+          name: truffleruby-native
+          path: build/mxbuild/truffleruby-native.tar
 
   fast_specs:
     name: fast specs
@@ -111,7 +150,33 @@ jobs:
           name: truffleruby-jvm
       - uses: ./.github/actions/setup-truffleruby
 
-      - run: jt test specs --timeout 180 ${{ matrix.specs }}
+      - run: jt test --timeout 180 ${{ matrix.specs }}
+
+  test_native:
+    name: test native
+    needs: [build_native]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Clone TruffleRuby
+        uses: actions/checkout@v2
+      - name: Setup system Ruby
+        uses: ruby/setup-ruby@v1
+      - name: Setup jt
+        run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: truffleruby-native
+      - uses: ./.github/actions/setup-truffleruby
+        with:
+          archive: truffleruby-native
+
+      - run: jt test compiler
+      # A subset of specs that are more likely to differ on native and run quickly
+      - run: jt test :command_line
+      - run: jt test :language
+      # To catch slow :truffle specs which only apply to native
+      - run: jt test fast :truffle
 
   ruby_spec_cruby:
     name: ruby/spec on CRuby ${{ matrix.ruby }}
