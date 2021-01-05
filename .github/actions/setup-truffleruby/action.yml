@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
     - name: Extract the archive to truffleruby-build
-      run: tar xf ${{ inputs.archive }}.tar.gz && mv ${{ inputs.archive }} truffleruby-build
+      run: tar xf ${{ inputs.archive }}.tar && mv ${{ inputs.archive }} truffleruby-build
       shell: bash
 
     - name: Add TruffleRuby bin/ to PATH
