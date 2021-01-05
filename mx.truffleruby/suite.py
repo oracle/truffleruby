@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.275.3",
+    "mxversion": "5.280.7",
     "name": "truffleruby",
 
     "imports" : {
@@ -421,7 +421,7 @@ suite = {
                     "file:mx.truffleruby/native-image.properties",
                 ],
                 "bin/": [
-                    "file:bin/*",
+                    "file:exe/*",
                 ],
                 "doc/": [
                     "file:doc/user",

@@ -19,7 +19,7 @@ done
 exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
 BASH
 
-Dir.glob("bin/*") do |file|
+Dir.glob("exe/*") do |file|
   contents = File.read(file)
   unless contents.start_with?(PRELUDE)
     puts "#{file} modified"

@@ -678,7 +678,7 @@ module Commands
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
       jt test mri                                    run mri tests
-#{MRI_TEST_MODULES.map { |k, h| format ' ' * 10 + '%-16s%s', k, h[:help] }.join("\n")}
+      #{MRI_TEST_MODULES.map { |k, h| format ' ' * 4 + '%-16s%s', k, h[:help] }.join("\n")}
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
@@ -732,6 +732,7 @@ module Commands
         JAVA_HOME                                    Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
+        SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
     TXT
   end
 
@@ -2426,10 +2427,6 @@ module Commands
     end
   end
 
-  def spotbugs
-    mx 'ruby_spotbugs'
-  end
-
   module Formatting
     extend self
 
@@ -2642,11 +2639,6 @@ module Commands
     end
     shellcheck if changed['.sh'] or changed['.inc']
 
-    # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
-    #  - includes verifylibraryurls though
-    #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
-    spotbugs unless fast
-
     mx 'verify-ci' if changed['.py']
 
     unless fast
@@ -2658,6 +2650,11 @@ module Commands
       check_documentation_urls
       check_license
     end
+  end
+
+  # Separate from lint as it needs to build
+  def spotbugs
+    mx 'ruby_spotbugs'
   end
 
   def sync
@@ -2730,6 +2727,7 @@ class JT
     commands = Commands.public_instance_methods(false).map(&:to_s)
 
     command, *rest = args
+    command ||= 'help'
     command = "command_#{command}" if %w[p puts format].include? command
 
     abort "no command matched #{command.inspect}" unless commands.include?(command)

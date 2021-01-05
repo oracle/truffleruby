@@ -126,9 +126,12 @@ class MSpecScript
   # All specs, excluding specs needing C-extensions support.
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 
+  # Specs needing C-extensions support.
+  set :cext, get(:capi) + get(:truffle_capi) + get(:library_cext)
+
   # All specs, including specs needing C-extensions support.
   # Next version specs are not included as they need to run in a separate process.
-  set :all, get(:files) + get(:capi) + get(:truffle_capi) + get(:library_cext)
+  set :all, get(:files) + get(:cext)
 end
 
 if MSpecScript.child_process?

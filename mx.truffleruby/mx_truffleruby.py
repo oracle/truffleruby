@@ -166,6 +166,8 @@ def ruby_testdownstream_sulong(args):
 
 def ruby_spotbugs(args):
     """Run SpotBugs with custom options to detect more issues"""
+    mx.command_function('build')(['--no-native']) # SpotBugs needs all Java projects to be built
+
     filters = join(root, 'mx.truffleruby', 'spotbugs-filters.xml')
     spotbugsArgs = ['-textui', '-low', '-longBugCodes', '-include', filters]
     if mx.is_interactive():
