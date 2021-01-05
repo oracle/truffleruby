@@ -478,6 +478,7 @@ class IO
     else
       options = Truffle::Type.coerce_to options, Hash, :to_hash
     end
+    chomp = !!options[:chomp]
 
     if name[0] == ?|
       io = IO.popen(name[1..-1], 'r')
@@ -487,7 +488,7 @@ class IO
       io = File.open(name, options)
     end
 
-    each_reader = io.__send__ :create_each_reader, separator, limit
+    each_reader = io.__send__ :create_each_reader, separator, limit, chomp
 
     begin
       each_reader&.each(&block)
@@ -1214,12 +1215,13 @@ class IO
   #
 
   class EachReader
-    def initialize(io, buffer, separator, limit)
+    def initialize(io, buffer, separator, limit, chomp)
       @io = io
       @buffer = buffer
       @separator = separator
       @limit = limit
       @skip = nil
+      @chomp = chomp
     end
 
     def each(&block)
@@ -1261,6 +1263,7 @@ class IO
 
           s = IO.read_encode(@io, s)
 
+          s.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
@@ -1291,6 +1294,7 @@ class IO
 
           str = IO.read_encode(@io, str)
 
+          str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
           $. = @io.__send__(:increment_lineno)
           @buffer.discard @skip if @skip
 
@@ -1304,6 +1308,7 @@ class IO
 
             str = @buffer.read_to_char_boundary(@io, str)
 
+            str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
             $. = @io.__send__(:increment_lineno)
             @buffer.discard @skip if @skip
 
@@ -1344,6 +1349,7 @@ class IO
 
           str = @buffer.read_to_char_boundary(@io, str)
 
+          str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
           $. = @io.__send__(:increment_lineno)
           yield str
 
@@ -1361,6 +1367,7 @@ class IO
     def yield_string(str)
       unless str.empty?
         str = IO.read_encode(@io, str)
+        str.chomp!(DEFAULT_RECORD_SEPARATOR) if @chomp
         $. = @io.__send__(:increment_lineno)
         yield str
       end
@@ -1389,7 +1396,7 @@ class IO
     end
   end
 
-  private def create_each_reader(sep_or_limit=$/, limit=nil)
+  private def create_each_reader(sep_or_limit=$/, limit=nil, chomp=false)
     ensure_open_and_readable
 
     if limit
@@ -1413,7 +1420,7 @@ class IO
 
     return if @ibuffer.exhausted?
 
-    EachReader.new(self, @ibuffer, sep, limit)
+    EachReader.new(self, @ibuffer, sep, limit, chomp)
   end
 
   def each(sep_or_limit=$/, limit=nil, &block)

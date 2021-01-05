@@ -25,6 +25,7 @@ Compatibility:
 * Allow `Range#include?` and `#member?` with `Time` (#2202, @wildmaples).
 * Implemented `Comparable#clamp(Range)` (#2200, @wildmaples).
 * Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
+* Implemented `chomp` parameter for `IO.{readlines, foreach}` (#2205).
 
 Performance:
 
