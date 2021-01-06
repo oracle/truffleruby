@@ -36,7 +36,7 @@ class NilClass
   end
 
   def ^(other)
-    !!other
+    Primitive.as_boolean(other)
   end
 
   def to_s

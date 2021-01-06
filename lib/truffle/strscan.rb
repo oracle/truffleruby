@@ -191,7 +191,7 @@ class StringScanner
   end
 
   def matched?
-    !!@match
+    Primitive.as_boolean(@match)
   end
 
   def matched_size

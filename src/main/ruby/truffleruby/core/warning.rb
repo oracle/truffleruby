@@ -36,9 +36,9 @@ module Warning
   def self.[]=(category, value)
     case category
     when :deprecated
-      Primitive.warning_set_category(:deprecated, !!value)
+      Primitive.warning_set_category(:deprecated, Primitive.as_boolean(value))
     when :experimental
-      Primitive.warning_set_category(:experimental, !!value)
+      Primitive.warning_set_category(:experimental, Primitive.as_boolean(value))
     else
       raise ArgumentError, "unknown category: #{category}"
     end

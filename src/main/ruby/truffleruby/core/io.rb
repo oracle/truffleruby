@@ -478,7 +478,7 @@ class IO
     else
       options = Truffle::Type.coerce_to options, Hash, :to_hash
     end
-    chomp = !!options[:chomp]
+    chomp = Primitive.as_boolean(options[:chomp])
 
     if name[0] == ?|
       io = IO.popen(name[1..-1], 'r')
@@ -644,7 +644,7 @@ class IO
         perm = optperm
       end
 
-      autoclose = !!options[:autoclose] if options.key?(:autoclose)
+      autoclose = Primitive.as_boolean(options[:autoclose]) if options.key?(:autoclose)
     end
 
     if mode.kind_of?(String)
@@ -1003,7 +1003,7 @@ class IO
 
     Primitive.io_set_fd(io, fd)
     io.instance_variable_set :@mode, mode
-    io.sync = !!sync
+    io.sync = Primitive.as_boolean(sync)
     io.autoclose  = true
     ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
     io.instance_variable_set :@ibuffer, ibuffer
@@ -1107,7 +1107,7 @@ class IO
   end
 
   def autoclose=(autoclose)
-    @autoclose = !!autoclose
+    @autoclose = Primitive.as_boolean(autoclose)
   end
 
   def binmode
@@ -2303,7 +2303,7 @@ class IO
   # See also IO#fsync.
   def sync=(v)
     ensure_open
-    @sync = !!v
+    @sync = Primitive.as_boolean(v)
   end
 
   ##

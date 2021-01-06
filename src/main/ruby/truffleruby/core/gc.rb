@@ -50,7 +50,7 @@ module GC
 
   # Totally fake.
   def self.stress=(flag)
-    @stress_level = !!flag
+    @stress_level = Primitive.as_boolean(flag)
   end
 
   # Totally fake.
