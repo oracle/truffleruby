@@ -104,6 +104,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.encoding.EncodingLeftCharHeadNode;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
@@ -916,6 +917,58 @@ public abstract class StringNodes {
         protected boolean bothSingleByteOptimizable(Rope stringRope, Rope otherRope) {
             return singleByteOptimizableNode.execute(stringRope) && singleByteOptimizableNode.execute(otherRope);
         }
+    }
+
+    /** Returns true if the last bytes in string are equal to the bytes in suffix. */
+    @Primitive(name = "string_end_with?")
+    public abstract static class EndWithNode extends CoreMethodArrayArgumentsNode {
+
+        @Child EncodingLeftCharHeadNode encodingLeftCharHeadNode;
+
+        @Specialization
+        protected boolean endWithBytes(Object string, Object suffix, RubyEncoding enc,
+                @Cached RopeNodes.BytesNode stringBytesNode,
+                @Cached RopeNodes.BytesNode suffixBytesNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSuffix,
+                @Cached ConditionProfile leftAdjustProfile) {
+
+            final Rope stringRope = strings.getRope(string);
+            final Rope suffixRope = stringsSuffix.getRope(suffix);
+            final int stringByteLength = stringRope.byteLength();
+            final int suffixByteLength = suffixRope.byteLength();
+
+            if (stringByteLength < suffixByteLength) {
+                return false;
+            }
+            if (suffixByteLength == 0) {
+                return true;
+            }
+            final byte[] stringBytes = stringBytesNode.execute(stringRope);
+            final byte[] suffixBytes = suffixBytesNode.execute(suffixRope);
+
+            final int offset = stringByteLength - suffixByteLength;
+
+            if (leftAdjustProfile.profile(leftAdjustCharHead(enc, stringByteLength, stringBytes, offset))) {
+                return false;
+            }
+
+            for (int i = 0; i < suffixByteLength; i++) {
+                if (stringBytes[offset + i] != suffixBytes[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private boolean leftAdjustCharHead(RubyEncoding enc, int stringByteLength, byte[] stringBytes, int offset) {
+            if (encodingLeftCharHeadNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                encodingLeftCharHeadNode = insert(EncodingLeftCharHeadNode.create());
+            }
+            return encodingLeftCharHeadNode.execute(enc, stringBytes, 0, offset, stringByteLength) != offset;
+        }
+
     }
 
     @CoreMethod(names = "count", rest = true)

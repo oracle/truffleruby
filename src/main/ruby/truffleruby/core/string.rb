@@ -475,15 +475,14 @@ class String
 
   def end_with?(*suffixes)
     if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
-      Primitive.encoding_ensure_compatible self, suffix
-      return self[-suffix.length, suffix.length] == suffix
+      enc = Primitive.encoding_ensure_compatible self, suffix
+      return Primitive.string_end_with?(self, suffix, enc)
     end
 
     suffixes.each do |original_suffix|
       suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
-      Primitive.encoding_ensure_compatible self, suffix
-
-      return true if self[-suffix.length, suffix.length] == suffix
+      enc = Primitive.encoding_ensure_compatible self, suffix
+      return true if Primitive.string_end_with?(self, suffix, enc)
     end
 
     false
