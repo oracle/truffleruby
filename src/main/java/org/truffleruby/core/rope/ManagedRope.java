@@ -55,16 +55,6 @@ public abstract class ManagedRope extends Rope {
     }
 
     @Override
-    public Bytes getBytesObject() {
-        return new Bytes(getBytes());
-    }
-
-    @Override
-    public Bytes getBytesObject(int offset, int length) {
-        return new Bytes(getBytes(), offset, length);
-    }
-
-    @Override
     public final String toString() {
         if (DEBUG_ROPE_BYTES) {
             final byte[] bytesBefore = bytes;

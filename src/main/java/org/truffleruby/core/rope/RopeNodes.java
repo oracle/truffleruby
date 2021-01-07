@@ -206,10 +206,11 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "!base.isAsciiOnly()")
         protected Rope makeSubstringNon7Bit(Encoding encoding, ManagedRope base, int byteOffset, int byteLength,
-                @Cached CalculateAttributesNode calculateAttributesNode) {
+                @Cached GetBytesObjectNode getBytesObject,
+                @Cached CalculateAttributesNode calculateAttributes) {
 
-            final StringAttributes attributes = calculateAttributesNode
-                    .executeCalculateAttributes(encoding, base.getBytesObject(byteOffset, byteLength));
+            final StringAttributes attributes = calculateAttributes
+                    .executeCalculateAttributes(encoding, getBytesObject.execute(base, byteOffset, byteLength));
 
             final CodeRange codeRange = attributes.getCodeRange();
             final int characterLength = attributes.getCharacterLength();
@@ -1388,10 +1389,11 @@ public abstract class RopeNodes {
         protected CodeRange getCodeRangeNative(NativeRope rope,
                 @Cached BytesNode getBytes,
                 @Cached CalculateAttributesNode calculateAttributesNode,
-                @Cached ConditionProfile unknownCodeRangeProfile) {
+                @Cached ConditionProfile unknownCodeRangeProfile,
+                @Cached GetBytesObjectNode getBytesObject) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
                 final StringAttributes attributes = calculateAttributesNode
-                        .executeCalculateAttributes(rope.getEncoding(), rope.getBytesObject());
+                        .executeCalculateAttributes(rope.getEncoding(), getBytesObject.getBytes(rope));
                 rope.updateAttributes(attributes);
                 return attributes.getCodeRange();
             } else {
@@ -1438,11 +1440,12 @@ public abstract class RopeNodes {
         protected int getCharacterLengthNative(NativeRope rope,
                 @Cached BytesNode getBytes,
                 @Cached CalculateAttributesNode calculateAttributesNode,
-                @Cached ConditionProfile unknownCharacterLengthProfile) {
+                @Cached ConditionProfile unknownCharacterLengthProfile,
+                @Cached GetBytesObjectNode getBytesObjectNode) {
             if (unknownCharacterLengthProfile
                     .profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
                 final StringAttributes attributes = calculateAttributesNode
-                        .executeCalculateAttributes(rope.getEncoding(), rope.getBytesObject());
+                        .executeCalculateAttributes(rope.getEncoding(), getBytesObjectNode.getBytes(rope));
                 rope.updateAttributes(attributes);
                 return attributes.getCharacterLength();
             } else {
@@ -1602,10 +1605,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "recoverIfBroken" })
         protected int brokenOrUnknownWithRecovery(
-                Encoding encoding,
-                CodeRange codeRange,
-                Bytes bytes,
-                boolean recoverIfBroken,
+                Encoding encoding, CodeRange codeRange, Bytes bytes, boolean recoverIfBroken,
                 @Cached ConditionProfile validCharWidthProfile,
                 @Cached ConditionProfile minEncodingWidthUsedProfile) {
             final int width = encodingLength(encoding, bytes);
@@ -1775,6 +1775,78 @@ public abstract class RopeNodes {
 
             return ret;
 
+        }
+    }
+
+    @GenerateUncached
+    public abstract static class GetBytesObjectNode extends RubyBaseNode {
+
+        public static GetBytesObjectNode create() {
+            return RopeNodesFactory.GetBytesObjectNodeGen.create();
+        }
+
+        public Bytes getBytes(Rope rope) {
+            return execute(rope, 0, rope.byteLength());
+        }
+
+        public abstract Bytes execute(Rope rope, int offset, int length);
+
+        @Specialization(guards = "rope.getRawBytes() != null")
+        protected Bytes getBytesObjectFromRaw(Rope rope, int offset, int length) {
+            return new Bytes(rope.getRawBytes(), offset, length);
+        }
+
+        @Specialization(guards = "rope.getRawBytes() == null")
+        protected Bytes getBytesObject(RepeatingRope rope, int offset, int length) {
+            int offsetInChild = offset % rope.getChild().byteLength();
+            return offsetInChild + length < rope.getChild().byteLength()
+                    ? getChildBytesObject(rope.getChild(), offsetInChild, length)
+                    : new Bytes(rope.getBytes(), offset, length);
+        }
+
+        @Specialization(guards = "rope.getRawBytes() == null")
+        protected Bytes getBytesObject(SubstringRope rope, int offset, int length) {
+            return getChildBytesObject(rope.getChild(), rope.getByteOffset() + offset, length);
+        }
+
+        @Specialization(guards = "rope.getRawBytes() == null")
+        protected Bytes getBytesObject(ConcatRope rope, int offset, int length,
+                @Cached ConditionProfile bytesNotNull) {
+
+            final ConcatState state = rope.getState(bytesNotNull);
+            if (state.bytes != null) {
+                return new Bytes(state.bytes, offset, length);
+            }
+
+            final ManagedRope left = state.left;
+            final ManagedRope right = state.right;
+
+            if (offset + length <= left.byteLength()) {
+                return getChildBytesObject(left, offset, length);
+            } else if (offset > left.byteLength()) {
+                return getChildBytesObject(right, offset - left.byteLength(), length);
+            } else {
+                return new Bytes(rope.getBytes(), offset, length);
+            }
+        }
+
+        @Specialization(guards = { "rope.getRawBytes() == null", "!isSpecializedManagedRope(rope)" })
+        protected Bytes getBytesObject(ManagedRope rope, int offset, int length) {
+            return new Bytes(rope.getBytes(), offset, length);
+        }
+
+        @Specialization(guards = "rope.getRawBytes() == null")
+        protected Bytes getBytesObject(NativeRope rope, int offset, int length) {
+            return new Bytes(rope.getBytes(offset, length));
+        }
+
+        @TruffleBoundary
+        protected Bytes getChildBytesObject(Rope child, int offset, int length) {
+            return execute(child, offset, length);
+        }
+
+        protected static boolean isSpecializedManagedRope(ManagedRope rope) {
+            return rope instanceof ConcatRope || rope instanceof RepeatingRope || rope instanceof SubstringRope;
         }
     }
 }
