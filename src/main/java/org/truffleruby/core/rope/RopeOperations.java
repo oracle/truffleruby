@@ -39,7 +39,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.IntStack;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.rope.ConcatRope.ConcatChildren;
+import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringOperations;
@@ -385,8 +385,8 @@ public class RopeOperations {
             if (current instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) current;
 
-                final ConcatChildren children = concatRope.getChildrenOrNull();
-                if (children == null) {
+                final ConcatState state = concatRope.getState();
+                if (state.isBytes()) {
                     // The rope got concurrently flattened between entering the iteration and reaching here,
                     // restart the iteration from the top.
                     workStack.push(concatRope);
@@ -395,26 +395,26 @@ public class RopeOperations {
 
                 // In the absence of any SubstringRopes, we always take the full contents of the ConcatRope.
                 if (substringLengths.isEmpty()) {
-                    workStack.push(children.right);
-                    workStack.push(children.left);
+                    workStack.push(state.right);
+                    workStack.push(state.left);
                 } else {
-                    final int leftLength = children.left.byteLength();
+                    final int leftLength = state.left.byteLength();
 
                     // If we reach here, this ConcatRope is a descendant of a SubstringRope at some level. Based on
                     // the currently calculated byte[] offset and the number of bytes to extract, determine which of
                     // the ConcatRope's children we need to visit.
                     if (byteOffset < leftLength) {
                         if ((byteOffset + substringLengths.peek()) > leftLength) {
-                            workStack.push(children.right);
-                            workStack.push(children.left);
+                            workStack.push(state.right);
+                            workStack.push(state.left);
                         } else {
-                            workStack.push(children.left);
+                            workStack.push(state.left);
                         }
                     } else {
                         // If we can skip the left child entirely, we need to update the offset so it's accurate for
                         // the right child as each child's starting point is 0.
                         byteOffset -= leftLength;
-                        workStack.push(children.right);
+                        workStack.push(state.right);
                     }
                 }
             } else if (current instanceof SubstringRope) {
@@ -514,16 +514,16 @@ public class RopeOperations {
                 return rawBytes[index];
             } else if (rope instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) rope;
-                final ConcatChildren children = concatRope.getChildrenOrNull();
-                if (children == null) {
+                final ConcatState state = concatRope.getState();
+                if (state.isBytes()) {
                     // Rope got concurrently flattened.
-                    return concatRope.getRawBytes()[index];
+                    return state.bytes[index];
                 }
-                if (index < children.left.byteLength()) {
-                    rope = children.left;
+                if (index < state.left.byteLength()) {
+                    rope = state.left;
                 } else {
-                    rope = children.right;
-                    index -= children.left.byteLength();
+                    rope = state.right;
+                    index -= state.left.byteLength();
                 }
             } else if (rope instanceof SubstringRope) {
                 final SubstringRope substringRope = (SubstringRope) rope;
@@ -586,13 +586,13 @@ public class RopeOperations {
                 workStack.push(new Params(child, startingHashCode, newOffset, length, false));
             } else if (rope instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) rope;
-                final ConcatChildren children = concatRope.getChildrenOrNull();
-                if (children == null) {
+                final ConcatState state = concatRope.getState();
+                if (state.isBytes()) {
                     // Rope got concurrently flattened.
-                    resultHash = Hashing.stringHash(bytes, startingHashCode, offset, length);
+                    resultHash = Hashing.stringHash(state.bytes, startingHashCode, offset, length);
                 } else {
-                    final Rope left = children.left;
-                    final Rope right = children.right;
+                    final Rope left = state.left;
+                    final Rope right = state.right;
                     final int leftLength = left.byteLength();
 
                     if (offset >= leftLength) {

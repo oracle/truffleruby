@@ -16,13 +16,27 @@ import org.jcodings.specific.ASCIIEncoding;
 
 public class ConcatRope extends ManagedRope {
 
+    /** Wrapper for the current state of the concat rope, including null children and a a byte array, or a null byte
+     * array and the children. Accessing the state through {@link #getState()} guarantees the avoidance of race
+     * conditions. */
     @ValueType
-    public static class ConcatChildren {
+    public static class ConcatState {
         public final ManagedRope left, right;
+        public final byte[] bytes;
 
-        public ConcatChildren(ManagedRope left, ManagedRope right) {
+        public ConcatState(ManagedRope left, ManagedRope right, byte[] bytes) {
+            assert bytes == null && left != null && right != null || bytes != null && left == null && right == null;
             this.left = left;
             this.right = right;
+            this.bytes = bytes;
+        }
+
+        public boolean isBytes() {
+            return bytes != null;
+        }
+
+        public boolean isChildren() {
+            return bytes == null;
         }
     }
 
@@ -70,19 +84,8 @@ public class ConcatRope extends ManagedRope {
     }
 
     private ConcatRope withEncoding(Encoding encoding, CodeRange codeRange, int characterLength) {
-        final ConcatChildren children = getChildrenOrNull();
-        final ManagedRope left, right;
-        final byte[] bytes;
-        if (children != null) {
-            left = children.left;
-            right = children.right;
-            bytes = null;
-        } else {
-            left = null;
-            right = null;
-            bytes = getRawBytes();
-        }
-        return new ConcatRope(left, right, encoding, codeRange, byteLength(), characterLength, bytes);
+        final ConcatState state = getState();
+        return new ConcatRope(state.left, state.right, encoding, codeRange, byteLength(), characterLength, state.bytes);
     }
 
     @Override
@@ -93,32 +96,20 @@ public class ConcatRope extends ManagedRope {
         return out;
     }
 
-    public ConcatChildren getChildrenOrNull() {
+    /** Access the state in a way that prevents race conditions. */
+    public ConcatState getState() {
+        if (this.bytes != null) {
+            return new ConcatState(null, null, this.bytes);
+        }
+
         final ManagedRope left = this.left;
         final ManagedRope right = this.right;
-
         if (left != null && right != null) {
-            return new ConcatChildren(left, right);
-        } else if (this.bytes != null) {
-            return null;
-        } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            assert this.bytes != null;
-            return null;
+            return new ConcatState(left, right, null);
         }
-    }
 
-    public byte[] getBytesOrNull() {
-        final byte[] bytes = this.bytes;
-
-        if (bytes != null) {
-            return bytes;
-        } else if (this.left != null && this.right != null) {
-            return null;
-        } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            assert this.bytes != null;
-            return this.bytes;
-        }
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        assert this.bytes != null;
+        return new ConcatState(null, null, this.bytes);
     }
 }
