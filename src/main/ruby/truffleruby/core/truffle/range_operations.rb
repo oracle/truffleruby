@@ -74,69 +74,63 @@ module Truffle
 
     # MRI: r_cover_range_p
     def self.range_cover?(range, other)
-      e = range.end
-      other_b = other.begin
-      other_e = other.end
+      b1 = range.begin
+      b2 = other.begin
+      e1 = range.end
+      e2 = other.end
 
-      return false if !Primitive.nil?(e) && Primitive.nil?(other_e)
-      return false if !Primitive.nil?(range.begin) && Primitive.nil?(other_b)
-      return false if !Primitive.nil?(other_b) && !Primitive.nil?(other_e) &&
-          range_less(other_b, other_e) > (other.exclude_end? ? -1 : 0)
-      return false if !Primitive.nil?(other_b) && !cover?(range, other_b)
+      return false if Primitive.nil?(b2) && !Primitive.nil?(b1)
+      return false if Primitive.nil?(e2) && !Primitive.nil?(e1)
 
-      compare_end = range_less(e, other_e)
+      return false unless (Primitive.nil?(b2) || cover?(range, b2)) 
 
-      if (range.exclude_end? && other.exclude_end?) ||
-          (!range.exclude_end? && !other.exclude_end?)
-        return compare_end >= 0
-      elsif range.exclude_end?
-        return compare_end > 0
-      elsif compare_end >= 0
-        return true
+      return true if Primitive.nil?(e2)
+
+      if e1 == e2
+        !(range.exclude_end? && !other.exclude_end?)
+      else
+        if Integer === e2 && other.exclude_end?
+          cover?(range, e2 -1)
+        else
+          cover?(range, e2)
+        end
       end
-
-      other_max = begin
-                    other.max
-                  rescue TypeError
-                    nil
-                  end
-      return false if Primitive.nil?(other_max)
-
-      range_less(e, other_max) >= 0
     end
 
-    # MRI: r_cover_p
+    # # MRI: r_cover_p
     def self.cover?(range, value)
-      # MRI uses <=> to compare, so must we.
-      beg_compare = (range.begin <=> value)
-
-      unless beg_compare
-        return false if range.begin # not beginless
-        beg_compare = -1
+      # Check lower bound.
+      if !Primitive.nil?(range.begin)
+        # MRI uses <=> to compare, so must we.
+        cmp = (range.begin <=> value)
+        return false unless cmp
+        return false if Comparable.compare_int(cmp) > 0
       end
 
-      if Comparable.compare_int(beg_compare) <= 0
-        return true if Primitive.nil? range.end
-        end_compare = (value <=> range.end)
-
+      # Check upper bound.
+      if !Primitive.nil?(range.end)
+        cmp = (value <=> range.end)
+        if Primitive.nil? cmp
+          p range, value
+        end
         if range.exclude_end?
-          return true if Comparable.compare_int(end_compare) < 0
+          return false if Comparable.compare_int(cmp) >= 0
         else
-          return true if Comparable.compare_int(end_compare) <= 0
+          return false if Comparable.compare_int(cmp) > 0
         end
       end
 
-      false
+      true
     end
 
-    # MRI: r_less
-    def self.range_less(a, b)
-      compare = a <=> b
-      if Primitive.nil?(compare)
-        1
-      else
-        Comparable.compare_int(compare)
-      end
-    end
+    # # MRI: r_less
+    # def self.range_less(a, b)
+    #   compare = a <=> b
+    #   if Primitive.nil?(compare)
+    #     1
+    #   else
+    #     Comparable.compare_int(compare)
+    #   end
+    # end
   end
 end
