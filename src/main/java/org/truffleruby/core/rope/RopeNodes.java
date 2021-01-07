@@ -172,9 +172,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
         protected Rope substringConcatRope(ConcatRope base, int byteOffset, int byteLength,
                 @Cached BytesNode bytesNode,
-                @Cached WithEncodingNode withEncodingNode,
-                @Cached MakeSubstringRopeNode makeSubstringRopeNode,
-                @Cached ConditionProfile matchesChildProfile) {
+                @Cached MakeSubstringRopeNode makeSubstringRopeNode) {
             // NOTE(norswap, 19 Nov 2020):
             //  We flatten the rope here. This avoids issue in the (fairly common) case where the rope tree is basically
             //  a linked list. In that case, reading successive substrings causes increasingly bigger concat ropes
