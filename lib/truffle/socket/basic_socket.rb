@@ -121,6 +121,7 @@ class BasicSocket < IO
   end
 
   def send(message, flags, dest_sockaddr = nil)
+    message    = StringValue(message)
     bytes      = message.bytesize
     bytes_sent = 0
 
@@ -166,7 +167,8 @@ class BasicSocket < IO
         end
       end
 
-      return buf.read_string(n_bytes)
+      str = buf.read_string(n_bytes)
+      buffer ? buffer.replace(str) : str
     end
   end
 
