@@ -46,6 +46,6 @@ class WeakRef < Delegator
   end
 
   def weakref_alive?
-    !!Primitive.weakref_object(self)
+    Primitive.as_boolean(Primitive.weakref_object(self))
   end
 end

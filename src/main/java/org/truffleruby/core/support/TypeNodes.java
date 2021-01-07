@@ -24,6 +24,7 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
@@ -409,4 +410,16 @@ public abstract class TypeNodes {
             return value == NotProvided.INSTANCE;
         }
     }
+
+    @Primitive(name = "as_boolean")
+    @NodeChild(value = "value", type = RubyNode.class)
+    public static abstract class AsBooleanNode extends PrimitiveNode {
+
+        @Specialization
+        protected boolean asBoolean(Object value,
+                @Cached BooleanCastNode booleanCastNode) {
+            return booleanCastNode.executeToBoolean(value);
+        }
+    }
+
 }

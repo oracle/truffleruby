@@ -497,7 +497,7 @@ class Pathname
   # pathnames which points to roots such as <tt>/usr/..</tt>.
   #
   def root?
-    !!(chop_basename(@path) == nil && /#{SEPARATOR_PAT}/o =~ @path)
+    Primitive.as_boolean(chop_basename(@path) == nil && /#{SEPARATOR_PAT}/o =~ @path)
   end
 
   # Predicate method for testing whether a path is absolute.

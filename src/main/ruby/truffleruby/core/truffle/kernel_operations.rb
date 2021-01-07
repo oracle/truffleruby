@@ -115,7 +115,7 @@ module Truffle
       :$VERBOSE,
       -> { Primitive.global_variable_get :$VERBOSE },
       -> v {
-        v = Primitive.nil?(v) ? nil : !!v
+        v = Primitive.nil?(v) ? nil : Primitive.as_boolean(v)
         Primitive.global_variable_set :$VERBOSE, v
       })
 

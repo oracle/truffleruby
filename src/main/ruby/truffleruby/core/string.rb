@@ -148,7 +148,7 @@ class String
   end
 
   def include?(needle)
-    !!Primitive.find_string(self, StringValue(needle), 0)
+    Primitive.as_boolean(Primitive.find_string(self, StringValue(needle), 0))
   end
 
   def lstrip

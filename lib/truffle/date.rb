@@ -1,3 +1,4 @@
+# truffleruby_primitives: true
 #
 # date.rb - date and time library
 #
@@ -735,33 +736,33 @@ class Date
   end
 
   def self.valid_ordinal? (y, d, sg=ITALY)
-    !!_valid_ordinal?(y, d, sg)
+    Primitive.as_boolean(_valid_ordinal?(y, d, sg))
   end
 
   def self.valid_civil? (y, m, d, sg=ITALY)
-    !!_valid_civil?(y, m, d, sg)
+    Primitive.as_boolean(_valid_civil?(y, m, d, sg))
   end
 
   class << self; alias_method :valid_date?, :valid_civil? end
 
   def self.valid_commercial? (y, w, d, sg=ITALY)
-    !!_valid_commercial?(y, w, d, sg)
+    Primitive.as_boolean(_valid_commercial?(y, w, d, sg))
   end
 
   def self.valid_weeknum? (y, w, d, f, sg=ITALY) # :nodoc:
-    !!_valid_weeknum?(y, w, d, f, sg)
+    Primitive.as_boolean(_valid_weeknum?(y, w, d, f, sg))
   end
 
   private_class_method :valid_weeknum?
 
   def self.valid_nth_kday? (y, m, n, k, sg=ITALY) # :nodoc:
-    !!_valid_nth_kday?(y, m, n, k, sg)
+    Primitive.as_boolean(_valid_nth_kday?(y, m, n, k, sg))
   end
 
   private_class_method :valid_nth_kday?
 
   def self.valid_time? (h, min, s) # :nodoc:
-    !!_valid_time?(h, min, s)
+    Primitive.as_boolean(_valid_time?(h, min, s))
   end
 
   private_class_method :valid_time?

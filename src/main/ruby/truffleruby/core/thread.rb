@@ -193,7 +193,7 @@ class Thread
   end
 
   def abort_on_exception=(val)
-    Primitive.thread_set_abort_on_exception(self, !!val)
+    Primitive.thread_set_abort_on_exception(self, Primitive.as_boolean(val))
   end
 
   def report_on_exception
@@ -201,7 +201,7 @@ class Thread
   end
 
   def report_on_exception=(val)
-    Primitive.thread_set_report_on_exception(self, !!val)
+    Primitive.thread_set_report_on_exception(self, Primitive.as_boolean(val))
   end
 
   def safe_level
