@@ -48,10 +48,6 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
         this.lexicalScopes = dynamicLexicalScope ? new ConcurrentHashMap<>() : null;
     }
 
-    public ModuleBodyDefinitionNode(ModuleBodyDefinitionNode node) {
-        this(node.name, node.sharedMethodInfo, node.callTarget, node.captureBlock, node.dynamicLexicalScope);
-    }
-
     public InternalMethod createMethod(VirtualFrame frame, LexicalScope staticLexicalScope, RubyModule module) {
         final RubyProc capturedBlock;
 
