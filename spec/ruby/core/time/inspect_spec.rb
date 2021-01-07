@@ -5,7 +5,7 @@ describe "Time#inspect" do
   it_behaves_like :inspect, :inspect
 
   ruby_version_is "2.7" do
-    it "preserves milliseconds" do
+    it "preserves microseconds" do
       t = Time.utc(2007, 11, 1, 15, 25, 0, 123456)
       t.inspect.should == "2007-11-01 15:25:00.123456 UTC"
     end
