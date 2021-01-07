@@ -26,6 +26,7 @@ Compatibility:
 * Implemented `Comparable#clamp(Range)` (#2200, @wildmaples).
 * Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
 * Implemented `chomp` parameter for `IO.{readlines, foreach}` (#2205).
+* Implemented the Debug Inspector C API.
 
 Performance:
 

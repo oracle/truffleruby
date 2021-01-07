@@ -1808,4 +1808,18 @@ module Truffle::CExt
   def rb_imemo_tmpbuf_set_ptr(obj, ptr)
     obj.pointer = ptr
   end
+
+  def rb_debug_inspector_open_contexts
+    Truffle::Debug.get_frame_bindings.map do |binding|
+      if binding
+        [binding.receiver, binding.receiver.class, binding]
+      else
+        [nil, nil, nil]
+      end
+    end.freeze
+  end
+
+  def rb_thread_current_backtrace_locations
+    Thread.current.backtrace_locations(4)
+  end
 end

@@ -10,11 +10,20 @@
 package org.truffleruby.debug;
 
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.source.SourceSection;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -27,12 +36,14 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
@@ -49,7 +60,10 @@ import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -961,7 +975,63 @@ public abstract class TruffleDebugNodes {
             return makeStringNode
                     .executeMake(declarationContext.toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
+    }
 
+    @CoreMethod(names = "get_frame_bindings", onSingleton = true)
+    public abstract static class IterateFrameBindingsNode extends YieldingCoreMethodNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray getFrameBindings() {
+            Deque<Pair<MaterializedFrame, SourceSection>> stack = new ArrayDeque<>();
+            getContext().getCallStack().iterateFrameBindings(5, frameInstance -> {
+                final RootNode rootNode = ((RootCallTarget) frameInstance.getCallTarget()).getRootNode();
+                if (rootNode instanceof RubyRootNode) {
+                    final Frame frame = frameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE);
+                    final SourceSection sourceSection;
+                    if (frameInstance.getCallNode() != null &&
+                            BacktraceFormatter
+                                    .isAvailable(frameInstance.getCallNode().getEncapsulatingSourceSection())) {
+                        sourceSection = frameInstance.getCallNode().getEncapsulatingSourceSection();
+                    } else {
+                        sourceSection = null;
+                    }
+                    stack.push(Pair.create(frame.materialize(), sourceSection));
+                } else if (!(rootNode instanceof InternalRootNode) &&
+                        frameInstance.getCallNode().getEncapsulatingSourceSection() != null) {
+                    stack.push(Pair.create(null, null));
+                }
+                return null;
+            });
+
+            while (!stack.isEmpty() && stack.peek().getRight() == null) {
+                stack.pop();
+            }
+
+            final List<Object> frameBindings = new ArrayList<>();
+            SourceSection lastAvailableSourceSection = null;
+            while (!stack.isEmpty()) {
+                final Pair<MaterializedFrame, SourceSection> frameAndSource = stack.pop();
+                final MaterializedFrame frame = frameAndSource.getLeft();
+                final SourceSection source = frameAndSource.getRight();
+                if (frame != null) {
+                    SourceSection sourceSection;
+                    if (source != null) {
+                        sourceSection = source;
+                        lastAvailableSourceSection = source;
+                    } else {
+                        sourceSection = lastAvailableSourceSection;
+                    }
+                    final RubyBinding binding = BindingNodes
+                            .createBinding(getContext(), getLanguage(), frame, sourceSection);
+                    frameBindings.add(binding);
+                } else {
+                    frameBindings.add(nil);
+                }
+            }
+            Collections.reverse(frameBindings);
+            return createArray(frameBindings.toArray());
+        }
     }
 
 }
