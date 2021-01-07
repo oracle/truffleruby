@@ -1803,9 +1803,13 @@ public abstract class StringNodes {
                 .create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
-        @Specialization(guards = { "isBrokenCodeRange(string.rope, codeRangeNode)", "isAsciiCompatible(string)" })
-        protected RubyString scrubAsciiCompat(RubyString string, RubyProc block) {
-            final Rope rope = string.rope;
+        @Specialization(
+                guards = {
+                        "isBrokenCodeRange(rope, codeRangeNode)",
+                        "isAsciiCompatible(rope)" })
+        protected RubyString scrubAsciiCompat(Object string, RubyProc block,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Bind("strings.getRope(string)") Rope rope) {
             final Encoding enc = rope.getEncoding();
             final CodeRange cr = codeRangeNode.execute(rope);
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
@@ -1874,10 +1878,14 @@ public abstract class StringNodes {
             return makeStringNode.fromRope(buf);
         }
 
-        @Specialization(guards = { "isBrokenCodeRange(string.rope, codeRangeNode)", "!isAsciiCompatible(string)" })
+        @Specialization(
+                guards = {
+                        "isBrokenCodeRange(rope, codeRangeNode)",
+                        "!isAsciiCompatible(rope)" })
         protected RubyString scrubAsciiIncompatible(RubyString string, RubyProc block,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Bind("strings.getRope(string)") Rope rope,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
-            final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
             final CodeRange cr = codeRangeNode.execute(rope);
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
