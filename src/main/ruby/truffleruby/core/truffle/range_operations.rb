@@ -122,15 +122,5 @@ module Truffle
 
       true
     end
-
-    # # MRI: r_less
-    # def self.range_less(a, b)
-    #   compare = a <=> b
-    #   if Primitive.nil?(compare)
-    #     1
-    #   else
-    #     Comparable.compare_int(compare)
-    #   end
-    # end
   end
 end
