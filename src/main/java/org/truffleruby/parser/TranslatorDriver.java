@@ -296,7 +296,7 @@ public class TranslatorDriver {
         if (environment.getFlipFlopStates().size() > 0) {
             truffleNode = Translator.sequence(
                     sourceIndexLength,
-                    Arrays.asList(translator.initFlipFlopStates(sourceIndexLength), truffleNode));
+                    Arrays.asList(BodyTranslator.initFlipFlopStates(environment, sourceIndexLength), truffleNode));
         }
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {

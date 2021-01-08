@@ -48,7 +48,6 @@ import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.EncodingCache;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
@@ -1067,7 +1066,7 @@ public class BodyTranslator extends Translator {
         body.unsafeSetSourceSection(sourceSection);
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
+            body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
         final RubyNode writeSelfNode = loadSelf(language, environment);
@@ -3340,7 +3339,7 @@ public class BodyTranslator extends Translator {
         return nilNode(star.getPosition());
     }
 
-    protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
+    protected static RubyNode initFlipFlopStates(TranslatorEnvironment environment, SourceIndexLength sourceSection) {
         final RubyNode[] initNodes = createArray(environment.getFlipFlopStates().size());
 
         for (int n = 0; n < initNodes.length; n++) {
