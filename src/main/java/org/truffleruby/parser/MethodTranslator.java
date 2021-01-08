@@ -180,12 +180,18 @@ public class MethodTranslator extends BodyTranslator {
                 translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression(),
                 UnsupportedOperationBehavior.TYPE_ERROR);
 
+        final boolean methodCalledLambda = !isStabbyLambda && methodNameForBlock.equals("lambda");
+        final boolean emitLambda = isStabbyLambda || methodCalledLambda;
+
         // Procs
 
         final Supplier<RootCallTarget> procCompiler = () -> {
-            final RubyNode bodyCopyForProc = NodeUtil.cloneNode(body);
-            final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, bodyCopyForProc));
-            bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyCopyForProc));
+            final RubyNode bodyForProc = methodCalledLambda
+                    ? NodeUtil.cloneNode(body) // previously compiled as lambda, must copy
+                    : body;
+
+            final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, bodyForProc));
+            bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyForProc));
 
             final RubyRootNode newRootNodeForProcs = new RubyRootNode(
                     language,
@@ -195,17 +201,34 @@ public class MethodTranslator extends BodyTranslator {
                     bodyProc,
                     Split.HEURISTIC);
 
-            return Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+
+            if (methodCalledLambda) {
+                // Method was previously compiled as lambda, must rewrite this copy back to having InvalidReturnNodes.
+                // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
+                for (DynamicReturnNode returnNode : NodeUtil
+                        .findAllNodeInstances(bodyForProc, DynamicReturnNode.class)) {
+                    returnNode.replace(new InvalidReturnNode(returnNode.value));
+                }
+            }
+
+            return callTarget;
         };
 
         // Lambdas
 
         final Supplier<RootCallTarget> lambdaCompiler = () -> {
-            final RubyNode bodyCopyForLambda = NodeUtil.cloneNode(body);
+            final RubyNode bodyForLambda = emitLambda
+                    // Stabby lambda: the proc compiler will never be called, safe to copy.
+                    // Method named lambda: if conversion to proc needed, will copy in the proc compiler & reverse the
+                    //   return transformation.
+                    ? body
+                    : NodeUtil.cloneNode(body);
+
             final RubyNode composed = new CatchForLambdaNode(
                     environment.getReturnID(),
                     environment.getBreakID(),
-                    composeBody(sourceSection, preludeLambda, bodyCopyForLambda));
+                    composeBody(sourceSection, preludeLambda, bodyForLambda));
 
             final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
                     language,
@@ -222,7 +245,7 @@ public class MethodTranslator extends BodyTranslator {
                 // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
                 // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
                 for (InvalidReturnNode returnNode : NodeUtil
-                        .findAllNodeInstances(bodyCopyForLambda, InvalidReturnNode.class)) {
+                        .findAllNodeInstances(bodyForLambda, InvalidReturnNode.class)) {
                     returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
                 }
             }
@@ -242,22 +265,18 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        final ProcType type;
         final ProcCallTargets callTargets;
         if (isStabbyLambda) {
             final RootCallTarget callTarget = lambdaCompiler.get();
             callTargets = new ProcCallTargets(callTarget, callTarget, null);
-            type = ProcType.LAMBDA;
         } else if (methodNameForBlock.equals("lambda")) {
             callTargets = new ProcCallTargets(null, lambdaCompiler.get(), procCompiler);
-            type = ProcType.LAMBDA;
         } else {
             callTargets = new ProcCallTargets(procCompiler.get(), null, lambdaCompiler);
-            type = ProcType.PROC;
         }
 
         final BlockDefinitionNode ret = new BlockDefinitionNode(
-                type,
+                emitLambda ? ProcType.LAMBDA : ProcType.PROC,
                 environment.getSharedMethodInfo(),
                 callTargets,
                 environment.getBreakID(),
