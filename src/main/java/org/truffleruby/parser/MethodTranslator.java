@@ -96,8 +96,8 @@ public class MethodTranslator extends BodyTranslator {
         }
     }
 
-    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode, ProcType type,
-            String[] variables) {
+    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode,
+            boolean isStabbyLambda, String[] variables) {
         declareArguments();
         final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
@@ -114,14 +114,13 @@ public class MethodTranslator extends BodyTranslator {
             arityForCheck = arity;
         }
 
-        final boolean isProc = type == ProcType.PROC;
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
                 argsNode,
                 context,
                 source,
                 parserContext,
-                isProc,
+                !isStabbyLambda,
                 false,
                 this).translate();
 
@@ -141,7 +140,7 @@ public class MethodTranslator extends BodyTranslator {
                     context,
                     source,
                     parserContext,
-                    isProc,
+                    !isStabbyLambda,
                     false,
                     this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
@@ -217,7 +216,7 @@ public class MethodTranslator extends BodyTranslator {
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
-            if (isProc) {
+            if (!isStabbyLambda) {
                 // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
                 // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
                 // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
@@ -242,14 +241,13 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        // isProc is false only for stabby lambdas.
-        final boolean emitProc = isProc && !methodNameForBlock.equals("lambda");
+        final boolean emitLambda = isStabbyLambda || methodNameForBlock.equals("lambda");
 
         final BlockDefinitionNode ret = new BlockDefinitionNode(
-                emitProc ? ProcType.PROC : ProcType.LAMBDA,
+                emitLambda ? ProcType.LAMBDA : ProcType.PROC,
                 environment.getSharedMethodInfo(),
-                emitProc ? procCompiler.get() : lambdaCompiler.get(),
-                emitProc ? lambdaCompiler : procCompiler,
+                emitLambda ? lambdaCompiler.get() : procCompiler.get(),
+                emitLambda ? procCompiler : lambdaCompiler,
                 environment.getBreakID(),
                 (FrameSlot) frameOnStackMarkerSlot);
         ret.unsafeSetSourceSection(sourceSection);

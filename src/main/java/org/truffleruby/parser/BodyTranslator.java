@@ -2004,8 +2004,6 @@ public class BodyTranslator extends Translator {
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
 
-        final ProcType type = isLambda ? ProcType.LAMBDA : ProcType.PROC;
-
         if (isLambda) {
             frameOnStackMarkerSlotStack.push(BAD_FRAME_SLOT);
         }
@@ -2014,7 +2012,7 @@ public class BodyTranslator extends Translator {
 
         try {
             definitionNode = methodCompiler
-                    .compileBlockNode(sourceSection, node.getBodyNode(), type, node.getScope().getVariables());
+                    .compileBlockNode(sourceSection, node.getBodyNode(), isLambda, node.getScope().getVariables());
         } finally {
             if (isLambda) {
                 frameOnStackMarkerSlotStack.pop();
