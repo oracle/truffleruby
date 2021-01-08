@@ -1006,12 +1006,18 @@ public class BodyTranslator extends Translator {
                     fullSourceSection,
                     newLexicalScope,
                     Arity.NO_ARGUMENTS,
-                    null,
                     methodName,
                     0,
+                    methodName,
                     null,
                     null);
 
+            final String modulePath;
+            if (type == OpenModule.SINGLETON_CLASS) {
+                modulePath = moduleName;
+            } else {
+                modulePath = TranslatorEnvironment.composeModulePath(environment.modulePath, moduleName);
+            }
             final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                     environment,
                     environment.getParseEnvironment(),
@@ -1023,7 +1029,8 @@ public class BodyTranslator extends Translator {
                     methodName,
                     0,
                     null,
-                    TranslatorEnvironment.newFrameDescriptor());
+                    TranslatorEnvironment.newFrameDescriptor(),
+                    modulePath);
 
             final BodyTranslator moduleTranslator = new BodyTranslator(
                     context,
@@ -1076,7 +1083,7 @@ public class BodyTranslator extends Translator {
                 Split.NEVER);
 
         final ModuleBodyDefinitionNode definitionNode = new ModuleBodyDefinitionNode(
-                environment.getSharedMethodInfo().getName(),
+                environment.getSharedMethodInfo().getBacktraceName(),
                 environment.getSharedMethodInfo(),
                 Truffle.getRuntime().createCallTarget(rootNode),
                 type == OpenModule.SINGLETON_CLASS,
@@ -1383,6 +1390,7 @@ public class BodyTranslator extends Translator {
                 node.getArgsNode(),
                 node,
                 node.getBodyNode(),
+                false,
                 false);
 
         return addNewlineIfNeeded(node, ret);
@@ -1392,6 +1400,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDefsNode(DefsParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
+        final boolean isReceiverSelf = node.getReceiverNode() instanceof SelfParseNode;
         final RubyNode objectNode = node.getReceiverNode().accept(this);
 
         final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(objectNode);
@@ -1404,24 +1413,54 @@ public class BodyTranslator extends Translator {
                 node.getArgsNode(),
                 node,
                 node.getBodyNode(),
-                true);
+                true,
+                isReceiverSelf);
 
         return addNewlineIfNeeded(node, ret);
     }
 
+    public String modulePathAndMethodName(String methodName, boolean onSingleton, boolean isReceiverSelf) {
+        String modulePath = environment.modulePath;
+        if (modulePath == null) {
+            if (onSingleton) {
+                if (environment.isTopLevelObjectScope() && isReceiverSelf) {
+                    modulePath = "main";
+                } else {
+                    modulePath = "<singleton class>"; // method of an unknown singleton class
+                    onSingleton = false;
+                }
+            } else {
+                if (environment.isTopLevelObjectScope()) {
+                    modulePath = "Object";
+                } else {
+                    modulePath = ""; // instance method of an unknown module
+                }
+            }
+        }
+
+        if (modulePath.endsWith("::<singleton class>") && !onSingleton) {
+            modulePath = modulePath.substring(0, modulePath.length() - "::<singleton class>".length());
+            onSingleton = true;
+        }
+
+        return SharedMethodInfo.modulePathAndMethodName(modulePath, methodName, onSingleton);
+    }
+
     protected RubyNode translateMethodDefinition(SourceIndexLength sourceSection, RubyNode moduleNode,
-            String methodName,
-            ArgsParseNode argsNode, MethodDefParseNode defNode, ParseNode bodyNode, boolean isDefs) {
+            String methodName, ArgsParseNode argsNode, MethodDefParseNode defNode, ParseNode bodyNode, boolean isDefs,
+            boolean isReceiverSelf) {
         final Arity arity = argsNode.getArity();
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
+
+        final String parseName = modulePathAndMethodName(methodName, isDefs, isReceiverSelf);
 
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
                 arity,
-                null,
                 methodName,
                 0,
+                parseName,
                 null,
                 argumentDescriptors);
 
@@ -1436,7 +1475,8 @@ public class BodyTranslator extends Translator {
                 methodName,
                 0,
                 null,
-                TranslatorEnvironment.newFrameDescriptor());
+                TranslatorEnvironment.newFrameDescriptor(),
+                environment.modulePath);
 
         // ownScopeForAssignments is the same for the defined method as the current one.
 
@@ -1914,17 +1954,21 @@ public class BodyTranslator extends Translator {
         while (methodParent.isBlock()) {
             methodParent = methodParent.getParent();
         }
-        final String methodName = methodParent.getNamedMethodName();
+        final String methodName = methodParent.getMethodName();
 
         final int blockDepth = environment.getBlockDepth() + 1;
 
+        // "block in foo"
+        String backtraceName = SharedMethodInfo.getBlockName(blockDepth, methodName);
+        // "block (2 levels) in M::C.foo"
+        String parseName = SharedMethodInfo.getBlockName(blockDepth, methodParent.getSharedMethodInfo().getParseName());
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
                 argsNode.getArity(),
-                null,
-                SharedMethodInfo.getBlockName(blockDepth, methodName),
+                backtraceName,
                 blockDepth,
+                parseName,
                 methodName,
                 Helpers.argsNodeToArgumentDescriptors(argsNode));
 
@@ -1939,10 +1983,11 @@ public class BodyTranslator extends Translator {
                 false,
                 false,
                 sharedMethodInfo,
-                environment.getNamedMethodName(),
+                environment.getMethodName(),
                 blockDepth,
                 parseEnvironment.allocateBreakID(),
-                TranslatorEnvironment.newFrameDescriptor());
+                TranslatorEnvironment.newFrameDescriptor(),
+                environment.modulePath);
         final MethodTranslator methodCompiler = new MethodTranslator(
                 context,
                 this,
@@ -3050,11 +3095,18 @@ public class BodyTranslator extends Translator {
         final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(receiverNode);
 
         final boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
+        String modulePath = "<singleton class>";
         if (!dynamicConstantLookup) {
             if (environment.isModuleBody() && node.getReceiverNode() instanceof SelfParseNode) {
-                // Common case of class << self in a module body, the constant lookup scope is still static
-            } else if (environment.parent == null && environment.isModuleBody()) {
-                // At the top-level of a file, opening the singleton class of a single expression
+                // Common case of class << self in a module body, the constant lookup scope is still static.
+                // Special pattern recognized by #modulePathAndMethodName:
+                if (environment.isTopLevelObjectScope()) {
+                    modulePath = "main::<singleton class>";
+                } else {
+                    modulePath = TranslatorEnvironment.composeModulePath(environment.modulePath, "<singleton class>");
+                }
+            } else if (environment.isTopLevelScope()) {
+                // At the top-level of a file, opening the singleton class of an expression executed only once
             } else {
                 // Switch to dynamic constant lookup
                 environment.getParseEnvironment().setDynamicConstantLookup(true);
@@ -3068,7 +3120,12 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         try {
-            ret = openModule(sourceSection, singletonClassNode, "", node.getBodyNode(), OpenModule.SINGLETON_CLASS);
+            ret = openModule(
+                    sourceSection,
+                    singletonClassNode,
+                    modulePath,
+                    node.getBodyNode(),
+                    OpenModule.SINGLETON_CLASS);
         } finally {
             environment.getParseEnvironment().setDynamicConstantLookup(dynamicConstantLookup);
         }

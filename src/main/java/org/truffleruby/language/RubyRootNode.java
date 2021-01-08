@@ -80,12 +80,12 @@ public final class RubyRootNode extends RubyBaseRootNode {
 
     @Override
     public String getName() {
-        return sharedMethodInfo.getModuleAndMethodName();
+        return sharedMethodInfo.getParseName();
     }
 
     @Override
     public String toString() {
-        return sharedMethodInfo.getModuleAndMethodName();
+        return sharedMethodInfo.getParseName();
     }
 
     public SharedMethodInfo getSharedMethodInfo() {

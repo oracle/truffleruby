@@ -21,7 +21,6 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.source.SourceSection;
 
 /** {@link InternalMethod} objects are copied as properties such as visibility are changed. {@link SharedMethodInfo}
@@ -31,10 +30,12 @@ public class SharedMethodInfo {
     private final SourceSection sourceSection;
     private final LexicalScope lexicalScope;
     private final Arity arity;
-    @CompilationFinal private RubyModule definitionModule;
-    /** The original name of the method. Does not change when aliased. This is the name shown in backtraces:
-     * "from FILE:LINE:in `NAME'". */
-    private final String name;
+    /** The original name of the method. Does not change when aliased. Looks like "block in foo" or
+     * "block (2 levels) in foo" for blocks. This is the name shown in backtraces: "from FILE:LINE:in `NAME'". */
+    private final String backtraceName;
+    /** The "static" name of this method at parse time, such as "M::C#foo", "M::C.foo", "<module:Inner>",
+     * "block (2 levels) in M::C.foo" or "block (2 levels) in <module:Inner>". This name is used for tools. */
+    private final String parseName;
     private final int blockDepth;
     /** Extra information. If blockDepth > 0 then it is the name of the method containing this block. */
     private final String notes;
@@ -45,20 +46,49 @@ public class SharedMethodInfo {
             SourceSection sourceSection,
             LexicalScope lexicalScope,
             Arity arity,
-            RubyModule definitionModule,
-            String name,
+            String backtraceName,
             int blockDepth,
+            String parseName,
             String notes,
             ArgumentDescriptor[] argumentDescriptors) {
         assert lexicalScope != null;
+        assert blockDepth == 0 || backtraceName.startsWith("block ") : backtraceName;
         this.sourceSection = sourceSection;
         this.lexicalScope = lexicalScope;
         this.arity = arity;
-        this.definitionModule = definitionModule;
-        this.name = name;
+        this.backtraceName = backtraceName;
         this.blockDepth = blockDepth;
+        this.parseName = parseName;
         this.notes = notes;
         this.argumentDescriptors = argumentDescriptors;
+    }
+
+    public SharedMethodInfo forDefineMethod(RubyModule declaringModule, String methodName) {
+        return new SharedMethodInfo(
+                sourceSection,
+                lexicalScope,
+                arity,
+                methodName,
+                0, // no longer a block
+                moduleAndMethodName(declaringModule, methodName),
+                null,
+                argumentDescriptors);
+    }
+
+    public SharedMethodInfo convertMethodMissingToMethod(RubyModule declaringModule, String methodName) {
+        final ArgumentDescriptor[] oldArgs = getArgumentDescriptors();
+        final ArgumentDescriptor[] newArgs = Arrays.copyOfRange(oldArgs, 1, oldArgs.length);
+        newArgs[0] = new ArgumentDescriptor(ArgumentType.anonrest);
+
+        return new SharedMethodInfo(
+                sourceSection,
+                lexicalScope,
+                arity.consumingFirstRequired(),
+                methodName,
+                blockDepth,
+                moduleAndMethodName(declaringModule, methodName),
+                notes,
+                newArgs);
     }
 
     public SourceSection getSourceSection() {
@@ -73,71 +103,49 @@ public class SharedMethodInfo {
         return arity;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public ArgumentDescriptor[] getArgumentDescriptors() {
         return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
     }
 
-    public SharedMethodInfo convertMethodMissingToMethod(String newName) {
-        final ArgumentDescriptor[] oldArgs = getArgumentDescriptors();
-        final ArgumentDescriptor[] newArgs = Arrays.copyOfRange(oldArgs, 1, oldArgs.length);
-        newArgs[0] = new ArgumentDescriptor(ArgumentType.anonrest);
-
-        return new SharedMethodInfo(
-                sourceSection,
-                lexicalScope,
-                arity.consumingFirstRequired(),
-                definitionModule,
-                newName,
-                blockDepth,
-                notes,
-                newArgs);
+    public boolean isBlock() {
+        return blockDepth > 0;
     }
 
-    public SharedMethodInfo forDefineMethod(RubyModule newDefinitionModule, String newName) {
-        return new SharedMethodInfo(
-                sourceSection,
-                lexicalScope,
-                arity,
-                newDefinitionModule,
-                newName,
-                0, // no longer a block
-                null,
-                argumentDescriptors);
+    public String getBacktraceName() {
+        return backtraceName;
     }
 
-    /** Returns the method name on its own. */
+    /** Returns the method name on its own. Can start with "<" like "<module:Inner>" for module bodies. */
     public String getMethodName() {
-        return blockDepth == 0 ? name : notes;
+        return blockDepth == 0 ? backtraceName : notes;
     }
 
-    /** A more complete name than just <code>this.name</code>, for tooling, to easily identify what a RubyRootNode
-     * corresponds to. */
-    public String getModuleAndMethodName() {
-        if (blockDepth > 0) {
-            assert name.startsWith("block ") : name;
-            final String methodName = notes;
-            return getBlockName(blockDepth, moduleAndMethodName(definitionModule, methodName));
+    /** More efficient than {@link #getMethodName()} when we know blockDepth == 0 */
+    public String getMethodNameForNotBlock() {
+        assert blockDepth == 0;
+        return backtraceName;
+    }
+
+    public String getParseName() {
+        return parseName;
+    }
+
+    public static String moduleAndMethodName(RubyModule module, String methodName) {
+        assert module != null && methodName != null;
+        if (RubyGuards.isMetaClass(module)) {
+            final RubyDynamicObject attached = ((RubyClass) module).attached;
+            return ((RubyModule) attached).getName() + "." + methodName;
         } else {
-            return moduleAndMethodName(definitionModule, name);
+            return module.getName() + "#" + methodName;
         }
     }
 
-    private static String moduleAndMethodName(RubyModule module, String methodName) {
-        if (module != null && methodName != null) {
-            if (RubyGuards.isMetaClass(module)) {
-                final RubyDynamicObject attached = ((RubyClass) module).attached;
-                return ((RubyModule) attached).fields.getName() + "." + methodName;
-            } else {
-                return module.fields.getName() + "#" + methodName;
-            }
-        } else if (methodName != null) {
-            return methodName;
+    public static String modulePathAndMethodName(String modulePath, String methodName, boolean onSingleton) {
+        assert modulePath != null && methodName != null;
+        if (onSingleton) {
+            return modulePath + "." + methodName;
         } else {
-            return "<unknown>";
+            return modulePath + "#" + methodName;
         }
     }
 
@@ -152,7 +160,7 @@ public class SharedMethodInfo {
 
     public String getDescriptiveNameAndSource() {
         if (descriptiveNameAndSource == null) {
-            String descriptiveName = getModuleAndMethodName();
+            String descriptiveName = parseName;
             if (hasNotes()) {
                 if (descriptiveName.length() > 0) {
                     descriptiveName += " (" + notes + ")";
@@ -179,16 +187,6 @@ public class SharedMethodInfo {
     @Override
     public String toString() {
         return getDescriptiveNameAndSource();
-    }
-
-    public RubyModule getDefinitionModule() {
-        return definitionModule;
-    }
-
-    public void setDefinitionModuleIfUnset(RubyModule definitionModule) {
-        if (this.definitionModule == null) {
-            this.definitionModule = definitionModule;
-        }
     }
 
 }

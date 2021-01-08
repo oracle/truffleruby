@@ -848,7 +848,7 @@ public abstract class KernelNodes {
                     rootNode.getRootNode().getSharedMethodInfo(),
                     RubyArguments.getMethod(parentFrame).getLexicalScope(),
                     RubyArguments.getDeclarationContext(parentFrame),
-                    rootNode.getRootNode().getSharedMethodInfo().getName(),
+                    rootNode.getRootNode().getSharedMethodInfo().getMethodNameForNotBlock(),
                     RubyArguments.getMethod(parentFrame).getDeclaringModule(),
                     Visibility.PUBLIC,
                     callTarget);
@@ -1302,8 +1302,8 @@ public abstract class KernelNodes {
         @Specialization
         protected RubySymbol methodName() {
             // the "original/definition name" of the method.
-            return getSymbol(
-                    getContext().getCallStack().getCallingMethodIgnoringSend().getSharedMethodInfo().getName());
+            InternalMethod internalMethod = getContext().getCallStack().getCallingMethodIgnoringSend();
+            return getSymbol(internalMethod.getSharedMethodInfo().getMethodNameForNotBlock());
         }
 
     }
@@ -1386,7 +1386,7 @@ public abstract class KernelNodes {
                 InternalMethod methodMissing) {
             final SharedMethodInfo info = methodMissing
                     .getSharedMethodInfo()
-                    .convertMethodMissingToMethod(normalizedName);
+                    .convertMethodMissingToMethod(methodMissing.getDeclaringModule(), normalizedName);
 
             final RubyNode newBody = new CallMethodMissingWithStaticName(name);
             final RubyRootNode newRootNode = new RubyRootNode(

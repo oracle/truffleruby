@@ -486,7 +486,7 @@ public abstract class ModuleOperations {
     }
 
     public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, RubyModule objectMetaClass) {
-        final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
+        final String name = currentMethod.getSharedMethodInfo().getMethodNameForNotBlock(); // use the original name
 
         Memo<Boolean> foundDeclaringModule = new Memo<>(false);
         return lookupSuperMethod(

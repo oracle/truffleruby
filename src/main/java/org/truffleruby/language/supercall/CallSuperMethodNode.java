@@ -43,7 +43,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
             RubyProc block) {
 
         if (missingProfile.profile(superMethod == null)) {
-            final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getName(); // use the original name
+            final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getMethodNameForNotBlock(); // use the original name
             final Object[] methodMissingArguments = ArrayUtils
                     .unshift(arguments, getSymbol(name));
             return callMethodMissing(frame, self, block, methodMissingArguments);

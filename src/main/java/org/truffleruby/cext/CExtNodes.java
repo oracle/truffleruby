@@ -781,6 +781,7 @@ public class CExtNodes {
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
+        @TruffleBoundary
         public static SourceSection getTopUserSourceSection(String... methodNames) {
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
                 final Node callNode = frameInstance.getCallNode();
@@ -789,7 +790,9 @@ public class CExtNodes {
                     final RootNode rootNode = callNode.getRootNode();
 
                     if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable() &&
-                            !nameMatches(((RubyRootNode) rootNode).getSharedMethodInfo().getName(), methodNames)) {
+                            !nameMatches(
+                                    ((RubyRootNode) rootNode).getSharedMethodInfo().getMethodName(),
+                                    methodNames)) {
                         return frameInstance.getCallNode().getEncapsulatingSourceSection();
                     }
                 }

@@ -438,8 +438,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        method.getSharedMethodInfo().setDefinitionModuleIfUnset(rubyModule);
-
         methods.put(method.getName(), method);
 
         if (!context.getCoreLibrary().isInitializing()) {

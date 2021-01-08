@@ -193,10 +193,10 @@ public abstract class SymbolNodes {
                     sourceSection,
                     LexicalScope.IGNORE,
                     ARITY,
-                    null,
                     symbol.getString(),
                     0,
-                    "proc",
+                    "&:" + symbol.getString(),
+                    "Symbol#to_proc",
                     ArgumentDescriptor.ANON_REST);
 
             final RubyRootNode rootNode = new RubyRootNode(

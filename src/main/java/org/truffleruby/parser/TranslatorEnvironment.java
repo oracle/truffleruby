@@ -53,10 +53,11 @@ public class TranslatorEnvironment {
     protected final TranslatorEnvironment parent;
     private final SharedMethodInfo sharedMethodInfo;
 
-    private final String namedMethodName;
+    public final String modulePath;
+    public final String methodName;
 
     // TODO(CS): overflow? and it should be per-context, or even more local
-    private static AtomicInteger tempIndex = new AtomicInteger();
+    private static final AtomicInteger tempIndex = new AtomicInteger();
 
     public TranslatorEnvironment(
             TranslatorEnvironment parent,
@@ -66,10 +67,11 @@ public class TranslatorEnvironment {
             boolean neverAssignInParentScope,
             boolean isModuleBody,
             SharedMethodInfo sharedMethodInfo,
-            String namedMethodName,
+            String methodName,
             int blockDepth,
             BreakID breakID,
-            FrameDescriptor frameDescriptor) {
+            FrameDescriptor frameDescriptor,
+            String modulePath) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;
@@ -78,13 +80,18 @@ public class TranslatorEnvironment {
         this.neverAssignInParentScope = neverAssignInParentScope;
         this.isModuleBody = isModuleBody;
         this.sharedMethodInfo = sharedMethodInfo;
-        this.namedMethodName = namedMethodName;
+        this.methodName = methodName;
         this.blockDepth = blockDepth;
         this.breakID = breakID;
+        this.modulePath = modulePath;
     }
 
     public static FrameDescriptor newFrameDescriptor() {
         return new FrameDescriptor(Nil.INSTANCE);
+    }
+
+    public static String composeModulePath(String modulePath, String name) {
+        return modulePath != null ? modulePath + "::" + name : name;
     }
 
     public boolean isDynamicConstantLookup() {
@@ -115,6 +122,17 @@ public class TranslatorEnvironment {
 
     public TranslatorEnvironment getParent() {
         return parent;
+    }
+
+    /** Top-level scope, i.e. from main script/load/require. The lexical scope might not be Object in the case of
+     * {@code load(file, wrap=true)}. */
+    public boolean isTopLevelScope() {
+        return parent == null && isModuleBody;
+    }
+
+    /** Top-level scope and the lexical scope is Object, and self is the "main" object */
+    public boolean isTopLevelObjectScope() {
+        return isTopLevelScope() && modulePath == null;
     }
 
     public FrameSlot declareVar(String name) {
@@ -211,8 +229,8 @@ public class TranslatorEnvironment {
         return flipFlopStates;
     }
 
-    public String getNamedMethodName() {
-        return namedMethodName;
+    public String getMethodName() {
+        return methodName;
     }
 
     public boolean isBlock() {

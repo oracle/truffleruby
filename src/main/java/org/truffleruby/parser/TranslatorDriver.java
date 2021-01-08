@@ -202,14 +202,17 @@ public class TranslatorDriver {
         parseEnvironment.resetLexicalScope(lexicalScope);
         parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
 
+        final String modulePath = lexicalScope == context.getRootLexicalScope()
+                ? null
+                : lexicalScope.getLiveModule().getName();
         final String methodName = getMethodName(parserContext, parentFrame);
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection,
-                parseEnvironment.getLexicalScope(),
+                lexicalScope,
                 Arity.NO_ARGUMENTS,
-                null,
                 methodName,
                 0,
+                methodName,
                 null,
                 null);
 
@@ -223,10 +226,11 @@ public class TranslatorDriver {
                 false,
                 isModuleBody,
                 sharedMethodInfo,
-                sharedMethodInfo.getName(),
+                sharedMethodInfo.getMethodNameForNotBlock(),
                 0,
                 null,
-                TranslatorEnvironment.newFrameDescriptor());
+                TranslatorEnvironment.newFrameDescriptor(),
+                modulePath);
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
 
@@ -442,9 +446,9 @@ public class TranslatorDriver {
                     CoreLibrary.SOURCE_SECTION,
                     context.getRootLexicalScope(),
                     Arity.NO_ARGUMENTS,
-                    null,
-                    null,
+                    "<unused>",
                     0,
+                    "<unused>",
                     "external",
                     null);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
@@ -457,10 +461,11 @@ public class TranslatorDriver {
                     false,
                     false,
                     sharedMethodInfo,
-                    sharedMethodInfo.getName(),
+                    sharedMethodInfo.getMethodName(),
                     0,
                     null,
-                    frame.getFrameDescriptor());
+                    frame.getFrameDescriptor(),
+                    "<unused>");
         }
     }
 

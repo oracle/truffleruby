@@ -66,7 +66,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 sharedMethodInfo,
                 sharedMethodInfo.getLexicalScope(),
                 DeclarationContext.topLevel(context),
-                sharedMethodInfo.getName(),
+                sharedMethodInfo.getMethodNameForNotBlock(),
                 context.getCoreLibrary().objectClass,
                 Visibility.PUBLIC,
                 callTarget);
