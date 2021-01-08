@@ -265,10 +265,8 @@ public class MethodTranslator extends BodyTranslator {
             return false;
             // If there are only a rest argument and optional arguments, there is no need to destructure.
             // Because the first optional argument (or the rest if no optional) will take the whole array.
-        } else if (arity.hasRest() && arity.getRequired() == 0) {
-            return false;
         } else {
-            return true;
+            return !arity.hasRest() || arity.getRequired() != 0;
         }
     }
 
