@@ -16,6 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.ArrayCastNodeGen;
+import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -241,13 +242,24 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        final boolean emitLambda = isStabbyLambda || methodNameForBlock.equals("lambda");
+        final ProcType type;
+        final ProcCallTargets callTargets;
+        if (isStabbyLambda) {
+            final RootCallTarget callTarget = lambdaCompiler.get();
+            callTargets = new ProcCallTargets(callTarget, callTarget, null);
+            type = ProcType.LAMBDA;
+        } else if (methodNameForBlock.equals("lambda")) {
+            callTargets = new ProcCallTargets(null, lambdaCompiler.get(), procCompiler);
+            type = ProcType.LAMBDA;
+        } else {
+            callTargets = new ProcCallTargets(procCompiler.get(), null, lambdaCompiler);
+            type = ProcType.PROC;
+        }
 
         final BlockDefinitionNode ret = new BlockDefinitionNode(
-                emitLambda ? ProcType.LAMBDA : ProcType.PROC,
+                type,
                 environment.getSharedMethodInfo(),
-                emitLambda ? lambdaCompiler.get() : procCompiler.get(),
-                emitLambda ? procCompiler : lambdaCompiler,
+                callTargets,
                 environment.getBreakID(),
                 (FrameSlot) frameOnStackMarkerSlot);
         ret.unsafeSetSourceSection(sourceSection);

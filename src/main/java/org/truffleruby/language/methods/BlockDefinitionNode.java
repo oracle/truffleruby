@@ -22,11 +22,8 @@ import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-
-import java.util.function.Supplier;
 
 /** Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
  * SharedMethodInfo. This is executed at the call site just before dispatch. */
@@ -34,7 +31,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
 
     private final ProcType type;
     private final SharedMethodInfo sharedMethodInfo;
-    private final ProcCallTargets callTargetsHolder;
+    private final ProcCallTargets callTargets;
     private final BreakID breakID;
 
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
@@ -44,17 +41,13 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     public BlockDefinitionNode(
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTarget,
-            Supplier<RootCallTarget> alternateTypeCompiler,
+            ProcCallTargets callTargets,
+
             BreakID breakID,
             FrameSlot frameOnStackMarkerSlot) {
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
-        this.callTargetsHolder = new ProcCallTargets(
-                type == ProcType.PROC ? callTarget : null,
-                type == ProcType.LAMBDA ? callTarget : null,
-                alternateTypeCompiler);
-
+        this.callTargets = callTargets;
         this.breakID = breakID;
 
         if (frameOnStackMarkerSlot == null) {
@@ -85,7 +78,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
                 getLanguage().procShape,
                 type,
                 sharedMethodInfo,
-                callTargetsHolder,
+                callTargets,
                 frame.materialize(),
                 readSpecialVariableStorageNode.execute(frame),
                 RubyArguments.getMethod(frame),
