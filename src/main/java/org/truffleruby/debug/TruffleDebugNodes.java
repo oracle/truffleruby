@@ -17,6 +17,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -980,6 +981,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "get_frame_bindings", onSingleton = true)
     public abstract static class IterateFrameBindingsNode extends YieldingCoreMethodNode {
 
+        /** This logic should be kept in sync with
+         * {@link org.truffleruby.language.backtrace.BacktraceFormatter#nextAvailableSourceSection(TruffleStackTraceElement[], int) } */
         @TruffleBoundary
         @Specialization
         protected RubyArray getFrameBindings() {
