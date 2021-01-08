@@ -39,7 +39,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
-    @Specialization(guards = "getBlockCallTarget(block) == cachedCallTarget", limit = "getCacheLimit()")
+    @Specialization(guards = "block.callTarget == cachedCallTarget", limit = "getCacheLimit()")
     protected Object callBlockCached(
             DeclarationContext declarationContext,
             RubyProc block,
@@ -47,7 +47,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object blockArgument,
             Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("getBlockCallTarget(block)") RootCallTarget cachedCallTarget,
+            @Cached("block.callTarget") RootCallTarget cachedCallTarget,
             @Cached("createBlockCallNode(context, block, cachedCallTarget)") DirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
         return callNode.call(frameArguments);
@@ -62,7 +62,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
             Object[] arguments,
             @Cached IndirectCallNode callNode) {
         final Object[] frameArguments = packArguments(declarationContext, block, self, blockArgument, arguments);
-        return callNode.call(getBlockCallTarget(block), frameArguments);
+        return callNode.call(block.callTarget, frameArguments);
     }
 
     private Object[] packArguments(DeclarationContext declarationContext, RubyProc block, Object self,
@@ -76,10 +76,6 @@ public abstract class CallBlockNode extends RubyBaseNode {
                 self,
                 (RubyProc) blockArgument,
                 arguments);
-    }
-
-    protected static RootCallTarget getBlockCallTarget(RubyProc block) {
-        return block.callTarget;
     }
 
     protected DirectCallNode createBlockCallNode(RubyContext context, RubyProc block, RootCallTarget callTarget) {
