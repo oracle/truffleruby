@@ -29,9 +29,7 @@ public final class ProcCallTargets {
     private @CompilationFinal RootCallTarget callTargetForProc;
     private @CompilationFinal RootCallTarget callTargetForLambda;
 
-    // Compiles the null call target, or null if both call targets are non-null.
-    // NOTE(norswap, 04 Jan 2021):
-    //   Exceptionally can also be null if a call target is null (currently only CopyCapturedLocalsNode).
+    // Non-null if one of the call targets is null.
     private @CompilationFinal Supplier<RootCallTarget> altCallTargetCompiler;
 
     public ProcCallTargets(

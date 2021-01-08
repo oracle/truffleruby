@@ -109,11 +109,11 @@ public abstract class TruffleGraalNodes {
         }
     }
 
-    /** This method creates a new Proc with a copy of the captured variables' values, which is correct if these
-     * variables are not changed in the parent scope later on. It works by replacing {@link ReadDeclarationVariableNode}
-     * with the captured variables' values. This avoids constantly reading from the declaration frame (which always
-     * escapes in a define_method) and folds many checks on these captured variables since their values become
-     * compilation constants.
+    /** This method creates a new Proc for an existing <b>lambda</b> proc with a copy of the captured variables' values,
+     * which is correct if these variables are not changed in the parent scope later on. It works by replacing
+     * {@link ReadDeclarationVariableNode} with the captured variables' values. This avoids constantly reading from the
+     * declaration frame (which always escapes in a define_method) and folds many checks on these captured variables
+     * since their values become compilation constants.
      * <p>
      * Similar to Smalltalk's fixTemps, but not mutating the Proc. */
     @CoreMethod(names = "copy_captured_locals", onSingleton = true, required = 1)
@@ -122,6 +122,8 @@ public abstract class TruffleGraalNodes {
         @TruffleBoundary
         @Specialization
         protected RubyProc copyCapturedLocals(RubyProc proc) {
+            assert proc.type == ProcType.LAMBDA;
+
             final RubyRootNode rootNode = (RubyRootNode) proc.callTarget.getRootNode();
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
 
@@ -169,9 +171,7 @@ public abstract class TruffleGraalNodes {
                     getLanguage().procShape,
                     proc.type,
                     proc.sharedMethodInfo,
-                    new ProcCallTargets(
-                            proc.type == ProcType.PROC ? newCallTarget : null,
-                            proc.type == ProcType.PROC ? null : newCallTarget),
+                    new ProcCallTargets(newCallTarget, newCallTarget),
                     newCallTarget,
                     newDeclarationFrame,
                     variables,
