@@ -1,1 +1,0 @@
-fails:Time#inspect formats nanoseconds as a Rational
