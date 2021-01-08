@@ -81,11 +81,6 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
             assert frameOnStackMarker != null;
         }
 
-        if (sharedMethodInfo.getDefinitionModule() == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            sharedMethodInfo.setDefinitionModuleIfUnset(RubyArguments.getMethod(frame).getDeclaringModule());
-        }
-
         return ProcOperations.createRubyProc(
                 coreLibrary().procClass,
                 getLanguage().procShape,

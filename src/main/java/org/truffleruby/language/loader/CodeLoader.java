@@ -78,7 +78,7 @@ public class CodeLoader {
                 rootNode.getSharedMethodInfo(),
                 lexicalScope,
                 declarationContext,
-                rootNode.getSharedMethodInfo().getName(),
+                rootNode.getSharedMethodInfo().getMethodNameForNotBlock(),
                 declaringModule,
                 Visibility.PUBLIC,
                 callTarget);

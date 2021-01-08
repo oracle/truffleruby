@@ -63,7 +63,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 sharedMethodInfo,
                 sharedMethodInfo.getLexicalScope(),
                 DeclarationContext.topLevel(context),
-                sharedMethodInfo.getName(),
+                sharedMethodInfo.getMethodNameForNotBlock(),
                 context.getCoreLibrary().objectClass,
                 Visibility.PUBLIC,
                 callTarget);

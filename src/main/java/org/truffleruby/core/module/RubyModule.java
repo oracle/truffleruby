@@ -50,6 +50,10 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
         this.fields = fields;
     }
 
+    public String getName() {
+        return fields.getName();
+    }
+
     @TruffleBoundary
     @Override
     public String toString() {

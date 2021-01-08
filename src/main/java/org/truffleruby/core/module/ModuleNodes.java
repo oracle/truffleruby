@@ -414,9 +414,9 @@ public abstract class ModuleNodes {
                     sourceSection,
                     lexicalScope,
                     arity,
-                    module,
                     accessorName,
                     0,
+                    SharedMethodInfo.moduleAndMethodName(module, accessorName),
                     isGetter ? "attr_reader" : "attr_writer",
                     null);
 
@@ -2156,7 +2156,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         private boolean isCalledFromClassOrModule(Frame callerFrame) {
-            final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getName();
+            final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getBacktraceName();
             // Handles cases: <main> | <top | <class: | <module: | <singleton
             return name.startsWith("<");
         }

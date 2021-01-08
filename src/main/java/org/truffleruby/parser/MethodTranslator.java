@@ -349,7 +349,7 @@ public class MethodTranslator extends BodyTranslator {
                 sourceSection,
                 node.getIterNode(),
                 node.getArgsNode(),
-                environment.getNamedMethodName());
+                environment.getMethodName());
 
         final RubyNode arguments = new ReadSuperArgumentsNode(
                 argumentsAndBlock.getArguments(),
@@ -366,13 +366,13 @@ public class MethodTranslator extends BodyTranslator {
     public RubyNode visitZSuperNode(ZSuperParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        currentCallMethodName = environment.getNamedMethodName();
+        currentCallMethodName = environment.getMethodName();
 
         final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
                 sourceSection,
                 node.getIterNode(),
                 null,
-                environment.getNamedMethodName());
+                environment.getMethodName());
 
         boolean insideDefineMethod = false;
         MethodTranslator methodArgumentsTranslator = this;

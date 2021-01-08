@@ -147,7 +147,15 @@ public class CoreMethodNodeManager {
             return createCallTarget(language, sharedMethodInfo, methodNode, split);
         };
 
-        addMethods(module, isModuleFunc, onSingleton, names, arity, visibility, callTargetFactory);
+        addMethods(
+                module,
+                methodDetails.moduleName,
+                isModuleFunc,
+                onSingleton,
+                names,
+                arity,
+                visibility,
+                callTargetFactory);
     }
 
     public void addLazyCoreMethod(
@@ -175,11 +183,12 @@ public class CoreMethodNodeManager {
             return createCallTarget(language, sharedMethodInfo, methodNode, finalSplit);
         };
 
-        addMethods(module, isModuleFunc, onSingleton, names, arity, visibility, callTargetFactory);
+        addMethods(module, moduleName, isModuleFunc, onSingleton, names, arity, visibility, callTargetFactory);
     }
 
     private void addMethods(
             RubyModule module,
+            String moduleName,
             boolean isModuleFunction,
             boolean onSingleton,
             String[] names,
@@ -187,27 +196,35 @@ public class CoreMethodNodeManager {
             Visibility visibility,
             Function<SharedMethodInfo, RootCallTarget> callTargetFactory) {
         if (isModuleFunction) {
-            addMethod(context, module, callTargetFactory, names, arity, Visibility.PRIVATE);
-            addMethod(context, getSingletonClass(module), callTargetFactory, names, arity, Visibility.PUBLIC);
+            addMethod(context, module, moduleName, false, callTargetFactory, names, arity, Visibility.PRIVATE);
+            final RubyClass sclass = getSingletonClass(module);
+            addMethod(context, sclass, moduleName, true, callTargetFactory, names, arity, Visibility.PUBLIC);
         } else if (onSingleton) {
-            addMethod(context, getSingletonClass(module), callTargetFactory, names, arity, visibility);
+            final RubyClass sclass = getSingletonClass(module);
+            addMethod(context, sclass, moduleName, true, callTargetFactory, names, arity, visibility);
         } else {
-            addMethod(context, module, callTargetFactory, names, arity, visibility);
+            addMethod(context, module, moduleName, false, callTargetFactory, names, arity, visibility);
         }
     }
 
     private static void addMethod(
             RubyContext context,
             RubyModule module,
+            String moduleName,
+            boolean onSingleton,
             Function<SharedMethodInfo, RootCallTarget> callTargetFactory,
             String[] names,
             Arity arity,
             Visibility visibility) {
-
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         for (String name : names) {
-            final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(lexicalScope, module, name, arity);
+            final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(
+                    moduleName,
+                    onSingleton,
+                    lexicalScope,
+                    name,
+                    arity);
 
             module.fields.addMethod(context, null, new InternalMethod(
                     context,
@@ -222,9 +239,24 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static SharedMethodInfo makeSharedMethodInfo(LexicalScope lexicalScope, RubyModule module, String name,
-            Arity arity) {
-        return new SharedMethodInfo(CoreLibrary.SOURCE_SECTION, lexicalScope, arity, module, name, 0, "builtin", null);
+    private static SharedMethodInfo makeSharedMethodInfo(String moduleName, boolean onSingleton,
+            LexicalScope lexicalScope, String name, Arity arity) {
+        final String parseName;
+        if (onSingleton || moduleName.equals("main")) {
+            parseName = moduleName + "." + name;
+        } else {
+            parseName = moduleName + "#" + name;
+        }
+
+        return new SharedMethodInfo(
+                CoreLibrary.SOURCE_SECTION,
+                lexicalScope,
+                arity,
+                name,
+                0,
+                parseName,
+                "builtin",
+                null);
     }
 
     private static Arity createArity(int required, int optional, boolean rest, String keywordAsOptional) {

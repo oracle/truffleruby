@@ -80,7 +80,7 @@ public abstract class ArrayOperations {
         return ArrayStoreLibrary
                 .getFactory()
                 .getUncached()
-                .getIterable((array.store), 0, array.size);
+                .getIterable(array.store, 0, array.size);
     }
 
     @TruffleBoundary

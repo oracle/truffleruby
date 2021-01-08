@@ -252,7 +252,7 @@ public class BacktraceFormatter {
             if (isAvailable(sourceSection)) {
                 reportedSourceSection = sourceSection;
                 final RootNode rootNode = callNode.getRootNode();
-                reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
+                reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getBacktraceName();
             } else {
                 final SourceSection nextUserSourceSection = nextAvailableSourceSection(stackTrace, n);
                 // if there is no next source section use a core one to avoid ???

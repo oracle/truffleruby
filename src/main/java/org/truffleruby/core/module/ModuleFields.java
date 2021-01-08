@@ -438,8 +438,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        method.getSharedMethodInfo().setDefinitionModuleIfUnset(rubyModule);
-
         methods.put(method.getName(), method);
 
         if (!context.getCoreLibrary().isInitializing()) {
@@ -656,13 +654,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (attached instanceof RubyModule) {
                 attachedName = ((RubyModule) attached).fields.getName();
             } else {
-                attachedName = KernelNodes.ToSNode.uncachedBasicToS(context, attached);
+                attachedName = KernelNodes.ToSNode.uncachedBasicToS(attached);
             }
             return "#<Class:" + attachedName + ">";
         } else if (isRefinement) {
             return getRefinementName();
         } else {
-            return KernelNodes.ToSNode.uncachedBasicToS(context, rubyModule);
+            return KernelNodes.ToSNode.uncachedBasicToS(rubyModule);
         }
     }
 

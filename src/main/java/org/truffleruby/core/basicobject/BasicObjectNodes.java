@@ -269,26 +269,8 @@ public abstract class BasicObjectNodes {
         protected long objectID(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
-            return objectIDDynamicObject(context, object, objectLibrary);
-        }
-
-        @Specialization(guards = "isForeignObject(object)")
-        protected long objectIDForeign(Object object) {
-            return Integer.toUnsignedLong(hashCode(object));
-        }
-
-        @TruffleBoundary
-        private int hashCode(Object object) {
-            return object.hashCode();
-        }
-
-        /** Needed instead of an uncached node when the Context is not entered */
-        public static long uncachedObjectID(RubyContext context, RubyDynamicObject object) {
-            return objectIDDynamicObject(context, object, DynamicObjectLibrary.getUncached());
-        }
-
-        private static long objectIDDynamicObject(RubyContext context, RubyDynamicObject object,
-                DynamicObjectLibrary objectLibrary) {
+            // Using the context here has the desirable effect that it checks the context is entered on this thread,
+            // which is necessary to safely mutate DynamicObjects.
             final long id = ObjectSpaceManager.readObjectID(object, objectLibrary);
 
             if (id == 0L) {
@@ -311,6 +293,16 @@ public abstract class BasicObjectNodes {
             }
 
             return id;
+        }
+
+        @Specialization(guards = "isForeignObject(object)")
+        protected long objectIDForeign(Object object) {
+            return Integer.toUnsignedLong(hashCode(object));
+        }
+
+        @TruffleBoundary
+        private int hashCode(Object object) {
+            return object.hashCode();
         }
 
         protected int getCacheLimit() {

@@ -52,7 +52,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -171,7 +171,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "java_class_of", onSingleton = true, required = 1)
     public abstract static class JavaClassOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -305,7 +305,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "shape", onSingleton = true, required = 1)
     public abstract static class ShapeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -319,7 +319,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "array_storage", onSingleton = true, required = 1)
     public abstract static class ArrayStorageNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -345,7 +345,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "hash_storage", onSingleton = true, required = 1)
     public abstract static class HashStorageNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -883,7 +883,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "thread_info", onSingleton = true)
     public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @Specialization
         protected RubyString threadInfo() {
@@ -967,7 +967,7 @@ public abstract class TruffleDebugNodes {
     @Primitive(name = "frame_declaration_context_to_string")
     public abstract static class FrameDeclarationContextToStringNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @Specialization
         protected RubyString getDeclarationContextToString(VirtualFrame frame) {
@@ -1032,6 +1032,28 @@ public abstract class TruffleDebugNodes {
             Collections.reverse(frameBindings);
             return createArray(frameBindings.toArray());
         }
+    }
+
+    @CoreMethod(names = "parse_name_of_method", onSingleton = true, required = 1)
+    public abstract static class ParseNameOfMethodNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
+
+        @Specialization
+        protected RubyString parseName(RubyMethod method) {
+            return parseName(method.method);
+        }
+
+        @Specialization
+        protected RubyString parseName(RubyUnboundMethod method) {
+            return parseName(method.method);
+        }
+
+        protected RubyString parseName(InternalMethod method) {
+            String parseName = method.getSharedMethodInfo().getParseName();
+            return makeStringNode.executeMake(parseName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
     }
 
 }
