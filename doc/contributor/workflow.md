@@ -47,6 +47,20 @@ echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.bash
 jt --help
 ```
 
+## Pre-Commit Hook
+
+Please install this `pre-commit` hook which runs the fast lint checks.
+In our experience, it is way more efficient to use this hook than to wait for the CI,
+and it also results in cleaner commits in the first place.
+
+```bash
+$ cp tool/hooks/lint-check.sh .git/hooks/pre-commit
+```
+
+It is also possible to use a `pre-push` hook instead (`cp tool/hooks/lint-check.sh .git/hooks/pre-push`).
+That way the lint check runs only before `git push`.
+However, that might result in extra "Fix style" commits, which sometimes can be `git rebase -i` away, but sometimes not.
+
 ## Building
 
 ```bash
