@@ -25,6 +25,7 @@ Compatibility:
 * Allow `Range#include?` and `#member?` with `Time` (#2202, @wildmaples).
 * Implemented `Comparable#clamp(Range)` (#2200, @wildmaples).
 * Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
+* Fixed `String#dump`'s formatting of escaped unicode characters (#2217, @meganniu).
 
 Performance:
 
