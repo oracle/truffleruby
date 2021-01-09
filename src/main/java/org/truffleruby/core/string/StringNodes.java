@@ -2187,7 +2187,7 @@ public abstract class StringNodes {
                             int cc = codePointX(enc, cr, bytes, p - 1, end);
                             p += n;
                             outBytes.setLength(q);
-                            outBytes.append(StringUtils.formatASCIIBytes("u{%x}", cc));
+                            outBytes.append(StringUtils.formatASCIIBytes("u%04X", cc));
                             q = outBytes.getLength();
                             continue;
                         }
