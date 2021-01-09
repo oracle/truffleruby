@@ -154,8 +154,6 @@ class BasicSocket < IO
   end
 
   private def internal_recv(bytes_to_read, flags, buffer, exception)
-    raise ArgumentError, 'buffer argument not yet supported' if buffer
-
     Truffle::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
       n_bytes = Truffle::Socket::Foreign.recv(Primitive.io_fd(self), buf, bytes_to_read, flags)
 
