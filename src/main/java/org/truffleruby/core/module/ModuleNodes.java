@@ -43,7 +43,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
-import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
@@ -1096,13 +1096,15 @@ public abstract class ModuleNodes {
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class ConstSetUncheckedNode extends CoreMethodNode {
+    public abstract static class ConstSetUncheckedNode extends RubyContextNode {
 
         @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
         public static ConstSetUncheckedNode create() {
-            return ConstSetUncheckedNodeFactory.create(null, null, null);
+            return ConstSetUncheckedNodeGen.create(null, null, null);
         }
+
+        public abstract Object execute(VirtualFrame frame);
 
         public abstract Object execute(RubyModule module, String name, Object value);
 
