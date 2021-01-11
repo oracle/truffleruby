@@ -60,6 +60,16 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
 
   alias_method :readpartial, :sysread
 
+  def read_nonblock(length, buffer = nil, exception: true)
+    str = read(length, buffer)
+
+    if exception and str.nil?
+      raise EOFError, 'end of file reached'
+    end
+
+    str
+  end
+
 end
 
 Truffle::CExt.rb_define_module_under(IO, 'generic_writable').module_eval do
@@ -535,16 +545,6 @@ class StringIO
 
   def sync=(val)
     val
-  end
-
-  def read_nonblock(length, buffer = nil, exception: true)
-    str = read(length, buffer)
-
-    if exception and str.nil?
-      raise EOFError, 'end of file reached'
-    end
-
-    str
   end
 
   def tell
