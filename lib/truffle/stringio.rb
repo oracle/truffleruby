@@ -26,6 +26,7 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+require 'truffle/cext'
 
 Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   # This is why we need undefined in Ruby
