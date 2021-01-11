@@ -32,7 +32,7 @@ describe "MemoryPointer" do
     expect(FFI::Pointer::NULL.read_string(0)).to eq('')
     expect(FFI::Pointer::NULL.read_string(0).encoding).to eq(Encoding::BINARY)
   end
-  
+
   it "makes a pointer for a certain number of bytes" do
     m = FFI::MemoryPointer.new(8)
     m.write_array_of_int([1,2])
@@ -45,7 +45,7 @@ describe "MemoryPointer" do
     expect(m[0].read_int).to eq(1)
     expect(m[1].read_int).to eq(2)
   end
-  
+
   it "allows writing as an int" do
     m = FFI::MemoryPointer.new(:int)
     m.write_int(1)
@@ -138,19 +138,19 @@ describe "MemoryPointer" do
 #    p = m.read_pointer
 #    lambda { p.write_int(10) }.should_not raise_error
 #  end
-  
+
   it "makes a pointer for a certain type" do
     m = FFI::MemoryPointer.new(:int)
     m.write_int(10)
     expect(m.read_int).to eq(10)
   end
-  
+
   it "makes a memory pointer for a number of a certain type" do
     m = FFI::MemoryPointer.new(:int, 2)
     m.write_array_of_int([1,2])
     expect(m.read_array_of_int(2)).to eq([1,2])
   end
-  
+
   it "makes a pointer for an object responding to #size" do
     m = FFI::MemoryPointer.new(Struct.new(:size).new(8))
     m.write_array_of_int([1,2])
@@ -161,7 +161,7 @@ describe "MemoryPointer" do
     m = FFI::MemoryPointer.new(Struct.new(:size).new(4), 2)
     m.write_array_of_int([1,2])
     expect(m.read_array_of_int(2)).to eq([1,2])
-  end  
+  end
 
   it "MemoryPointer#address returns correct value" do
     m = FFI::MemoryPointer.new(:long_long)
@@ -172,7 +172,7 @@ describe "MemoryPointer" do
 
   it "MemoryPointer#null? returns true for zero value" do
     m = FFI::MemoryPointer.new(:long_long)
-    m.write_long(0)    
+    m.write_long(0)
     expect(m.read_pointer.null?).to be true
   end
 
@@ -181,7 +181,7 @@ describe "MemoryPointer" do
     m.write_long(0x12345678)
     expect(m.read_pointer.null?).to be false
   end
-  
+
   it "initialize with block should execute block" do
     block_executed = false
     FFI::MemoryPointer.new(:pointer) do |ptr|

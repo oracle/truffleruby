@@ -44,7 +44,7 @@ module FFI
   #    attach_function :new_dlist, [], :pointer
   #    attach_function :destroy_dlist, [:pointer], :void
   #  end
-  #  
+  #
   #  class DoublyLinkedList < FFI::ManagedStruct
   #    @@@
   #    struct do |s|
@@ -71,7 +71,7 @@ module FFI
 
     # @overload initialize(pointer)
     #  @param [Pointer] pointer
-    #  Create a new ManagedStruct which will invoke the class method #release on 
+    #  Create a new ManagedStruct which will invoke the class method #release on
     # @overload initialize
     # A new instance of FFI::ManagedStruct.
     def initialize(pointer=nil)

@@ -54,7 +54,7 @@ module Truffle::FFI
 
     # @param [nil,Numeric] len length of string to return
     # @return [String]
-    # Read pointer's contents as a string, or the first +len+ bytes of the 
+    # Read pointer's contents as a string, or the first +len+ bytes of the
     # equivalent string if +len+ is not +nil+.
     def read_string(len=nil)
       if len
@@ -98,7 +98,7 @@ module Truffle::FFI
     # @param [String] str string to write
     # @param [Numeric] len length of string to return
     # @return [self]
-    # Write +str+ in pointer's contents, or first +len+ bytes if 
+    # Write +str+ in pointer's contents, or first +len+ bytes if
     # +len+ is not +nil+.
     def write_string(str, len=nil)
       len = str.bytesize unless len
