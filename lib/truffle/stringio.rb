@@ -57,7 +57,6 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
 
     str
   end
-
   alias_method :readpartial, :sysread
 
   def read_nonblock(length, buffer = nil, exception: true)
@@ -264,7 +263,6 @@ class StringIO
 
     self
   end
-
   alias_method :each_line, :each
   alias_method :lines, :each
 
