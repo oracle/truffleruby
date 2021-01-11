@@ -110,7 +110,7 @@ bigdecimal/Makefile: bigdecimal/extconf.rb $(EXTCONF_DEPS)
 bigdecimal/bigdecimal.$(DLEXT): bigdecimal/Makefile bigdecimal/bigdecimal.c
 	$(Q) cd bigdecimal && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
-# console
+# io-console
 io-console/Makefile: io-console/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd io-console && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
