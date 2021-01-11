@@ -82,7 +82,7 @@ module Truffle
       return false if Primitive.nil?(b2) && !Primitive.nil?(b1)
       return false if Primitive.nil?(e2) && !Primitive.nil?(e1)
 
-      return false unless (Primitive.nil?(b2) || cover?(range, b2)) 
+      return false unless (Primitive.nil?(b2) || cover?(range, b2))
 
       return true if Primitive.nil?(e2)
 
@@ -90,7 +90,7 @@ module Truffle
         !(range.exclude_end? && !other.exclude_end?)
       else
         if Integer === e2 && other.exclude_end?
-          cover?(range, e2 -1)
+          cover?(range, e2 - 1)
         else
           cover?(range, e2)
         end
