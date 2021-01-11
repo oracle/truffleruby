@@ -48,7 +48,10 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     }
 
     @Specialization(
-            guards = { "module == cachedModule", "guardName(name, cachedName, sameNameProfile)" },
+            guards = {
+                    "module == cachedModule",
+                    "checkName == cachedCheckName",
+                    "guardName(name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(RubyModule module, String name, boolean checkName,
