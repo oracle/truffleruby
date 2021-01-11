@@ -101,6 +101,13 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_writable').module_eval do
     Truffle::IOOperations.puts(self, *args)
   end
 
+  def write_nonblock(str)
+    write(str)
+  end
+
+  def syswrite(str)
+    write(str)
+  end
 end
 
 class StringIO
@@ -295,8 +302,6 @@ class StringIO
 
     str.bytesize
   end
-  alias_method :syswrite, :write
-  alias_method :write_nonblock, :write
 
   def close
     @readable = @writable = nil
