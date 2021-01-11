@@ -1,5 +1,5 @@
-# This file is from the FFI gem, and is lightly modified to define methods on
-# Truffle::FFI::Pointer, so these methods are available in core.
+# TruffleRuby: This file is from the FFI gem, and is lightly modified
+# to define methods on Truffle::FFI::Pointer, so these methods are available in core.
 # For example, #read_string is used in core.
 
 #
@@ -34,13 +34,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# require 'ffi/platform' # TruffleRuby: no require in core code
+
 # NOTE: all method definitions in this file are conditional on
 # whether they are not already defined. This is needed because
 # some Ruby implementations (e.g., TruffleRuby) might already
 # provide these methods due to using FFI internally, and we
 # should not override them to avoid warnings.
 
-module Truffle::FFI
+module Truffle::FFI # TruffleRuby: Truffle::FFI instead of Truffle::FFI
   class Pointer
 
     # Pointer size
