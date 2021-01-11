@@ -173,8 +173,6 @@ public class TruffleRegexpNodes {
             final Regex regex = compile(getContext(), pattern, regexpOptions, this);
 
             return new RubyRegexp(
-                    getContext().getCoreLibrary().regexpClass,
-                    getLanguage().regexpShape,
                     regex,
                     (Rope) regex.getUserObject(),
                     regexpOptions,

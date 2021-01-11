@@ -267,7 +267,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         for (int i = 0; i < length; i++) {
             final Object value = UnwrapNativeNodeGen.getUncached().execute(readElement(i));
-            if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+            if (ObjectGraph.isRubyObject(value)) {
                 reachable.add(value);
             }
         }

@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
@@ -88,6 +89,12 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     protected RubyClass logicalImmutableString(ImmutableRubyString value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().stringClass;
+    }
+
+    @Specialization
+    protected RubyClass logicalClassRegexp(RubyRegexp value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().regexpClass;
     }
 
 

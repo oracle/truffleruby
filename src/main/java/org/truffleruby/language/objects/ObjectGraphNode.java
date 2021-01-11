@@ -13,7 +13,7 @@ import java.util.Set;
 
 public interface ObjectGraphNode {
 
-    /** Only {@link ObjectGraph#isSymbolOrDynamicObject(Object)} objects should be added to the set. */
+    /** Only {@link ObjectGraph#isRubyObject(Object)} objects should be added to the set. */
     void getAdjacentObjects(Set<Object> reachable);
 
 }

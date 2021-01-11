@@ -18,7 +18,7 @@ import java.util.Set;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -104,8 +104,8 @@ public abstract class ObjectGraph {
         context.getFinalizationService().collectRoots(roots);
     }
 
-    public static boolean isSymbolOrDynamicObject(Object value) {
-        return value instanceof RubyDynamicObject || value instanceof RubySymbol;
+    public static boolean isRubyObject(Object value) {
+        return value instanceof RubyDynamicObject || value instanceof ImmutableRubyObject;
     }
 
     public static Set<Object> getAdjacentObjects(RubyDynamicObject object) {
@@ -130,11 +130,11 @@ public abstract class ObjectGraph {
         assert !(value instanceof Frame) : "Frame should be handled directly with ObjectGraphNode";
         assert !(value instanceof Collection) : "Collection should be handled directly with ObjectGraphNode";
 
-        if (isSymbolOrDynamicObject(value)) {
+        if (isRubyObject(value)) {
             reachable.add(value);
         } else if (value instanceof Object[]) {
             for (Object element : (Object[]) value) {
-                if (isSymbolOrDynamicObject(element)) {
+                if (isRubyObject(element)) {
                     reachable.add(element);
                 }
             }
@@ -150,7 +150,7 @@ public abstract class ObjectGraph {
         }
 
         final Object self = RubyArguments.tryGetSelf(frame);
-        if (isSymbolOrDynamicObject(self)) {
+        if (isRubyObject(self)) {
             reachable.add(self);
         }
 
@@ -164,7 +164,7 @@ public abstract class ObjectGraph {
         for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
             final Object slotValue = frame.getValue(slot);
 
-            if (isSymbolOrDynamicObject(slotValue)) {
+            if (isRubyObject(slotValue)) {
                 reachable.add(slotValue);
             }
         }

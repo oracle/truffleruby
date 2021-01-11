@@ -16,8 +16,8 @@ import java.util.Set;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -94,7 +94,7 @@ public class SharedObjects {
     private static void shareObjects(Deque<Object> stack) {
         while (!stack.isEmpty()) {
             final Object object = stack.pop();
-            assert ObjectGraph.isSymbolOrDynamicObject(object) : object;
+            assert ObjectGraph.isRubyObject(object) : object;
 
             if (object instanceof RubyDynamicObject) {
                 if (share((RubyDynamicObject) object)) {
@@ -114,7 +114,7 @@ public class SharedObjects {
     /** Callers of this should be careful, this method will return true for RubySymbol even if the
      * SHARED_OBJECTS_ENABLED option is false. */
     public static boolean isShared(Object object) {
-        return object instanceof RubySymbol ||
+        return object instanceof ImmutableRubyObject ||
                 (object instanceof RubyDynamicObject && isShared((RubyDynamicObject) object));
     }
 

@@ -110,7 +110,7 @@ public class NativeConfiguration {
         final Collection<Object> values = configuration.values();
         final ArrayList<Object> objects = new ArrayList<>(values.size());
         for (Object value : values) {
-            if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+            if (ObjectGraph.isRubyObject(value)) {
                 objects.add(value);
             }
         }

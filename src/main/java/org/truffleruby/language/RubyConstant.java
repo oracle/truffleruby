@@ -192,7 +192,7 @@ public class RubyConstant implements ObjectGraphNode {
 
     @Override
     public void getAdjacentObjects(Set<Object> adjacent) {
-        if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+        if (ObjectGraph.isRubyObject(value)) {
             adjacent.add(value);
         }
     }

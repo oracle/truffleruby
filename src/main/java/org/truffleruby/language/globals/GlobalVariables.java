@@ -85,7 +85,7 @@ public class GlobalVariables {
             // TODO CS 11-Mar-17 handle hooked global variable storage?
             if (!storage.hasHooks()) {
                 final Object value = storage.getValue();
-                if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+                if (ObjectGraph.isRubyObject(value)) {
                     values.add(value);
                 }
             }

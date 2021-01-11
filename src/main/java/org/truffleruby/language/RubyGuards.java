@@ -121,6 +121,10 @@ public abstract class RubyGuards {
         return !(value instanceof ImmutableRubyString) && !(value instanceof RubyString);
     }
 
+    public static boolean isImmutableRubyString(Object value) {
+        return value instanceof ImmutableRubyString;
+    }
+
     public static boolean isRubySymbol(Object value) {
         return value instanceof RubySymbol;
     }

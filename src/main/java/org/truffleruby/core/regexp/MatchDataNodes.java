@@ -41,7 +41,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -199,7 +198,7 @@ public abstract class MatchDataNodes {
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object create(RubyDynamicObject regexp, Object string, RubyArray starts, RubyArray ends,
+        protected Object create(Object regexp, Object string, RubyArray starts, RubyArray ends,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
             final Region region = new Region(starts.size);

@@ -53,7 +53,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.objects.AllocationTracing;
 
 @CoreModule(value = "Regexp", isClass = true)
@@ -74,9 +73,9 @@ public abstract class RegexpNodes {
         regexp.tregexCache = new TRegexCache();
     }
 
-    public static RubyRegexp createRubyRegexp(RubyClass rubyClass, Shape shape, Regex regex, Rope source,
+    public static RubyRegexp createRubyRegexp(Regex regex, Rope source,
             RegexpOptions options, EncodingCache cache, TRegexCache tregexCache) {
-        return new RubyRegexp(rubyClass, shape, regex, source, options, cache, tregexCache);
+        return new RubyRegexp(regex, source, options, cache, tregexCache);
     }
 
     @CoreMethod(names = "hash")
@@ -240,10 +239,7 @@ public abstract class RegexpNodes {
 
         @Specialization
         protected RubyRegexp allocate(RubyClass rubyClass) {
-            final Shape shape = getLanguage().regexpShape;
             final RubyRegexp regexp = new RubyRegexp(
-                    rubyClass,
-                    shape,
                     null,
                     null,
                     RegexpOptions.NULL_OPTIONS,

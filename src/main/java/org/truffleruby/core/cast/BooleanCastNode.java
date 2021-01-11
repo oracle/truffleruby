@@ -10,9 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -74,18 +72,8 @@ public abstract class BooleanCastNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization
-    protected boolean doSymbol(RubySymbol object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean doImmutableRubyString(ImmutableRubyString string) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean doBignum(RubyBignum object) {
+    @Specialization(guards = "!isNil(object)")
+    protected boolean doImmutableObject(ImmutableRubyObject object) {
         return true;
     }
 

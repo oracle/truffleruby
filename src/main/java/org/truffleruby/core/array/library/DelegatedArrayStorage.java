@@ -164,7 +164,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
             for (int i = offset; i < offset + length; i++) {
                 final Object value = objectArray[i];
-                if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+                if (ObjectGraph.isRubyObject(value)) {
                     reachable.add(value);
                 }
             }
