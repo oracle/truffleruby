@@ -1935,7 +1935,7 @@ public abstract class StringNodes {
                 guards = {
                         "isBrokenCodeRange(rope, codeRangeNode)",
                         "!isAsciiCompatible(rope)" })
-        protected RubyString scrubAsciiIncompatible(RubyString string, RubyProc block,
+        protected RubyString scrubAsciiIncompatible(Object string, RubyProc block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Bind("strings.getRope(string)") Rope rope,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
