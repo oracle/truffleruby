@@ -52,6 +52,8 @@ RUBOCOP_VERSION = '0.66.0'
 
 DLEXT = RbConfig::CONFIG['DLEXT']
 
+JT_PROFILE_SUBCOMMANDS = ENV['JT_PROFILE_SUBCOMMANDS'] == 'true'
+
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
@@ -400,6 +402,7 @@ module Utilities
 
     status = nil
     out = nil
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC) if JT_PROFILE_SUBCOMMANDS
     begin
       pid = Process.spawn(*args)
     rescue Errno::ENOENT => no_such_executable
@@ -417,6 +420,11 @@ module Utilities
           status = raw_sh_failed_status
         end
       end
+    end
+
+    if JT_PROFILE_SUBCOMMANDS
+      finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      STDERR.puts "\n[jt] #{printable_cmd(args)} took #{'%.3f' % (finish - start)}s\n\n"
     end
 
     if capture
