@@ -181,7 +181,11 @@ module Truffle
       end
       if Range === omit
         range = omit
-        omit = Primitive.rb_to_int(range.begin)
+        if Primitive.nil? range.begin
+          omit = 0
+        else
+          omit = Primitive.rb_to_int(range.begin)
+        end
         unless Primitive.nil? range.end
           end_index = Primitive.rb_to_int(range.end)
           if end_index < 0

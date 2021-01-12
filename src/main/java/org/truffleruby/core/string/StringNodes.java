@@ -657,10 +657,23 @@ public abstract class StringNodes {
             return sliceRange(string, libString, toLong(range.begin), stringEnd, range.excludedEnd);
         }
 
+        @Specialization(guards = "range.isBeginless()")
+        protected Object sliceBeginlessRange(Object string, RubyObjectRange range, NotProvided length,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            return sliceRange(string, libString, 0L, toLong(range.end), range.excludedEnd);
+        }
+
         @Specialization(guards = "range.isBounded()")
         protected Object sliceObjectRange(Object string, RubyObjectRange range, NotProvided length,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             return sliceRange(string, libString, toLong(range.begin), toLong(range.end), range.excludedEnd);
+        }
+
+        @Specialization(guards = "range.isBoundless()")
+        protected Object sliceBoundlessRange(Object string, RubyObjectRange range, NotProvided length,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            final int stringEnd = range.excludedEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1;
+            return sliceRange(string, libString, 0L, stringEnd, range.excludedEnd);
         }
 
         // endregion

@@ -27,6 +27,10 @@ Compatibility:
 * Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
 * Implemented `chomp` parameter for `IO.{readlines, foreach}` (#2205).
 * Implemented the Debug Inspector C API.
+* Added beginless range support for `Range#{new, bsearch, count, each, equal_value, first, inspect, max, min, size, cover?, include?, ===}`.
+* Added beginless range support for `Array#{[], []=, slice, slice!, to_a, fill, values_at}` (#2155, @LillianZ).
+* Added beginless range support for `String#{byteslice, slice, slice!}` and `Symbol#slice` (#2211, @LillianZ).
+* Added beginless range support for `Kernel#{caller, caller_locations}` and `Thread#backtrace_locations` (#2211, @LillianZ).
 
 Performance:
 
