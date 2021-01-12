@@ -65,25 +65,24 @@ class Truffle::Randomizer
     end
   end
 
-  def random_range(limit)
-    return nil if Comparable.compare_int(limit.end <=> limit.begin) < 0
+  def random_range(range)
+    return nil if Comparable.compare_int(range.end <=> range.begin) < 0
 
-    min, max = limit.end.coerce(limit.min)
-    max = if limit.exclude_end?
+    min, max = range.end.coerce(range.min)
+    max = if range.exclude_end?
+            max
+          else
             if max.kind_of?(Integer)
-              max - 1
+              max.succ
             elsif max.kind_of?(Float)
-              max.prev_float
+              max.next_float
             else
               max
             end
-          else
-            max
           end
 
     diff = max - min
-    diff += 1 if max.kind_of?(Integer)
-    diff == 0 ? max : random(diff) + min
+    diff == 0 ? min : min + random(diff)
   end
 
   ##

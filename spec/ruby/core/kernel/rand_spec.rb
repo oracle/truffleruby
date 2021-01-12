@@ -119,49 +119,45 @@ describe "Kernel.rand" do
 
   context "given an inclusive range between 0 and 1" do
     it "returns an Integer between the two Integers" do
-      1000.times do
-        x = rand(0...1)
+        x = rand(0..1)
         x.should be_kind_of(Integer)
-        (0...1).should include(x)
-      end
+        (0..1).should include(x)
     end
 
     it "returns a Float if at least one side is Float" do
-      1000.times do |index|
-        x1 = Random.new(index).rand(0..1.0)
-        x2 = Random.new(index).rand(0.0..1.0)
-        x3 = Random.new(index).rand(0.0..1)
+      seed = 42
+      x1 = Random.new(seed).rand(0..1.0)
+      x2 = Random.new(seed).rand(0.0..1.0)
+      x3 = Random.new(seed).rand(0.0..1)
 
-        x3.should be_kind_of(Float)
-        x1.should equal(x3)
-        x2.should equal(x3)
+      x3.should be_kind_of(Float)
+      x1.should equal(x3)
+      x2.should equal(x3)
 
-        (0..1).should include(x3)
-      end
+      (0.0..1.0).should include(x3)
+
     end
   end
 
   context "given an exclusive range between 0 and 1" do
-    it "returns an Integer between the two Integers" do
-      1000.times do |index|
-        x = Random.new(index).rand(0...1)
+    it "returns zero as an Integer" do
+        x = rand(0...1)
         x.should be_kind_of(Integer)
-        (0...1).should include(x)
-      end
+        x.should eql(0)
     end
 
     it "returns a Float if at least one side is Float" do
-      1000.times do |index|
-        x1 = Random.new(index).rand(0...1.0)
-        x2 = Random.new(index).rand(0.0...1.0)
-        x3 = Random.new(index).rand(0.0...1)
+      seed = 42
+      x1 = Random.new(seed).rand(0...1.0)
+      x2 = Random.new(seed).rand(0.0...1.0)
+      x3 = Random.new(seed).rand(0.0...1)
 
-        x3.should be_kind_of(Float)
-        x1.should equal(x3)
-        x2.should equal(x3)
+      x3.should be_kind_of(Float)
+      x1.should equal(x3)
+      x2.should equal(x3)
 
-        (0...1).should include(x3)
-      end
+      (0.0...1.0).should include(x3)
+
     end
   end
 
