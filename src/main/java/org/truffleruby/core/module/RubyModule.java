@@ -31,6 +31,15 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     public final ModuleFields fields;
 
+    // Same number of inline fields as DynamicObjectBasic
+    @DynamicField private long primitive1;
+    @DynamicField private long primitive2;
+    @DynamicField private long primitive3;
+    @DynamicField private Object object1;
+    @DynamicField private Object object2;
+    @DynamicField private Object object3;
+    @DynamicField private Object object4;
+
     public RubyModule(
             RubyClass rubyClass,
             Shape shape,
