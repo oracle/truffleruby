@@ -260,4 +260,8 @@ public class TranslatorEnvironment {
         }
         return methodParent;
     }
+
+    public boolean shouldWarnYieldInModuleBody() {
+        return getSurroundingMethodEnvironment().isModuleBody();
+    }
 }
