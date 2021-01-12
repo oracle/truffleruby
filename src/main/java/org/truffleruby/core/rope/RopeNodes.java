@@ -808,12 +808,16 @@ public abstract class RopeNodes {
             printPreamble(currentLevel);
 
             final ConcatState state = rope.getState();
+
+            // Before the print, as `toString()` may cause the bytes to become populated.
+            final boolean bytesAreNull = rope.getRawBytes() == null;
+
             if (state.isBytes()) {
                 System.err.println(StringUtils.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                         printString ? rope.toString() : "<skipped>",
                         rope.getClass().getSimpleName(),
-                        false,
+                        bytesAreNull,
                         rope.byteLength(),
                         rope.characterLength(),
                         rope.getCodeRange(),
@@ -823,8 +827,7 @@ public abstract class RopeNodes {
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                         printString ? rope.toString() : "<skipped>",
                         rope.getClass().getSimpleName(),
-                        // Note: converting a rope to a java.lang.String may populate the byte[].
-                        true, // are bytes null?
+                        bytesAreNull,
                         rope.byteLength(),
                         rope.characterLength(),
                         rope.getCodeRange(),
