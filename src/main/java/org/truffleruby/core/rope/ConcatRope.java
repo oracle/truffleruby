@@ -115,7 +115,10 @@ public class ConcatRope extends ManagedRope {
         }
 
         CompilerDirectives.transferToInterpreterAndInvalidate();
-        assert this.bytes != null;
+        if (this.bytes != null) {
+            throw CompilerDirectives
+                    .shouldNotReachHere("our assumptions about reordering and memory barriers seem incorrect");
+        }
         return new ConcatState(null, null, this.bytes);
     }
 
