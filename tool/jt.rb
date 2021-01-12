@@ -2404,7 +2404,7 @@ module Commands
   end
 
   def checkstyle
-    output = mx 'checkstyle', '-f', '--primary', capture: :both, continue_on_failure: true
+    output = mx 'checkstyle', '--primary', capture: :both, continue_on_failure: true
     status = $?
 
     unused_import = /: Unused import -/
