@@ -2266,7 +2266,8 @@ module Commands
       File.write('mxbuild/javafilelist.txt', changed_java_files.join("\n"))
       filelist_args = %w[--filelist mxbuild/javafilelist.txt]
     end
-    mx 'eclipseformat', '--no-backup', '--primary', *filelist_args
+    env = { '_JAVA_OPTIONS' => '-Djava.net.preferIPv4Stack=true' }
+    mx env, 'eclipseformat', '--no-backup', '--primary', *filelist_args
     format_specializations_check
   end
 
