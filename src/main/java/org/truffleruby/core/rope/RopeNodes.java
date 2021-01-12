@@ -804,45 +804,35 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "state.isBytes()")
-        protected Object debugPrintConcatRopeBytes(ConcatRope rope, int currentLevel, boolean printString,
-                @Bind("rope.getState()") ConcatState state) {
+        protected Object debugPrintConcatRopeBytes(ConcatRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
-            System.err
-                    .println(StringUtils.format(
-                            "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                            printString ? rope.toString() : "<skipped>",
-                            rope.getClass().getSimpleName(),
-                            false,
-                            rope.byteLength(),
-                            rope.characterLength(),
-                            rope.getCodeRange(),
-                            rope.getEncoding()));
+            final ConcatState state = rope.getState();
+            if (state.isBytes()) {
+                System.err.println(StringUtils.format(
+                        "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
+                        printString ? rope.toString() : "<skipped>",
+                        rope.getClass().getSimpleName(),
+                        false,
+                        rope.byteLength(),
+                        rope.characterLength(),
+                        rope.getCodeRange(),
+                        rope.getEncoding()));
+            } else {
+                System.err.println(StringUtils.format(
+                        "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
+                        printString ? rope.toString() : "<skipped>",
+                        rope.getClass().getSimpleName(),
+                        // Note: converting a rope to a java.lang.String may populate the byte[].
+                        true, // are bytes null?
+                        rope.byteLength(),
+                        rope.characterLength(),
+                        rope.getCodeRange(),
+                        rope.getEncoding()));
 
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "state.isChildren()")
-        protected Object debugPrintConcatRopeChildren(ConcatRope rope, int currentLevel, boolean printString,
-                @Bind("rope.getState()") ConcatState state) {
-            printPreamble(currentLevel);
-
-            System.err
-                    .println(StringUtils.format(
-                            "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                            printString ? rope.toString() : "<skipped>",
-                            rope.getClass().getSimpleName(),
-                            // Note: converting a rope to a java.lang.String may populate the byte[].
-                            true, // are bytes null?
-                            rope.byteLength(),
-                            rope.characterLength(),
-                            rope.getCodeRange(),
-                            rope.getEncoding()));
-
-            executeDebugPrint(state.left, currentLevel + 1, printString);
-            executeDebugPrint(state.right, currentLevel + 1, printString);
+                executeDebugPrint(state.left, currentLevel + 1, printString);
+                executeDebugPrint(state.right, currentLevel + 1, printString);
+            }
 
             return nil;
         }
@@ -1015,9 +1005,15 @@ public abstract class RopeNodes {
             return rope.getChild().getRawBytes()[index % rope.getChild().byteLength()] & 0xff;
         }
 
+        // NOTE(norswap, 12 Jan 2021): The order of the two next specialization is significant.
+        //   Normally, @Bind expressions should only be run per node, but that's not the case currently (GR-28671).
+        //   Therefore it's important to test isChildren first, as it's possible to transition from children to bytes
+        //   but not the other way around.
+
         @Specialization(guards = "state.isChildren()")
         protected int getByteConcatRope(ConcatRope rope, int index,
-                @Bind("rope.getState()") ConcatState state,
+                @Cached ConditionProfile stateBytesNotNull,
+                @Bind("rope.getState(stateBytesNotNull)") ConcatState state,
                 @Cached ConditionProfile chooseLeftChildProfile,
                 @Cached ConditionProfile leftChildRawBytesNullProfile,
                 @Cached ConditionProfile rightChildRawBytesNullProfile,
@@ -1042,7 +1038,8 @@ public abstract class RopeNodes {
         // before we get to run the other getByteConcatRope.
         @Specialization(guards = "state.isBytes()")
         protected int getByteConcatRope(ConcatRope rope, int index,
-                @Bind("rope.getState()") ConcatState state) {
+                @Cached ConditionProfile stateBytesNotNull,
+                @Bind("rope.getState(stateBytesNotNull)") ConcatState state) {
             return state.bytes[index] & 0xff;
         }
     }

@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 
@@ -96,9 +98,34 @@ public class ConcatRope extends ManagedRope {
         return out;
     }
 
-    /** Access the state in a way that prevents race conditions. */
+    /** Access the state in a way that prevents race conditions.
+     *
+     * <p>
+     * This version is not allowed in compiled code, use {@link #getState(ConditionProfile)} there instead. */
     public ConcatState getState() {
+        CompilerAsserts.neverPartOfCompilation("use getState(ConditionProfile) instead!");
+
         if (this.bytes != null) {
+            return new ConcatState(null, null, this.bytes);
+        }
+
+        final ManagedRope left = this.left;
+        final ManagedRope right = this.right;
+        if (left != null && right != null) {
+            return new ConcatState(left, right, null);
+        }
+
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        assert this.bytes != null;
+        return new ConcatState(null, null, this.bytes);
+    }
+
+    /** Access the state in a way that prevents race conditions.
+     *
+     * <p>
+     * Outside compiled code, you can use {@link #getState()}. */
+    public ConcatState getState(ConditionProfile bytesNotNull) {
+        if (bytesNotNull.profile(this.bytes != null)) {
             return new ConcatState(null, null, this.bytes);
         }
 
