@@ -2252,9 +2252,13 @@ module Commands
     mx(*args, 'intellijinit')
   end
 
-  def command_format(*args)
+  def command_format(changed_java_files = nil)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
-    mx 'eclipseformat', '--no-backup', '--primary', *args
+    if changed_java_files.is_a?(Array)
+      File.write('mxbuild/javafilelist.txt', changed_java_files.join("\n"))
+      filelist_args = %w[--filelist mxbuild/javafilelist.txt]
+    end
+    mx 'eclipseformat', '--no-backup', '--primary', *filelist_args
     format_specializations_check
   end
 
@@ -2616,9 +2620,11 @@ module Commands
     args.shift if fast
 
     if fast and compare_to = args.shift
-      changed_files = `git diff --cached --name-only #{compare_to}`
-      exts_changed = changed_files.lines.map { |f| File.extname(f.strip) }.uniq
-      changed = -> ext { exts_changed.include?(ext) }
+      changed_files = `git diff --cached --name-only #{compare_to}`.lines.map(&:chomp)
+      changed = {}
+      changed_files.each do |file|
+        changed.fetch(File.extname(file)) { |k| changed[k] = [] } << file
+      end
     else
       changed = -> _ext { true }
     end
@@ -2632,7 +2638,7 @@ module Commands
     sh 'tool/lint.sh' if changed['.c']
     if fast
       checkstyle if changed['.java']
-      command_format if changed['.java'] # includes #format_specializations_check
+      command_format(changed['.java']) if changed['.java'] # includes #format_specializations_check
     else
       mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
       format_specializations_check
