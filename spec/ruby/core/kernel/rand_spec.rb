@@ -135,7 +135,6 @@ describe "Kernel.rand" do
       x2.should equal(x3)
 
       (0.0..1.0).should include(x3)
-
     end
   end
 
@@ -157,7 +156,6 @@ describe "Kernel.rand" do
       x2.should equal(x3)
 
       (0.0...1.0).should include(x3)
-
     end
   end
 
