@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.280.7",
+    "mxversion": "5.281.0",
     "name": "truffleruby",
 
     "imports" : {

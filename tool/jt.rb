@@ -2403,8 +2403,12 @@ module Commands
     end
   end
 
-  def checkstyle
-    output = mx 'checkstyle', '--primary', capture: :both, continue_on_failure: true
+  def checkstyle(changed_java_files = nil)
+    if changed_java_files.is_a?(Array)
+      File.write('mxbuild/javafilelist.txt', changed_java_files.join("\n"))
+      filelist_args = %w[--filelist mxbuild/javafilelist.txt]
+    end
+    output = mx 'checkstyle', '--primary', *filelist_args, capture: :both, continue_on_failure: true
     status = $?
 
     unused_import = /: Unused import -/
@@ -2637,7 +2641,7 @@ module Commands
     rubocop if changed['.rb']
     sh 'tool/lint.sh' if changed['.c']
     if fast
-      checkstyle if changed['.java']
+      checkstyle(changed['.java']) if changed['.java']
       command_format(changed['.java']) if changed['.java'] # includes #format_specializations_check
     else
       mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
