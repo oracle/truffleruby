@@ -110,9 +110,6 @@ module Truffle
       # Check upper bound.
       if !Primitive.nil?(range.end)
         cmp = (value <=> range.end)
-        if Primitive.nil? cmp
-          p range, value
-        end
         if range.exclude_end?
           return false if Comparable.compare_int(cmp) >= 0
         else
