@@ -1950,10 +1950,7 @@ public class BodyTranslator extends Translator {
 
         final boolean isProc = !isLambda;
 
-        TranslatorEnvironment methodParent = environment;
-        while (methodParent.isBlock()) {
-            methodParent = methodParent.getParent();
-        }
+        TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
         final String methodName = methodParent.getMethodName();
 
         final int blockDepth = environment.getBlockDepth() + 1;
