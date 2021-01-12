@@ -1,1 +1,0 @@
-fails:Defining yield in singleton class emits a deprecation warning

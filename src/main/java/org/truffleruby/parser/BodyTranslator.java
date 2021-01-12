@@ -3306,7 +3306,13 @@ public class BodyTranslator extends Translator {
 
         RubyNode readBlock = environment
                 .findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, node.getPosition());
-        final RubyNode ret = new YieldExpressionNode(unsplat, argumentsTranslated, readBlock);
+
+        final RubyNode ret = new YieldExpressionNode(
+                unsplat,
+                argumentsTranslated,
+                readBlock,
+                environment.shouldWarnYieldInModuleBody());
+
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
