@@ -19,8 +19,7 @@ import org.jcodings.specific.ASCIIEncoding;
 public class ConcatRope extends ManagedRope {
 
     /** Wrapper for the current state of the concat rope, including null children and a a byte array, or a null byte
-     * array and the children. Accessing the state through {@link #getState()} guarantees the avoidance of race
-     * conditions. */
+     * array and the children. Accessing the state through {@link #getState()} avoids race conditions. */
     @ValueType
     public static class ConcatState {
         public final ManagedRope left, right;
@@ -92,10 +91,10 @@ public class ConcatRope extends ManagedRope {
 
     @Override
     protected byte[] getBytesSlow() {
-        final byte[] out = RopeOperations.flattenBytes(this);
-        this.left = null;
-        this.right = null;
-        return out;
+        bytes = RopeOperations.flattenBytes(this);
+        left = null;
+        right = null;
+        return bytes;
     }
 
     /** Access the state in a way that prevents race conditions.
