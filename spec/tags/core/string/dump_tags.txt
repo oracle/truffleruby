@@ -1,1 +1,0 @@
-fails:String#dump returns a string with multi-byte UTF-8 characters replaced by \u{} notation with lower-case hex digits
