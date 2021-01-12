@@ -152,6 +152,7 @@ describe :range_cover_subrange, shared: true do
       end
     end
   end
+
   ruby_version_is "2.7" do
     it "allows self to be a beginless range" do
       eval("(...10)").send(@method, (3..7)).should be_true
@@ -192,6 +193,5 @@ describe :range_cover_subrange, shared: true do
 
       ('c'..'i').send(@method, eval("('a'..)")).should be_false
     end
-
   end
 end
