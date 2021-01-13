@@ -72,12 +72,10 @@ class Truffle::Randomizer
     next_to_max = if range.exclude_end?
                     max
                   else
-                    if max.kind_of?(Integer)
-                      max.succ
-                    elsif max.kind_of?(Float)
+                    if max.kind_of?(Float)
                       max.next_float
                     else
-                      max
+                      max.succ
                     end
                   end
 
