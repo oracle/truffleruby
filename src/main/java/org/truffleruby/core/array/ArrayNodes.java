@@ -73,6 +73,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -2305,11 +2306,18 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class StoreAddressNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "oldStores.isNative(array.store)", limit = "storageStrategyLimit()")
+        @Specialization(guards = "stores.isNative(array.store)", limit = "storageStrategyLimit()")
         protected long storeIsNative(RubyArray array,
-                @CachedLibrary("array.store") ArrayStoreLibrary oldStores) {
+                @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             NativeArrayStorage storage = (NativeArrayStorage) array.store;
             return storage.getAddress();
+        }
+
+        /** See {@link RubyDynamicObject#asPointer} **/
+        @Specialization(guards = "!stores.isNative(array.store)", limit = "storageStrategyLimit()")
+        protected Object storeNotNative(RubyArray array,
+                @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            return DispatchNode.MISSING; // for UnsupportedMessageException
         }
     }
 

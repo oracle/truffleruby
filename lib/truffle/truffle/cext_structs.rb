@@ -504,6 +504,8 @@ class Truffle::CExt::RbEncoding
   end
 
   def polyglot_as_pointer
-    Truffle::Interop.as_pointer(@pointer)
+    pointer = @pointer
+    raise Truffle::Interop::UnsupportedMessageException if Primitive.nil?(pointer)
+    Truffle::Interop.as_pointer(pointer)
   end
 end
