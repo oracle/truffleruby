@@ -54,7 +54,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
     @Override
     public final Object execute(VirtualFrame frame) {
         if (warnInModuleBody) {
-            warnIfYieldInSingletonClass();
+            warnInModuleBody();
         }
 
         Object[] argumentsObjects = new Object[arguments.length];
@@ -109,7 +109,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
         return yieldNode;
     }
 
-    private void warnIfYieldInSingletonClass() {
+    private void warnInModuleBody() {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
