@@ -76,7 +76,7 @@ public abstract class ExceptionOperations {
             Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = rubyClass.instanceShape;
+        final Shape shape = context.getLanguageSlow().exceptionShape;
         return new RubyException(rubyClass, shape, message, backtrace, cause);
     }
 
@@ -85,7 +85,7 @@ public abstract class ExceptionOperations {
             Object message, int errno, Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = rubyClass.instanceShape;
+        final Shape shape = context.getLanguageSlow().systemCallErrorShape;
         return new RubySystemCallError(rubyClass, shape, message, backtrace, cause, errno);
     }
 
