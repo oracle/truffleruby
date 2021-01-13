@@ -133,7 +133,7 @@ public abstract class ModuleNodes {
             RubyModule lexicalParent, String name, Node currentNode) {
         final RubyModule module = new RubyModule(
                 selfClass,
-                selfClass.instanceShape,
+                context.getLanguageSlow().moduleShape,
                 context,
                 sourceSection,
                 lexicalParent,
