@@ -70,16 +70,16 @@ class Truffle::Randomizer
 
     min, max = range.end.coerce(range.min)
     next_to_max = if range.exclude_end?
-            max
-          else
-            if max.kind_of?(Integer)
-              max.succ
-            elsif max.kind_of?(Float)
-              max.next_float
-            else
-              max
-            end
-          end
+                    max
+                  else
+                    if max.kind_of?(Integer)
+                      max.succ
+                    elsif max.kind_of?(Float)
+                      max.next_float
+                    else
+                      max
+                    end
+                  end
 
     diff = next_to_max - min
     max == min  ? min : min + random(diff)
