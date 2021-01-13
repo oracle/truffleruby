@@ -94,7 +94,6 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -257,10 +256,6 @@ public abstract class ThreadNodes {
 
     @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE)
     public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
-
-        @CompilationFinal private RubySymbol immediateSymbol;
-        @CompilationFinal private RubySymbol onBlockingSymbol;
-        @CompilationFinal private RubySymbol neverSymbol;
 
         private final BranchProfile errorProfile = BranchProfile.create();
 

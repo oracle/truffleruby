@@ -52,6 +52,8 @@ RUBOCOP_VERSION = '0.66.0'
 
 DLEXT = RbConfig::CONFIG['DLEXT']
 
+JT_PROFILE_SUBCOMMANDS = ENV['JT_PROFILE_SUBCOMMANDS'] == 'true'
+
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
@@ -400,6 +402,7 @@ module Utilities
 
     status = nil
     out = nil
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC) if JT_PROFILE_SUBCOMMANDS
     begin
       pid = Process.spawn(*args)
     rescue Errno::ENOENT => no_such_executable
@@ -417,6 +420,11 @@ module Utilities
           status = raw_sh_failed_status
         end
       end
+    end
+
+    if JT_PROFILE_SUBCOMMANDS
+      finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      STDERR.puts "\n[jt] #{printable_cmd(args)} took #{'%.3f' % (finish - start)}s\n\n"
     end
 
     if capture
@@ -2252,9 +2260,14 @@ module Commands
     mx(*args, 'intellijinit')
   end
 
-  def command_format(*args)
+  def command_format(changed_java_files = nil)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
-    mx 'eclipseformat', '--no-backup', '--primary', *args
+    if changed_java_files.is_a?(Array)
+      File.write('mxbuild/javafilelist.txt', changed_java_files.join("\n"))
+      filelist_args = %w[--filelist mxbuild/javafilelist.txt]
+    end
+    env = { '_JAVA_OPTIONS' => '-Djava.net.preferIPv4Stack=true' }
+    mx env, 'eclipseformat', '--no-backup', '--primary', *filelist_args
     format_specializations_check
   end
 
@@ -2399,8 +2412,12 @@ module Commands
     end
   end
 
-  def checkstyle
-    output = mx 'checkstyle', '-f', '--primary', capture: :both, continue_on_failure: true
+  def checkstyle(changed_java_files = nil)
+    if changed_java_files.is_a?(Array)
+      File.write('mxbuild/javafilelist.txt', changed_java_files.join("\n"))
+      filelist_args = %w[--filelist mxbuild/javafilelist.txt]
+    end
+    output = mx 'checkstyle', '--primary', *filelist_args, capture: :both, continue_on_failure: true
     status = $?
 
     unused_import = /: Unused import -/
@@ -2616,9 +2633,11 @@ module Commands
     args.shift if fast
 
     if fast and compare_to = args.shift
-      changed_files = `git diff --cached --name-only #{compare_to}`
-      exts_changed = changed_files.lines.map { |f| File.extname(f.strip) }.uniq
-      changed = -> ext { exts_changed.include?(ext) }
+      changed_files = `git diff --cached --name-only #{compare_to}`.lines.map(&:chomp)
+      changed = {}
+      changed_files.each do |file|
+        changed.fetch(File.extname(file)) { |k| changed[k] = [] } << file
+      end
     else
       changed = -> _ext { true }
     end
@@ -2631,8 +2650,8 @@ module Commands
     rubocop if changed['.rb']
     sh 'tool/lint.sh' if changed['.c']
     if fast
-      checkstyle if changed['.java']
-      command_format if changed['.java'] # includes #format_specializations_check
+      checkstyle(changed['.java']) if changed['.java']
+      command_format(changed['.java']) if changed['.java'] # includes #format_specializations_check
     else
       mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
       format_specializations_check
