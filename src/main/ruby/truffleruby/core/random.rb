@@ -82,7 +82,7 @@ class Truffle::Randomizer
                   end
 
     diff = next_to_max - min
-    max == min  ? min : min + random(diff)
+    max == min ? min : min + random(diff)
   end
 
   ##
