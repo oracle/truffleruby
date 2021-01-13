@@ -16,7 +16,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class DynamicReturnNode extends RubyContextSourceNode {
 
-    private final ReturnID returnID;
+    public final ReturnID returnID;
 
     @Child public RubyNode value;
 

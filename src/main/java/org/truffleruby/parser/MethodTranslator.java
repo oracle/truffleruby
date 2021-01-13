@@ -31,6 +31,7 @@ import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.NotNode;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
@@ -278,11 +279,19 @@ public class MethodTranslator extends BodyTranslator {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
 
             if (methodCalledLambda) {
-                // Method was previously compiled as lambda, must rewrite this copy back to having InvalidReturnNodes.
+                // The block was previously compiled as lambda, we must rewrite the return nodes to InvalidReturnNode,
+                // but only if the proc is within a lambda body (otherwise the returns are still valid, but return from
+                // the surrounding function instead of returning from the lambda).
+                //
+                // Note that the compilation to lambda does not alter the original returnID (instead it's "hijacked"
+                // and used in CatchForLambdaNode).
+                //
                 // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
                 for (DynamicReturnNode returnNode : NodeUtil
                         .findAllNodeInstances(bodyForProc, DynamicReturnNode.class)) {
-                    returnNode.replace(new InvalidReturnNode(returnNode.value));
+                    if (returnNode.returnID == ReturnID.MODULE_BODY) {
+                        returnNode.replace(new InvalidReturnNode(returnNode.value));
+                    }
                 }
             }
 
@@ -318,7 +327,7 @@ public class MethodTranslator extends BodyTranslator {
                     NodeUtil.cloneNode(loadArguments));
 
             final RubyNode bodyLambda = new CatchForLambdaNode(
-                    environment.getReturnID(),
+                    environment.getReturnID(), // "hijack" return ID
                     environment.getBreakID(),
                     composeBody(environment, sourceSection, preludeLambda, bodyForLambda));
 
