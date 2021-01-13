@@ -69,7 +69,7 @@ class Truffle::Randomizer
     return nil if Comparable.compare_int(range.end <=> range.begin) < 0
 
     min, max = range.end.coerce(range.min)
-    max = if range.exclude_end?
+    next_to_max = if range.exclude_end?
             max
           else
             if max.kind_of?(Integer)
@@ -81,8 +81,8 @@ class Truffle::Randomizer
             end
           end
 
-    diff = max - min
-    diff == 0 ? min : min + random(diff)
+    diff = next_to_max - min
+    max == min  ? min : min + random(diff)
   end
 
   ##
