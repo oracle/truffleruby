@@ -194,3 +194,9 @@ void rb_io_set_nonblock(rb_io_t *fptr) {
 FILE *rb_io_stdio_file(rb_io_t *fptr) {
   rb_tr_error("rb_io_stdio_file not yet implemented");
 }
+
+void
+rb_lastline_set(VALUE str) {
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_lastline_set", str);
+}
+

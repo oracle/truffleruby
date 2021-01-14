@@ -1836,4 +1836,9 @@ module Truffle::CExt
   def rb_syserr_new(errno, mesg)
     SystemCallError.new(mesg, errno)
   end
+
+  def rb_lastline_set(str)
+    storage = Primitive.slow_caller_special_variables
+    Primitive.io_last_line_set(storage, str)
+  end
 end

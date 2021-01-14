@@ -40,6 +40,7 @@ Compatibility:
 * Coerce the message to a `String` for `BasicSocket#send` (#2209, @HoneyryderChuck).
 * Support buffer argument for `UDPSocket#recvfrom_nonblock` (#2209, @HoneyryderChuck).
 * Fixed `Integer#digits` implementation to handle more bases (#2224, #2225).
+* Implement `rb_lastline_set` (#2170).
 
 Performance:
 
