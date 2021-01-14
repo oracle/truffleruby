@@ -62,6 +62,7 @@ rm -r src/main/c/{bigdecimal,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ri
 mkdir src/main/c/{bigdecimal,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
 cp ../ruby/ext/bigdecimal/*.{c,gemspec,h,rb} src/main/c/bigdecimal
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
+cp ../ruby/ext/io/console/*.{c,rb} src/main/c/io-console
 cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
 cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
 cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
@@ -70,7 +71,6 @@ cp -r ../ruby/ext/psych/yaml src/main/c/psych
 cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
-cp ../ruby/ext/io/console/*.{c,rb} src/main/c/io-console
 
 # Ripper
 cp "$RUBY_BUILD_DIR"/{id.h,symbol.h} lib/cext/include/truffleruby/internal
