@@ -31,8 +31,8 @@ module Truffle
       define_hooked_variable(name, getter, setter)
     end
 
-    LOAD_PATH = []
-    LOADED_FEATURES = []
+    LOAD_PATH = Truffle::SynchronizedArray.new
+    LOADED_FEATURES = Truffle::SynchronizedArray.new
 
     define_read_only_global(:$LOAD_PATH, -> { LOAD_PATH })
     define_read_only_global(:$LOADED_FEATURES, -> { LOADED_FEATURES })
