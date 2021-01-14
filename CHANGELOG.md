@@ -27,6 +27,7 @@ Compatibility:
 * Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
 * Implemented `chomp` parameter for `IO.{readlines, foreach}` (#2205).
 * Implemented the Debug Inspector C API.
+* Switched to the io-console C extension from C ruby for better performance and compatibility in `irb`.
 
 Performance:
 
