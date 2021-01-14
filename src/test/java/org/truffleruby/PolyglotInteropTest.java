@@ -197,6 +197,29 @@ public class PolyglotInteropTest {
     public void testTopScopes() {
         try (Context context = Context.create()) {
             Value bindings = context.getBindings("ruby");
+            // local variables, only for interactive sources
+            // create a method to test search order
+            context.eval("ruby", "def forty_two; :method; end");
+            assertEquals("method", context.eval(interactiveSource("forty_two")).asString());
+            assertEquals("Method", bindings.getMember("forty_two").getMetaObject().getMetaSimpleName());
+
+            bindings.putMember("forty_two", 42);
+            assertEquals(42, bindings.getMember("forty_two").asInt());
+            assertEquals(42, context.eval(interactiveSource("forty_two")).asInt());
+            context.eval(interactiveSource("forty_two = 44"));
+            assertEquals(44, context.eval(interactiveSource("forty_two")).asInt());
+
+            bindings.putMember("local_var", 42);
+            RubyTest.assertThrows(
+                    () -> context.eval("ruby", "local_var"), // non-interactive source
+                    // GR-28773: e -> assertEquals("NameError", e.getGuestObject().getMetaObject().getMetaSimpleName())
+                    e -> assertTrue(e.getMessage().contains("NameError")));
+
+            context.eval(interactiveSource("new_eval_local_var = 88"));
+            assertEquals(88, context.eval(interactiveSource("new_eval_local_var")).asInt());
+            assertEquals(88, bindings.getMember("new_eval_local_var").asInt());
+
+            // global variables
             assertTrue(bindings.getMember("$DEBUG").isBoolean());
 
             assertFalse(bindings.getMember("$VERBOSE").asBoolean());
@@ -208,6 +231,7 @@ public class PolyglotInteropTest {
             assertEquals(42, bindings.getMember("$polyglot_interop_test").asInt());
             assertEquals(42, context.eval("ruby", "$polyglot_interop_test").asInt());
 
+            // methods of main
             context.eval("ruby", "def my_test_method(); 42; end");
             Value myMethod = bindings.getMember("my_test_method");
             assertTrue(myMethod.canExecute());
@@ -220,7 +244,6 @@ public class PolyglotInteropTest {
     }
 
     @Test
-    //GR-27300
     public void testTopScopeRemoveBindings() {
         try (Context context = Context.create()) {
             Value bindings = context.getBindings("ruby");
@@ -231,5 +254,9 @@ public class PolyglotInteropTest {
             assertTrue(bindings.removeMember("@foo"));
             assertFalse(bindings.hasMember("@foo"));
         }
+    }
+
+    public static Source interactiveSource(String code) {
+        return Source.newBuilder("ruby", code, "interactive").interactive(true).buildLiteral();
     }
 }

@@ -45,6 +45,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.debug.BindingLocalVariablesObject;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
 import org.truffleruby.extra.ffi.Pointer;
@@ -216,6 +217,7 @@ public class CoreLibrary {
     public final RubyBasicObject mainObject;
 
     public final GlobalVariables globalVariables;
+    public final BindingLocalVariablesObject interactiveBindingLocalVariablesObject;
 
     public final FrameDescriptor emptyDescriptor;
     /* Some things (such as procs created from symbols) require a declaration frame, and this should include a slot for
@@ -241,6 +243,7 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableReader stderrReader;
 
     @CompilationFinal public RubyBinding topLevelBinding;
+    @CompilationFinal public RubyBinding interactiveBinding;
     @CompilationFinal public TopScopeObject topScopeObject;
 
     private final ConcurrentMap<String, Boolean> patchFiles;
@@ -552,8 +555,12 @@ public class CoreLibrary {
         argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();
+        interactiveBindingLocalVariablesObject = new BindingLocalVariablesObject();
         topScopeObject = new TopScopeObject(
-                new Object[]{ new GlobalVariablesObject(globalVariables), mainObject });
+                new Object[]{
+                        interactiveBindingLocalVariablesObject,
+                        new GlobalVariablesObject(globalVariables),
+                        mainObject });
 
         patchFiles = initializePatching(context);
     }
@@ -829,6 +836,12 @@ public class CoreLibrary {
         topLevelBinding = (RubyBinding) objectClass.fields
                 .getConstant("TOPLEVEL_BINDING")
                 .getValue();
+
+        interactiveBinding = (RubyBinding) truffleBootModule.fields
+                .getConstant("INTERACTIVE_BINDING")
+                .getValue();
+
+        interactiveBindingLocalVariablesObject.setBinding(interactiveBinding);
     }
 
     /** Convert a value to a {@code Float}, without doing any lookup. */
