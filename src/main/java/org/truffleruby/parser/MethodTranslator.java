@@ -10,11 +10,14 @@
 package org.truffleruby.parser;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.ArrayCastNodeGen;
+import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -28,6 +31,7 @@ import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.NotNode;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.LocalVariableType;
@@ -67,6 +71,10 @@ public class MethodTranslator extends BodyTranslator {
     private boolean isBlock;
     private final boolean shouldLazyTranslate;
 
+    /** If this translates a literal block (but not a stabby lambda), this holds the name of the method to which the
+     * block was passed. */
+    private final String methodNameForBlock;
+
     public MethodTranslator(
             RubyContext context,
             BodyTranslator parent,
@@ -75,10 +83,12 @@ public class MethodTranslator extends BodyTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            ArgsParseNode argsNode) {
+            ArgsParseNode argsNode,
+            String methodNameForBlock) {
         super(context, parent, environment, source, parserContext, currentNode);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
+        this.methodNameForBlock = methodNameForBlock;
 
         if (parserContext == ParserContext.EVAL || context.getCoverageManager().isEnabled()) {
             shouldLazyTranslate = false;
@@ -89,8 +99,8 @@ public class MethodTranslator extends BodyTranslator {
         }
     }
 
-    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode, ProcType type,
-            String[] variables) {
+    public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, ParseNode bodyNode,
+            boolean isStabbyLambda, String[] variables) {
         declareArguments();
         final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
@@ -107,16 +117,91 @@ public class MethodTranslator extends BodyTranslator {
             arityForCheck = arity;
         }
 
-        final boolean isProc = type == ProcType.PROC;
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
                 argsNode,
                 context,
                 source,
                 parserContext,
-                isProc,
+                !isStabbyLambda,
                 false,
                 this).translate();
+
+        final RubyNode preludeProc = !isStabbyLambda
+                ? preludeProc(sourceSection, isStabbyLambda, arity, loadArguments)
+                : null; // proc will never compiled for stabby lambdas
+
+        if (!translatingForStatement) {
+            // Make sure to declare block-local variables
+            for (String var : variables) {
+                environment.declareVar(var);
+            }
+        }
+
+        final RubyNode body = new ExceptionTranslatingNode(
+                translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression(),
+                UnsupportedOperationBehavior.TYPE_ERROR);
+
+        final boolean methodCalledLambda = !isStabbyLambda && methodNameForBlock.equals("lambda");
+        final boolean emitLambda = isStabbyLambda || methodCalledLambda;
+
+        final Supplier<RootCallTarget> procCompiler = procCompiler(
+                sourceSection,
+                source,
+                preludeProc,
+                body,
+                methodCalledLambda,
+                language,
+                environment);
+
+        final Supplier<RootCallTarget> lambdaCompiler = lambdaCompiler(
+                sourceSection,
+                source,
+                isStabbyLambda,
+                arityForCheck,
+                loadArguments,
+                body,
+                emitLambda,
+                language,
+                environment);
+
+        Object frameOnStackMarkerSlot;
+
+        if (frameOnStackMarkerSlotStack.isEmpty()) {
+            frameOnStackMarkerSlot = null;
+        } else {
+            frameOnStackMarkerSlot = frameOnStackMarkerSlotStack.peek();
+
+            if (frameOnStackMarkerSlot == BAD_FRAME_SLOT) {
+                frameOnStackMarkerSlot = null;
+            }
+        }
+
+        final ProcCallTargets callTargets;
+        if (isStabbyLambda) {
+            final RootCallTarget callTarget = lambdaCompiler.get();
+            callTargets = new ProcCallTargets(callTarget, callTarget, null);
+        } else if (methodNameForBlock.equals("lambda")) {
+            callTargets = new ProcCallTargets(null, lambdaCompiler.get(), procCompiler);
+        } else {
+            callTargets = new ProcCallTargets(procCompiler.get(), null, lambdaCompiler);
+        }
+
+        final BlockDefinitionNode ret = new BlockDefinitionNode(
+                emitLambda ? ProcType.LAMBDA : ProcType.PROC,
+                environment.getSharedMethodInfo(),
+                callTargets,
+                environment.getBreakID(),
+                (FrameSlot) frameOnStackMarkerSlot);
+        ret.unsafeSetSourceSection(sourceSection);
+        return ret;
+    }
+
+    private RubyNode preludeProc(
+            SourceIndexLength sourceSection,
+            boolean isStabbyLambda,
+            Arity arity,
+            RubyNode loadArguments) {
 
         final RubyNode preludeProc;
         if (shouldConsiderDestructuringArrayArg(arity)) {
@@ -134,7 +219,7 @@ public class MethodTranslator extends BodyTranslator {
                     context,
                     source,
                     parserContext,
-                    isProc,
+                    !isStabbyLambda,
                     false,
                     this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
@@ -159,81 +244,115 @@ public class MethodTranslator extends BodyTranslator {
         } else {
             preludeProc = loadArguments;
         }
+        return preludeProc;
+    }
 
-        final RubyNode preludeLambda = createCheckArityNode(language, arityForCheck, NodeUtil.cloneNode(loadArguments));
+    private static Supplier<RootCallTarget> procCompiler(
+            SourceIndexLength sourceSection,
+            Source source,
+            RubyNode preludeProc,
+            RubyNode body,
+            boolean methodCalledLambda,
+            RubyLanguage language,
+            TranslatorEnvironment environment) {
 
-        if (!translatingForStatement) {
-            // Make sure to declare block-local variables
-            for (String var : variables) {
-                environment.declareVar(var);
+        // We construct the supplier in a static method to make sure we do not accidentally capture the
+        // translator and other unwanted objects.
+
+        return () -> {
+            final RubyNode bodyForProc = methodCalledLambda
+                    ? NodeUtil.cloneNode(body) // previously compiled as lambda, must copy
+                    : body;
+
+            final RubyNode bodyProc = new CatchForProcNode(
+                    composeBody(environment, sourceSection, preludeProc, bodyForProc));
+            bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyForProc));
+
+            final RubyRootNode newRootNodeForProcs = new RubyRootNode(
+                    language,
+                    translateSourceSection(source, sourceSection),
+                    environment.getFrameDescriptor(),
+                    environment.getSharedMethodInfo(),
+                    bodyProc,
+                    Split.HEURISTIC);
+
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+
+            if (methodCalledLambda) {
+                // The block was previously compiled as lambda, we must rewrite the return nodes to InvalidReturnNode,
+                // but only if the proc is within a lambda body (otherwise the returns are still valid, but return from
+                // the surrounding function instead of returning from the lambda).
+                //
+                // Note that the compilation to lambda does not alter the original returnID (instead it's "hijacked"
+                // and used in CatchForLambdaNode).
+                //
+                // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
+                for (DynamicReturnNode returnNode : NodeUtil
+                        .findAllNodeInstances(bodyForProc, DynamicReturnNode.class)) {
+                    if (returnNode.returnID == ReturnID.MODULE_BODY) {
+                        returnNode.replace(new InvalidReturnNode(returnNode.value));
+                    }
+                }
             }
-        }
 
-        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
+            return callTarget;
+        };
+    }
 
-        body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
+    private static Supplier<RootCallTarget> lambdaCompiler(
+            SourceIndexLength sourceSection,
+            Source source,
+            boolean isStabbyLambda,
+            Arity arityForCheck,
+            RubyNode loadArguments,
+            RubyNode body,
+            boolean emitLambda,
+            RubyLanguage language,
+            TranslatorEnvironment environment) {
 
-        // Procs
-        final RubyNode bodyCopyForProc = NodeUtil.cloneNode(body);
-        final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, bodyCopyForProc));
-        bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyCopyForProc));
+        // We construct the supplier in a static method to make sure we do not accidentally capture the
+        // translator and other unwanted objects.
 
-        final RubyRootNode newRootNodeForProcs = new RubyRootNode(
-                language,
-                translateSourceSection(source, sourceSection),
-                environment.getFrameDescriptor(),
-                environment.getSharedMethodInfo(),
-                bodyProc,
-                Split.HEURISTIC);
+        return () -> {
+            final RubyNode bodyForLambda = emitLambda
+                    // Stabby lambda: the proc compiler will never be called, safe to copy.
+                    // Method named lambda: if conversion to proc needed, will copy in the proc compiler & reverse the
+                    //   return transformation.
+                    ? body
+                    : NodeUtil.cloneNode(body);
 
-        // Lambdas
-        RubyNode bodyForLambda = body; // no copy, last usage
-        RubyNode composed = composeBody(sourceSection, preludeLambda, bodyForLambda);
+            final RubyNode preludeLambda = Translator.createCheckArityNode(
+                    language,
+                    arityForCheck,
+                    NodeUtil.cloneNode(loadArguments));
 
-        composed = new CatchForLambdaNode(environment.getReturnID(), environment.getBreakID(), composed);
+            final RubyNode bodyLambda = new CatchForLambdaNode(
+                    environment.getReturnID(), // "hijack" return ID
+                    environment.getBreakID(),
+                    composeBody(environment, sourceSection, preludeLambda, bodyForLambda));
 
-        final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
-                language,
-                translateSourceSection(source, sourceSection),
-                environment.getFrameDescriptor(),
-                environment.getSharedMethodInfo(),
-                composed,
-                Split.HEURISTIC);
+            final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
+                    language,
+                    translateSourceSection(source, sourceSection),
+                    environment.getFrameDescriptor(),
+                    environment.getSharedMethodInfo(),
+                    bodyLambda,
+                    Split.HEURISTIC);
 
-        // TODO CS 23-Nov-15 only the second one will get instrumented properly!
-        final RootCallTarget callTargetAsLambda = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
-        final RootCallTarget callTargetAsProc = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
-        if (isProc) {
-            // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
-            // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
-            // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
-            for (InvalidReturnNode returnNode : NodeUtil.findAllNodeInstances(bodyForLambda, InvalidReturnNode.class)) {
-                returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
+            if (!isStabbyLambda) {
+                // If we end up executing this block as a lambda, but don't know it statically, e.g., `lambda {}` or
+                // `define_method(:foo, proc {})`), then returns are always valid and return from that lambda.
+                // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
+                for (InvalidReturnNode returnNode : NodeUtil
+                        .findAllNodeInstances(bodyForLambda, InvalidReturnNode.class)) {
+                    returnNode.replace(new DynamicReturnNode(environment.getReturnID(), returnNode.value));
+                }
             }
-        }
 
-        Object frameOnStackMarkerSlot;
-
-        if (frameOnStackMarkerSlotStack.isEmpty()) {
-            frameOnStackMarkerSlot = null;
-        } else {
-            frameOnStackMarkerSlot = frameOnStackMarkerSlotStack.peek();
-
-            if (frameOnStackMarkerSlot == BAD_FRAME_SLOT) {
-                frameOnStackMarkerSlot = null;
-            }
-        }
-
-        final BlockDefinitionNode ret = new BlockDefinitionNode(
-                type,
-                environment.getSharedMethodInfo(),
-                callTargetAsProc,
-                callTargetAsLambda,
-                environment.getBreakID(),
-                (FrameSlot) frameOnStackMarkerSlot);
-        ret.unsafeSetSourceSection(sourceSection);
-        return ret;
+            return callTarget;
+        };
     }
 
     private boolean shouldConsiderDestructuringArrayArg(Arity arity) {
@@ -245,20 +364,19 @@ public class MethodTranslator extends BodyTranslator {
             return false;
             // If there are only a rest argument and optional arguments, there is no need to destructure.
             // Because the first optional argument (or the rest if no optional) will take the whole array.
-        } else if (arity.hasRest() && arity.getRequired() == 0) {
-            return false;
         } else {
-            return true;
+            return !arity.hasRest() || arity.getRequired() != 0;
         }
     }
 
-    private RubyNode composeBody(SourceIndexLength preludeSourceSection, RubyNode prelude, RubyNode body) {
+    private static RubyNode composeBody(TranslatorEnvironment environment, SourceIndexLength preludeSourceSection,
+            RubyNode prelude, RubyNode body) {
         final SourceIndexLength sourceSection = enclosing(preludeSourceSection, body);
 
         body = sequence(sourceSection, Arrays.asList(prelude, body));
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
+            body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
         return body;
@@ -292,7 +410,7 @@ public class MethodTranslator extends BodyTranslator {
         body = sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), body));
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
+            body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
         body = new CatchForMethodNode(environment.getReturnID(), body);

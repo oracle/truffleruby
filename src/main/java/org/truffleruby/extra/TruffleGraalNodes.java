@@ -17,6 +17,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyNode;
@@ -69,8 +70,7 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyProc splitProc(RubyProc rubyProc) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                ((RubyRootNode) rubyProc.callTargetForType.getRootNode()).setSplit(Split.ALWAYS);
-                ((RubyRootNode) rubyProc.callTargetForLambdas.getRootNode()).setSplit(Split.ALWAYS);
+                ((RubyRootNode) rubyProc.callTarget.getRootNode()).setSplit(Split.ALWAYS);
             }
             return rubyProc;
         }
@@ -103,18 +103,17 @@ public abstract class TruffleGraalNodes {
         @Specialization
         protected RubyProc neverSplitProc(RubyProc rubyProc) {
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                ((RubyRootNode) rubyProc.callTargetForType.getRootNode()).setSplit(Split.NEVER);
-                ((RubyRootNode) rubyProc.callTargetForLambdas.getRootNode()).setSplit(Split.NEVER);
+                ((RubyRootNode) rubyProc.callTarget.getRootNode()).setSplit(Split.NEVER);
             }
             return rubyProc;
         }
     }
 
-    /** This method creates a new Proc with a copy of the captured variables' values, which is correct if these
-     * variables are not changed in the parent scope later on. It works by replacing {@link ReadDeclarationVariableNode}
-     * with the captured variables' values. This avoids constantly reading from the declaration frame (which always
-     * escapes in a define_method) and folds many checks on these captured variables since their values become
-     * compilation constants.
+    /** This method creates a new Proc for an existing <b>lambda</b> proc with a copy of the captured variables' values,
+     * which is correct if these variables are not changed in the parent scope later on. It works by replacing
+     * {@link ReadDeclarationVariableNode} with the captured variables' values. This avoids constantly reading from the
+     * declaration frame (which always escapes in a define_method) and folds many checks on these captured variables
+     * since their values become compilation constants.
      * <p>
      * Similar to Smalltalk's fixTemps, but not mutating the Proc. */
     @CoreMethod(names = "copy_captured_locals", onSingleton = true, required = 1)
@@ -123,7 +122,9 @@ public abstract class TruffleGraalNodes {
         @TruffleBoundary
         @Specialization
         protected RubyProc copyCapturedLocals(RubyProc proc) {
-            final RubyRootNode rootNode = (RubyRootNode) proc.callTargetForType.getRootNode();
+            assert proc.type == ProcType.LAMBDA;
+
+            final RubyRootNode rootNode = (RubyRootNode) proc.callTarget.getRootNode();
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
 
             assert NodeUtil.findAllNodeInstances(newBody, WriteDeclarationVariableNode.class).isEmpty();
@@ -142,11 +143,8 @@ public abstract class TruffleGraalNodes {
                     rootNode.getSharedMethodInfo(),
                     newBody,
                     Split.HEURISTIC);
-            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final RootCallTarget callTargetForLambdas = proc.type == ProcType.LAMBDA
-                    ? newCallTarget
-                    : proc.callTargetForLambdas;
+            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             SpecialVariableStorage variables = proc.declarationVariables;
 
@@ -173,8 +171,8 @@ public abstract class TruffleGraalNodes {
                     getLanguage().procShape,
                     proc.type,
                     proc.sharedMethodInfo,
+                    new ProcCallTargets(newCallTarget, newCallTarget),
                     newCallTarget,
-                    callTargetForLambdas,
                     newDeclarationFrame,
                     variables,
                     proc.method,

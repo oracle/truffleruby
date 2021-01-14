@@ -168,11 +168,20 @@ public class CoreMethodAssumptions {
         }
 
         if (callParameters.getBlock() != null) {
-            if (callParameters.getMethodName().equals("lambda") && callParameters.isIgnoreVisibility() &&
-                    n == 1 && callParameters.getBlock() instanceof BlockDefinitionNode) {
-                return InlinedLambdaNodeGen.create(language, callParameters, self, callParameters.getBlock());
+
+            if (callParameters.getMethodName().equals("lambda") &&
+                    (callParameters.getBlock() instanceof BlockDefinitionNode)) {
+
+                if (callParameters.isIgnoreVisibility() && n == 1) {
+                    return InlinedLambdaNodeGen.create(language, callParameters, self, callParameters.getBlock());
+                }
+
+                // The block definition node had a default lambda call target, must be converted to proc.
+                final RubyNode blockNode = new LambdaToProcNode((BlockDefinitionNode) callParameters.getBlock());
+                return new RubyCallNode(callParameters.withBlock(blockNode));
+
             } else {
-                // The calls below should all not be given a block
+                // no special lambda handling needed
                 return new RubyCallNode(callParameters);
             }
         }
@@ -251,6 +260,4 @@ public class CoreMethodAssumptions {
 
         return new RubyCallNode(callParameters);
     }
-
-
 }

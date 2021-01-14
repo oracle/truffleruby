@@ -67,6 +67,10 @@ public class RubyCallNodeParameters {
                 isAttrAssign);
     }
 
+    public RubyCallNodeParameters withBlock(RubyNode block) {
+        return withReceiverAndArguments(receiver, arguments, block);
+    }
+
     public RubyNode getReceiver() {
         return receiver;
     }

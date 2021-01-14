@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -21,7 +22,6 @@ import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
@@ -31,13 +31,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
 
     private final ProcType type;
     private final SharedMethodInfo sharedMethodInfo;
-
-    // TODO(CS, 10-Jan-15) having two call targets isn't ideal, but they all have different semantics, and we don't
-    // want to move logic into the call site
-
-    private final RootCallTarget callTargetForProcs;
-    private final RootCallTarget callTargetForLambdas;
-
+    private final ProcCallTargets callTargets;
     private final BreakID breakID;
 
     @Child private ReadFrameSlotNode readFrameOnStackMarkerNode;
@@ -47,15 +41,13 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     public BlockDefinitionNode(
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTargetForProcs,
-            RootCallTarget callTargetForLambdas,
+            ProcCallTargets callTargets,
+
             BreakID breakID,
             FrameSlot frameOnStackMarkerSlot) {
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
-
-        this.callTargetForProcs = callTargetForProcs;
-        this.callTargetForLambdas = callTargetForLambdas;
+        this.callTargets = callTargets;
         this.breakID = breakID;
 
         if (frameOnStackMarkerSlot == null) {
@@ -86,13 +78,12 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
                 getLanguage().procShape,
                 type,
                 sharedMethodInfo,
-                callTargetForProcs,
-                callTargetForLambdas,
+                callTargets,
                 frame.materialize(),
                 readSpecialVariableStorageNode.execute(frame),
                 RubyArguments.getMethod(frame),
                 RubyArguments.getBlock(frame),
-                frameOnStackMarker,
+                type == ProcType.PROC ? frameOnStackMarker : null,
                 executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
     }
 
@@ -103,5 +94,4 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         }
         return withoutVisibilityNode.executeWithoutVisibility(ctxIn);
     }
-
 }

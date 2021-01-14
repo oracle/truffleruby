@@ -141,7 +141,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    public SourceSection translateSourceSection(Source source, SourceIndexLength sourceSection) {
+    public static SourceSection translateSourceSection(Source source, SourceIndexLength sourceSection) {
         if (sourceSection == null) {
             return null;
         } else {

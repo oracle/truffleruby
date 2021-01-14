@@ -37,8 +37,8 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     public final ProcType type;
     public final SharedMethodInfo sharedMethodInfo;
-    public final RootCallTarget callTargetForType;
-    public final RootCallTarget callTargetForLambdas;
+    public final ProcCallTargets callTargets;
+    public final RootCallTarget callTarget;
     public final MaterializedFrame declarationFrame;
     public final SpecialVariableStorage declarationVariables;
     public final InternalMethod method;
@@ -51,8 +51,8 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             Shape shape,
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
-            RootCallTarget callTargetForType,
-            RootCallTarget callTargetForLambdas,
+            ProcCallTargets callTargets,
+            RootCallTarget callTarget,
             MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationVariables,
             InternalMethod method,
@@ -62,8 +62,8 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         super(rubyClass, shape);
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
-        this.callTargetForType = callTargetForType;
-        this.callTargetForLambdas = callTargetForLambdas;
+        this.callTargets = callTargets;
+        this.callTarget = callTarget;
         this.declarationFrame = declarationFrame;
         this.declarationVariables = declarationVariables;
         this.method = method;
@@ -77,6 +77,16 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         ObjectGraph.getObjectsInFrame(declarationFrame, reachable);
         ObjectGraph.addProperty(reachable, method);
         ObjectGraph.addProperty(reachable, block);
+    }
+
+    public boolean isLambda() {
+        // The field is public, but the function is needed for use in guards.
+        return type == ProcType.LAMBDA;
+    }
+
+    public boolean isProc() {
+        // The field is public, but the function is needed for use in guards.
+        return type == ProcType.PROC;
     }
 
     // region SourceLocation
@@ -108,5 +118,4 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         return yieldNode.executeDispatch(this, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
     // endregion
-
 }

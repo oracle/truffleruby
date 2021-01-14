@@ -1244,7 +1244,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
                 MaterializedFrame callerFrame) {
-            final RubyRootNode rootNode = (RubyRootNode) proc.callTargetForLambdas.getRootNode();
+            final RubyRootNode rootNode = (RubyRootNode) proc.callTargets.getCallTargetForLambda().getRootNode();
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());

@@ -21,6 +21,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
@@ -174,8 +175,7 @@ public abstract class SymbolNodes {
                     language.procShape,
                     ProcType.PROC,
                     ((RubyRootNode) callTarget.getRootNode()).getSharedMethodInfo(),
-                    callTarget,
-                    callTarget,
+                    new ProcCallTargets(callTarget, callTarget),
                     declarationFrame,
                     variables,
                     method,
