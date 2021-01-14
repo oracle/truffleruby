@@ -923,18 +923,19 @@ public abstract class RopeNodes {
                 @Cached ConditionProfile asciiCompatibleProfile,
                 @Cached ConditionProfile asciiOnlyProfile,
                 @Cached ConditionProfile binaryEncodingProfile,
+                @Cached ConditionProfile bytesNotNull,
                 @Cached BytesNode bytesNode,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
 
             if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
                 if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
                     // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
-                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding);
+                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding, bytesNotNull);
                 } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
                         rope.getCodeRange() == CR_VALID &&
                         rope.getEncoding().isAsciiCompatible())) {
                     // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
-                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding();
+                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding(bytesNotNull);
                     assert binary.getCodeRange() == CR_VALID;
                     return binary;
                 } else {

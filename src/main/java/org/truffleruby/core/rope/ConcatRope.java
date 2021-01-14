@@ -73,19 +73,20 @@ public class ConcatRope extends ManagedRope {
     }
 
     @Override
-    Rope withEncoding7bit(Encoding newEncoding) {
+    Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
         assert getCodeRange() == CodeRange.CR_7BIT;
-        return withEncoding(newEncoding, CodeRange.CR_7BIT, characterLength());
+        return withEncoding(newEncoding, CodeRange.CR_7BIT, characterLength(), bytesNotNull);
     }
 
     @Override
-    Rope withBinaryEncoding() {
+    Rope withBinaryEncoding(ConditionProfile bytesNotNull) {
         assert getCodeRange() == CodeRange.CR_VALID;
-        return withEncoding(ASCIIEncoding.INSTANCE, CodeRange.CR_VALID, byteLength());
+        return withEncoding(ASCIIEncoding.INSTANCE, CodeRange.CR_VALID, byteLength(), bytesNotNull);
     }
 
-    private ConcatRope withEncoding(Encoding encoding, CodeRange codeRange, int characterLength) {
-        final ConcatState state = getState();
+    private ConcatRope withEncoding(Encoding encoding, CodeRange codeRange, int characterLength,
+            ConditionProfile bytesNotNull) {
+        final ConcatState state = getState(bytesNotNull);
         return new ConcatRope(state.left, state.right, encoding, codeRange, byteLength(), characterLength, state.bytes);
     }
 
@@ -102,24 +103,8 @@ public class ConcatRope extends ManagedRope {
      * <p>
      * This version is not allowed in compiled code, use {@link #getState(ConditionProfile)} there instead. */
     public ConcatState getState() {
-        CompilerAsserts.neverPartOfCompilation("use getState(ConditionProfile) instead!");
-
-        if (this.bytes != null) {
-            return new ConcatState(null, null, this.bytes);
-        }
-
-        final ManagedRope left = this.left;
-        final ManagedRope right = this.right;
-        if (left != null && right != null) {
-            return new ConcatState(left, right, null);
-        }
-
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        if (this.bytes != null) {
-            throw CompilerDirectives
-                    .shouldNotReachHere("our assumptions about reordering and memory barriers seem incorrect");
-        }
-        return new ConcatState(null, null, this.bytes);
+        CompilerAsserts.neverPartOfCompilation("Use #getState(ConditionProfile) instead.");
+        return getState(ConditionProfile.getUncached());
     }
 
     /** Access the state in a way that prevents race conditions.
@@ -138,7 +123,11 @@ public class ConcatRope extends ManagedRope {
         }
 
         CompilerDirectives.transferToInterpreterAndInvalidate();
-        assert this.bytes != null;
+        if (this.bytes != null) {
+            throw CompilerDirectives
+                    .shouldNotReachHere("our assumptions about reordering and memory barriers seem incorrect");
+        }
+
         return new ConcatState(null, null, this.bytes);
     }
 }

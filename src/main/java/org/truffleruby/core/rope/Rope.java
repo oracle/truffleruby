@@ -11,6 +11,7 @@ package org.truffleruby.core.rope;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -38,11 +39,11 @@ public abstract class Rope implements Comparable<Rope> {
 
     /** Only used internally by WithEncodingNode. Returns a Rope with the given Encoding. Both the original and new
      * Encodings must be ASCII-compatible and the rope must be {@link #isAsciiOnly()}. */
-    abstract Rope withEncoding7bit(Encoding newEncoding);
+    abstract Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull);
 
     /** Only used internally by WithEncodingNode. Returns a Rope with the BINARY Encoding. The original Encoding must be
      * ASCII-compatible and {@link #getCodeRange()} must be {@link CodeRange#CR_VALID} to call this. */
-    abstract Rope withBinaryEncoding();
+    abstract Rope withBinaryEncoding(ConditionProfile bytesNotNull);
 
     public abstract int characterLength();
 

@@ -10,6 +10,7 @@
 
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 
@@ -46,7 +47,7 @@ public class SubstringRope extends ManagedRope {
     }
 
     @Override
-    Rope withEncoding7bit(Encoding newEncoding) {
+    Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
         assert getCodeRange() == CodeRange.CR_7BIT;
         return new SubstringRope(
                 getChild(),
@@ -58,7 +59,7 @@ public class SubstringRope extends ManagedRope {
     }
 
     @Override
-    Rope withBinaryEncoding() {
+    Rope withBinaryEncoding(ConditionProfile bytesNotNull) {
         assert getCodeRange() == CodeRange.CR_VALID;
         return new SubstringRope(
                 getChild(),
