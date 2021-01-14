@@ -102,8 +102,12 @@ class Module
     self
   end
 
+  def const_defined?(name, inherit = true)
+    Primitive.module_const_defined?(self, name, inherit, true)
+  end
+
   def const_get(name, inherit = true)
-    value = Primitive.module_const_get self, name, inherit
+    value = Primitive.module_const_get self, name, inherit, true
     unless Primitive.undefined?(value)
       return value
     end
@@ -122,6 +126,10 @@ class Module
       end
     end
     res
+  end
+
+  private def remove_const(name)
+    Primitive.module_remove_const(self, name)
   end
 
   def self.constants(inherited = undefined)

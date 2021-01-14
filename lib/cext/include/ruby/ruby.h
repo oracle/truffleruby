@@ -1261,6 +1261,10 @@ struct RFile {
     struct rb_io_t *fptr;
 };
 
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RFile)
+#endif
+
 struct RData {
     struct RBasic basic;
     void (*dmark)(void*);
@@ -1418,7 +1422,11 @@ int rb_big_sign(VALUE);
 #define RDATA(obj)   (R_CAST(RData)(obj))
 #define RTYPEDDATA(obj)   (R_CAST(RTypedData)(obj))
 #endif
+#ifdef TRUFFLERUBY
+#define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
+#else
 #define RFILE(obj)   (R_CAST(RFile)(obj))
+#endif
 
 #define FL_SINGLETON    ((VALUE)RUBY_FL_SINGLETON)
 #define FL_WB_PROTECTED ((VALUE)RUBY_FL_WB_PROTECTED)

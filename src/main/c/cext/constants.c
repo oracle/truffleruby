@@ -12,7 +12,7 @@
 // Accessing Ruby constants, rb_const_*
 
 int rb_const_defined(VALUE module, ID name) {
-  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(module, "const_defined?", ID2SYM(name)));
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_const_defined?", module, ID2SYM(name)));
 }
 
 int rb_const_defined_at(VALUE module, ID name) {
@@ -29,6 +29,10 @@ VALUE rb_const_get_at(VALUE module, ID name) {
 
 VALUE rb_const_get_from(VALUE module, ID name) {
   return RUBY_CEXT_INVOKE("rb_const_get_from", module, ID2SYM(name));
+}
+
+VALUE rb_const_remove(VALUE module, ID name) {
+  return RUBY_CEXT_INVOKE("rb_const_remove", module, ID2SYM(name));
 }
 
 void rb_const_set(VALUE module, ID name, VALUE value) {

@@ -6,7 +6,6 @@ ruby/test_continuation.rb
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
 sdbm/test_sdbm.rb
-io/console/test_io_console.rb
 io/wait/test_io_wait.rb
 test_pty.rb
 win32ole/test_err_in_callback.rb

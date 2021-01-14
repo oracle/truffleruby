@@ -71,6 +71,26 @@ void rb_sys_fail(const char *message) {
   rb_syserr_fail(n, message);
 }
 
+VALUE rb_syserr_new_str(int n, VALUE mesg) {
+  return RUBY_CEXT_INVOKE("rb_syserr_new", INT2FIX(n), mesg);
+}
+
+VALUE make_errno_exc_str(VALUE mesg) {
+  int n = errno;
+
+  errno = 0;
+  if (!mesg) mesg = Qnil;
+  if (n == 0) {
+    const char *s = !NIL_P(mesg) ? RSTRING_PTR(mesg) : "";
+    rb_bug("rb_sys_fail_str(%s) - errno == 0", s);
+  }
+  return rb_syserr_new_str(n, mesg);
+}
+
+void rb_sys_fail_str(VALUE mesg) {
+  rb_exc_raise(make_errno_exc_str(mesg));
+}
+
 VALUE (*cext_rb_ensure)(VALUE (*b_proc)(VALUE), void* data1, VALUE (*e_proc)(VALUE), void* data2);
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {

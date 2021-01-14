@@ -293,6 +293,7 @@ suite = {
                 "src/main/c/cext/<lib:truffleruby>",
                 "src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                 "src/main/c/etc/<extsuffix:etc>",
+                "src/main/c/io-console/<extsuffix:console>",
                 "src/main/c/nkf/<extsuffix:nkf>",
                 "src/main/c/openssl/<extsuffix:openssl>",
                 "src/main/c/psych/<extsuffix:psych>",
@@ -461,6 +462,9 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/ripper/<extsuffix:ripper>",
                     "dependency:org.truffleruby.cext/src/main/c/syslog/<extsuffix:syslog>",
                     "dependency:org.truffleruby.cext/src/main/c/zlib/<extsuffix:zlib>",
+                ],
+                "lib/mri/io/": [
+                    "dependency:org.truffleruby.cext/src/main/c/io-console/<extsuffix:console>",
                 ],
                 "lib/mri/rbconfig/": [
                     "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/<extsuffix:sizeof>",

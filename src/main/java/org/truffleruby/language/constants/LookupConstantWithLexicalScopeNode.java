@@ -41,7 +41,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
 
     @SuppressFBWarnings("ES")
     @Override
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName) {
         assert name == this.name;
         return executeLookupConstant();
     }

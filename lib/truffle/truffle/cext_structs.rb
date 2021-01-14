@@ -32,6 +32,10 @@ module Truffle::CExt
   def RARRAY_PTR(array)
     RArrayPtr.new(array)
   end
+
+  def RFILE(file)
+    RFile.new(RBASIC(file), GetOpenFile(file))
+  end
 end
 
 # Used by RData.
@@ -333,6 +337,8 @@ end
 class Truffle::CExt::RbIO
   def initialize(io)
     @io = io
+    Primitive.object_hidden_var_set(io, Truffle::CExt::RB_IO_STRUCT, self)
+    @tied_io_for_writing = false
   end
 
   private
@@ -342,7 +348,7 @@ class Truffle::CExt::RbIO
   end
 
   def polyglot_members(internal)
-    ['fd', 'mode']
+    ['stdio_file', 'fd', 'mode', 'pathv', 'pid', 'lineno', 'tied_io_for_writing']
   end
 
   def polyglot_read_member(name)
@@ -351,13 +357,26 @@ class Truffle::CExt::RbIO
       Primitive.io_fd(@io)
     when 'mode'
       @io.instance_variable_get(:@mode)
+    when 'pathv'
+      Primitive.cext_wrap(@pathv)
+    when 'tied_io_for_writing'
+      Primitive.cext_wrap(@tied_io_for_writing)
     else
       raise Truffle::Interop::UnknownIdentifierException
     end
   end
 
   def polyglot_write_member(name, value)
-    raise Truffle::Interop::UnsupportedMessageException
+    case name
+    when 'mode'
+      @io.instance_variable_set(:@mode, value)
+    when 'pathv'
+      @pathv = Primitive.cext_unwrap(value)
+    when 'tied_io_for_writing'
+      @tied_io_for_writing = Primitive.cext_unwrap(value)
+    else
+      raise Truffle::Interop::UnknownIdentifierException
+    end
   end
 
   def polyglot_remove_member(name)
@@ -369,11 +388,11 @@ class Truffle::CExt::RbIO
   end
 
   def polyglot_member_readable?(name)
-    name == 'fd' || name == 'mode'
+    name == 'fd' || name == 'mode' || name == 'pathv' || 'tied_io_for_writing'
   end
 
   def polyglot_member_modifiable?(name)
-    false
+    name == 'mode' || name == 'pathv' || 'tied_io_for_writing'
   end
 
   def polyglot_member_removable?(name)
@@ -507,5 +526,75 @@ class Truffle::CExt::RbEncoding
     pointer = @pointer
     raise Truffle::Interop::UnsupportedMessageException if Primitive.nil?(pointer)
     Truffle::Interop.as_pointer(pointer)
+  end
+end
+
+class Truffle::CExt::RFile
+  def initialize(basic, file)
+    @basic = basic
+    @fptr = file
+  end
+
+  def polyglot_has_members?
+    true
+  end
+
+  def polyglot_members(internal)
+    ['basic', 'fptr']
+  end
+
+  def polyglot_read_member(name)
+    case name
+    when 'basic'
+      @basic
+    when 'fptr'
+      @fptr
+    else
+      raise Truffle::Interop::UnknownIdentifierException
+    end
+  end
+
+  def polyglot_write_member(name, value)
+    raise Truffle::Interop::UnsupportedMessageException
+  end
+
+  def polyglot_remove_member(name)
+    raise Truffle::Interop::UnsupportedMessageException
+  end
+
+  def polyglot_invoke_member(name, *args)
+    raise Truffle::Interop::UnsupportedMessageException
+  end
+
+  def polyglot_member_readable?(name)
+    name == 'basic' || name == 'fptr'
+  end
+
+  def polyglot_member_modifiable?(name)
+    false
+  end
+
+  def polyglot_member_removable?(name)
+    false
+  end
+
+  def polyglot_member_insertable?(name)
+    false
+  end
+
+  def polyglot_member_invocable?(name)
+    false
+  end
+
+  def polyglot_member_internal?(name)
+    false
+  end
+
+  def polyglot_has_member_read_side_effects?(name)
+    false
+  end
+
+  def polyglot_has_member_write_side_effects?(name)
+    true
   end
 end

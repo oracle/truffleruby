@@ -39,7 +39,7 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
+import org.truffleruby.core.module.ModuleNodes.ConstSetUncheckedNode;
 import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
@@ -679,7 +679,8 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbConstGet(RubyModule module, String name) {
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
+            return getConstantNode
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
         }
 
     }
@@ -699,7 +700,8 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbConstGetFrom(RubyModule module, String name) {
-            return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
+            return getConstantNode
+                    .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, false, lookupConstantNode);
         }
 
     }
@@ -717,8 +719,8 @@ public class CExtNodes {
 
         @Specialization
         protected Object rbConstSet(RubyModule module, String name, Object value,
-                @Cached ConstSetNode constSetNode) {
-            return constSetNode.setConstantNoCheckName(module, name, value);
+                @Cached ConstSetUncheckedNode constSetUncheckedNode) {
+            return constSetUncheckedNode.execute(module, name, value);
         }
 
     }

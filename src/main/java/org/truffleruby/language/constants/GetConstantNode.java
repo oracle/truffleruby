@@ -45,7 +45,13 @@ public abstract class GetConstantNode extends RubyContextNode {
 
     public Object lookupAndResolveConstant(LexicalScope lexicalScope, RubyModule module, String name,
             LookupConstantInterface lookupConstantNode) {
-        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
+        return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
+    }
+
+    public Object lookupAndResolveConstant(LexicalScope lexicalScope, RubyModule module, String name, boolean checkName,
+            LookupConstantInterface lookupConstantNode) {
+        final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name, checkName);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
@@ -165,7 +171,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = autoloadConstantModule.fields;
 
-        RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+        RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
 
         // check if the constant was set in the ancestors of autoloadConstantModule
         if (resolvedConstant != null &&
@@ -179,7 +185,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             logAutoloadResult(getContext(), autoloadConstant, undefined);
 
             // redo lookup, to consider the undefined constant
-            resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
+            resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name, true);
         }
 
         return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode);

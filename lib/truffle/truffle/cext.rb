@@ -18,6 +18,7 @@ module Truffle::CExt
   DATA_MEMSIZER = Primitive.object_hidden_var_create :data_memsizer
   RB_TYPE = Primitive.object_hidden_var_create :rb_type
   ALLOCATOR_FUNC = Primitive.object_hidden_var_create :allocator_func
+  RB_IO_STRUCT = Primitive.object_hidden_var_create :rb_io_struct
 
   extend self
 
@@ -1089,6 +1090,14 @@ module Truffle::CExt
     sym.to_s
   end
 
+  def rb_const_defined?(mod, name)
+    Primitive.module_const_defined? mod, name, true, false
+  end
+
+  def rb_const_remove(mod, name)
+    Primitive.module_remove_const(mod, name)
+  end
+
   def rb_define_class_under(mod, name, superclass)
     # nil is TypeError (checked below), false is ArgumentError
     if false.equal?(superclass)
@@ -1110,14 +1119,14 @@ module Truffle::CExt
   end
 
   def rb_define_module_under(mod, name)
-    if mod.const_defined?(name, false)
-      val = mod.const_get(name, false)
+    if Primitive.module_const_defined?(mod, name, false, false)
+      val = Primitive.module_const_get(mod, name, false, false)
       unless val.class == Module
         raise TypeError, "#{mod}::#{name} is not a module"
       end
       val
     else
-      mod.const_set name, Module.new
+      rb_const_set mod, name, Module.new
     end
   end
 
@@ -1125,6 +1134,7 @@ module Truffle::CExt
     mod.define_method(name) do |*|
       raise NotImplementedError, "#{name}() function is unimplemented on this machine"
     end
+    Primitive.method_unimplement(mod.instance_method(name))
   end
 
   def rb_class_new_instance(klass, args)
@@ -1749,7 +1759,7 @@ module Truffle::CExt
   end
 
   def GetOpenFile(io)
-    RbIO.new(io)
+    Primitive.object_hidden_var_get(io, RB_IO_STRUCT) || RbIO.new(io)
   end
 
   def rb_enc_from_encoding(rb_encoding)
@@ -1821,5 +1831,9 @@ module Truffle::CExt
 
   def rb_thread_current_backtrace_locations
     Thread.current.backtrace_locations(4)
+  end
+
+  def rb_syserr_new(errno, mesg)
+    SystemCallError.new(mesg, errno)
   end
 end

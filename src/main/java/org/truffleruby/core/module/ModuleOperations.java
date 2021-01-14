@@ -226,7 +226,7 @@ public abstract class ModuleOperations {
 
     @TruffleBoundary
     public static ConstantLookupResult lookupScopedConstant(RubyContext context, RubyModule module, String fullName,
-            boolean inherit, Node currentNode) {
+            boolean inherit, Node currentNode, boolean checkName) {
         int start = 0, next;
         if (fullName.startsWith("::")) {
             module = context.getCoreLibrary().objectClass;
@@ -240,7 +240,8 @@ public abstract class ModuleOperations {
                     module,
                     segment,
                     inherit,
-                    currentNode);
+                    currentNode,
+                    checkName);
             if (!constant.isFound()) {
                 return constant;
             } else if (constant.getConstant().getValue() instanceof RubyModule) {
@@ -256,7 +257,7 @@ public abstract class ModuleOperations {
         }
 
         final String lastSegment = fullName.substring(start);
-        if (!Identifiers.isValidConstantName(lastSegment)) {
+        if (checkName && !Identifiers.isValidConstantName(lastSegment)) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().nameError(
@@ -266,13 +267,18 @@ public abstract class ModuleOperations {
                             currentNode));
         }
 
-        return lookupConstantWithInherit(context, module, lastSegment, inherit, currentNode);
+        return lookupConstantWithInherit(context, module, lastSegment, inherit, currentNode, checkName);
+    }
+
+    public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, RubyModule module, String name,
+            boolean inherit, Node currentNode) {
+        return lookupConstantWithInherit(context, module, name, inherit, currentNode, false);
     }
 
     @TruffleBoundary
     public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, RubyModule module, String name,
-            boolean inherit, Node currentNode) {
-        if (!Identifiers.isValidConstantName(name)) {
+            boolean inherit, Node currentNode, boolean checkName) {
+        if (checkName && !Identifiers.isValidConstantName(name)) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().nameError(
