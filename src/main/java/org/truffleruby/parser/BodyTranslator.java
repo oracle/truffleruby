@@ -1950,10 +1950,7 @@ public class BodyTranslator extends Translator {
 
         final boolean isProc = !isLambda;
 
-        TranslatorEnvironment methodParent = environment;
-        while (methodParent.isBlock()) {
-            methodParent = methodParent.getParent();
-        }
+        TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
         final String methodName = methodParent.getMethodName();
 
         final int blockDepth = environment.getBlockDepth() + 1;
@@ -3309,7 +3306,13 @@ public class BodyTranslator extends Translator {
 
         RubyNode readBlock = environment
                 .findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, node.getPosition());
-        final RubyNode ret = new YieldExpressionNode(unsplat, argumentsTranslated, readBlock);
+
+        final RubyNode ret = new YieldExpressionNode(
+                unsplat,
+                argumentsTranslated,
+                readBlock,
+                environment.shouldWarnYieldInModuleBody());
+
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

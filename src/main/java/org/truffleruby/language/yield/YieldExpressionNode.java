@@ -16,6 +16,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -27,24 +28,35 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public class YieldExpressionNode extends RubyContextSourceNode {
 
     private final boolean unsplat;
+    private final boolean warnInModuleBody;
 
     @Children private final RubyNode[] arguments;
     @Child private YieldNode yieldNode;
     @Child private ArrayToObjectArrayNode unsplatNode;
     @Child private RubyNode readBlockNode;
+    @Child private WarnNode warnNode;
 
     private final BranchProfile useCapturedBlock = BranchProfile.create();
     private final BranchProfile noCapturedBlock = BranchProfile.create();
 
-    public YieldExpressionNode(boolean unsplat, RubyNode[] arguments, RubyNode readBlockNode) {
+    public YieldExpressionNode(
+            boolean unsplat,
+            RubyNode[] arguments,
+            RubyNode readBlockNode,
+            boolean warnInModuleBody) {
         this.unsplat = unsplat;
         this.arguments = arguments;
         this.readBlockNode = readBlockNode;
+        this.warnInModuleBody = warnInModuleBody;
     }
 
     @ExplodeLoop
     @Override
     public final Object execute(VirtualFrame frame) {
+        if (warnInModuleBody) {
+            warnInModuleBody();
+        }
+
         Object[] argumentsObjects = new Object[arguments.length];
 
         for (int i = 0; i < arguments.length; i++) {
@@ -97,4 +109,15 @@ public class YieldExpressionNode extends RubyContextSourceNode {
         return yieldNode;
     }
 
+    private void warnInModuleBody() {
+        if (warnNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            warnNode = insert(new WarnNode());
+        }
+        if (warnNode.shouldWarnForDeprecation()) {
+            warnNode.warningMessage(
+                    getSourceSection(),
+                    "`yield' in class syntax will not be supported from Ruby 3.0. [Feature #15575]");
+        }
+    }
 }

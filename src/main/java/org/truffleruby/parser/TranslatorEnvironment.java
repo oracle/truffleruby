@@ -252,4 +252,16 @@ public class TranslatorEnvironment {
     public LexicalScope unsafeGetLexicalScope() {
         return parseEnvironment.getLexicalScope();
     }
+
+    public TranslatorEnvironment getSurroundingMethodEnvironment() {
+        TranslatorEnvironment methodParent = this;
+        while (methodParent.isBlock()) {
+            methodParent = methodParent.getParent();
+        }
+        return methodParent;
+    }
+
+    public boolean shouldWarnYieldInModuleBody() {
+        return getSurroundingMethodEnvironment().isModuleBody();
+    }
 }
