@@ -32,6 +32,7 @@ Compatibility:
 * Added beginless range support for `String#{byteslice, slice, slice!}` and `Symbol#slice` (#2211, @LillianZ).
 * Added beginless range support for `Kernel#{caller, caller_locations}` and `Thread#backtrace_locations` (#2211, @LillianZ).
 * Make rand work with exclusive range with Float (#1506, @gogainda)
+* Fixed `String#dump`'s formatting of escaped unicode characters (#2217, @meganniu).
 
 Performance:
 
