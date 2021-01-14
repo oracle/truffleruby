@@ -28,8 +28,11 @@ import org.truffleruby.RubyLanguage;
 @ExportLibrary(InteropLibrary.class)
 public final class TopScopeObject implements TruffleObject {
 
-    @CompilationFinal(dimensions = 1) private static final String[] NAMES = { "global variables", "main object" };
-    static final int LIMIT = 2;
+    @CompilationFinal(dimensions = 1) private static final String[] NAMES = {
+            "interactive local variables",
+            "global variables",
+            "main object" };
+    static final int LIMIT = NAMES.length;
 
     private final Object[] objects;
     private final int scopeIndex;
@@ -39,6 +42,7 @@ public final class TopScopeObject implements TruffleObject {
     }
 
     private TopScopeObject(Object[] objects, int index) {
+        assert objects.length == NAMES.length;
         this.objects = objects;
         this.scopeIndex = index;
     }
@@ -138,17 +142,15 @@ public final class TopScopeObject implements TruffleObject {
     boolean isMemberInsertable(String member,
             @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop) {
         int length = NAMES.length;
-        boolean wasInsertable = false;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
-            if (interop.isMemberExisting(scope, member)) {
-                return false;
-            }
             if (interop.isMemberInsertable(scope, member)) {
-                wasInsertable = true;
+                return true;
+            } else if (interop.isMemberExisting(scope, member)) {
+                return false; // saw existing member which would shadow the new member
             }
         }
-        return wasInsertable;
+        return false;
     }
 
     @ExportMessage
@@ -182,28 +184,17 @@ public final class TopScopeObject implements TruffleObject {
             @Shared("interop") @CachedLibrary(limit = "LIMIT") InteropLibrary interop)
             throws UnknownIdentifierException, UnsupportedMessageException, UnsupportedTypeException {
         int length = NAMES.length;
-        Object firstInsertableScope = null;
         for (int i = scopeIndex; i < length; i++) {
             Object scope = this.objects[i];
-            if (interop.isMemberExisting(scope, member)) {
-                // existed therefore it cannot be insertable any more
-                if (interop.isMemberModifiable(scope, member)) {
-                    interop.writeMember(scope, member, value);
-                    return;
-                } else {
-                    // we cannot modify nor insert
-                    throw UnsupportedMessageException.create();
-                }
-            }
-            if (interop.isMemberInsertable(scope, member) && firstInsertableScope == null) {
-                firstInsertableScope = scope;
+            if (interop.isMemberModifiable(scope, member) || interop.isMemberInsertable(scope, member)) {
+                interop.writeMember(scope, member, value);
+                return;
+            } else if (interop.isMemberExisting(scope, member)) {
+                // saw existing member which would shadow the new member
+                throw UnsupportedMessageException.create();
             }
         }
 
-        if (firstInsertableScope != null) {
-            interop.writeMember(firstInsertableScope, member, value);
-            return;
-        }
         throw UnsupportedMessageException.create();
     }
 

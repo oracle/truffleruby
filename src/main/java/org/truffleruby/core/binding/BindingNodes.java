@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.binding;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -31,6 +33,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
@@ -156,6 +159,42 @@ public abstract class BindingNodes {
         }
     }
 
+    /** Same as {@link LocalVariableDefinedNode} but returns false instead of raising an exception for hidden
+     * variables. */
+    @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
+    @GenerateUncached
+    public abstract static class HasLocalVariableNode extends RubyBaseNode {
+
+        public static HasLocalVariableNode create() {
+            return BindingNodesFactory.HasLocalVariableNodeGen.create();
+        }
+
+        public abstract boolean execute(RubyBinding binding, String name);
+
+        @Specialization(
+                guards = {
+                        "name == cachedName",
+                        "getFrameDescriptor(binding) == descriptor" },
+                limit = "getCacheLimit()")
+        protected boolean localVariableDefinedCached(RubyBinding binding, String name,
+                @Cached("name") String cachedName,
+                @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
+                @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot) {
+            return cachedFrameSlot != null;
+        }
+
+        @TruffleBoundary
+        @Specialization(replaces = "localVariableDefinedCached")
+        protected boolean localVariableDefinedUncached(RubyBinding binding, String name) {
+            return FindDeclarationVariableNodes.findFrameSlotOrNull(name, binding.getFrame()) != null;
+        }
+
+        protected int getCacheLimit() {
+            return RubyLanguage.getCurrentLanguage().options.BINDING_LOCAL_VARIABLE_CACHE;
+        }
+
+    }
+
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @GenerateUncached
     @GenerateNodeFactory
@@ -163,10 +202,6 @@ public abstract class BindingNodes {
     @NodeChild(value = "binding", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class LocalVariableDefinedNode extends RubySourceNode {
-
-        public static LocalVariableDefinedNode create() {
-            return BindingNodesFactory.LocalVariableDefinedNodeFactory.create(null, null);
-        }
 
         public abstract boolean execute(RubyBinding binding, String name);
 
@@ -362,32 +397,47 @@ public abstract class BindingNodes {
                 limit = "getCacheLimit()")
         protected RubyArray localVariablesCached(RubyBinding binding,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
-                @Cached("listLocalVariables(getContext(), binding.getFrame())") RubyArray names) {
+                @Cached("listLocalVariablesAsSymbols(getContext(), binding.getFrame())") RubyArray names) {
             return names;
         }
 
         @Specialization(replaces = "localVariablesCached")
         protected RubyArray localVariables(RubyBinding binding) {
-            return listLocalVariables(getContext(), binding.getFrame());
+            return listLocalVariablesAsSymbols(getContext(), binding.getFrame());
         }
 
         @TruffleBoundary
-        public RubyArray listLocalVariables(RubyContext context, MaterializedFrame frame) {
+        public RubyArray listLocalVariablesAsSymbols(RubyContext context, MaterializedFrame frame) {
             final Set<Object> names = new LinkedHashSet<>();
             while (frame != null) {
                 addNamesFromFrame(frame, names);
-
                 frame = RubyArguments.getDeclarationFrame(frame);
             }
             return ArrayHelpers.createArray(context, getLanguage(), names.toArray());
         }
 
-        private void addNamesFromFrame(Frame frame, final Set<Object> names) {
+        private void addNamesFromFrame(Frame frame, Set<Object> names) {
             for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
                 if (!isHiddenVariable(slot.getIdentifier())) {
                     names.add(getSymbol((String) slot.getIdentifier()));
                 }
             }
+        }
+
+        @TruffleBoundary
+        public static List<String> listLocalVariablesWithDuplicates(MaterializedFrame frame) {
+            List<String> members = new ArrayList<>();
+            Frame currentFrame = frame;
+            while (currentFrame != null) {
+                final FrameDescriptor frameDescriptor = currentFrame.getFrameDescriptor();
+                for (FrameSlot slot : frameDescriptor.getSlots()) {
+                    if (!isHiddenVariable(slot.getIdentifier())) {
+                        members.add(slot.getIdentifier().toString());
+                    }
+                }
+                currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
+            }
+            return members;
         }
 
         protected int getCacheLimit() {

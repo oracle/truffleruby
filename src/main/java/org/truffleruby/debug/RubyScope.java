@@ -16,9 +16,6 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -38,7 +35,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @ExportLibrary(InteropLibrary.class)
@@ -144,17 +140,7 @@ public class RubyScope implements TruffleObject {
     @ExportMessage
     @TruffleBoundary
     protected Object getMembers(boolean includeInternal) {
-        List<String> members = new ArrayList<>();
-        Frame currentFrame = frame;
-        while (currentFrame != null) {
-            final FrameDescriptor frameDescriptor = currentFrame.getFrameDescriptor();
-            for (FrameSlot slot : frameDescriptor.getSlots()) {
-                if (!BindingNodes.isHiddenVariable(slot.getIdentifier())) {
-                    members.add(slot.getIdentifier().toString());
-                }
-            }
-            currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
-        }
+        List<String> members = BindingNodes.LocalVariablesNode.listLocalVariablesWithDuplicates(frame);
         members.add(RECEIVER_MEMBER);
         return new VariableNamesObject(members.toArray(StringUtils.EMPTY_STRING_ARRAY));
     }
@@ -168,8 +154,8 @@ public class RubyScope implements TruffleObject {
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
         protected static boolean isMemberReadable(RubyScope scope, String member,
-                @Cached @Exclusive BindingNodes.LocalVariableDefinedNode localVariableDefinedNode) {
-            return localVariableDefinedNode.execute(scope.binding, member);
+                @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
+            return hasLocalVariableNode.execute(scope.binding, member);
         }
     }
 
@@ -181,9 +167,9 @@ public class RubyScope implements TruffleObject {
         }
 
         @Specialization(guards = "!RECEIVER_MEMBER.equals(member)")
-        protected static boolean isMemberReadable(RubyScope scope, String member,
-                @Cached @Exclusive BindingNodes.LocalVariableDefinedNode localVariableDefinedNode) {
-            return localVariableDefinedNode.execute(scope.binding, member);
+        protected static boolean isMemberModifiable(RubyScope scope, String member,
+                @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode) {
+            return hasLocalVariableNode.execute(scope.binding, member);
         }
     }
 

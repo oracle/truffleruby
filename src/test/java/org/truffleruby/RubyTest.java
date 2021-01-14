@@ -10,11 +10,14 @@
 package org.truffleruby;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -26,6 +29,16 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 
 public abstract class RubyTest {
+
+    public static void assertThrows(Runnable test, Consumer<PolyglotException> exceptionVerifier) {
+        try {
+            test.run();
+            fail("should have thrown");
+        } catch (PolyglotException e) {
+            assertTrue(e.isGuestException());
+            exceptionVerifier.accept(e);
+        }
+    }
 
     protected <T extends Node> void testWithNode(String text, Class<T> nodeClass, Consumer<T> test) {
         testWithAST(text, (root) -> {

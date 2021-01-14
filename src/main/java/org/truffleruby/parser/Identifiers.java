@@ -43,6 +43,15 @@ public final class Identifiers {
     }
 
     @TruffleBoundary
+    public static boolean isValidLocalVariableName(String id) {
+        if (id.isEmpty()) {
+            return false;
+        }
+        int first = id.codePointAt(0);
+        return Character.isLetter(first) && Character.isLowerCase(first) && isNameString(id, 1);
+    }
+
+    @TruffleBoundary
     public static boolean isValidClassVariableName(String id) {
         return id.startsWith("@@") && isValidIdentifier(id, 2);
     }
