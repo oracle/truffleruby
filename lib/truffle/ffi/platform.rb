@@ -61,9 +61,9 @@ module FFI
     CPU = RbConfig::CONFIG['host_cpu']
 
     ARCH = case CPU.downcase
-    when /amd64|x86_64/
+    when /amd64|x86_64|x64/
       "x86_64"
-    when /i?86|x86|i86pc/
+    when /i\d86|x86|i86pc/
       "i386"
     when /ppc64|powerpc64/
       "powerpc64"
@@ -71,13 +71,16 @@ module FFI
       "powerpc"
     when /sparcv9|sparc64/
       "sparcv9"
-    else
-      case RbConfig::CONFIG['host_cpu']
-      when /^arm/
-        "arm"
+    when /arm64|aarch64/  # MacOS calls it "arm64", other operating systems "aarch64"
+      "aarch64"
+    when /^arm/
+      if OS == "darwin"   # Ruby before 3.0 reports "arm" instead of "arm64" as host_cpu on darwin
+        "aarch64"
       else
-        RbConfig::CONFIG['host_cpu']
+        "arm"
       end
+    else
+      RbConfig::CONFIG['host_cpu']
     end
 
     private
@@ -129,7 +132,11 @@ module FFI
     end
 
     LIBC = if IS_WINDOWS
-      RbConfig::CONFIG['RUBY_SO_NAME'].split('-')[-2] + '.dll'
+      if RbConfig::CONFIG['host_os'] =~ /mingw/i
+        RbConfig::CONFIG['RUBY_SO_NAME'].split('-')[-2] + '.dll'
+      else
+        "ucrtbase.dll"
+      end
     elsif IS_GNU
       GNU_LIBC
     elsif OS == 'cygwin'

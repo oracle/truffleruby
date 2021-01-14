@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.#
 
 module FFI
-  
+
   # This module implements a couple of class methods to play with IO.
   module IO
     # @param [Integer] fd file decriptor
@@ -42,12 +42,12 @@ module FFI
 
     # @param [#read] io io to read from
     # @param [AbstractMemory] buf destination for data read from +io+
-    # @param [nil, Numeric] len maximul number of bytes to read from +io+. If +nil+, 
+    # @param [nil, Numeric] len maximul number of bytes to read from +io+. If +nil+,
     #  read until end of file.
     # @return [Numeric] length really read, in bytes
     #
     # A version of IO#read that reads data from an IO and put then into a native buffer.
-    # 
+    #
     # This will be optimized at some future time to eliminate the double copy.
     #
     def self.native_read(io, buf, len)

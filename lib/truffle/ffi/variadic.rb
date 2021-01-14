@@ -31,7 +31,7 @@
 #
 
 module FFI
-  class VariadicInvoker    
+  class VariadicInvoker
     def init(arg_types, type_map)
       @fixed = Array.new
       @type_map = type_map

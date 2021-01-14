@@ -54,7 +54,7 @@ TruffleRuby provides these non-standard methods and classes that provide additio
 
 ## FFI
 
-TruffleRuby includes a built-in implementation of [Ruby-FFI](https://github.com/ffi/ffi), compatible with version 1.12.2 of the `ffi` gem. This should be transparent: you can just install the `ffi` gem as normal, and it will use our built-in implementation, regardless of the version of the `ffi` gem.
+TruffleRuby includes a [Ruby-FFI](https://github.com/ffi/ffi) backend. This should be transparent: you can just install the `ffi` gem as normal, and it will use TruffleRuby's FFI backend. TruffleRuby also includes a default version of the FFI gem, so `require "ffi"` always works on TruffleRuby, even if the gem is not installed.
 
 ## Polyglot Programming
 

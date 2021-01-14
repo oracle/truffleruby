@@ -1,5 +1,5 @@
-# This file is from the FFI gem, and is lightly modified to define methods on
-# Truffle::FFI::Pointer, so these methods are available in core.
+# TruffleRuby: This file is from the FFI gem, and is lightly modified
+# to define methods on Truffle::FFI::Pointer, so these methods are available in core.
 # For example, #read_string is used in core.
 
 #
@@ -34,13 +34,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# require 'ffi/platform' # TruffleRuby: no require in core code
+
 # NOTE: all method definitions in this file are conditional on
 # whether they are not already defined. This is needed because
 # some Ruby implementations (e.g., TruffleRuby) might already
 # provide these methods due to using FFI internally, and we
 # should not override them to avoid warnings.
 
-module Truffle::FFI
+module Truffle::FFI # TruffleRuby: Truffle::FFI instead of Truffle::FFI
   class Pointer
 
     # Pointer size
@@ -54,7 +56,7 @@ module Truffle::FFI
 
     # @param [nil,Numeric] len length of string to return
     # @return [String]
-    # Read pointer's contents as a string, or the first +len+ bytes of the 
+    # Read pointer's contents as a string, or the first +len+ bytes of the
     # equivalent string if +len+ is not +nil+.
     def read_string(len=nil)
       if len
@@ -98,7 +100,7 @@ module Truffle::FFI
     # @param [String] str string to write
     # @param [Numeric] len length of string to return
     # @return [self]
-    # Write +str+ in pointer's contents, or first +len+ bytes if 
+    # Write +str+ in pointer's contents, or first +len+ bytes if
     # +len+ is not +nil+.
     def write_string(str, len=nil)
       len = str.bytesize unless len

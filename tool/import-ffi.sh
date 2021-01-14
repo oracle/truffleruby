@@ -29,3 +29,9 @@ git checkout spec/ffi/Gemfile spec/ffi/Gemfile.lock
 
 # Remove unused files
 rm -rf spec/ffi/embed-test
+
+set +x
+echo
+echo "Run"
+echo "$ git checkout -p src/main/ruby/truffleruby/core/truffle/ffi/pointer_extra.rb"
+echo "To restore the changes at the top of the file"

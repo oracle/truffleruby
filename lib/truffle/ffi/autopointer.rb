@@ -117,7 +117,7 @@ module FFI
     end
 
     # @abstract Base class for {AutoPointer}'s releasers.
-    #  
+    #
     #  All subclasses of Releaser should define a +#release(ptr)+ method.
     # A releaser is an object in charge of release an {AutoPointer}.
     class Releaser
