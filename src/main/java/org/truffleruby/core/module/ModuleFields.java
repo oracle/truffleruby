@@ -203,7 +203,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (rubyModule instanceof RubyClass) {
-            ((RubyClass) rubyModule).instanceShape = ((RubyClass) from).instanceShape;
             ((RubyClass) rubyModule).superclass = ((RubyClass) from).superclass;
         }
     }
