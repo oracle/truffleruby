@@ -2,6 +2,7 @@
 
 New features:
 
+* Access to local variables of the interactive Binding via language bindings is now supported: `context.getBindings("ruby").putMember("my_var", 42);` (#2030).
 
 Bug fixes:
 
