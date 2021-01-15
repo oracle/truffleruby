@@ -22,6 +22,8 @@ require 'mkmf'
 
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
+$INCFLAGS << " -I#{ENV['LIBFFI_HEADERS_DIR']}"
+$LIBS << " #{ENV['NFI_LIB_ARGS']}"
 
 if Truffle::Platform.darwin?
   # Set the install_name of libtruffleruby on macOS, so mkmf executables linking to it
