@@ -314,8 +314,17 @@ class Integer < Numeric
   def digits(base = 10)
     raise Math::DomainError, 'out of domain' if negative?
     base = Primitive.rb_to_int(base)
+    raise ArgumentError, 'negative radix' if base < 0
+    raise ArgumentError, "invalid radix #{base}" if base < 2
+    return [0] if self == 0
 
-    to_s(base).chars.map(&:to_i).reverse
+    result = []
+    x = self
+    while x > 0
+      result << x % base
+      x /= base
+    end
+    result
   end
 
   def self.sqrt(n)
