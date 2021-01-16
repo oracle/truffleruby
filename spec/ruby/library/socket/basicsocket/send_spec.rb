@@ -99,6 +99,17 @@ describe 'BasicSocket#send' do
         @server.close
       end
 
+      describe 'with an object implementing #to_str' do
+        it 'returns the amount of sent bytes' do
+          data = Class.new do
+            def to_str
+              'hello'
+            end
+          end.new
+          @client.send(data, 0, @server.getsockname).should == 5
+        end
+      end
+
       describe 'without a destination address' do
         it "raises #{SocketSpecs.dest_addr_req_error}" do
           -> { @client.send('hello', 0) }.should raise_error(SocketSpecs.dest_addr_req_error)
