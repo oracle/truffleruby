@@ -73,12 +73,12 @@ class UDPSocket < IPSocket
     super(message, flags, addr)
   end
 
-  def recvfrom_nonblock(maxlen, flags = 0, exception: true)
+  def recvfrom_nonblock(maxlen, flags = 0, buffer = nil, exception: true)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     flags = 0 if flags.nil?
 
-    internal_recvfrom(maxlen, flags | Socket::MSG_DONTWAIT, exception)
+    internal_recvfrom(maxlen, flags | Socket::MSG_DONTWAIT, buffer, exception)
   end
 
   def inspect

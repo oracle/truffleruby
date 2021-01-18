@@ -36,6 +36,8 @@ Compatibility:
 * Make rand work with exclusive range with Float (#1506, @gogainda)
 * Fixed `String#dump`'s formatting of escaped unicode characters (#2217, @meganniu).
 * Switched to the io-console C extension from C ruby for better performance and compatibility in `irb`.
+* Coerce the message to a `String` for `BasicSocket#send` (#2209, @HoneyryderChuck).
+* Support buffer argument for `UDPSocket#recvfrom_nonblock` (#2209, @HoneyryderChuck).
 
 Performance:
 

@@ -121,6 +121,7 @@ class BasicSocket < IO
   end
 
   def send(message, flags, dest_sockaddr = nil)
+    message    = StringValue(message)
     bytes      = message.bytesize
     bytes_sent = 0
 
@@ -153,8 +154,6 @@ class BasicSocket < IO
   end
 
   private def internal_recv(bytes_to_read, flags, buffer, exception)
-    raise ArgumentError, 'buffer argument not yet supported' if buffer
-
     Truffle::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
       n_bytes = Truffle::Socket::Foreign.recv(Primitive.io_fd(self), buf, bytes_to_read, flags)
 
@@ -166,7 +165,8 @@ class BasicSocket < IO
         end
       end
 
-      return buf.read_string(n_bytes)
+      str = buf.read_string(n_bytes)
+      buffer ? buffer.replace(str) : str
     end
   end
 
