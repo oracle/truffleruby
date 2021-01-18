@@ -320,10 +320,10 @@ public final class SafepointManager {
             // fast path if we are already the right thread
             action.accept(rubyThread, currentNode);
         } else {
-            pauseAllThreadsAndExecute(reason, currentNode, false, (thread, currentNode1) -> {
+            pauseAllThreadsAndExecute(reason, currentNode, false, (thread, threadCurrentNode) -> {
                 if (thread == rubyThread &&
                         threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
-                    action.accept(thread, currentNode1);
+                    action.accept(thread, threadCurrentNode);
                 }
             });
         }

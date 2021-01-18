@@ -43,7 +43,7 @@ public abstract class ObjectGraph {
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, currentNode1) -> {
+        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, node) -> {
             synchronized (visited) {
                 final Set<Object> reachable = newObjectSet();
                 // Thread.current
@@ -84,7 +84,7 @@ public abstract class ObjectGraph {
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, currentNode1) -> {
+        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, node) -> {
             synchronized (visited) {
                 visited.add(thread);
 
