@@ -8,6 +8,7 @@ Bug fixes:
 
 * `Range#to_a` wasn't working for `long` ranges (#2198, @tomstuart and @LillianZ).
 * Show the interleaved host and guest stacktrace for host exceptions (#2226).
+* Fix the label of the first location reported by `Thread#backtrace_locations` (#2229).
 
 Compatibility:
 

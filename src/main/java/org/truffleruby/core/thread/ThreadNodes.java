@@ -190,9 +190,10 @@ public abstract class ThreadNodes {
         private Object backtraceLocationsInternal(RubyThread rubyThread, int omit, int length) {
             final Memo<Object> backtraceLocationsMemo = new Memo<>(null);
 
-            final SafepointAction safepointAction = (thread1, currentNode) -> {
+            final SafepointAction safepointAction = (thread, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
-                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(getContext(), getLanguage(), length, this));
+                Object locations = backtrace.getBacktraceLocations(getContext(), getLanguage(), length, currentNode);
+                backtraceLocationsMemo.set(locations);
             };
 
             getContext()
@@ -690,9 +691,9 @@ public abstract class ThreadNodes {
                     "Thread#raise",
                     rubyThread,
                     currentNode,
-                    (currentThread, currentNode1) -> {
+                    (currentThread, threadCurrentNode) -> {
                         if (exception.backtrace == null) {
-                            exception.backtrace = context.getCallStack().getBacktrace(currentNode1);
+                            exception.backtrace = context.getCallStack().getBacktrace(threadCurrentNode);
                         }
 
                         VMRaiseExceptionNode.reRaiseException(context, exception);

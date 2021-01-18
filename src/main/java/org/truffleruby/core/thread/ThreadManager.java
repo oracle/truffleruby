@@ -332,7 +332,7 @@ public class ThreadManager {
                 "rethrow " + e.getClass() + " to main thread",
                 getRootThread(),
                 currentNode,
-                (rubyThread, actionCurrentNode) -> {
+                (rubyThread, threadCurrentNode) -> {
                     throw e;
                 });
     }
