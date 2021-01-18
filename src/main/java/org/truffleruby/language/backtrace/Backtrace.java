@@ -147,18 +147,20 @@ public class Backtrace {
 
     public static String labelFor(TruffleStackTraceElement e) {
         RootNode root = e.getTarget().getRootNode();
-        return root instanceof RubyRootNode
+        String label = root instanceof RubyRootNode
                 // Ruby backtraces do not include the class name for MRI compatibility.
                 ? ((RubyRootNode) root).getSharedMethodInfo().getBacktraceName()
                 : getRootName(root);
+        return label == null ? "<unknown>" : label;
     }
 
     public static String baseLabelFor(TruffleStackTraceElement e) {
         RootNode root = e.getTarget().getRootNode();
-        return root instanceof RubyRootNode
+        String baseLabel = root instanceof RubyRootNode
                 // Ruby backtraces do not include the class name for MRI compatibility.
                 ? ((RubyRootNode) root).getSharedMethodInfo().getMethodName()
                 : getRootName(root);
+        return baseLabel == null ? "<unknown>" : baseLabel;
     }
 
     @TruffleBoundary
