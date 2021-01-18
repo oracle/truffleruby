@@ -27,6 +27,8 @@ Compatibility:
 * Added a `Array#minmax` to override `Enumerable#minmax` (#2199, @wildmaples).
 * Implemented `chomp` parameter for `IO.{readlines, foreach}` (#2205).
 * Implemented the Debug Inspector C API.
+* Coerce the message to a `String` for `BasicSocket#send` (#2209, @HoneyryderChuck).
+* Support buffer argument for `UDPSocket#recvfrom_nonblock` (#2209, @HoneyryderChuck).
 
 Performance:
 
