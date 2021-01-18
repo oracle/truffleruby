@@ -59,6 +59,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -104,7 +105,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Thread", isClass = true)
@@ -833,36 +833,30 @@ public abstract class ThreadNodes {
 
     /** Similar to {@link ThreadManager#runUntilResult(Node, ThreadManager.BlockingAction)} but purposed for blocking
      * native calls. If the {@link SafepointManager} needs to interrupt the thread, it will send a SIGVTALRM to abort
-     * the blocking syscall and the action will return NotProvided if the syscall fails with errno=EINTR, meaning it was
-     * interrupted. */
+     * the blocking syscall and the syscall will return -1 with errno=EINTR, meaning it was interrupted. */
     @Primitive(name = "thread_run_blocking_nfi_system_call")
     public static abstract class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object runBlockingSystemCall(RubyProc block,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
-                @Cached YieldNode yieldNode) {
+        protected Object runBlockingSystemCall(Object executable, RubyArray argsArray,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @CachedLibrary(limit = "1") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
+            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
+
             final ThreadManager threadManager = getContext().getThreadManager();
             final UnblockingAction unblockingAction = threadManager.getNativeCallUnblockingAction();
-            final RubyThread thread = threadManager.getCurrentThread();
             final UnblockingActionHolder actionHolder = threadManager.getActionHolder(Thread.currentThread());
 
             final UnblockingAction oldAction = actionHolder.changeTo(unblockingAction);
+            final ThreadStatus status = thread.status;
+            thread.status = ThreadStatus.SLEEP;
             try {
-                Object result;
-                do {
-                    final ThreadStatus status = thread.status;
-                    thread.status = ThreadStatus.SLEEP;
-
-                    try {
-                        result = yieldNode.executeDispatch(block);
-                    } finally {
-                        thread.status = status;
-                    }
-                } while (loopProfile.profile(result == NotProvided.INSTANCE));
-
-                return result;
+                return InteropNodes.execute(executable, args, receivers, translateInteropExceptionNode);
             } finally {
+                thread.status = status;
                 actionHolder.restore(oldAction);
             }
         }

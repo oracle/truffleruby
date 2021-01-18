@@ -139,14 +139,9 @@ module Truffle::POSIX
         end
 
         if blocking
-          result = Primitive.thread_run_blocking_nfi_system_call -> {
-            r = bound_func.call(*args)
-            if Integer === r and r == -1 and Errno.errno == EINTR
-              undefined # retry
-            else
-              r
-            end
-          }
+          begin
+            result = Primitive.thread_run_blocking_nfi_system_call(bound_func, args)
+          end while Integer === result and result == -1 and Errno.errno == EINTR
         else
           result = bound_func.call(*args)
         end
@@ -316,6 +311,7 @@ module Truffle::POSIX
     attach_function :dup3, [:int, :int, :int], :int
   end
 
+  SELECT = method(:truffleposix_select)
 
   def self.with_array_of_ints(ints)
     if ints.empty?
@@ -514,5 +510,4 @@ module Truffle::POSIX
       end
     end
   end
-
 end

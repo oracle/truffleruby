@@ -145,12 +145,12 @@ module Truffle
         to_fds(errorable_ios, errorables_pointer)
 
         begin
-          primitive_result = Primitive.thread_run_blocking_nfi_system_call -> do
-            Truffle::POSIX.truffleposix_select(readables.size, readables_pointer,
-                                               writables.size, writables_pointer,
-                                               errorables.size, errorables_pointer,
-                                               remaining_timeout)
-          end
+          primitive_result = Primitive.thread_run_blocking_nfi_system_call(Truffle::POSIX::SELECT, [
+              readables.size, readables_pointer,
+              writables.size, writables_pointer,
+              errorables.size, errorables_pointer,
+              remaining_timeout
+          ])
 
           result =
             if primitive_result < 0
