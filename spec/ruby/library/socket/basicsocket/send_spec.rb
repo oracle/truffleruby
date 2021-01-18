@@ -101,11 +101,8 @@ describe 'BasicSocket#send' do
 
       describe 'with an object implementing #to_str' do
         it 'returns the amount of sent bytes' do
-          data = Class.new do
-            def to_str
-              'hello'
-            end
-          end.new
+          data = mock('message')
+          data.should_receive(:to_str).and_return('hello')
           @client.send(data, 0, @server.getsockname).should == 5
         end
       end
