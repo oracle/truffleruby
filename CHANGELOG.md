@@ -45,6 +45,7 @@ Performance:
 * Multi-Tier compilation is now enabled by default, which improves warmup significantly.
 * Improve the performance of checks for recursion (#2189, @LillianZ).
 * Improve random number generation performance by avoiding synchronization (#2190, @ivoanjo).
+* We now create a single call target per block by default instead of two.
 
 Changes:
 
