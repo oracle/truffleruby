@@ -81,7 +81,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         ConstantLookupResult constant = doLookup(module, name);
         boolean isVisible = isVisible(module, constant);
 
-        if (!isValidConstantNameProfile.profile(checkName && isValidConstantName(name))) {
+        if (!isValidConstantNameProfile.profile(isValidName(checkName, name))) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(name, this));
         } else if (isVisibleProfile.profile(!isVisible)) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(module, name, this));
