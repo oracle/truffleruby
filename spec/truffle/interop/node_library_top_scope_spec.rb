@@ -9,23 +9,29 @@
 # GNU Lesser General Public License version 2.1.
 #
 
-# rubocop:disable Lint/UselessAssignment
-
-a = "a"
-
 describe "NodeLibrary top scope" do
   it "returns the members" do
-    b = "b"
-    def get_top_scope
-      c = "c"
-      Primitive.top_scope
-    end
-    top_scope = get_top_scope()
+    top_scope = Primitive.top_scope
+    Truffle::Boot::INTERACTIVE_BINDING.eval('top_scope_spec_var = :top_scope_spec')
+
     scope_members = Truffle::Interop.members(top_scope)
-    ["$stdout", "is_a?"].all? { |m| scope_members.include?(m) }.should == true
+    scope_members.should.include?('top_scope_spec_var')
+    scope_members.should.include?('$stdout')
+    scope_members.should.include?('is_a?')
+
+    scope_members.index('top_scope_spec_var').should < scope_members.index('$stdout')
+    scope_members.index('$stdout').should < scope_members.index('is_a?')
+
+    top_scope["top_scope_spec_var"].should == :top_scope_spec
     top_scope["$stdout"].should == $stdout
     top_scope["is_a?"].should be_kind_of(Method)
   end
-end
 
-# rubocop:enable Lint/UselessAssignment
+  it "is separate from TOPLEVEL_BINDING" do
+    TOPLEVEL_BINDING.eval('top_scope_spec_top_binding_var = nil')
+
+    TOPLEVEL_BINDING.local_variables.should.include?(:top_scope_spec_top_binding_var)
+    Truffle::Boot::INTERACTIVE_BINDING.local_variables.should_not.include?(:top_scope_spec_top_binding_var)
+    Truffle::Interop.members(Primitive.top_scope).should_not.include?('top_scope_spec_top_binding_var')
+  end
+end

@@ -498,4 +498,18 @@ public abstract class BindingNodes {
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame);
         }
     }
+
+    @Primitive(name = "create_empty_binding")
+    public abstract static class CreateEmptyBindingNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyBinding binding(VirtualFrame frame) {
+            // Use the current frame to initialize the arguments, etc, correctly
+            final RubyBinding binding = BindingNodes
+                    .createBinding(getContext(), getLanguage(), frame.materialize(), getEncapsulatingSourceSection());
+            final MaterializedFrame newFrame = newFrame(binding, newFrameDescriptor());
+            RubyArguments.setDeclarationFrame(newFrame, null); // detach from the current frame
+            return binding;
+        }
+    }
+
 }
