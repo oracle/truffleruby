@@ -24,7 +24,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -481,14 +480,6 @@ public abstract class ModuleOperations {
 
         // Nothing found
         return null;
-    }
-
-    public static InternalMethod lookupMethod(RubyModule module, String name, Visibility visibility) {
-        final InternalMethod method = lookupMethodUncached(module, name, null);
-        if (method == null || method.isUndefined()) {
-            return null;
-        }
-        return method.getVisibility() == visibility ? method : null;
     }
 
     public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, RubyModule objectMetaClass) {
