@@ -10,10 +10,10 @@
 
 # There must be no local variables at the top scope in this file,
 # as the TOPLEVEL_BINDING should be empty until the main script is executed.
-TOPLEVEL_BINDING = binding
+TOPLEVEL_BINDING = Primitive.create_empty_binding
 
 # The Binding used for sharing top-level locals of interactive Sources
-Truffle::Boot::INTERACTIVE_BINDING = binding
+Truffle::Boot::INTERACTIVE_BINDING = Primitive.create_empty_binding
 
 module Truffle::Boot
 
