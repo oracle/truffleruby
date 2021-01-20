@@ -1697,6 +1697,7 @@ public abstract class ModuleNodes {
 
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "inherit", type = RubyNode.class)
     protected abstract static class AbstractMethodDefinedNode extends CoreMethodNode {
 
         final Visibility visibility;
@@ -1710,39 +1711,47 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @Specialization
-        protected boolean isMethodDefined(RubyModule module, String name) {
-            // TODO (pitr-ch 30-Mar-2016): cache lookup
-            return ModuleOperations.lookupMethod(module, name, visibility) != null;
+        @CreateCast("inherit")
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
+            return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
+        // TODO (pitr-ch 30-Mar-2016): cache lookup
+
+        @Specialization(guards = "inherit")
+        protected boolean isMethodDefinedInherit(RubyModule module, String name, boolean inherit) {
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
+            return method != null && !method.isUndefined() && !method.isUnimplemented() &&
+                    method.getVisibility() == visibility;
+        }
+
+        @Specialization(guards = "!inherit")
+        protected boolean isMethodDefinedDontInherit(RubyModule module, String name, boolean inherit) {
+            final InternalMethod method = module.fields.getMethod(name);
+            return method != null && !method.isUndefined() && !method.isUnimplemented() &&
+                    method.getVisibility() == visibility;
+        }
     }
 
-    @CoreMethod(names = "public_method_defined?", required = 1)
+    @CoreMethod(names = "public_method_defined?", required = 1, optional = 1)
     public abstract static class PublicMethodDefinedNode extends AbstractMethodDefinedNode {
-
         public PublicMethodDefinedNode() {
             super(Visibility.PUBLIC);
         }
-
     }
 
-    @CoreMethod(names = "protected_method_defined?", required = 1)
+    @CoreMethod(names = "protected_method_defined?", required = 1, optional = 1)
     public abstract static class ProtectedMethodDefinedNode extends AbstractMethodDefinedNode {
-
         public ProtectedMethodDefinedNode() {
             super(Visibility.PROTECTED);
         }
-
     }
 
-    @CoreMethod(names = "private_method_defined?", required = 1)
+    @CoreMethod(names = "private_method_defined?", required = 1, optional = 1)
     public abstract static class PrivateMethodDefinedNode extends AbstractMethodDefinedNode {
-
         public PrivateMethodDefinedNode() {
             super(Visibility.PRIVATE);
         }
-
     }
 
     @CoreMethod(names = "instance_methods", optional = 1)
