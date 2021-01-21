@@ -44,7 +44,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public volatile InterruptMode interruptMode;
     public volatile ThreadStatus status;
     public final List<Lock> ownedLocks;
-    public FiberManager fiberManager;
+    public final FiberManager fiberManager;
     CountDownLatch finishedLatch;
     final RubyHash threadLocalVariables;
     final RubyHash recursiveObjects;

@@ -667,17 +667,15 @@ public class ThreadManager {
         while (true) {
             try {
                 final String reason = "kill other threads for shutdown";
-                context.getSafepointManager().pauseAllThreadsAndExecute(reason, null, (thread, currentNode) -> {
-                    if (Thread.currentThread() != initiatingJavaThread) {
-                        final FiberManager fiberManager = thread.fiberManager;
-                        final RubyFiber fiber = getRubyFiberFromCurrentJavaThread();
-
-                        if (fiberManager.getCurrentFiber() == fiber) {
+                context.getSafepointManager().pauseAllThreadsAndExecute(
+                        reason,
+                        null,
+                        thread -> Thread.currentThread() != initiatingJavaThread &&
+                                getRubyFiberFromCurrentJavaThread() == thread.fiberManager.getCurrentFiber(),
+                        (thread, currentNode) -> {
                             thread.status = ThreadStatus.ABORTING;
                             throw new KillException();
-                        }
-                    }
-                });
+                        });
                 break; // Successfully executed the safepoint and sent the exceptions.
             } catch (RaiseException e) {
                 final RubyException rubyException = e.getException();
