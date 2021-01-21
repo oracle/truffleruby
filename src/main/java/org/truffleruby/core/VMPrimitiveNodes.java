@@ -296,7 +296,6 @@ public abstract class VMPrimitiveNodes {
                 try {
                     context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
                             "Handling of signal " + signal,
-                            true,
                             (rubyThread, currentNode) -> {
                                 if (rubyThread == rootThread &&
                                         threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager

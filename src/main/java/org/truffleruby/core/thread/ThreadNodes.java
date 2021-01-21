@@ -148,7 +148,7 @@ public abstract class ThreadNodes {
                     "Thread#backtrace",
                     rubyThread,
                     this,
-                    (thread, currentNode) -> {
+                    (SafepointAction.Pure) (thread, currentNode) -> {
                         final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
                         backtrace.getStackTrace(); // must be done on the thread
                         backtraceMemo.set(backtrace);
@@ -190,7 +190,7 @@ public abstract class ThreadNodes {
         private Object backtraceLocationsInternal(RubyThread rubyThread, int omit, int length) {
             final Memo<Object> backtraceLocationsMemo = new Memo<>(null);
 
-            final SafepointAction safepointAction = (thread, currentNode) -> {
+            final SafepointAction.Pure safepointAction = (thread, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
                 Object locations = backtrace.getBacktraceLocations(getContext(), getLanguage(), length, currentNode);
                 backtraceLocationsMemo.set(locations);
@@ -261,16 +261,36 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block) {
+        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block,
+                @Cached BranchProfile beforeProfile,
+                @Cached BranchProfile afterProfile) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
 
             final InterruptMode oldInterruptMode = self.interruptMode;
             self.interruptMode = newInterruptMode;
             try {
+                if (newInterruptMode == InterruptMode.IMMEDIATE) {
+                    beforeProfile.enter();
+                    runPendingSafepointActions(self);
+                }
+
                 return yield(block);
             } finally {
                 self.interruptMode = oldInterruptMode;
+
+                if (oldInterruptMode != InterruptMode.NEVER) {
+                    afterProfile.enter();
+                    runPendingSafepointActions(self);
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private void runPendingSafepointActions(RubyThread thread) {
+            SafepointAction action;
+            while ((action = thread.pendingSafepointActions.poll()) != null) {
+                action.accept(thread, this);
             }
         }
 

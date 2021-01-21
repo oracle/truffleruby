@@ -667,7 +667,7 @@ public class ThreadManager {
         while (true) {
             try {
                 final String reason = "kill other threads for shutdown";
-                context.getSafepointManager().pauseAllThreadsAndExecute(reason, null, false, (thread, currentNode) -> {
+                context.getSafepointManager().pauseAllThreadsAndExecute(reason, null, (thread, currentNode) -> {
                     if (Thread.currentThread() != initiatingJavaThread) {
                         final FiberManager fiberManager = thread.fiberManager;
                         final RubyFiber fiber = getRubyFiberFromCurrentJavaThread();

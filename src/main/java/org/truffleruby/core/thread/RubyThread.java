@@ -11,8 +11,10 @@ package org.truffleruby.core.thread;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
@@ -29,6 +31,7 @@ import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
@@ -56,6 +59,8 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public final AtomicBoolean wakeUp;
     volatile int priority;
     public ThreadLocalBuffer ioBuffer;
+    // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
+    public final Queue<SafepointAction> pendingSafepointActions = new LinkedBlockingQueue<>();
     Object threadGroup;
     String sourceLocation;
     Object name;
