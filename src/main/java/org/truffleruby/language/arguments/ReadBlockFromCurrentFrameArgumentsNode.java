@@ -20,18 +20,12 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNode {
 
-    private final Object valueIfAbsent;
-
     private final ConditionProfile nullProfile = ConditionProfile.create();
-
-    public ReadBlockFromCurrentFrameArgumentsNode(Object valueIfAbsent) {
-        this.valueIfAbsent = valueIfAbsent;
-    }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final Object block = RubyArguments.getBlockAssertType(frame);
-        return nullProfile.profile(block == null) ? valueIfAbsent : block;
+        return nullProfile.profile(block == null) ? nil : block;
     }
 
     public static class ConvertNilBlockToNotProvidedNode extends RubyContextSourceNode {

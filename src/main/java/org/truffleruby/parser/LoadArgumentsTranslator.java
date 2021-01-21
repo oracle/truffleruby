@@ -357,7 +357,7 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     public RubyNode saveMethodBlockArg() {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(Nil.INSTANCE);
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode();
         final FrameSlot slot = methodBodyTranslator
                 .getEnvironment()
                 .getFrameDescriptor()
@@ -367,7 +367,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(Nil.INSTANCE);
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode();
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
         return new WriteLocalVariableNode(slot, readNode);
     }

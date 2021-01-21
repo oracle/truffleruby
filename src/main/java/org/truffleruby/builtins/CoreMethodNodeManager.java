@@ -26,7 +26,6 @@ import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.Split;
@@ -308,7 +307,7 @@ public class CoreMethodNodeManager {
              * argument. The block coming into the method is actually always Nil or RubyProc, so here we check which and
              * convert Nil to NotProvided. */
             argumentsNodes[i++] = new ReadBlockFromCurrentFrameArgumentsNode.ConvertNilBlockToNotProvidedNode(
-                    new ReadBlockFromCurrentFrameArgumentsNode(Nil.INSTANCE));
+                    new ReadBlockFromCurrentFrameArgumentsNode());
         }
 
         if (!method.keywordAsOptional().isEmpty()) {
