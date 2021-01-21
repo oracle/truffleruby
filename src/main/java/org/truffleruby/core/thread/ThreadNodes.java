@@ -255,13 +255,13 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "handle_interrupt", required = 1, needsBlock = true, visibility = Visibility.PRIVATE)
     public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block,
+        protected Object handleInterrupt(RubyThread self, RubySymbol timing, RubyProc block,
                 @Cached BranchProfile beforeProfile,
                 @Cached BranchProfile afterProfile) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
