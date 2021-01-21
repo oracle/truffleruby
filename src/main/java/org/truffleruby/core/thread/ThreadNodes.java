@@ -40,6 +40,7 @@
  */
 package org.truffleruby.core.thread;
 
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -253,6 +254,19 @@ public abstract class ThreadNodes {
             return rubyThread;
         }
 
+    }
+
+    @CoreMethod(names = "pending_interrupt?")
+    public abstract static class PendingInterruptNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean pendingInterrupt(RubyThread self) {
+            return !isEmpty(self.pendingSafepointActions);
+        }
+
+        @TruffleBoundary
+        static boolean isEmpty(Queue<SafepointAction> queue) {
+            return queue.isEmpty();
+        }
     }
 
     @CoreMethod(names = "handle_interrupt", required = 1, needsBlock = true, visibility = Visibility.PRIVATE)

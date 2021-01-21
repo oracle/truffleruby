@@ -94,6 +94,10 @@ class Thread
     current.__send__ :handle_interrupt, timing, &block
   end
 
+  def self.pending_interrupt?
+    current.pending_interrupt?
+  end
+
   # Already set in CoreLibrary, but for clarity also defined here
   @abort_on_exception = false
   @report_on_exception = true
