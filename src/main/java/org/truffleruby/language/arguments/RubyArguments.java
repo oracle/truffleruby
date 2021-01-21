@@ -44,7 +44,7 @@ public final class RubyArguments {
             InternalMethod method,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
-            RubyProc block,
+            Object block,
             Object[] arguments) {
         return pack(
                 declarationFrame,
@@ -64,7 +64,7 @@ public final class RubyArguments {
             DeclarationContext declarationContext,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
-            RubyProc block,
+            Object block,
             Object[] arguments) {
         assert method != null;
         assert declarationContext != null;

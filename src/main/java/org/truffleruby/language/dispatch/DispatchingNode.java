@@ -12,14 +12,12 @@ package org.truffleruby.language.dispatch;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
-import org.truffleruby.core.proc.RubyProc;
-
 public interface DispatchingNode extends NodeInterface {
 
     public Object call(Object receiver, String method, Object... arguments);
 
-    public Object callWithBlock(Object receiver, String method, RubyProc block, Object... arguments);
+    public Object callWithBlock(Object receiver, String method, Object block, Object... arguments);
 
-    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments);
+    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments);
 
 }

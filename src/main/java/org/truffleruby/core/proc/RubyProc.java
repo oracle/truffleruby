@@ -42,7 +42,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public final MaterializedFrame declarationFrame;
     public final SpecialVariableStorage declarationVariables;
     public final InternalMethod method;
-    public final RubyProc block;
+    public final Object block;
     public final FrameOnStackMarker frameOnStackMarker;
     public final DeclarationContext declarationContext;
 
@@ -56,7 +56,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationVariables,
             InternalMethod method,
-            RubyProc block,
+            Object block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);

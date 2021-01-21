@@ -47,7 +47,7 @@ public class InternalMethod implements ObjectGraphNode {
 
     private final CachedSupplier<RootCallTarget> callTargetSupplier;
     @CompilationFinal private RootCallTarget callTarget;
-    private final RubyProc capturedBlock;
+    private final Object capturedBlock;
 
     public static InternalMethod fromProc(
             RubyContext context,
@@ -134,7 +134,7 @@ public class InternalMethod implements ObjectGraphNode {
             RubyProc proc,
             RootCallTarget callTarget,
             CachedSupplier<RootCallTarget> callTargetSupplier,
-            RubyProc capturedBlock) {
+            Object capturedBlock) {
         this(
                 sharedMethodInfo,
                 lexicalScope,
@@ -166,7 +166,7 @@ public class InternalMethod implements ObjectGraphNode {
             RubyProc proc,
             RootCallTarget callTarget,
             CachedSupplier<RootCallTarget> callTargetSupplier,
-            RubyProc capturedBlock) {
+            Object capturedBlock) {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
@@ -428,7 +428,7 @@ public class InternalMethod implements ObjectGraphNode {
         }
     }
 
-    public RubyProc getCapturedBlock() {
+    public Object getCapturedBlock() {
         return capturedBlock;
     }
 

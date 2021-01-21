@@ -9,7 +9,6 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -38,7 +37,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyProc block = RubyArguments.getBlock(frame);
+        final Object block = RubyArguments.getBlock(frame);
 
         if (noBlockProfile.profile(block == null)) {
             if (toEnumWithSize == null) {
