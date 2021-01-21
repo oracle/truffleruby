@@ -131,7 +131,7 @@ public final class SafepointManager {
             return; // interrupt me later
         }
 
-        final SafepointAction deferredAction = step(currentNode, false);
+        final SafepointAction deferredAction = step(currentNode, false, null);
 
         // We're now running again normally and can run deferred actions
         if (deferredAction != null) {
@@ -140,14 +140,14 @@ public final class SafepointManager {
     }
 
     @TruffleBoundary
-    private SafepointAction step(Node currentNode, boolean isDrivingThread) {
+    private SafepointAction step(Node currentNode, boolean isDrivingThread, String reason) {
         assert isDrivingThread == lock.isHeldByCurrentThread();
 
         final RubyThread thread = context.getThreadManager().getCurrentThread();
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
-            driveArrivalAtPhaser();
+            driveArrivalAtPhaser(reason);
             language.resetSafepointAssumption();
             this.active = false;
         } else {
@@ -177,7 +177,7 @@ public final class SafepointManager {
     // Currently 6 on JVM and 9 on SVM, adding some margin to be robust to changes
     private static final int STEP_BACKTRACE_MAX_OFFSET = 12;
 
-    private void driveArrivalAtPhaser() {
+    private void driveArrivalAtPhaser(String reason) {
         int phase = phaser.arrive();
         long t0 = System.nanoTime();
         long max = t0 + TimeUnit.SECONDS.toNanos(WAIT_TIME_IN_SECONDS);
@@ -192,10 +192,11 @@ public final class SafepointManager {
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
                     RubyLanguage.LOGGER.severe(String.format(
-                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call - check with jstack",
+                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking call - reason for the safepoint: %s",
                             waits * WAIT_TIME_IN_SECONDS,
                             phaser.getUnarrivedParties(),
-                            phaser.getRegisteredParties()));
+                            phaser.getRegisteredParties(),
+                            reason));
                     if (waits == 1) {
                         printStacktracesOfBlockedThreads();
                         restoreDefaultInterruptHandler();
@@ -339,7 +340,7 @@ public final class SafepointManager {
         language.invalidateSafepointAssumption(reason);
         interruptOtherThreads();
 
-        step(currentNode, true);
+        step(currentNode, true, reason);
     }
 
     private void interruptOtherThreads() {
