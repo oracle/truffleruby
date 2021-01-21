@@ -24,7 +24,7 @@ public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNod
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object block = RubyArguments.getBlockAssertType(frame);
+        final Object block = RubyArguments.getBlock(frame);
         return nullProfile.profile(block == null) ? nil : block;
     }
 

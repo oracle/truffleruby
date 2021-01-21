@@ -155,12 +155,8 @@ public final class RubyArguments {
     }
 
     public static Object getBlock(Frame frame) {
-        return frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
-    }
-
-    /** A variant of getBlock() when the return type does not need to be RubyProc and which avoids the extra cast. */
-    public static Object getBlockAssertType(Frame frame) {
         final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
+        /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
         assert block instanceof Nil || block instanceof RubyProc : block;
         return block;
     }
