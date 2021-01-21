@@ -93,7 +93,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        if (RubyArguments.getBlock(frame) == null) {
+        if (RubyArguments.getBlock(frame) == nil) {
             return nil;
         } else {
             return coreStrings().YIELD.createInstance(context);
