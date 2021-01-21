@@ -58,19 +58,60 @@ describe "Thread.handle_interrupt" do
     make_handle_interrupt_thread(RuntimeError => :immediate).should == [:interrupted]
   end
 
-  it "with :immediate immediately runs pending interrupts" do
+  it "with :immediate immediately runs pending interrupts, before the block" do
     Thread.handle_interrupt(RuntimeError => :never) do
       current = Thread.current
       Thread.new {
-        current.raise "interrupt"
+        current.raise "interrupt immediate"
       }.join
 
+      Thread.pending_interrupt?.should == true
       -> {
         Thread.handle_interrupt(RuntimeError => :immediate) {
           flunk "not reached"
         }
-      }.should raise_error(RuntimeError, "interrupt")
+      }.should raise_error(RuntimeError, "interrupt immediate")
+      Thread.pending_interrupt?.should == false
     end
+  end
+
+  it "also works with suspended Fibers and does not duplicate interrupts" do
+    fiber = Fiber.new { Fiber.yield }
+    fiber.resume
+
+    Thread.handle_interrupt(RuntimeError => :never) do
+      current = Thread.current
+      Thread.new {
+        current.raise "interrupt with fibers"
+      }.join
+
+      Thread.pending_interrupt?.should == true
+      -> {
+        Thread.handle_interrupt(RuntimeError => :immediate) {
+          flunk "not reached"
+        }
+      }.should raise_error(RuntimeError, "interrupt with fibers")
+      Thread.pending_interrupt?.should == false
+    end
+
+    fiber.resume
+  end
+
+  it "runs pending interrupts at the end of the block, even if there was an exception raised in the block" do
+    executed = false
+    -> {
+      Thread.handle_interrupt(RuntimeError => :never) do
+        current = Thread.current
+        Thread.new {
+          current.raise "interrupt exception"
+        }.join
+
+        Thread.pending_interrupt?.should == true
+        executed = true
+        raise "regular exception"
+      end
+    }.should raise_error(RuntimeError, "interrupt exception")
+    executed.should == true
   end
 
   it "supports multiple pairs in the Hash" do
