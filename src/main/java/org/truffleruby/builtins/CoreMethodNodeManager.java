@@ -26,7 +26,7 @@ import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.Split;
@@ -304,7 +304,11 @@ public class CoreMethodNodeManager {
         }
 
         if (method.needsBlock()) {
-            argumentsNodes[i++] = new ReadBlockFromCurrentFrameArgumentsNode(NotProvided.INSTANCE);
+            /* The way we write specializations for getting a block or not is that we use NotProvided like a missing
+             * argument. The block coming into the method is actually always Nil or RubyProc, so here we check which and
+             * convert Nil to NotProvided. */
+            argumentsNodes[i++] = new ReadBlockFromCurrentFrameArgumentsNode.ConvertNilBlockToNotProvidedNode(
+                    new ReadBlockFromCurrentFrameArgumentsNode(Nil.INSTANCE));
         }
 
         if (!method.keywordAsOptional().isEmpty()) {
