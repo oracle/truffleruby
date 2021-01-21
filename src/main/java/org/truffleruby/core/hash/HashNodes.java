@@ -231,8 +231,8 @@ public abstract class HashNodes {
 
     }
 
-    @CoreMethod(names = "_get_or_undefined", required = 1)
-    public abstract static class GetOrUndefinedNode extends CoreMethodArrayArgumentsNode implements BiFunctionNode {
+    @Primitive(name = "hash_get_or_undefined")
+    public abstract static class GetOrUndefinedNode extends PrimitiveArrayArgumentsNode implements BiFunctionNode {
 
         @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
 
