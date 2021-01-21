@@ -9,6 +9,7 @@ Bug fixes:
 * `Range#to_a` wasn't working for `long` ranges (#2198, @tomstuart and @LillianZ).
 * Show the interleaved host and guest stacktrace for host exceptions (#2226).
 * Fix the label of the first location reported by `Thread#backtrace_locations` (#2229).
+* Fix `Thread.handle_interrupt` to defer non-pure interrupts until the end of the `handle_interrupt` block (#2219).
 
 Compatibility:
 
@@ -41,6 +42,7 @@ Compatibility:
 * Support buffer argument for `UDPSocket#recvfrom_nonblock` (#2209, @HoneyryderChuck).
 * Fixed `Integer#digits` implementation to handle more bases (#2224, #2225).
 * Support the `inherit` parameter for `Module#{private, protected, public}_method_defined?`.
+* Implement `Thread.pending_interrupt?` and `Thread#pending_interrupt?` (#2219).
 
 Performance:
 
