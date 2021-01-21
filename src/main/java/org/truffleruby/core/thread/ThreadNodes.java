@@ -286,7 +286,7 @@ public abstract class ThreadNodes {
             try {
                 if (newInterruptMode == InterruptMode.IMMEDIATE) {
                     beforeProfile.enter();
-                    runPendingSafepointActions(self);
+                    runPendingSafepointActions(self, "before");
                 }
 
                 return yield(block);
@@ -295,15 +295,19 @@ public abstract class ThreadNodes {
 
                 if (oldInterruptMode != InterruptMode.NEVER) {
                     afterProfile.enter();
-                    runPendingSafepointActions(self);
+                    runPendingSafepointActions(self, "after");
                 }
             }
         }
 
         @TruffleBoundary
-        private void runPendingSafepointActions(RubyThread thread) {
+        private void runPendingSafepointActions(RubyThread thread, String when) {
             SafepointAction action;
             while ((action = thread.pendingSafepointActions.poll()) != null) {
+                if (getContext().getOptions().LOG_PENDING_INTERRUPTS) {
+                    RubyLanguage.LOGGER
+                            .info("Running pending interrupt " + action + " " + when + " Thread.handle_interrupt");
+                }
                 action.accept(thread, this);
             }
         }
