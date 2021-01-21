@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.FrameAndVariables;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -82,7 +83,14 @@ public final class RubyArguments {
         packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
-        packed[ArgumentIndicies.BLOCK.ordinal()] = block;
+
+        /* The block in the arguments array is always either a Nil or RubyProc. The conversion from null if the caller
+         * doesn't want to provide a block is done at the caller, because it will know the type of values within its
+         * compilation unit.
+         *
+         * When you read the block back out in the callee, you'll therefore get a Nil or RubyProc. */
+        assert block == null || block instanceof Nil || block instanceof RubyProc : block;
+        packed[ArgumentIndicies.BLOCK.ordinal()] = block == null ? Nil.INSTANCE : block;
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
