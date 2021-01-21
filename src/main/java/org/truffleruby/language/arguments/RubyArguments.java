@@ -154,14 +154,14 @@ public final class RubyArguments {
         return frame.getArguments()[ArgumentIndicies.SELF.ordinal()];
     }
 
-    public static RubyProc getBlock(Frame frame) {
-        return (RubyProc) frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
+    public static Object getBlock(Frame frame) {
+        return frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
     }
 
     /** A variant of getBlock() when the return type does not need to be RubyProc and which avoids the extra cast. */
     public static Object getBlockAssertType(Frame frame) {
         final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
-        assert block == null || block instanceof RubyProc : block;
+        assert block instanceof Nil || block instanceof RubyProc : block;
         return block;
     }
 
