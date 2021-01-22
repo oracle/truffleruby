@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
@@ -40,6 +41,7 @@ import com.oracle.truffle.api.object.Shape;
 
 public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
+    // All fields are explicitly initialized in the constructor to make the ordering clear
     public final ThreadLocalGlobals threadLocalGlobals;
     public volatile InterruptMode interruptMode;
     public volatile ThreadStatus status;
@@ -59,8 +61,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public final AtomicBoolean wakeUp;
     volatile int priority;
     public ThreadLocalBuffer ioBuffer;
-    // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
-    public final Queue<SafepointAction> pendingSafepointActions = new LinkedBlockingQueue<>();
+    public final Queue<SafepointAction> pendingSafepointActions;
     Object threadGroup;
     String sourceLocation;
     Object name;
@@ -97,6 +98,8 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         this.wakeUp = new AtomicBoolean(false);
         this.priority = Thread.NORM_PRIORITY;
         this.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
+        // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
+        this.pendingSafepointActions = newLinkedBlockingQueue();
         this.threadGroup = threadGroup;
         this.sourceLocation = sourceLocation;
         this.name = Nil.INSTANCE;
@@ -108,6 +111,11 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, threadLocalVariables);
         ObjectGraph.addProperty(reachable, name);
+    }
+
+    @TruffleBoundary
+    private static LinkedBlockingQueue<SafepointAction> newLinkedBlockingQueue() {
+        return new LinkedBlockingQueue<>();
     }
 
 }
