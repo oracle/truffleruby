@@ -89,6 +89,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> BUILDING_CORE_CEXTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_TRANSLATION_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PREINITIALIZATION_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
@@ -627,6 +628,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor LOG_DYNAMIC_CONSTANT_LOOKUP = OptionDescriptor
             .newBuilder(LOG_DYNAMIC_CONSTANT_LOOKUP_KEY, "ruby.constant-dynamic-lookup-log")
             .help("Log source code positions where dynamic constant lookup is performed")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LOG_PENDING_INTERRUPTS = OptionDescriptor
+            .newBuilder(LOG_PENDING_INTERRUPTS_KEY, "ruby.log-pending-interrupts")
+            .help("Log when executing pending interrupts")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1177,6 +1185,8 @@ public class OptionsCatalog {
                 return LAZY_TRANSLATION_LOG;
             case "ruby.constant-dynamic-lookup-log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
+            case "ruby.log-pending-interrupts":
+                return LOG_PENDING_INTERRUPTS;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
@@ -1369,6 +1379,7 @@ public class OptionsCatalog {
             BUILDING_CORE_CEXTS,
             LAZY_TRANSLATION_LOG,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
+            LOG_PENDING_INTERRUPTS,
             ROPE_PRINT_INTERN_STATS,
             PREINITIALIZATION,
             LAZY_BUILTINS,

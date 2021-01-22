@@ -11,11 +11,14 @@ package org.truffleruby.core.thread;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
@@ -29,6 +32,7 @@ import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
@@ -37,28 +41,31 @@ import com.oracle.truffle.api.object.Shape;
 
 public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
-    public final ThreadLocalGlobals threadLocalGlobals;
-    public volatile InterruptMode interruptMode;
-    public volatile ThreadStatus status;
-    public final List<Lock> ownedLocks;
-    public FiberManager fiberManager;
-    CountDownLatch finishedLatch;
+    // Fields initialized here are initialized just after the super() call, and before the rest of the constructor
+    public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
+    public volatile InterruptMode interruptMode = InterruptMode.IMMEDIATE;
+    public volatile ThreadStatus status = ThreadStatus.RUN;
+    public final List<Lock> ownedLocks = new ArrayList<>();
+    public final FiberManager fiberManager;
+    CountDownLatch finishedLatch = new CountDownLatch(1);
     final RubyHash threadLocalVariables;
     final RubyHash recursiveObjects;
     final RubyHash recursiveObjectsSingle;
     final RubyRandomizer randomizer;
-    public final TracePointState tracePointState;
+    public final TracePointState tracePointState = new TracePointState();
     boolean reportOnException;
     boolean abortOnException;
-    public volatile Thread thread;
-    volatile RubyException exception;
-    volatile Object value;
-    public final AtomicBoolean wakeUp;
-    volatile int priority;
-    public ThreadLocalBuffer ioBuffer;
+    public volatile Thread thread = null;
+    volatile RubyException exception = null;
+    volatile Object value = null;
+    public final AtomicBoolean wakeUp = new AtomicBoolean(false);
+    volatile int priority = Thread.NORM_PRIORITY;
+    public ThreadLocalBuffer ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
+    // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
+    public final Queue<SafepointAction> pendingSafepointActions = newLinkedBlockingQueue();
     Object threadGroup;
     String sourceLocation;
-    Object name;
+    Object name = Nil.INSTANCE;
 
     public RubyThread(
             RubyClass rubyClass,
@@ -70,31 +77,16 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
             Object threadGroup,
             String sourceLocation) {
         super(rubyClass, shape);
-        this.threadLocalGlobals = new ThreadLocalGlobals();
-        this.interruptMode = InterruptMode.IMMEDIATE;
-        this.status = ThreadStatus.RUN;
-        this.ownedLocks = new ArrayList<>();
-        this.finishedLatch = new CountDownLatch(1);
         this.threadLocalVariables = HashOperations.newEmptyHash(context, language);
         this.recursiveObjects = HashOperations.newEmptyHash(context, language);
         this.recursiveObjectsSingle = HashOperations.newEmptyHash(context, language);
         this.recursiveObjectsSingle.compareByIdentity = true;
-        this.randomizer = RandomizerNodes.newRandomizer(
-                context,
-                language,
-                false); // This random instance is only for this thread and thus does not need to be thread-safe
-        this.tracePointState = new TracePointState();
+        // This random instance is only for this thread and thus does not need to be thread-safe
+        this.randomizer = RandomizerNodes.newRandomizer(context, language, false);
         this.reportOnException = reportOnException;
         this.abortOnException = abortOnException;
-        this.thread = null;
-        this.exception = null;
-        this.value = null;
-        this.wakeUp = new AtomicBoolean(false);
-        this.priority = Thread.NORM_PRIORITY;
-        this.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
         this.threadGroup = threadGroup;
         this.sourceLocation = sourceLocation;
-        this.name = Nil.INSTANCE;
         // Initialized last as it captures `this`
         this.fiberManager = new FiberManager(language, context, this);
     }
@@ -103,6 +95,11 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, threadLocalVariables);
         ObjectGraph.addProperty(reachable, name);
+    }
+
+    @TruffleBoundary
+    private static LinkedBlockingQueue<SafepointAction> newLinkedBlockingQueue() {
+        return new LinkedBlockingQueue<>();
     }
 
 }

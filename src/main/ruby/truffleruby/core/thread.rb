@@ -84,11 +84,18 @@ class Thread
   end
 
   def self.handle_interrupt(config, &block)
-    unless config.is_a?(Hash) and config.size == 1
+    unless Primitive.object_kind_of?(config, Hash)
       raise ArgumentError, 'unknown mask signature'
     end
-    exception, timing = config.first
-    current.__send__ :handle_interrupt, exception, timing, &block
+    timing = config.first[1]
+    config.each_value do |v|
+      raise ArgumentError, 'inconsistent timings not yet supported' unless v == timing
+    end
+    current.__send__ :handle_interrupt, timing, &block
+  end
+
+  def self.pending_interrupt?
+    current.pending_interrupt?
   end
 
   # Already set in CoreLibrary, but for clarity also defined here

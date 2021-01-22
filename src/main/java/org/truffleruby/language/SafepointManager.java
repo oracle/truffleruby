@@ -60,8 +60,8 @@ public final class SafepointManager {
      * per context. */
     private volatile boolean active = false;
 
+    private volatile SafepointPredicate filter;
     private volatile SafepointAction action;
-    private volatile boolean deferred;
 
     public SafepointManager(RubyContext context, RubyLanguage language) {
         this.context = context;
@@ -126,28 +126,27 @@ public final class SafepointManager {
         final boolean interruptible = (interruptMode == InterruptMode.IMMEDIATE) ||
                 (fromBlockingCall && interruptMode == InterruptMode.ON_BLOCKING);
 
-        if (!interruptible) {
-            Thread.currentThread().interrupt(); // keep the interrupt flag
-            return; // interrupt me later
-        }
-
-        final SafepointAction deferredAction = step(currentNode, false);
+        final SafepointAction deferredAction = step(currentNode, false, null);
 
         // We're now running again normally and can run deferred actions
         if (deferredAction != null) {
-            deferredAction.accept(thread, currentNode);
+            if (interruptible) {
+                deferredAction.accept(thread, currentNode);
+            } else {
+                thread.pendingSafepointActions.add(deferredAction);
+            }
         }
     }
 
     @TruffleBoundary
-    private SafepointAction step(Node currentNode, boolean isDrivingThread) {
+    private SafepointAction step(Node currentNode, boolean isDrivingThread, String reason) {
         assert isDrivingThread == lock.isHeldByCurrentThread();
 
         final RubyThread thread = context.getThreadManager().getCurrentThread();
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
-            driveArrivalAtPhaser();
+            driveArrivalAtPhaser(reason);
             language.resetSafepointAssumption();
             this.active = false;
         } else {
@@ -157,12 +156,16 @@ public final class SafepointManager {
         // Wait for the assumption to be renewed
         phaser.arriveAndAwaitAdvance();
 
-        // Read these while in the safepoint
-        final SafepointAction deferredAction = deferred ? action : null;
+        // Run the filter and read the action field while in the safepoint
+        SafepointAction deferredAction = null;
 
         try {
-            if (!deferred) {
-                action.accept(thread, currentNode);
+            if (filter.test(thread)) {
+                if (SafepointAction.isDeferred(action)) {
+                    deferredAction = action;
+                } else {
+                    action.accept(thread, currentNode);
+                }
             }
         } finally {
             // Wait for other threads to finish their action
@@ -177,7 +180,7 @@ public final class SafepointManager {
     // Currently 6 on JVM and 9 on SVM, adding some margin to be robust to changes
     private static final int STEP_BACKTRACE_MAX_OFFSET = 12;
 
-    private void driveArrivalAtPhaser() {
+    private void driveArrivalAtPhaser(String reason) {
         int phase = phaser.arrive();
         long t0 = System.nanoTime();
         long max = t0 + TimeUnit.SECONDS.toNanos(WAIT_TIME_IN_SECONDS);
@@ -192,10 +195,11 @@ public final class SafepointManager {
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
                     RubyLanguage.LOGGER.severe(String.format(
-                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call - check with jstack",
+                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking call - reason for the safepoint: %s",
                             waits * WAIT_TIME_IN_SECONDS,
                             phaser.getUnarrivedParties(),
-                            phaser.getRegisteredParties()));
+                            phaser.getRegisteredParties(),
+                            reason));
                     if (waits == 1) {
                         printStacktracesOfBlockedThreads();
                         restoreDefaultInterruptHandler();
@@ -257,7 +261,8 @@ public final class SafepointManager {
     }
 
     @TruffleBoundary
-    public void pauseAllThreadsAndExecute(String reason, Node currentNode, boolean deferred, SafepointAction action) {
+    public void pauseAllThreadsAndExecute(String reason, Node currentNode, SafepointPredicate filter,
+            SafepointAction action) {
         if (lock.isHeldByCurrentThread()) {
             throw new IllegalStateException("Re-entered SafepointManager");
         }
@@ -267,20 +272,22 @@ public final class SafepointManager {
             poll(language, currentNode);
         }
 
+        final SafepointAction deferredAction;
         try {
-            pauseAllThreadsAndExecute(reason, currentNode, action, deferred);
+            deferredAction = pauseAllThreadsAndExecuteInternal(reason, currentNode, filter, action);
         } finally {
             lock.unlock();
         }
 
         // Run deferred actions after leaving the SafepointManager lock.
-        if (deferred) {
+        if (deferredAction != null) {
             action.accept(context.getThreadManager().getCurrentThread(), currentNode);
         }
     }
 
     @TruffleBoundary
-    public void pauseAllThreadsAndExecuteFromNonRubyThread(String reason, boolean deferred, SafepointAction action) {
+    public void pauseAllThreadsAndExecuteFromNonRubyThread(String reason, SafepointPredicate filter,
+            SafepointAction action) {
         if (lock.isHeldByCurrentThread()) {
             throw new IllegalStateException("Re-entered SafepointManager");
         }
@@ -290,11 +297,10 @@ public final class SafepointManager {
         // Just wait to grab the lock, since we are not in the registered threads.
 
         lock.lock();
-
         try {
             enterThread();
             try {
-                pauseAllThreadsAndExecute(reason, null, action, deferred);
+                pauseAllThreadsAndExecuteInternal(reason, null, filter, action);
             } finally {
                 leaveThread();
             }
@@ -320,18 +326,21 @@ public final class SafepointManager {
             // fast path if we are already the right thread
             action.accept(rubyThread, currentNode);
         } else {
-            pauseAllThreadsAndExecute(reason, currentNode, false, (thread, threadCurrentNode) -> {
-                if (thread == rubyThread &&
-                        threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
-                    action.accept(thread, threadCurrentNode);
-                }
-            });
+            pauseAllThreadsAndExecute(
+                    reason,
+                    currentNode,
+                    SafepointPredicate.currentFiberOfThread(context, rubyThread),
+                    action);
         }
     }
 
-    private void pauseAllThreadsAndExecute(String reason, Node currentNode, SafepointAction action, boolean deferred) {
+    private SafepointAction pauseAllThreadsAndExecuteInternal(String reason, Node currentNode,
+            SafepointPredicate filter,
+            SafepointAction action) {
+        assert lock.isHeldByCurrentThread();
+
+        this.filter = filter;
         this.action = action;
-        this.deferred = deferred;
 
         /* We need to invalidate first so the interrupted threads see the invalidation in poll() in their
          * catch(InterruptedException) clause and wait on the Phaser instead of retrying their blocking action. */
@@ -339,7 +348,7 @@ public final class SafepointManager {
         language.invalidateSafepointAssumption(reason);
         interruptOtherThreads();
 
-        step(currentNode, true);
+        return step(currentNode, true, reason);
     }
 
     private void interruptOtherThreads() {

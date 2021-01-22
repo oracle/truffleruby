@@ -20,6 +20,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.SafepointPredicate;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -43,7 +45,7 @@ public abstract class ObjectGraph {
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, node) -> {
+        final SafepointAction.Pure action = (thread, node) -> {
             synchronized (visited) {
                 final Set<Object> reachable = newObjectSet();
                 // Thread.current
@@ -73,7 +75,13 @@ public abstract class ObjectGraph {
                     }
                 }
             }
-        });
+        };
+
+        context.getSafepointManager().pauseAllThreadsAndExecute(
+                reason,
+                currentNode,
+                SafepointPredicate.ALL_THREADS_AND_FIBERS,
+                action);
 
         return visited;
     }
@@ -84,7 +92,7 @@ public abstract class ObjectGraph {
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(reason, currentNode, false, (thread, node) -> {
+        final SafepointAction.Pure action = (thread, node) -> {
             synchronized (visited) {
                 visited.add(thread);
 
@@ -92,7 +100,13 @@ public abstract class ObjectGraph {
                     visitContextRoots(context, visited);
                 }
             }
-        });
+        };
+
+        context.getSafepointManager().pauseAllThreadsAndExecute(
+                reason,
+                currentNode,
+                SafepointPredicate.ALL_THREADS_AND_FIBERS,
+                action);
 
         return visited;
     }

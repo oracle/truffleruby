@@ -40,6 +40,7 @@
  */
 package org.truffleruby.core.thread;
 
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -148,7 +149,7 @@ public abstract class ThreadNodes {
                     "Thread#backtrace",
                     rubyThread,
                     this,
-                    (thread, currentNode) -> {
+                    (SafepointAction.Pure) (thread, currentNode) -> {
                         final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
                         backtrace.getStackTrace(); // must be done on the thread
                         backtraceMemo.set(backtrace);
@@ -190,7 +191,7 @@ public abstract class ThreadNodes {
         private Object backtraceLocationsInternal(RubyThread rubyThread, int omit, int length) {
             final Memo<Object> backtraceLocationsMemo = new Memo<>(null);
 
-            final SafepointAction safepointAction = (thread, currentNode) -> {
+            final SafepointAction.Pure safepointAction = (thread, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
                 Object locations = backtrace.getBacktraceLocations(getContext(), getLanguage(), length, currentNode);
                 backtraceLocationsMemo.set(locations);
@@ -255,22 +256,59 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "pending_interrupt?")
+    public abstract static class PendingInterruptNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean pendingInterrupt(RubyThread self) {
+            return !isEmpty(self.pendingSafepointActions);
+        }
+
+        @TruffleBoundary
+        static boolean isEmpty(Queue<SafepointAction> queue) {
+            return queue.isEmpty();
+        }
+    }
+
+    @CoreMethod(names = "handle_interrupt", required = 1, needsBlock = true, visibility = Visibility.PRIVATE)
     public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        protected Object handleInterrupt(RubyThread self, RubyClass exceptionClass, RubySymbol timing, RubyProc block) {
+        protected Object handleInterrupt(RubyThread self, RubySymbol timing, RubyProc block,
+                @Cached BranchProfile beforeProfile,
+                @Cached BranchProfile afterProfile) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
 
             final InterruptMode oldInterruptMode = self.interruptMode;
             self.interruptMode = newInterruptMode;
             try {
+                if (newInterruptMode == InterruptMode.IMMEDIATE) {
+                    beforeProfile.enter();
+                    runPendingSafepointActions(self, "before");
+                }
+
                 return yield(block);
             } finally {
                 self.interruptMode = oldInterruptMode;
+
+                if (oldInterruptMode != InterruptMode.NEVER) {
+                    afterProfile.enter();
+                    runPendingSafepointActions(self, "after");
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private void runPendingSafepointActions(RubyThread thread, String when) {
+            SafepointAction action;
+            while ((action = thread.pendingSafepointActions.poll()) != null) {
+                if (getContext().getOptions().LOG_PENDING_INTERRUPTS) {
+                    RubyLanguage.LOGGER
+                            .info("Running pending interrupt " + action + " " + when + " Thread.handle_interrupt");
+                }
+                action.accept(thread, this);
             }
         }
 

@@ -52,7 +52,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.RubyModule;
@@ -64,8 +63,8 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.SafepointPredicate;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
@@ -270,8 +269,6 @@ public abstract class VMPrimitiveNodes {
                 }
 
                 final RubyThread rootThread = context.getThreadManager().getRootThread();
-                final FiberManager fiberManager = rootThread.fiberManager;
-                final ThreadManager threadManager = context.getThreadManager();
 
                 // Workaround: we need to register with Truffle (which means going multithreaded),
                 // so that NFI can get its context to call pthread_kill() (GR-7405).
@@ -296,14 +293,8 @@ public abstract class VMPrimitiveNodes {
                 try {
                     context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
                             "Handling of signal " + signal,
-                            true,
-                            (rubyThread, currentNode) -> {
-                                if (rubyThread == rootThread &&
-                                        threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager
-                                                .getCurrentFiber()) {
-                                    ProcOperations.rootCall(action);
-                                }
-                            });
+                            SafepointPredicate.currentFiberOfThread(context, rootThread),
+                            (rubyThread, currentNode) -> ProcOperations.rootCall(action));
                 } finally {
                     truffleContext.leave(this, prev);
                 }

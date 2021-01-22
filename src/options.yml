@@ -145,6 +145,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Low-level logging of implementation details
     LAZY_TRANSLATION_LOG: [lazy-translation-log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
     LOG_DYNAMIC_CONSTANT_LOOKUP: [constant-dynamic-lookup-log, boolean, false, Log source code positions where dynamic constant lookup is performed]
+    LOG_PENDING_INTERRUPTS: [log-pending-interrupts, boolean, false, Log when executing pending interrupts]
     ROPE_PRINT_INTERN_STATS: [rope-print-intern-stats, boolean, false, Print interned rope stats at application exit]
 
     # Options to debug the implementation

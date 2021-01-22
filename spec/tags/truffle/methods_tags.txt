@@ -57,7 +57,6 @@ fails:Public methods on Fiber should include to_s
 fails:Public methods on Mutex should not include marshal_dump
 fails:Public methods on Thread should not include freeze
 fails:Public methods on Thread should include add_trace_func
-fails:Public methods on Thread should include pending_interrupt?
 fails:Public methods on Thread should include set_trace_func
 fails:Public methods on Proc should not include block
 fails:Public methods on Proc should not include block=

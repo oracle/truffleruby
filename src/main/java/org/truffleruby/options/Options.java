@@ -145,6 +145,8 @@ public class Options {
     public final String[] ARGV_GLOBAL_FLAGS;
     /** --building-core-cexts=false */
     public final boolean BUILDING_CORE_CEXTS;
+    /** --log-pending-interrupts=false */
+    public final boolean LOG_PENDING_INTERRUPTS;
     /** --rope-print-intern-stats=false */
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --preinit=true */
@@ -258,6 +260,7 @@ public class Options {
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
+        LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
@@ -409,6 +412,8 @@ public class Options {
                 return ARGV_GLOBAL_FLAGS;
             case "ruby.building-core-cexts":
                 return BUILDING_CORE_CEXTS;
+            case "ruby.log-pending-interrupts":
+                return LOG_PENDING_INTERRUPTS;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
