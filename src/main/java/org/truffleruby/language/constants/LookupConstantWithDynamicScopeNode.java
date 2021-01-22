@@ -15,7 +15,6 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -45,13 +44,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
             limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(LexicalScope lexicalScope,
             @Cached("lexicalScope") LexicalScope cachedLexicalScope,
-            @Cached("doLookup(cachedLexicalScope)") ConstantLookupResult constant,
-            @Cached("isVisible(cachedLexicalScope, constant)") boolean isVisible) {
-        if (!isVisible) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
-        }
+            @Cached("doLookup(cachedLexicalScope)") ConstantLookupResult constant) {
         if (constant.isDeprecated()) {
             warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), constant.getConstant(), name);
         }
@@ -60,14 +53,8 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
 
     @Specialization
     protected RubyConstant lookupConstantUncached(LexicalScope lexicalScope,
-            @Cached ConditionProfile isVisibleProfile,
             @Cached ConditionProfile isDeprecatedProfile) {
         final ConstantLookupResult constant = doLookup(lexicalScope);
-        if (isVisibleProfile.profile(!isVisible(lexicalScope, constant))) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
-        }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(constant.getConstant().getDeclaringModule(), constant.getConstant(), name);
         }
@@ -77,10 +64,6 @@ public abstract class LookupConstantWithDynamicScopeNode extends LookupConstantB
     @TruffleBoundary
     protected ConstantLookupResult doLookup(LexicalScope lexicalScope) {
         return ModuleOperations.lookupConstantWithLexicalScope(getContext(), lexicalScope, name);
-    }
-
-    protected boolean isVisible(LexicalScope lexicalScope, ConstantLookupResult constant) {
-        return constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule());
     }
 
 }
