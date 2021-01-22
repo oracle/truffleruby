@@ -43,6 +43,7 @@ Compatibility:
 * Fixed `Integer#digits` implementation to handle more bases (#2224, #2225).
 * Support the `inherit` parameter for `Module#{private, protected, public}_method_defined?`.
 * Implement `Thread.pending_interrupt?` and `Thread#pending_interrupt?` (#2219).
+* Update random implementation layout to be more compatible (#2234).
 
 Performance:
 

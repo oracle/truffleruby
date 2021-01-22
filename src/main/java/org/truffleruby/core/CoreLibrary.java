@@ -195,6 +195,7 @@ public class CoreLibrary {
     public final RubyModule truffleKernelOperationsModule;
     public final RubyModule truffleStringOperationsModule;
     public final RubyModule truffleRegexpOperationsModule;
+    public final RubyModule truffleRandomOperationsModule;
     public final RubyModule truffleThreadOperationsModule;
     public final RubyClass encodingCompatibilityErrorClass;
     public final RubyClass encodingUndefinedConversionErrorClass;
@@ -205,6 +206,9 @@ public class CoreLibrary {
     public final RubyClass threadErrorClass;
     public final RubyModule objectSpaceModule;
     public final RubyClass randomizerClass;
+    public final RubyClass prngRandomizerClass;
+    public final RubyClass secureRandomizerClass;
+    public final RubyClass customRandomizerClass;
     public final RubyClass handleClass;
     public final RubyClass ioClass;
     public final RubyClass closedQueueErrorClass;
@@ -517,6 +521,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
         defineModule(truffleModule, "ReadlineHistory");
+        truffleRandomOperationsModule = defineModule(truffleModule, "RandomOperations");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
         handleClass = defineClass(truffleModule, objectClass, "Handle");
@@ -536,7 +541,9 @@ public class CoreLibrary {
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
         randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
-
+        prngRandomizerClass = defineClass(truffleModule, randomizerClass, "PRNGRandomizer");
+        secureRandomizerClass = defineClass(truffleModule, randomizerClass, "SecureRandomizer");
+        customRandomizerClass = defineClass(truffleModule, randomizerClass, "CustomRandomizer");
         // Standard library
 
         digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
@@ -977,6 +984,7 @@ public class CoreLibrary {
             "/core/nil.rb",
             "/core/truffle/platform.rb",
             "/core/string.rb",
+            "/core/truffle/random_operations.rb",
             "/core/random.rb",
             "/core/truffle/kernel_operations.rb",
             "/core/truffle/exception_operations.rb",

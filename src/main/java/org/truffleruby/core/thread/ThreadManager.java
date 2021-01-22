@@ -31,7 +31,7 @@ import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.support.RandomizerNodes;
+import org.truffleruby.core.support.PRNGRandomizerNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.SafepointManager;
@@ -149,7 +149,7 @@ public class ThreadManager {
         rootFiber.alive = true;
         rootFiber.finishedLatch = new CountDownLatch(1);
 
-        RandomizerNodes.resetSeed(context, rootThread.randomizer);
+        PRNGRandomizerNodes.resetSeed(context, rootThread.randomizer);
     }
 
     // spawning Thread => Fiber object

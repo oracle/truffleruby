@@ -110,10 +110,16 @@ import org.truffleruby.core.string.TruffleStringNodesBuiltins;
 import org.truffleruby.core.string.TruffleStringNodesFactory;
 import org.truffleruby.core.support.ByteArrayNodesBuiltins;
 import org.truffleruby.core.support.ByteArrayNodesFactory;
+import org.truffleruby.core.support.CustomRandomizerNodesBuiltins;
+import org.truffleruby.core.support.CustomRandomizerNodesFactory;
 import org.truffleruby.core.support.IONodesBuiltins;
 import org.truffleruby.core.support.IONodesFactory;
+import org.truffleruby.core.support.PRNGRandomizerNodesBuiltins;
+import org.truffleruby.core.support.PRNGRandomizerNodesFactory;
 import org.truffleruby.core.support.RandomizerNodesBuiltins;
 import org.truffleruby.core.support.RandomizerNodesFactory;
+import org.truffleruby.core.support.SecureRandomizerNodesBuiltins;
+import org.truffleruby.core.support.SecureRandomizerNodesFactory;
 import org.truffleruby.core.support.TypeNodesBuiltins;
 import org.truffleruby.core.support.TypeNodesFactory;
 import org.truffleruby.core.support.WeakRefNodesBuiltins;
@@ -178,6 +184,7 @@ public abstract class BuiltinsClasses {
         ClassNodesBuiltins.setup(coreManager);
         ConditionVariableNodesBuiltins.setup(coreManager);
         CoverageNodesBuiltins.setup(coreManager);
+        CustomRandomizerNodesBuiltins.setup(coreManager);
         DigestNodesBuiltins.setup(coreManager);
         EncodingConverterNodesBuiltins.setup(coreManager);
         EncodingNodesBuiltins.setup(coreManager);
@@ -205,6 +212,7 @@ public abstract class BuiltinsClasses {
         ObjSpaceNodesBuiltins.setup(coreManager);
         PointerNodesBuiltins.setup(coreManager);
         PolyglotNodesBuiltins.setup(coreManager);
+        PRNGRandomizerNodesBuiltins.setup(coreManager);
         ProcessNodesBuiltins.setup(coreManager);
         ProcNodesBuiltins.setup(coreManager);
         QueueNodesBuiltins.setup(coreManager);
@@ -213,6 +221,7 @@ public abstract class BuiltinsClasses {
         ReadlineNodesBuiltins.setup(coreManager);
         ReadlineHistoryNodesBuiltins.setup(coreManager);
         RegexpNodesBuiltins.setup(coreManager);
+        SecureRandomizerNodesBuiltins.setup(coreManager);
         SizedQueueNodesBuiltins.setup(coreManager);
         StringNodesBuiltins.setup(coreManager);
         SymbolNodesBuiltins.setup(coreManager);
@@ -253,6 +262,7 @@ public abstract class BuiltinsClasses {
         ByteArrayNodesBuiltins.setupPrimitives(primitiveManager);
         CExtNodesBuiltins.setupPrimitives(primitiveManager);
         ClassNodesBuiltins.setupPrimitives(primitiveManager);
+        CustomRandomizerNodesBuiltins.setupPrimitives(primitiveManager);
         ConditionVariableNodesBuiltins.setupPrimitives(primitiveManager);
         CoverageNodesBuiltins.setupPrimitives(primitiveManager);
         DigestNodesBuiltins.setupPrimitives(primitiveManager);
@@ -282,6 +292,7 @@ public abstract class BuiltinsClasses {
         ObjSpaceNodesBuiltins.setupPrimitives(primitiveManager);
         PointerNodesBuiltins.setupPrimitives(primitiveManager);
         PolyglotNodesBuiltins.setupPrimitives(primitiveManager);
+        PRNGRandomizerNodesBuiltins.setupPrimitives(primitiveManager);
         ProcessNodesBuiltins.setupPrimitives(primitiveManager);
         ProcNodesBuiltins.setupPrimitives(primitiveManager);
         QueueNodesBuiltins.setupPrimitives(primitiveManager);
@@ -290,6 +301,7 @@ public abstract class BuiltinsClasses {
         ReadlineNodesBuiltins.setupPrimitives(primitiveManager);
         ReadlineHistoryNodesBuiltins.setupPrimitives(primitiveManager);
         RegexpNodesBuiltins.setupPrimitives(primitiveManager);
+        SecureRandomizerNodesBuiltins.setupPrimitives(primitiveManager);
         SizedQueueNodesBuiltins.setupPrimitives(primitiveManager);
         StringNodesBuiltins.setupPrimitives(primitiveManager);
         SymbolNodesBuiltins.setupPrimitives(primitiveManager);
@@ -333,6 +345,7 @@ public abstract class BuiltinsClasses {
                 ClassNodesFactory.getFactories(),
                 ConditionVariableNodesFactory.getFactories(),
                 CoverageNodesFactory.getFactories(),
+                CustomRandomizerNodesFactory.getFactories(),
                 DigestNodesFactory.getFactories(),
                 EncodingConverterNodesFactory.getFactories(),
                 EncodingNodesFactory.getFactories(),
@@ -360,6 +373,7 @@ public abstract class BuiltinsClasses {
                 ObjSpaceNodesFactory.getFactories(),
                 PointerNodesFactory.getFactories(),
                 PolyglotNodesFactory.getFactories(),
+                PRNGRandomizerNodesFactory.getFactories(),
                 ProcessNodesFactory.getFactories(),
                 ProcNodesFactory.getFactories(),
                 QueueNodesFactory.getFactories(),
@@ -368,6 +382,7 @@ public abstract class BuiltinsClasses {
                 ReadlineNodesFactory.getFactories(),
                 ReadlineHistoryNodesFactory.getFactories(),
                 RegexpNodesFactory.getFactories(),
+                SecureRandomizerNodesFactory.getFactories(),
                 SizedQueueNodesFactory.getFactories(),
                 StringNodesFactory.getFactories(),
                 SymbolNodesFactory.getFactories(),

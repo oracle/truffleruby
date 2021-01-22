@@ -30,7 +30,6 @@ cp -r ../ruby/lib lib/mri
 # Documentation, not code
 rm lib/mri/racc/rdoc/grammar.en.rdoc
 # We have our own version under lib/truffle
-rm lib/mri/securerandom.rb
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
 # Uses RubyVM

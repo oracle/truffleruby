@@ -484,21 +484,19 @@ module Kernel
   end
   module_function :puts
 
-  def rand(limit=0)
-    if limit == 0
-      return Primitive.thread_randomizer.random_float
-    end
-
-    if limit.kind_of?(Range)
-      return Primitive.thread_randomizer.random(limit)
+  def rand(limit=nil)
+    randomizer = Primitive.thread_randomizer
+    if Primitive.nil?(limit)
+      randomizer.random_float
     else
-      limit = Integer(limit).abs
-
-      if limit == 0
-        Primitive.thread_randomizer.random_float
-      else
-        Primitive.thread_randomizer.random_integer(limit - 1)
+      v = Truffle::RandomOperations.rand_range(randomizer, limit)
+      return v if v != false
+      max = Primitive.rb_to_int(limit)
+      if max != 0
+        v = Truffle::RandomOperations.rand_int(randomizer, max, false)
+        return v unless Primitive.nil?(v)
       end
+      randomizer.random_float
     end
   end
   module_function :rand

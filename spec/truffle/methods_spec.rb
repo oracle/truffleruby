@@ -25,8 +25,9 @@ modules = %w[
   Encoding Enumerable Enumerator Enumerator::Lazy Exception FalseClass Fiber
   File FileTest Float GC Hash IO Integer Kernel Marshal MatchData Math Method
   Module Mutex NilClass Numeric Object ObjectSpace Proc Process Queue Random
-  Range Rational Regexp Signal SizedQueue String Struct Symbol SystemExit Thread
-  TracePoint TrueClass UnboundMethod Warning
+  Random::Formatter Random.singleton_class Range Rational Regexp Signal
+  SizedQueue String Struct Symbol SystemExit Thread TracePoint TrueClass
+  UnboundMethod Warning
 ]
 
 requires = %w[digest]
