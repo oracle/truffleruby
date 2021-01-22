@@ -1029,6 +1029,5 @@ class Array
   alias_method :take, :take
   alias_method :drop_while, :drop_while
   alias_method :take_while, :take_while
-  alias_method :frozen?, :frozen?
   alias_method :sum, :sum
 end
