@@ -41,30 +41,31 @@ import com.oracle.truffle.api.object.Shape;
 
 public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
-    // All fields are explicitly initialized in the constructor to make the ordering clear
-    public final ThreadLocalGlobals threadLocalGlobals;
-    public volatile InterruptMode interruptMode;
-    public volatile ThreadStatus status;
-    public final List<Lock> ownedLocks;
+    // Fields initialized here are initialized just after the super() call, and before the rest of the constructor
+    public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
+    public volatile InterruptMode interruptMode = InterruptMode.IMMEDIATE;
+    public volatile ThreadStatus status = ThreadStatus.RUN;
+    public final List<Lock> ownedLocks = new ArrayList<>();
     public final FiberManager fiberManager;
-    CountDownLatch finishedLatch;
+    CountDownLatch finishedLatch = new CountDownLatch(1);
     final RubyHash threadLocalVariables;
     final RubyHash recursiveObjects;
     final RubyHash recursiveObjectsSingle;
     final RubyRandomizer randomizer;
-    public final TracePointState tracePointState;
+    public final TracePointState tracePointState = new TracePointState();
     boolean reportOnException;
     boolean abortOnException;
-    public volatile Thread thread;
-    volatile RubyException exception;
-    volatile Object value;
-    public final AtomicBoolean wakeUp;
-    volatile int priority;
-    public ThreadLocalBuffer ioBuffer;
-    public final Queue<SafepointAction> pendingSafepointActions;
+    public volatile Thread thread = null;
+    volatile RubyException exception = null;
+    volatile Object value = null;
+    public final AtomicBoolean wakeUp = new AtomicBoolean(false);
+    volatile int priority = Thread.NORM_PRIORITY;
+    public ThreadLocalBuffer ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
+    // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
+    public final Queue<SafepointAction> pendingSafepointActions = newLinkedBlockingQueue();
     Object threadGroup;
     String sourceLocation;
-    Object name;
+    Object name = Nil.INSTANCE;
 
     public RubyThread(
             RubyClass rubyClass,
@@ -76,33 +77,16 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
             Object threadGroup,
             String sourceLocation) {
         super(rubyClass, shape);
-        this.threadLocalGlobals = new ThreadLocalGlobals();
-        this.interruptMode = InterruptMode.IMMEDIATE;
-        this.status = ThreadStatus.RUN;
-        this.ownedLocks = new ArrayList<>();
-        this.finishedLatch = new CountDownLatch(1);
         this.threadLocalVariables = HashOperations.newEmptyHash(context, language);
         this.recursiveObjects = HashOperations.newEmptyHash(context, language);
         this.recursiveObjectsSingle = HashOperations.newEmptyHash(context, language);
         this.recursiveObjectsSingle.compareByIdentity = true;
-        this.randomizer = RandomizerNodes.newRandomizer(
-                context,
-                language,
-                false); // This random instance is only for this thread and thus does not need to be thread-safe
-        this.tracePointState = new TracePointState();
+        // This random instance is only for this thread and thus does not need to be thread-safe
+        this.randomizer = RandomizerNodes.newRandomizer(context, language, false);
         this.reportOnException = reportOnException;
         this.abortOnException = abortOnException;
-        this.thread = null;
-        this.exception = null;
-        this.value = null;
-        this.wakeUp = new AtomicBoolean(false);
-        this.priority = Thread.NORM_PRIORITY;
-        this.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
-        // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
-        this.pendingSafepointActions = newLinkedBlockingQueue();
         this.threadGroup = threadGroup;
         this.sourceLocation = sourceLocation;
-        this.name = Nil.INSTANCE;
         // Initialized last as it captures `this`
         this.fiberManager = new FiberManager(language, context, this);
     }
