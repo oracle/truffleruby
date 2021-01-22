@@ -38,6 +38,26 @@ describe "C-API Exception function" do
     end
   end
 
+  describe "rb_errinfo" do
+    it "is cleared when entering a C method" do
+      begin
+        raise StandardError
+      rescue
+        $!.class.should == StandardError
+        @s.rb_errinfo().should == nil
+      end
+    end
+
+    it "does not clear $! in the calling method" do
+      begin
+        raise StandardError
+      rescue
+        @s.rb_errinfo()
+        $!.class.should == StandardError
+      end
+    end
+  end
+
   describe "rb_set_errinfo" do
     after :each do
       @s.rb_set_errinfo(nil)

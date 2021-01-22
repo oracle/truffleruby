@@ -31,12 +31,16 @@ module Truffle::CExt
         args = [Primitive.cext_wrap(self), *args.map! { |arg| Primitive.cext_wrap(arg) }]
       end
 
+      exc = $!
+      Truffle::Type.set_last_exception(nil)
       # Using raw execute instead of #call here to avoid argument conversion
 
       # We must set block argument if given here so that the
       # `rb_block_*` functions will be able to find it by walking the
       # stack.
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, args, block))
+      res = Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, args, block))
+      Truffle::Type.set_last_exception(exc)
+      res
     end
 
     mod.define_method(name, method_body)

@@ -10,6 +10,7 @@ Bug fixes:
 * Show the interleaved host and guest stacktrace for host exceptions (#2226).
 * Fix the label of the first location reported by `Thread#backtrace_locations` (#2229).
 * Fix `Thread.handle_interrupt` to defer non-pure interrupts until the end of the `handle_interrupt` block (#2219).
+* Clear and restore errinfo on entry and normal return from methods in C extensions (#2227).
 
 Compatibility:
 
