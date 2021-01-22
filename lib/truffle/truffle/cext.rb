@@ -903,6 +903,10 @@ module Truffle::CExt
     {}.compare_by_identity
   end
 
+  def rb_hash_get_or_undefined(hash, key)
+    Primitive.hash_get_or_undefined(hash, key)
+  end
+
   def rb_hash_set_ifnone(hash, value)
     hash.default = value
   end

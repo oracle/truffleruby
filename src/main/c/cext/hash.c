@@ -48,7 +48,7 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value) {
-  VALUE result = RUBY_INVOKE(hash, "_get_or_undefined", key);
+  VALUE result = RUBY_CEXT_INVOKE("rb_hash_get_or_undefined", hash, key);
   if (result == Qundef) {
     result = default_value;
   }

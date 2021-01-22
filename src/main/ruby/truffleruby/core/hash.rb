@@ -143,7 +143,7 @@ class Hash
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
       each_pair do |key, value|
-        other_value = other._get_or_undefined(key)
+        other_value = Primitive.hash_get_or_undefined(other, key)
 
         # Other doesn't even have this key
         return false if Primitive.undefined?(other_value)
@@ -220,7 +220,7 @@ class Hash
   end
 
   def fetch(key, default=undefined)
-    value = _get_or_undefined(key)
+    value = Primitive.hash_get_or_undefined(self, key)
     unless Primitive.undefined?(value)
       return value
     end
@@ -342,7 +342,7 @@ class Hash
   def slice(*keys)
     res = {}
     keys.each do |k|
-      v = _get_or_undefined(k)
+      v = Primitive.hash_get_or_undefined(self, k)
       res[k] = v unless Primitive.undefined?(v)
     end
     res
@@ -428,7 +428,7 @@ class Hash
   alias_method :to_s, :inspect
 
   def key?(key)
-    !Primitive.undefined?(_get_or_undefined(key))
+    !Primitive.undefined?(Primitive.hash_get_or_undefined(self, key))
   end
   alias_method :has_key?, :key?
   alias_method :include?, :key?
