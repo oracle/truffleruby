@@ -328,7 +328,7 @@ public abstract class TruffleKernelNodes {
     }
 
     /* When getting special variables from the wrong side of a C call we know it's going to be slow. */
-    @Primitive(name = "slow_caller_special_variables")
+    @Primitive(name = "ruby_caller_special_variables")
     public abstract static class GetSlowCallerSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Child GetSpecialVariableStorage getStorageNode = GetSpecialVariableStorage.create();

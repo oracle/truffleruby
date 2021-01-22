@@ -1838,12 +1838,12 @@ module Truffle::CExt
   end
 
   def rb_lastline_set(str)
-    storage = Primitive.slow_caller_special_variables
+    storage = Primitive.ruby_caller_special_variables
     Primitive.io_last_line_set(storage, str)
   end
 
   def rb_lastline_get
-    storage = Primitive.slow_caller_special_variables
+    storage = Primitive.ruby_caller_special_variables
     Primitive.io_last_line_get(storage)
   end
 end
