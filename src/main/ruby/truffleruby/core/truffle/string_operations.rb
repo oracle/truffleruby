@@ -87,7 +87,7 @@ module Truffle
       ret = orig.byteslice(0, 0) # Empty string and string subclass
 
       while match
-        offset = match.byte_begin(0)
+        offset = Primitive.match_data_byte_begin(match, 0)
 
         str = Truffle::RegexpOperations.pre_match_from(match, last_end)
         Primitive.string_append(ret, str) if str
@@ -103,11 +103,11 @@ module Truffle
             offset += 1
           end
         else
-          offset = match.byte_end(0)
+          offset = Primitive.match_data_byte_end(match, 0)
         end
 
         last_match = match
-        last_end = match.byte_end(0)
+        last_end = Primitive.match_data_byte_end(match, 0)
 
         if String === pattern
           index = byte_index(orig, pattern, offset)

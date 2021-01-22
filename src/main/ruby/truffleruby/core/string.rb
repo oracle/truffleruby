@@ -237,7 +237,7 @@ class String
     ret = block_given? ? self : []
 
     while match = pattern.match_from(self, index)
-      fin = match.byte_end(0)
+      fin = Primitive.match_data_byte_end(match, 0)
 
       if Truffle::RegexpOperations.collapsing?(match)
         if char = Primitive.string_find_character(self, fin)

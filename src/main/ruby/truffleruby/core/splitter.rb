@@ -160,7 +160,7 @@ module Truffle
 
           collapsed = Truffle::RegexpOperations.collapsing?(match)
 
-          unless collapsed && (match.byte_begin(0) == last_match_end)
+          unless collapsed && (Primitive.match_data_byte_begin(match, 0) == last_match_end)
             substring = Truffle::RegexpOperations.pre_match_from(match, last_match_end)
             empty_count = add_substring(string, ret, substring, empty_count, block)
 
@@ -174,13 +174,13 @@ module Truffle
             count += 1
           end
 
-          start = match.byte_end(0)
+          start = Primitive.match_data_byte_end(match, 0)
           if collapsed
             start += 1
           end
 
           last_match = match
-          last_match_end = last_match.byte_end(0)
+          last_match_end = Primitive.match_data_byte_end(last_match, 0)
         end
 
         if last_match

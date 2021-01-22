@@ -243,8 +243,8 @@ class Dir
       last_match = nil
 
       while match = %r!/+!.match_from(str, start)
-        cur_start = match.byte_begin(0)
-        cur_end = match.byte_end(0)
+        cur_start = Primitive.match_data_byte_begin(match, 0)
+        cur_end = Primitive.match_data_byte_end(match, 0)
         ret << str.byteslice(start, cur_start - start)
         ret << str.byteslice(cur_start, cur_end - cur_start)
 
