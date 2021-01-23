@@ -77,6 +77,7 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
@@ -1115,7 +1116,7 @@ public abstract class ModuleNodes {
             }
 
             final SourceSection sourceSection = lookupResult.getConstant().getSourceSection();
-            if (sourceSection == null || !sourceSection.isAvailable()) {
+            if (!BacktraceFormatter.isAvailable(sourceSection)) {
                 return createEmptyArray();
             } else {
                 final RubyString file = makeStringNode.executeMake(
