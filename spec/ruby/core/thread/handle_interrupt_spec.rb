@@ -15,6 +15,7 @@ describe "Thread.handle_interrupt" do
           begin
             in_handle_interrupt << true
             if blocking
+              Thread.pass # Make it clearer the other thread needs to wait for this one to be in #pop
               can_continue.pop
             else
               begin
@@ -34,6 +35,10 @@ describe "Thread.handle_interrupt" do
     end
 
     in_handle_interrupt.pop
+    if blocking
+      # Ensure the thread is inside Thread#pop, as if thread.raise is done before it would be deferred
+      Thread.pass until thread.stop?
+    end
     thread.raise interrupt_class, "interrupt"
     can_continue << true
     thread.join
