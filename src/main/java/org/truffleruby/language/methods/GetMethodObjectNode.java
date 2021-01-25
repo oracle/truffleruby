@@ -60,7 +60,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             "name.equals(cachedName)",
             "contextReference.get() == cachedContext"
     }, limit = "getCacheLimit()")
-    public RubyMethod doCached(Frame frame, Object self, Object name,
+    protected RubyMethod doCached(Frame frame, Object self, Object name,
             DispatchConfiguration dispatchConfig,
             Frame callerFrame,
             @Cached("self") Object cachedSelf,
@@ -81,7 +81,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
 
     @Specialization(replaces = "doCached")
-    public RubyMethod doGeneric(Frame frame, Object self, Object name,
+    protected RubyMethod doGeneric(Frame frame, Object self, Object name,
             DispatchConfiguration dispatchConfig,
             Frame callerFrame,
             @CachedContext(RubyLanguage.class) RubyContext context,
