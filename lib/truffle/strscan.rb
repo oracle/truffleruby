@@ -195,7 +195,7 @@ class StringScanner
   end
 
   def matched_size
-    @match.byte_end(0) - @match.byte_begin(0) if @match
+    Primitive.match_data_byte_end(@match, 0) - Primitive.match_data_byte_begin(@match, 0) if @match
   end
 
   def matchedsize
@@ -208,7 +208,7 @@ class StringScanner
   end
 
   def pre_match
-    @string.byteslice(0, match.byte_begin(0)) if @match
+    @string.byteslice(0, Primitive.match_data_byte_begin(match, 0)) if @match
   end
 
   def reset_state
@@ -317,7 +317,7 @@ class StringScanner
     @match = Truffle::RegexpOperations.match_onwards pattern, @string, pos, headonly
     return nil unless @match
 
-    fin = @match.byte_end(0)
+    fin = Primitive.match_data_byte_end(@match, 0)
 
     @prev_pos = @pos
     @pos = fin if advance_pos

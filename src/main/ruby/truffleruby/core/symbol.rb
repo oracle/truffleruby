@@ -96,7 +96,7 @@ class Symbol
     when Regexp
       match_data = Truffle::RegexpOperations.search_region(pattern, str, 0, str.bytesize, true)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
-      match_data.byte_begin(0) if match_data
+      Primitive.match_data_byte_begin(match_data, 0) if match_data
     when String
       raise TypeError, 'type mismatch: String given'
     else

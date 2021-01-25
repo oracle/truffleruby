@@ -20,7 +20,6 @@ import org.joni.exception.ValueException;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -521,9 +520,8 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @NonStandard
-    @CoreMethod(names = "byte_begin", required = 1, lowerFixnum = 1)
-    public abstract static class ByteBeginNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "match_data_byte_begin", lowerFixnum = 1)
+    public abstract static class ByteBeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object byteBegin(RubyMatchData matchData, int index) {
@@ -540,9 +538,8 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @NonStandard
-    @CoreMethod(names = "byte_end", required = 1, lowerFixnum = 1)
-    public abstract static class ByteEndNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "match_data_byte_end", lowerFixnum = 1)
+    public abstract static class ByteEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object byteEnd(RubyMatchData matchData, int index) {

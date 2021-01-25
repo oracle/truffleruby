@@ -169,14 +169,15 @@ module Truffle
     end
 
     def self.collapsing?(match)
-      match.byte_begin(0) == match.byte_end(0)
+      Primitive.match_data_byte_begin(match, 0) == Primitive.match_data_byte_end(match, 0)
     end
 
     def self.pre_match_from(match, idx)
       source = Primitive.match_data_get_source(match)
-      return source.byteslice(0, 0) if match.byte_begin(0) == 0
+      match_byte_begin = Primitive.match_data_byte_begin(match, 0)
+      return source.byteslice(0, 0) if match_byte_begin == 0
 
-      nd = match.byte_begin(0) - 1
+      nd = match_byte_begin - 1
       source.byteslice(idx, nd-idx+1)
     end
   end
