@@ -1716,7 +1716,8 @@ public abstract class ModuleNodes {
             return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
-        // TODO (pitr-ch 30-Mar-2016): cache lookup
+        // NOTE(norswap): We considered caching the lookup here, but determined that the resulting complexity
+        //   increase in LookupMethodNode wasn't worth it, as it would slow down the more common cases.
 
         @Specialization(guards = "inherit")
         protected boolean isMethodDefinedInherit(RubyModule module, String name, boolean inherit) {
