@@ -68,8 +68,6 @@ fails:Public methods on Method should include clone
 fails:Public methods on Method should include original_name
 fails:Public methods on UnboundMethod should include clone
 fails:Public methods on UnboundMethod should include original_name
-fails:Public methods on Regexp should not include match_from
-fails:Public methods on Regexp should not include option_to_string
 fails:Public methods on Struct should include filter
 fails:Public methods on Symbol should not include eql?
 fails:Public methods on Symbol should not include hash

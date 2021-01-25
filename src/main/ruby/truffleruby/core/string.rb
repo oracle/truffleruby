@@ -236,7 +236,7 @@ class String
     last_match = nil
     ret = block_given? ? self : []
 
-    while match = pattern.match_from(self, index)
+    while match = Truffle::RegexpOperations.match_from(pattern, self, index)
       fin = Primitive.match_data_byte_end(match, 0)
 
       if Truffle::RegexpOperations.collapsing?(match)
@@ -681,7 +681,7 @@ class String
     end
 
     pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-    match = pattern.match_from(self, 0)
+    match = Truffle::RegexpOperations.match_from(pattern, self, 0)
 
     Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), match) if block
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
@@ -1291,7 +1291,7 @@ class String
       Primitive.encoding_ensure_compatible self, str
 
       start = Primitive.string_byte_index_from_char_index(self, start)
-      if match = str.match_from(self, start)
+      if match = Truffle::RegexpOperations.match_from(str, self, start)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
         return match.begin(0)
       else

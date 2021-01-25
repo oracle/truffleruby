@@ -168,6 +168,14 @@ module Truffle
       Hash[*match_stats_array]
     end
 
+    def self.option_to_string(option)
+      string = +''
+      string << 'm' if (option & Regexp::MULTILINE) > 0
+      string << 'i' if (option & Regexp::IGNORECASE) > 0
+      string << 'x' if (option & Regexp::EXTENDED) > 0
+      string
+    end
+
     def self.collapsing?(match)
       Primitive.match_data_byte_begin(match, 0) == Primitive.match_data_byte_end(match, 0)
     end
