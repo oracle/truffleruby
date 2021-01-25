@@ -24,10 +24,12 @@ import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.TranslateInteropRubyExceptionNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
@@ -353,7 +355,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary,
             @Cached @Shared("definedNode") InternalRespondToNode definedNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
-            @Cached @Exclusive DispatchNode dispatch,
+            @Cached GetMethodObjectNode getMethodObjectNode,
             @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
             @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile,
@@ -373,7 +375,8 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (ivarFoundProfile.profile(iVar != null)) {
                 return iVar;
             } else if (definedNode.execute(null, this, name)) {
-                return dispatch.call(this, "method", rubyName);
+                return getMethodObjectNode
+                        .executeGetMethodObject(null, this, rubyName, DispatchConfiguration.PRIVATE, null);
             } else {
                 errorProfile.enter();
                 throw UnknownIdentifierException.create(name);
