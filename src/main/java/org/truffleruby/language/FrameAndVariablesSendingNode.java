@@ -24,6 +24,7 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
+import org.truffleruby.language.DataSendingNode.SendsData;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
@@ -63,53 +64,47 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 @SuppressFBWarnings("IS")
 public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
-    private enum SendsFrame {
-        NO_FRAME,       // callees don't need to read the frame
-        MY_FRAME,       // for most calls
-        CALLER_FRAME;   // for `send` calls
-    }
-
-    @CompilationFinal protected SendsFrame sendsFrame = SendsFrame.NO_FRAME;
+    @CompilationFinal protected SendsData sendsFrame = SendsData.NO_FRAME;
     @CompilationFinal protected Assumption needsCallerAssumption;
-    @CompilationFinal protected SendsFrame sendsVariables = SendsFrame.NO_FRAME;
+    @CompilationFinal protected SendsData sendsVariables = SendsData.NO_FRAME;
 
     @Child protected ReadCallerDataNode readCaller;
     @Child protected GetSpecialVariableStorage readMyVariables;
 
     /** Whether we are sending down the frame (because the called method reads it). */
     protected boolean sendingFrames() {
-        return sendsFrame != SendsFrame.NO_FRAME;
+        return sendsFrame != SendsData.NO_FRAME;
     }
 
     protected boolean sendingVariables() {
-        return sendsVariables != SendsFrame.NO_FRAME;
+        return sendsVariables != SendsData.NO_FRAME;
     }
 
     public void startSendingOwnFrame() {
         if (getContext().getCallStack().callerIsSend()) {
-            startSendingFrame(SendsFrame.CALLER_FRAME);
+            startSendingFrame(SendsData.CALLER_FRAME);
         } else {
-            startSendingFrame(SendsFrame.MY_FRAME);
+            startSendingFrame(SendsData.MY_FRAME);
         }
     }
 
     public void startSendingOwnVariables() {
         if (getContext().getCallStack().callerIsSend()) {
-            startSendingVariables(SendsFrame.CALLER_FRAME);
+            startSendingVariables(SendsData.CALLER_FRAME);
         } else {
-            startSendingVariables(SendsFrame.MY_FRAME);
+            startSendingVariables(SendsData.MY_FRAME);
         }
     }
 
     public void startSendingOwnFrameAndVariables() {
         if (getContext().getCallStack().callerIsSend()) {
-            startSendingFrameAndVariables(SendsFrame.CALLER_FRAME);
+            startSendingFrameAndVariables(SendsData.CALLER_FRAME);
         } else {
-            startSendingFrameAndVariables(SendsFrame.MY_FRAME);
+            startSendingFrameAndVariables(SendsData.MY_FRAME);
         }
     }
 
-    private synchronized void startSendingFrame(SendsFrame frameToSend) {
+    private synchronized void startSendingFrame(SendsData frameToSend) {
         if (sendingFrames()) {
             assert sendsFrame == frameToSend;
             return;
@@ -124,7 +119,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
 
         this.sendsFrame = frameToSend;
-        if (frameToSend == SendsFrame.CALLER_FRAME) {
+        if (frameToSend == SendsData.CALLER_FRAME) {
             if (!sendingVariables()) {
                 this.readCaller = insert(new ReadCallerFrameNode());
             } else {
@@ -139,7 +134,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    private synchronized void startSendingVariables(SendsFrame variablesToSend) {
+    private synchronized void startSendingVariables(SendsData variablesToSend) {
         if (sendingFrames()) {
             assert sendsFrame == variablesToSend;
         }
@@ -154,7 +149,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
 
         this.sendsVariables = variablesToSend;
-        if (variablesToSend == SendsFrame.CALLER_FRAME) {
+        if (variablesToSend == SendsData.CALLER_FRAME) {
             if (!sendingFrames()) {
                 this.readCaller = insert(new ReadCallerVariablesNode());
             } else {
@@ -171,7 +166,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    private synchronized void startSendingFrameAndVariables(SendsFrame dataToSend) {
+    private synchronized void startSendingFrameAndVariables(SendsData dataToSend) {
         if (sendingFrames()) {
             assert sendsFrame == dataToSend;
             return;
@@ -188,7 +183,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
         this.sendsFrame = dataToSend;
         this.sendsVariables = dataToSend;
-        if (dataToSend == SendsFrame.CALLER_FRAME) {
+        if (dataToSend == SendsData.CALLER_FRAME) {
             if (sendingFrames() || sendingVariables()) {
                 this.readCaller = readCaller.replace(new ReadCallerFrameAndVariablesNode());
             } else {
@@ -228,16 +223,16 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
             resetNeedsCallerAssumption();
         }
 
-        if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
+        if (sendsVariables == SendsData.NO_FRAME && sendsFrame == SendsData.NO_FRAME) {
             return null;
-        } else if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.NO_FRAME) {
+        } else if (sendsVariables == SendsData.MY_FRAME && sendsFrame == SendsData.NO_FRAME) {
             return readMyVariables.execute(frame);
-        } else if (sendsVariables == SendsFrame.NO_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
+        } else if (sendsVariables == SendsData.NO_FRAME && sendsFrame == SendsData.MY_FRAME) {
             return frame.materialize();
-        } else if (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.MY_FRAME) {
+        } else if (sendsVariables == SendsData.MY_FRAME && sendsFrame == SendsData.MY_FRAME) {
             return new FrameAndVariables(readMyVariables.execute(frame), frame.materialize());
-        } else if ((sendsVariables == SendsFrame.CALLER_FRAME && sendsFrame == SendsFrame.MY_FRAME) ||
-                (sendsVariables == SendsFrame.MY_FRAME && sendsFrame == SendsFrame.CALLER_FRAME)) {
+        } else if ((sendsVariables == SendsData.CALLER_FRAME && sendsFrame == SendsData.MY_FRAME) ||
+                (sendsVariables == SendsData.MY_FRAME && sendsFrame == SendsData.CALLER_FRAME)) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             CompilerDirectives.shouldNotReachHere();
             return null;
