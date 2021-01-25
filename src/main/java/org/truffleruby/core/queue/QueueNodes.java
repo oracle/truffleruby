@@ -226,6 +226,11 @@ public abstract class QueueNodes {
             return self.queue.isClosed();
         }
 
+        @Specialization
+        protected boolean closed(RubySizedQueue self) {
+            return self.queue.isClosed();
+        }
+
     }
 
 }

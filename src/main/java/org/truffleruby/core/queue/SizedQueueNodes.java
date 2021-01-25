@@ -254,14 +254,4 @@ public abstract class SizedQueueNodes {
 
     }
 
-    @CoreMethod(names = "closed?")
-    public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean closed(RubySizedQueue self) {
-            return self.queue.isClosed();
-        }
-
-    }
-
 }
