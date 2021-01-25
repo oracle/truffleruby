@@ -74,7 +74,7 @@ class Dir
       def call(matches, parent, glob_base_dir)
         path = path_join(parent, @name)
 
-        if File.exist? path_join(glob_base_dir, path)
+        if Truffle::FileOperations.exist? path_join(glob_base_dir, path)
           matches << path
         end
       end
@@ -192,7 +192,7 @@ class Dir
       end
 
       def call(matches, path, glob_base_dir)
-        return if path and !File.exist?(path_join(glob_base_dir, "#{path}/."))
+        return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
         dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
         while ent = dir.read
@@ -230,7 +230,7 @@ class Dir
 
     class DirectoriesOnly < Node
       def call(matches, path, glob_base_dir)
-        if path and File.exist?("#{path_join(glob_base_dir, path)}/.")
+        if path and Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
           matches << "#{path}/"
         end
       end
@@ -355,14 +355,14 @@ class Dir
 
           braces.split(',').each do |s|
             path = "#{stem}#{s}"
-            if File.exist? path_join(base_dir, path)
+            if Truffle::FileOperations.exist? path_join(base_dir, path)
               matches << path
             end
           end
 
           # Split strips an empty closing part, so we need to add it back in
           if braces.getbyte(-1) == 44 # ?,
-            matches << stem if File.exist? path_join(base_dir, stem)
+            matches << stem if Truffle::FileOperations.exist? path_join(base_dir, stem)
           end
         else
           matches << pattern if Truffle::FileOperations.exist?(path_join(base_dir, pattern))
