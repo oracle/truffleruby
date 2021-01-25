@@ -12,6 +12,7 @@ package org.truffleruby.interop;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,12 @@ import com.oracle.truffle.api.source.Source;
 
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
+
+    private abstract static class InteropCoreMethodNode extends CoreMethodNode {
+        protected int getCacheLimit() {
+            return getLanguage().options.METHOD_LOOKUP_CACHE;
+        }
+    }
 
     private abstract static class InteropCoreMethodArrayArgumentsNode extends CoreMethodArrayArgumentsNode {
         protected int getCacheLimit() {
@@ -2091,5 +2098,347 @@ public abstract class InteropNodes {
         }
     }
     // endregion scope
+
+    // region Buffer Messages
+
+    @CoreMethod(names = "has_buffer_elements?", onSingleton = true, required = 1)
+    public abstract static class HasBufferElementsNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasBufferElements(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasBufferElements(receiver);
+        }
+
+    }
+
+    @CoreMethod(names = "buffer_writable?", onSingleton = true, required = 1)
+    public abstract static class IsBufferWritableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isBufferWritable(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.isBufferWritable(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "buffer_size", onSingleton = true, required = 1)
+    public abstract static class GetBufferSizeNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected long getBufferSize(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getBufferSize(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "read_buffer_byte", onSingleton = true, required = 2)
+    public abstract static class ReadBufferByteNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected byte readBufferByte(Object receiver, long byteOffset,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readBufferByte(receiver, byteOffset);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "write_buffer_byte", onSingleton = true, required = 3)
+    public abstract static class WriteBufferByteNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInByte(value)")
+        protected Object writeBufferByte(Object receiver, long byteOffset, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @CachedLibrary("value") InteropLibrary interopValue,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final byte byteValue = interopValue.asByte(value);
+                interop.writeBufferByte(receiver, byteOffset, byteValue);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return value;
+        }
+
+    }
+
+    @CoreMethod(names = "read_buffer_short", onSingleton = true, required = 3)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    public abstract static class ReadBufferShortNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        protected short readBufferShort(Object receiver, ByteOrder byteOrder, long byteOffset,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readBufferShort(receiver, byteOrder, byteOffset);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "write_buffer_short", onSingleton = true, required = 4)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class WriteBufferShortNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInShort(value)")
+        protected Object writeBufferShort(Object receiver, ByteOrder byteOrder, long byteOffset, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @CachedLibrary("value") InteropLibrary interopValue,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final short shortValue = interopValue.asShort(value);
+                interop.writeBufferShort(receiver, byteOrder, byteOffset, shortValue);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return value;
+        }
+
+    }
+
+    @CoreMethod(names = "read_buffer_int", onSingleton = true, required = 3)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    public abstract static class ReadBufferIntNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        protected int readBufferInt(Object receiver, ByteOrder byteOrder, long byteOffset,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readBufferInt(receiver, byteOrder, byteOffset);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "write_buffer_int", onSingleton = true, required = 4, lowerFixnum = 4)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class WriteBufferIntNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInInt(value)")
+        protected Object writeBufferInt(Object receiver, ByteOrder order, long byteOffset, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @CachedLibrary("value") InteropLibrary interopValue,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final int intValue = interopValue.asInt(value);
+                interop.writeBufferInt(receiver, order, byteOffset, intValue);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return value;
+        }
+
+    }
+
+    @CoreMethod(names = "read_buffer_long", onSingleton = true, required = 3)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    public abstract static class ReadBufferLongNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        protected long readBufferLong(Object receiver, ByteOrder byteOrder, long byteOffset,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readBufferLong(receiver, byteOrder, byteOffset);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "write_buffer_long", onSingleton = true, required = 4)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class WriteBufferLongNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInLong(value)")
+        protected Object writeBufferLong(Object receiver, ByteOrder order, long byteOffset, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @CachedLibrary("value") InteropLibrary interopValue,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final long longValue = interopValue.asLong(value);
+                interop.writeBufferLong(receiver, order, byteOffset, longValue);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return value;
+        }
+
+    }
+
+    @CoreMethod(names = "read_buffer_float", onSingleton = true, required = 3)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    public abstract static class ReadBufferFloatNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        protected float readBufferFloat(Object receiver, ByteOrder byteOrder, long byteOffset,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readBufferFloat(receiver, byteOrder, byteOffset);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "write_buffer_float", onSingleton = true, required = 4)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class WriteBufferFloatNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInDouble(value)")
+        protected Object writeBufferFloat(Object receiver, ByteOrder order, long byteOffset, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @CachedLibrary("value") InteropLibrary interopValue,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final float floatValue = (float) interopValue.asDouble(value);
+                interop.writeBufferFloat(receiver, order, byteOffset, floatValue);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return value;
+        }
+
+    }
+
+    @CoreMethod(names = "read_buffer_double", onSingleton = true, required = 3)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    public abstract static class ReadBufferDoubleNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()")
+        protected double readBufferDouble(Object receiver, ByteOrder byteOrder, long byteOffset,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readBufferDouble(receiver, byteOrder, byteOffset);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "write_buffer_double", onSingleton = true, required = 4)
+    @NodeChild(value = "receiver", type = RubyNode.class)
+    @NodeChild(value = "byteOrder", type = RubyNode.class)
+    @NodeChild(value = "byteOffset", type = RubyNode.class)
+    @NodeChild(value = "value", type = RubyNode.class)
+    public abstract static class WriteBufferDoubleNode extends InteropCoreMethodNode {
+
+        @CreateCast("byteOrder")
+        protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
+            return SymbolToByteOrderNode.create(byteOrder);
+        }
+
+        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInDouble(value)")
+        protected Object writeBufferDouble(Object receiver, ByteOrder order, long byteOffset, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @CachedLibrary("value") InteropLibrary interopValue,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final double doubleValue = interopValue.asDouble(value);
+                interop.writeBufferDouble(receiver, order, byteOffset, doubleValue);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return value;
+        }
+
+    }
+
+    // endregion Buffer Messages
 
 }
