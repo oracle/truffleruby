@@ -44,6 +44,7 @@ Compatibility:
 * Support the `inherit` parameter for `Module#{private, protected, public}_method_defined?`.
 * Implement `Thread.pending_interrupt?` and `Thread#pending_interrupt?` (#2219).
 * Implement `rb_lastline_set` (#2170).
+* Implemented `Module#const_source_location` (#2212, @tomstuart and @wildmaples).
 
 Performance:
 
