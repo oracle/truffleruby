@@ -10,16 +10,17 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInterface;
 
-public interface DataSendingNode {
+public interface DataSendingNode extends NodeInterface {
 
     public static enum SendsData {
-        NO_FRAME,       // callees don't need to read the frame
-        MY_FRAME,       // for most calls
-        CALLER_FRAME;   // for `send` calls
+        NOTHING,       // callees don't need to read the frame
+        SELF,      // for most calls
+        CALLER;   // for `send` calls
     }
 
     public Object execute(VirtualFrame frame);
 
-    public boolean replace(SendsData variabless, SendsData frame);
+    public void startSending(SendsData variabless, SendsData frame);
 }

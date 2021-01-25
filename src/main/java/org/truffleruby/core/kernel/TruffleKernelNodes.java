@@ -27,7 +27,10 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.DataSendingNode;
+import org.truffleruby.language.DataSendingNode.SendsData;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.OwnFrameAndVariablesSendingNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -227,7 +230,7 @@ public abstract class TruffleKernelNodes {
     }
 
     @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
-    public abstract static class GetSpecialVariableStorage extends RubyContextNode {
+    public abstract static class GetSpecialVariableStorage extends RubyContextNode implements DataSendingNode {
 
         public abstract SpecialVariableStorage execute(Frame frame);
 
@@ -314,6 +317,16 @@ public abstract class TruffleKernelNodes {
 
         public static GetSpecialVariableStorage create() {
             return GetSpecialVariableStorageNodeGen.create();
+        }
+
+        public void startSending(SendsData variabless, SendsData frame) {
+            if (variabless == SendsData.CALLER || frame == SendsData.CALLER) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                CompilerDirectives.shouldNotReachHere();
+            }
+            if (frame == SendsData.SELF) {
+                replace(new OwnFrameAndVariablesSendingNode());
+            }
         }
     }
 

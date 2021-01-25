@@ -10,8 +10,10 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.frame.Frame;
+import org.truffleruby.language.DataSendingNode.SendsData;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public class ReadCallerFrameNode extends ReadCallerDataNode {
@@ -38,5 +40,15 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
     @Override
     protected Object getDataFromFrame(MaterializedFrame frame) {
         return frame;
+    }
+
+    public void startSending(SendsData variables, SendsData frame) {
+        if (variables == SendsData.SELF || frame == SendsData.SELF) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            CompilerDirectives.shouldNotReachHere();
+        }
+        if (variables == SendsData.SELF) {
+            replace(new ReadCallerFrameAndVariablesNode());
+        }
     }
 }
