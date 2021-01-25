@@ -1,4 +1,0 @@
-fails:CApiGlobalSpecs rb_lastline_set sets the value of $_
-fails:CApiGlobalSpecs rb_lastline_set sets a Thread-local value
-fails:CApiGlobalSpecs rb_lastline_get gets the value of $_
-fails:CApiGlobalSpecs rb_lastline_get gets a Thread-local value
