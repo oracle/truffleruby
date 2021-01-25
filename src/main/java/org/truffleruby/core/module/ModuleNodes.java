@@ -1845,8 +1845,11 @@ public abstract class ModuleNodes {
         @Specialization
         protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
                 @Cached BranchProfile errorProfile) {
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
+
             // TODO(CS, 11-Jan-15) cache this lookup
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, declarationContext);
 
             if (method == null || method.isUndefined()) {
                 errorProfile.enter();
