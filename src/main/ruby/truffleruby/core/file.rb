@@ -449,9 +449,7 @@ class File < IO
   ##
   # Return true if the named file exists.
   def self.exist?(path)
-    path = Truffle::Type.coerce_to_path(path)
-    mode = Truffle::POSIX.truffleposix_stat_mode(path)
-    mode > 0
+    Truffle::FileOperations.exist?(path)
   end
 
   ##

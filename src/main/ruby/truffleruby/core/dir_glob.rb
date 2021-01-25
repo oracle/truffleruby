@@ -88,12 +88,7 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(matches, start, glob_base_dir)
-        exists = -> (p) {
-          p = Truffle::Type.coerce_to_path(p)
-          mode = Truffle::POSIX.truffleposix_stat_mode(p)
-          mode > 0
-        }
-        return if !start || !exists.call(path_join(glob_base_dir, start))
+        return if !start || !Truffle::FileOperations.exist?(path_join(glob_base_dir, start))
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the
@@ -215,12 +210,7 @@ class Dir
 
     class EntryMatch < Match
       def call(matches, path, glob_base_dir)
-        exists = -> (p) {
-          p = Truffle::Type.coerce_to_path(p)
-          mode = Truffle::POSIX.truffleposix_stat_mode(p)
-          mode > 0
-        }
-        return if path and !exists.call("#{path_join(glob_base_dir, path)}/.")
+        return if path and !Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
 
         dir_path = path_join(glob_base_dir, path ? path : '.')
         dir = Dir.allocate.send(:initialize_internal, dir_path)
@@ -375,7 +365,7 @@ class Dir
             matches << stem if File.exist? path_join(base_dir, stem)
           end
         else
-          matches << pattern if File.exist?(path_join(base_dir, pattern))
+          matches << pattern if Truffle::FileOperations.exist?(path_join(base_dir, pattern))
         end
 
         return matches
