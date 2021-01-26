@@ -2261,6 +2261,7 @@ module Commands
   end
 
   def command_format(changed_java_files = nil)
+    STDERR.puts bold '$ jt format'
     ENV['ECLIPSE_EXE'] ||= install_eclipse
     if changed_java_files.is_a?(Array)
       File.write('mxbuild/javafilelist.txt', changed_java_files.join("\n"))
@@ -2649,25 +2650,23 @@ module Commands
     # Lint
     rubocop if changed['.rb']
     sh 'tool/lint.sh' if changed['.c']
-    if fast
-      checkstyle(changed['.java']) if changed['.java']
-      command_format(changed['.java']) if changed['.java'] # includes #format_specializations_check
-    else
-      mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
-      format_specializations_check
-    end
+    checkstyle(changed['.java']) if changed['.java']
+    command_format(changed['.java']) if changed['.java']
     shellcheck if changed['.sh'] or changed['.inc']
 
     mx 'verify-ci' if changed['.py']
 
     unless fast
+      mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
+
       check_core_symbols
       check_parser
       check_options
-      check_source_files if ci?
       check_documentation
       check_documentation_urls
       check_license
+
+      check_source_files if ci?
     end
   end
 
