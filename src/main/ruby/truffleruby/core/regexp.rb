@@ -191,7 +191,7 @@ class Regexp
       end
     end
 
-    if match = match_from(other, 0)
+    if match = Truffle::RegexpOperations.match_from(self, other, 0)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
       true
     else
@@ -211,7 +211,7 @@ class Regexp
   def inspect
     # the regexp matches any / that is after anything except for a \
     escape = source.gsub(%r!(\\.)|/!) { $1 || '\/' }
-    str = "/#{escape}/#{option_to_string(options)}"
+    str = "/#{escape}/#{Truffle::RegexpOperations.option_to_string(options)}"
     str << 'n' if (options & NOENCODING) > 0
     str
   end
@@ -234,19 +234,6 @@ class Regexp
 
   def casefold?
     (options & IGNORECASE) > 0 ? true : false
-  end
-
-  def match_from(str, count)
-    return nil unless str
-    Truffle::RegexpOperations.search_region(self, str, count, str.bytesize, true)
-  end
-
-  def option_to_string(option)
-    string = +''
-    string << 'm' if (option & MULTILINE) > 0
-    string << 'i' if (option & IGNORECASE) > 0
-    string << 'x' if (option & EXTENDED) > 0
-    string
   end
 
   #

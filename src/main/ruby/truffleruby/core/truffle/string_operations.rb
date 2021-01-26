@@ -113,7 +113,7 @@ module Truffle
           index = byte_index(orig, pattern, offset)
           match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
         else
-          match = pattern.match_from orig, offset
+          match = Truffle::RegexpOperations.match_from(pattern, orig, offset)
         end
       end
 
