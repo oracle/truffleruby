@@ -11,6 +11,7 @@ package org.truffleruby.debug;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -49,7 +50,7 @@ public abstract class DebugHelpers {
                 declarationContext,
                 null,
                 RubyArguments.getSelf(currentFrame),
-                null,
+                Nil.INSTANCE,
                 RubyNode.EMPTY_ARGUMENTS);
 
         final FrameDescriptor frameDescriptor = new FrameDescriptor(

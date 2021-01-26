@@ -295,7 +295,7 @@ public abstract class MethodNodes {
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments
-                    .pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, null, receiver, nil, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, coreLibrary().emptyDeclarationDescriptor);

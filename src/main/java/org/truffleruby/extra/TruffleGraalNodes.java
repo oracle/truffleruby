@@ -155,7 +155,7 @@ public abstract class TruffleGraalNodes {
                             RubyArguments.getMethod(proc.declarationFrame),
                             null,
                             nil,
-                            null,
+                            nil,
                             EMPTY_ARGUMENTS);
 
             // The Proc no longer needs the original declaration frame. However, all procs must have a

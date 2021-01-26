@@ -849,7 +849,7 @@ public abstract class KernelNodes {
                     method,
                     null,
                     target,
-                    null,
+                    nil,
                     EMPTY_ARGUMENTS));
         }
 

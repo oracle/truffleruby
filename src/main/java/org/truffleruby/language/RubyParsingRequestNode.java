@@ -82,7 +82,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     method,
                     null,
                     context.getCoreLibrary().mainObject,
-                    null,
+                    Nil.INSTANCE,
                     frame.getArguments()));
 
             // The return value will be leaked to Java, so share it if the Context API is used.
