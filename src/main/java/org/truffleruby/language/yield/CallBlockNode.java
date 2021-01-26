@@ -38,7 +38,6 @@ public abstract class CallBlockNode extends RubyBaseNode {
     public abstract Object executeCallBlock(DeclarationContext declarationContext, RubyProc block, Object self,
             Object blockArgument, Object[] arguments);
 
-    // blockArgument is typed as Object below because it must accept "null".
     @Specialization(guards = "block.callTarget == cachedCallTarget", limit = "getCacheLimit()")
     protected Object callBlockCached(
             DeclarationContext declarationContext,
