@@ -67,19 +67,22 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
 } \
 })
 
-#define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_tr_scan_args_3(ARGC, ARGV, FORMAT, V1, V2, V3) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_tr_scan_args_4(ARGC, ARGV, FORMAT, V1, V2, V3, V4) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_tr_scan_args_5(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, NULL, NULL, NULL, NULL, NULL)
-#define rb_tr_scan_args_6(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, NULL, NULL, NULL, NULL)
-#define rb_tr_scan_args_7(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, NULL, NULL, NULL)
-#define rb_tr_scan_args_8(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, NULL, NULL)
-#define rb_tr_scan_args_9(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, NULL)
-#define rb_tr_scan_args_10(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10)
+#define rb_tr_scan_args_kw_1(KW_FLAG, ARGC, ARGV, FORMAT, V1) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_2(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_3(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_4(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_5(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_6(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_7(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, NULL, NULL, NULL)
+#define rb_tr_scan_args_kw_8(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, NULL, NULL)
+#define rb_tr_scan_args_kw_9(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, NULL)
+#define rb_tr_scan_args_kw_10(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) rb_tr_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10)
 
-#define SCAN_ARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
-#define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_tr_scan_args_10, rb_tr_scan_args_9, rb_tr_scan_args_8, rb_tr_scan_args_7, rb_tr_scan_args_6, rb_tr_scan_args_5, rb_tr_scan_args_4, rb_tr_scan_args_3, rb_tr_scan_args_2, rb_tr_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
+#define SCAN_ARGS_KW_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
+#define rb_scan_args_kw(KW_FLAG, ARGC, ARGV, FORMAT, ...) SCAN_ARGS_KW_IMPL(__VA_ARGS__, rb_tr_scan_args_kw_10, rb_tr_scan_args_kw_9, rb_tr_scan_args_kw_8, rb_tr_scan_args_kw_7, rb_tr_scan_args_kw_6, rb_tr_scan_args_kw_5, rb_tr_scan_args_kw_4, rb_tr_scan_args_kw_3, rb_tr_scan_args_kw_2, rb_tr_scan_args_kw_1)(KW_FLAG, ARGC, ARGV, FORMAT, __VA_ARGS__)
+
+#define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_KW_IMPL(__VA_ARGS__, rb_tr_scan_args_kw_10, rb_tr_scan_args_kw_9, rb_tr_scan_args_kw_8, rb_tr_scan_args_kw_7, rb_tr_scan_args_kw_6, rb_tr_scan_args_kw_5, rb_tr_scan_args_kw_4, rb_tr_scan_args_kw_3, rb_tr_scan_args_kw_2, rb_tr_scan_args_kw_1)(RB_SCAN_ARGS_PASS_CALLED_KEYWORDS, ARGC, ARGV, FORMAT, __VA_ARGS__)
+
 
 // Invoking ruby methods.
 
@@ -199,9 +202,8 @@ static inline char *rb_tr_string_value_cstr(VALUE *value_pointer) {
   return RSTRING_PTR(string);
 }
 
-ALWAYS_INLINE(static int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
-static inline int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
-  // Parse the format string
+ALWAYS_INLINE(static int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
+static inline int rb_tr_scan_args_kw(int kw_flag, int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
 
   // TODO CS 7-Feb-17 maybe we could inline cache this part?
 
@@ -212,6 +214,19 @@ static inline int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VAL
   int post = 0;
   bool kwargs;
   bool block;
+
+  // Interpret kw_flag
+
+  int keyword_given = 0;
+  int empty_keyword_given = 0;
+  int last_hash_keyword = 0;
+
+  switch (kw_flag) {
+    case RB_SCAN_ARGS_PASS_CALLED_KEYWORDS: break;
+    case RB_SCAN_ARGS_KEYWORDS: keyword_given = 1; break;
+    case RB_SCAN_ARGS_EMPTY_KEYWORDS: empty_keyword_given = 1; break;
+    case RB_SCAN_ARGS_LAST_HASH_KEYWORDS: last_hash_keyword = 1; break;
+  }
 
   // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
 
@@ -276,25 +291,59 @@ static inline int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VAL
   // accepting them will still need to be set to Qnil in such cases.
   bool erased_kwargs = false;
   bool found_kwargs = false;
+  VALUE hash = Qnil;
 
-  if (kwargs && (n_mand < argc)) {
+  /* capture an option hash - phase 1: pop */
+  /* Ignore final positional hash if empty keywords given */
+  if (argc > 0 && !(kwargs && empty_keyword_given)) {
     VALUE last = argv[argc - 1];
 
-    if (NIL_P(last)) {
-      /* nil is taken as an empty option hash only if it is not
-         ambiguous; i.e. '*' is not specified and arguments are
-         given more than sufficient */
-      if (rest || argc <= n_mand + n_opt) {
-        kwargs = false;
-        erased_kwargs = true;
+    if (kwargs && n_mand < argc) {
+      if (keyword_given) {
+        if (!RB_TYPE_P(last, T_HASH)) {
+          rb_warn("Keyword flag set when calling rb_scan_args, but last entry is not a hash");
+        }
+        else {
+          hash = last;
+        }
       }
-    } else {
-      if (!polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", argv[argc - 1], Qfalse))) {
-        kwargs = false;
-        erased_kwargs = true;
+
+      else if (NIL_P(last)) {
+        /* For backwards compatibility, nil is taken as an empty
+           option hash only if it is not ambiguous; i.e. '*' is
+           not specified and arguments are given more than sufficient.
+           This will be removed in Ruby 3. */
+        if (rest || argc <= n_mand + n_opt) {
+          kwargs = false;
+          erased_kwargs = true;
+          rb_warn("The last argument is nil, treating as empty keywords");
+        }
+      }
+      else {
+        hash = rb_check_hash_type(last);
+        if (NIL_P(hash)) {
+          kwargs = false;
+          erased_kwargs = true;
+        }
+      }
+
+      /* Ruby 3: Remove if branch, as it will not attempt to split hashes */
+      if (!NIL_P(hash)) {
+        if (!polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", argv[argc - 1], Qfalse))) {
+          // Does not handle the case where "The last argument is split into positional and keyword parameters"
+          // Instead assumes that it is all one hash
+          kwargs = false;
+          erased_kwargs = true;
+        }
       }
     }
+    else if (kwargs && keyword_given && n_mand == argc) {
+      /* Warn if treating keywords as positional, as in Ruby 3, this will be an error */
+      rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
+    }
   }
+
+  // Skipped the part of MRI where empty_keyword_given with rb_warn("Passing the keyword argument as the last hash parameter is deprecated");
 
   int trailing = post;
 
