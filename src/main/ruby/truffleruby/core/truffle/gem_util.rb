@@ -109,7 +109,7 @@ module Truffle::GemUtil
           # The directory is empty, TruffleRuby could not have marked it, nothing can be loaded, everything is fine
           Dir.empty?(specifications) ||
           # The directory is marked as TruffleRuby's, everything is fine
-          File.exist?("#{dir}/#{MARKER_NAME}")
+          Truffle::FileOperations.exist?("#{dir}/#{MARKER_NAME}")
     end
   end
 
