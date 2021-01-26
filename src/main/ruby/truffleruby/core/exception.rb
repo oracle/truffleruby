@@ -65,15 +65,6 @@ class Exception
   # #initialize again, BUT not a subclasses initialize.
   alias_method :__initialize__, :initialize
 
-  def backtrace?
-    result = Primitive.exception_backtrace? self
-    if !Primitive.undefined?(result)
-      result
-    else
-      backtrace ? true : false
-    end
-  end
-
   def set_backtrace(bt)
     case bt
     when Array
@@ -88,14 +79,6 @@ class Exception
       Primitive.exception_set_custom_backtrace(self, nil)
     else
       raise TypeError, 'backtrace must be Array of String'
-    end
-  end
-
-  def set_context(ctx)
-    if ctx.kind_of? Exception
-      @parent = ctx
-    else
-      set_backtrace(ctx)
     end
   end
 
@@ -168,10 +151,6 @@ class Exception
     end
 
     self
-  end
-
-  def location
-    [context.file.to_s, context.line]
   end
 
   def self.to_tty?

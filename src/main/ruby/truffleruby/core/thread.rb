@@ -183,8 +183,8 @@ class Thread
 
     exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
-    exc.set_context ctx if ctx
-    Primitive.exception_capture_backtrace(exc, 1) unless exc.backtrace?
+    exc.set_backtrace(ctx) if ctx
+    Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
 
     Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG
 

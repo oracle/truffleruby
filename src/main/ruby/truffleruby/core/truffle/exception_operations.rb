@@ -123,6 +123,15 @@ module Truffle
       end
     end
 
+    def self.backtrace?(exc)
+      result = Primitive.exception_backtrace? exc
+      if Primitive.undefined?(result)
+        exc.backtrace ? true : false
+      else
+        result
+      end
+    end
+
     def self.append_causes(str, err, causes, reverse, highlight)
       if !Primitive.nil?(err.cause) && Exception === err.cause && !causes.has_key?(err.cause)
         causes[err.cause] = true
