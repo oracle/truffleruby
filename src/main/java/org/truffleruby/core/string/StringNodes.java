@@ -3472,7 +3472,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!is7Bit(strings.getRope(string), codeRangeNode)")
-        protected RubyArray stringAwkSplit(Object string, int limit, Object block,
+        protected Object stringAwkSplit(Object string, int limit, Object block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
@@ -3534,7 +3534,11 @@ public abstract class StringNodes {
                 ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            return createArray(ret, storeIndex);
+            if (block == nil) {
+                return createArray(ret, storeIndex);
+            } else {
+                return string;
+            }
         }
 
         private Object[] addSubstring(Object[] store, int index, RubyString substring,
