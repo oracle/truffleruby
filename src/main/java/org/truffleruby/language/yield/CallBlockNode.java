@@ -73,7 +73,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
                 declarationContext,
                 block.frameOnStackMarker,
                 self,
-                blockArgument == null ? nil : blockArgument,
+                blockArgument,
                 arguments);
     }
 

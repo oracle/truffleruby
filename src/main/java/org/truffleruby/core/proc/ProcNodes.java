@@ -195,7 +195,7 @@ public abstract class ProcNodes {
                     proc.declarationContext,
                     proc,
                     ProcOperations.getSelf(proc),
-                    null,
+                    nil,
                     args);
         }
 

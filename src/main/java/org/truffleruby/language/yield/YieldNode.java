@@ -41,7 +41,7 @@ public abstract class YieldNode extends RubyBaseNode {
                 block.declarationContext,
                 block,
                 ProcOperations.getSelf(block),
-                null,
+                nil,
                 argumentsObjects);
     }
 }
