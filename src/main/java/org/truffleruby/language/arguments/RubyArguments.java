@@ -84,13 +84,13 @@ public final class RubyArguments {
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
 
-        /* The block in the arguments array is always either a Nil or RubyProc. The conversion from null if the caller
+        /* The block in the arguments array is always either a Nil or RubyProc. The provision of Nil if the caller
          * doesn't want to provide a block is done at the caller, because it will know the type of values within its
          * compilation unit.
          *
          * When you read the block back out in the callee, you'll therefore get a Nil or RubyProc. */
-        assert block == null || block instanceof Nil || block instanceof RubyProc : block;
-        packed[ArgumentIndicies.BLOCK.ordinal()] = block == null ? Nil.INSTANCE : block;
+        assert block instanceof Nil || block instanceof RubyProc : block;
+        packed[ArgumentIndicies.BLOCK.ordinal()] = block;
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
 
