@@ -138,7 +138,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         final Object callerFrameOrStorage = getFrameOrStorageIfRequired(frame);
         final Object[] frameArguments = RubyArguments
-                .pack(null, callerFrameOrStorage, method, null, receiver, block, arguments);
+                .pack(null, callerFrameOrStorage, method, null, receiver, block == null ? nil : block, arguments);
 
         return callNode.execute(method, frameArguments);
     }

@@ -56,7 +56,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
                         superMethod,
                         null,
                         self,
-                        block,
+                        block == null ? nil : block,
                         arguments);
 
         return callMethod(superMethod, frameArguments);

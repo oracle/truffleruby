@@ -46,7 +46,7 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
                 internalMethod,
                 null,
                 method.receiver,
-                block,
+                block == null ? nil : block,
                 arguments);
     }
 }
