@@ -26,6 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Truffle::FileOperations.exist? is used instead of File.exist? so that adding
+# a mock for File.exist? does not affect Dir.glob.
+
 class Dir
   module Glob
     no_meta_chars = '[^*?\\[\\]{}\\\\]'

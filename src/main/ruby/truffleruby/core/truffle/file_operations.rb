@@ -92,9 +92,7 @@ module Truffle
     end
 
     def self.exist?(path)
-      path = Truffle::Type.coerce_to_path(path)
-      mode = Truffle::POSIX.truffleposix_stat_mode(path)
-      mode > 0
+      Truffle::POSIX.truffleposix_stat_mode(path) > 0
     end
   end
 end
