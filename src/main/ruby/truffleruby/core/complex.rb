@@ -159,7 +159,7 @@ class Complex < Numeric
     end
   end
 
-  def divide(other)
+  def /(other)
     if other.kind_of?(Complex)
       self * other.conjugate / other.abs2
     elsif other.kind_of?(Numeric) && other.real?
@@ -168,8 +168,7 @@ class Complex < Numeric
       redo_coerced(:quo, other)
     end
   end
-  alias_method :/, :divide
-  alias_method :quo, :divide
+  alias_method :quo, :/
 
   def ** (other)
     if !other.kind_of?(Float) && other == 0
@@ -290,6 +289,10 @@ class Complex < Numeric
   end
   alias_method :rectangular, :rect
 
+  def to_c
+    self
+  end
+
   def to_f
     raise RangeError, "can't convert #{self} into Float" unless !imag.kind_of?(Float) && imag == 0
     real.to_f
@@ -372,6 +375,7 @@ class Complex < Numeric
     end
     self
   end
+  private :marshal_load
 
   def <=>(other)
     if imag == 0 && other.kind_of?(Numeric)
