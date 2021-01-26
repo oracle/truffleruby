@@ -19,6 +19,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -47,7 +48,7 @@ public class InternalMethod implements ObjectGraphNode {
 
     private final CachedSupplier<RootCallTarget> callTargetSupplier;
     @CompilationFinal private RootCallTarget callTarget;
-    private final RubyProc capturedBlock;
+    private final Object capturedBlock;
 
     public static InternalMethod fromProc(
             RubyContext context,
@@ -94,7 +95,7 @@ public class InternalMethod implements ObjectGraphNode {
                 null,
                 callTarget,
                 null,
-                null);
+                Nil.INSTANCE);
     }
 
     public InternalMethod(
@@ -119,7 +120,7 @@ public class InternalMethod implements ObjectGraphNode {
                 null,
                 callTarget,
                 callTargetSupplier,
-                null);
+                Nil.INSTANCE);
     }
 
     public InternalMethod(
@@ -134,7 +135,7 @@ public class InternalMethod implements ObjectGraphNode {
             RubyProc proc,
             RootCallTarget callTarget,
             CachedSupplier<RootCallTarget> callTargetSupplier,
-            RubyProc capturedBlock) {
+            Object capturedBlock) {
         this(
                 sharedMethodInfo,
                 lexicalScope,
@@ -166,10 +167,11 @@ public class InternalMethod implements ObjectGraphNode {
             RubyProc proc,
             RootCallTarget callTarget,
             CachedSupplier<RootCallTarget> callTargetSupplier,
-            RubyProc capturedBlock) {
+            Object capturedBlock) {
         assert declaringModule != null;
         assert lexicalScope != null;
         assert !sharedMethodInfo.isBlock() : sharedMethodInfo;
+        assert capturedBlock instanceof Nil || capturedBlock instanceof RubyProc : capturedBlock;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
         this.declarationContext = declarationContext;
@@ -428,7 +430,7 @@ public class InternalMethod implements ObjectGraphNode {
         }
     }
 
-    public RubyProc getCapturedBlock() {
+    public Object getCapturedBlock() {
         return capturedBlock;
     }
 

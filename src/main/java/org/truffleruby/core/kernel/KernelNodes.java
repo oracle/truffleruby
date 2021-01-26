@@ -849,7 +849,7 @@ public abstract class KernelNodes {
                     method,
                     null,
                     target,
-                    null,
+                    nil,
                     EMPTY_ARGUMENTS));
         }
 
@@ -1600,11 +1600,15 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
-            return send(frame, self, name, args, (RubyProc) null);
+            return doSend(frame, self, name, args, nil);
         }
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, RubyProc block) {
+            return doSend(frame, self, name, args, block);
+        }
+
+        private Object doSend(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 

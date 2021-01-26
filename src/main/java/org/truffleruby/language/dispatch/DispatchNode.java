@@ -24,6 +24,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -106,18 +107,20 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
-        return execute(null, receiver, method, null, arguments);
+        return execute(null, receiver, method, nil, arguments);
     }
 
-    public Object callWithBlock(Object receiver, String method, RubyProc block, Object... arguments) {
+    public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
         return execute(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
+    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         return execute(frame, receiver, methodName, block, arguments);
     }
 
-    public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
+    public Object execute(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+        assert block instanceof Nil || block instanceof RubyProc : block;
+
         final RubyClass metaclass = metaclassNode.execute(receiver);
 
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
@@ -144,7 +147,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     private Object callMethodMissing(
-            VirtualFrame frame, Object receiver, String methodName, RubyProc block,
+            VirtualFrame frame, Object receiver, String methodName, Object block,
             Object[] arguments) {
 
         final RubySymbol symbolName = nameToSymbol(methodName);
@@ -166,7 +169,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return result;
     }
 
-    protected Object callForeign(Object receiver, String methodName, RubyProc block, Object[] arguments) {
+    protected Object callForeign(Object receiver, String methodName, Object block, Object[] arguments) {
         if (callForeign == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callForeign = insert(CallForeignMethodNode.create());
@@ -175,7 +178,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     protected Object callMethodMissingNode(
-            VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
+            VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissing = insert(DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
@@ -240,13 +243,13 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         }
 
         @Override
-        public Object execute(VirtualFrame frame, Object receiver, String methodName, RubyProc block,
+        public Object execute(VirtualFrame frame, Object receiver, String methodName, Object block,
                 Object[] arguments) {
             return super.execute(null, receiver, methodName, block, arguments);
         }
 
         @Override
-        protected Object callForeign(Object receiver, String methodName, RubyProc block, Object[] arguments) {
+        protected Object callForeign(Object receiver, String methodName, Object block, Object[] arguments) {
             if (callForeign == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callForeign = insert(CallForeignMethodNode.getUncached());
@@ -257,7 +260,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         @Override
         protected Object callMethodMissingNode(
-                VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
+                VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(

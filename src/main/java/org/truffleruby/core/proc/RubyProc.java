@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -42,7 +43,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     public final MaterializedFrame declarationFrame;
     public final SpecialVariableStorage declarationVariables;
     public final InternalMethod method;
-    public final RubyProc block;
+    public final Object block;
     public final FrameOnStackMarker frameOnStackMarker;
     public final DeclarationContext declarationContext;
 
@@ -56,10 +57,11 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             MaterializedFrame declarationFrame,
             SpecialVariableStorage declarationVariables,
             InternalMethod method,
-            RubyProc block,
+            Object block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
+        assert block instanceof Nil || block instanceof RubyProc : block;
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTargets = callTargets;

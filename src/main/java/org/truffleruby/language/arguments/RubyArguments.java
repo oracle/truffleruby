@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.FrameAndVariables;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -43,7 +44,7 @@ public final class RubyArguments {
             InternalMethod method,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
-            RubyProc block,
+            Object block,
             Object[] arguments) {
         return pack(
                 declarationFrame,
@@ -63,12 +64,14 @@ public final class RubyArguments {
             DeclarationContext declarationContext,
             FrameOnStackMarker frameOnStackMarker,
             Object self,
-            RubyProc block,
+            Object block,
             Object[] arguments) {
         assert method != null;
         assert declarationContext != null;
         assert self != null;
         assert arguments != null;
+        assert ArrayUtils.assertNoNullElement(arguments);
+
         assert callerFrameOrVariables == null ||
                 callerFrameOrVariables instanceof MaterializedFrame ||
                 callerFrameOrVariables instanceof SpecialVariableStorage ||
@@ -82,6 +85,13 @@ public final class RubyArguments {
         packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
         packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
         packed[ArgumentIndicies.SELF.ordinal()] = self;
+
+        /* The block in the arguments array is always either a Nil or RubyProc. The provision of Nil if the caller
+         * doesn't want to provide a block is done at the caller, because it will know the type of values within its
+         * compilation unit.
+         *
+         * When you read the block back out in the callee, you'll therefore get a Nil or RubyProc. */
+        assert block instanceof Nil || block instanceof RubyProc : block;
         packed[ArgumentIndicies.BLOCK.ordinal()] = block;
 
         ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
@@ -146,14 +156,10 @@ public final class RubyArguments {
         return frame.getArguments()[ArgumentIndicies.SELF.ordinal()];
     }
 
-    public static RubyProc getBlock(Frame frame) {
-        return (RubyProc) frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
-    }
-
-    /** A variant of getBlock() when the return type does not need to be RubyProc and which avoids the extra cast. */
-    public static Object getBlockAssertType(Frame frame) {
+    public static Object getBlock(Frame frame) {
         final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
-        assert block == null || block instanceof RubyProc : block;
+        /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
+        assert block instanceof Nil || block instanceof RubyProc : block;
         return block;
     }
 

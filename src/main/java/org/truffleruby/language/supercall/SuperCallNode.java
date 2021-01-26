@@ -11,8 +11,6 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.cast.ProcOrNullNode;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -25,7 +23,6 @@ public class SuperCallNode extends RubyContextSourceNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;
-    @Child private ProcOrNullNode procOrNullNode;
     @Child private LookupSuperMethodNode lookupSuperMethodNode;
     @Child private CallSuperMethodNode callSuperMethodNode;
 
@@ -36,17 +33,20 @@ public class SuperCallNode extends RubyContextSourceNode {
 
     @Override
     public final Object execute(VirtualFrame frame) {
-        initNodes();
         final Object self = RubyArguments.getSelf(frame);
 
         // Execute the arguments
         final Object[] superArguments = (Object[]) arguments.execute(frame);
 
         // Execute the block
-        final RubyProc blockObject = procOrNullNode.executeProcOrNull(block.execute(frame));
+        final Object blockObject = block.execute(frame);
 
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
+        if (callSuperMethodNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            callSuperMethodNode = insert(CallSuperMethodNode.create());
+        }
         return callSuperMethodNode.execute(frame, self, superMethod, superArguments, blockObject);
     }
 
@@ -68,17 +68,6 @@ public class SuperCallNode extends RubyContextSourceNode {
             lookupSuperMethodNode = insert(LookupSuperMethodNodeGen.create());
         }
         return lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
-    }
-
-    private void initNodes() {
-        if (procOrNullNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            procOrNullNode = insert(ProcOrNullNode.create());
-        }
-        if (callSuperMethodNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callSuperMethodNode = insert(CallSuperMethodNode.create());
-        }
     }
 
 }

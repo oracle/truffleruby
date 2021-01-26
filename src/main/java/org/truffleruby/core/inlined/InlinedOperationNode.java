@@ -13,7 +13,6 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 public abstract class InlinedOperationNode extends InlinedReplaceableNode {
@@ -26,10 +25,10 @@ public abstract class InlinedOperationNode extends InlinedReplaceableNode {
     }
 
     protected Object rewriteAndCall(VirtualFrame frame, Object receiver, Object... arguments) {
-        return rewriteAndCallWithBlock(frame, receiver, null, arguments);
+        return rewriteAndCallWithBlock(frame, receiver, nil, arguments);
     }
 
-    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, RubyProc block,
+    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, Object block,
             Object... arguments) {
         return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
     }

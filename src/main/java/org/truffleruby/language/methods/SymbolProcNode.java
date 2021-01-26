@@ -10,7 +10,6 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -44,7 +43,7 @@ public class SymbolProcNode extends RubyContextSourceNode {
 
         final Object receiver = RubyArguments.getArgument(frame, 0);
         final Object[] arguments = ArrayUtils.extractRange(RubyArguments.getArguments(frame), 1, given);
-        final RubyProc block = RubyArguments.getBlock(frame);
+        final Object block = RubyArguments.getBlock(frame);
 
         return getCallNode().dispatch(frame, receiver, symbol, block, arguments);
     }

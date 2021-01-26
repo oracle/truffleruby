@@ -58,7 +58,7 @@ public abstract class ProcOperations {
             MaterializedFrame declarationFrame,
             SpecialVariableStorage variables,
             InternalMethod method,
-            RubyProc block,
+            Object block,
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
 

@@ -170,7 +170,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         final Object sendName = args[0];
         final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
 
-        return dispatchNode.dispatch(null, receiver, nameToJavaString.execute(sendName), null, sendArgs);
+        return dispatchNode.dispatch(null, receiver, nameToJavaString.execute(sendName), nil, sendArgs);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NIL)", "args.length == 0" }, limit = "1")

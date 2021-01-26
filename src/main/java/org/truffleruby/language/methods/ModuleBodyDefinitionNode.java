@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.Visibility;
@@ -49,12 +48,12 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
     }
 
     public InternalMethod createMethod(VirtualFrame frame, LexicalScope staticLexicalScope, RubyModule module) {
-        final RubyProc capturedBlock;
+        final Object capturedBlock;
 
         if (captureBlock) {
             capturedBlock = RubyArguments.getBlock(frame);
         } else {
-            capturedBlock = null;
+            capturedBlock = nil;
         }
 
         final LexicalScope parentLexicalScope = RubyArguments.getMethod(frame).getLexicalScope();

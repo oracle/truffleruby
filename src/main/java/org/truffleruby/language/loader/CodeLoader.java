@@ -12,6 +12,7 @@ package org.truffleruby.language.loader;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -89,7 +90,7 @@ public class CodeLoader {
                 method,
                 null,
                 self,
-                null,
+                Nil.INSTANCE,
                 RubyNode.EMPTY_ARGUMENTS));
     }
 

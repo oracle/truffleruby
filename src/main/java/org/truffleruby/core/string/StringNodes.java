@@ -99,7 +99,6 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
@@ -3416,11 +3415,9 @@ public abstract class StringNodes {
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
-                @Cached ConditionProfile trailingEmptyStringProfile,
-                @Cached ProcOrNullNode procOrNullNode) {
+                @Cached ConditionProfile trailingEmptyStringProfile) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
-            final RubyProc calledBlock = procOrNullNode.executeProcOrNull(block);
 
             final Rope rope = strings.getRope(string);
             final byte[] bytes = bytesNode.execute(rope);
@@ -3438,7 +3435,7 @@ public abstract class StringNodes {
                                 ret,
                                 storeIndex++,
                                 substring,
-                                calledBlock,
+                                block,
                                 executeBlockProfile,
                                 growArrayProfile);
                         substringStart = SUBSTRING_CREATED;
@@ -3458,15 +3455,15 @@ public abstract class StringNodes {
             if (trailingSubstringProfile.profile(substringStart != SUBSTRING_CREATED)) {
                 final RubyString substring = substringNode
                         .executeSubstring(string, substringStart, bytes.length - substringStart);
-                ret = addSubstring(ret, storeIndex++, substring, calledBlock, executeBlockProfile, growArrayProfile);
+                ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
             if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[bytes.length - 1]))) {
                 final RubyString substring = substringNode.executeSubstring(string, bytes.length - 1, 0);
-                ret = addSubstring(ret, storeIndex++, substring, calledBlock, executeBlockProfile, growArrayProfile);
+                ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            if (calledBlock == null) {
+            if (block == nil) {
                 return createArray(ret, storeIndex);
             } else {
                 return string;
@@ -3475,15 +3472,13 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!is7Bit(strings.getRope(string), codeRangeNode)")
-        protected RubyArray stringAwkSplit(Object string, int limit, Object block,
+        protected Object stringAwkSplit(Object string, int limit, Object block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
-                @Cached ConditionProfile trailingSubstringProfile,
-                @Cached ProcOrNullNode procOrNullNode) {
+                @Cached ConditionProfile trailingSubstringProfile) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
-            final RubyProc calledBlock = procOrNullNode.executeProcOrNull(block);
 
             final Rope rope = strings.getRope(string);
             final boolean limitPositive = limit > 0;
@@ -3520,7 +3515,7 @@ public abstract class StringNodes {
                                 ret,
                                 storeIndex++,
                                 substring,
-                                calledBlock,
+                                block,
                                 executeBlockProfile,
                                 growArrayProfile);
                         skip = true;
@@ -3536,16 +3531,20 @@ public abstract class StringNodes {
 
             if (trailingSubstringProfile.profile(len > 0 && (limitPositive || len > b || limit < 0))) {
                 final RubyString substring = substringNode.executeSubstring(string, b, len - b);
-                ret = addSubstring(ret, storeIndex++, substring, calledBlock, executeBlockProfile, growArrayProfile);
+                ret = addSubstring(ret, storeIndex++, substring, block, executeBlockProfile, growArrayProfile);
             }
 
-            return createArray(ret, storeIndex);
+            if (block == nil) {
+                return createArray(ret, storeIndex);
+            } else {
+                return string;
+            }
         }
 
         private Object[] addSubstring(Object[] store, int index, RubyString substring,
-                RubyProc block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
-            if (executeBlockProfile.profile(block != null)) {
-                yield(block, substring);
+                Object block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
+            if (executeBlockProfile.profile(block != nil)) {
+                yield((RubyProc) block, substring);
             } else {
                 if (growArrayProfile.profile(index < store.length)) {
                     store[index] = substring;

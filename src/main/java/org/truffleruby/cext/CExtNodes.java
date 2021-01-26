@@ -870,7 +870,7 @@ public class CExtNodes {
             final MethodLookupResult superMethodLookup = ModuleOperations
                     .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
-            return callSuperMethodNode.execute(frame, callingSelf, superMethod, args, null);
+            return callSuperMethodNode.execute(frame, callingSelf, superMethod, args, nil);
         }
 
         @TruffleBoundary

@@ -16,7 +16,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
@@ -50,14 +49,14 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
-        return dispatch(null, receiver, method, null, arguments);
+        return dispatch(null, receiver, method, nil, arguments);
     }
 
-    public Object callWithBlock(Object receiver, String method, RubyProc block, Object... arguments) {
+    public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
         return dispatch(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, RubyProc block, Object[] arguments) {
+    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         if ((lookupNode.lookupProtected(frame, receiver, methodName) != coreMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
@@ -79,7 +78,7 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
         }
     }
 
-    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, String methodName, RubyProc block,
+    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, String methodName, Object block,
             Object... arguments) {
         return rewriteToDispatchNode().dispatch(frame, receiver, methodName, block, arguments);
     }

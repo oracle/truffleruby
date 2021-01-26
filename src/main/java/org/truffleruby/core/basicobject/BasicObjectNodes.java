@@ -619,11 +619,15 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
-            return send(frame, self, name, args, (RubyProc) null);
+            return doSend(frame, self, name, args, nil);
         }
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, RubyProc block) {
+            return doSend(frame, self, name, args, block);
+        }
+
+        private Object doSend(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
@@ -660,7 +664,7 @@ public abstract class BasicObjectNodes {
 
         @Override
         public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
-            return execute(frame, proc);
+            return execute(frame, self);
         }
 
         @Override

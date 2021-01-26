@@ -16,9 +16,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.cast.ProcOrNullNode;
-import org.truffleruby.core.cast.ProcOrNullNodeGen;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -30,7 +27,7 @@ public class InlinedCallNode extends InlinedReplaceableNode {
     @CompilationFinal private InternalMethod coreMethod;
 
     @Child private RubyNode receiver;
-    @Child private ProcOrNullNode block;
+    @Child private RubyNode block;
     @Children private final RubyNode[] arguments;
 
     @Child private LookupMethodOnSelfNode lookupNode;
@@ -47,12 +44,7 @@ public class InlinedCallNode extends InlinedReplaceableNode {
         this.methodName = parameters.getMethodName();
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
-
-        if (parameters.getBlock() == null) {
-            this.block = null;
-        } else {
-            this.block = ProcOrNullNodeGen.create(parameters.getBlock());
-        }
+        this.block = parameters.getBlock();
 
         lookupNode = LookupMethodOnSelfNode.create();
 
@@ -66,7 +58,7 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
         final Object[] executedArguments = executeArguments(frame);
 
-        final RubyProc blockObject = executeBlock(frame);
+        final Object blockObject = executeBlock(frame);
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
 
@@ -78,20 +70,17 @@ public class InlinedCallNode extends InlinedReplaceableNode {
         }
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, RubyProc blockObject,
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
-        return inlinedMethod.inlineExecute(
-                frame,
-                receiverObject,
-                argumentsObjects,
-                blockObject == null ? NotProvided.INSTANCE : blockObject);
+        final Object blockArgument = blockObject == nil ? NotProvided.INSTANCE : blockObject;
+        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, blockArgument);
     }
 
-    private RubyProc executeBlock(VirtualFrame frame) {
+    private Object executeBlock(VirtualFrame frame) {
         if (block != null) {
-            return block.executeProcOrNull(frame);
+            return block.execute(frame);
         } else {
-            return null;
+            return nil;
         }
     }
 
@@ -106,8 +95,7 @@ public class InlinedCallNode extends InlinedReplaceableNode {
         return argumentsObjects;
     }
 
-    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, RubyProc block,
-            Object... arguments) {
+    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, Object block, Object... arguments) {
         return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
     }
 

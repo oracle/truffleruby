@@ -63,6 +63,7 @@ import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -445,7 +446,7 @@ public class RubyContext {
 
         return IndirectCallNode.getUncached().call(
                 method.getCallTarget(),
-                RubyArguments.pack(null, null, method, null, object, null, arguments));
+                RubyArguments.pack(null, null, method, null, object, Nil.INSTANCE, arguments));
     }
 
     @TruffleBoundary

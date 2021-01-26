@@ -30,6 +30,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -316,8 +317,8 @@ public abstract class RangeNodes {
                 step = 1;
             }
 
-            final RubyProc blockProc = RubyGuards.wasProvided(block) ? (RubyProc) block : null;
-            return stepInternalCall.callWithBlock(range, "step_internal", blockProc, step);
+            final Object blockArgument = RubyArguments.getBlock(frame);
+            return stepInternalCall.callWithBlock(range, "step_internal", blockArgument, step);
         }
     }
 
