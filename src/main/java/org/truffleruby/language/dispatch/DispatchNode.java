@@ -24,6 +24,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -106,7 +107,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
-        return execute(null, receiver, method, null, arguments);
+        return execute(null, receiver, method, nil, arguments);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
@@ -118,6 +119,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object execute(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+        assert block instanceof Nil || block instanceof RubyProc : block;
+
         final RubyClass metaclass = metaclassNode.execute(receiver);
 
         final InternalMethod method = methodLookup.execute(frame, metaclass, methodName, config);
@@ -138,7 +141,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         final Object callerFrameOrStorage = getFrameOrStorageIfRequired(frame);
         final Object[] frameArguments = RubyArguments
-                .pack(null, callerFrameOrStorage, method, null, receiver, block == null ? nil : block, arguments);
+                .pack(null, callerFrameOrStorage, method, null, receiver, block, arguments);
 
         return callNode.execute(method, frameArguments);
     }

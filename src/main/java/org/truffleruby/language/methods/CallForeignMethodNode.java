@@ -16,6 +16,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.OutgoingForeignCallNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 @GenerateUncached
@@ -37,11 +38,10 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
             @Cached TranslateExceptionNode translateException,
             @Cached ConditionProfile hasBlock,
             @Cached BranchProfile errorProfile) {
-
-        assert block == null || block instanceof RubyProc;
+        assert block instanceof Nil || block instanceof RubyProc : block;
 
         Object[] newArguments = arguments;
-        if (hasBlock.profile(block != null)) {
+        if (hasBlock.profile(block != nil)) {
             newArguments = new Object[arguments.length + 1];
             System.arraycopy(arguments, 0, newArguments, 0, arguments.length);
             newArguments[arguments.length] = block;

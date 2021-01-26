@@ -10,7 +10,6 @@
 package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -40,7 +39,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
             Object self,
             InternalMethod superMethod,
             Object[] arguments,
-            RubyProc block) {
+            Object block) {
 
         if (missingProfile.profile(superMethod == null)) {
             final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getMethodNameForNotBlock(); // use the original name
@@ -56,7 +55,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
                         superMethod,
                         null,
                         self,
-                        block == null ? nil : block,
+                        block,
                         arguments);
 
         return callMethod(superMethod, frameArguments);
@@ -70,7 +69,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         return callMethodNode.execute(superMethod, frameArguments);
     }
 
-    private Object callMethodMissing(VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
+    private Object callMethodMissing(VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissingNode = insert(DispatchNode.create());

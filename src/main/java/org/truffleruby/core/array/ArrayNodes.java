@@ -1415,7 +1415,7 @@ public abstract class ArrayNodes {
                 loopProfile.profileCounted(array.size - n);
                 for (; loopProfile.inject(n < array.size); n++) {
                     accumulator = dispatch
-                            .dispatch(frame, accumulator, symbol, null, new Object[]{ stores.read(store, n) });
+                            .dispatch(frame, accumulator, symbol, nil, new Object[]{ stores.read(store, n) });
                 }
             } finally {
                 LoopNode.reportLoopCount(this, n);

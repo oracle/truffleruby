@@ -49,7 +49,7 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
-        return dispatch(null, receiver, method, null, arguments);
+        return dispatch(null, receiver, method, nil, arguments);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {

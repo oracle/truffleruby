@@ -285,7 +285,7 @@ public abstract class ClassNodes {
 
         @Specialization(guards = "!rubyClass.isSingleton")
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, NotProvided block) {
-            return doNewInstance(frame, rubyClass, args, null);
+            return doNewInstance(frame, rubyClass, args, nil);
         }
 
         @Specialization(guards = "!rubyClass.isSingleton")
@@ -305,7 +305,7 @@ public abstract class ClassNodes {
             return execute(frame, self, args, proc);
         }
 
-        private Object doNewInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, RubyProc block) {
+        private Object doNewInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, Object block) {
             final Object instance = allocateNode().call(rubyClass, "__allocate__");
             initialize().callWithBlock(instance, "initialize", block, args);
             return instance;

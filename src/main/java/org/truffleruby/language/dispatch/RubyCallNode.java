@@ -15,10 +15,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.core.cast.ProcOrNullNode;
-import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.core.inlined.LambdaToProcNode;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -44,7 +41,7 @@ public class RubyCallNode extends RubyContextSourceNode {
     private final String methodName;
 
     @Child private RubyNode receiver;
-    @Child private ProcOrNullNode block;
+    @Child private RubyNode block;
     private final boolean hasLiteralBlock;
     @Children private final RubyNode[] arguments;
 
@@ -65,14 +62,9 @@ public class RubyCallNode extends RubyContextSourceNode {
         this.receiver = parameters.getReceiver();
         this.arguments = parameters.getArguments();
 
-        if (parameters.getBlock() == null) {
-            this.block = null;
-            this.hasLiteralBlock = false;
-        } else {
-            final RubyNode block = parameters.getBlock();
-            this.block = ProcOrNullNodeGen.create(block);
-            this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
-        }
+        final RubyNode block = parameters.getBlock();
+        this.block = parameters.getBlock();
+        this.hasLiteralBlock = block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
 
         this.isSplatted = parameters.isSplatted();
         this.dispatchConfig = parameters.isIgnoreVisibility() ? PRIVATE : PROTECTED;
@@ -99,7 +91,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         final Object[] executedArguments = executeArguments(frame);
 
-        final RubyProc blockObject = executeBlock(frame);
+        final Object blockObject = executeBlock(frame);
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
         final Object[] argumentsObjects;
@@ -112,7 +104,7 @@ public class RubyCallNode extends RubyContextSourceNode {
         return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, RubyProc blockObject,
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
         if (dispatch == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -128,11 +120,11 @@ public class RubyCallNode extends RubyContextSourceNode {
         }
     }
 
-    private RubyProc executeBlock(VirtualFrame frame) {
+    private Object executeBlock(VirtualFrame frame) {
         if (block != null) {
-            return block.executeProcOrNull(frame);
+            return block.execute(frame);
         } else {
-            return null;
+            return nil;
         }
     }
 
