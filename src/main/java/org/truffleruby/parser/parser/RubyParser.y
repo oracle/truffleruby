@@ -2167,7 +2167,7 @@ string_contents : /* none */ {
                 }
 
 xstring_contents: /* none */ {
-                    $$ = null;
+                    $$ = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
                 }
                 | xstring_contents string_content {
                     $$ = support.literal_concat($1, $<ParseNode>2);
@@ -2217,6 +2217,7 @@ string_content  : tSTRING_CONTENT {
                    lexer.setHeredocIndent($<Integer>6);
                    lexer.setHeredocLineIndent(-1);
 
+                   if ($7 != null) $7.unsetNewline();
                    $$ = support.newEvStrNode(support.getPosition($7), $7);
                 }
 

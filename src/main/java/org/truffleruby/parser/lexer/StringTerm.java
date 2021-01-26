@@ -40,6 +40,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_LIST;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_QWORDS;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_REGEXP;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_SYMBOL;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 import static org.truffleruby.parser.lexer.RubyLexer.isHexChar;
 import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
@@ -250,6 +251,7 @@ public class StringTerm extends StrTerm {
         boolean escape = (flags & STR_FUNC_ESCAPE) != 0;
         boolean regexp = (flags & STR_FUNC_REGEXP) != 0;
         boolean symbol = (flags & STR_FUNC_SYMBOL) != 0;
+        boolean indent = (flags & STR_FUNC_INDENT) != 0;
         boolean hasNonAscii = false;
         int c;
 
@@ -283,6 +285,13 @@ public class StringTerm extends StrTerm {
                             break;
                         }
                         if (expand) {
+                            if (!(indent || lexer.getHeredocIndent() >= 0)) continue;
+                            if (c == end) {
+                                c = '\\';
+                                // goto terminate
+                                if (enc != null) buffer.setEncoding(lexer.getEncoding());
+                                return c;
+                            }
                             continue;
                         }
                         buffer.append('\\');

@@ -91,6 +91,9 @@ import org.truffleruby.parser.parser.ParserRopeOperations;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.parser.RubyParser;
 
+import static org.truffleruby.parser.parser.RubyParser.tSTRING_BEG;
+import static org.truffleruby.parser.parser.RubyParser.tXSTRING_BEG;
+
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -315,20 +318,14 @@ public class RubyLexer implements MagicCommentHandler {
 
         if (root instanceof StrParseNode) {
             StrParseNode str = (StrParseNode) root;
-            str.setValue(dedent_string(str.getValue(), indent));
+            if (str.isNewline()) str.setValue(dedent_string(str.getValue(), indent));
         } else if (root instanceof ListParseNode) {
             ListParseNode list = (ListParseNode) root;
             int length = list.size();
-            int currentLine = -1;
             for (int i = 0; i < length; i++) {
                 ParseNode child = list.get(i);
-                if (currentLine == child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1) {
-                    continue;  // Only process first element on a line?
-                }
 
-                currentLine = child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1;                 // New line
-
-                if (child instanceof StrParseNode) {
+                if (child instanceof StrParseNode && child.isNewline()) {
                     final StrParseNode childStrNode = (StrParseNode) child;
                     childStrNode.setValue(dedent_string(childStrNode.getValue(), indent));
                 }
@@ -661,12 +658,12 @@ public class RubyLexer implements MagicCommentHandler {
             case 'Q':
                 lex_strterm = new StringTerm(str_dquote, begin, end, ruby_sourceline);
                 yaccValue = "%" + (shortHand ? ("" + end) : ("" + c + begin));
-                return RubyParser.tSTRING_BEG;
+                return tSTRING_BEG;
 
             case 'q':
                 lex_strterm = new StringTerm(str_squote, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
-                return RubyParser.tSTRING_BEG;
+                return tSTRING_BEG;
 
             case 'W':
                 lex_strterm = new StringTerm(str_dword, begin, end, ruby_sourceline);
@@ -724,13 +721,18 @@ public class RubyLexer implements MagicCommentHandler {
             indent = Integer.MAX_VALUE;
         }
 
+        int token = tSTRING_BEG;
         Rope markerValue;
         if (c == '\'' || c == '"' || c == '`') {
             if (c == '\'') {
+                yaccValue = RopeConstants.Q;
                 func |= str_squote;
             } else if (c == '"') {
+                yaccValue = RopeConstants.QQ;
                 func |= str_dquote;
             } else {
+                yaccValue = RopeConstants.BACKTICK;
+                token = tXSTRING_BEG;
                 func |= str_xquote;
             }
 
@@ -776,17 +778,10 @@ public class RubyLexer implements MagicCommentHandler {
         lex_goto_eol();
         lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lex_lastline);
 
-        if (term == '`') {
-            yaccValue = RopeConstants.BACKTICK;
-            flush();
-            return RubyParser.tXSTRING_BEG;
-        }
-
-        yaccValue = RopeConstants.QQ;
         heredoc_indent = indent;
         heredoc_line_indent = 0;
         flush();
-        return RubyParser.tSTRING_BEG;
+        return token;
     }
 
     private boolean arg_ambiguous() {

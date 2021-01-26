@@ -64,6 +64,11 @@ public abstract class ParseNode {
         this.newline = true;
     }
 
+    // Used by heredoc dedent processing.  It gets unset so we do not liter line events because of it.
+    public void unsetNewline() {
+        this.newline = false;
+    }
+
     public boolean isNewline() {
         return newline;
     }

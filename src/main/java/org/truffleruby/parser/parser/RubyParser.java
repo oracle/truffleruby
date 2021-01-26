@@ -3238,7 +3238,7 @@ states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[502] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = null;
+    yyVal = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
     return yyVal;
 };
 states[503] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3304,6 +3304,7 @@ states[514] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setHeredocIndent(((Integer)yyVals[-2+yyTop]));
     lexer.setHeredocLineIndent(-1);
 
+    if (((ParseNode)yyVals[-1+yyTop]) != null) ((ParseNode)yyVals[-1+yyTop]).unsetNewline();
     yyVal = support.newEvStrNode(support.getPosition(((ParseNode)yyVals[-1+yyTop])), ((ParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
@@ -3949,7 +3950,7 @@ states[669] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2805 "RubyParser.y"
+// line 2806 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3966,4 +3967,4 @@ states[669] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // CheckStyle: stop generated
 // @formatter:on
-// line 10891 "-"
+// line 10892 "-"

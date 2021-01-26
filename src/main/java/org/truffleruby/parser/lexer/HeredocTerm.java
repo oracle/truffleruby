@@ -39,6 +39,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.parser.ast.StrParseNode;
 import org.truffleruby.parser.parser.RubyParser;
 
 /** A lexing unit for scanning a heredoc element. Example:
@@ -103,12 +104,22 @@ public class HeredocTerm extends StrTerm {
             return error(lexer, eos);
         }
 
+        boolean bol = lexer.was_bol();
         // Found end marker for this heredoc
-        if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
-            lexer.heredoc_restore(this);
-            lexer.setStrTerm(null);
-            lexer.setState(EXPR_END);
-            return RubyParser.tSTRING_END;
+        if (bol) {
+            // if line_indent == -1 then we are after an interpolation in same line or there was a line continuation.
+            int line_indent = lexer.heredoc_line_indent;
+
+            if (line_indent != -1) {
+                if (lexer.whole_match_p(nd_lit, indent)) {
+                    lexer.heredoc_restore(this);
+                    lexer.setStrTerm(null);
+                    lexer.setState(EXPR_END);
+                    return RubyParser.tSTRING_END;
+                }
+            } else {
+                lexer.setHeredocLineIndent(0);
+            }
         }
 
         if ((flags & STR_FUNC_EXPAND) == 0) {
@@ -151,8 +162,7 @@ public class HeredocTerm extends StrTerm {
                 lexer.lex_goto_eol();
 
                 if (lexer.getHeredocIndent() > 0) {
-                    lexer.setValue(lexer.createStr(str, 0));
-                    return RubyParser.tSTRING_CONTENT;
+                    flush(lexer, bol, str);
                 }
                 // MRI null checks str in this case but it is unconditionally non-null?
                 if (lexer.nextc() == -1) {
@@ -187,17 +197,15 @@ public class HeredocTerm extends StrTerm {
                     return restore(lexer);
                 }
                 if (c != '\n') {
-                    lexer.setValue(lexer.createStr(tok, 0));
-                    return RubyParser.tSTRING_CONTENT;
+                    if (c == '\\') lexer.setHeredocLineIndent(-1);
+                    return flush(lexer, bol, tok);
                 }
                 tok.append(lexer.nextc());
 
                 if (lexer.getHeredocIndent() > 0) {
                     lexer.lex_goto_eol();
-                    lexer.setValue(lexer.createStr(tok, 0));
-                    return RubyParser.tSTRING_CONTENT;
+                    return flush(lexer, bol, tok);
                 }
-
                 if ((c = lexer.nextc()) == EOF) {
                     return error(lexer, eos);
                 }
@@ -206,7 +214,15 @@ public class HeredocTerm extends StrTerm {
         }
 
         lexer.pushback(c);
-        lexer.setValue(lexer.createStr(str, 0));
+        lexer.heredoc_restore(this);
+        lexer.setStrTerm(new StringTerm(flags | STR_FUNC_TERM, 0, 0, line));
+        return flush(lexer, bol, str);
+    }
+
+    private int flush(RubyLexer lexer, boolean bol, RopeBuilder tok) {
+        StrParseNode node = lexer.createStr(tok, 0);
+        lexer.setValue(node);
+        if (bol) node.setNewline();
         return RubyParser.tSTRING_CONTENT;
     }
 }
