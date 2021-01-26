@@ -1,2 +1,1 @@
 fails:Heredoc string prints a warning if quoted HEREDOC identifier is ending not on same line
-fails:Heredoc string allows HEREDOC with <<~'identifier', no interpolation, with backslash
