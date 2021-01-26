@@ -310,7 +310,7 @@ public abstract class MethodNodes {
                     declarationFrame,
                     variables,
                     method,
-                    null,
+                    nil,
                     null,
                     method.getDeclarationContext());
         }

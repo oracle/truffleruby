@@ -179,7 +179,7 @@ public abstract class SymbolNodes {
                     declarationFrame,
                     variables,
                     method,
-                    null,
+                    nil,
                     null,
                     declarationContext);
         }
