@@ -70,7 +70,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
             block = RubyArguments.getMethod(frame).getCapturedBlock();
 
-            if (block == null) {
+            if (block == nil) {
                 noCapturedBlock.enter();
                 throw new RaiseException(getContext(), coreExceptions().noBlockToYieldTo(this));
             }

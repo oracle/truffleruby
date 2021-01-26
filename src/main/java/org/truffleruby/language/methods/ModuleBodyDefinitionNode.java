@@ -53,7 +53,7 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
         if (captureBlock) {
             capturedBlock = RubyArguments.getBlock(frame);
         } else {
-            capturedBlock = null;
+            capturedBlock = nil;
         }
 
         final LexicalScope parentLexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
