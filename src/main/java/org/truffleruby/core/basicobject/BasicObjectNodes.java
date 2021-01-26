@@ -660,7 +660,7 @@ public abstract class BasicObjectNodes {
 
         @Override
         public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
-            return execute(frame, proc);
+            return execute(frame, self);
         }
 
         @Override
