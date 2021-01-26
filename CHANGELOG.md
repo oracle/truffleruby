@@ -45,6 +45,7 @@ Compatibility:
 * Implement `Thread.pending_interrupt?` and `Thread#pending_interrupt?` (#2219).
 * Implement `rb_lastline_set` (#2170).
 * Implemented `Module#const_source_location` (#2212, @tomstuart and @wildmaples).
+* Do not call `File.exist?` in `Dir.glob` as `File.exist?` is often mocked (#2236, @gogainda).
 
 Performance:
 

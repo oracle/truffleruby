@@ -202,7 +202,8 @@ class Dir
     end
 
     def empty?(path)
-      if PrivateFile.exist?(path) and !PrivateFile.directory?(path)
+      path = Truffle::Type.coerce_to_path(path)
+      if Truffle::FileOperations.exist?(path) and !PrivateFile.directory?(path)
         return false
       end
 

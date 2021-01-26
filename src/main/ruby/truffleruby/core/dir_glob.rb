@@ -26,6 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Truffle::FileOperations.exist? is used instead of File.exist? so that adding
+# a mock for File.exist? does not affect Dir.glob.
+
 class Dir
   module Glob
     no_meta_chars = '[^*?\\[\\]{}\\\\]'
@@ -74,7 +77,7 @@ class Dir
       def call(matches, parent, glob_base_dir)
         path = path_join(parent, @name)
 
-        if File.exist? path_join(glob_base_dir, path)
+        if Truffle::FileOperations.exist? path_join(glob_base_dir, path)
           matches << path
         end
       end
@@ -88,7 +91,7 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(matches, start, glob_base_dir)
-        return if !start || !File.exist?(path_join(glob_base_dir, start))
+        return if !start || !Truffle::FileOperations.exist?(path_join(glob_base_dir, start))
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the
@@ -192,7 +195,7 @@ class Dir
       end
 
       def call(matches, path, glob_base_dir)
-        return if path and !File.exist?(path_join(glob_base_dir, "#{path}/."))
+        return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
         dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
         while ent = dir.read
@@ -210,7 +213,7 @@ class Dir
 
     class EntryMatch < Match
       def call(matches, path, glob_base_dir)
-        return if path and !File.exist?("#{path_join(glob_base_dir, path)}/.")
+        return if path and !Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
 
         dir_path = path_join(glob_base_dir, path ? path : '.')
         dir = Dir.allocate.send(:initialize_internal, dir_path)
@@ -230,7 +233,7 @@ class Dir
 
     class DirectoriesOnly < Node
       def call(matches, path, glob_base_dir)
-        if path and File.exist?("#{path_join(glob_base_dir, path)}/.")
+        if path and Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
           matches << "#{path}/"
         end
       end
@@ -355,17 +358,17 @@ class Dir
 
           braces.split(',').each do |s|
             path = "#{stem}#{s}"
-            if File.exist? path_join(base_dir, path)
+            if Truffle::FileOperations.exist? path_join(base_dir, path)
               matches << path
             end
           end
 
           # Split strips an empty closing part, so we need to add it back in
           if braces.getbyte(-1) == 44 # ?,
-            matches << stem if File.exist? path_join(base_dir, stem)
+            matches << stem if Truffle::FileOperations.exist? path_join(base_dir, stem)
           end
         else
-          matches << pattern if File.exist?(path_join(base_dir, pattern))
+          matches << pattern if Truffle::FileOperations.exist?(path_join(base_dir, pattern))
         end
 
         return matches

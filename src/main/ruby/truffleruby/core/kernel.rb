@@ -406,14 +406,14 @@ module Kernel
     end
 
     # try to resolve with current working directory
-    if File.exist? filename
+    if Truffle::FileOperations.exist?(filename)
       return Truffle::KernelOperations.load File.expand_path(filename), wrap
     end
 
     # try to find relative path in $LOAD_PATH
     $LOAD_PATH.each do |dir|
       path = File.expand_path(File.join(dir, filename))
-      if File.exist? path
+      if Truffle::FileOperations.exist?(path)
         return Truffle::KernelOperations.load path, wrap
       end
     end

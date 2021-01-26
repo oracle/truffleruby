@@ -90,5 +90,9 @@ module Truffle
 
       str
     end
+
+    def self.exist?(path)
+      Truffle::POSIX.truffleposix_stat_mode(path) > 0
+    end
   end
 end
