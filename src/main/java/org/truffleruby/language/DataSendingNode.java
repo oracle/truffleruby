@@ -23,4 +23,6 @@ public interface DataSendingNode extends NodeInterface {
     public Object execute(VirtualFrame frame);
 
     public void startSending(SendsData variabless, SendsData frame);
+
+    public boolean sendingFrame();
 }

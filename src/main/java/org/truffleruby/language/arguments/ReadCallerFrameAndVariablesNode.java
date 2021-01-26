@@ -50,4 +50,8 @@ public class ReadCallerFrameAndVariablesNode extends ReadCallerDataNode {
             CompilerDirectives.shouldNotReachHere();
         }
     }
+
+    public boolean sendingFrame() {
+        return true;
+    }
 }

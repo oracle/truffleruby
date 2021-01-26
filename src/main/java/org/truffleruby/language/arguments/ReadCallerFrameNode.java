@@ -51,4 +51,9 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
             replace(new ReadCallerFrameAndVariablesNode());
         }
     }
+
+
+    public boolean sendingFrame() {
+        return true;
+    }
 }

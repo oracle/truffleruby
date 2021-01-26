@@ -328,6 +328,10 @@ public abstract class TruffleKernelNodes {
                 replace(new OwnFrameAndVariablesSendingNode());
             }
         }
+
+        public boolean sendingFrame() {
+            return false;
+        }
     }
 
     @Primitive(name = "caller_special_variables")
