@@ -20,6 +20,19 @@ public abstract class ArrayUtils {
 
     public static final Object[] EMPTY_ARRAY = new Object[0];
 
+    public static boolean assertNoNullElement(Object[] array, int size) {
+        assert size <= array.length;
+        for (int i = 0; i < size; i++) {
+            final Object element = array[i];
+            assert element != null : element;
+        }
+        return true;
+    }
+
+    public static boolean assertNoNullElement(Object[] array) {
+        return assertNoNullElement(array, array.length);
+    }
+
     /** Extracts part of an array into a newly allocated byte[] array. Does not perform safety checks on parameters.
      * 
      * @param source the source array whose values should be extracted
