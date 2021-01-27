@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -246,6 +247,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     }
 
     public interface WithContext {
+        ContextReference<RubyContext> getContextReference();
+
         RubyContext getContext();
 
         // Helpers methods for terseness, keep in sync
