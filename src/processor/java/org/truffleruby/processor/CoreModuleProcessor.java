@@ -95,6 +95,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
     TypeMirror virtualFrameType;
     TypeMirror objectType;
     TypeMirror rubyNodeType;
+    TypeMirror rubyBaseNodeType;
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -114,6 +115,10 @@ public class CoreModuleProcessor extends AbstractProcessor {
         rubyNodeType = processingEnv
                 .getElementUtils()
                 .getTypeElement("org.truffleruby.language.RubyNode")
+                .asType();
+        rubyBaseNodeType = processingEnv
+                .getElementUtils()
+                .getTypeElement("org.truffleruby.language.RubyBaseNode")
                 .asType();
 
         if (!annotations.isEmpty()) {
@@ -403,7 +408,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
         List<VariableElement> argumentElements = new ArrayList<>();
 
         TypeElement klassIt = klass;
-        while (true) {
+        while (!isNodeBaseType(klassIt)) {
             for (Element el : klassIt.getEnclosedElements()) {
                 if (!(el instanceof ExecutableElement)) {
                     continue; // we are interested only in executable elements
@@ -462,12 +467,14 @@ public class CoreModuleProcessor extends AbstractProcessor {
             }
 
             klassIt = processingEnv.getElementUtils().getTypeElement(klassIt.getSuperclass().toString());
-            if (processingEnv.getTypeUtils().isSameType(klassIt.asType(), rubyNodeType)) {
-                break;
-            }
         }
 
         return argumentNames;
+    }
+
+    public boolean isNodeBaseType(TypeElement typeElement) {
+        return processingEnv.getTypeUtils().isSameType(typeElement.asType(), rubyNodeType) ||
+                processingEnv.getTypeUtils().isSameType(typeElement.asType(), rubyBaseNodeType);
     }
 
     private boolean anyCoreMethod(List<? extends Element> enclosedElements) {
