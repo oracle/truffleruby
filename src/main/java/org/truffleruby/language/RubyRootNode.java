@@ -12,12 +12,10 @@ package org.truffleruby.language;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.language.methods.Split;
 
 public final class RubyRootNode extends RubyBaseRootNode {
@@ -27,8 +25,6 @@ public final class RubyRootNode extends RubyBaseRootNode {
     private Split split;
 
     @Child private RubyNode body;
-
-    private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller data");
 
     public RubyRootNode(
             RubyLanguage language,
@@ -96,22 +92,9 @@ public final class RubyRootNode extends RubyBaseRootNode {
         return body;
     }
 
-    public Assumption getNeedsCallerAssumption() {
-        return needsCallerAssumption.getAssumption();
-    }
-
-    public void invalidateNeedsCallerAssumption() {
-        needsCallerAssumption.invalidate("needs caller frame");
-    }
-
-    public synchronized void invalidateNeedsVariablesAssumption() {
-        needsCallerAssumption.invalidate("needs caller special variable storage");
-    }
-
     @Override
     public Node copy() {
         RubyRootNode root = (RubyRootNode) super.copy();
-        root.needsCallerAssumption = new CyclicAssumption("needs caller data");
         return root;
     }
 
