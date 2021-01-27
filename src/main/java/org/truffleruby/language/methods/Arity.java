@@ -18,7 +18,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
-public class Arity {
+public final class Arity {
 
     public static final String[] NO_KEYWORDS = StringUtils.EMPTY_STRING_ARRAY;
     public static final Arity NO_ARGUMENTS = new Arity(0, 0, false);
@@ -82,6 +82,19 @@ public class Arity {
                 keywordArguments,
                 allKeywordsOptional,
                 hasKeywordsRest);
+    }
+
+    public boolean check(int given) {
+        assert !acceptsKeywords();
+
+        int required = getRequired();
+        return given >= required && (hasRest || given <= required + optional);
+    }
+
+    /** Same as above but without the assert for CheckKeywordArityNode */
+    public boolean basicCheck(int given) {
+        int required = getRequired();
+        return given >= required && (hasRest || given <= required + optional);
     }
 
     public int getPreRequired() {

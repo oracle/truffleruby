@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -31,49 +35,47 @@ public class CheckArityNode extends RubyContextSourceNode {
 
     @Override
     public void doExecuteVoid(VirtualFrame frame) {
-        checkArity(frame);
+        checkArity(arity, RubyArguments.getArgumentsCount(frame), checkFailedProfile, getContextReference(), this);
         body.doExecuteVoid(frame);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        checkArity(frame);
+        checkArity(arity, RubyArguments.getArgumentsCount(frame), checkFailedProfile, getContextReference(), this);
         return body.execute(frame);
     }
 
-    private void checkArity(VirtualFrame frame) {
-        final int given = RubyArguments.getArgumentsCount(frame);
-
-        if (!checkArity(arity, given)) {
+    public static void checkArity(Arity arity, int given,
+            BranchProfile checkFailedProfile,
+            ContextReference<RubyContext> contextRef,
+            Node currentNode) {
+        CompilerAsserts.partialEvaluationConstant(arity);
+        if (!arity.check(given)) {
             checkFailedProfile.enter();
-            if (arity.hasRest()) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentErrorPlus(given, arity.getRequired(), this));
-            } else if (arity.getOptional() > 0) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError(given, arity.getRequired(), arity.getOptional(), this));
-            } else {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError(given, arity.getRequired(), this));
-            }
+            checkArityError(arity, given, contextRef, currentNode);
         }
     }
 
-    static boolean checkArity(Arity arity, int given) {
-        final int required = arity.getRequired();
-
-        if (required != 0 && given < required) {
-            return false;
+    private static void checkArityError(Arity arity, int given, ContextReference<RubyContext> contextRef,
+            Node currentNode) {
+        final RubyContext context = contextRef.get();
+        if (arity.hasRest()) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentErrorPlus(given, arity.getRequired(), currentNode));
+        } else if (arity.getOptional() > 0) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(
+                            given,
+                            arity.getRequired(),
+                            arity.getOptional(),
+                            currentNode));
+        } else {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().argumentError(given, arity.getRequired(), currentNode));
         }
-
-        if (!arity.hasRest() && given > required + arity.getOptional()) {
-            return false;
-        }
-
-        return true;
     }
 
     @Override

@@ -67,7 +67,7 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             given -= 1;
         }
 
-        if (!CheckArityNode.checkArity(arity, given)) {
+        if (!arity.basicCheck(given)) {
             basicArityCheckFailedProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
         }
