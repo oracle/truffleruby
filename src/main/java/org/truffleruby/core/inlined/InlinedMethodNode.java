@@ -9,14 +9,14 @@
  */
 package org.truffleruby.core.inlined;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class InlinedMethodNode extends CoreMethodArrayArgumentsNode {
 
-    public abstract Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc);
+    public abstract Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block);
 
     public abstract InternalMethod getMethod();
 }

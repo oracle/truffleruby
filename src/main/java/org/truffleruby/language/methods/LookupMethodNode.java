@@ -31,7 +31,6 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Caches {@link ModuleOperations#lookupMethodCached(RubyModule, String, DeclarationContext)} on an actual instance. */
@@ -41,10 +40,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
     public static LookupMethodNode create() {
         return LookupMethodNodeGen.create();
-    }
-
-    public InternalMethod lookup(VirtualFrame frame, RubyClass metaClass, String name) {
-        return execute(frame, metaClass, name, DispatchConfiguration.PROTECTED);
     }
 
     public abstract InternalMethod execute(Frame frame, RubyClass metaClass, String name,

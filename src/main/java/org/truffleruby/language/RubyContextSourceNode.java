@@ -69,13 +69,18 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
     }
 
     @Override
-    public RubyContext getContext() {
+    public ContextReference<RubyContext> getContextReference() {
         if (contextReference == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             contextReference = lookupContextReference(RubyLanguage.class);
         }
 
-        return contextReference.get();
+        return contextReference;
+    }
+
+    @Override
+    public RubyContext getContext() {
+        return getContextReference().get();
     }
 
     public RubyLanguage getLanguage() {

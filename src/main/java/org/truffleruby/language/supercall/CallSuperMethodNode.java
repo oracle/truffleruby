@@ -48,25 +48,16 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
             return callMethodMissing(frame, self, block, methodMissingArguments);
         }
 
-        final Object[] frameArguments = RubyArguments
-                .pack(
-                        null,
-                        getFrameOrStorageIfRequired(frame),
-                        superMethod,
-                        null,
-                        self,
-                        block,
-                        arguments);
-
-        return callMethod(superMethod, frameArguments);
+        final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
+        return getCallMethodNode().execute(frame, callerFrameOrVariables, superMethod, self, block, arguments);
     }
 
-    private Object callMethod(InternalMethod superMethod, Object[] frameArguments) {
+    private CallInternalMethodNode getCallMethodNode() {
         if (callMethodNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodNode = insert(CallInternalMethodNode.create());
         }
-        return callMethodNode.execute(superMethod, frameArguments);
+        return callMethodNode;
     }
 
     private Object callMethodMissing(VirtualFrame frame, Object receiver, Object block, Object[] arguments) {

@@ -12,7 +12,7 @@ package org.truffleruby.core.inlined;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -56,7 +56,7 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
         return dispatch(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         if ((lookupNode.lookupProtected(frame, receiver, methodName) != coreMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
@@ -78,7 +78,7 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
         }
     }
 
-    protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, String methodName, Object block,
+    protected Object rewriteAndCallWithBlock(Frame frame, Object receiver, String methodName, Object block,
             Object... arguments) {
         return rewriteToDispatchNode().dispatch(frame, receiver, methodName, block, arguments);
     }

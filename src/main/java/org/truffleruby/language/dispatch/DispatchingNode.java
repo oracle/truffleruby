@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
 public interface DispatchingNode extends NodeInterface {
@@ -18,6 +18,6 @@ public interface DispatchingNode extends NodeInterface {
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments);
 
-    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments);
+    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments);
 
 }

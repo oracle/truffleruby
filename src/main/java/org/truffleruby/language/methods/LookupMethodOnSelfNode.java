@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
@@ -26,20 +25,15 @@ public abstract class LookupMethodOnSelfNode extends RubyBaseNode {
         return LookupMethodOnSelfNodeGen.create();
     }
 
-    public InternalMethod lookup(
-            VirtualFrame frame, Object self, String name, DispatchConfiguration config) {
-        return execute(frame, self, name, config);
-    }
-
-    public InternalMethod lookupProtected(VirtualFrame frame, Object self, String name) {
+    public InternalMethod lookupProtected(Frame frame, Object self, String name) {
         return execute(frame, self, name, DispatchConfiguration.PROTECTED);
     }
 
-    public InternalMethod lookupIgnoringVisibility(VirtualFrame frame, Object self, String name) {
+    public InternalMethod lookupIgnoringVisibility(Frame frame, Object self, String name) {
         return execute(frame, self, name, DispatchConfiguration.PRIVATE);
     }
 
-    protected abstract InternalMethod execute(Frame frame, Object self, String name, DispatchConfiguration config);
+    public abstract InternalMethod execute(Frame frame, Object self, String name, DispatchConfiguration config);
 
     @Specialization
     protected InternalMethod doLookup(Frame frame, Object self, String name, DispatchConfiguration config,

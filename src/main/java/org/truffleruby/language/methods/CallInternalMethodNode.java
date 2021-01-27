@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -21,6 +22,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ReportPolymorphism
@@ -31,23 +33,28 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return CallInternalMethodNodeGen.create();
     }
 
-    public abstract Object execute(InternalMethod method, Object[] frameArguments);
+    public abstract Object execute(Frame frame, Object callerData, InternalMethod method, Object self, Object block,
+            Object[] args);
 
     @Specialization(
             guards = "method.getCallTarget() == cachedCallTarget",
-            assumptions = "getModuleAssumption(cachedMethod)",
+            assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
-    protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
+    protected Object callCached(Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
             @Cached("createCall(cachedMethod.getName(), cachedCallTarget)") DirectCallNode callNode) {
-        return callNode.call(frameArguments);
+        return callNode.call(packArguments(callerData, method, self, block, args));
     }
 
-    @Specialization(replaces = "callMethodCached")
-    protected Object callMethodUncached(InternalMethod method, Object[] frameArguments,
+    @Specialization(replaces = "callCached")
+    protected Object callUncached(Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached IndirectCallNode indirectCallNode) {
-        return indirectCallNode.call(method.getCallTarget(), frameArguments);
+        return indirectCallNode.call(method.getCallTarget(), packArguments(callerData, method, self, block, args));
+    }
+
+    static Object[] packArguments(Object callerData, InternalMethod method, Object self, Object block, Object[] args) {
+        return RubyArguments.pack(null, callerData, method, null, self, block, args);
     }
 
     protected Assumption getModuleAssumption(InternalMethod method) {
@@ -59,7 +66,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     }
 
     protected DirectCallNode createCall(String methodName, RootCallTarget callTarget) {
-        DirectCallNode callNode = DirectCallNode.create(callTarget);
+        final DirectCallNode callNode = DirectCallNode.create(callTarget);
         final DispatchNode dispatch = NodeUtil.findParent(this, DispatchNode.class);
         if (dispatch != null) {
             dispatch.applySplittingInliningStrategy(callTarget, methodName, callNode);

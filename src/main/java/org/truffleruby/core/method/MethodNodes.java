@@ -132,9 +132,9 @@ public abstract class MethodNodes {
         @Child private CallBoundMethodNode callBoundMethodNode = CallBoundMethodNode.create();
 
         @Specialization
-        protected Object call(RubyMethod method, Object[] arguments, Object maybeBlock) {
+        protected Object call(VirtualFrame frame, RubyMethod method, Object[] arguments, Object maybeBlock) {
             return callBoundMethodNode
-                    .executeCallBoundMethod(method, arguments, maybeBlock == NotProvided.INSTANCE ? nil : maybeBlock);
+                    .execute(frame, method, arguments, maybeBlock == NotProvided.INSTANCE ? nil : maybeBlock);
         }
 
     }

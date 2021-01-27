@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.klass;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -35,7 +36,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -281,16 +281,16 @@ public abstract class ClassNodes {
         @Child private DispatchingNode allocateNode;
         @Child private DispatchingNode initialize;
 
-        public abstract Object execute(VirtualFrame frame, Object rubyClass, Object[] args, Object block);
+        public abstract Object execute(Object rubyClass, Object[] args, Object block);
 
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, NotProvided block) {
-            return doNewInstance(frame, rubyClass, args, nil);
+        protected Object newInstance(RubyClass rubyClass, Object[] args, NotProvided block) {
+            return doNewInstance(rubyClass, args, nil);
         }
 
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, RubyProc block) {
-            return doNewInstance(frame, rubyClass, args, block);
+        protected Object newInstance(RubyClass rubyClass, Object[] args, RubyProc block) {
+            return doNewInstance(rubyClass, args, block);
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
@@ -301,11 +301,11 @@ public abstract class ClassNodes {
         }
 
         @Override
-        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
-            return execute(frame, self, args, proc);
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+            return execute(self, args, block);
         }
 
-        private Object doNewInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, Object block) {
+        private Object doNewInstance(RubyClass rubyClass, Object[] args, Object block) {
             final Object instance = allocateNode().call(rubyClass, "__allocate__");
             initialize().callWithBlock(instance, "initialize", block, args);
             return instance;

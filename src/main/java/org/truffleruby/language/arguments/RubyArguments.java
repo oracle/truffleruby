@@ -20,7 +20,6 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public final class RubyArguments {
@@ -66,6 +65,30 @@ public final class RubyArguments {
             Object self,
             Object block,
             Object[] arguments) {
+        assert assertValues(callerFrameOrVariables, method, declarationContext, self, block, arguments);
+
+        final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
+
+        packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
+        packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
+        packed[ArgumentIndicies.METHOD.ordinal()] = method;
+        packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
+        packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
+        packed[ArgumentIndicies.SELF.ordinal()] = self;
+        packed[ArgumentIndicies.BLOCK.ordinal()] = block;
+
+        ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
+
+        return packed;
+    }
+
+    public static boolean assertValues(
+            Object callerFrameOrVariables,
+            InternalMethod method,
+            DeclarationContext declarationContext,
+            Object self,
+            Object block,
+            Object[] arguments) {
         assert method != null;
         assert declarationContext != null;
         assert self != null;
@@ -77,26 +100,14 @@ public final class RubyArguments {
                 callerFrameOrVariables instanceof SpecialVariableStorage ||
                 callerFrameOrVariables instanceof FrameAndVariables;
 
-        final Object[] packed = new Object[RUNTIME_ARGUMENT_COUNT + arguments.length];
-
-        packed[ArgumentIndicies.DECLARATION_FRAME.ordinal()] = declarationFrame;
-        packed[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()] = callerFrameOrVariables;
-        packed[ArgumentIndicies.METHOD.ordinal()] = method;
-        packed[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()] = declarationContext;
-        packed[ArgumentIndicies.FRAME_ON_STACK_MARKER.ordinal()] = frameOnStackMarker;
-        packed[ArgumentIndicies.SELF.ordinal()] = self;
-
         /* The block in the arguments array is always either a Nil or RubyProc. The provision of Nil if the caller
          * doesn't want to provide a block is done at the caller, because it will know the type of values within its
          * compilation unit.
          *
          * When you read the block back out in the callee, you'll therefore get a Nil or RubyProc. */
         assert block instanceof Nil || block instanceof RubyProc : block;
-        packed[ArgumentIndicies.BLOCK.ordinal()] = block;
 
-        ArrayUtils.arraycopy(arguments, 0, packed, RUNTIME_ARGUMENT_COUNT, arguments.length);
-
-        return packed;
+        return true;
     }
 
     // Getters
@@ -184,9 +195,9 @@ public final class RubyArguments {
 
     // Getters for the declaration frame that let you reach up several levels
 
-    public static MaterializedFrame getDeclarationFrame(VirtualFrame frame, int level) {
+    public static MaterializedFrame getDeclarationFrame(Frame topFrame, int level) {
         assert level > 0;
-        return getDeclarationFrame(RubyArguments.getDeclarationFrame(frame), level - 1);
+        return getDeclarationFrame(RubyArguments.getDeclarationFrame(topFrame), level - 1);
     }
 
     @ExplodeLoop

@@ -11,7 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
@@ -26,7 +26,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -107,18 +106,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
-        return execute(null, receiver, method, nil, arguments);
+        return dispatch(null, receiver, method, nil, arguments);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
-        return execute(null, receiver, method, block, arguments);
+        return dispatch(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        return execute(frame, receiver, methodName, block, arguments);
-    }
-
-    public Object execute(VirtualFrame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         assert block instanceof Nil || block instanceof RubyProc : block;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
@@ -139,15 +134,12 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             }
         }
 
-        final Object callerFrameOrStorage = getFrameOrStorageIfRequired(frame);
-        final Object[] frameArguments = RubyArguments
-                .pack(null, callerFrameOrStorage, method, null, receiver, block, arguments);
-
-        return callNode.execute(method, frameArguments);
+        final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
+        return callNode.execute(frame, callerFrameOrVariables, method, receiver, block, arguments);
     }
 
     private Object callMethodMissing(
-            VirtualFrame frame, Object receiver, String methodName, Object block,
+            Frame frame, Object receiver, String methodName, Object block,
             Object[] arguments) {
 
         final RubySymbol symbolName = nameToSymbol(methodName);
@@ -177,8 +169,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return callForeign.execute(receiver, methodName, block, arguments);
     }
 
-    protected Object callMethodMissingNode(
-            VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
+    protected Object callMethodMissingNode(Frame frame, Object receiver, Object block, Object[] arguments) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissing = insert(DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
@@ -186,7 +177,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         // NOTE(norswap, 24 Jul 2020): It's important to not pass a frame here in order to avoid looking up refinements,
         //   which should be ignored in the case of `method_missing`.
         //   cf. https://bugs.ruby-lang.org/issues/13129
-        return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
+        return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -243,9 +234,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         }
 
         @Override
-        public Object execute(VirtualFrame frame, Object receiver, String methodName, Object block,
-                Object[] arguments) {
-            return super.execute(null, receiver, methodName, block, arguments);
+        public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+            return super.dispatch(null, receiver, methodName, block, arguments);
         }
 
         @Override
@@ -260,7 +250,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         @Override
         protected Object callMethodMissingNode(
-                VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
+                Frame frame, Object receiver, Object block, Object[] arguments) {
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
@@ -268,7 +258,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             }
 
             // null: see note in supermethod
-            return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
+            return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
         }
 
         @Override

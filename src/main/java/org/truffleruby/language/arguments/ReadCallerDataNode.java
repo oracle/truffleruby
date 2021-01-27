@@ -11,8 +11,8 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -28,7 +28,7 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
     private final ConditionProfile callerDataProfile = ConditionProfile.create();
     @Child private NotOptimizedWarningNode notOptimizedNode = null;
 
-    public Object execute(VirtualFrame frame) {
+    public Object execute(Frame frame) {
         final Object data = getData(frame);
 
         if (callerDataProfile.profile(data != null)) {
@@ -38,7 +38,7 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
         }
     }
 
-    protected abstract Object getData(VirtualFrame frame);
+    protected abstract Object getData(Frame frame);
 
     @TruffleBoundary
     private Object getCallerData() {

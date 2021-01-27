@@ -33,11 +33,10 @@ public class CoreModuleChecks {
             CoreMethod coreMethod,
             TypeElement klass,
             boolean hasZeroArgument) {
-
         byte[] lowerArgs = null;
 
         TypeElement klassIt = klass;
-        while (true) {
+        while (!coreModuleProcessor.isNodeBaseType(klassIt)) {
             for (Element el : klassIt.getEnclosedElements()) {
                 if (!(el instanceof ExecutableElement)) {
                     continue; // we are interested only in executable elements
@@ -65,11 +64,6 @@ public class CoreModuleChecks {
                     .getProcessingEnvironment()
                     .getElementUtils()
                     .getTypeElement(klassIt.getSuperclass().toString());
-            if (coreModuleProcessor.getProcessingEnvironment().getTypeUtils().isSameType(
-                    klassIt.asType(),
-                    coreModuleProcessor.rubyNodeType)) {
-                break;
-            }
         }
 
         if (lowerArgs == null) {
