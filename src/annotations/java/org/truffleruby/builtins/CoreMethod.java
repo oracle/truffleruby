@@ -38,6 +38,8 @@ public @interface CoreMethod {
      * both a singleton method and instance method. */
     boolean isModuleFunction() default false;
 
+    boolean alwaysInlined() default false;
+
     boolean needsSelf() default true;
 
     int required() default 0;

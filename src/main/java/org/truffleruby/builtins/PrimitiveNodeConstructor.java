@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.Translator;
@@ -23,9 +24,9 @@ import com.oracle.truffle.api.source.Source;
 public class PrimitiveNodeConstructor {
 
     private final Primitive annotation;
-    private final NodeFactory<? extends RubyNode> factory;
+    private final NodeFactory<? extends RubyBaseNode> factory;
 
-    public PrimitiveNodeConstructor(Primitive annotation, NodeFactory<? extends RubyNode> factory) {
+    public PrimitiveNodeConstructor(Primitive annotation, NodeFactory<? extends RubyBaseNode> factory) {
         this.annotation = annotation;
         this.factory = factory;
     }
@@ -50,7 +51,7 @@ public class PrimitiveNodeConstructor {
             }
         }
 
-        final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
+        final RubyNode primitiveNode = (RubyNode) CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
         return Translator.withSourceSection(sourceSection, primitiveNode);
     }
 

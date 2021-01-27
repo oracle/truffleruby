@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -48,12 +48,13 @@ public class PrimitiveManager {
     }
 
     private PrimitiveNodeConstructor loadLazyPrimitive(String lazyPrimitive) {
-        final NodeFactory<? extends RubyNode> nodeFactory = CoreMethodNodeManager.loadNodeFactory(lazyPrimitive);
+        final NodeFactory<? extends RubyBaseNode> nodeFactory = CoreMethodNodeManager.loadNodeFactory(lazyPrimitive);
         final Primitive annotation = nodeFactory.getNodeClass().getAnnotation(Primitive.class);
         return addPrimitive(nodeFactory, annotation);
     }
 
-    public PrimitiveNodeConstructor addPrimitive(NodeFactory<? extends RubyNode> nodeFactory, Primitive annotation) {
+    public PrimitiveNodeConstructor addPrimitive(NodeFactory<? extends RubyBaseNode> nodeFactory,
+            Primitive annotation) {
         return ConcurrentOperations.getOrCompute(
                 primitives,
                 annotation.name(),
@@ -64,14 +65,14 @@ public class PrimitiveManager {
         if (!TruffleOptions.AOT && languageOptions.LAZY_BUILTINS) {
             BuiltinsClasses.setupBuiltinsLazyPrimitives(this);
         } else {
-            for (List<? extends NodeFactory<? extends RubyNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
+            for (List<? extends NodeFactory<? extends RubyBaseNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
                 registerPrimitives(factory);
             }
         }
     }
 
-    private void registerPrimitives(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
-        for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
+    private void registerPrimitives(List<? extends NodeFactory<? extends RubyBaseNode>> nodeFactories) {
+        for (NodeFactory<? extends RubyBaseNode> nodeFactory : nodeFactories) {
             final Class<?> nodeClass = nodeFactory.getNodeClass();
             final Primitive primitiveAnnotation = nodeClass.getAnnotation(Primitive.class);
             if (primitiveAnnotation != null) {
