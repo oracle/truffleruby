@@ -1,0 +1,1 @@
+slow:Truffle::SynchronizedArray redefines all Array and Enumerable methods
