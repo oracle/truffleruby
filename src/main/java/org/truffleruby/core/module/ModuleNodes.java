@@ -62,6 +62,7 @@ import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
@@ -642,7 +643,7 @@ public abstract class ModuleNodes {
                 Object code,
                 NotProvided file,
                 NotProvided line,
-                NotProvided block,
+                Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
@@ -655,7 +656,7 @@ public abstract class ModuleNodes {
                 Object code,
                 Object file,
                 NotProvided line,
-                NotProvided block,
+                Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
@@ -663,13 +664,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
-        protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                Object file,
-                int line,
-                NotProvided block,
+        protected Object classEval(VirtualFrame frame, RubyModule module, Object code, Object file, int line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
@@ -689,7 +684,7 @@ public abstract class ModuleNodes {
                 Object code,
                 NotProvided file,
                 NotProvided line,
-                NotProvided block,
+                Nil block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
         }
@@ -701,7 +696,7 @@ public abstract class ModuleNodes {
                 Object code,
                 Object file,
                 NotProvided line,
-                NotProvided block,
+                Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
@@ -761,12 +756,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected Object classEval(
-                RubyModule self,
-                NotProvided code,
-                NotProvided file,
-                NotProvided line,
-                NotProvided block) {
+        protected Object classEval(RubyModule self, NotProvided code, NotProvided file, NotProvided line, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
         }
 
@@ -799,7 +789,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected Object classExec(RubyModule self, Object[] args, NotProvided block) {
+        protected Object classExec(RubyModule self, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().noBlockGiven(this));
         }
 
@@ -1223,7 +1213,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubySymbol defineMethod(RubyModule module, String name, NotProvided proc, NotProvided block) {
+        protected RubySymbol defineMethod(RubyModule module, String name, NotProvided proc, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("needs either proc or block", this));
         }
 
@@ -1243,17 +1233,13 @@ public abstract class ModuleNodes {
                 RubyModule module,
                 String name,
                 RubyProc proc,
-                NotProvided block) {
+                Nil block) {
             return defineMethod(module, name, proc, readCallerFrame.execute(frame));
         }
 
         @TruffleBoundary
         @Specialization
-        protected RubySymbol defineMethodMethod(
-                RubyModule module,
-                String name,
-                RubyMethod methodObject,
-                NotProvided block,
+        protected RubySymbol defineMethodMethod(RubyModule module, String name, RubyMethod methodObject, Nil block,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
             final InternalMethod method = methodObject.method;
 
@@ -1280,7 +1266,7 @@ public abstract class ModuleNodes {
                 RubyModule module,
                 String name,
                 RubyUnboundMethod method,
-                NotProvided block) {
+                Nil block) {
             final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
             return defineMethodInternal(module, name, method, callerFrame);
         }
@@ -1405,7 +1391,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubyModule initialize(RubyModule module, NotProvided block) {
+        protected RubyModule initialize(RubyModule module, Nil block) {
             return module;
         }
 
@@ -2156,7 +2142,7 @@ public abstract class ModuleNodes {
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
-        protected RubyModule refine(RubyModule self, Object moduleToRefine, NotProvided block) {
+        protected RubyModule refine(RubyModule self, Object moduleToRefine, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no block given", this));
         }
 

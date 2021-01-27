@@ -352,7 +352,7 @@ public abstract class BasicObjectNodes {
                 Object string,
                 Object fileName,
                 int line,
-                NotProvided block,
+                Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
@@ -375,7 +375,7 @@ public abstract class BasicObjectNodes {
                 Object string,
                 Object fileName,
                 NotProvided line,
-                NotProvided block,
+                Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
@@ -398,7 +398,7 @@ public abstract class BasicObjectNodes {
                 Object string,
                 NotProvided fileName,
                 NotProvided line,
-                NotProvided block,
+                Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
@@ -478,7 +478,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        protected Object instanceExec(Object receiver, Object[] arguments, NotProvided block) {
+        protected Object instanceExec(Object receiver, Object[] arguments, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
 
@@ -488,13 +488,13 @@ public abstract class BasicObjectNodes {
     public abstract static class MethodMissingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object methodMissingNoName(Object self, NotProvided name, Object[] args, NotProvided block) {
+        protected Object methodMissingNoName(Object self, NotProvided name, Object[] args, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no id given", this));
         }
 
         @Specialization(guards = "wasProvided(name)")
-        protected Object methodMissingNoBlock(Object self, Object name, Object[] args, NotProvided block) {
-            return methodMissing(self, name, args, null);
+        protected Object methodMissingNoBlock(Object self, Object name, Object[] args, Nil block) {
+            return methodMissing(self, name, args, block);
         }
 
         @Specialization(guards = "wasProvided(name)")
@@ -502,7 +502,7 @@ public abstract class BasicObjectNodes {
             return methodMissing(self, name, args, block);
         }
 
-        private Object methodMissing(Object self, Object nameObject, Object[] args, RubyProc block) {
+        private Object methodMissing(Object self, Object nameObject, Object[] args, Object block) {
             throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
         }
 
@@ -518,7 +518,7 @@ public abstract class BasicObjectNodes {
 
         @TruffleBoundary
         private RubyException buildMethodMissingException(Object self, Object nameObject, Object[] args,
-                RubyProc block) {
+                Object block) {
             final String name;
             if (nameObject instanceof RubySymbol) {
                 name = ((RubySymbol) nameObject).getString();
@@ -618,8 +618,8 @@ public abstract class BasicObjectNodes {
         @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
-            return doSend(frame, self, name, args, nil);
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Nil block) {
+            return doSend(frame, self, name, args, block);
         }
 
         @Specialization

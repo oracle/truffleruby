@@ -25,7 +25,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.SymbolNodes;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -69,7 +69,7 @@ public abstract class ProcNodes {
         public abstract RubyProc executeProcNew(VirtualFrame frame, RubyClass procClass, Object[] args, Object block);
 
         @Specialization
-        protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, NotProvided block,
+        protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, Nil block,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ReadCallerFrameNode readCaller,
                 @Cached ProcNewNode recurseNode,
@@ -190,12 +190,12 @@ public abstract class ProcNodes {
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
-        protected Object call(RubyProc proc, Object[] args, NotProvided block) {
+        protected Object call(RubyProc proc, Object[] args, Nil block) {
             return callBlockNode.executeCallBlock(
                     proc.declarationContext,
                     proc,
                     ProcOperations.getSelf(proc),
-                    nil,
+                    block,
                     args);
         }
 

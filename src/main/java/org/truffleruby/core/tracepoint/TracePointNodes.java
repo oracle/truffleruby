@@ -30,7 +30,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -119,7 +119,7 @@ public abstract class TracePointNodes {
     public abstract static class EnableNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected boolean enable(RubyTracePoint tracePoint, NotProvided block) {
+        protected boolean enable(RubyTracePoint tracePoint, Nil block) {
             boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             return !setupDone;
         }
@@ -141,7 +141,7 @@ public abstract class TracePointNodes {
     public abstract static class DisableNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object disable(RubyTracePoint tracePoint, NotProvided block) {
+        protected Object disable(RubyTracePoint tracePoint, Nil block) {
             return disposeEventBindings(tracePoint);
         }
 

@@ -25,7 +25,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -137,7 +137,7 @@ public abstract class RangeNodes {
             return range;
         }
 
-        private Object eachInternal(VirtualFrame frame, RubyRange range, RubyProc block) {
+        private Object eachInternal(VirtualFrame frame, RubyRange range, Object block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eachInternalCall = insert(DispatchNode.create());
@@ -147,13 +147,13 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected Object eachObject(VirtualFrame frame, RubyLongRange range, NotProvided block) {
-            return eachInternal(frame, range, null);
+        protected Object eachObject(VirtualFrame frame, RubyLongRange range, Nil block) {
+            return eachInternal(frame, range, block);
         }
 
         @Specialization
-        protected Object each(VirtualFrame frame, RubyObjectRange range, NotProvided block) {
-            return eachInternal(frame, range, null);
+        protected Object each(VirtualFrame frame, RubyObjectRange range, Nil block) {
+            return eachInternal(frame, range, block);
         }
 
         @Specialization

@@ -21,7 +21,6 @@ import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -284,8 +283,8 @@ public abstract class ClassNodes {
         public abstract Object execute(Object rubyClass, Object[] args, Object block);
 
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(RubyClass rubyClass, Object[] args, NotProvided block) {
-            return doNewInstance(rubyClass, args, nil);
+        protected Object newInstance(RubyClass rubyClass, Object[] args, Nil block) {
+            return doNewInstance(rubyClass, args, block);
         }
 
         @Specialization(guards = "!rubyClass.isSingleton")

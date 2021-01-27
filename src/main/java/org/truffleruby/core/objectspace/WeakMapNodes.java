@@ -19,7 +19,7 @@ import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 
@@ -103,7 +103,7 @@ public abstract class WeakMapNodes {
     public abstract static class EachKeyNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected RubyWeakMap eachKey(RubyWeakMap map, NotProvided block) {
+        protected RubyWeakMap eachKey(RubyWeakMap map, Nil block) {
             return eachNoBlockProvided(this, map);
         }
 
@@ -120,7 +120,7 @@ public abstract class WeakMapNodes {
     public abstract static class EachValueNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected RubyWeakMap eachValue(RubyWeakMap map, NotProvided block) {
+        protected RubyWeakMap eachValue(RubyWeakMap map, Nil block) {
             return eachNoBlockProvided(this, map);
         }
 
@@ -137,7 +137,7 @@ public abstract class WeakMapNodes {
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected RubyWeakMap each(RubyWeakMap map, NotProvided block) {
+        protected RubyWeakMap each(RubyWeakMap map, Nil block) {
             return eachNoBlockProvided(this, map);
         }
 
