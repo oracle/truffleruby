@@ -23,7 +23,6 @@ public class ReadOwnFrameAndVariablesNode extends RubyBaseNode implements FrameO
 
     public void startSending(Reads variables, Reads frame) {
         if (variables == Reads.CALLER || frame == Reads.CALLER) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             CompilerDirectives.shouldNotReachHere();
         }
     }

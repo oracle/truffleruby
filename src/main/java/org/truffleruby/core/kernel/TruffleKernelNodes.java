@@ -322,7 +322,6 @@ public abstract class TruffleKernelNodes {
 
         public void startSending(Reads variabless, Reads frame) {
             if (variabless == Reads.CALLER || frame == Reads.CALLER) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
                 CompilerDirectives.shouldNotReachHere();
             }
             if (frame == Reads.SELF) {
