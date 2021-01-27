@@ -82,14 +82,9 @@ module FFI
       end
 
       if blocking
-        result = Primitive.thread_run_blocking_nfi_system_call -> {
-          r = @function.call(*args)
-          if Integer === r and r == -1 and Errno.errno == Errno::EINTR::Errno
-            Truffle::UNDEFINED # retry
-          else
-            r
-          end
-        }
+        begin
+          result = Primitive.thread_run_blocking_nfi_system_call(@function, args)
+        end while Integer === result and result == -1 and Errno.errno == Errno::EINTR::Errno
       else
         result = @function.call(*args)
       end
