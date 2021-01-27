@@ -15,7 +15,6 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -48,11 +47,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
 
     @Specialization(assumptions = "constant.getAssumptions()")
     protected RubyConstant lookupConstant(
-            @Cached("doLookup()") ConstantLookupResult constant,
-            @Cached("isVisible(constant)") boolean isVisible) {
-        if (!isVisible) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
-        }
+            @Cached("doLookup()") ConstantLookupResult constant) {
         if (constant.isDeprecated()) {
             warnDeprecatedConstant(getModule(), constant.getConstant(), name);
         }
@@ -61,12 +56,8 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
 
     @Specialization
     protected RubyConstant lookupConstantUncached(
-            @Cached ConditionProfile isVisibleProfile,
             @Cached ConditionProfile isDeprecatedProfile) {
         final ConstantLookupResult constant = doLookup();
-        if (isVisibleProfile.profile(!isVisible(constant))) {
-            throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
-        }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(getModule(), constant.getConstant(), name);
         }
@@ -76,10 +67,6 @@ public abstract class LookupConstantWithLexicalScopeNode extends LookupConstantB
     @TruffleBoundary
     protected ConstantLookupResult doLookup() {
         return ModuleOperations.lookupConstantWithLexicalScope(getContext(), lexicalScope, name);
-    }
-
-    protected boolean isVisible(ConstantLookupResult constant) {
-        return constant.isVisibleTo(getContext(), lexicalScope, getModule());
     }
 
 }
