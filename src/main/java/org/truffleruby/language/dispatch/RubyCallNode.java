@@ -217,7 +217,7 @@ public class RubyCallNode extends RubyContextSourceNode {
                 return nil;
             }
 
-            final InternalMethod method = lookupMethodNode.lookup(frame, receiverObject, methodName, dispatchConfig);
+            final InternalMethod method = lookupMethodNode.execute(frame, receiverObject, methodName, dispatchConfig);
 
             if (methodNotFoundProfile.profile(method == null)) {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);

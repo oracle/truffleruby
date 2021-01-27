@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -188,7 +189,7 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    public static int declarationDepth(VirtualFrame topFrame) {
+    public static int declarationDepth(Frame topFrame) {
         MaterializedFrame frame = topFrame.materialize();
         int count = 0;
 
@@ -208,7 +209,7 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    public static FrameDescriptor declarationDescriptor(VirtualFrame topFrame, int depth) {
+    public static FrameDescriptor declarationDescriptor(Frame topFrame, int depth) {
         if (depth == 0) {
             return topFrame.getFrameDescriptor();
         } else {
@@ -228,13 +229,13 @@ public abstract class TruffleKernelNodes {
     @ImportStatic({ Layouts.class, TruffleKernelNodes.class })
     public abstract static class GetSpecialVariableStorage extends RubyContextNode {
 
-        public abstract SpecialVariableStorage execute(VirtualFrame frame);
+        public abstract SpecialVariableStorage execute(Frame frame);
 
         @Specialization(
                 guards = "frame.getFrameDescriptor() == descriptor",
                 assumptions = "frameAssumption",
                 limit = "1")
-        protected SpecialVariableStorage getFromKnownFrameDescriptor(VirtualFrame frame,
+        protected SpecialVariableStorage getFromKnownFrameDescriptor(Frame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("declarationDepth(frame)") int declarationFrameDepth,
                 @Cached("declarationDescriptor(frame, declarationFrameDepth)") FrameDescriptor declarationFrameDescriptor,
@@ -278,7 +279,7 @@ public abstract class TruffleKernelNodes {
         }
 
         @Specialization(replaces = "getFromKnownFrameDescriptor")
-        protected SpecialVariableStorage slowPath(VirtualFrame frame) {
+        protected SpecialVariableStorage slowPath(Frame frame) {
             return getSlow(frame.materialize());
         }
 
@@ -363,7 +364,7 @@ public abstract class TruffleKernelNodes {
     public abstract static class GetProcSpecialVariableStorage extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object variables(VirtualFrame frame, RubyProc proc) {
+        protected Object variables(RubyProc proc) {
             return proc.declarationVariables;
         }
     }

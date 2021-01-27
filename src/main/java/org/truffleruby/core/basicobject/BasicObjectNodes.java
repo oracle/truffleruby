@@ -330,7 +330,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
             return execute();
         }
     }
@@ -646,7 +646,7 @@ public abstract class BasicObjectNodes {
             return AllocateNodeFactory.create(null);
         }
 
-        public abstract Object execute(VirtualFrame frame, Object rubyClass);
+        public abstract Object execute(Object rubyClass);
 
         @Specialization(guards = "!rubyClass.isSingleton")
         protected RubyBasicObject allocate(RubyClass rubyClass) {
@@ -663,8 +663,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
-            return execute(frame, self);
+        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+            return execute(self);
         }
 
         @Override

@@ -22,7 +22,6 @@ import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -58,9 +57,9 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  *
  * <p>
  * This class is the sole consumer of {@link RubyRootNode#getNeedsCallerAssumption()}, which is used to optimize
- * {@link #getFrameOrStorageIfRequired(VirtualFrame)} (called by subclasses in order to pass down the frame or not).
- * Starting to send the frame invalidates the assumption. In other words, the assumption guards the fact that
- * {@link #sendsFrame} is a compilation constant, and is invalidated whenever it needs to change. */
+ * {@link #getFrameOrStorageIfRequired(Frame)} (called by subclasses in order to pass down the frame or not). Starting
+ * to send the frame invalidates the assumption. In other words, the assumption guards the fact that {@link #sendsFrame}
+ * is a compilation constant, and is invalidated whenever it needs to change. */
 @SuppressFBWarnings("IS")
 public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
@@ -213,7 +212,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    public Object getFrameOrStorageIfRequired(VirtualFrame frame) {
+    public Object getFrameOrStorageIfRequired(Frame frame) {
         if (frame == null) { // the frame should be proved null or non-null at PE time
             return null;
         }

@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.kernel.TruffleKernelNodes;
 import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadCallerFrameAndVariablesNode extends ReadCallerDataNode {
 
@@ -23,12 +23,12 @@ public class ReadCallerFrameAndVariablesNode extends ReadCallerDataNode {
     }
 
     @Override
-    public FrameAndVariables execute(VirtualFrame frame) {
+    public FrameAndVariables execute(Frame frame) {
         return (FrameAndVariables) super.execute(frame);
     }
 
     @Override
-    protected FrameAndVariables getData(VirtualFrame frame) {
+    protected FrameAndVariables getData(Frame frame) {
         return RubyArguments.getCallerFrameAndVariables(frame);
     }
 

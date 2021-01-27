@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.core.kernel.TruffleKernelNodes;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadCallerVariablesNode extends ReadCallerDataNode {
 
@@ -23,12 +23,12 @@ public class ReadCallerVariablesNode extends ReadCallerDataNode {
     }
 
     @Override
-    public SpecialVariableStorage execute(VirtualFrame frame) {
+    public SpecialVariableStorage execute(Frame frame) {
         return (SpecialVariableStorage) super.execute(frame);
     }
 
     @Override
-    protected SpecialVariableStorage getData(VirtualFrame frame) {
+    protected SpecialVariableStorage getData(Frame frame) {
         return RubyArguments.getCallerStorage(frame);
     }
 

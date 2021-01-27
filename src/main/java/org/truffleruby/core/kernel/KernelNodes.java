@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -688,7 +689,7 @@ public abstract class KernelNodes {
 
         @Child private DispatchingNode initializeDupNode;
 
-        public abstract Object execute(VirtualFrame frame, Object self);
+        public abstract Object execute(Object self);
 
         @Specialization
         protected Object dup(Object self,
@@ -708,8 +709,8 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
-            return execute(frame, self);
+        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+            return execute(self);
         }
 
         @Override
@@ -1021,7 +1022,7 @@ public abstract class KernelNodes {
 
         @Child protected ReferenceEqualNode equalNode = ReferenceEqualNode.create();
 
-        public abstract Object execute(VirtualFrame frame, Object self, Object from);
+        public abstract Object execute(Object self, Object from);
 
         @Specialization(guards = "equalNode.executeReferenceEqual(self, from)")
         protected Object initializeCopySame(Object self, Object from) {
@@ -1029,7 +1030,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!equalNode.executeReferenceEqual(self, from)")
-        protected Object initializeCopy(VirtualFrame frame, Object self, Object from,
+        protected Object initializeCopy(Object self, Object from,
                 @Cached CheckFrozenNode checkFrozenNode,
                 @Cached LogicalClassNode lhsClassNode,
                 @Cached LogicalClassNode rhsClassNode,
@@ -1046,9 +1047,9 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
             assert args.length == 1;
-            return execute(frame, self, args[0]);
+            return execute(self, args[0]);
         }
 
         @Override
@@ -1072,7 +1073,7 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(VirtualFrame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
             return initializeDup((RubyDynamicObject) self, args[0]);
         }
 
@@ -1345,15 +1346,14 @@ public abstract class KernelNodes {
                 @Cached ConditionProfile respondToMissingProfile,
                 @Cached LogicalClassNode logicalClassNode) {
             final String normalizedName = nameToJavaStringNode.execute(name);
-            InternalMethod method = lookupMethodNode
-                    .lookup(frame, self, normalizedName, dispatchConfig);
+            InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
 
             if (notFoundProfile.profile(method == null)) {
                 final Object respondToMissing = respondToMissingNode
                         .call(self, "respond_to_missing?", name, dispatchConfig.ignoreVisibility);
                 if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
                     final InternalMethod methodMissing = lookupMethodNode
-                            .lookup(frame, self, "method_missing", dispatchConfig);
+                            .execute(frame, self, "method_missing", dispatchConfig);
                     method = createMissingMethod(self, name, normalizedName, methodMissing);
                 } else {
                     throw new RaiseException(

@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadCallerFrameNode extends ReadCallerDataNode {
 
@@ -21,12 +21,12 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
     }
 
     @Override
-    public MaterializedFrame execute(VirtualFrame frame) {
+    public MaterializedFrame execute(Frame frame) {
         return (MaterializedFrame) super.execute(frame);
     }
 
     @Override
-    protected MaterializedFrame getData(VirtualFrame frame) {
+    protected MaterializedFrame getData(Frame frame) {
         return RubyArguments.getCallerFrame(frame);
     }
 

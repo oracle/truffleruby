@@ -20,7 +20,6 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public final class RubyArguments {
@@ -184,9 +183,9 @@ public final class RubyArguments {
 
     // Getters for the declaration frame that let you reach up several levels
 
-    public static MaterializedFrame getDeclarationFrame(VirtualFrame frame, int level) {
+    public static MaterializedFrame getDeclarationFrame(Frame topFrame, int level) {
         assert level > 0;
-        return getDeclarationFrame(RubyArguments.getDeclarationFrame(frame), level - 1);
+        return getDeclarationFrame(RubyArguments.getDeclarationFrame(topFrame), level - 1);
     }
 
     @ExplodeLoop
