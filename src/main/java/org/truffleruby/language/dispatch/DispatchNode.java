@@ -106,18 +106,14 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
-        return execute(null, receiver, method, nil, arguments);
+        return dispatch(null, receiver, method, nil, arguments);
     }
 
     public Object callWithBlock(Object receiver, String method, Object block, Object... arguments) {
-        return execute(null, receiver, method, block, arguments);
+        return dispatch(null, receiver, method, block, arguments);
     }
 
     public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        return execute(frame, receiver, methodName, block, arguments);
-    }
-
-    public Object execute(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         assert block instanceof Nil || block instanceof RubyProc : block;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
@@ -181,7 +177,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         // NOTE(norswap, 24 Jul 2020): It's important to not pass a frame here in order to avoid looking up refinements,
         //   which should be ignored in the case of `method_missing`.
         //   cf. https://bugs.ruby-lang.org/issues/13129
-        return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
+        return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -238,9 +234,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         }
 
         @Override
-        public Object execute(Frame frame, Object receiver, String methodName, Object block,
-                Object[] arguments) {
-            return super.execute(null, receiver, methodName, block, arguments);
+        public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+            return super.dispatch(null, receiver, methodName, block, arguments);
         }
 
         @Override
@@ -263,7 +258,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             }
 
             // null: see note in supermethod
-            return callMethodMissing.execute(null, receiver, "method_missing", block, arguments);
+            return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
         }
 
         @Override
