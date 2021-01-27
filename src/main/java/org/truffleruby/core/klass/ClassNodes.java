@@ -301,8 +301,8 @@ public abstract class ClassNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
-            return execute(self, args, proc);
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+            return execute(self, args, block);
         }
 
         private Object doNewInstance(RubyClass rubyClass, Object[] args, Object block) {

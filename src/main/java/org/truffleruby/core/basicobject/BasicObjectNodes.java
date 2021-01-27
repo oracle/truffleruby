@@ -330,7 +330,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
             return execute();
         }
     }
@@ -663,7 +663,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
             return execute(self);
         }
 

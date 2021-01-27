@@ -709,7 +709,7 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
             return execute(self);
         }
 
@@ -1047,7 +1047,7 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
             assert args.length == 1;
             return execute(self, args[0]);
         }
@@ -1073,7 +1073,7 @@ public abstract class KernelNodes {
         }
 
         @Override
-        public Object inlineExecute(Frame frame, Object self, Object[] args, Object proc) {
+        public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
             return initializeDup((RubyDynamicObject) self, args[0]);
         }
 

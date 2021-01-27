@@ -16,7 +16,7 @@ import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class InlinedMethodNode extends CoreMethodArrayArgumentsNode {
 
-    public abstract Object inlineExecute(Frame frame, Object self, Object[] args, Object proc);
+    public abstract Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block);
 
     public abstract InternalMethod getMethod();
 }
