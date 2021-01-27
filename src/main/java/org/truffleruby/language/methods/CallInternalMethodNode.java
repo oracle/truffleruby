@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -32,7 +33,8 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return CallInternalMethodNodeGen.create();
     }
 
-    public abstract Object execute(Object callerData, InternalMethod method, Object self, Object block, Object[] args);
+    public abstract Object execute(Frame frame, Object callerData, InternalMethod method, Object self, Object block,
+            Object[] args);
 
     @Specialization(
             guards = "method.getCallTarget() == cachedCallTarget",

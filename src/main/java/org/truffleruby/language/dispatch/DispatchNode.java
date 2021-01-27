@@ -139,7 +139,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        return callNode.execute(callerFrameOrVariables, method, receiver, block, arguments);
+        return callNode.execute(frame, callerFrameOrVariables, method, receiver, block, arguments);
     }
 
     private Object callMethodMissing(

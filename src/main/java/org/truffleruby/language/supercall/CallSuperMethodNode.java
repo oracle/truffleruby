@@ -49,7 +49,7 @@ public class CallSuperMethodNode extends FrameAndVariablesSendingNode {
         }
 
         final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
-        return getCallMethodNode().execute(callerFrameOrVariables, superMethod, self, block, arguments);
+        return getCallMethodNode().execute(frame, callerFrameOrVariables, superMethod, self, block, arguments);
     }
 
     private CallInternalMethodNode getCallMethodNode() {
