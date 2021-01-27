@@ -21,7 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.DataSendingNode.SendsData;
+import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
@@ -61,7 +61,7 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 @SuppressFBWarnings("IS")
 public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
-    @Child protected DataSendingNode sendingNode;
+    @Child protected FrameOrVariablesReadingNode sendingNode;
 
     public boolean sendingFrames() {
         if (sendingNode == null) {
@@ -71,16 +71,16 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    private void startSending(SendsData variables, SendsData frame) {
+    private void startSending(Reads variables, Reads frame) {
         if (sendingNode != null) {
             sendingNode.startSending(variables, frame);
-        } else if (variables == SendsData.SELF && frame == SendsData.NOTHING) {
+        } else if (variables == Reads.SELF && frame == Reads.NOTHING) {
             sendingNode = insert(GetSpecialVariableStorage.create());
-        } else if (variables == SendsData.NOTHING && frame == SendsData.SELF) {
-            sendingNode = insert(new OwnFrameSendingNode());
-        } else if (variables == SendsData.CALLER && frame == SendsData.NOTHING) {
+        } else if (variables == Reads.NOTHING && frame == Reads.SELF) {
+            sendingNode = insert(new ReadOwnFrameNode());
+        } else if (variables == Reads.CALLER && frame == Reads.NOTHING) {
             sendingNode = insert(new ReadCallerFrameNode());
-        } else if (variables == SendsData.NOTHING && frame == SendsData.CALLER) {
+        } else if (variables == Reads.NOTHING && frame == Reads.CALLER) {
             sendingNode = insert(new ReadCallerVariablesNode());
         }
     }
@@ -89,18 +89,18 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
     public void startSendingOwnFrame() {
         RubyRootNode root = (RubyRootNode) getRootNode();
         if (getContext().getCoreLibrary().isSend(root.getSharedMethodInfo())) {
-            startSending(SendsData.NOTHING, SendsData.CALLER);
+            startSending(Reads.NOTHING, Reads.CALLER);
         } else {
-            startSending(SendsData.NOTHING, SendsData.SELF);
+            startSending(Reads.NOTHING, Reads.SELF);
         }
     }
 
     public void startSendingOwnVariables() {
         RubyRootNode root = (RubyRootNode) getRootNode();
         if (getContext().getCoreLibrary().isSend(root.getSharedMethodInfo())) {
-            startSending(SendsData.CALLER, SendsData.NOTHING);
+            startSending(Reads.CALLER, Reads.NOTHING);
         } else {
-            startSending(SendsData.SELF, SendsData.NOTHING);
+            startSending(Reads.SELF, Reads.NOTHING);
         }
     }
 

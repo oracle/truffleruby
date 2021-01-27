@@ -11,7 +11,7 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.kernel.TruffleKernelNodes;
-import org.truffleruby.language.DataSendingNode.SendsData;
+import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
@@ -44,8 +44,8 @@ public class ReadCallerFrameAndVariablesNode extends ReadCallerDataNode {
         return new FrameAndVariables(TruffleKernelNodes.GetSpecialVariableStorage.getSlow(frame), frame);
     }
 
-    public void startSending(SendsData variables, SendsData frame) {
-        if (variables == SendsData.SELF || frame == SendsData.SELF) {
+    public void startSending(Reads variables, Reads frame) {
+        if (variables == Reads.SELF || frame == Reads.SELF) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             CompilerDirectives.shouldNotReachHere();
         }

@@ -12,21 +12,21 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import org.truffleruby.language.DataSendingNode.SendsData;
+import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 
-public class OwnFrameSendingNode extends RubyBaseNode implements DataSendingNode {
+public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesReadingNode {
 
     public Object execute(VirtualFrame frame) {
         return frame.materialize();
     }
 
-    public void startSending(SendsData variables, SendsData frame) {
-        if (variables == SendsData.CALLER || frame == SendsData.CALLER) {
+    public void startSending(Reads variables, Reads frame) {
+        if (variables == Reads.CALLER || frame == Reads.CALLER) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             CompilerDirectives.shouldNotReachHere();
         }
-        if (variables == SendsData.SELF) {
-            replace(new OwnFrameAndVariablesSendingNode());
+        if (variables == Reads.SELF) {
+            replace(new ReadOwnFrameAndVariablesNode());
         }
     }
 

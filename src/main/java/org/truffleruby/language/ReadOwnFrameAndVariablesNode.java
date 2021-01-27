@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 
-public class OwnFrameAndVariablesSendingNode extends RubyBaseNode implements DataSendingNode {
+public class ReadOwnFrameAndVariablesNode extends RubyBaseNode implements FrameOrVariablesReadingNode {
 
     @Child GetSpecialVariableStorage readVariablesNode = GetSpecialVariableStorage.create();
 
@@ -21,8 +21,8 @@ public class OwnFrameAndVariablesSendingNode extends RubyBaseNode implements Dat
         return new FrameAndVariables(readVariablesNode.execute(frame), frame.materialize());
     }
 
-    public void startSending(SendsData variables, SendsData frame) {
-        if (variables == SendsData.CALLER || frame == SendsData.CALLER) {
+    public void startSending(Reads variables, Reads frame) {
+        if (variables == Reads.CALLER || frame == Reads.CALLER) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             CompilerDirectives.shouldNotReachHere();
         }
