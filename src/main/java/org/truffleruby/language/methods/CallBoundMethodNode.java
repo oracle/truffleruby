@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.arguments.RubyArguments;
 
 @GenerateUncached
 public abstract class CallBoundMethodNode extends RubyBaseNode {
@@ -29,19 +28,7 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
     protected Object call(RubyMethod method, Object[] arguments, Object block,
             @Cached CallInternalMethodNode callInternalMethodNode) {
         final InternalMethod internalMethod = method.method;
-        final Object[] frameArguments = packArguments(method, internalMethod, arguments, block);
-
-        return callInternalMethodNode.execute(internalMethod, frameArguments);
+        return callInternalMethodNode.execute(null, internalMethod, method.receiver, block, arguments);
     }
 
-    private Object[] packArguments(RubyMethod method, InternalMethod internalMethod, Object[] arguments, Object block) {
-        return RubyArguments.pack(
-                null,
-                null,
-                internalMethod,
-                null,
-                method.receiver,
-                block,
-                arguments);
-    }
 }

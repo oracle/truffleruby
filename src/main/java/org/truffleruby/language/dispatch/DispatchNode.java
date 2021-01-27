@@ -26,7 +26,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -139,11 +138,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             }
         }
 
-        final Object callerFrameOrStorage = getFrameOrStorageIfRequired(frame);
-        final Object[] frameArguments = RubyArguments
-                .pack(null, callerFrameOrStorage, method, null, receiver, block, arguments);
-
-        return callNode.execute(method, frameArguments);
+        final Object callerFrameOrVariables = getFrameOrStorageIfRequired(frame);
+        return callNode.execute(callerFrameOrVariables, method, receiver, block, arguments);
     }
 
     private Object callMethodMissing(
