@@ -1224,7 +1224,7 @@ public abstract class ModuleNodes {
                 String name,
                 NotProvided proc,
                 RubyProc block) {
-            return defineMethodProc(frame, module, name, block, NotProvided.INSTANCE);
+            return defineMethodProc(frame, module, name, block, nil);
         }
 
         @Specialization

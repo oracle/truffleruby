@@ -382,7 +382,7 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
 
-            if (maybeBlock == NotProvided.INSTANCE) {
+            if (maybeBlock == nil) {
                 return nil;
             } else {
                 return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
@@ -397,7 +397,7 @@ public abstract class HashNodes {
             final Entry entry = lookupResult.getEntry();
 
             if (entry == null) {
-                if (maybeBlock == NotProvided.INSTANCE) {
+                if (maybeBlock == nil) {
                     return nil;
                 } else {
                     return yieldNode.executeDispatch((RubyProc) maybeBlock, key);

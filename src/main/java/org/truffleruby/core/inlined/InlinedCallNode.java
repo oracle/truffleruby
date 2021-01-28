@@ -16,7 +16,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.InternalMethod;
@@ -72,8 +71,7 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
     public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, Object blockObject,
             Object[] argumentsObjects) {
-        final Object blockArgument = blockObject == nil ? NotProvided.INSTANCE : blockObject;
-        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, blockArgument);
+        return inlinedMethod.inlineExecute(frame, receiverObject, argumentsObjects, blockObject);
     }
 
     private Object executeBlock(VirtualFrame frame) {

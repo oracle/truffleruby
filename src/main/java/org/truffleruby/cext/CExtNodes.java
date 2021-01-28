@@ -68,7 +68,6 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -1119,7 +1118,7 @@ public class CExtNodes {
 
             RubyClass klass = (RubyClass) allocateNode
                     .call(getContext().getCoreLibrary().classClass, "__allocate__");
-            return initializeClassNode.executeInitialize(klass, superclass, NotProvided.INSTANCE);
+            return initializeClassNode.executeInitialize(klass, superclass, nil);
         }
 
     }

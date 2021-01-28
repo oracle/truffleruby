@@ -697,7 +697,7 @@ public abstract class ArrayNodes {
                 array.size = i;
                 return found;
             } else {
-                if (maybeBlock == NotProvided.INSTANCE) {
+                if (maybeBlock == nil) {
                     return nil;
                 } else {
                     return yield((RubyProc) maybeBlock, value);
