@@ -12,13 +12,13 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
@@ -47,43 +47,18 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         return GetMethodObjectNodeGen.create();
     }
 
-    public abstract RubyMethod executeGetMethodObject(Frame frame, Object self, Object name,
-            DispatchConfiguration dispatchConfig, Frame callerFrame);
-
-    protected int getCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
+    public RubyMethod get(VirtualFrame frame, Object self, Object name,
+            DispatchConfiguration config, MaterializedFrame callerFrame) {
+        return execute(frame, self, name, config, callerFrame);
     }
 
-    @Specialization(guards = {
-            "dispatchConfig == cachedDispatchConfig",
-            "self == cachedSelf",
-            "name.equals(cachedName)",
-            "contextReference.get() == cachedContext"
-    }, limit = "getCacheLimit()")
-    protected RubyMethod doCached(Frame frame, Object self, Object name,
-            DispatchConfiguration dispatchConfig,
-            Frame callerFrame,
-            @Cached("self") Object cachedSelf,
-            @Cached("name") Object cachedName,
-            @Cached("dispatchConfig") DispatchConfiguration cachedDispatchConfig,
-            @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
-            @Cached("contextReference.get()") RubyContext cachedContext,
-            @Cached NameToJavaStringNode nameToJavaStringNode,
-            @Cached LookupMethodOnSelfNode lookupMethodNode,
-            @Cached DispatchNode respondToMissingNode,
-            @Cached BooleanCastNode booleanCastNode,
-            @Cached ConditionProfile notFoundProfile,
-            @Cached ConditionProfile respondToMissingProfile,
-            @Cached LogicalClassNode logicalClassNode,
-            @Cached("getMethodObject(frame, self, cachedName, cachedDispatchConfig, callerFrame, cachedContext, nameToJavaStringNode, lookupMethodNode, respondToMissingNode, booleanCastNode, notFoundProfile, respondToMissingProfile, logicalClassNode)") RubyMethod cachedRubyMethod) {
-        return cachedRubyMethod;
-    }
+    protected abstract RubyMethod execute(Frame frame, Object self, Object name,
+            DispatchConfiguration dispatchConfig, MaterializedFrame callerFrame);
 
-
-    @Specialization(replaces = "doCached")
-    protected RubyMethod doGeneric(Frame frame, Object self, Object name,
+    @Specialization
+    protected RubyMethod getMethodObject(Frame frame, Object self, Object name,
             DispatchConfiguration dispatchConfig,
-            Frame callerFrame,
+            MaterializedFrame callerFrame,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached NameToJavaStringNode nameToJavaStringNode,
             @Cached LookupMethodOnSelfNode lookupMethodNode,
@@ -93,34 +68,6 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @Cached ConditionProfile respondToMissingProfile,
             @Cached LogicalClassNode logicalClassNode) {
         assert this != GetMethodObjectNodeGen.getUncached() || frame == null;
-
-        return getMethodObject(
-                frame,
-                self,
-                name,
-                dispatchConfig,
-                callerFrame,
-                context,
-                nameToJavaStringNode,
-                lookupMethodNode,
-                respondToMissingNode,
-                booleanCastNode,
-                notFoundProfile,
-                respondToMissingProfile,
-                logicalClassNode);
-    }
-
-    protected RubyMethod getMethodObject(Frame frame, Object self, Object name,
-            DispatchConfiguration dispatchConfig,
-            Frame callerFrame,
-            RubyContext context,
-            NameToJavaStringNode nameToJavaStringNode,
-            LookupMethodOnSelfNode lookupMethodNode,
-            DispatchNode respondToMissingNode,
-            BooleanCastNode booleanCastNode,
-            ConditionProfile notFoundProfile,
-            ConditionProfile respondToMissingProfile,
-            LogicalClassNode logicalClassNode) {
         DeclarationContext originalDeclarationContext = null;
 
         if (frame != null) {

@@ -1311,7 +1311,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyMethod method(VirtualFrame frame, Object self, Object name) {
             return getMethodObjectNode
-                    .executeGetMethodObject(frame, self, name, PRIVATE, readCallerFrame.execute(frame));
+                    .get(frame, self, name, PRIVATE, readCallerFrame.execute(frame));
         }
 
     }
@@ -1454,7 +1454,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyMethod publicMethod(VirtualFrame frame, Object self, Object name) {
             return getMethodObjectNode
-                    .executeGetMethodObject(frame, self, name, PUBLIC, readCallerFrame.execute(frame));
+                    .get(frame, self, name, PUBLIC, readCallerFrame.execute(frame));
         }
 
     }

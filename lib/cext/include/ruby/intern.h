@@ -441,7 +441,6 @@ VALUE rb_eval_cmd(VALUE, VALUE, int);
 VALUE rb_eval_cmd_kw(VALUE, VALUE, int);
 int rb_obj_respond_to(VALUE, ID, int);
 int rb_respond_to(VALUE, ID);
-VALUE rb_method_to(VALUE, ID);
 NORETURN(VALUE rb_f_notimplement(int argc, const VALUE *argv, VALUE obj, VALUE marker));
 #if !defined(RUBY_EXPORT) && defined(_WIN32)
 RUBY_EXTERN VALUE (*const rb_f_notimplement_)(int, const VALUE *, VALUE, VALUE marker);
@@ -487,7 +486,6 @@ VALUE rb_method_call_with_block(int, const VALUE *, VALUE, VALUE);
 VALUE rb_method_call_with_block_kw(int, const VALUE *, VALUE, VALUE, int);
 int rb_mod_method_arity(VALUE, ID);
 int rb_obj_method_arity(VALUE, ID);
-VALUE rb_obj_method(VALUE, VALUE);
 VALUE rb_protect(VALUE (*)(VALUE), VALUE, int*);
 void rb_set_end_proc(void (*)(VALUE), VALUE);
 void rb_thread_schedule(void);
