@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
 public interface FrameOrVariablesReadingNode extends NodeInterface {
@@ -20,7 +20,7 @@ public interface FrameOrVariablesReadingNode extends NodeInterface {
         CALLER;   // for `send` calls
     }
 
-    public Object execute(VirtualFrame frame);
+    public Object execute(Frame frame);
 
     public void startSending(Reads variabless, Reads frame);
 

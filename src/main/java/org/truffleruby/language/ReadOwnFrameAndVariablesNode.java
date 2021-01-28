@@ -10,14 +10,14 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 
 public class ReadOwnFrameAndVariablesNode extends RubyBaseNode implements FrameOrVariablesReadingNode {
 
     @Child GetSpecialVariableStorage readVariablesNode = GetSpecialVariableStorage.create();
 
-    public Object execute(VirtualFrame frame) {
+    public Object execute(Frame frame) {
         return new FrameAndVariables(readVariablesNode.execute(frame), frame.materialize());
     }
 

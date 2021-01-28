@@ -16,11 +16,6 @@ import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -104,7 +99,7 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    public Object getFrameOrStorageIfRequired(VirtualFrame frame) {
+    public Object getFrameOrStorageIfRequired(Frame frame) {
         if (sendingNode == null) {
             return null;
         } else {

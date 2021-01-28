@@ -10,13 +10,13 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 
 import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 
 public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesReadingNode {
 
-    public Object execute(VirtualFrame frame) {
+    public Object execute(Frame frame) {
         return frame.materialize();
     }
 
