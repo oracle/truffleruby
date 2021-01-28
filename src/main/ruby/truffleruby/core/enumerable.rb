@@ -1030,4 +1030,7 @@ class Array
   alias_method :drop_while, :drop_while
   alias_method :take_while, :take_while
   alias_method :sum, :sum
+  alias_method :all?, :all?
+  alias_method :none?, :none?
+  alias_method :one?, :one?
 end
