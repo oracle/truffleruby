@@ -1,6 +1,3 @@
 fails:Proc#ruby2_keywords marks the final hash argument as keyword hash
 fails:Proc#ruby2_keywords fixes delegation warnings when calling a method accepting keywords
 fails:Proc#ruby2_keywords fixes delegation warnings when calling a proc accepting keywords
-fails:Proc#ruby2_keywords prints warning when a proc does not accept argument splat
-fails:Proc#ruby2_keywords prints warning when a proc accepts keywords
-fails:Proc#ruby2_keywords prints warning when a proc accepts keyword splat

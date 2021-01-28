@@ -1,8 +1,3 @@
 fails:Module#ruby2_keywords marks the final hash argument as keyword hash
 fails:Module#ruby2_keywords fixes delegation warnings when calling a method accepting keywords
-fails:Module#ruby2_keywords raises NameError when passed not existing method name
 fails:Module#ruby2_keywords acceps String as well
-fails:Module#ruby2_keywords raises TypeError when passed not Symbol or String
-fails:Module#ruby2_keywords prints warning when a method does not accept argument splat
-fails:Module#ruby2_keywords prints warning when a method accepts keywords
-fails:Module#ruby2_keywords prints warning when a method accepts keyword splat
