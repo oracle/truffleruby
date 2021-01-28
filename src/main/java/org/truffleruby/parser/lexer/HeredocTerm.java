@@ -53,19 +53,21 @@ import org.truffleruby.parser.parser.RubyParser;
  * ',bar)\n' = lastLine
  * </pre>
 */
-public class HeredocTerm extends StrTerm {
-    // Marker delimiting heredoc boundary
+public final class HeredocTerm extends StrTerm {
+    /** End marker delimiting heredoc boundary. */
     private final Rope nd_lit;
 
-    // Expand variables, Indentation of final marker
+    /** Indicates whether string interpolation (expansion) should be performed, and the identation of the end marker. */
     private final int flags;
 
-    protected final int nth;
+    /** End position of the end marker on the line where it is declared. */
+    final int nth;
 
-    protected final int line;
+    /** Line index of the line where the end marker is declared (1-based). */
+    final int line;
 
-    // Portion of line right after beginning marker
-    protected final Rope lastLine;
+    /** Portion of the line where the end marker is declarer, from right after the marker until the end of the line. */
+    final Rope lastLine;
 
     public HeredocTerm(Rope marker, int func, int nth, int line, Rope lastLine) {
         this.nd_lit = marker;
@@ -85,26 +87,25 @@ public class HeredocTerm extends StrTerm {
         return -1;
     }
 
-    protected int restore(RubyLexer lexer) {
+    private int restore(RubyLexer lexer) {
         lexer.heredoc_restore(this);
-        lexer.setStrTerm(new StringTerm(flags | STR_FUNC_TERM, 0, 0, line)); // weird way to terminate heredoc.
-
+        // this will cause the next call to RubyLexer#yylex() to emit the RubyParser.tSTRING_END token
+        lexer.setStrTerm(new StringTerm(flags | STR_FUNC_TERM, 0, 0, line));
         return EOF;
     }
 
     @Override
     public int parseString(RubyLexer lexer) {
         RopeBuilder str = null;
-        Rope eos = nd_lit;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
         if (c == EOF) {
-            return error(lexer, eos);
+            return error(lexer, nd_lit);
         }
 
-        // Found end marker for this heredoc
-        if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
+        // Found end marker for this heredoc, on the very first line
+        if (lexer.was_bol() && lexer.whole_match_p(this.nd_lit, indent)) {
             lexer.heredoc_restore(this);
             lexer.setStrTerm(null);
             lexer.setState(EXPR_END);
@@ -112,10 +113,17 @@ public class HeredocTerm extends StrTerm {
         }
 
         if ((flags & STR_FUNC_EXPAND) == 0) {
-            do {
+            // heredocs without string interpolation
+
+            // TODO what's in lbuf?
+            do { // iterate on lines, while end marker not found
                 Rope lbuf = lexer.lex_lastline;
-                int p = 0;
+                final int p = 0; // TODO inline this
                 int pend = lexer.lex_pend;
+
+                // Adjust pend so that it doesn't cover the final newline, excepted if the line
+                // only has a single \n, or has both \n and \r - in which case a single \n wil be included.
+                // TODO: this logic is insane - why is it necessary? - can it be refactored?
                 if (pend > p) {
                     switch (lexer.p(pend - 1)) {
                         case '\n':
@@ -131,44 +139,54 @@ public class HeredocTerm extends StrTerm {
                     }
                 }
 
+                // if we are dealing with a squiggly heredoc
                 if (lexer.getHeredocIndent() > 0) {
+                    // update the indent for the current line
                     for (int i = 0; p + i < pend && lexer.update_heredoc_indent(lexer.p(p + i)); i++) {
                     }
+                    // reset heredoc_line_indent to 0 (was -1 after we matched the first non-whitespace character)
                     lexer.setHeredocLineIndent(0);
                 }
 
                 if (str != null) {
                     str.append(lbuf.getBytes(), p, pend - p);
                 } else {
+                    // lazy initialization of string builder
                     final RopeBuilder builder = RopeBuilder.createRopeBuilder(lbuf.getBytes(), p, pend - p);
                     builder.setEncoding(lbuf.getEncoding());
                     str = builder;
                 }
 
+                // if the newline wasn't included in the append, add it now
                 if (pend < lexer.lex_pend) {
                     str.append('\n');
                 }
                 lexer.lex_goto_eol();
 
                 if (lexer.getHeredocIndent() > 0) {
+                    // for squiggly (indented) heredocs, generate one string content token token per line
+                    // this will be dedented in the parser through lexer.heredoc_dedent
                     lexer.setValue(lexer.createStr(str, 0));
                     return RubyParser.tSTRING_CONTENT;
                 }
                 // MRI null checks str in this case but it is unconditionally non-null?
                 if (lexer.nextc() == -1) {
-                    return error(lexer, eos);
+                    return error(lexer, nd_lit);
                 }
-            } while (!lexer.whole_match_p(eos, indent));
+            } while (!lexer.whole_match_p(nd_lit, indent));
         } else {
+            // heredoc with string interpolation
+
             RopeBuilder tok = new RopeBuilder();
             tok.setEncoding(lexer.getEncoding());
-            if (c == '#') {
-                int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
 
+            // TODO why is this needed at the start?
+            if (c == '#') {
+                // interpolated variable or block begin
+                int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
                 if (token != 0) {
                     return token;
                 }
-
                 tok.append('#');
             }
 
@@ -179,29 +197,37 @@ public class HeredocTerm extends StrTerm {
                 Encoding enc[] = new Encoding[1];
                 enc[0] = lexer.getEncoding();
 
+                // parse the line into the buffer, as a regular string (with expansion)
                 if ((c = new StringTerm(flags, '\0', '\n', lexer.ruby_sourceline)
                         .parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
                     if (lexer.eofp) {
-                        return error(lexer, eos);
+                        return error(lexer, nd_lit);
                     }
                     return restore(lexer);
                 }
+
+                // append final newline, or return a string content token if the separator is different
+                // TODO when does this even happen?
                 if (c != '\n') {
                     lexer.setValue(lexer.createStr(tok, 0));
                     return RubyParser.tSTRING_CONTENT;
                 }
+
+                // TODO is this a newline?
                 tok.append(lexer.nextc());
 
                 if (lexer.getHeredocIndent() > 0) {
+                    // for squiggly (indented) heredocs, generate one string content token token per line
+                    // this will be dedented in the parser through lexer.heredoc_dedent
                     lexer.lex_goto_eol();
                     lexer.setValue(lexer.createStr(tok, 0));
                     return RubyParser.tSTRING_CONTENT;
                 }
 
                 if ((c = lexer.nextc()) == EOF) {
-                    return error(lexer, eos);
+                    return error(lexer, nd_lit);
                 }
-            } while (!lexer.whole_match_p(eos, indent));
+            } while (!lexer.whole_match_p(nd_lit, indent));
             str = tok;
         }
 

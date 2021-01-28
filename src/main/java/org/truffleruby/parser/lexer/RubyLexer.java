@@ -286,8 +286,8 @@ public class RubyLexer implements MagicCommentHandler {
             lex_pbeg = lex_p = 0;
             lex_pend = lex_p + line.byteLength();
             lexb = line;
-            flush();
             lex_lastline = line;
+            flush();
         }
 
         int c = p(lex_p);
@@ -306,28 +306,30 @@ public class RubyLexer implements MagicCommentHandler {
         return c;
     }
 
+    /** Dedent the given node (a {@code (XXX)StrParseNode} or a {@link ListParseNode} of {@code (XXX)StrParseNode})
+     * according to {@link #heredoc_indent}. */
     public void heredoc_dedent(ParseNode root) {
-        int indent = heredoc_indent;
+        final int indent = heredoc_indent;
 
         if (indent <= 0 || root == null) {
             return;
         }
 
+        // Other types of string parse nodes do not need dedentation (e.g. EvStrParseNode)
         if (root instanceof StrParseNode) {
             StrParseNode str = (StrParseNode) root;
             str.setValue(dedent_string(str.getValue(), indent));
         } else if (root instanceof ListParseNode) {
             ListParseNode list = (ListParseNode) root;
             int length = list.size();
-            int currentLine = -1;
+            int currentLine = 0;
             for (int i = 0; i < length; i++) {
                 ParseNode child = list.get(i);
-                if (currentLine == child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1) {
-                    continue;  // Only process first element on a line?
+                final int line = child.getPosition().toSourceSection(src.getSource()).getStartLine();
+                if (currentLine == line) {
+                    continue;  // only process the first element on each line
                 }
-
-                currentLine = child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1;                 // New line
-
+                currentLine = line;
                 if (child instanceof StrParseNode) {
                     final StrParseNode childStrNode = (StrParseNode) child;
                     childStrNode.setValue(dedent_string(childStrNode.getValue(), indent));
@@ -345,13 +347,15 @@ public class RubyLexer implements MagicCommentHandler {
         throw new SyntaxException(pid, getFile(), ruby_sourceline, message);
     }
 
-    public void heredoc_restore(HeredocTerm here) {
+    /** Continue parsing after parsing a heredoc: restore the rest of line after the heredoc start marker, also sets
+     * {@link #heredoc_end} to the line where the heredoc ends, so that we can skip the already parsed heredoc. */
+    void heredoc_restore(HeredocTerm here) {
         Rope line = here.lastLine;
+        lexb = line;
         lex_lastline = line;
         lex_pbeg = 0;
         lex_pend = lex_pbeg + line.byteLength();
         lex_p = lex_pbeg + here.nth;
-        lexb = line;
         heredoc_end = ruby_sourceline;
         ruby_sourceline = here.line;
         updateLineOffset();
@@ -363,6 +367,7 @@ public class RubyLexer implements MagicCommentHandler {
         return token == EOF ? 0 : token;
     }
 
+    /** Return a {@link SourceIndexLength} for the current line, to be used as positional information for a token. */
     public SourceIndexLength getPosition() {
         if (tokline != null && ruby_sourceline == ruby_sourceline_when_tokline_created) {
             return tokline;
@@ -724,18 +729,21 @@ public class RubyLexer implements MagicCommentHandler {
             indent = Integer.MAX_VALUE;
         }
 
-        Rope markerValue;
+        Rope markerValue; // the value that marks the end of the heredoc
+
         if (c == '\'' || c == '"' || c == '`') {
+            // the marker is quoted
             if (c == '\'') {
-                func |= str_squote;
+                func |= str_squote; // don't expand interpolation
             } else if (c == '"') {
-                func |= str_dquote;
+                func |= str_dquote; // expand interpolation, same as default
             } else {
-                func |= str_xquote;
+                func |= str_xquote; // run as process and return value
             }
 
-            newtok(false); // skip past quote type
+            newtok(false); // reset token position past the opening quote
 
+            // read marker value (until closing quote)
             term = c;
             while ((c = nextc()) != EOF && c != term) {
                 if (!tokadd_mbchar(c)) {
@@ -747,13 +755,15 @@ public class RubyLexer implements MagicCommentHandler {
                 compile_error("unterminated here document identifier");
             }
 
-            // c == term.  This differs from MRI in that we unwind term symbol so we can make
-            // our marker with just tokp and lex_p info (e.g. we don't make second numberBuffer).
+            assert c == term;
+
+            // We pushback the term symbol so that we can build the rope using lex_p.
             pushback(term);
             markerValue = createTokenByteArrayView();
             nextc();
         } else {
             if (!isIdentifierChar(c)) {
+                // no identifier following <<- or <<~, not a heredoc & pushback - or ~
                 pushback(c);
                 if ((func & STR_FUNC_INDENT) != 0) {
                     pushback(heredoc_indent > 0 ? '~' : '-');
@@ -761,8 +771,12 @@ public class RubyLexer implements MagicCommentHandler {
                 return 0;
             }
             newtok(true);
+
+            // when there is no quote around the end marker, behave as thought it was double quote
             term = '"';
             func |= str_dquote;
+
+            // read marker value (until non-identifier char)
             do {
                 if (!tokadd_mbchar(c)) {
                     return EOF;
@@ -772,21 +786,25 @@ public class RubyLexer implements MagicCommentHandler {
             markerValue = createTokenByteArrayView();
         }
 
-        int len = lex_p - lex_pbeg;
+        int len = lex_p - lex_pbeg; // marker length
+
+        // skip to end of line - we will resume parsing the line after the heredoc is processed!
         lex_goto_eol();
+
+        // next yylex() invocation(s) will parse the heredoc content (including the terminator)
         lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lex_lastline);
 
         if (term == '`') {
             yaccValue = RopeConstants.BACKTICK;
             flush();
-            return RubyParser.tXSTRING_BEG;
+            return RubyParser.tXSTRING_BEG; // marks the beggining of a backtick string in the parser
         }
 
-        yaccValue = RopeConstants.QQ;
-        heredoc_indent = indent;
+        yaccValue = RopeConstants.QQ; // double quote
+        heredoc_indent = indent; // 0 if [<<-], MAX_VALUE if [<<~]
         heredoc_line_indent = 0;
         flush();
-        return RubyParser.tSTRING_BEG;
+        return RubyParser.tSTRING_BEG; // marks the beginning of a string in the parser
     }
 
     private boolean arg_ambiguous() {
@@ -811,6 +829,7 @@ public class RubyLexer implements MagicCommentHandler {
         boolean tokenSeen = this.tokenSeen;
 
         if (lex_strterm != null) {
+            // parse string or heredoc content
             return lex_strterm.parseString(this);
         }
 
@@ -2787,6 +2806,8 @@ public class RubyLexer implements MagicCommentHandler {
         return hexValue;
     }
 
+    // --- LEXER STATES ---
+
     public static final int EXPR_BEG = 1;
     public static final int EXPR_END = 1 << 1;
     public static final int EXPR_ENDARG = 1 << 2;
@@ -2805,45 +2826,99 @@ public class RubyLexer implements MagicCommentHandler {
     public static final int EXPR_ARG_ANY = EXPR_ARG | EXPR_CMDARG;
     public static final int EXPR_END_ANY = EXPR_END | EXPR_ENDARG | EXPR_ENDFN;
 
+    /** Current lexer state, see the constants above. */
+    private int lex_state;
+    /** Previous value of {@link #lex_state}, periodically reset to {@link #lex_state} at key points in the lexer (e.g.
+     * at the start of the {@link #yylex()} loop. */
+    private int last_state;
+
+    // --- LINE + POSITION ---
+
+    /** The current line being parsed */
+    private Rope lexb = null;
+    /** TODO: As far as I can tell, this is ALWAYS identical to lexb. See if it can be removed? */
+    Rope lex_lastline = null;
+
+    /** Always 0, except when parsing a UTF-8 BOM in parser_prepare() */
+    private int lex_pbeg = 0;
+    /** The current position, as an offset of lexb */
+    private int lex_p = 0;
+    /** The offset of lexb at which the line ends */
+    int lex_pend = 0;
+
+    /** Number of lines read in the source so far. Note that this is not necessarily the line index of {@link #lexb}, as
+     * for instance heredocs need to "read ahead" before continuing to process characters on line where the heredoc
+     * marker first appeared. */
+    private int line_count = 0;
+    /** Index of the current source line (the first line has index 1). This is not necessarily the same line as
+     * {@link #lexb} and is used to track the logical source position to report in syntax errors, etc. */
+    int ruby_sourceline = 1;
+    /** Offset in the full source of the start of the current source line. */
+    private int ruby_sourceline_char_offset = 0;
+    /** Length of the current source line. */
+    private int ruby_sourceline_char_length = 0;
+
+    // --- SOURCE & RELATED PROPERTIES ---
+
+    /** The stream of data examined by {@link #yylex()}. */
+    private final LexerSource src;
+
+    /** Whether a token was already seen while parsing the file. Used for magic comment processing. */
+    private boolean tokenSeen = false;
+    /** Does the source starts with a shebang? */
+    private boolean has_shebang = false;
+    /** See {@link #getEndPosition()}. */
+    private int endPosition = -1;
+
+    // --- TOKEN RELATED FIELDS ---
+
+    /** Last token read by {@link #yylex()}. See constants in {@link RubyParser} (derived from {@code RubyParser.y} for
+     * potential values. */
+    private int token;
+    /** Where the last token started. */
+    private int tokp = 0;
+    /** Value of last token which had a value associated with it. */
+    private Object yaccValue;
+    /** The character code range for the last token. */
+    private CodeRange tokenCR;
+    /** Snapshot of {@link #ruby_sourceline} for the last token. */
+    private int ruby_sourceline_when_tokline_created;
+    /** Source span for the whole line of the last token. */
+    public SourceIndexLength tokline;
+
+    // --- HEREDOC RELATED FIELDS
+
+    /** The amount by which the current heredoc should be dedented when using a squiggly heredoc (<<~). This is
+     * initially set to 0 (<<-) or MAX_VALUE (<<~) to act as a flag for whether the heredoc is indent-sensitive. Later
+     * it is updated by calling {@link #update_heredoc_indent(int)}. */
+    private int heredoc_indent = 0;
+
+    /** This field records the indentation of the current line as its leading characters are supplied one by one to
+     * {@link #update_heredoc_indent(int)}. It is not used elsewhere. When set to -1, signifies that we have seen the
+     * first non-whitespace character on the line and that {@link #heredoc_indent} has been updated if needed. */
+    private int heredoc_line_indent = 0;
+
+    /** After a heredoc has been parsed, updated to point at the last line of the heredoc, so that the already-lexed
+     * heredoc can be skipped, after we finish lexing the rest of the line where the heredoc end marker was declared. */
+    private int heredoc_end = 0;
+
+    // --- OTHER ---
+
+    /** Was end-of-file reached? (or {@link #END_MARKER}) */
+    public boolean eofp = false;
+
+    private Encoding current_enc;
+    protected int parenNest = 0;
     protected int braceNest = 0;
     public boolean commandStart;
     protected StackState conditionState = new StackState();
     protected StackState cmdArgumentState = new StackState();
     private Rope current_arg;
-    private Encoding current_enc;
-    protected int endPosition = -1;
-    public boolean eofp = false;
-    protected boolean has_shebang = false;
-    protected int heredoc_end = 0;
-    protected int heredoc_indent = 0;
-    protected int heredoc_line_indent = 0;
     public boolean inKwarg = false;
     protected int last_cr_line;
-    protected int last_state;
     private int leftParenBegin = 0;
-    /** The current line being parsed */
-    public Rope lexb = null;
-    public Rope lex_lastline = null;
-    /** Always 0, except when parsing a UTF-8 BOM in parser_prepare() */
-    protected int lex_pbeg = 0;
-    /** The current position, as an offset of lexb */
-    public int lex_p = 0;
-    /** The offset of lexb at which the line ends */
-    public int lex_pend = 0;
-    protected int lex_state;
-    protected int line_count = 0;
-    protected int parenNest = 0;
-    protected int ruby_sourceline = 1;
-    protected int ruby_sourceline_char_offset = 0;
-    protected int ruby_sourceline_char_length = 0;
-    protected final LexerSource src;                // Stream of data that yylex() examines.
-    protected int token;                      // Last token read via yylex().
-    private CodeRange tokenCR;
-    protected boolean tokenSeen = false;
-    public SourceIndexLength tokline;
-    private int ruby_sourceline_when_tokline_created;
-    public int tokp = 0;                   // Where last token started
-    protected Object yaccValue;               // Value of last token which had a value associated with it.
+
+    // -- END FIELDS ---
 
     // MRI: comment_at_top
     protected boolean comment_at_top() {
@@ -2861,6 +2936,7 @@ public class RubyLexer implements MagicCommentHandler {
         return true;
     }
 
+    /** Returns a rope for the current token, spanning from {@link #tokp} to {@link #lex_p}. */
     public Rope createTokenByteArrayView() {
         return parserRopeOperations.makeShared(lexb, tokp, lex_p - tokp);
     }
@@ -2883,7 +2959,9 @@ public class RubyLexer implements MagicCommentHandler {
         return createTokenRope(tokp);
     }
 
-    protected Rope dedent_string(Rope string, int width) {
+    /** Returns a substring rope equivalent equivalent to the given rope (which contains a single line), dedented by the
+     * given width. */
+    private Rope dedent_string(Rope string, int width) {
         int len = string.byteLength();
         int i, col = 0;
 
@@ -2904,7 +2982,8 @@ public class RubyLexer implements MagicCommentHandler {
         return parserRopeOperations.makeShared(string, i, len - i);
     }
 
-    protected void flush() {
+    /** Sets the token start position ({@link #tokp}) to the current position ({@link #lex_p}). */
+    private void flush() {
         tokp = lex_p;
     }
 
@@ -2977,6 +3056,8 @@ public class RubyLexer implements MagicCommentHandler {
         return parenNest;
     }
 
+    /** Returns the end position in the source. This is usually -1 (the source code spans the whole source file), but
+     * can be set to a number when the {@link #END_MARKER} ({@code __END__}) is encountered. */
     public int getEndPosition() {
         return endPosition;
     }
@@ -3109,6 +3190,7 @@ public class RubyLexer implements MagicCommentHandler {
         return c != EOF && (Character.isLetterOrDigit(c) || c == '_' || !isASCII(c));
     }
 
+    /** Sets the current position in the current line ({@link #lex_p}) to the end of the line ({@link #lex_pend}). */
     public void lex_goto_eol() {
         lex_p = lex_pend;
     }
@@ -3121,18 +3203,25 @@ public class RubyLexer implements MagicCommentHandler {
         setEncoding(encoding);
     }
 
-    // FIXME: We significantly different from MRI in that we are just mucking
-    // with lex_p pointers and not alloc'ing our own buffer (or using bytelist).
-    // In most cases this does not matter much but for ripper or a place where
-    // we remove actual source characters (like extra '"') then this acts differently.
+    /** Reset the starting token position.
+     * 
+     * @param unreadOnce whether we should assume the position starts 1 before the current lexer position */
     public void newtok(boolean unreadOnce) {
+
+        // This significantly differs from MRI in that we are just mucking with lex_p pointers and not allocating our
+        // own buffer (or using bytelist). In most cases this does not matter much but for ripper or a place where we
+        // remove actual source characters (like extra '"') then this acts differently.
+
+        // NOTE(norswap, 28 Jan 2021): Since TruffleRuby does not implement Ripper via the usual lexer & parser, the
+        //     above concern can be safely ignored.
+
         tokline = getPosition();
         ruby_sourceline_when_tokline_created = ruby_sourceline;
 
         // We assume all idents are valid (or 7BIT if ASCII-compatible), until they aren't.
         tokenCR = lexb.getEncoding().isAsciiCompatible() ? CodeRange.CR_7BIT : CodeRange.CR_VALID;
 
-        tokp = lex_p - (unreadOnce ? 1 : 0); // We use tokp of ripper to mark beginning of tokens.
+        tokp = lex_p - (unreadOnce ? 1 : 0);
     }
 
     protected int numberLiteralSuffix(int mask) {
@@ -3386,6 +3475,8 @@ public class RubyLexer implements MagicCommentHandler {
         this.heredoc_line_indent = heredoc_line_indent;
     }
 
+    /** Sets {@link #heredoc_indent}. Usually used to reset the indent to 0 in the parser after we've finished parsing a
+     * heredoc ({@link RubyParser#tSTRING_END} or {@link RubyParser#tSTRING_DEND} has been seen). */
     public void setHeredocIndent(int heredoc_indent) {
         this.heredoc_indent = heredoc_indent;
     }
@@ -3402,6 +3493,7 @@ public class RubyLexer implements MagicCommentHandler {
         this.lex_state = state;
     }
 
+    /** Sets the value associated with the current token. */
     public void setValue(Object yaccValue) {
         this.yaccValue = yaccValue;
     }
@@ -3484,6 +3576,13 @@ public class RubyLexer implements MagicCommentHandler {
         buffer.append(bytes);
     }
 
+    /** Updates {@link #heredoc_line_indent} and {@link #heredoc_indent} based on the character {@code c} read on the
+     * current line. If the character is whitespace, increments {@link #heredoc_line_indent} with its width and return
+     * true. If not, sets {@link #heredoc_indent} to {@link #heredoc_line_indent} if line_indent is lesser, sets
+     * {@link #heredoc_line_indent} to -1, and returns false.
+     * <p>
+     * Further invocations of this after {@link #heredoc_line_indent} has been set to 1 will return false. If {@code c}
+     * is a newline in this case, will reset {@link #heredoc_line_indent} to 0. */
     public boolean update_heredoc_indent(int c) {
         if (heredoc_line_indent == -1) {
             if (c == '\n') {
@@ -3549,18 +3648,21 @@ public class RubyLexer implements MagicCommentHandler {
         }
     }
 
+    /** Is the lexer position one past the begin of the current line? */
     public boolean was_bol() {
         return lex_p == lex_pbeg + 1;
     }
 
-    public boolean whole_match_p(Rope eos, boolean indent) {
+    /** Indicates whether the current line matches the given marker, after stripping away leading whitespace if
+     * {@code indent} is true. */
+    boolean whole_match_p(Rope eos, boolean indent) {
         int len = eos.byteLength();
         int p = lex_pbeg;
 
         if (indent) {
             for (int i = 0; i < lex_pend; i++) {
                 if (!Character.isWhitespace(p(i + p))) {
-                    p += i; // TODO (eregon, 24-Jun-2018): this looks wrong and doesn't seem to match MRI
+                    p += i;
                     break;
                 }
             }
