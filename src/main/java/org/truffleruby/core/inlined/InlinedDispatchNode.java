@@ -61,7 +61,11 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
         } else {
-            return inlinedMethod.inlineExecute(frame, receiver, arguments, block);
+            try {
+                return inlinedMethod.inlineExecute(frame, receiver, arguments, block);
+            } catch (InlinedMethodNode.RewriteException e) {
+                return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
+            }
         }
     }
 

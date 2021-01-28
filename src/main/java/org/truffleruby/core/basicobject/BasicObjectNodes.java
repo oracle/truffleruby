@@ -331,6 +331,9 @@ public abstract class BasicObjectNodes {
 
         @Override
         public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+            if (args != null && args.length > 0) {
+                throw new InlinedMethodNode.RewriteException();
+            }
             return execute();
         }
     }
