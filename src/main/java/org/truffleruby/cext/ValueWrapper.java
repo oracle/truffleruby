@@ -19,7 +19,9 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -120,5 +122,57 @@ public class ValueWrapper implements TruffleObject {
         }
 
         return handle;
+    }
+
+    @ExportMessage
+    protected boolean hasMembers() {
+        return true;
+    }
+
+    @ExportMessage
+    protected Object getMembers(boolean includeInternal) {
+        return new String[]{ "value" };
+    }
+
+    @ExportMessage
+    protected boolean isMemberReadable(String member) {
+        return "value".equals(member);
+    }
+
+    @ExportMessage
+    protected static Object readMember(ValueWrapper wrapper, String member,
+            @Cached @Exclusive BranchProfile errorProfile) throws UnknownIdentifierException {
+        if ("value".equals(member)) {
+            return wrapper.object;
+        } else {
+            errorProfile.enter();
+            throw UnknownIdentifierException.create(member);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean hasArrayElements(ValueWrapper wrapper) {
+        return true;
+    }
+
+    @ExportMessage
+    protected static long getArraySize(ValueWrapper wrapper) {
+        return 1;
+    }
+
+    @ExportMessage
+    protected static Object readArrayElement(ValueWrapper wrapper, long index,
+            @Cached @Exclusive BranchProfile errorProfile) throws InvalidArrayIndexException {
+        if (index == 0L) {
+            return wrapper.object;
+        } else {
+            errorProfile.enter();
+            throw InvalidArrayIndexException.create(index);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isArrayElementReadable(ValueWrapper wrapper, long index) {
+        return index == 0L;
     }
 }
