@@ -57,11 +57,15 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
     }
 
     public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        if ((lookupNode.lookupProtected(frame, receiver, methodName) != coreMethod()) ||
+        if ((lookupNode.lookupIgnoringVisibility(frame, receiver, methodName) != coreMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
         } else {
-            return inlinedMethod.inlineExecute(frame, receiver, arguments, block);
+            try {
+                return inlinedMethod.inlineExecute(frame, receiver, arguments, block);
+            } catch (InlinedMethodNode.RewriteException e) {
+                return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
+            }
         }
     }
 

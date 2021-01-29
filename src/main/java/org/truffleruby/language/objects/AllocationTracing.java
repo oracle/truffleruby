@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -75,6 +76,54 @@ public abstract class AllocationTracing {
         }
     }
 
+    public static void traceBsicObjectAllocation(RubyDynamicObject instance, RubyDynamicObject rubyClass,
+            RubyContextSourceNode node) {
+        RubyLanguage language = node.getLanguage();
+        RubyContext context = node.getContext();
+
+        if (!(node.getParent() instanceof InlinedDispatchNode)) {
+            traceObject(language, context, instance, node);
+        } else {
+            CompilerAsserts.partialEvaluationConstant(language);
+
+            final AllocationReporter allocationReporter = language.getAllocationReporter();
+            if (allocationReporter.isActive()) {
+                allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+                allocationReporter.onReturnValue(instance, 0, AllocationReporter.SIZE_UNKNOWN);
+            }
+
+            if (context.getObjectSpaceManager().isTracing(language)) {
+                traceInlineBoundary(language, context, instance, rubyClass, node);
+            }
+        }
+    }
+
+    @TruffleBoundary
+    public static void traceInlineBoundary(RubyLanguage language, RubyContext context, RubyDynamicObject instance,
+            RubyDynamicObject klass, RubyContextSourceNode node) {
+        final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
+        if (!objectSpaceManager.isTracingPaused()) {
+            objectSpaceManager.setTracingPaused(true);
+            try {
+                callTraceInlineAllocation(language, context, instance, klass, node);
+            } finally {
+                objectSpaceManager.setTracingPaused(false);
+            }
+        }
+    }
+
+    @TruffleBoundary
+    public static void callTraceInlineAllocation(RubyLanguage language, RubyContext context, RubyDynamicObject instance,
+            RubyDynamicObject klass, RubyContextSourceNode node) {
+        final SourceSection allocatingSourceSection = context
+                .getCallStack()
+                .getTopMostUserSourceSection(node.getEncapsulatingSourceSection());
+        final String className = LogicalClassNode.getUncached().execute(klass).fields
+                .getName();
+
+        callAllocationTrace(language, context, instance, allocatingSourceSection, "__allocate__", className);
+    }
+
     @TruffleBoundary
     private static void callTraceAllocation(RubyLanguage language, RubyContext context, Object object,
             Node currentNode) {
@@ -89,6 +138,11 @@ public abstract class AllocationTracing {
         final String className = LogicalClassNode.getUncached().execute(allocatingSelf).fields
                 .getName();
 
+        callAllocationTrace(language, context, object, allocatingSourceSection, allocatingMethod, className);
+    }
+
+    private static void callAllocationTrace(RubyLanguage language, RubyContext context, Object object,
+            final SourceSection allocatingSourceSection, final String allocatingMethod, final String className) {
         context.send(
                 context.getCoreLibrary().objectSpaceModule,
                 "trace_allocation",

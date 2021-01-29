@@ -331,6 +331,9 @@ public abstract class BasicObjectNodes {
 
         @Override
         public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
+            if (args != null && args.length > 0) {
+                throw new InlinedMethodNode.RewriteException();
+            }
             return execute();
         }
     }
@@ -651,7 +654,7 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = "!rubyClass.isSingleton")
         protected RubyBasicObject allocate(RubyClass rubyClass) {
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, getLanguage().basicObjectShape);
-            AllocationTracing.trace(instance, this);
+            AllocationTracing.traceBsicObjectAllocation(instance, rubyClass, this);
             return instance;
         }
 

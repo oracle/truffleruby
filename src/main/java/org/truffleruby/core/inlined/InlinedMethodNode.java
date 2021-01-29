@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.frame.Frame;
 
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -19,4 +20,9 @@ public abstract class InlinedMethodNode extends CoreMethodArrayArgumentsNode {
     public abstract Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block);
 
     public abstract InternalMethod getMethod();
+
+    public static class RewriteException extends AbstractTruffleException {
+
+        private static final long serialVersionUID = -4128190563044417424L;
+    }
 }
