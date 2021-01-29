@@ -40,19 +40,13 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  * materialize - but this is even slower and causes a deoptimization in the callee every time we walk the stack.
  *
  * <p>
- * This class works in tandem with {@link ReadCallerFrameNode} for this purpose. At first, we don't send down the frame.
- * If the callee needs it, it will de-optimize and walk the stack to retrieve it (slow). It will also call
+ * This class works in tandem with {@link FrameOrVariablesReadingNode} for this purpose. At first, we don't send down
+ * the frame. If the callee needs it, it will de-optimize and walk the stack to retrieve it (slow). It will also call
  * {@link #startSendingOwnFrame()}}, so that the next time the method is called, the frame will be passed down and the
  * method does not need further de-optimizations. (Note in the case of {@code #send} calls, we need to recursively call
  * {@link ReadCallerFrameNode} to get the parent frame!) {@link ReadCallerVariablesNode} is used similarly to access
  * special variable storage, but for child nodes that only require access to this storage ensures they receive an object
- * that will not require node splitting to be accessed efficiently.
- *
- * <p>
- * This class is the sole consumer of {@link RubyRootNode#getNeedsCallerAssumption()}, which is used to optimize
- * {@link #getFrameOrStorageIfRequired(Frame)} (called by subclasses in order to pass down the frame or not). Starting
- * to send the frame invalidates the assumption. In other words, the assumption guards the fact that {@link #sendsFrame}
- * is a compilation constant, and is invalidated whenever it needs to change. */
+ * that will not require node splitting to be accessed efficiently. */
 @SuppressFBWarnings("IS")
 public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
