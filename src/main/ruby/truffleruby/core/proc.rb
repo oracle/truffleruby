@@ -35,10 +35,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Proc
-  attr_accessor :block
-  attr_accessor :bound_method
-  attr_accessor :ruby_method
-
+  alias_method :hash, :hash
   alias_method :===, :call
 
   def curry(curried_arity = nil)
