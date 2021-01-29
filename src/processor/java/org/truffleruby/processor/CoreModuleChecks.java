@@ -16,6 +16,9 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -161,7 +164,7 @@ public class CoreModuleChecks {
                         specializationMethod);
                 return;
             }
-            isParameterUnguarded(coreModuleProcessor, specializationAnnotation, parameters.get(n));
+            isParameterBlock(coreModuleProcessor, parameters.get(n));
             n--; // Ignore block argument.
         }
 
@@ -238,5 +241,25 @@ public class CoreModuleChecks {
             }
         }
         return false;
+    }
+
+    private static void isParameterBlock(
+            CoreModuleProcessor coreModuleProcessor,
+            VariableElement parameter) {
+        TypeMirror blockType = parameter.asType();
+        Types typeUtils = coreModuleProcessor.getProcessingEnvironment().getTypeUtils();
+        Elements elementUtils = coreModuleProcessor.getProcessingEnvironment().getElementUtils();
+        boolean isNil = typeUtils
+                .isSameType(blockType, elementUtils.getTypeElement("org.truffleruby.language.Nil").asType());
+        boolean isRubyProc = typeUtils
+                .isSameType(blockType, elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType());
+        boolean isObject = typeUtils.isSameType(blockType, coreModuleProcessor.objectType);
+
+        if (!(isNil || isRubyProc || isObject)) {
+            coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "A block parameter must be of type Nil, RubyProc or Object.",
+                    parameter);
+        }
     }
 }
