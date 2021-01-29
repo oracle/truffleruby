@@ -14,6 +14,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -57,6 +58,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             Object name,
             DispatchConfiguration dispatchConfig,
             MaterializedFrame callerFrame,
+            @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached NameToJavaStringNode nameToJavaStringNode,
             @Cached LookupMethodOnSelfNode lookupMethodNode,
@@ -89,7 +91,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                 RubyArguments.setDeclarationContext(frame, originalDeclarationContext);
                 final InternalMethod methodMissing = lookupMethodNode
                         .execute(frame, self, "method_missing", dispatchConfig);
-                method = createMissingMethod(self, name, normalizedName, methodMissing, context);
+                method = createMissingMethod(self, name, normalizedName, methodMissing, language, context);
             } else {
                 throw new RaiseException(
                         context,
@@ -101,24 +103,23 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         }
         final RubyMethod instance = new RubyMethod(
                 context.getCoreLibrary().methodClass,
-                RubyLanguage.getCurrentLanguage().methodShape,
+                language.methodShape,
                 self,
                 method);
-        AllocationTracing.trace(RubyLanguage.getCurrentLanguage(), context, instance, this);
+        AllocationTracing.trace(language, context, instance, this);
         return instance;
     }
 
     @TruffleBoundary
     private InternalMethod createMissingMethod(Object self, Object name, String normalizedName,
-            InternalMethod methodMissing,
-            RubyContext context) {
+            InternalMethod methodMissing, RubyLanguage language, RubyContext context) {
         final SharedMethodInfo info = methodMissing
                 .getSharedMethodInfo()
                 .convertMethodMissingToMethod(methodMissing.getDeclaringModule(), normalizedName);
 
         final RubyNode newBody = new CallMethodMissingWithStaticName(name);
         final RubyRootNode newRootNode = new RubyRootNode(
-                RubyLanguage.getCurrentLanguage(),
+                language,
                 info.getSourceSection(),
                 new FrameDescriptor(nil),
                 info,
