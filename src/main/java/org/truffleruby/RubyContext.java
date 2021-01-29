@@ -533,7 +533,7 @@ public class RubyContext {
 
     public RubyLanguage getLanguageSlow() {
         CompilerAsserts.neverPartOfCompilation(
-                "@CachedLanguage or a final field in the node should be used so the RubyLanguage instance is constant in PE code");
+                "Use getLanguage() or @CachedLanguage instead, so the RubyLanguage instance is constant in PE code");
         return language;
     }
 
