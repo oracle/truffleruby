@@ -159,6 +159,14 @@ local part_definitions = {
         TRUFFLERUBYOPT+: " --experimental-options --engine.MultiTier=true",
       },
     },
+
+    three_threads: {
+      environment+: {
+        GUEST_VM_CONFIG+: "-3threads",
+        TRUFFLERUBYOPT+: " --experimental-options --engine.CompilerThreads=3",
+      },
+    },
+
   },
 
   env: {
@@ -619,13 +627,21 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-warmup-mri": shared + warmup + other_rubies.mri,
       "ruby-benchmarks-warmup-jruby": shared + warmup + other_rubies.jruby,
       "ruby-benchmarks-warmup-graal-core": shared + warmup + graal_configurations["graal-core"] + $.use.no_multi_tier,
+      "ruby-benchmarks-warmup-graal-core-3threads": shared + warmup + graal_configurations["graal-core"] + $.use.no_multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-graal-core-multi-tier": shared + warmup + graal_configurations["graal-core"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-graal-core-multi-tier-3threads": shared + warmup + graal_configurations["graal-core"] + $.use.multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-graal-enterprise": shared + warmup + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
+      "ruby-benchmarks-warmup-graal-enterprise-3threads": shared + warmup + graal_configurations["graal-enterprise"] + $.use.no_multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-graal-enterprise-multi-tier": shared + warmup + graal_configurations["graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-graal-enterprise-multi-tier-3threads": shared + warmup + graal_configurations["graal-enterprise"] + $.use.multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-svm-graal-core": shared + warmup + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
+      "ruby-benchmarks-warmup-svm-graal-core-3threads": shared + warmup + svm_configurations["svm-graal-core"] + $.use.no_multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-svm-graal-core-multi-tier": shared + warmup + svm_configurations["svm-graal-core"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-svm-graal-core-multi-tier-3threads": shared + warmup + svm_configurations["svm-graal-core"] + $.use.multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-svm-graal-enterprise": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
+      "ruby-benchmarks-warmup-svm-graal-enterprise-3threads": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier-3threads": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier + $.use.three_threads,
 
       local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "00:40:00" },
       local svm_other = $.benchmark.runner + $.benchmark.other + { timelimit: "01:00:00" },
