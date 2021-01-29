@@ -68,7 +68,7 @@ public class AtExitManager {
             } catch (RaiseException e) {
                 handleAtExitException(context, e.getException());
                 lastException = e.getException();
-            } catch (ExitException e) {
+            } catch (ExitException | ThreadDeath e) {
                 throw e;
             } catch (RuntimeException | Error e) {
                 BacktraceFormatter.printInternalError(context, e, "Unexpected internal exception in " + name);
