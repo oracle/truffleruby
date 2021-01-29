@@ -375,8 +375,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             if (ivarFoundProfile.profile(iVar != null)) {
                 return iVar;
             } else if (definedNode.execute(null, this, name)) {
-                return getMethodObjectNode
-                        .get(null, this, rubyName, DispatchConfiguration.PRIVATE, null);
+                return getMethodObjectNode.execute(null, this, rubyName, DispatchConfiguration.PRIVATE, null);
             } else {
                 errorProfile.enter();
                 throw UnknownIdentifierException.create(name);

@@ -47,12 +47,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         return GetMethodObjectNodeGen.create();
     }
 
-    public RubyMethod get(VirtualFrame frame, Object self, Object name,
-            DispatchConfiguration config, MaterializedFrame callerFrame) {
-        return execute(frame, self, name, config, callerFrame);
-    }
-
-    protected abstract RubyMethod execute(Frame frame, Object self, Object name,
+    public abstract RubyMethod execute(Frame frame, Object self, Object name,
             DispatchConfiguration dispatchConfig, MaterializedFrame callerFrame);
 
     @Specialization
