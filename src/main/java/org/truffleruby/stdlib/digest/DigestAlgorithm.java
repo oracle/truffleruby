@@ -10,18 +10,20 @@
 package org.truffleruby.stdlib.digest;
 
 enum DigestAlgorithm {
-    MD5("MD5", 16),
-    SHA1("SHA1", 20),
-    SHA256("SHA-256", 32),
-    SHA384("SHA-384", 48),
-    SHA512("SHA-512", 64);
+    MD5("MD5", 16, 64),
+    SHA1("SHA1", 20, 64),
+    SHA256("SHA-256", 32, 64),
+    SHA384("SHA-384", 48, 128),
+    SHA512("SHA-512", 64, 128);
 
     private final String name;
     private final int length;
+    private final int blockLength;
 
-    DigestAlgorithm(String name, int length) {
+    DigestAlgorithm(String name, int length, int blockLength) {
         this.name = name;
         this.length = length;
+        this.blockLength = blockLength;
     }
 
     public String getName() {
@@ -30,5 +32,9 @@ enum DigestAlgorithm {
 
     public int getLength() {
         return length;
+    }
+
+    public int getBlockLength() {
+        return blockLength;
     }
 }

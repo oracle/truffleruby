@@ -32,8 +32,6 @@ fails:Public methods on Rational should not include divide
 fails:Public methods on String should include freeze
 fails:Public methods on Digest.singleton_class should include const_missing
 fails:Public methods on Digest::Instance should not include finish
-fails:Public methods on Digest::Instance should not include to_str
-fails:Public methods on Digest::Instance should include block_length
 fails:Public methods on Dir should not include closed?
 fails:Public methods on Exception should include respond_to?
 fails:Public methods on FalseClass should include ===
@@ -62,11 +60,6 @@ fails:Public methods on TracePoint should include instruction_sequence
 fails:Public methods on TracePoint should include parameters
 fails:Public methods on TracePoint should include raised_exception
 fails:Public methods on TracePoint should include return_value
-fails:Public methods on Digest::Base should include block_length
-fails:Public methods on Digest::Base should include digest_length
-fails:Public methods on Digest::Base should include reset
-fails:Public methods on Digest::MD5 should not include block_length
-fails:Public methods on Digest::SHA1 should not include block_length
 fails:Public methods on ENV.singleton_class should include freeze
 fails:Public methods on Enumerator::Lazy should include filter_map
 fails:Public methods on Enumerator::Lazy should include with_index
