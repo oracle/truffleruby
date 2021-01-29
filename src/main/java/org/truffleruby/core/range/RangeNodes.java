@@ -152,12 +152,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected Object each(VirtualFrame frame, RubyObjectRange range, Nil block) {
-            return eachInternal(frame, range, block);
-        }
-
-        @Specialization
-        protected Object each(VirtualFrame frame, RubyObjectRange range, RubyProc block) {
+        protected Object each(VirtualFrame frame, RubyObjectRange range, Object block) {
             return eachInternal(frame, range, block);
         }
     }

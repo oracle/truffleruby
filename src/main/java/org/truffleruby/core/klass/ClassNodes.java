@@ -19,7 +19,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
@@ -283,13 +282,10 @@ public abstract class ClassNodes {
         public abstract Object execute(Object rubyClass, Object[] args, Object block);
 
         @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(RubyClass rubyClass, Object[] args, Nil block) {
-            return doNewInstance(rubyClass, args, block);
-        }
-
-        @Specialization(guards = "!rubyClass.isSingleton")
-        protected Object newInstance(RubyClass rubyClass, Object[] args, RubyProc block) {
-            return doNewInstance(rubyClass, args, block);
+        protected Object newInstance(RubyClass rubyClass, Object[] args, Object block) {
+            final Object instance = allocateNode().call(rubyClass, "__allocate__");
+            initialize().callWithBlock(instance, "initialize", block, args);
+            return instance;
         }
 
         @Specialization(guards = "rubyClass.isSingleton")
@@ -302,12 +298,6 @@ public abstract class ClassNodes {
         @Override
         public Object inlineExecute(Frame callerFrame, Object self, Object[] args, Object block) {
             return execute(self, args, block);
-        }
-
-        private Object doNewInstance(RubyClass rubyClass, Object[] args, Object block) {
-            final Object instance = allocateNode().call(rubyClass, "__allocate__");
-            initialize().callWithBlock(instance, "initialize", block, args);
-            return instance;
         }
 
         private DispatchingNode allocateNode() {

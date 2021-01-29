@@ -190,17 +190,7 @@ public abstract class ProcNodes {
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
-        protected Object call(RubyProc proc, Object[] args, Nil block) {
-            return callBlockNode.executeCallBlock(
-                    proc.declarationContext,
-                    proc,
-                    ProcOperations.getSelf(proc),
-                    block,
-                    args);
-        }
-
-        @Specialization
-        protected Object call(RubyProc proc, Object[] args, RubyProc block) {
+        protected Object call(RubyProc proc, Object[] args, Object block) {
             return callBlockNode.executeCallBlock(
                     proc.declarationContext,
                     proc,

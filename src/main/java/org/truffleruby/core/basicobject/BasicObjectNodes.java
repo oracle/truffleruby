@@ -493,17 +493,8 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "wasProvided(name)")
-        protected Object methodMissingNoBlock(Object self, Object name, Object[] args, Nil block) {
-            return methodMissing(self, name, args, block);
-        }
-
-        @Specialization(guards = "wasProvided(name)")
-        protected Object methodMissingBlock(Object self, Object name, Object[] args, RubyProc block) {
-            return methodMissing(self, name, args, block);
-        }
-
-        private Object methodMissing(Object self, Object nameObject, Object[] args, Object block) {
-            throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
+        protected Object methodMissing(Object self, Object name, Object[] args, Object block) {
+            throw new RaiseException(getContext(), buildMethodMissingException(self, name, args, block));
         }
 
         private static class FrameAndCallNode {
@@ -618,16 +609,7 @@ public abstract class BasicObjectNodes {
         @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Nil block) {
-            return doSend(frame, self, name, args, block);
-        }
-
-        @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, RubyProc block) {
-            return doSend(frame, self, name, args, block);
-        }
-
-        private Object doSend(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 

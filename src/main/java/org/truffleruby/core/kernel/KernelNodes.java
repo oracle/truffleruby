@@ -1599,16 +1599,7 @@ public abstract class KernelNodes {
         @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Nil block) {
-            return doSend(frame, self, name, args, block);
-        }
-
-        @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, RubyProc block) {
-            return doSend(frame, self, name, args, block);
-        }
-
-        private Object doSend(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
