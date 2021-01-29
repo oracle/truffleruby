@@ -1836,6 +1836,7 @@ public abstract class ModuleNodes {
     @NodeChild(value = "module", type = RubyNode.class)
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class InstanceMethodNode extends CoreMethodNode {
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -1843,9 +1844,9 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected RubyUnboundMethod instanceMethod(RubyModule module, String name,
+        protected RubyUnboundMethod instanceMethod(VirtualFrame frame, RubyModule module, String name,
                 @Cached BranchProfile errorProfile) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final Frame callerFrame = readCallerFrame.execute(frame);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
 
             // TODO(CS, 11-Jan-15) cache this lookup
