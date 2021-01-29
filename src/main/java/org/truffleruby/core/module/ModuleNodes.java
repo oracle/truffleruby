@@ -941,6 +941,11 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
+        @CreateCast("inherit")
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
+            return BooleanCastWithDefaultNodeGen.create(true, inherit);
+        }
+
         @TruffleBoundary
         @Specialization
         protected boolean isConstDefined(RubyModule module, String fullName, boolean inherit, boolean checkName) {
@@ -966,6 +971,11 @@ public abstract class ModuleNodes {
         protected RubyNode coerceToSymbolOrString(RubyNode name) {
             // We want to know if the name is a Symbol, as then scoped lookup is not tried
             return ToStringOrSymbolNodeGen.create(name);
+        }
+
+        @CreateCast("inherit")
+        protected RubyNode coerceToBoolean(RubyNode inherit) {
+            return BooleanCastWithDefaultNodeGen.create(true, inherit);
         }
 
         // Symbol
