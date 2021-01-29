@@ -81,7 +81,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
         final String normalizedName = nameToJavaStringNode.execute(name);
         InternalMethod method = lookupMethodNode
-                .lookup(frame, self, normalizedName, dispatchConfig);
+                .execute(frame, self, normalizedName, dispatchConfig);
 
         if (notFoundProfile.profile(method == null)) {
             final Object respondToMissing = respondToMissingNode
@@ -90,7 +90,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                 /** refinements should not affect BasicObject#method_missing */
                 RubyArguments.setDeclarationContext(frame, originalDeclarationContext);
                 final InternalMethod methodMissing = lookupMethodNode
-                        .lookup(frame, self, "method_missing", dispatchConfig);
+                        .execute(frame, self, "method_missing", dispatchConfig);
                 method = createMissingMethod(self, name, normalizedName, methodMissing, context);
             } else {
                 throw new RaiseException(
