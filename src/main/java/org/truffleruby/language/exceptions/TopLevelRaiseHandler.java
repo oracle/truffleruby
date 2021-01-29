@@ -40,6 +40,8 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         } catch (ExitException e) {
             // hard #exit!, return immediately, skip at_exit hooks
             return e.getCode();
+        } catch (ThreadDeath e) { // Context#close(true)
+            throw e;
         } catch (RuntimeException | Error e) {
             BacktraceFormatter.printInternalError(
                     getContext(),
@@ -66,6 +68,8 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         } catch (ExitException e) {
             // hard #exit! during at_exit: ignore the main script exception
             exitCode = e.getCode();
+        } catch (ThreadDeath e) { // Context#close(true)
+            throw e;
         } catch (RuntimeException | Error e) { // Internal error
             BacktraceFormatter.printInternalError(
                     getContext(),

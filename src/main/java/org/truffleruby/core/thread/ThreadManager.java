@@ -306,6 +306,8 @@ public class ThreadManager {
             // Handlers in the same order as in FiberManager
         } catch (KillException e) {
             setThreadValue(thread, Nil.INSTANCE);
+        } catch (ThreadDeath e) { // Context#close(true)
+            throw e;
         } catch (RaiseException e) {
             setException(thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {

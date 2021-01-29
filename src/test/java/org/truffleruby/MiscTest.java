@@ -12,9 +12,7 @@ package org.truffleruby;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import static org.junit.Assert.fail;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
@@ -46,28 +44,31 @@ public class MiscTest {
     }
 
     @Test
-    public void timeoutExecution() {
+    public void timeoutExecution() throws Throwable {
         Context context = RubyTest.createContext();
 
-        Timer timer = new Timer();
         // schedule a timeout in 1s
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    context.close(true);
-                } catch (PolyglotException e) {
-                    assertTrue(e.isCancelled());
-                }
+        TestingThread thread = new TestingThread(() -> {
+            try {
+                Thread.sleep(1000);
+                context.close(true);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                fail();
+            } catch (PolyglotException e) {
+                assertTrue(e.isCancelled());
             }
-        }, 1000);
+        });
 
+        thread.start();
         try {
             String maliciousCode = "while true; end";
             context.eval("ruby", maliciousCode);
             Assert.fail();
         } catch (PolyglotException e) {
             assertTrue(e.isCancelled());
+        } finally {
+            thread.join();
         }
     }
 
