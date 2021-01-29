@@ -12,7 +12,6 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.core.kernel.TruffleKernelNodes;
-import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
