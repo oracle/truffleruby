@@ -139,6 +139,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                 coreModule.value().replace("::", "/") + ".rb",
                 (Element[]) null);
 
+        final CoreModuleChecks coreModuleChecks = new CoreModuleChecks(this);
 
         try (PrintStream stream = new PrintStream(output.openOutputStream(), true, "UTF-8")) {
             try (PrintStream rubyStream = new PrintStream(rubyFile.openOutputStream(), true, "UTF-8")) {
@@ -183,7 +184,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                             CoreMethod checkAmbiguous = coreMethod.optional() > 0 || coreMethod.needsBlock()
                                     ? coreMethod
                                     : null;
-                            CoreModuleChecks.checks(this, coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
+                            coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
                     }
@@ -201,7 +202,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
-                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, true);
+                            coreModuleChecks.checks(primitive.lowerFixnum(), null, klass, true);
                         }
                     }
                 }

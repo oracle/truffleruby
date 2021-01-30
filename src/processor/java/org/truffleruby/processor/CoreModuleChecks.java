@@ -28,12 +28,14 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 public class CoreModuleChecks {
-    static void checks(
-            CoreModuleProcessor processor,
-            int[] lowerFixnum,
-            CoreMethod coreMethod,
-            TypeElement klass,
-            boolean hasZeroArgument) {
+
+    final CoreModuleProcessor processor;
+
+    CoreModuleChecks(CoreModuleProcessor processor) {
+        this.processor = processor;
+    }
+
+    void checks(int[] lowerFixnum, CoreMethod coreMethod, TypeElement klass, boolean hasZeroArgument) {
         byte[] lowerArgs = null;
         List<ExecutableElement> specializationMethods = new ArrayList<>();
 
@@ -52,10 +54,9 @@ public class CoreModuleChecks {
                 }
                 specializationMethods.add(specializationMethod);
 
-                lowerArgs = checkLowerFixnumArguments(processor, specializationMethod, lowerArgs);
+                lowerArgs = checkLowerFixnumArguments(specializationMethod, lowerArgs);
                 if (coreMethod != null) {
                     checkAmbiguousOptionalArguments(
-                            processor,
                             coreMethod,
                             specializationMethod,
                             specializationAnnotation);
@@ -75,7 +76,7 @@ public class CoreModuleChecks {
         }
 
         if (coreMethod == null) { // @Primitive
-            checkPrimitiveArguments(processor, specializationMethods);
+            checkPrimitiveArguments(specializationMethods);
         }
 
         // Verify against the lowerFixnum annotation
@@ -87,10 +88,7 @@ public class CoreModuleChecks {
         }
     }
 
-    private static byte[] checkLowerFixnumArguments(
-            CoreModuleProcessor processor,
-            ExecutableElement specializationMethod,
-            byte[] lowerArgs) {
+    private byte[] checkLowerFixnumArguments(ExecutableElement specializationMethod, byte[] lowerArgs) {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
         int start = 0;
 
@@ -135,8 +133,7 @@ public class CoreModuleChecks {
         return false;
     }
 
-    private static void checkAmbiguousOptionalArguments(
-            CoreModuleProcessor processor,
+    private void checkAmbiguousOptionalArguments(
             CoreMethod coreMethod,
             ExecutableElement specializationMethod,
             Specialization specializationAnnotation) {
@@ -148,7 +145,7 @@ public class CoreModuleChecks {
                 processor.error("invalid block method parameter position for", specializationMethod);
                 return;
             }
-            isParameterBlock(processor, parameters.get(n));
+            isParameterBlock(parameters.get(n));
             n--; // Ignore block argument.
         }
 
@@ -170,13 +167,11 @@ public class CoreModuleChecks {
                 processor.error("invalid optional parameter count for", specializationMethod);
                 continue;
             }
-            isParameterUnguarded(processor, specializationAnnotation, parameters.get(n));
+            isParameterUnguarded(specializationAnnotation, parameters.get(n));
         }
     }
 
-    private static void checkPrimitiveArguments(
-            CoreModuleProcessor processor,
-            List<ExecutableElement> specializationMethods) {
+    private void checkPrimitiveArguments(List<ExecutableElement> specializationMethods) {
         boolean hasRubyProcLastArgument = false;
         for (ExecutableElement specialization : specializationMethods) {
             List<? extends VariableElement> parameters = specialization.getParameters();
@@ -214,10 +209,7 @@ public class CoreModuleChecks {
         return n;
     }
 
-    private static void isParameterUnguarded(
-            CoreModuleProcessor processor,
-            Specialization specializationAnnotation,
-            VariableElement parameter) {
+    private void isParameterUnguarded(Specialization specializationAnnotation, VariableElement parameter) {
         String name = parameter.getSimpleName().toString();
 
         // A specialization will only be called if the types of the arguments match its declared parameter
@@ -257,7 +249,7 @@ public class CoreModuleChecks {
         return false;
     }
 
-    private static void isParameterBlock(CoreModuleProcessor processor, VariableElement parameter) {
+    private void isParameterBlock(VariableElement parameter) {
         final TypeMirror blockType = parameter.asType();
 
         if (!(processor.isSameType(blockType, processor.nilType) ||
