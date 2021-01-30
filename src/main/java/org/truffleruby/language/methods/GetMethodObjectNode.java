@@ -27,8 +27,10 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -62,6 +64,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached NameToJavaStringNode nameToJavaStringNode,
             @Cached LookupMethodOnSelfNode lookupMethodNode,
+            @Cached ToSymbolNode toSymbolNode,
             @Cached DispatchNode respondToMissingNode,
             @Cached BooleanCastNode booleanCastNode,
             @Cached ConditionProfile notFoundProfile,
@@ -80,18 +83,20 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         }
 
         final String normalizedName = nameToJavaStringNode.execute(name);
-        InternalMethod method = lookupMethodNode
-                .execute(frame, self, normalizedName, dispatchConfig);
+        InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
 
         if (notFoundProfile.profile(method == null)) {
+            final RubySymbol symbolName = toSymbolNode.execute(name);
             final Object respondToMissing = respondToMissingNode
-                    .call(self, "respond_to_missing?", name, dispatchConfig.ignoreVisibility);
+                    .call(self, "respond_to_missing?", symbolName, dispatchConfig.ignoreVisibility);
             if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
-                /** refinements should not affect BasicObject#method_missing */
-                RubyArguments.setDeclarationContext(frame, originalDeclarationContext);
+                if (frame != null) {
+                    // refinements should not affect BasicObject#method_missing
+                    RubyArguments.setDeclarationContext(frame, originalDeclarationContext);
+                }
                 final InternalMethod methodMissing = lookupMethodNode
                         .execute(frame, self, "method_missing", dispatchConfig);
-                method = createMissingMethod(self, name, normalizedName, methodMissing, language, context);
+                method = createMissingMethod(self, symbolName, normalizedName, methodMissing, language, context);
             } else {
                 throw new RaiseException(
                         context,
@@ -111,7 +116,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private InternalMethod createMissingMethod(Object self, Object name, String normalizedName,
+    private InternalMethod createMissingMethod(Object self, RubySymbol name, String normalizedName,
             InternalMethod methodMissing, RubyLanguage language, RubyContext context) {
         final SharedMethodInfo info = methodMissing
                 .getSharedMethodInfo()
@@ -140,10 +145,11 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
     }
 
     private static class CallMethodMissingWithStaticName extends RubyContextSourceNode {
-        private final Object methodName;
+
+        private final RubySymbol methodName;
         @Child private DispatchNode methodMissing = DispatchNode.create();
 
-        public CallMethodMissingWithStaticName(Object methodName) {
+        public CallMethodMissingWithStaticName(RubySymbol methodName) {
             this.methodName = methodName;
         }
 
