@@ -89,6 +89,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     TypeMirror virtualFrameType;
     TypeMirror objectType;
     TypeMirror nilType;
+    TypeMirror notProvidedType;
     TypeMirror rubyProcType;
     TypeMirror rubyNodeType;
     TypeMirror rubyBaseNodeType;
@@ -99,6 +100,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         virtualFrameType = elementUtils.getTypeElement("com.oracle.truffle.api.frame.VirtualFrame").asType();
         objectType = elementUtils.getTypeElement("java.lang.Object").asType();
         nilType = elementUtils.getTypeElement("org.truffleruby.language.Nil").asType();
+        notProvidedType = elementUtils.getTypeElement("org.truffleruby.language.NotProvided").asType();
         rubyProcType = elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType();
         rubyNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyNode").asType();
         rubyBaseNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyBaseNode").asType();

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.processor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -34,6 +35,7 @@ public class CoreModuleChecks {
             TypeElement klass,
             boolean hasZeroArgument) {
         byte[] lowerArgs = null;
+        List<ExecutableElement> specializationMethods = new ArrayList<>();
 
         TypeElement klassIt = klass;
         while (!processor.isNodeBaseType(klassIt)) {
@@ -48,6 +50,7 @@ public class CoreModuleChecks {
                 if (specializationAnnotation == null) {
                     continue; // we are interested only in Specialization methods
                 }
+                specializationMethods.add(specializationMethod);
 
                 lowerArgs = checkLowerFixnumArguments(processor, specializationMethod, lowerArgs);
                 if (coreMethod != null) {
@@ -66,9 +69,13 @@ public class CoreModuleChecks {
                     .getTypeElement(klassIt.getSuperclass().toString());
         }
 
-        if (lowerArgs == null) {
-            processor.error("could not find specializations (lowerArgs == null)", klass);
+        if (specializationMethods.isEmpty()) {
+            processor.error("could not find specializations", klass);
             return;
+        }
+
+        if (coreMethod == null) { // @Primitive
+            checkPrimitiveArguments(processor, specializationMethods);
         }
 
         // Verify against the lowerFixnum annotation
@@ -134,15 +141,7 @@ public class CoreModuleChecks {
             ExecutableElement specializationMethod,
             Specialization specializationAnnotation) {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
-        int n = parameters.size() - 1;
-        // Ignore all the @Cached methods from our consideration.
-        while (n >= 0 &&
-                (parameters.get(n).getAnnotation(Cached.class) != null ||
-                        parameters.get(n).getAnnotation(CachedLibrary.class) != null ||
-                        parameters.get(n).getAnnotation(CachedContext.class) != null ||
-                        parameters.get(n).getAnnotation(CachedLanguage.class) != null)) {
-            n--;
-        }
+        int n = getLastParameterIndex(parameters);
 
         if (coreMethod.needsBlock()) {
             if (n < 0) {
@@ -173,6 +172,46 @@ public class CoreModuleChecks {
             }
             isParameterUnguarded(processor, specializationAnnotation, parameters.get(n));
         }
+    }
+
+    private static void checkPrimitiveArguments(
+            CoreModuleProcessor processor,
+            List<ExecutableElement> specializationMethods) {
+        boolean hasRubyProcLastArgument = false;
+        for (ExecutableElement specialization : specializationMethods) {
+            List<? extends VariableElement> parameters = specialization.getParameters();
+            int last = getLastParameterIndex(parameters);
+            if (last >= 0 && processor.isSameType(parameters.get(last).asType(), processor.rubyProcType)) {
+                hasRubyProcLastArgument = true;
+                break;
+            }
+        }
+
+        if (hasRubyProcLastArgument) {
+            for (ExecutableElement specialization : specializationMethods) {
+                List<? extends VariableElement> parameters = specialization.getParameters();
+                int last = getLastParameterIndex(parameters);
+                VariableElement parameter = parameters.get(last);
+                if (processor.isSameType(parameter.asType(), processor.notProvidedType)) {
+                    processor.error(
+                            "The last primitive parameter should not be NotProvided if it can be a RubyProc",
+                            parameter);
+                }
+            }
+        }
+    }
+
+    private static int getLastParameterIndex(List<? extends VariableElement> parameters) {
+        int n = parameters.size() - 1;
+        // Ignore all the @Cached methods from our consideration.
+        while (n >= 0 &&
+                (parameters.get(n).getAnnotation(Cached.class) != null ||
+                        parameters.get(n).getAnnotation(CachedLibrary.class) != null ||
+                        parameters.get(n).getAnnotation(CachedContext.class) != null ||
+                        parameters.get(n).getAnnotation(CachedLanguage.class) != null)) {
+            n--;
+        }
+        return n;
     }
 
     private static void isParameterUnguarded(
