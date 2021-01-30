@@ -17,7 +17,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -68,10 +67,7 @@ public class CoreModuleChecks {
         }
 
         if (lowerArgs == null) {
-            processor.getProcessingEnvironment().getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "could not find specializations (lowerArgs == null)",
-                    klass);
+            processor.error("could not find specializations (lowerArgs == null)", klass);
             return;
         }
 
@@ -79,10 +75,7 @@ public class CoreModuleChecks {
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long
             if (shouldLower && !contains(lowerFixnum, hasZeroArgument ? i : i + 1)) {
-                processor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "should use lowerFixnum for argument " + (hasZeroArgument ? i : i + 1),
-                        klass);
+                processor.error("should use lowerFixnum for argument " + (hasZeroArgument ? i : i + 1), klass);
             }
         }
     }
@@ -153,10 +146,7 @@ public class CoreModuleChecks {
 
         if (coreMethod.needsBlock()) {
             if (n < 0) {
-                processor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "invalid block method parameter position for",
-                        specializationMethod);
+                processor.error("invalid block method parameter position for", specializationMethod);
                 return;
             }
             isParameterBlock(processor, parameters.get(n));
@@ -165,18 +155,12 @@ public class CoreModuleChecks {
 
         if (coreMethod.rest()) {
             if (n < 0) {
-                processor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "missing rest method parameter",
-                        specializationMethod);
+                processor.error("missing rest method parameter", specializationMethod);
                 return;
             }
 
             if (parameters.get(n).asType().getKind() != TypeKind.ARRAY) {
-                processor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "rest method parameter is not array",
-                        parameters.get(n));
+                processor.error("rest method parameter is not array", parameters.get(n));
                 return;
             }
             n--; // ignore final Object[] argument
@@ -184,10 +168,7 @@ public class CoreModuleChecks {
 
         for (int i = 0; i < coreMethod.optional(); i++, n--) {
             if (n < 0) {
-                processor.getProcessingEnvironment().getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "invalid optional parameter count for",
-                        specializationMethod);
+                processor.error("invalid optional parameter count for", specializationMethod);
                 continue;
             }
             isParameterUnguarded(processor, specializationAnnotation, parameters.get(n));
@@ -216,8 +197,7 @@ public class CoreModuleChecks {
                 !name.startsWith("unused") &&
                 !name.startsWith("maybe") &&
                 !isGuarded(name, specializationAnnotation.guards())) {
-            processor.getProcessingEnvironment().getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
+            processor.error(
                     "Since Object is the super type of NotProvided any optional parameter declaration of type Object " +
                             "must have additional guards to check whether this specialization should be called, " +
                             "or must make it clear in the parameter name (by using unused or maybe prefix) " +
@@ -244,10 +224,7 @@ public class CoreModuleChecks {
         if (!(processor.isSameType(blockType, processor.nilType) ||
                 processor.isSameType(blockType, processor.rubyProcType) ||
                 processor.isSameType(blockType, processor.objectType))) {
-            processor.getProcessingEnvironment().getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "A block parameter must be of type Nil, RubyProc or Object.",
-                    parameter);
+            processor.error("A block parameter must be of type Nil, RubyProc or Object.", parameter);
         }
     }
 }

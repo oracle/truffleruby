@@ -19,11 +19,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
@@ -31,7 +28,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
-import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
@@ -43,11 +39,7 @@ import org.truffleruby.builtins.Primitive;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
-public class CoreModuleProcessor extends AbstractProcessor {
-
-    ProcessingEnvironment getProcessingEnvironment() {
-        return processingEnv;
-    }
+public class CoreModuleProcessor extends TruffleRubyProcessor {
 
     private static final String SUFFIX = "Builtins";
     private static final Set<String> KEYWORDS;
@@ -102,11 +94,6 @@ public class CoreModuleProcessor extends AbstractProcessor {
     TypeMirror rubyBaseNodeType;
 
     @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latest();
-    }
-
-    @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
         Elements elementUtils = processingEnv.getElementUtils();
         virtualFrameType = elementUtils.getTypeElement("com.oracle.truffle.api.frame.VirtualFrame").asType();
@@ -121,16 +108,12 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 try {
                     processCoreModule((TypeElement) element);
                 } catch (IOException e) {
-                    processingEnv.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage(), element);
+                    error(e.getClass() + " " + e.getMessage(), element);
                 }
             }
         }
 
         return true;
-    }
-
-    boolean isSameType(TypeMirror type1, TypeMirror type2) {
-        return processingEnv.getTypeUtils().isSameType(type1, type2);
     }
 
     private void processCoreModule(TypeElement coreModuleElement) throws IOException {
@@ -313,8 +296,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 numberOfArguments);
 
         if (argumentNames.isEmpty() && numberOfArguments > 0) {
-            processingEnv.getMessager().printMessage(
-                    Kind.ERROR,
+            error(
                     "Did not find argument names. If the class has inherited Specializations use org.truffleruby.builtins.CoreMethod.argumentNames",
                     klass);
 
@@ -357,8 +339,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 args.add("&" + argumentNames.get(index));
             }
         } catch (IndexOutOfBoundsException e) {
-            processingEnv.getMessager().printMessage(
-                    Kind.ERROR,
+            error(
                     "Not enough arguments found compared to declared numbers, check required, optional etc. declarations",
                     klass);
         }
@@ -385,10 +366,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
             argumentNames = getArgumentNamesFromSpecializations(klass, hasSelfArgument);
         } else {
             if (argumentNamesFromAnnotation.length != numberOfArguments && numberOfArguments >= 0) {
-                processingEnv.getMessager().printMessage(
-                        Kind.ERROR,
-                        "The size of argumentNames does not match declared number of arguments.",
-                        klass);
+                error("The size of argumentNames does not match declared number of arguments.", klass);
                 argumentNames = new ArrayList<>();
             } else {
                 argumentNames = Arrays.asList(argumentNamesFromAnnotation);
@@ -452,11 +430,10 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         argumentElements.add(parameter);
                     } else {
                         if (!argumentNames.get(index).equals(name)) {
-                            processingEnv.getMessager().printMessage(
-                                    Kind.ERROR,
+                            error(
                                     "The argument does not match with the first occurrence of this argument which was '" +
-                                            argumentElements.get(index).getSimpleName() +
-                                            "' (translated to Ruby as '" + argumentNames.get(index) + "').",
+                                            argumentElements.get(index).getSimpleName() + "' (translated to Ruby as '" +
+                                            argumentNames.get(index) + "').",
                                     parameter);
                         }
                     }
