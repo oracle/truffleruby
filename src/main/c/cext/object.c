@@ -136,10 +136,6 @@ const char *rb_obj_classname(VALUE object) {
   }
 }
 
-VALUE rb_obj_method(VALUE obj, VALUE vid) {
-  return RUBY_INVOKE(obj, "method", ID2SYM(rb_intern_str(vid)));
-}
-
 // taint status
 
 VALUE rb_obj_tainted(VALUE obj) {

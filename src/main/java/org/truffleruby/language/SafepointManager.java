@@ -106,6 +106,8 @@ public final class SafepointManager {
         final Assumption safepointAssumption = language.getSafepointAssumption();
         CompilerAsserts.partialEvaluationConstant(safepointAssumption);
         if (!safepointAssumption.isValid()) {
+            // For the TruffleCheckNeverPartOfCompilation check, isValid() deopts anyway
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             final SafepointManager safepointManager = RubyLanguage.getCurrentContext().getSafepointManager();
             if (safepointManager.active) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.object.Shape;
@@ -327,10 +328,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static RubyContext getCurrentContext() {
+        CompilerAsserts.neverPartOfCompilation("Use getContext() or @CachedContext instead in PE code");
         return getCurrentContext(RubyLanguage.class);
     }
 
     public static RubyLanguage getCurrentLanguage() {
+        CompilerAsserts.neverPartOfCompilation("Use getLanguage() or @CachedLanguage instead in PE code");
         return getCurrentLanguage(RubyLanguage.class);
     }
 

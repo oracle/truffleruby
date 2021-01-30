@@ -60,7 +60,6 @@ import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.DupNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
@@ -96,8 +95,6 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -110,7 +107,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
@@ -124,10 +120,8 @@ import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.LookupMethodOnSelfNode;
-import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
@@ -1306,7 +1300,8 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class MethodNode extends CoreMethodNode {
 
-        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(true);
+        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create();
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -1315,112 +1310,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyMethod method(VirtualFrame frame, Object self, Object name) {
-            return getMethodObjectNode.executeGetMethodObject(frame, self, name);
-        }
-
-    }
-
-    public abstract static class GetMethodObjectNode extends RubyContextNode {
-
-        public static GetMethodObjectNode create(boolean ignoreVisibility) {
-            return GetMethodObjectNodeGen.create(ignoreVisibility);
-        }
-
-        private final DispatchConfiguration dispatchConfig;
-
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private LookupMethodOnSelfNode lookupMethodNode;
-        @Child private DispatchNode respondToMissingNode = DispatchNode.create();
-        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
-
-        public GetMethodObjectNode(boolean ignoreVisibility) {
-            this.dispatchConfig = ignoreVisibility ? PRIVATE : PUBLIC;
-            lookupMethodNode = LookupMethodOnSelfNode.create();
-        }
-
-        public abstract RubyMethod executeGetMethodObject(VirtualFrame frame, Object self, Object name);
-
-        @Specialization
-        protected RubyMethod method(VirtualFrame frame, Object self, Object name,
-                @Cached ConditionProfile notFoundProfile,
-                @Cached ConditionProfile respondToMissingProfile,
-                @Cached LogicalClassNode logicalClassNode) {
-            final String normalizedName = nameToJavaStringNode.execute(name);
-            InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
-
-            if (notFoundProfile.profile(method == null)) {
-                final Object respondToMissing = respondToMissingNode
-                        .call(self, "respond_to_missing?", name, dispatchConfig.ignoreVisibility);
-                if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
-                    final InternalMethod methodMissing = lookupMethodNode
-                            .execute(frame, self, "method_missing", dispatchConfig);
-                    method = createMissingMethod(self, name, normalizedName, methodMissing);
-                } else {
-                    throw new RaiseException(
-                            getContext(),
-                            coreExceptions().nameErrorUndefinedMethod(
-                                    normalizedName,
-                                    logicalClassNode.execute(self),
-                                    this));
-                }
-            }
-            final RubyMethod instance = new RubyMethod(
-                    coreLibrary().methodClass,
-                    getLanguage().methodShape,
-                    self,
-                    method);
-            AllocationTracing.trace(instance, this);
-            return instance;
-        }
-
-        @TruffleBoundary
-        private InternalMethod createMissingMethod(Object self, Object name, String normalizedName,
-                InternalMethod methodMissing) {
-            final SharedMethodInfo info = methodMissing
-                    .getSharedMethodInfo()
-                    .convertMethodMissingToMethod(methodMissing.getDeclaringModule(), normalizedName);
-
-            final RubyNode newBody = new CallMethodMissingWithStaticName(name);
-            final RubyRootNode newRootNode = new RubyRootNode(
-                    getLanguage(),
-                    info.getSourceSection(),
-                    new FrameDescriptor(nil),
-                    info,
-                    newBody,
-                    Split.HEURISTIC);
-            final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
-
-            final RubyClass module = MetaClassNode.getUncached().execute(self);
-            return new InternalMethod(
-                    getContext(),
-                    info,
-                    methodMissing.getLexicalScope(),
-                    DeclarationContext.NONE,
-                    normalizedName,
-                    module,
-                    Visibility.PUBLIC,
-                    newCallTarget);
-        }
-
-        private static class CallMethodMissingWithStaticName extends RubyContextSourceNode {
-
-            private final Object methodName;
-            @Child private DispatchNode methodMissing = DispatchNode.create();
-
-            public CallMethodMissingWithStaticName(Object methodName) {
-                this.methodName = methodName;
-            }
-
-            @Override
-            public Object execute(VirtualFrame frame) {
-                final Object[] originalUserArguments = RubyArguments.getArguments(frame);
-                final Object[] newUserArguments = ArrayUtils.unshift(originalUserArguments, methodName);
-                return methodMissing.callWithBlock(
-                        RubyArguments.getSelf(frame),
-                        "method_missing",
-                        RubyArguments.getBlock(frame),
-                        newUserArguments);
-            }
+            return getMethodObjectNode.execute(frame, self, name, PRIVATE, readCallerFrame.execute(frame));
         }
 
     }
@@ -1552,7 +1442,8 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class PublicMethodNode extends CoreMethodNode {
 
-        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create(false);
+        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create();
+        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
@@ -1561,7 +1452,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected RubyMethod publicMethod(VirtualFrame frame, Object self, Object name) {
-            return getMethodObjectNode.executeGetMethodObject(frame, self, name);
+            return getMethodObjectNode.execute(frame, self, name, PUBLIC, readCallerFrame.execute(frame));
         }
 
     }

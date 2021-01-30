@@ -423,6 +423,10 @@ module Truffle::CExt
     object.method(id).arity
   end
 
+  def rb_obj_method(object, id)
+    object.method(id)
+  end
+
   def rb_ivar_defined(object, id)
     Primitive.object_ivar_defined?(object, id)
   end

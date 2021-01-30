@@ -47,6 +47,7 @@ Compatibility:
 * Implemented `Module#const_source_location` (#2212, @tomstuart and @wildmaples).
 * Do not call `File.exist?` in `Dir.glob` as `File.exist?` is often mocked (#2236, @gogainda).
 * Coerce the inherit argument to a boolean in `Module#const_defined?` and `Module#const_get` (#2240).
+* Refinements take place at `Object#method` and `Module#instance_method` (#2004, @ssnickolay).
 
 Performance:
 

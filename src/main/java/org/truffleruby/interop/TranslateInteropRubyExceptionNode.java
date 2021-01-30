@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.IntegerCastNode;
@@ -159,6 +160,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw exception;
     }
 
+    @TruffleBoundary
     protected AssertionError handleBadErrorType(InteropException e, RaiseException rubyException) {
         RubyContext context = RubyLanguage.getCurrentContext();
         final RubyException exception = context.getCoreExceptions().runtimeError(

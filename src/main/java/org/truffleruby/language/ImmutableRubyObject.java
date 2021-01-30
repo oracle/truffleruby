@@ -15,6 +15,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -28,6 +29,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.methods.GetMethodObjectNode;
 
 /** A subset of messages from {@link org.truffleruby.language.RubyDynamicObject} for immutable objects. Such objects
  * have no instance variables, so the logic is simpler. We cannot easily reuse RubyDynamicObject messages since the
@@ -111,12 +113,12 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     public Object readMember(String name,
             @Cached @Shared("definedNode") InternalRespondToNode definedNode,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached @Exclusive DispatchNode dispatch,
+            @Cached GetMethodObjectNode getMethodObjectNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.execute(null, this, name)) {
             Object rubyName = nameToRubyNode.executeConvert(name);
-            return dispatch.call(this, "method", rubyName);
+            return getMethodObjectNode.execute(null, this, rubyName, DispatchConfiguration.PRIVATE, null);
         } else {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);
