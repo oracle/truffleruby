@@ -17,8 +17,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -31,7 +29,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 
 public class CoreModuleChecks {
     static void checks(
-            CoreModuleProcessor coreModuleProcessor,
+            CoreModuleProcessor processor,
             int[] lowerFixnum,
             CoreMethod coreMethod,
             TypeElement klass,
@@ -39,7 +37,7 @@ public class CoreModuleChecks {
         byte[] lowerArgs = null;
 
         TypeElement klassIt = klass;
-        while (!coreModuleProcessor.isNodeBaseType(klassIt)) {
+        while (!processor.isNodeBaseType(klassIt)) {
             for (Element el : klassIt.getEnclosedElements()) {
                 if (!(el instanceof ExecutableElement)) {
                     continue; // we are interested only in executable elements
@@ -52,10 +50,10 @@ public class CoreModuleChecks {
                     continue; // we are interested only in Specialization methods
                 }
 
-                lowerArgs = checkLowerFixnumArguments(coreModuleProcessor, specializationMethod, lowerArgs);
+                lowerArgs = checkLowerFixnumArguments(processor, specializationMethod, lowerArgs);
                 if (coreMethod != null) {
                     checkAmbiguousOptionalArguments(
-                            coreModuleProcessor,
+                            processor,
                             coreMethod,
                             specializationMethod,
                             specializationAnnotation);
@@ -63,14 +61,14 @@ public class CoreModuleChecks {
 
             }
 
-            klassIt = coreModuleProcessor
+            klassIt = processor
                     .getProcessingEnvironment()
                     .getElementUtils()
                     .getTypeElement(klassIt.getSuperclass().toString());
         }
 
         if (lowerArgs == null) {
-            coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+            processor.getProcessingEnvironment().getMessager().printMessage(
                     Diagnostic.Kind.ERROR,
                     "could not find specializations (lowerArgs == null)",
                     klass);
@@ -81,7 +79,7 @@ public class CoreModuleChecks {
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long
             if (shouldLower && !contains(lowerFixnum, hasZeroArgument ? i : i + 1)) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+                processor.getProcessingEnvironment().getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
                         "should use lowerFixnum for argument " + (hasZeroArgument ? i : i + 1),
                         klass);
@@ -90,16 +88,13 @@ public class CoreModuleChecks {
     }
 
     private static byte[] checkLowerFixnumArguments(
-            CoreModuleProcessor coreModuleProcessor,
+            CoreModuleProcessor processor,
             ExecutableElement specializationMethod,
             byte[] lowerArgs) {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
         int start = 0;
 
-        if (parameters.size() > 0 &&
-                coreModuleProcessor.getProcessingEnvironment().getTypeUtils().isSameType(
-                        parameters.get(0).asType(),
-                        coreModuleProcessor.virtualFrameType)) {
+        if (parameters.size() > 0 && processor.isSameType(parameters.get(0).asType(), processor.virtualFrameType)) {
             start++;
         }
 
@@ -141,7 +136,7 @@ public class CoreModuleChecks {
     }
 
     private static void checkAmbiguousOptionalArguments(
-            CoreModuleProcessor coreModuleProcessor,
+            CoreModuleProcessor processor,
             CoreMethod coreMethod,
             ExecutableElement specializationMethod,
             Specialization specializationAnnotation) {
@@ -158,19 +153,19 @@ public class CoreModuleChecks {
 
         if (coreMethod.needsBlock()) {
             if (n < 0) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+                processor.getProcessingEnvironment().getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
                         "invalid block method parameter position for",
                         specializationMethod);
                 return;
             }
-            isParameterBlock(coreModuleProcessor, parameters.get(n));
+            isParameterBlock(processor, parameters.get(n));
             n--; // Ignore block argument.
         }
 
         if (coreMethod.rest()) {
             if (n < 0) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+                processor.getProcessingEnvironment().getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
                         "missing rest method parameter",
                         specializationMethod);
@@ -178,7 +173,7 @@ public class CoreModuleChecks {
             }
 
             if (parameters.get(n).asType().getKind() != TypeKind.ARRAY) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+                processor.getProcessingEnvironment().getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
                         "rest method parameter is not array",
                         parameters.get(n));
@@ -189,18 +184,18 @@ public class CoreModuleChecks {
 
         for (int i = 0; i < coreMethod.optional(); i++, n--) {
             if (n < 0) {
-                coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+                processor.getProcessingEnvironment().getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
                         "invalid optional parameter count for",
                         specializationMethod);
                 continue;
             }
-            isParameterUnguarded(coreModuleProcessor, specializationAnnotation, parameters.get(n));
+            isParameterUnguarded(processor, specializationAnnotation, parameters.get(n));
         }
     }
 
     private static void isParameterUnguarded(
-            CoreModuleProcessor coreModuleProcessor,
+            CoreModuleProcessor processor,
             Specialization specializationAnnotation,
             VariableElement parameter) {
         String name = parameter.getSimpleName().toString();
@@ -215,13 +210,13 @@ public class CoreModuleChecks {
         // it clear in the parameter name (by using unused or maybe prefix) that it may not have been
         // provided or is not used.
 
-        if (coreModuleProcessor.getProcessingEnvironment().getTypeUtils().isSameType(
+        if (processor.isSameType(
                 parameter.asType(),
-                coreModuleProcessor.objectType) &&
+                processor.objectType) &&
                 !name.startsWith("unused") &&
                 !name.startsWith("maybe") &&
                 !isGuarded(name, specializationAnnotation.guards())) {
-            coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+            processor.getProcessingEnvironment().getMessager().printMessage(
                     Diagnostic.Kind.ERROR,
                     "Since Object is the super type of NotProvided any optional parameter declaration of type Object " +
                             "must have additional guards to check whether this specialization should be called, " +
@@ -243,20 +238,13 @@ public class CoreModuleChecks {
         return false;
     }
 
-    private static void isParameterBlock(
-            CoreModuleProcessor coreModuleProcessor,
-            VariableElement parameter) {
-        TypeMirror blockType = parameter.asType();
-        Types typeUtils = coreModuleProcessor.getProcessingEnvironment().getTypeUtils();
-        Elements elementUtils = coreModuleProcessor.getProcessingEnvironment().getElementUtils();
-        boolean isNil = typeUtils
-                .isSameType(blockType, elementUtils.getTypeElement("org.truffleruby.language.Nil").asType());
-        boolean isRubyProc = typeUtils
-                .isSameType(blockType, elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType());
-        boolean isObject = typeUtils.isSameType(blockType, coreModuleProcessor.objectType);
+    private static void isParameterBlock(CoreModuleProcessor processor, VariableElement parameter) {
+        final TypeMirror blockType = parameter.asType();
 
-        if (!(isNil || isRubyProc || isObject)) {
-            coreModuleProcessor.getProcessingEnvironment().getMessager().printMessage(
+        if (!(processor.isSameType(blockType, processor.nilType) ||
+                processor.isSameType(blockType, processor.rubyProcType) ||
+                processor.isSameType(blockType, processor.objectType))) {
+            processor.getProcessingEnvironment().getMessager().printMessage(
                     Diagnostic.Kind.ERROR,
                     "A block parameter must be of type Nil, RubyProc or Object.",
                     parameter);

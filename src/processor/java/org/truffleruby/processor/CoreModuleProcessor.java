@@ -30,6 +30,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
@@ -92,8 +93,11 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     private final Set<String> processed = new HashSet<>();
+
     TypeMirror virtualFrameType;
     TypeMirror objectType;
+    TypeMirror nilType;
+    TypeMirror rubyProcType;
     TypeMirror rubyNodeType;
     TypeMirror rubyBaseNodeType;
 
@@ -104,22 +108,13 @@ public class CoreModuleProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
-        virtualFrameType = processingEnv
-                .getElementUtils()
-                .getTypeElement("com.oracle.truffle.api.frame.VirtualFrame")
-                .asType();
-        objectType = processingEnv
-                .getElementUtils()
-                .getTypeElement("java.lang.Object")
-                .asType();
-        rubyNodeType = processingEnv
-                .getElementUtils()
-                .getTypeElement("org.truffleruby.language.RubyNode")
-                .asType();
-        rubyBaseNodeType = processingEnv
-                .getElementUtils()
-                .getTypeElement("org.truffleruby.language.RubyBaseNode")
-                .asType();
+        Elements elementUtils = processingEnv.getElementUtils();
+        virtualFrameType = elementUtils.getTypeElement("com.oracle.truffle.api.frame.VirtualFrame").asType();
+        objectType = elementUtils.getTypeElement("java.lang.Object").asType();
+        nilType = elementUtils.getTypeElement("org.truffleruby.language.Nil").asType();
+        rubyProcType = elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType();
+        rubyNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyNode").asType();
+        rubyBaseNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyBaseNode").asType();
 
         if (!annotations.isEmpty()) {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(CoreModule.class)) {
@@ -132,6 +127,10 @@ public class CoreModuleProcessor extends AbstractProcessor {
         }
 
         return true;
+    }
+
+    boolean isSameType(TypeMirror type1, TypeMirror type2) {
+        return processingEnv.getTypeUtils().isSameType(type1, type2);
     }
 
     private void processCoreModule(TypeElement coreModuleElement) throws IOException {
@@ -430,7 +429,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         continue; // we ignore arguments having annotations like @Cached
                     }
 
-                    if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrameType)) {
+                    if (isSameType(parameter.asType(), virtualFrameType)) {
                         continue;
                     }
 
@@ -473,8 +472,8 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     public boolean isNodeBaseType(TypeElement typeElement) {
-        return processingEnv.getTypeUtils().isSameType(typeElement.asType(), rubyNodeType) ||
-                processingEnv.getTypeUtils().isSameType(typeElement.asType(), rubyBaseNodeType);
+        return isSameType(typeElement.asType(), rubyNodeType) ||
+                isSameType(typeElement.asType(), rubyBaseNodeType);
     }
 
     private boolean anyCoreMethod(List<? extends Element> enclosedElements) {
