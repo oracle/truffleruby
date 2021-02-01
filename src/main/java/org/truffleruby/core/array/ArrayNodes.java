@@ -697,7 +697,7 @@ public abstract class ArrayNodes {
                 array.size = i;
                 return found;
             } else {
-                if (maybeBlock == NotProvided.INSTANCE) {
+                if (maybeBlock == nil) {
                     return nil;
                 } else {
                     return yield((RubyProc) maybeBlock, value);
@@ -961,7 +961,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "args.length == 1", "stores.acceptsValue(array.store, value(args))" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray fill(RubyArray array, Object[] args, NotProvided block,
+        protected RubyArray fill(RubyArray array, Object[] args, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
@@ -983,7 +983,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, NotProvided block,
+        protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, Nil block,
                 @Cached DispatchNode callFillInternal) {
             return callFillInternal.call(array, "fill_internal", args);
         }
@@ -1066,14 +1066,10 @@ public abstract class ArrayNodes {
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
         protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
-                NotProvided block);
+                Nil block);
 
         @Specialization
-        protected RubyArray initializeNoArgs(
-                RubyArray array,
-                NotProvided size,
-                NotProvided fillingValue,
-                NotProvided block) {
+        protected RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block) {
             setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
             return array;
         }
@@ -1112,20 +1108,12 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size >= MAX_INT")
-        protected RubyArray initializeSizeTooBig(
-                RubyArray array,
-                long size,
-                NotProvided fillingValue,
-                NotProvided block) {
+        protected RubyArray initializeSizeTooBig(RubyArray array, long size, NotProvided fillingValue, Nil block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("array size too big", this));
         }
 
         @Specialization(guards = "size >= 0")
-        protected RubyArray initializeWithSizeNoValue(
-                RubyArray array,
-                int size,
-                NotProvided fillingValue,
-                NotProvided block) {
+        protected RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block) {
             final Object[] store = new Object[size];
             Arrays.fill(store, nil);
             setStoreAndSize(array, store, size);
@@ -1135,11 +1123,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "size >= 0", "wasProvided(fillingValue)" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray initializeWithSizeAndValue(
-                RubyArray array,
-                int size,
-                Object fillingValue,
-                NotProvided block,
+        protected RubyArray initializeWithSizeAndValue(RubyArray array, int size, Object fillingValue, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
@@ -1159,7 +1143,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "wasProvided(size)", "!isInteger(size)", "!isLong(size)", "wasProvided(fillingValue)" })
-        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, NotProvided block) {
+        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block) {
             int intSize = toInt(size);
             return executeInitialize(array, intSize, fillingValue, block);
         }
@@ -1202,7 +1186,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
+        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block) {
             RubyArray copy = null;
             if (respondToToAry(getLanguage(), object)) {
                 Object toAryResult = callToAry(object);
@@ -1212,10 +1196,10 @@ public abstract class ArrayNodes {
             }
 
             if (copy != null) {
-                return executeInitialize(array, copy, NotProvided.INSTANCE, NotProvided.INSTANCE);
+                return executeInitialize(array, copy, NotProvided.INSTANCE, nil);
             } else {
                 int size = toInt(object);
-                return executeInitialize(array, size, NotProvided.INSTANCE, NotProvided.INSTANCE);
+                return executeInitialize(array, size, NotProvided.INSTANCE, nil);
             }
         }
 
@@ -2116,7 +2100,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, NotProvided block,
+        protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary originalStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
                 @Cached DispatchNode compareDispatchNode,
@@ -2165,7 +2149,7 @@ public abstract class ArrayNodes {
                         "getLanguage().coreMethodAssumptions.integerCmpAssumption",
                         "getLanguage().coreMethodAssumptions.floatCmpAssumption" },
                 limit = "storageStrategyLimit()")
-        protected Object sortPrimitiveArrayNoBlock(RubyArray array, NotProvided block,
+        protected Object sortPrimitiveArrayNoBlock(RubyArray array, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores) {
             final int size = array.size;
@@ -2179,7 +2163,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "!isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        protected Object sortArrayWithoutBlock(RubyArray array, NotProvided block,
+        protected Object sortArrayWithoutBlock(RubyArray array, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached DispatchNode fallbackNode) {
             return fallbackNode.call(array, "sort_fallback");

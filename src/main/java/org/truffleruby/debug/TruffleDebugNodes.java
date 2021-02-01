@@ -59,6 +59,7 @@ import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyRootNode;
@@ -205,21 +206,21 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object astMethod(RubyMethod method, NotProvided block) {
+        protected Object astMethod(RubyMethod method, Nil block) {
             ast(method.method);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object astUnboundMethod(RubyUnboundMethod method, NotProvided block) {
+        protected Object astUnboundMethod(RubyUnboundMethod method, Nil block) {
             ast(method.method);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object astProc(RubyProc proc, NotProvided block) {
+        protected Object astProc(RubyProc proc, Nil block) {
             ast(proc.callTarget);
             return nil;
         }
@@ -267,21 +268,21 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object astMethod(RubyMethod method, NotProvided block) {
+        protected Object astMethod(RubyMethod method, Nil block) {
             printAst(method.method);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object astUnboundMethod(RubyUnboundMethod method, NotProvided block) {
+        protected Object astUnboundMethod(RubyUnboundMethod method, Nil block) {
             printAst(method.method);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object astProc(RubyProc proc, NotProvided block) {
+        protected Object astProc(RubyProc proc, Nil block) {
             printAst(proc.callTarget);
             return nil;
         }

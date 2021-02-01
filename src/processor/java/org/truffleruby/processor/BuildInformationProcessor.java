@@ -24,22 +24,19 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
 import org.truffleruby.PopulateBuildInformation;
 
 @SupportedAnnotationTypes("org.truffleruby.PopulateBuildInformation")
-public class BuildInformationProcessor extends AbstractProcessor {
+public class BuildInformationProcessor extends TruffleRubyProcessor {
 
     private static final String SUFFIX = "Impl";
 
@@ -121,11 +118,6 @@ public class BuildInformationProcessor extends AbstractProcessor {
     }
 
     @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latest();
-    }
-
-    @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
         assert isInitialized();
         if (!annotations.isEmpty()) {
@@ -133,7 +125,7 @@ public class BuildInformationProcessor extends AbstractProcessor {
                 try {
                     processBuildInformation((TypeElement) element);
                 } catch (Exception e) {
-                    processingEnv.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage(), element);
+                    error(e.getClass() + " " + e.getMessage(), element);
                 }
             }
         }

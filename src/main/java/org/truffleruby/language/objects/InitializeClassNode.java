@@ -14,6 +14,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
@@ -38,7 +39,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     public abstract RubyClass executeInitialize(RubyClass rubyClass, Object superclass, Object block);
 
     @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, NotProvided superclass, NotProvided block) {
+    protected RubyClass initialize(RubyClass rubyClass, NotProvided superclass, Nil block) {
         return initializeGeneralWithoutBlock(rubyClass, coreLibrary().objectClass, false);
     }
 
@@ -48,7 +49,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     }
 
     @Specialization
-    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, NotProvided block) {
+    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, Nil block) {
         return initializeGeneralWithoutBlock(rubyClass, superclass, true);
     }
 

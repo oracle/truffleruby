@@ -342,7 +342,7 @@ public abstract class HashNodes {
         @Child private YieldNode yieldNode = YieldNode.create();
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object deleteNull(RubyHash hash, Object key, NotProvided block) {
+        protected Object deleteNull(RubyHash hash, Object key, Nil block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             return nil;
@@ -382,7 +382,7 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
 
-            if (maybeBlock == NotProvided.INSTANCE) {
+            if (maybeBlock == nil) {
                 return nil;
             } else {
                 return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
@@ -397,7 +397,7 @@ public abstract class HashNodes {
             final Entry entry = lookupResult.getEntry();
 
             if (entry == null) {
-                if (maybeBlock == NotProvided.INSTANCE) {
+                if (maybeBlock == nil) {
                     return nil;
                 } else {
                     return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
@@ -512,7 +512,7 @@ public abstract class HashNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, NotProvided block) {
+        protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, Nil block) {
             assert HashOperations.verifyStore(getContext(), hash);
             hash.defaultValue = nil;
             hash.defaultBlock = nil;
@@ -530,7 +530,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        protected RubyHash initialize(RubyHash hash, Object defaultValue, NotProvided block,
+        protected RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.executePropagate(hash, defaultValue);

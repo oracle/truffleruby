@@ -31,7 +31,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -134,7 +133,7 @@ public abstract class MethodNodes {
         @Specialization
         protected Object call(VirtualFrame frame, RubyMethod method, Object[] arguments, Object maybeBlock) {
             return callBoundMethodNode
-                    .execute(frame, method, arguments, maybeBlock == NotProvided.INSTANCE ? nil : maybeBlock);
+                    .execute(frame, method, arguments, maybeBlock);
         }
 
     }

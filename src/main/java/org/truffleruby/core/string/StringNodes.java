@@ -831,7 +831,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
-        protected RubyArray bytes(Object string, NotProvided block,
+        protected RubyArray bytes(Object string, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final Rope rope = strings.getRope(string);
             final byte[] bytes = bytesNode.execute(rope);

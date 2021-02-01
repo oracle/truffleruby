@@ -19,18 +19,15 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic.Kind;
+import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
@@ -42,11 +39,7 @@ import org.truffleruby.builtins.Primitive;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @SupportedAnnotationTypes("org.truffleruby.builtins.CoreModule")
-public class CoreModuleProcessor extends AbstractProcessor {
-
-    ProcessingEnvironment getProcessingEnvironment() {
-        return processingEnv;
-    }
+public class CoreModuleProcessor extends TruffleRubyProcessor {
 
     private static final String SUFFIX = "Builtins";
     private static final Set<String> KEYWORDS;
@@ -92,41 +85,32 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     private final Set<String> processed = new HashSet<>();
+
     TypeMirror virtualFrameType;
     TypeMirror objectType;
+    TypeMirror nilType;
+    TypeMirror notProvidedType;
+    TypeMirror rubyProcType;
     TypeMirror rubyNodeType;
     TypeMirror rubyBaseNodeType;
 
     @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latest();
-    }
-
-    @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
-        virtualFrameType = processingEnv
-                .getElementUtils()
-                .getTypeElement("com.oracle.truffle.api.frame.VirtualFrame")
-                .asType();
-        objectType = processingEnv
-                .getElementUtils()
-                .getTypeElement("java.lang.Object")
-                .asType();
-        rubyNodeType = processingEnv
-                .getElementUtils()
-                .getTypeElement("org.truffleruby.language.RubyNode")
-                .asType();
-        rubyBaseNodeType = processingEnv
-                .getElementUtils()
-                .getTypeElement("org.truffleruby.language.RubyBaseNode")
-                .asType();
+        Elements elementUtils = processingEnv.getElementUtils();
+        virtualFrameType = elementUtils.getTypeElement("com.oracle.truffle.api.frame.VirtualFrame").asType();
+        objectType = elementUtils.getTypeElement("java.lang.Object").asType();
+        nilType = elementUtils.getTypeElement("org.truffleruby.language.Nil").asType();
+        notProvidedType = elementUtils.getTypeElement("org.truffleruby.language.NotProvided").asType();
+        rubyProcType = elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType();
+        rubyNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyNode").asType();
+        rubyBaseNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyBaseNode").asType();
 
         if (!annotations.isEmpty()) {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(CoreModule.class)) {
                 try {
                     processCoreModule((TypeElement) element);
                 } catch (IOException e) {
-                    processingEnv.getMessager().printMessage(Kind.ERROR, e.getClass() + " " + e.getMessage(), element);
+                    error(e.getClass() + " " + e.getMessage(), element);
                 }
             }
         }
@@ -155,6 +139,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 coreModule.value().replace("::", "/") + ".rb",
                 (Element[]) null);
 
+        final CoreModuleChecks coreModuleChecks = new CoreModuleChecks(this);
 
         try (PrintStream stream = new PrintStream(output.openOutputStream(), true, "UTF-8")) {
             try (PrintStream rubyStream = new PrintStream(rubyFile.openOutputStream(), true, "UTF-8")) {
@@ -199,7 +184,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                             CoreMethod checkAmbiguous = coreMethod.optional() > 0 || coreMethod.needsBlock()
                                     ? coreMethod
                                     : null;
-                            CoreModuleChecks.checks(this, coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
+                            coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod);
                         }
                     }
@@ -217,7 +202,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         final Primitive primitive = e.getAnnotation(Primitive.class);
                         if (primitive != null) {
                             processPrimitive(stream, rubyPrimitives, coreModuleElement, klass, primitive);
-                            CoreModuleChecks.checks(this, primitive.lowerFixnum(), null, klass, true);
+                            coreModuleChecks.checks(primitive.lowerFixnum(), null, klass, true);
                         }
                     }
                 }
@@ -314,8 +299,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 numberOfArguments);
 
         if (argumentNames.isEmpty() && numberOfArguments > 0) {
-            processingEnv.getMessager().printMessage(
-                    Kind.ERROR,
+            error(
                     "Did not find argument names. If the class has inherited Specializations use org.truffleruby.builtins.CoreMethod.argumentNames",
                     klass);
 
@@ -358,8 +342,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 args.add("&" + argumentNames.get(index));
             }
         } catch (IndexOutOfBoundsException e) {
-            processingEnv.getMessager().printMessage(
-                    Kind.ERROR,
+            error(
                     "Not enough arguments found compared to declared numbers, check required, optional etc. declarations",
                     klass);
         }
@@ -386,10 +369,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
             argumentNames = getArgumentNamesFromSpecializations(klass, hasSelfArgument);
         } else {
             if (argumentNamesFromAnnotation.length != numberOfArguments && numberOfArguments >= 0) {
-                processingEnv.getMessager().printMessage(
-                        Kind.ERROR,
-                        "The size of argumentNames does not match declared number of arguments.",
-                        klass);
+                error("The size of argumentNames does not match declared number of arguments.", klass);
                 argumentNames = new ArrayList<>();
             } else {
                 argumentNames = Arrays.asList(argumentNamesFromAnnotation);
@@ -430,7 +410,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         continue; // we ignore arguments having annotations like @Cached
                     }
 
-                    if (processingEnv.getTypeUtils().isSameType(parameter.asType(), virtualFrameType)) {
+                    if (isSameType(parameter.asType(), virtualFrameType)) {
                         continue;
                     }
 
@@ -453,11 +433,10 @@ public class CoreModuleProcessor extends AbstractProcessor {
                         argumentElements.add(parameter);
                     } else {
                         if (!argumentNames.get(index).equals(name)) {
-                            processingEnv.getMessager().printMessage(
-                                    Kind.ERROR,
+                            error(
                                     "The argument does not match with the first occurrence of this argument which was '" +
-                                            argumentElements.get(index).getSimpleName() +
-                                            "' (translated to Ruby as '" + argumentNames.get(index) + "').",
+                                            argumentElements.get(index).getSimpleName() + "' (translated to Ruby as '" +
+                                            argumentNames.get(index) + "').",
                                     parameter);
                         }
                     }
@@ -473,8 +452,8 @@ public class CoreModuleProcessor extends AbstractProcessor {
     }
 
     public boolean isNodeBaseType(TypeElement typeElement) {
-        return processingEnv.getTypeUtils().isSameType(typeElement.asType(), rubyNodeType) ||
-                processingEnv.getTypeUtils().isSameType(typeElement.asType(), rubyBaseNodeType);
+        return isSameType(typeElement.asType(), rubyNodeType) ||
+                isSameType(typeElement.asType(), rubyBaseNodeType);
     }
 
     private boolean anyCoreMethod(List<? extends Element> enclosedElements) {
