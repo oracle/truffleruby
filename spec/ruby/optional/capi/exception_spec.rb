@@ -37,11 +37,25 @@ describe "C-API Exception function" do
       -> { @s.rb_exc_raise(runtime_error) }.should raise_error(RuntimeError, '42')
     end
 
-    it "sets $! to the raised exception" do
+    it "sets $! to the raised exception when not rescuing from an another exception" do
       runtime_error = RuntimeError.new '42'
       runtime_error.set_backtrace []
       begin
-       @s. rb_exc_raise(runtime_error)
+        @s.rb_exc_raise(runtime_error)
+      rescue
+        $!.should == runtime_error
+      end
+    end
+
+    it "sets $! to the raised exception when $! when rescuing from an another exception" do
+      runtime_error = RuntimeError.new '42'
+      runtime_error.set_backtrace []
+      begin
+        begin
+          raise StandardError
+        rescue
+          @s.rb_exc_raise(runtime_error)
+        end
       rescue
         $!.should == runtime_error
       end
