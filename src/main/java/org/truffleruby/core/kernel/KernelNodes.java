@@ -56,6 +56,7 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
@@ -1482,19 +1483,17 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true)
-    public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode dispatchNode = DispatchNode.create(PUBLIC);
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
-        @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
+    @GenerateUncached
+    @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true, alwaysInlined = true)
+    public abstract static class PublicSendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
-            DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
-            RubyArguments.setDeclarationContext(frame, context);
-
-            return dispatchNode.dispatch(frame, self, nameToJavaString.execute(name), block, args);
+        protected Object send(Frame callerFrame, Object self, Object[] args, Object block,
+                @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
+                @Cached NameToJavaStringNode nameToJavaString) {
+            Object name = args[0];
+            Object[] callArgs = ArrayUtils.extractRange(args, 1, args.length);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs);
         }
 
     }

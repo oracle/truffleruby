@@ -14,6 +14,10 @@ describe "Truffle::Boot.source_of_caller" do
     Truffle::Boot.source_of_caller
   end
 
+  def source_of_caller_through_send
+    Truffle::Boot.send(:source_of_caller)
+  end
+
   #it "returns nil if there is no caller"
   #end
 
@@ -26,7 +30,7 @@ describe "Truffle::Boot.source_of_caller" do
   end
 
   it "works through #send" do
-    Truffle::Boot.send(:source_of_caller).should == __FILE__
+    source_of_caller_through_send.should == __FILE__
   end
 
 end
