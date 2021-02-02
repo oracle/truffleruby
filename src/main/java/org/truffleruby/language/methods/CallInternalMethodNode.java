@@ -82,7 +82,6 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             @Cached(value = "cachedMethod.getSharedMethodInfo().getArity()", allowUncached = true) Arity cachedArity,
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile,
-            @Cached IndirectCallNode indirectCallNode,
             @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
         assert RubyArguments.assertValues(callerData, method, method.getDeclarationContext(), self, block, args);
 
@@ -95,7 +94,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             final Node location = e.getLocation();
             if (location != null && location.getRootNode() == alwaysInlinedNode.getRootNode()) {
                 // if the error originates from the inlined node, rethrow it through the CallTarget to get a proper backtrace
-                return indirectCallNode.call(cachedCallTarget, e);
+                return RubyContext.indirectCallWithCallNode(this, cachedCallTarget, e);
             } else {
                 throw e;
             }

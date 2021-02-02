@@ -460,6 +460,22 @@ public class RubyContext {
         }
     }
 
+    @TruffleBoundary
+    public static Object indirectCallWithCallNode(Node currentNode, RootCallTarget callTarget,
+            Object... frameArguments) {
+        if (currentNode.isAdoptable()) {
+            final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
+            final Node prev = callNodeRef.set(currentNode);
+            try {
+                return IndirectCallNode.getUncached().call(callTarget, frameArguments);
+            } finally {
+                callNodeRef.set(prev);
+            }
+        } else {
+            return IndirectCallNode.getUncached().call(callTarget, frameArguments);
+        }
+    }
+
     public void finalizeContext() {
         if (!initialized) {
             // The RubyContext will be finalized and disposed if patching fails (potentially for
