@@ -131,7 +131,7 @@ public class ValueWrapper implements TruffleObject {
 
     @ExportMessage
     protected Object getMembers(boolean includeInternal) {
-        return new String[]{ "value" };
+        return new ValueWrapperPropertyList();
     }
 
     @ExportMessage
@@ -150,29 +150,33 @@ public class ValueWrapper implements TruffleObject {
         }
     }
 
-    @ExportMessage
-    protected static boolean hasArrayElements(ValueWrapper wrapper) {
-        return true;
-    }
+    @ExportLibrary(InteropLibrary.class)
+    public static class ValueWrapperPropertyList implements TruffleObject {
 
-    @ExportMessage
-    protected static long getArraySize(ValueWrapper wrapper) {
-        return 1;
-    }
-
-    @ExportMessage
-    protected static Object readArrayElement(ValueWrapper wrapper, long index,
-            @Cached @Exclusive BranchProfile errorProfile) throws InvalidArrayIndexException {
-        if (index == 0L) {
-            return wrapper.object;
-        } else {
-            errorProfile.enter();
-            throw InvalidArrayIndexException.create(index);
+        @ExportMessage
+        protected static boolean hasArrayElements(ValueWrapperPropertyList wrapper) {
+            return true;
         }
-    }
 
-    @ExportMessage
-    protected static boolean isArrayElementReadable(ValueWrapper wrapper, long index) {
-        return index == 0L;
+        @ExportMessage
+        protected static long getArraySize(ValueWrapperPropertyList wrapper) {
+            return 1;
+        }
+
+        @ExportMessage
+        protected static Object readArrayElement(ValueWrapperPropertyList list, long index,
+                @Cached @Exclusive BranchProfile errorProfile) throws InvalidArrayIndexException {
+            if (index == 0L) {
+                return "value";
+            } else {
+                errorProfile.enter();
+                throw InvalidArrayIndexException.create(index);
+            }
+        }
+
+        @ExportMessage
+        protected static boolean isArrayElementReadable(ValueWrapperPropertyList wrapper, long index) {
+            return index == 0L;
+        }
     }
 }
