@@ -110,6 +110,7 @@ class Struct
       yield v
     end
   end
+  alias_method :filter, :select
 
   def to_h
     h = {}
