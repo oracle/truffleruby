@@ -60,9 +60,9 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    private void startSending(Reads variables, Reads frame) {
         if (sendingNode != null) {
             sendingNode.startSending(variables, frame);
+    private synchronized void startSending(Reads variables, Reads frame) {
         } else if (variables == Reads.SELF && frame == Reads.NOTHING) {
             sendingNode = insert(GetSpecialVariableStorage.create());
         } else if (variables == Reads.NOTHING && frame == Reads.SELF) {
