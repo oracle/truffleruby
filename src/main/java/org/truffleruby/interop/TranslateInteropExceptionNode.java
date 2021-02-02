@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -69,6 +70,19 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         return new RaiseException(
                 context,
                 context.getCoreExceptions().indexErrorInvalidArrayIndexException(exception, this),
+                exception);
+    }
+
+    @Specialization
+    protected RuntimeException handle(
+            InvalidBufferOffsetException exception,
+            boolean inInvokeMember,
+            Object receiver,
+            Object[] args,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return new RaiseException(
+                context,
+                context.getCoreExceptions().indexErrorInvalidBufferOffsetException(exception, this),
                 exception);
     }
 

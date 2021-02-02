@@ -14,6 +14,7 @@ import static org.truffleruby.core.array.ArrayHelpers.createArray;
 import java.io.IOException;
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -436,6 +437,12 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException indexErrorInvalidArrayIndexException(InvalidArrayIndexException exception, Node currentNode) {
         return indexError("invalid array index " + exception.getInvalidIndex(), currentNode);
+    }
+
+    @TruffleBoundary
+    public RubyException indexErrorInvalidBufferOffsetException(InvalidBufferOffsetException exception,
+            Node currentNode) {
+        return indexError("invalid buffer offset " + exception.getByteOffset(), currentNode);
     }
 
     // LocalJumpError

@@ -212,8 +212,7 @@ public class PolyglotInteropTest {
             bindings.putMember("local_var", 42);
             RubyTest.assertThrows(
                     () -> context.eval("ruby", "local_var"), // non-interactive source
-                    // GR-28773: e -> assertEquals("NameError", e.getGuestObject().getMetaObject().getMetaSimpleName())
-                    e -> assertTrue(e.getMessage().contains("NameError")));
+                    e -> assertEquals("NameError", e.getGuestObject().getMetaObject().getMetaSimpleName()));
 
             context.eval(interactiveSource("new_eval_local_var = 88"));
             assertEquals(88, context.eval(interactiveSource("new_eval_local_var")).asInt());
