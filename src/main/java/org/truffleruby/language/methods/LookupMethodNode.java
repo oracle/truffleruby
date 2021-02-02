@@ -30,7 +30,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Caches {@link ModuleOperations#lookupMethodCached(RubyModule, String, DeclarationContext)} on an actual instance. */
@@ -135,11 +134,8 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
             if (noCallerMethodProfile.profile(callerMethod == null)) {
                 callerClass = context.getCoreLibrary().objectClass;
-            } else if (!isSendProfile.profile(context.getCoreLibrary().isSend(callerMethod))) {
-                callerClass = metaClassNode.execute(RubyArguments.getSelf(frame));
             } else {
-                Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
-                callerClass = metaClassNode.execute(RubyArguments.getSelf(callerFrame));
+                callerClass = metaClassNode.execute(RubyArguments.getSelf(frame));
             }
 
             if (!isVisibleProfile.profile(method.isProtectedMethodVisibleTo(callerClass))) {
@@ -194,11 +190,8 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         final InternalMethod callerMethod = RubyArguments.tryGetMethod(callingFrame);
         if (callerMethod == null) {
             return context.getCoreLibrary().objectClass;
-        } else if (!context.getCoreLibrary().isSend(callerMethod)) {
-            return MetaClassNode.getUncached().execute(RubyArguments.getSelf(callingFrame));
         } else {
-            final Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
-            return MetaClassNode.getUncached().execute(RubyArguments.getSelf(callerFrame));
+            return MetaClassNode.getUncached().execute(RubyArguments.getSelf(callingFrame));
         }
     }
 

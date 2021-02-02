@@ -302,7 +302,7 @@ public abstract class KernelNodes {
             } else {
                 final SourceSection sourceSection = getContext()
                         .getCallStack()
-                        .getCallerNodeIgnoringSend()
+                        .getCallerNode()
                         .getEncapsulatingSourceSection();
                 if (!BacktraceFormatter.isAvailable(sourceSection)) {
                     throw new RaiseException(
@@ -376,7 +376,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         protected SourceSection getCallerSourceSection() {
-            return getContext().getCallStack().getCallerNodeIgnoringSend().getEncapsulatingSourceSection();
+            return getContext().getCallStack().getCallerNode().getEncapsulatingSourceSection();
         }
 
     }
@@ -402,7 +402,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubySymbol calleeName() {
             // the "called name" of a method.
-            return getSymbol(getContext().getCallStack().getCallingMethodIgnoringSend().getName());
+            return getSymbol(getContext().getCallStack().getCallingMethod().getName());
         }
     }
 
@@ -1278,7 +1278,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         protected boolean isLiteralBlock(RubyProc block) {
-            Node callNode = getContext().getCallStack().getCallerNodeIgnoringSend();
+            Node callNode = getContext().getCallStack().getCallerNode();
             RubyCallNode rubyCallNode = NodeUtil.findParent(callNode, RubyCallNode.class);
             return rubyCallNode != null && rubyCallNode.hasLiteralBlock();
         }
@@ -1290,7 +1290,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubySymbol methodName() {
             // the "original/definition name" of the method.
-            InternalMethod internalMethod = getContext().getCallStack().getCallingMethodIgnoringSend();
+            InternalMethod internalMethod = getContext().getCallStack().getCallingMethod();
             return getSymbol(internalMethod.getSharedMethodInfo().getMethodNameForNotBlock());
         }
 

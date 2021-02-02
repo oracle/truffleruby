@@ -51,18 +51,18 @@ public class CallStackManager {
     }
 
     @TruffleBoundary
-    public Frame getCallerFrameIgnoringSend(FrameAccess frameAccess) {
+    public Frame getCallerFrame(FrameAccess frameAccess) {
         // System.err.printf("Getting a caller frame...\n");
         // new Error().printStackTrace();
-        return getCallerFrameIgnoringSend(f -> isRubyFrameAndNotSend(f.getFrame(FrameAccess.READ_ONLY)), frameAccess);
+        return getCallerFrame(f -> isRubyFrame(f.getFrame(FrameAccess.READ_ONLY)), frameAccess);
     }
 
     @TruffleBoundary
     public Frame getCallerFrameNotInModules(FrameAccess frameAccess, Object[] modules) {
         final Memo<Boolean> skippedFirstFrameFound = new Memo<>(false);
 
-        return getCallerFrameIgnoringSend(frameInstance -> {
-            final InternalMethod method = getMethod(frameInstance.getFrame(FrameAccess.READ_ONLY));
+        return getCallerFrame(frameInstance -> {
+            final InternalMethod method = tryGetMethod(frameInstance.getFrame(FrameAccess.READ_ONLY));
             if (method != null && !ArrayUtils.contains(modules, method.getDeclaringModule())) {
                 if (skippedFirstFrameFound.get()) {
                     return true;
@@ -76,15 +76,15 @@ public class CallStackManager {
     // Node
 
     @TruffleBoundary
-    public Node getCallerNodeIgnoringSend() {
+    public Node getCallerNode() {
         return getCallerNode(1, true);
     }
 
     @TruffleBoundary
-    public Node getCallerNode(int skip, boolean ignoreSend) {
+    public Node getCallerNode(int skip, boolean onlyRubyFrames) {
         return iterateFrames(skip, frameInstance -> {
-            if (ignoreSend) {
-                return isRubyFrameAndNotSend(frameInstance.getFrame(FrameAccess.READ_ONLY));
+            if (onlyRubyFrames) {
+                return isRubyFrame(frameInstance.getFrame(FrameAccess.READ_ONLY));
             } else {
                 return true;
             }
@@ -94,19 +94,12 @@ public class CallStackManager {
     // Method
 
     @TruffleBoundary
-    public InternalMethod getCallingMethodIgnoringSend() {
-        return getMethod(getCallerFrameIgnoringSend(FrameAccess.READ_ONLY));
+    public InternalMethod getCallingMethod() {
+        return tryGetMethod(getCallerFrame(FrameAccess.READ_ONLY));
     }
 
-    @TruffleBoundary
     public boolean callerIsSend() {
-        final Boolean isSend = iterateFrames(
-                1,
-                f -> true,
-                frameInstance -> context
-                        .getCoreLibrary()
-                        .isSend(getMethod(frameInstance.getFrame(FrameAccess.READ_ONLY))));
-        return isSend != null && isSend;
+        return false; // TODO (eregon, 2 Feb 2021): simplify callers
     }
 
     // SourceSection
@@ -139,7 +132,7 @@ public class CallStackManager {
 
     // Internals
 
-    private Frame getCallerFrameIgnoringSend(Predicate<FrameInstance> filter, FrameAccess frameAccess) {
+    private Frame getCallerFrame(Predicate<FrameInstance> filter, FrameAccess frameAccess) {
         return iterateFrames(1, filter, f -> f.getFrame(frameAccess));
     }
 
@@ -191,12 +184,11 @@ public class CallStackManager {
         }
     }
 
-    private boolean isRubyFrameAndNotSend(Frame frame) {
-        final InternalMethod method = getMethod(frame);
-        return method != null && !context.getCoreLibrary().isSend(method);
+    private boolean isRubyFrame(Frame frame) {
+        return tryGetMethod(frame) != null;
     }
 
-    private static InternalMethod getMethod(Frame frame) {
+    private static InternalMethod tryGetMethod(Frame frame) {
         return RubyArguments.tryGetMethod(frame);
     }
 
@@ -231,11 +223,6 @@ public class CallStackManager {
 
         if (rootNode instanceof RubyRootNode) {
             final SharedMethodInfo sharedMethodInfo = ((RubyRootNode) rootNode).getSharedMethodInfo();
-
-            // Ignore BasicObject#__send__, Kernel#send and Kernel#public_send like MRI
-            if (context.getCoreLibrary().isSend(sharedMethodInfo)) {
-                return true;
-            }
 
             // Ignore Truffle::Boot.main and its caller
             if (context.getCoreLibrary().isTruffleBootMainMethod(sharedMethodInfo)) {
