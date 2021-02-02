@@ -159,6 +159,16 @@ public abstract class DigestNodes {
 
     }
 
+    @CoreMethod(names = "digest_block_length", onSingleton = true, required = 1)
+    public abstract static class DigestBlockLengthNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected int digestBlockLength(RubyDigest digestObject) {
+            return digestObject.algorithm.getBlockLength();
+        }
+
+    }
+
     @CoreMethod(names = "digest_length", onSingleton = true, required = 1)
     public abstract static class DigestLengthNode extends CoreMethodArrayArgumentsNode {
 
