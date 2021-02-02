@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.inlined;
 
-import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.nodes.ControlFlowException;
 
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -21,7 +21,7 @@ public abstract class InlinedMethodNode extends CoreMethodArrayArgumentsNode {
 
     public abstract InternalMethod getMethod();
 
-    public static class RewriteException extends AbstractTruffleException {
+    public static class RewriteException extends ControlFlowException {
 
         private static final long serialVersionUID = -4128190563044417424L;
     }

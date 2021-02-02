@@ -76,7 +76,7 @@ public abstract class AllocationTracing {
         }
     }
 
-    public static void traceBsicObjectAllocation(RubyDynamicObject instance, RubyDynamicObject rubyClass,
+    public static void traceBasicObjectAllocation(RubyDynamicObject instance, RubyDynamicObject rubyClass,
             RubyContextSourceNode node) {
         RubyLanguage language = node.getLanguage();
         RubyContext context = node.getContext();
@@ -118,10 +118,8 @@ public abstract class AllocationTracing {
         final SourceSection allocatingSourceSection = context
                 .getCallStack()
                 .getTopMostUserSourceSection(node.getEncapsulatingSourceSection());
-        final String className = LogicalClassNode.getUncached().execute(klass).fields
-                .getName();
 
-        callAllocationTrace(language, context, instance, allocatingSourceSection, "__allocate__", className);
+        callAllocationTrace(language, context, instance, allocatingSourceSection, "__allocate__", "Class");
     }
 
     @TruffleBoundary
