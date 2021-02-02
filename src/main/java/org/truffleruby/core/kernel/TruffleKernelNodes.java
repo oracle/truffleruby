@@ -319,8 +319,8 @@ public abstract class TruffleKernelNodes {
             return GetSpecialVariableStorageNodeGen.create();
         }
 
-        public void startSending(Reads variabless, Reads frame) {
-            if (variabless == Reads.CALLER || frame == Reads.CALLER) {
+        public void startSending(Reads variables, Reads frame) {
+            if (variables == Reads.CALLER || frame == Reads.CALLER) {
                 CompilerDirectives.shouldNotReachHere();
             }
             if (frame == Reads.SELF) {

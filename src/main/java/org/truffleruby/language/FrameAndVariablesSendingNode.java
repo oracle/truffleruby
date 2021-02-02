@@ -50,27 +50,27 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 @SuppressFBWarnings("IS")
 public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
-    @Child protected FrameOrVariablesReadingNode sendingNode;
+    @Child protected FrameOrVariablesReadingNode readingNode;
 
     public boolean sendingFrames() {
-        if (sendingNode == null) {
+        if (readingNode == null) {
             return false;
         } else {
-            return sendingNode.sendingFrame();
+            return readingNode.sendingFrame();
         }
     }
 
-        if (sendingNode != null) {
-            sendingNode.startSending(variables, frame);
     private synchronized void startSending(Reads variables, Reads frame) {
+        if (readingNode != null) {
+            readingNode.startSending(variables, frame);
         } else if (variables == Reads.SELF && frame == Reads.NOTHING) {
-            sendingNode = insert(GetSpecialVariableStorage.create());
+            readingNode = insert(GetSpecialVariableStorage.create());
         } else if (variables == Reads.NOTHING && frame == Reads.SELF) {
-            sendingNode = insert(new ReadOwnFrameNode());
+            readingNode = insert(new ReadOwnFrameNode());
         } else if (variables == Reads.CALLER && frame == Reads.NOTHING) {
-            sendingNode = insert(new ReadCallerFrameNode());
+            readingNode = insert(new ReadCallerFrameNode());
         } else if (variables == Reads.NOTHING && frame == Reads.CALLER) {
-            sendingNode = insert(new ReadCallerVariablesNode());
+            readingNode = insert(new ReadCallerVariablesNode());
         }
     }
 
@@ -94,10 +94,10 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
     }
 
     public Object getFrameOrStorageIfRequired(Frame frame) {
-        if (sendingNode == null) {
+        if (readingNode == null) {
             return null;
         } else {
-            return sendingNode.execute(frame);
+            return readingNode.execute(frame);
         }
     }
 

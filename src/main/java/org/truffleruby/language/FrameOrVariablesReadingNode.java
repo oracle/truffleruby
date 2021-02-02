@@ -22,7 +22,7 @@ public interface FrameOrVariablesReadingNode extends NodeInterface {
 
     public Object execute(Frame frame);
 
-    public void startSending(Reads variabless, Reads frame);
+    public void startSending(Reads variables, Reads frame);
 
     public boolean sendingFrame();
 }
