@@ -11,6 +11,7 @@ package org.truffleruby.core;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
 
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
@@ -23,6 +24,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.language.SafepointManager;
+import org.truffleruby.language.control.RaiseException;
 
 @CoreModule("GC")
 public abstract class GCNodes {
@@ -52,27 +54,45 @@ public abstract class GCNodes {
     @Primitive(name = "gc_force")
     public static abstract class GCForce extends PrimitiveArrayArgumentsNode {
 
-        @SuppressFBWarnings("DLS")
         @TruffleBoundary
         @Specialization
         protected Object force() {
             getContext().getMarkingService().queueMarking();
-            Object key = new Object();
-            Object value = new Object();
 
             // NOTE(norswap, 16 Apr 20): We could have used a WeakReference here, but the hope is that the extra
             // indirection will prevent the compiler to optimize this method away (assuming JIT compilation, and
             // the fact that such an optimizaton is permitted and possible, both of which are unlikely).
             WeakValueCache<Object, Object> cache = new WeakValueCache<>();
+            Object key = new Object();
+
+            // NOTE(norswap, 02 Feb 21): The split into two methods here is another way to try to outwit optimizations
+            // by making sure the method that allocates the weak value is exited before we run the GC loop;
+            initCache(cache, key);
+            gcLoop(cache, key);
+            return nil;
+        }
+
+        @SuppressFBWarnings("DLS")
+        private void initCache(WeakValueCache<Object, Object> cache, Object key) {
+            Object value = new Object();
             cache.put(key, value);
             value = null;
+        }
 
+        private void gcLoop(WeakValueCache<Object, Object> cache, Object key) {
+            final long duration = Duration.ofSeconds(60).toNanos();
+            final long start = System.nanoTime();
             do {
+                if (System.nanoTime() - start > duration) {
+                    throw new RaiseException(
+                            getContext(),
+                            getContext().getCoreExceptions().runtimeError(
+                                    "gc_force exceeded its 60 seconds timeout",
+                                    this));
+                }
                 System.gc();
                 SafepointManager.poll(getLanguage(), this);
             } while (cache.get(key) != null);
-
-            return nil;
         }
     }
 
