@@ -50,7 +50,6 @@ fails:Public methods on Method should include clone
 fails:Public methods on Method should include original_name
 fails:Public methods on UnboundMethod should include clone
 fails:Public methods on UnboundMethod should include original_name
-fails:Public methods on Struct should include filter
 fails:Public methods on Symbol should not include eql?
 fails:Public methods on Symbol should not include hash
 fails:Public methods on TracePoint should include callee_id
