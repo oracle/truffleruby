@@ -26,6 +26,8 @@ import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.Split;
@@ -64,17 +66,17 @@ public class CoreMethodNodeManager {
         if (!TruffleOptions.AOT && language.options.LAZY_BUILTINS) {
             BuiltinsClasses.setupBuiltinsLazy(this);
         } else {
-            for (List<? extends NodeFactory<? extends RubyNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
+            for (List<? extends NodeFactory<? extends RubyBaseNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
                 addCoreMethodNodes(factory);
             }
         }
     }
 
-    public void addCoreMethodNodes(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
+    public void addCoreMethodNodes(List<? extends NodeFactory<? extends RubyBaseNode>> nodeFactories) {
         String moduleName = null;
         RubyModule module = null;
 
-        for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
+        for (NodeFactory<? extends RubyBaseNode> nodeFactory : nodeFactories) {
             final Class<?> nodeClass = nodeFactory.getNodeClass();
             final CoreMethod methodAnnotation = nodeClass.getAnnotation(CoreMethod.class);
             if (methodAnnotation != null) {
@@ -136,7 +138,7 @@ public class CoreMethodNodeManager {
                 annotation.optional(),
                 annotation.rest(),
                 keywordAsOptional);
-        final NodeFactory<? extends RubyNode> nodeFactory = methodDetails.getNodeFactory();
+        final NodeFactory<? extends RubyBaseNode> nodeFactory = methodDetails.getNodeFactory();
         final boolean onSingleton = annotation.onSingleton() || annotation.constructor();
         final boolean isModuleFunc = annotation.isModuleFunction();
         final Split split = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : annotation.split();
@@ -151,6 +153,7 @@ public class CoreMethodNodeManager {
                 methodDetails.moduleName,
                 isModuleFunc,
                 onSingleton,
+                annotation.alwaysInlined(),
                 names,
                 arity,
                 visibility,
@@ -164,6 +167,7 @@ public class CoreMethodNodeManager {
             Visibility visibility,
             boolean isModuleFunc,
             boolean onSingleton,
+            boolean alwaysInlined,
             Split split,
             int required,
             int optional,
@@ -176,13 +180,22 @@ public class CoreMethodNodeManager {
         final Split finalSplit = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : split;
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
-            final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
+            final NodeFactory<? extends RubyBaseNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod annotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
             final RubyNode methodNode = createCoreMethodNode(nodeFactory, annotation, sharedMethodInfo);
             return createCallTarget(language, sharedMethodInfo, methodNode, finalSplit);
         };
 
-        addMethods(module, moduleName, isModuleFunc, onSingleton, names, arity, visibility, callTargetFactory);
+        addMethods(
+                module,
+                moduleName,
+                isModuleFunc,
+                onSingleton,
+                alwaysInlined,
+                names,
+                arity,
+                visibility,
+                callTargetFactory);
     }
 
     private void addMethods(
@@ -190,19 +203,38 @@ public class CoreMethodNodeManager {
             String moduleName,
             boolean isModuleFunction,
             boolean onSingleton,
+            boolean alwaysInlined,
             String[] names,
             Arity arity,
             Visibility visibility,
             Function<SharedMethodInfo, RootCallTarget> callTargetFactory) {
         if (isModuleFunction) {
-            addMethod(context, module, moduleName, false, callTargetFactory, names, arity, Visibility.PRIVATE);
+            addMethod(
+                    context,
+                    module,
+                    moduleName,
+                    false,
+                    alwaysInlined,
+                    callTargetFactory,
+                    names,
+                    arity,
+                    Visibility.PRIVATE);
             final RubyClass sclass = getSingletonClass(module);
-            addMethod(context, sclass, moduleName, true, callTargetFactory, names, arity, Visibility.PUBLIC);
+            addMethod(
+                    context,
+                    sclass,
+                    moduleName,
+                    true,
+                    alwaysInlined,
+                    callTargetFactory,
+                    names,
+                    arity,
+                    Visibility.PUBLIC);
         } else if (onSingleton) {
             final RubyClass sclass = getSingletonClass(module);
-            addMethod(context, sclass, moduleName, true, callTargetFactory, names, arity, visibility);
+            addMethod(context, sclass, moduleName, true, alwaysInlined, callTargetFactory, names, arity, visibility);
         } else {
-            addMethod(context, module, moduleName, false, callTargetFactory, names, arity, visibility);
+            addMethod(context, module, moduleName, false, alwaysInlined, callTargetFactory, names, arity, visibility);
         }
     }
 
@@ -211,6 +243,7 @@ public class CoreMethodNodeManager {
             RubyModule module,
             String moduleName,
             boolean onSingleton,
+            boolean alwaysInlined,
             Function<SharedMethodInfo, RootCallTarget> callTargetFactory,
             String[] names,
             Arity arity,
@@ -225,6 +258,20 @@ public class CoreMethodNodeManager {
                     name,
                     arity);
 
+            final RootCallTarget callTarget;
+            final CachedSupplier<RootCallTarget> callTargetSupplier;
+            final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory;
+            if (alwaysInlined) {
+                callTarget = callTargetFactory.apply(sharedMethodInfo);
+                callTargetSupplier = null;
+                final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
+                alwaysInlinedNodeFactory = ((ReRaiseInlinedExceptionNode) rootNode.getBody()).nodeFactory;
+            } else {
+                callTarget = null;
+                callTargetSupplier = new CachedSupplier<>(() -> callTargetFactory.apply(sharedMethodInfo));
+                alwaysInlinedNodeFactory = null;
+            }
+
             module.fields.addMethod(context, null, new InternalMethod(
                     context,
                     sharedMethodInfo,
@@ -233,8 +280,12 @@ public class CoreMethodNodeManager {
                     name,
                     module,
                     ModuleOperations.isMethodPrivateFromName(name) ? Visibility.PRIVATE : visibility,
+                    false,
+                    alwaysInlinedNodeFactory,
                     null,
-                    new CachedSupplier<>(() -> callTargetFactory.apply(sharedMethodInfo))));
+                    callTarget,
+                    callTargetSupplier,
+                    Nil.INSTANCE));
         }
     }
 
@@ -276,8 +327,12 @@ public class CoreMethodNodeManager {
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method,
+    public RubyNode createCoreMethodNode(NodeFactory<? extends RubyBaseNode> nodeFactory, CoreMethod method,
             SharedMethodInfo sharedMethodInfo) {
+        if (method.alwaysInlined()) {
+            return new ReRaiseInlinedExceptionNode(nodeFactory);
+        }
+
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
         int i = 0;
 
@@ -321,7 +376,7 @@ public class CoreMethodNodeManager {
                     new NotProvidedNode());
         }
 
-        RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
+        RubyNode node = (RubyNode) createNodeFromFactory(nodeFactory, argumentsNodes);
         node = transformResult(method, node);
 
         node = Translator.createCheckArityNode(language, sharedMethodInfo.getArity(), node);
@@ -329,7 +384,7 @@ public class CoreMethodNodeManager {
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
-    public static RubyNode createNodeFromFactory(NodeFactory<? extends RubyNode> nodeFactory,
+    public static RubyBaseNode createNodeFromFactory(NodeFactory<? extends RubyBaseNode> nodeFactory,
             RubyNode[] argumentsNodes) {
         final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
@@ -418,7 +473,7 @@ public class CoreMethodNodeManager {
     }
 
     @SuppressWarnings("unchecked")
-    public static NodeFactory<? extends RubyNode> loadNodeFactory(String nodeFactoryName) {
+    public static NodeFactory<? extends RubyBaseNode> loadNodeFactory(String nodeFactoryName) {
         final Object instance;
         try {
             Class<?> nodeFactoryClass = Class.forName(nodeFactoryName);
@@ -426,19 +481,19 @@ public class CoreMethodNodeManager {
         } catch (ReflectiveOperationException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
-        return (NodeFactory<? extends RubyNode>) instance;
+        return (NodeFactory<? extends RubyBaseNode>) instance;
     }
 
     public static class MethodDetails {
 
         private final String moduleName;
         private final CoreMethod methodAnnotation;
-        private final NodeFactory<? extends RubyNode> nodeFactory;
+        private final NodeFactory<? extends RubyBaseNode> nodeFactory;
 
         public MethodDetails(
                 String moduleName,
                 CoreMethod methodAnnotation,
-                NodeFactory<? extends RubyNode> nodeFactory) {
+                NodeFactory<? extends RubyBaseNode> nodeFactory) {
             this.moduleName = moduleName;
             this.methodAnnotation = methodAnnotation;
             this.nodeFactory = nodeFactory;
@@ -448,7 +503,7 @@ public class CoreMethodNodeManager {
             return methodAnnotation;
         }
 
-        public NodeFactory<? extends RubyNode> getNodeFactory() {
+        public NodeFactory<? extends RubyBaseNode> getNodeFactory() {
             return nodeFactory;
         }
 

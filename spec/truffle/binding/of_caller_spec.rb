@@ -14,6 +14,10 @@ describe "Truffle::Binding.of_caller" do
     Truffle::Binding.of_caller
   end
 
+  def binding_of_caller_through_send
+    Truffle::Binding.send(:of_caller)
+  end
+
   #it "returns nil if there is no caller"
   #end
 
@@ -34,7 +38,7 @@ describe "Truffle::Binding.of_caller" do
 
   it "works through #send" do
     x = 14 # rubocop:disable Lint/UselessAssignment
-    Truffle::Binding.send(:of_caller).local_variable_get(:x).should == 14
+    binding_of_caller_through_send.local_variable_get(:x).should == 14
   end
 
 end

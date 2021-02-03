@@ -348,9 +348,7 @@ public abstract class TruffleKernelNodes {
                     if (rootNode instanceof RubyRootNode &&
                             rootNode.getSourceSection().isAvailable() &&
                             !rootNode.getSourceSection().getSource().getName().endsWith("cext.rb") &&
-                            !rootNode.getSourceSection().getSource().getName().endsWith("cext_ruby.rb") &&
-                            !getContext().getCoreLibrary().isSend(
-                                    RubyArguments.tryGetMethod(frameInstance.getFrame(FrameAccess.READ_ONLY)))) {
+                            !rootNode.getSourceSection().getSource().getName().endsWith("cext_ruby.rb")) {
                         return frameInstance.getFrame(FrameAccess.MATERIALIZE).materialize();
                     }
                 }

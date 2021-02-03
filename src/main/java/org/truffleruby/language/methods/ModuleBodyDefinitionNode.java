@@ -72,6 +72,7 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
                 Visibility.PUBLIC,
                 false,
                 null,
+                null,
                 callTarget,
                 null,
                 capturedBlock);

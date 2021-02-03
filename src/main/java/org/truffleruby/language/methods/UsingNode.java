@@ -38,7 +38,7 @@ public abstract class UsingNode extends RubyContextNode {
             throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
         }
 
-        final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_WRITE);
+        final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
         final Map<RubyModule, RubyModule[]> newRefinements = usingModule(declarationContext, module);
         if (!newRefinements.isEmpty()) {

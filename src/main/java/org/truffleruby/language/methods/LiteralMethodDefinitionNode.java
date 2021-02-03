@@ -83,6 +83,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
                 false,
                 null,
                 null,
+                null,
                 callTargetSupplier,
                 Nil.INSTANCE);
 

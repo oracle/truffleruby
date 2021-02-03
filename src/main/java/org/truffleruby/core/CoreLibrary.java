@@ -232,8 +232,6 @@ public class CoreLibrary {
     private final Map<String, RubyClass> errnoClasses = new HashMap<>();
     private final Map<Integer, String> errnoValueToNames = new HashMap<>();
 
-    @CompilationFinal private SharedMethodInfo basicObjectSendInfo;
-    @CompilationFinal private SharedMethodInfo kernelPublicSendInfo;
     @CompilationFinal private SharedMethodInfo truffleBootMainInfo;
 
     @CompilationFinal private GlobalVariableReader loadPathReader;
@@ -613,8 +611,6 @@ public class CoreLibrary {
         final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(context);
         coreMethodNodeManager.loadCoreMethodNodes();
 
-        basicObjectSendInfo = getMethod(basicObjectClass, "__send__").getSharedMethodInfo();
-        kernelPublicSendInfo = getMethod(kernelModule, "public_send").getSharedMethodInfo();
         truffleBootMainInfo = getMethod(node.executeSingletonClass(truffleBootModule), "main").getSharedMethodInfo();
     }
 
@@ -950,14 +946,6 @@ public class CoreLibrary {
 
     public boolean isLoaded() {
         return state == State.LOADED;
-    }
-
-    public boolean isSend(InternalMethod method) {
-        return isSend(method.getSharedMethodInfo());
-    }
-
-    public boolean isSend(SharedMethodInfo sharedMethodInfo) {
-        return sharedMethodInfo == basicObjectSendInfo || sharedMethodInfo == kernelPublicSendInfo;
     }
 
     public boolean isTruffleBootMainMethod(SharedMethodInfo info) {

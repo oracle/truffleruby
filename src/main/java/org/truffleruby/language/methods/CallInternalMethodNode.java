@@ -10,8 +10,15 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CoreMethodNodeManager;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.Assumption;
@@ -22,7 +29,10 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.CheckArityNode;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 @ReportPolymorphism
@@ -37,7 +47,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             Object[] args);
 
     @Specialization(
-            guards = "method.getCallTarget() == cachedCallTarget",
+            guards = { "method.getCallTarget() == cachedCallTarget", "!cachedMethod.alwaysInlined()" },
             assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
     protected Object callCached(Object callerData, InternalMethod method, Object self, Object block, Object[] args,
@@ -47,10 +57,57 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return callNode.call(packArguments(callerData, method, self, block, args));
     }
 
-    @Specialization(replaces = "callCached")
+    @Specialization(guards = "!method.alwaysInlined()", replaces = "callCached")
     protected Object callUncached(Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached IndirectCallNode indirectCallNode) {
         return indirectCallNode.call(method.getCallTarget(), packArguments(callerData, method, self, block, args));
+    }
+
+    @Specialization(
+            guards = { "method.getCallTarget() == cachedCallTarget", "cachedMethod.alwaysInlined()" },
+            assumptions = "getModuleAssumption(cachedMethod)",
+            limit = "getCacheLimit()")
+    protected Object alwaysInlinedCached(
+            Frame frame,
+            Object callerData,
+            InternalMethod method,
+            Object self,
+            Object block,
+            Object[] args,
+            @Cached(value = "method.getCallTarget()", allowUncached = true) RootCallTarget cachedCallTarget,
+            @Cached("method") InternalMethod cachedMethod,
+            @Cached(
+                    value = "createAlwaysInlinedMethodNode(cachedMethod)",
+                    uncached = "getUncachedAlwaysInlinedMethodNode(cachedMethod)") AlwaysInlinedMethodNode alwaysInlinedNode,
+            @Cached(value = "cachedMethod.getSharedMethodInfo().getArity()", allowUncached = true) Arity cachedArity,
+            @Cached BranchProfile checkArityProfile,
+            @Cached BranchProfile exceptionProfile,
+            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
+        assert RubyArguments.assertValues(callerData, method, method.getDeclarationContext(), self, block, args);
+
+        try {
+            CheckArityNode.checkArity(cachedArity, args.length, checkArityProfile, contextRef, alwaysInlinedNode);
+
+            return alwaysInlinedNode.execute(frame, self, args, block);
+        } catch (RaiseException e) {
+            exceptionProfile.enter();
+            final Node location = e.getLocation();
+            if (location != null && location.getRootNode() == alwaysInlinedNode.getRootNode()) {
+                // if the error originates from the inlined node, rethrow it through the CallTarget to get a proper backtrace
+                return RubyContext.indirectCallWithCallNode(this, cachedCallTarget, e);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    protected AlwaysInlinedMethodNode createAlwaysInlinedMethodNode(InternalMethod method) {
+        return (AlwaysInlinedMethodNode) CoreMethodNodeManager
+                .createNodeFromFactory(method.alwaysInlinedNodeFactory, RubyNode.EMPTY_ARRAY);
+    }
+
+    protected AlwaysInlinedMethodNode getUncachedAlwaysInlinedMethodNode(InternalMethod method) {
+        return (AlwaysInlinedMethodNode) method.alwaysInlinedNodeFactory.getUncachedInstance();
     }
 
     static Object[] packArguments(Object callerData, InternalMethod method, Object self, Object block, Object[] args) {

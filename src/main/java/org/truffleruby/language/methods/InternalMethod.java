@@ -13,6 +13,7 @@ import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.dsl.NodeFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.klass.RubyClass;
@@ -20,6 +21,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -44,6 +46,7 @@ public class InternalMethod implements ObjectGraphNode {
     private final boolean unimplemented; // similar to MRI's rb_f_notimplement
     /** True if the method is defined in the core library (in Java or Ruby) */
     private final boolean builtIn;
+    public final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory;
     private final RubyProc proc; // only if method is created from a Proc
 
     private final CachedSupplier<RootCallTarget> callTargetSupplier;
@@ -68,6 +71,7 @@ public class InternalMethod implements ObjectGraphNode {
                 declaringModule,
                 visibility,
                 false,
+                null,
                 proc,
                 callTarget,
                 null,
@@ -93,36 +97,13 @@ public class InternalMethod implements ObjectGraphNode {
                 visibility,
                 false,
                 null,
+                null,
                 callTarget,
                 null,
                 Nil.INSTANCE);
     }
 
-    public InternalMethod(
-            RubyContext context,
-            SharedMethodInfo sharedMethodInfo,
-            LexicalScope lexicalScope,
-            DeclarationContext declarationContext,
-            String name,
-            RubyModule declaringModule,
-            Visibility visibility,
-            RootCallTarget callTarget,
-            CachedSupplier<RootCallTarget> callTargetSupplier) {
-        this(
-                context,
-                sharedMethodInfo,
-                lexicalScope,
-                declarationContext,
-                name,
-                declaringModule,
-                visibility,
-                false,
-                null,
-                callTarget,
-                callTargetSupplier,
-                Nil.INSTANCE);
-    }
-
+    /** Constructor for new methods, computing builtIn from the context */
     public InternalMethod(
             RubyContext context,
             SharedMethodInfo sharedMethodInfo,
@@ -132,6 +113,7 @@ public class InternalMethod implements ObjectGraphNode {
             RubyModule declaringModule,
             Visibility visibility,
             boolean undefined,
+            NodeFactory<? extends RubyBaseNode> alwaysInlined,
             RubyProc proc,
             RootCallTarget callTarget,
             CachedSupplier<RootCallTarget> callTargetSupplier,
@@ -146,6 +128,7 @@ public class InternalMethod implements ObjectGraphNode {
                 undefined,
                 false,
                 !context.getCoreLibrary().isLoaded(),
+                alwaysInlined,
                 null,
                 proc,
                 callTarget,
@@ -163,6 +146,7 @@ public class InternalMethod implements ObjectGraphNode {
             boolean undefined,
             boolean unimplemented,
             boolean builtIn,
+            NodeFactory<? extends RubyBaseNode> alwaysInlined,
             DeclarationContext activeRefinements,
             RubyProc proc,
             RootCallTarget callTarget,
@@ -181,6 +165,7 @@ public class InternalMethod implements ObjectGraphNode {
         this.undefined = undefined;
         this.unimplemented = unimplemented;
         this.builtIn = builtIn;
+        this.alwaysInlinedNodeFactory = alwaysInlined;
         this.activeRefinements = activeRefinements;
         this.proc = proc;
         this.callTarget = callTarget;
@@ -224,6 +209,10 @@ public class InternalMethod implements ObjectGraphNode {
         return builtIn;
     }
 
+    public boolean alwaysInlined() {
+        return alwaysInlinedNodeFactory != null;
+    }
+
     public int getArityNumber() {
         return sharedMethodInfo.getArity().getMethodArityNumber();
     }
@@ -250,6 +239,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    alwaysInlinedNodeFactory,
                     activeRefinements,
                     proc,
                     callTarget,
@@ -272,6 +262,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    alwaysInlinedNodeFactory,
                     activeRefinements,
                     proc,
                     callTarget,
@@ -294,6 +285,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    alwaysInlinedNodeFactory,
                     activeRefinements,
                     proc,
                     callTarget,
@@ -316,6 +308,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    alwaysInlinedNodeFactory,
                     context,
                     proc,
                     callTarget,
@@ -338,6 +331,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    alwaysInlinedNodeFactory,
                     activeRefinements,
                     proc,
                     callTarget,
@@ -357,6 +351,7 @@ public class InternalMethod implements ObjectGraphNode {
                 true,
                 unimplemented,
                 builtIn,
+                alwaysInlinedNodeFactory,
                 activeRefinements,
                 proc,
                 callTarget,
@@ -375,6 +370,7 @@ public class InternalMethod implements ObjectGraphNode {
                 undefined,
                 true,
                 builtIn,
+                alwaysInlinedNodeFactory,
                 activeRefinements,
                 proc,
                 callTarget,

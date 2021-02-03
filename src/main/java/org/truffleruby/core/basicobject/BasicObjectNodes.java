@@ -18,6 +18,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.AllocateNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InitializeNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
@@ -26,6 +27,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
@@ -46,7 +48,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
@@ -604,19 +605,17 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
-    public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode dispatchNode = DispatchNode.create(DispatchConfiguration.PRIVATE);
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
-        @Child private NameToJavaStringNode nameToJavaString = NameToJavaStringNode.create();
+    @GenerateUncached
+    @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1, alwaysInlined = true)
+    public abstract static class SendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, Object block) {
-            DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
-            RubyArguments.setDeclarationContext(frame, context);
-
-            return dispatchNode.dispatch(frame, self, nameToJavaString.execute(name), block, args);
+        protected Object send(Frame callerFrame, Object self, Object[] args, Object block,
+                @Cached DispatchNode dispatchNode,
+                @Cached NameToJavaStringNode nameToJavaString) {
+            Object name = args[0];
+            Object[] callArgs = ArrayUtils.extractRange(args, 1, args.length);
+            return dispatchNode.dispatch(callerFrame, self, nameToJavaString.execute(name), block, callArgs);
         }
 
     }

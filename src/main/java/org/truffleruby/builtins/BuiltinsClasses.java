@@ -146,7 +146,7 @@ import org.truffleruby.interop.InteropNodesBuiltins;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.interop.PolyglotNodesBuiltins;
 import org.truffleruby.interop.PolyglotNodesFactory;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.TruffleBootNodesBuiltins;
 import org.truffleruby.language.TruffleBootNodesFactory;
 import org.truffleruby.stdlib.CoverageNodesBuiltins;
@@ -321,7 +321,7 @@ public abstract class BuiltinsClasses {
     }
 
     // Sorted alphabetically to avoid duplicates
-    public static List<List<? extends NodeFactory<? extends RubyNode>>> getCoreNodeFactories() {
+    public static List<List<? extends NodeFactory<? extends RubyBaseNode>>> getCoreNodeFactories() {
         return Arrays.asList(
                 ArrayIndexNodesFactory.getFactories(),
                 ArrayNodesFactory.getFactories(),

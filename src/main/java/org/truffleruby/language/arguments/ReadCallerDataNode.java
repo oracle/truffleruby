@@ -49,7 +49,7 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
         }
         MaterializedFrame callerFrame = getContext()
                 .getCallStack()
-                .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
+                .getCallerFrame(FrameAccess.MATERIALIZE)
                 .materialize();
         return getDataFromFrame(callerFrame);
     }

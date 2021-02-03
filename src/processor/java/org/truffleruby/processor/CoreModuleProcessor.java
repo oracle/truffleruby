@@ -277,6 +277,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                 "Visibility." + coreMethod.visibility().name() + ", " +
                 coreMethod.isModuleFunction() + ", " +
                 onSingleton + ", " +
+                coreMethod.alwaysInlined() + ", " +
                 "Split." + coreMethod.split().name() + ", " +
                 coreMethod.required() + ", " +
                 coreMethod.optional() + ", " +

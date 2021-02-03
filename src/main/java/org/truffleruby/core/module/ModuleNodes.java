@@ -405,7 +405,7 @@ public abstract class ModuleNodes {
                 RubyLanguage language) {
             final SourceSection sourceSection = getContext()
                     .getCallStack()
-                    .getCallerNodeIgnoringSend()
+                    .getCallerNode()
                     .getEncapsulatingSourceSection();
             final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
             final Arity arity = isGetter ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
@@ -1559,7 +1559,7 @@ public abstract class ModuleNodes {
         protected RubyArray nesting() {
             final List<RubyModule> modules = new ArrayList<>();
 
-            InternalMethod method = getContext().getCallStack().getCallingMethodIgnoringSend();
+            InternalMethod method = getContext().getCallStack().getCallingMethod();
             LexicalScope lexicalScope = method == null ? null : method.getSharedMethodInfo().getLexicalScope();
             RubyClass objectClass = coreLibrary().objectClass;
 
@@ -2049,7 +2049,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray usedModules() {
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final Frame frame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<RubyModule> refinementNamespaces = new HashSet<>();
             for (RubyModule[] refinementModules : declarationContext.getRefinements().values()) {
@@ -2069,7 +2069,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray usedRefinements() {
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final Frame frame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<RubyModule> refinements = new HashSet<>();
             for (RubyModule[] refinementModules : declarationContext.getRefinements().values()) {
@@ -2230,7 +2230,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyModule moduleUsing(RubyModule self, RubyModule refinementModule) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             if (self != RubyArguments.getSelf(callerFrame)) {
                 throw new RaiseException(
                         getContext(),

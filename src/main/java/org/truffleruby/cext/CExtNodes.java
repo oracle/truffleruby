@@ -742,7 +742,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         protected boolean checkCallerVisibility(RubySymbol visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
             switch (visibility.getString()) {
