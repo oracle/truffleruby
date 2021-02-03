@@ -23,7 +23,7 @@ public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesRe
             CompilerDirectives.shouldNotReachHere();
         }
         if (variables == Reads.SELF) {
-            replace(new ReadOwnFrameAndVariablesNode());
+            replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");
         }
     }
 

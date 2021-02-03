@@ -46,7 +46,7 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
             CompilerDirectives.shouldNotReachHere();
         }
         if (variables == Reads.CALLER) {
-            replace(new ReadCallerFrameAndVariablesNode());
+            replace(new ReadCallerFrameAndVariablesNode(), "Starting to read caller frame and variables");
         }
     }
 

@@ -324,7 +324,7 @@ public abstract class TruffleKernelNodes {
                 CompilerDirectives.shouldNotReachHere();
             }
             if (frame == Reads.SELF) {
-                replace(new ReadOwnFrameAndVariablesNode());
+                replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");
             }
         }
 
