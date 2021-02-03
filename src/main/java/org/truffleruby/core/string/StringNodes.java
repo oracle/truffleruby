@@ -125,6 +125,7 @@ import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
+import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.RepeatingRope;
@@ -5197,18 +5198,23 @@ public abstract class StringNodes {
                 }
             } else if (base instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) base;
-                final Rope left = concatRope.getLeft();
-                final Rope right = concatRope.getRight();
 
-                if (index + characterLength <= left.characterLength()) {
-                    return searchForSingleByteOptimizableDescendantSlow(left, index, characterLength);
-                } else if (index >= left.characterLength()) {
-                    return searchForSingleByteOptimizableDescendantSlow(
-                            right,
-                            index - left.characterLength(),
-                            characterLength);
+                final ConcatState state = concatRope.getState();
+                if (state.isChildren()) {
+                    final Rope left = state.left;
+                    final Rope right = state.right;
+                    if (index + characterLength <= left.characterLength()) {
+                        return searchForSingleByteOptimizableDescendantSlow(left, index, characterLength);
+                    } else if (index >= left.characterLength()) {
+                        return searchForSingleByteOptimizableDescendantSlow(
+                                right,
+                                index - left.characterLength(),
+                                characterLength);
+                    } else {
+                        return new SearchResult(index, concatRope);
+                    }
                 } else {
-                    return new SearchResult(index, concatRope);
+                    return new SearchResult(index, base);
                 }
             } else if (base instanceof RepeatingRope) {
                 final RepeatingRope repeatingRope = (RepeatingRope) base;

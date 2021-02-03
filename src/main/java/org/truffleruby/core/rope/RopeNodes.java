@@ -21,6 +21,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.Bind;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -28,6 +29,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.rope.RopeNodesFactory.AreComparableRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.CompareRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
@@ -170,9 +172,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
         protected Rope substringConcatRope(ConcatRope base, int byteOffset, int byteLength,
                 @Cached BytesNode bytesNode,
-                @Cached WithEncodingNode withEncodingNode,
-                @Cached MakeSubstringRopeNode makeSubstringRopeNode,
-                @Cached ConditionProfile matchesChildProfile) {
+                @Cached MakeSubstringRopeNode makeSubstringRopeNode) {
             // NOTE(norswap, 19 Nov 2020):
             //  We flatten the rope here. This avoids issue in the (fairly common) case where the rope tree is basically
             //  a linked list. In that case, reading successive substrings causes increasingly bigger concat ropes
@@ -804,26 +804,38 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
-        @Specialization
-        protected Object debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString) {
+        protected Object debugPrintConcatRopeBytes(ConcatRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
-            // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
+            final ConcatState state = rope.getState();
+
+            // Before the print, as `toString()` may cause the bytes to become populated.
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
-            System.err
-                    .println(StringUtils.format(
-                            "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                            printString ? rope.toString() : "<skipped>",
-                            rope.getClass().getSimpleName(),
-                            bytesAreNull,
-                            rope.byteLength(),
-                            rope.characterLength(),
-                            rope.getCodeRange(),
-                            rope.getEncoding()));
+            if (state.isBytes()) {
+                System.err.println(StringUtils.format(
+                        "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
+                        printString ? rope.toString() : "<skipped>",
+                        rope.getClass().getSimpleName(),
+                        bytesAreNull,
+                        rope.byteLength(),
+                        rope.characterLength(),
+                        rope.getCodeRange(),
+                        rope.getEncoding()));
+            } else {
+                System.err.println(StringUtils.format(
+                        "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
+                        printString ? rope.toString() : "<skipped>",
+                        rope.getClass().getSimpleName(),
+                        bytesAreNull,
+                        rope.byteLength(),
+                        rope.characterLength(),
+                        rope.getCodeRange(),
+                        rope.getEncoding()));
 
-            executeDebugPrint(rope.getLeft(), currentLevel + 1, printString);
-            executeDebugPrint(rope.getRight(), currentLevel + 1, printString);
+                executeDebugPrint(state.left, currentLevel + 1, printString);
+                executeDebugPrint(state.right, currentLevel + 1, printString);
+            }
 
             return nil;
         }
@@ -911,18 +923,19 @@ public abstract class RopeNodes {
                 @Cached ConditionProfile asciiCompatibleProfile,
                 @Cached ConditionProfile asciiOnlyProfile,
                 @Cached ConditionProfile binaryEncodingProfile,
+                @Cached ConditionProfile bytesNotNull,
                 @Cached BytesNode bytesNode,
                 @Cached MakeLeafRopeNode makeLeafRopeNode) {
 
             if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
                 if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
                     // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
-                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding);
+                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding, bytesNotNull);
                 } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
                         rope.getCodeRange() == CR_VALID &&
                         rope.getEncoding().isAsciiCompatible())) {
                     // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
-                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding();
+                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding(bytesNotNull);
                     assert binary.getCodeRange() == CR_VALID;
                     return binary;
                 } else {
@@ -996,28 +1009,43 @@ public abstract class RopeNodes {
             return rope.getChild().getRawBytes()[index % rope.getChild().byteLength()] & 0xff;
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
+        // NOTE(norswap, 12 Jan 2021): The order of the two next specialization is significant.
+        //   Normally, @Bind expressions should only be run per node, but that's not the case currently (GR-28671).
+        //   Therefore it's important to test isChildren first, as it's possible to transition from children to bytes
+        //   but not the other way around.
+
+        @Specialization(guards = "state.isChildren()")
         protected int getByteConcatRope(ConcatRope rope, int index,
+                @Cached ConditionProfile stateBytesNotNull,
+                @Bind("rope.getState(stateBytesNotNull)") ConcatState state,
                 @Cached ConditionProfile chooseLeftChildProfile,
                 @Cached ConditionProfile leftChildRawBytesNullProfile,
                 @Cached ConditionProfile rightChildRawBytesNullProfile,
                 @Cached ByteSlowNode byteSlowLeft,
                 @Cached ByteSlowNode byteSlowRight) {
-            if (chooseLeftChildProfile.profile(index < rope.getLeft().byteLength())) {
-                if (leftChildRawBytesNullProfile.profile(rope.getLeft().getRawBytes() == null)) {
-                    return byteSlowLeft.execute(rope.getLeft(), index) & 0xff;
+            if (chooseLeftChildProfile.profile(index < state.left.byteLength())) {
+                if (leftChildRawBytesNullProfile.profile(state.left.getRawBytes() == null)) {
+                    return byteSlowLeft.execute(state.left, index) & 0xff;
                 }
 
-                return rope.getLeft().getRawBytes()[index] & 0xff;
+                return state.left.getRawBytes()[index] & 0xff;
             }
 
-            if (rightChildRawBytesNullProfile.profile(rope.getRight().getRawBytes() == null)) {
-                return byteSlowRight.execute(rope.getRight(), index - rope.getLeft().byteLength()) & 0xff;
+            if (rightChildRawBytesNullProfile.profile(state.right.getRawBytes() == null)) {
+                return byteSlowRight.execute(state.right, index - state.left.byteLength()) & 0xff;
             }
 
-            return rope.getRight().getRawBytes()[index - rope.getLeft().byteLength()] & 0xff;
+            return state.right.getRawBytes()[index - state.left.byteLength()] & 0xff;
         }
 
+        // Necessary because getRawBytes() might return null, but then be populated and the children nulled
+        // before we get to run the other getByteConcatRope.
+        @Specialization(guards = "state.isBytes()")
+        protected int getByteConcatRope(ConcatRope rope, int index,
+                @Cached ConditionProfile stateBytesNotNull,
+                @Bind("rope.getState(stateBytesNotNull)") ConcatState state) {
+            return state.bytes[index] & 0xff;
+        }
     }
 
     public abstract static class SetByteNode extends RubyContextNode {

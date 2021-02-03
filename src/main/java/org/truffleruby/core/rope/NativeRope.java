@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.FinalizationService;
@@ -188,12 +189,12 @@ public class NativeRope extends Rope {
     }
 
     @Override
-    Rope withEncoding7bit(Encoding newEncoding) {
+    Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
         return withEncoding(newEncoding);
     }
 
     @Override
-    Rope withBinaryEncoding() {
+    Rope withBinaryEncoding(ConditionProfile bytesNotNull) {
         return withEncoding(ASCIIEncoding.INSTANCE);
     }
 

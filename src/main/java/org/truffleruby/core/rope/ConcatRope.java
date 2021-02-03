@@ -9,20 +9,54 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.ValueType;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 
 public class ConcatRope extends ManagedRope {
 
-    private final ManagedRope left;
-    private final ManagedRope right;
+    /** Wrapper for the current state of the concat rope, including null children and a a byte array, or a null byte
+     * array and the children. Accessing the state through {@link #getState()} avoids race conditions. */
+    @ValueType
+    public static class ConcatState {
+        public final ManagedRope left, right;
+        public final byte[] bytes;
+
+        public ConcatState(ManagedRope left, ManagedRope right, byte[] bytes) {
+            assert bytes == null && left != null && right != null || bytes != null && left == null && right == null;
+            this.left = left;
+            this.right = right;
+            this.bytes = bytes;
+        }
+
+        public boolean isBytes() {
+            return bytes != null;
+        }
+
+        public boolean isChildren() {
+            return bytes == null;
+        }
+    }
+
+    private ManagedRope left;
+    private ManagedRope right;
 
     public ConcatRope(
             ManagedRope left,
             ManagedRope right,
             Encoding encoding,
             CodeRange codeRange) {
-        this(left, right, encoding, codeRange, left.characterLength() + right.characterLength(), null);
+        this(
+                left,
+                right,
+                encoding,
+                codeRange,
+                left.byteLength() + right.byteLength(),
+                left.characterLength() + right.characterLength(),
+                null);
     }
 
     private ConcatRope(
@@ -30,47 +64,70 @@ public class ConcatRope extends ManagedRope {
             ManagedRope right,
             Encoding encoding,
             CodeRange codeRange,
+            int byteLength,
             int characterLength,
             byte[] bytes) {
-        super(
-                encoding,
-                codeRange,
-                left.byteLength() + right.byteLength(),
-                characterLength,
-                bytes);
+        super(encoding, codeRange, byteLength, characterLength, bytes);
         this.left = left;
         this.right = right;
     }
 
     @Override
-    Rope withEncoding7bit(Encoding newEncoding) {
+    Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
         assert getCodeRange() == CodeRange.CR_7BIT;
-        return new ConcatRope(
-                getLeft(),
-                getRight(),
-                newEncoding,
-                CodeRange.CR_7BIT,
-                characterLength(),
-                getRawBytes());
+        return withEncoding(newEncoding, CodeRange.CR_7BIT, characterLength(), bytesNotNull);
     }
 
     @Override
-    Rope withBinaryEncoding() {
+    Rope withBinaryEncoding(ConditionProfile bytesNotNull) {
         assert getCodeRange() == CodeRange.CR_VALID;
-        return new ConcatRope(
-                getLeft(),
-                getRight(),
-                ASCIIEncoding.INSTANCE,
-                CodeRange.CR_VALID,
-                byteLength(),
-                getRawBytes());
+        return withEncoding(ASCIIEncoding.INSTANCE, CodeRange.CR_VALID, byteLength(), bytesNotNull);
     }
 
-    public ManagedRope getLeft() {
-        return left;
+    private ConcatRope withEncoding(Encoding encoding, CodeRange codeRange, int characterLength,
+            ConditionProfile bytesNotNull) {
+        final ConcatState state = getState(bytesNotNull);
+        return new ConcatRope(state.left, state.right, encoding, codeRange, byteLength(), characterLength, state.bytes);
     }
 
-    public ManagedRope getRight() {
-        return right;
+    @Override
+    protected byte[] getBytesSlow() {
+        bytes = RopeOperations.flattenBytes(this);
+        left = null;
+        right = null;
+        return bytes;
+    }
+
+    /** Access the state in a way that prevents race conditions.
+     *
+     * <p>
+     * This version is not allowed in compiled code, use {@link #getState(ConditionProfile)} there instead. */
+    public ConcatState getState() {
+        CompilerAsserts.neverPartOfCompilation("Use #getState(ConditionProfile) instead.");
+        return getState(ConditionProfile.getUncached());
+    }
+
+    /** Access the state in a way that prevents race conditions.
+     *
+     * <p>
+     * Outside compiled code, you can use {@link #getState()}. */
+    public ConcatState getState(ConditionProfile bytesNotNull) {
+        if (bytesNotNull.profile(this.bytes != null)) {
+            return new ConcatState(null, null, this.bytes);
+        }
+
+        final ManagedRope left = this.left;
+        final ManagedRope right = this.right;
+        if (left != null && right != null) {
+            return new ConcatState(left, right, null);
+        }
+
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        if (this.bytes != null) {
+            throw CompilerDirectives
+                    .shouldNotReachHere("our assumptions about reordering and memory barriers seem incorrect");
+        }
+
+        return new ConcatState(null, null, this.bytes);
     }
 }
