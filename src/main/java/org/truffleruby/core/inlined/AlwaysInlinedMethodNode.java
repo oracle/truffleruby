@@ -16,7 +16,8 @@ import org.truffleruby.language.RubyBaseNode;
 /** A core method that should always be executed inline, without going through a CallTarget. That enables accessing the
  * caller frame efficiently and reliably. If called from a foreign language, then the caller frame will be null. Such a
  * method will not appear in backtraces. However, Ruby exceptions emitted from this node will be resent through a
- * CallTarget to get the proper backtrace. */
+ * CallTarget to get the proper backtrace. Such a core method should not emit significantly more Graal nodes than a
+ * non-inlined call, as Truffle cannot decide to not inline it, and that could lead to too big methods to compile. */
 @GenerateNodeFactory
 public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
