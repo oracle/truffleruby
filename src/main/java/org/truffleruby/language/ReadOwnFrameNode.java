@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 
 public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesReadingNode {
@@ -18,15 +17,14 @@ public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesRe
         return frame.materialize();
     }
 
-    public void startSending(Reads variables, Reads frame) {
-        if (variables == Reads.CALLER || frame == Reads.CALLER) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
-        if (variables == Reads.SELF) {
+    @Override
+    public void startSending(boolean variables, boolean frame) {
+        if (variables) {
             replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");
         }
     }
 
+    @Override
     public boolean sendingFrame() {
         return true;
     }

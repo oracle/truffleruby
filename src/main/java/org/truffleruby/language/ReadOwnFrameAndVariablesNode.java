@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 
@@ -21,12 +20,11 @@ public class ReadOwnFrameAndVariablesNode extends RubyBaseNode implements FrameO
         return new FrameAndVariables(readVariablesNode.execute(frame), frame.materialize());
     }
 
-    public void startSending(Reads variables, Reads frame) {
-        if (variables == Reads.CALLER || frame == Reads.CALLER) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
+    @Override
+    public void startSending(boolean variables, boolean frame) {
     }
 
+    @Override
     public boolean sendingFrame() {
         return true;
     }

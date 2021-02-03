@@ -319,15 +319,14 @@ public abstract class TruffleKernelNodes {
             return GetSpecialVariableStorageNodeGen.create();
         }
 
-        public void startSending(Reads variables, Reads frame) {
-            if (variables == Reads.CALLER || frame == Reads.CALLER) {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-            if (frame == Reads.SELF) {
+        @Override
+        public void startSending(boolean variables, boolean frame) {
+            if (frame) {
                 replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");
             }
         }
 
+        @Override
         public boolean sendingFrame() {
             return false;
         }

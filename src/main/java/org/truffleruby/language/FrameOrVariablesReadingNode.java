@@ -12,17 +12,13 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.NodeInterface;
 
+/** See {@link FrameAndVariablesSendingNode}. Nodes implementing this interface are used to read the data from the
+ * current frame, before a call. */
 public interface FrameOrVariablesReadingNode extends NodeInterface {
-
-    public static enum Reads {
-        NOTHING,       // callees don't need to read the frame
-        SELF,      // for most calls
-        CALLER;   // for `send` calls
-    }
 
     public Object execute(Frame frame);
 
-    public void startSending(Reads variables, Reads frame);
+    public void startSending(boolean variables, boolean frame);
 
     public boolean sendingFrame();
 }

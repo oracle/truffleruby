@@ -19,12 +19,11 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 
-public abstract class ReadCallerDataNode extends RubyContextNode implements FrameOrVariablesReadingNode {
+public abstract class ReadCallerDataNode extends RubyContextNode {
 
     private final ConditionProfile callerDataProfile = ConditionProfile.create();
     @Child private NotOptimizedWarningNode notOptimizedNode = null;

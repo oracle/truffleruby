@@ -16,23 +16,17 @@ import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 
-import org.truffleruby.language.FrameOrVariablesReadingNode.Reads;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 /** Some Ruby methods need access to the caller frame (the frame active when the method call was made) or to the storage
  * of special variables within that frame: see usages of {@link ReadCallerFrameNode} and {@link ReadCallerVariablesNode}
  * . This is notably used to get hold of instances of {@link DeclarationContext} and {@link RubyBinding} and methods
- * which need to access the last regexp match or the last io line.
+ * which need to access the last regexp MatchData or the last IO line.
  *
  * <p>
  * This means that when making a method call, we might need to pass down its {@link Frame} or
  * {@link SpecialVariableStorage} active when the method call was made.
- *
- * <p>
- * When retrieving the frame or special variable storage in a method called through the Ruby {@code #send} method, we
- * must not retrieve the frame of the actual call (made by {@code #send}) but the frame of the {@code #send} call
- * itself.
  *
  * <p>
  * Materializing a frame is expensive, and the point of this parent node is to only materialize the frame when we know
@@ -43,10 +37,12 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
  * This class works in tandem with {@link FrameOrVariablesReadingNode} for this purpose. At first, we don't send down
  * the frame. If the callee needs it, it will de-optimize and walk the stack to retrieve it (slow). It will also call
  * {@link #startSendingOwnFrame()}}, so that the next time the method is called, the frame will be passed down and the
- * method does not need further de-optimizations. (Note in the case of {@code #send} calls, we need to recursively call
- * {@link ReadCallerFrameNode} to get the parent frame!) {@link ReadCallerVariablesNode} is used similarly to access
- * special variable storage, but for child nodes that only require access to this storage ensures they receive an object
- * that will not require node splitting to be accessed efficiently. */
+ * method does not need further de-optimizations.
+ *
+ * <p>
+ * {@link ReadCallerVariablesNode} is used similarly to access special variable storage, but for child nodes that only
+ * require access to this storage ensures they receive an object that will not require node splitting to be accessed
+ * efficiently. */
 @SuppressFBWarnings("IS")
 public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
 
@@ -60,37 +56,23 @@ public abstract class FrameAndVariablesSendingNode extends RubyContextNode {
         }
     }
 
-    private synchronized void startSending(Reads variables, Reads frame) {
+    private synchronized void startSending(boolean variables, boolean frame) {
         if (readingNode != null) {
             readingNode.startSending(variables, frame);
-        } else if (variables == Reads.SELF && frame == Reads.NOTHING) {
+        } else if (variables && !frame) {
             readingNode = insert(GetSpecialVariableStorage.create());
-        } else if (variables == Reads.NOTHING && frame == Reads.SELF) {
+        } else if (!variables && frame) {
             readingNode = insert(new ReadOwnFrameNode());
-        } else if (variables == Reads.CALLER && frame == Reads.NOTHING) {
-            readingNode = insert(new ReadCallerFrameNode());
-        } else if (variables == Reads.NOTHING && frame == Reads.CALLER) {
-            readingNode = insert(new ReadCallerVariablesNode());
         }
     }
 
     /** Whether we are sending down the frame (because the called method reads it). */
     public void startSendingOwnFrame() {
-        RubyRootNode root = (RubyRootNode) getRootNode();
-        if (getContext().getCoreLibrary().isSend(root.getSharedMethodInfo())) {
-            startSending(Reads.NOTHING, Reads.CALLER);
-        } else {
-            startSending(Reads.NOTHING, Reads.SELF);
-        }
+        startSending(false, true);
     }
 
     public void startSendingOwnVariables() {
-        RubyRootNode root = (RubyRootNode) getRootNode();
-        if (getContext().getCoreLibrary().isSend(root.getSharedMethodInfo())) {
-            startSending(Reads.CALLER, Reads.NOTHING);
-        } else {
-            startSending(Reads.SELF, Reads.NOTHING);
-        }
+        startSending(true, false);
     }
 
     public Object getFrameOrStorageIfRequired(Frame frame) {

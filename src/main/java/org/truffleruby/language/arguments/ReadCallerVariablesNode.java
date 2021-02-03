@@ -14,7 +14,6 @@ import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 import org.truffleruby.core.kernel.TruffleKernelNodes;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public class ReadCallerVariablesNode extends ReadCallerDataNode {
@@ -43,16 +42,4 @@ public class ReadCallerVariablesNode extends ReadCallerDataNode {
         return TruffleKernelNodes.GetSpecialVariableStorage.getSlow(frame);
     }
 
-    public void startSending(Reads variables, Reads frame) {
-        if (variables == Reads.SELF || frame == Reads.SELF) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
-        if (frame == Reads.CALLER) {
-            replace(new ReadCallerFrameAndVariablesNode(), "Starting to read caller frame and variables");
-        }
-    }
-
-    public boolean sendingFrame() {
-        return false;
-    }
 }
