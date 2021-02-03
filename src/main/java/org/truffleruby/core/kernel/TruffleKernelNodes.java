@@ -321,7 +321,7 @@ public abstract class TruffleKernelNodes {
 
         public void startSending(Reads variables, Reads frame) {
             if (variables == Reads.CALLER || frame == Reads.CALLER) {
-                CompilerDirectives.shouldNotReachHere();
+                throw CompilerDirectives.shouldNotReachHere();
             }
             if (frame == Reads.SELF) {
                 replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");

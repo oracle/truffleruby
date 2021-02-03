@@ -20,7 +20,7 @@ public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesRe
 
     public void startSending(Reads variables, Reads frame) {
         if (variables == Reads.CALLER || frame == Reads.CALLER) {
-            CompilerDirectives.shouldNotReachHere();
+            throw CompilerDirectives.shouldNotReachHere();
         }
         if (variables == Reads.SELF) {
             replace(new ReadOwnFrameAndVariablesNode(), "Starting to read own frame and variables");

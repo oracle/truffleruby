@@ -45,7 +45,7 @@ public class ReadCallerFrameAndVariablesNode extends ReadCallerDataNode {
 
     public void startSending(Reads variables, Reads frame) {
         if (variables == Reads.SELF || frame == Reads.SELF) {
-            CompilerDirectives.shouldNotReachHere();
+            throw CompilerDirectives.shouldNotReachHere();
         }
     }
 
