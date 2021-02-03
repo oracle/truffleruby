@@ -41,4 +41,5 @@ public class ReadCallerVariablesNode extends ReadCallerDataNode {
     protected Object getDataFromFrame(MaterializedFrame frame) {
         return TruffleKernelNodes.GetSpecialVariableStorage.getSlow(frame);
     }
+
 }

@@ -39,4 +39,5 @@ public class ReadCallerFrameNode extends ReadCallerDataNode {
     protected Object getDataFromFrame(MaterializedFrame frame) {
         return frame;
     }
+
 }

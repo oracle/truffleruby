@@ -98,10 +98,6 @@ public class CallStackManager {
         return tryGetMethod(getCallerFrame(FrameAccess.READ_ONLY));
     }
 
-    public boolean callerIsSend() {
-        return false; // TODO (eregon, 2 Feb 2021): simplify callers
-    }
-
     // SourceSection
 
     @TruffleBoundary
