@@ -636,7 +636,7 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = "!rubyClass.isSingleton")
         protected RubyBasicObject allocate(RubyClass rubyClass) {
             final RubyBasicObject instance = new RubyBasicObject(rubyClass, getLanguage().basicObjectShape);
-            AllocationTracing.traceBasicObjectAllocation(instance, rubyClass, this);
+            AllocationTracing.traceInlined(instance, "Class", "__allocate__", this);
             return instance;
         }
 
