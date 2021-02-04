@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.tracepoint;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -25,9 +24,7 @@ import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.Nil;
@@ -218,11 +215,10 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "method_id")
     public abstract static class MethodIDNode extends TracePointCoreNode {
         @Specialization
-        protected RubyString methodId(RubyTracePoint tracePoint,
-                @Cached MakeStringNode makeStringNode) {
+        protected RubySymbol methodId(RubyTracePoint tracePoint) {
             final RubyBinding binding = getTracePointState().binding;
             final InternalMethod method = RubyArguments.getMethod(binding.getFrame());
-            return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return getSymbol(method.getName());
         }
     }
 
