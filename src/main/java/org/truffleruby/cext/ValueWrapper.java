@@ -13,6 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
+import org.truffleruby.debug.VariableNamesObject;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -120,5 +122,31 @@ public class ValueWrapper implements TruffleObject {
         }
 
         return handle;
+    }
+
+    @ExportMessage
+    protected boolean hasMembers() {
+        return true;
+    }
+
+    @ExportMessage
+    protected Object getMembers(boolean includeInternal) {
+        return new VariableNamesObject(new String[]{ "value" });
+    }
+
+    @ExportMessage
+    protected boolean isMemberReadable(String member) {
+        return "value".equals(member);
+    }
+
+    @ExportMessage
+    protected static Object readMember(ValueWrapper wrapper, String member,
+            @Cached @Exclusive BranchProfile errorProfile) throws UnknownIdentifierException {
+        if ("value".equals(member)) {
+            return wrapper.object;
+        } else {
+            errorProfile.enter();
+            throw UnknownIdentifierException.create(member);
+        }
     }
 }
