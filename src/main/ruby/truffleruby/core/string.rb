@@ -1019,6 +1019,7 @@ class String
   end
 
   def scrub!(replace = nil, &block)
+    return self if valid_encoding?
     replace(scrub(replace, &block))
     self
   end
