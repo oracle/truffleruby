@@ -13,13 +13,13 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
+import org.truffleruby.debug.VariableNamesObject;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -131,7 +131,7 @@ public class ValueWrapper implements TruffleObject {
 
     @ExportMessage
     protected Object getMembers(boolean includeInternal) {
-        return new ValueWrapperPropertyList();
+        return new VariableNamesObject(new String[]{ "value" });
     }
 
     @ExportMessage
@@ -147,36 +147,6 @@ public class ValueWrapper implements TruffleObject {
         } else {
             errorProfile.enter();
             throw UnknownIdentifierException.create(member);
-        }
-    }
-
-    @ExportLibrary(InteropLibrary.class)
-    public static class ValueWrapperPropertyList implements TruffleObject {
-
-        @ExportMessage
-        protected static boolean hasArrayElements(ValueWrapperPropertyList wrapper) {
-            return true;
-        }
-
-        @ExportMessage
-        protected static long getArraySize(ValueWrapperPropertyList wrapper) {
-            return 1;
-        }
-
-        @ExportMessage
-        protected static Object readArrayElement(ValueWrapperPropertyList list, long index,
-                @Cached @Exclusive BranchProfile errorProfile) throws InvalidArrayIndexException {
-            if (index == 0L) {
-                return "value";
-            } else {
-                errorProfile.enter();
-                throw InvalidArrayIndexException.create(index);
-            }
-        }
-
-        @ExportMessage
-        protected static boolean isArrayElementReadable(ValueWrapperPropertyList wrapper, long index) {
-            return index == 0L;
         }
     }
 }
