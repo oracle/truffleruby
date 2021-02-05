@@ -1,8 +1,7 @@
 # This is a long running benchmark and should
 # be run using fixed iterations. E.g.
-# jt benchmark bench/rails/blog6-rails-routes.rb --elapsed --iterations --ips --fixed-iterations 1
-# RUBY_BENCHMARKS=true jt mx benchmark ecosystem
-#
+# jt benchmark bench/rails/blog6-rails-routes.rb --iterations --elapsed --ips --fixed-iterations 1
+# RUBY_BENCHMARKS=true jt mx benchmark ruby-warmup:rails/blog6-rails-routes
 
 require_relative './blog6-setup.rb'
 require_relative '../../tool/jt.rb'

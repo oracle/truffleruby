@@ -281,7 +281,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
 
         arguments = ['benchmark']
         if self.config()['kind'] == 'simple':
-            arguments.extend(['--simple', '--elapsed', '--iterations'])
+            arguments.extend(['--simple', '--iterations', '--elapsed'])
             time = self.time()
             if isinstance(time, dict):
                 if benchmark in time:
@@ -295,7 +295,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
             iterations_config = self.config()['iterations'][benchmark]
             fixed_iterations = sorted(iterations_config.keys())
             fixed_iterations_arg = ','.join([str(i) for i in fixed_iterations])
-            arguments.extend(['--elapsed', '--iterations', '--ips'])
+            arguments.extend(['--iterations', '--elapsed', '--ips'])
             arguments.extend(['--fixed-iterations'])
             arguments.extend([fixed_iterations_arg])
             if iterations_config != {1:'single-shot'}:
