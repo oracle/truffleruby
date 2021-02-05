@@ -11,6 +11,6 @@ Blog6Setup.bundle_install
 
 benchmark 'blog6-rails-routes' do
   Dir.chdir(Blog6Setup::BLOG6_DIR) do
-    JT.ruby(*%w[-S bin/rails routes])
+    JT.ruby(*%w[bin/rails routes])
   end
 end
