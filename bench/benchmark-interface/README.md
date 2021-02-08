@@ -164,9 +164,8 @@ loop printing the iterations per second as it goes. By default it runs for
 10s, printing the time every second, but you can use options like `--time 60`
 to run for 60 seconds, and `--freq 0.1` to print ten times a second.
 
-You can also print the elapsed time since the benchmark started with the
-`--elapsed` flag, and the actual number of iterations with the `--iterations`
-flag.
+You can also print the actual number of iterations with the `--iterations` flag
+and the elapsed time since the benchmark started with the `--elapsed` flag.
 
 #### `bm` and `bmbm`
 
