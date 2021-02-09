@@ -35,6 +35,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_ESCAPE;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_LABEL;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_LIST;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_QWORDS;
@@ -250,6 +251,7 @@ public class StringTerm extends StrTerm {
         boolean escape = (flags & STR_FUNC_ESCAPE) != 0;
         boolean regexp = (flags & STR_FUNC_REGEXP) != 0;
         boolean symbol = (flags & STR_FUNC_SYMBOL) != 0;
+        boolean indent = (flags & STR_FUNC_INDENT) != 0;
         boolean hasNonAscii = false;
         int c;
 
@@ -282,7 +284,20 @@ public class StringTerm extends StrTerm {
                         if (qwords) {
                             break;
                         }
+                        // skip over an escaped newline
                         if (expand) {
+                            if (!(indent || lexer.getHeredocIndent() >= 0)) {
+                                continue;
+                            }
+                            if (c == end) {
+                                // newline is the designated terminator, exit returning the backslash
+                                // note the newline and the backslash have been consumed and haven't been added to the buffer!
+                                c = '\\';
+                                if (enc != null) {
+                                    buffer.setEncoding(lexer.getEncoding());
+                                }
+                                return c;
+                            }
                             continue;
                         }
                         buffer.append('\\');

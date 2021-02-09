@@ -206,9 +206,8 @@ public final class HeredocTerm extends StrTerm {
                     return restore(lexer);
                 }
 
-                // append final newline, or return a string content token if the separator is different
-                // TODO when does this even happen?
                 if (c != '\n') {
+                    // emit the string segment
                     lexer.setValue(lexer.createStr(tok, 0));
                     return RubyParser.tSTRING_CONTENT;
                 }
