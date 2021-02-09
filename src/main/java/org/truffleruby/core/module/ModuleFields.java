@@ -74,7 +74,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public final RubyModule rubyModule;
 
     // The context is stored here - objects can obtain it via their class (which is a module)
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final SourceSection sourceSection;
 
     private final PrependMarker start;
@@ -108,13 +108,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
     public ModuleFields(
-            RubyContext context,
+            RubyLanguage language,
             SourceSection sourceSection,
             RubyModule lexicalParent,
             String givenBaseName,
             RubyModule rubyModule) {
         super(null);
-        this.context = context;
+        this.language = language;
         this.sourceSection = sourceSection;
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
@@ -361,7 +361,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     autoloadConstant,
                     filename));
         }
-        final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
+        final ReentrantLockFreeingMap<String> fileLocks = context.getFeatureLoader().getFileLocks();
         final ReentrantLock lock = fileLocks.get(javaFilename);
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
@@ -584,10 +584,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public RubyContext getContext() {
-        return context;
-    }
-
     public String getName() {
         final String name = this.name;
         if (name == null) {
@@ -625,7 +621,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.name = name;
         if (hasPartialName()) {
             LeafRope rope = StringOperations.encodeRope(name, UTF8Encoding.INSTANCE);
-            this.rubyStringName = getContext().getLanguageSlow().getFrozenStringLiteral(rope);
+            this.rubyStringName = language.getFrozenStringLiteral(rope);
         }
     }
 
@@ -870,7 +866,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * undefined in this class or when a module is prepended to this class. This does not check re-definitions in
      * subclasses. */
     public void registerAssumption(String methodName, Assumption assumption) {
-        assert context.getCoreLibrary().isInitializing();
+        assert RubyLanguage.getCurrentContext().getCoreLibrary().isInitializing();
         Assumption old = inlinedBuiltinsAssumptions.put(methodName, assumption);
         assert old == null;
     }

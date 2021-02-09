@@ -289,7 +289,7 @@ public abstract class ReadlineNodes {
 
             RubyString string = StringOperations
                     .createString(context, language, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
-            RubyArray completions = (RubyArray) context.send(proc, "call", string);
+            RubyArray completions = (RubyArray) RubyContext.send(proc, "call", string);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 final String completion = RubyStringLibrary.getUncached().getJavaString(element);
                 candidates.add(new Candidate(completion + after, completion, null, null, null, null, complete));

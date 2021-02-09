@@ -11,6 +11,7 @@ package org.truffleruby.core.klass;
 
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -42,8 +43,8 @@ public abstract class ClassNodes {
 
     /** Special constructor for class Class */
     @TruffleBoundary
-    public static RubyClass createClassClass(RubyContext context) {
-        final RubyClass rubyClass = new RubyClass(context, context.getLanguageSlow().classShape);
+    public static RubyClass createClassClass(RubyLanguage language) {
+        final RubyClass rubyClass = new RubyClass(language, language.classShape);
 
         assert rubyClass.getLogicalClass() == rubyClass;
         assert rubyClass.getMetaClass() == rubyClass;
@@ -54,10 +55,11 @@ public abstract class ClassNodes {
     /** This constructor supports initialization and solves boot-order problems and should not normally be used from
      * outside this class. */
     @TruffleBoundary
-    public static RubyClass createBootClass(RubyContext context, RubyClass classClass, Object superclass, String name) {
+    public static RubyClass createBootClass(RubyLanguage language, RubyClass classClass, Object superclass,
+            String name) {
         final RubyClass rubyClass = new RubyClass(
                 classClass,
-                context,
+                language,
                 null,
                 null,
                 name,
@@ -122,7 +124,7 @@ public abstract class ClassNodes {
         assert superclass != null;
         final RubyClass rubyClass = new RubyClass(
                 classClass,
-                context,
+                context.getLanguageSlow(),
                 sourceSection,
                 lexicalParent,
                 name,
@@ -151,7 +153,7 @@ public abstract class ClassNodes {
 
         final RubyClass rubyClass = new RubyClass(
                 classClass,
-                context,
+                context.getLanguageSlow(),
                 sourceSection,
                 null,
                 null,

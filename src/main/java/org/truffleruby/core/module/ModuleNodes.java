@@ -137,11 +137,10 @@ public abstract class ModuleNodes {
         final RubyModule module = new RubyModule(
                 selfClass,
                 context.getLanguageSlow().moduleShape,
-                context,
+                context.getLanguageSlow(),
                 sourceSection,
                 lexicalParent,
                 name);
-
         if (lexicalParent != null) {
             module.fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
         } else if (name != null) { // bootstrap module

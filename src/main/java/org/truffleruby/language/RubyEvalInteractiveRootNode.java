@@ -47,7 +47,8 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
         // Just do Truffle::Boot::INTERACTIVE_BINDING.eval(code) for interactive sources.
         // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
         final RubyBinding interactiveBinding = context.getCoreLibrary().interactiveBinding;
-        return context.send(interactiveBinding, "eval", StringOperations.createString(context, language, sourceRope));
+        return RubyContext
+                .send(interactiveBinding, "eval", StringOperations.createString(context, language, sourceRope));
     }
 
     @Override

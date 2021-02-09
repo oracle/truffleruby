@@ -59,7 +59,7 @@ public class RaiseException extends AbstractTruffleException {
     @TruffleBoundary
     public String getMessage() {
         final ModuleFields exceptionClass = exception.getLogicalClass().fields;
-        final String message = ExceptionOperations.messageToString(exceptionClass.getContext(), exception);
+        final String message = ExceptionOperations.messageToString(exception);
         return String.format("%s (%s)", message, exceptionClass.getName());
     }
 

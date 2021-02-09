@@ -106,7 +106,7 @@ public class RubyWarnings implements WarnCallback {
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
             final RubyString messageString = StringOperations
                     .createString(context, context.getLanguageSlow(), messageRope);
-            context.send(warning, "warn", messageString);
+            RubyContext.send(warning, "warn", messageString);
         } else {
             try {
                 context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));

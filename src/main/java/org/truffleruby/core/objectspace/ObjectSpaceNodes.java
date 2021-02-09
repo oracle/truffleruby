@@ -181,7 +181,7 @@ public abstract class ObjectSpaceNodes {
         }
 
         public void run() {
-            context.send(callable, "call");
+            RubyContext.send(callable, "call");
         }
 
         @Override

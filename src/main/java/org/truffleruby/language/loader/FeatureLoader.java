@@ -199,7 +199,7 @@ public class FeatureLoader {
         try {
             final long address = nfi.asPointer(getcwd.call(buffer.getAddress(), bufferSize));
             if (address == 0) {
-                context.send(context.getCoreLibrary().errnoModule, "handle");
+                RubyContext.send(context.getCoreLibrary().errnoModule, "handle");
             }
             final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
             final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
@@ -430,7 +430,7 @@ public class FeatureLoader {
                                 context,
                                 language,
                                 StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
-                context.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
+                RubyContext.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = truffleModule.fields.getConstant("CExt").getValue();

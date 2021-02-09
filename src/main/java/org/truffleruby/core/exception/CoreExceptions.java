@@ -77,7 +77,7 @@ public class CoreExceptions {
     public void showExceptionIfDebug(RubyException rubyException, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final RubyClass rubyClass = rubyException.getLogicalClass();
-            final Object message = context.send(rubyException, "to_s");
+            final Object message = RubyContext.send(rubyException, "to_s");
             showExceptionIfDebug(rubyClass, message, backtrace);
         }
     }
@@ -94,12 +94,12 @@ public class CoreExceptions {
             String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
             RubyString outputString = StringOperations
                     .createString(context, language, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
-            context.send(stderr, "write", outputString);
+            RubyContext.send(stderr, "write", outputString);
         }
     }
 
     public String inspectReceiver(Object receiver) {
-        Object rubyString = context.send(
+        Object rubyString = RubyContext.send(
                 context.getCoreLibrary().truffleExceptionOperationsModule,
                 "receiver_string",
                 receiver);
@@ -216,7 +216,9 @@ public class CoreExceptions {
     public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
         assert object instanceof RubyString || object instanceof ImmutableRubyString;
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
-        final String formattedObject = RubyStringLibrary.getUncached().getJavaString(context.send(object, "inspect"));
+        final String formattedObject = RubyStringLibrary
+                .getUncached()
+                .getJavaString(RubyContext.send(object, "inspect"));
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
     }
 
@@ -623,7 +625,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
-        String formattedValues = RubyStringLibrary.getUncached().getJavaString(context.send(rubyArray, "inspect"));
+        String formattedValues = RubyStringLibrary.getUncached().getJavaString(RubyContext.send(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 

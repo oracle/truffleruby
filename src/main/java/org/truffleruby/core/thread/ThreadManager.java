@@ -363,7 +363,7 @@ public class ThreadManager {
             final boolean isSystemExit = exception instanceof RubySystemExit;
 
             if (!isSystemExit && thread.reportOnException) {
-                context.send(
+                RubyContext.send(
                         context.getCoreLibrary().truffleThreadOperationsModule,
                         "report_exception",
                         thread,

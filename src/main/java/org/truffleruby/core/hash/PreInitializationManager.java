@@ -21,15 +21,9 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public final class PreInitializationManager {
 
-    private final RubyContext context;
-
     private final List<ReHashable> reHashables = new ArrayList<>();
 
     private final Set<RubyHash> hashesCreatedDuringPreInit = Collections.newSetFromMap(new WeakHashMap<>());
-
-    public PreInitializationManager(RubyContext context) {
-        this.context = context;
-    }
 
     public void addReHashable(ReHashable reHashable) {
         // This might get called multiple times for the same ReHashable,
@@ -59,7 +53,7 @@ public final class PreInitializationManager {
     private void rehashRubyHashes() {
         for (RubyHash hash : hashesCreatedDuringPreInit) {
             if (!HashGuards.isCompareByIdentity(hash)) {
-                context.send(hash, "rehash");
+                RubyContext.send(hash, "rehash");
             }
         }
         hashesCreatedDuringPreInit.clear();

@@ -371,7 +371,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             return null;
         }
 
-        Object implicit = context.send(
+        Object implicit = RubyContext.send(
                 context.getCoreLibrary().truffleInteropModule,
                 "lookup_symbol",
                 symbolTable.getSymbol(symbolName));
