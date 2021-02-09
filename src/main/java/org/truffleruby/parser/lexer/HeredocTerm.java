@@ -115,21 +115,17 @@ public final class HeredocTerm extends StrTerm {
         if ((flags & STR_FUNC_EXPAND) == 0) {
             // heredocs without string interpolation
 
-            // TODO what's in lbuf?
             do { // iterate on lines, while end marker not found
-                Rope lbuf = lexer.lexb;
+                final Rope lbuf = lexer.lexb;
                 int pend = lexer.lex_pend;
 
-                // Adjust pend so that it doesn't cover the final newline, excepted if the line
-                // only has a single \n, or has both \n and \r - in which case a single \n wil be included.
-                // TODO: this logic is insane - why is it necessary? - can it be refactored?
-                if (pend > p) {
+                // Remove trailing newline, it will be appended later in normalized form (single \n).
+                if (pend > 0) {
                     switch (lexer.p(pend - 1)) {
                         case '\n':
                             pend--;
-                            if (pend == p || lexer.p(pend - 1) == '\r') {
-                                pend++;
-                                break;
+                            if (pend > 0 && lexer.p(pend - 1) == '\r') {
+                                pend--;
                             }
                             break;
                         case '\r':
@@ -156,10 +152,8 @@ public final class HeredocTerm extends StrTerm {
                     str = builder;
                 }
 
-                // if the newline wasn't included in the append, add it now
-                if (pend < lexer.lex_pend) {
-                    str.append('\n');
-                }
+                // append the newline that we removed earlier
+                str.append('\n');
                 lexer.lex_goto_eol();
 
                 if (lexer.getHeredocIndent() > 0) {
