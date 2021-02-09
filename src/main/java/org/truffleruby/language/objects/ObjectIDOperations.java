@@ -58,8 +58,13 @@ public abstract class ObjectIDOperations {
         return MIN_FIXNUM_VALUE <= fixnum && fixnum <= MAX_FIXNUM_VALUE;
     }
 
+    /** This constant (typed as long) is needed in order to have compatible bytecode between JDK8 and JDK11. In JDK9+,
+     * there is a new Math.multiplyExact(long, int) method, which does not exist on JDK8. We avoid using it purposefully
+     * to avoid this incompatibility. */
+    private static final long TWO_AS_LONG = 2;
+
     public static long smallFixnumToIDOverflow(long fixnum) throws ArithmeticException {
-        return Math.addExact(Math.multiplyExact(fixnum, 2), 1);
+        return Math.addExact(Math.multiplyExact(fixnum, TWO_AS_LONG), 1);
     }
 
     public static long smallFixnumToID(long fixnum) {
