@@ -229,7 +229,6 @@ public class RubyLexer implements MagicCommentHandler {
     private RubyWarnings warnings;
 
     public int tokenize_ident(int result) {
-        // FIXME: Get token from newtok index to lex_p?
         Rope value = createTokenRope();
 
         if (isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
@@ -341,7 +340,6 @@ public class RubyLexer implements MagicCommentHandler {
         throw new SyntaxException(SyntaxException.PID.BAD_HEX_NUMBER, getFile(), ruby_sourceline, message);
     }
 
-    // FIXME: How does lexb.toString() vs getCurrentLine() differ.
     public void compile_error(SyntaxException.PID pid, String message) {
         throw new SyntaxException(pid, getFile(), ruby_sourceline, message);
     }
@@ -606,8 +604,6 @@ public class RubyLexer implements MagicCommentHandler {
         if (newEncoding == bufferEncoding) {
             return codeRange;
         }
-
-        // TODO: Special const error
 
         if (codeRange != CodeRange.CR_7BIT || !newEncoding.isAsciiCompatible()) {
             return CodeRange.CR_UNKNOWN;
@@ -3137,7 +3133,6 @@ public class RubyLexer implements MagicCommentHandler {
         return 0;
     }
 
-    // FIXME: I added number gvars here and they did not.
     public boolean isGlobalCharPunct(int c) {
         switch (c) {
             case '_':
