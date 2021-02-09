@@ -751,6 +751,7 @@ module Commands
   def mx(*args)
     super(*args)
   end
+  ruby2_keywords :mx if respond_to?(:ruby2_keywords, true)
 
   def launcher
     puts ruby_launcher
