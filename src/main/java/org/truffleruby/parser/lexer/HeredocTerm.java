@@ -118,7 +118,6 @@ public final class HeredocTerm extends StrTerm {
             // TODO what's in lbuf?
             do { // iterate on lines, while end marker not found
                 Rope lbuf = lexer.lexb;
-                final int p = 0; // TODO inline this
                 int pend = lexer.lex_pend;
 
                 // Adjust pend so that it doesn't cover the final newline, excepted if the line
@@ -142,17 +141,17 @@ public final class HeredocTerm extends StrTerm {
                 // if we are dealing with a squiggly heredoc
                 if (lexer.getHeredocIndent() > 0) {
                     // update the indent for the current line
-                    for (int i = 0; p + i < pend && lexer.update_heredoc_indent(lexer.p(p + i)); i++) {
+                    for (int i = 0; i < pend && lexer.update_heredoc_indent(lexer.p(i)); i++) {
                     }
                     // reset heredoc_line_indent to 0 (was -1 after we matched the first non-whitespace character)
                     lexer.setHeredocLineIndent(0);
                 }
 
                 if (str != null) {
-                    str.append(lbuf.getBytes(), p, pend - p);
+                    str.append(lbuf.getBytes(), 0, pend);
                 } else {
                     // lazy initialization of string builder
-                    final RopeBuilder builder = RopeBuilder.createRopeBuilder(lbuf.getBytes(), p, pend - p);
+                    final RopeBuilder builder = RopeBuilder.createRopeBuilder(lbuf.getBytes(), 0, pend);
                     builder.setEncoding(lbuf.getEncoding());
                     str = builder;
                 }
