@@ -117,7 +117,7 @@ public final class HeredocTerm extends StrTerm {
 
             // TODO what's in lbuf?
             do { // iterate on lines, while end marker not found
-                Rope lbuf = lexer.lex_lastline;
+                Rope lbuf = lexer.lexb;
                 final int p = 0; // TODO inline this
                 int pend = lexer.lex_pend;
 

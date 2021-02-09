@@ -286,7 +286,6 @@ public class RubyLexer implements MagicCommentHandler {
             lex_pbeg = lex_p = 0;
             lex_pend = lex_p + line.byteLength();
             lexb = line;
-            lex_lastline = line;
             flush();
         }
 
@@ -352,7 +351,6 @@ public class RubyLexer implements MagicCommentHandler {
     void heredoc_restore(HeredocTerm here) {
         Rope line = here.lastLine;
         lexb = line;
-        lex_lastline = line;
         lex_pbeg = 0;
         lex_pend = lex_pbeg + line.byteLength();
         lex_p = lex_pbeg + here.nth;
@@ -792,7 +790,7 @@ public class RubyLexer implements MagicCommentHandler {
         lex_goto_eol();
 
         // next yylex() invocation(s) will parse the heredoc content (including the terminator)
-        lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lex_lastline);
+        lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lexb);
 
         if (term == '`') {
             yaccValue = RopeConstants.BACKTICK;
@@ -2835,9 +2833,8 @@ public class RubyLexer implements MagicCommentHandler {
     // --- LINE + POSITION ---
 
     /** The current line being parsed */
-    private Rope lexb = null;
-    /** TODO: As far as I can tell, this is ALWAYS identical to lexb. See if it can be removed? */
-    Rope lex_lastline = null;
+    Rope lexb = null;
+    // There use to be a variable called lex_lastline, but it was always identical to lexb.
 
     /** Always 0, except when parsing a UTF-8 BOM in parser_prepare() */
     private int lex_pbeg = 0;
@@ -3004,7 +3001,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public String getCurrentLine() {
-        return RopeOperations.decodeRope(lex_lastline);
+        return RopeOperations.decodeRope(lexb);
     }
 
     public Encoding getEncoding() {
@@ -3282,7 +3279,7 @@ public class RubyLexer implements MagicCommentHandler {
         }
         pushback(c);
 
-        current_enc = lex_lastline.getEncoding();
+        current_enc = lexb.getEncoding();
     }
 
     public int p(int offset) {
