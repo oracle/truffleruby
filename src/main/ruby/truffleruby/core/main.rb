@@ -44,6 +44,10 @@ class << self
     Object.define_method(*args, &block)
   end
 
+  private def ruby2_keywords(*methods)
+    Object.__send__(:ruby2_keywords, *methods)
+  end
+
   def to_s
     'main'
   end
