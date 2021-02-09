@@ -56,6 +56,20 @@ class File < IO
     F_DUPFD_CLOEXEC = Truffle::Config['platform.fcntl.F_DUPFD_CLOEXEC']
     FD_CLOEXEC = Truffle::Config['platform.fcntl.FD_CLOEXEC']
 
+    FMODE_READABLE = 0x00000001
+    FMODE_WRITABLE = 0x00000002
+    FMODE_READWRITE = (FMODE_READABLE|FMODE_WRITABLE)
+    FMODE_BINMODE = 0x00000004
+    FMODE_SYNC = 0x00000008
+    FMODE_TTY = 0x00000010
+    FMODE_DUPLEX = 0x00000020
+    FMODE_APPEND = 0x00000040
+    FMODE_CREATE = 0x00000080
+    FMODE_EXCL = 0x00000400
+    FMODE_TRUNC = 0x00000800
+    FMODE_TEXTMODE = 0x00001000
+    FMODE_SETENC_BY_BOM = 0x00100000
+
     RDONLY   = Truffle::Config['platform.file.O_RDONLY']
     WRONLY   = Truffle::Config['platform.file.O_WRONLY']
     RDWR     = Truffle::Config['platform.file.O_RDWR']
