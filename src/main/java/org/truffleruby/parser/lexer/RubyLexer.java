@@ -2900,7 +2900,6 @@ public class RubyLexer implements MagicCommentHandler {
     /** Was end-of-file reached? (or {@link #END_MARKER}) */
     public boolean eofp = false;
 
-    private Encoding current_enc;
     protected int parenNest = 0;
     protected int braceNest = 0;
     public boolean commandStart;
@@ -3001,7 +3000,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public Encoding getEncoding() {
-        return current_enc;
+        return src.getEncoding();
     }
 
     public String getFile() {
@@ -3211,7 +3210,7 @@ public class RubyLexer implements MagicCommentHandler {
         ruby_sourceline_when_tokline_created = ruby_sourceline;
 
         // We assume all idents are valid (or 7BIT if ASCII-compatible), until they aren't.
-        tokenCR = lexb.getEncoding().isAsciiCompatible() ? CodeRange.CR_7BIT : CodeRange.CR_VALID;
+        tokenCR = src.getEncoding().isAsciiCompatible() ? CodeRange.CR_7BIT : CodeRange.CR_VALID;
 
         tokp = lex_p - (unreadOnce ? 1 : 0);
     }
@@ -3273,8 +3272,6 @@ public class RubyLexer implements MagicCommentHandler {
                 return;
         }
         pushback(c);
-
-        current_enc = lexb.getEncoding();
     }
 
     public int p(int offset) {
@@ -3290,8 +3287,6 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public int precise_mbclen() {
-        assert current_enc == lexb.getEncoding();
-
         // A broken string has at least one character with an invalid byte sequence. It doesn't matter which one we
         // report as invalid because the error reported to the user will only note the start position of the string.
         if (lexb.getCodeRange() == CR_BROKEN) {
@@ -3316,7 +3311,8 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         // Barring all else, we must inspect the bytes for the substring.
-        return StringSupport.characterLength(current_enc, rope.getCodeRange(), rope.getBytes(), 0, rope.byteLength());
+        return StringSupport
+                .characterLength(src.getEncoding(), rope.getCodeRange(), rope.getBytes(), 0, rope.byteLength());
     }
 
     public void pushback(int c) {
@@ -3376,16 +3372,7 @@ public class RubyLexer implements MagicCommentHandler {
         this.current_arg = current_arg;
     }
 
-    // FIXME: This is icky.  Ripper is setting encoding immediately but in Parsers lexer we are not.
-    public void setCurrentEncoding(Encoding encoding) {
-        current_enc = encoding;
-    }
-
-    // FIXME: This is mucked up...current line knows it's own encoding so that must be changed.  but we also have two
-    // other sources.  I am thinking current_enc should be removed in favor of src since it needs to know encoding to
-    // provide next line.
     public void setEncoding(Encoding encoding) {
-        setCurrentEncoding(encoding);
         src.setEncoding(encoding);
         lexb = parserRopeOperations.withEncoding(lexb, encoding);
     }
