@@ -19,12 +19,3 @@ module TruffleRuby
     jit?
   end
 end
-
-module Truffle::System
-  def self.synchronized(object)
-    warn 'Truffle::System.synchronized has been replaced by TruffleRuby.synchronized and will be removed at a future release', uplevel: 1
-    Truffle::System.synchronized(object) do
-      yield
-    end
-  end
-end
