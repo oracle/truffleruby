@@ -61,6 +61,7 @@ Performance:
 
 Changes:
 
+* Standalone builds of TruffleRuby are now based on JDK11 (they used JDK8 previously). There should be no user-visible changes. Similarly, JDK11 is now used by default in development instead of JDK8.
 
 # 21.0.0
 

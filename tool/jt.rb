@@ -640,7 +640,7 @@ module Commands
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
-          --jdk                     Specifies which version of the JDK should be used: 8 (default) or 11
+          --jdk                     Specifies which version of the JDK should be used: 8 or 11 (default)
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
         jt build [parser|options] [options]
@@ -751,6 +751,7 @@ module Commands
   def mx(*args)
     super(*args)
   end
+  ruby2_keywords :mx if respond_to?(:ruby2_keywords, true)
 
   def launcher
     puts ruby_launcher
@@ -1962,8 +1963,8 @@ module Commands
     end
   end
 
-  private def install_jvmci(download_message, ee)
-    if @jdk_version == 8
+  private def install_jvmci(download_message, ee, jdk_version: @jdk_version)
+    if jdk_version == 8
       jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
     else
       jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
@@ -1974,7 +1975,7 @@ module Commands
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
         mx_env = 'jvm-ee'
-        options = { java_home: install_jvmci('Downloading OpenJDK8 JVMCI to bootstrap', false) }
+        options = { java_home: install_jvmci('Downloading OpenJDK11 JVMCI to bootstrap', false, jdk_version: 11) }
       else
         mx_env = 'jvm'
         options = { chdir: CACHE_EXTRA_DIR, java_home: :none } # chdir to not try to load a suite (which would need a JAVA_HOME)
@@ -2705,7 +2706,7 @@ class JT
     needs_build = false
     needs_rebuild = false
     @silent = false
-    @jdk_version = 8
+    @jdk_version = 11
 
     until args.empty?
       arg = args.shift
