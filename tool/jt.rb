@@ -1962,8 +1962,8 @@ module Commands
     end
   end
 
-  private def install_jvmci(download_message, ee)
-    if @jdk_version == 8
+  private def install_jvmci(download_message, ee, jdk_version: @jdk_version)
+    if jdk_version == 8
       jdk_name = ee ? 'oraclejdk8' : 'openjdk8'
     else
       jdk_name = ee ? 'labsjdk-ee-11' : 'labsjdk-ce-11'
@@ -1974,7 +1974,7 @@ module Commands
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
         mx_env = 'jvm-ee'
-        options = { java_home: install_jvmci('Downloading OpenJDK8 JVMCI to bootstrap', false) }
+        options = { java_home: install_jvmci('Downloading OpenJDK11 JVMCI to bootstrap', false, jdk_version: 11) }
       else
         mx_env = 'jvm'
         options = { chdir: CACHE_EXTRA_DIR, java_home: :none } # chdir to not try to load a suite (which would need a JAVA_HOME)
