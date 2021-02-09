@@ -640,7 +640,7 @@ module Commands
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`
           --silent                  Does not print the command and which Ruby is used
-          --jdk                     Specifies which version of the JDK should be used: 8 (default) or 11
+          --jdk                     Specifies which version of the JDK should be used: 8 or 11 (default)
 
       jt build [graalvm|parser|options] ...   by default it builds graalvm
         jt build [parser|options] [options]
@@ -2705,7 +2705,7 @@ class JT
     needs_build = false
     needs_rebuild = false
     @silent = false
-    @jdk_version = 8
+    @jdk_version = 11
 
     until args.empty?
       arg = args.shift
