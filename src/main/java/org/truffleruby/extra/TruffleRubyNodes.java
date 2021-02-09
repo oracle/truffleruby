@@ -17,6 +17,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -25,6 +27,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.RubyDynamicObject;
 
 @CoreModule("TruffleRuby")
 public abstract class TruffleRubyNodes {
@@ -94,6 +97,19 @@ public abstract class TruffleRubyNodes {
             Pointer.UNSAFE.fullFence();
 
             return nil;
+        }
+
+    }
+
+    @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)
+    public abstract static class SynchronizedNode extends YieldingCoreMethodNode {
+
+        // We must not allow to synchronize on boxed primitives.
+        @Specialization
+        protected Object synchronize(RubyDynamicObject object, RubyProc block) {
+            synchronized (object) {
+                return yield(block);
+            }
         }
 
     }
