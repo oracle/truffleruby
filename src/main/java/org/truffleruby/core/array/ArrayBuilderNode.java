@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
@@ -91,7 +90,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private AppendArrayNode getAppendArrayNode() {
             if (appendArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendArrayNode = insert(AppendArrayNode.create(getContext()));
+                appendArrayNode = insert(AppendArrayNode.create());
             }
             return appendArrayNode;
         }
@@ -99,7 +98,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private AppendOneNode getAppendOneNode() {
             if (appendOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendOneNode = insert(AppendOneNode.create(getContext()));
+                appendOneNode = insert(AppendOneNode.create());
             }
             return appendOneNode;
         }
@@ -129,10 +128,10 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
             if (newStrategy != oldStrategy) {
                 if (appendArrayNode != null) {
-                    appendArrayNode.replace(AppendArrayNode.create(getContext()));
+                    appendArrayNode.replace(AppendArrayNode.create());
                 }
                 if (appendOneNode != null) {
-                    appendOneNode.replace(AppendOneNode.create(getContext()));
+                    appendOneNode.replace(AppendOneNode.create());
                 }
             }
 
@@ -184,14 +183,8 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendOneNode extends ArrayBuilderBaseNode {
 
-        public static AppendOneNode create(RubyContext context) {
-            return AppendOneNodeGen.create(context);
-        }
-
-        private final RubyContext context;
-
-        public AppendOneNode(RubyContext context) {
-            this.context = context;
+        public static AppendOneNode create() {
+            return AppendOneNodeGen.create();
         }
 
         public abstract void executeAppend(BuilderState array, int index, Object value);
@@ -205,7 +198,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             final int length = arrays.capacity(state.store);
             if (index >= length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                final int capacity = ArrayUtils.capacityForOneMore(context, length);
+                final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
                 replaceNodes(arrays.allocator(state.store), capacity);
@@ -227,7 +220,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             final int currentCapacity = state.capacity;
             final int neededCapacity;
             if (index >= currentCapacity) {
-                neededCapacity = ArrayUtils.capacityForOneMore(context, currentCapacity);
+                neededCapacity = ArrayUtils.capacityForOneMore(getContext(), currentCapacity);
             } else {
                 neededCapacity = currentCapacity;
             }
@@ -247,15 +240,10 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendArrayNode extends ArrayBuilderBaseNode {
 
-        public static AppendArrayNode create(RubyContext context) {
-            return AppendArrayNodeGen.create(context);
+        public static AppendArrayNode create() {
+            return AppendArrayNodeGen.create();
         }
 
-        private final RubyContext context;
-
-        public AppendArrayNode(RubyContext context) {
-            this.context = context;
-        }
 
         public abstract void executeAppend(BuilderState state, int index, RubyArray value);
 
@@ -273,7 +261,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             if (neededSize > length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(arrays.allocator(state.store), neededSize);
-                final int capacity = ArrayUtils.capacity(context, length, neededSize);
+                final int capacity = ArrayUtils.capacity(getContext(), length, neededSize);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
             }
@@ -300,7 +288,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 final int currentCapacity = state.capacity;
                 final int neededCapacity;
                 if (neededSize > currentCapacity) {
-                    neededCapacity = ArrayUtils.capacity(context, currentCapacity, neededSize);
+                    neededCapacity = ArrayUtils.capacity(getContext(), currentCapacity, neededSize);
                 } else {
                     neededCapacity = currentCapacity;
                 }
