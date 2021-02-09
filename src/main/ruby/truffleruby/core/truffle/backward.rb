@@ -9,7 +9,6 @@
 # GNU Lesser General Public License version 2.1.
 
 module TruffleRuby
-
   def self.sulong?
     warn 'TruffleRuby.sulong? has been replaced by TruffleRuby.cexts? and will be removed at a future release', uplevel: 1
     cexts?
@@ -19,5 +18,13 @@ module TruffleRuby
     warn 'TruffleRuby.graal? has been replaced by TruffleRuby.jit? and will be removed at a future release', uplevel: 1
     jit?
   end
+end
 
+module Truffle::System
+  def self.synchronized(object)
+    warn 'Truffle::System.synchronized has been replaced by TruffleRuby.synchronized and will be removed at a future release', uplevel: 1
+    Truffle::System.synchronized(object) do
+      yield
+    end
+  end
 end

@@ -59,7 +59,7 @@ module Java
   end
 
   def self.synchronized(object)
-    Truffle::System.synchronized(object) do
+    TruffleRuby.synchronized(object) do
       yield
     end
   end

@@ -195,7 +195,7 @@ module ObjectSpace
   module_function :trace_object_allocations
 
   def trace_object_allocations_clear
-    Truffle::System.synchronized(ALLOCATIONS) do
+    TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS.clear
     end
   end
@@ -217,7 +217,7 @@ module ObjectSpace
   module_function :trace_object_allocations_stop
 
   def allocation_class_path(object)
-    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS[object]
     end
     return nil if allocation.nil?
@@ -226,7 +226,7 @@ module ObjectSpace
   module_function :allocation_class_path
 
   def allocation_generation(object)
-    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS[object]
     end
     return nil if allocation.nil?
@@ -235,7 +235,7 @@ module ObjectSpace
   module_function :allocation_generation
 
   def allocation_method_id(object)
-    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS[object]
     end
     return nil if allocation.nil?
@@ -248,7 +248,7 @@ module ObjectSpace
   module_function :allocation_method_id
 
   def allocation_sourcefile(object)
-    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS[object]
     end
     return nil if allocation.nil?
@@ -257,7 +257,7 @@ module ObjectSpace
   module_function :allocation_sourcefile
 
   def allocation_sourceline(object)
-    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+    allocation = TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS[object]
     end
     return nil if allocation.nil?
@@ -271,7 +271,7 @@ module ObjectSpace
 
   def trace_allocation(object, class_path, method_id, sourcefile, sourceline, generation)
     allocation = Allocation.new(class_path, method_id, sourcefile, sourceline, generation)
-    Truffle::System.synchronized(ALLOCATIONS) do
+    TruffleRuby.synchronized(ALLOCATIONS) do
       ALLOCATIONS[object] = allocation
     end
   end

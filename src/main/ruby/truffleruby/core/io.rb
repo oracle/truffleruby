@@ -165,7 +165,7 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil, max = DEFAULT_READ_SIZE)
-      Truffle::System.synchronized(self) do
+      TruffleRuby.synchronized(self) do
         discard skip if skip
 
         if empty?
@@ -200,7 +200,7 @@ class IO
     end
 
     def unseek!(io)
-      Truffle::System.synchronized(self) do
+      TruffleRuby.synchronized(self) do
         unless empty?
           amount = @start - @used
           r = Truffle::POSIX.lseek(io.fileno, amount, IO::SEEK_CUR)
@@ -213,7 +213,7 @@ class IO
     # Returns +count+ bytes from the +start+ of the buffer as a new String.
     # If +count+ is +nil+, returns all available bytes in the buffer.
     def shift(count=nil, encoding=Encoding::ASCII_8BIT)
-      Truffle::System.synchronized(self) do
+      TruffleRuby.synchronized(self) do
         total = size
         total = count if count and count < total
 
@@ -250,7 +250,7 @@ class IO
     def getbyte(io)
       return if size == 0 and fill_from(io) == 0
 
-      Truffle::System.synchronized(self) do
+      TruffleRuby.synchronized(self) do
         byte = @storage[@start]
         @start += 1
         byte
@@ -261,7 +261,7 @@ class IO
     def getchar(io)
       return if size == 0 and fill_from(io) == 0
 
-      Truffle::System.synchronized(self) do
+      TruffleRuby.synchronized(self) do
         char = +''
         while size > 0
           char.force_encoding Encoding::ASCII_8BIT

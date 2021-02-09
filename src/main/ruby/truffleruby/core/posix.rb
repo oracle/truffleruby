@@ -27,7 +27,7 @@ module Truffle::POSIX
         raise 'loading library while pre-initializing' if Truffle::Boot.preinitializing?
         raise SecurityError, 'native access is not allowed' unless NATIVE
 
-        Truffle::System.synchronized(self) do
+        TruffleRuby.synchronized(self) do
           @resolved ||= @block.call
         end
       end
