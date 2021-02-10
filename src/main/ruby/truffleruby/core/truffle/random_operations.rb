@@ -122,7 +122,7 @@ module Truffle
 
     def self.obj_random_bytes(obj, len)
       bytes = obj.bytes(len)
-      raise TypeError, 'type must by String' unless Primitive.object_kind_of?(bytes, String)
+      raise TypeError, 'type must be String' unless Primitive.object_kind_of?(bytes, String)
       bytesize = bytes.bytesize
       unless bytesize == len
         raise RangeError, "random data too #{bytesize < len ? 'short' : 'long'} #{bytesize}"
