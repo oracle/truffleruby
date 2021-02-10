@@ -172,11 +172,9 @@ public abstract class ObjectSpaceNodes {
 
     private static class CallableFinalizer implements Runnable {
 
-        private final RubyContext context;
         private final Object callable;
 
-        public CallableFinalizer(RubyContext context, Object callable) {
-            this.context = context;
+        public CallableFinalizer(Object callable) {
             this.callable = callable;
         }
 
@@ -223,7 +221,7 @@ public abstract class ObjectSpaceNodes {
             final RubyDynamicObject root = (finalizer instanceof RubyDynamicObject)
                     ? (RubyDynamicObject) finalizer
                     : null;
-            final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
+            final CallableFinalizer action = new CallableFinalizer(finalizer);
             final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
 
             synchronized (object) {

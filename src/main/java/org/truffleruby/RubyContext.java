@@ -450,7 +450,7 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public Object send(Node currentNode, Object object, String methodName, Object... arguments) {
+    public static Object send(Node currentNode, Object object, String methodName, Object... arguments) {
         final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
         final Node prev = callNodeRef.set(currentNode);
         try {
