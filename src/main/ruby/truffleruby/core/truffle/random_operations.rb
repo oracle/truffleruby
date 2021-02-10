@@ -48,7 +48,7 @@ module Truffle
     end
 
     def self.invalid_argument(limit)
-      raise ArgumentError, "invalid argument - #{limit}"
+      raise ArgumentError, "invalid argument - negative limit: #{limit}"
     end
 
     def self.rand_int(randomizer, limit, restricted)
