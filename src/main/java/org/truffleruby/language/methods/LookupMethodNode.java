@@ -23,7 +23,6 @@ import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -45,11 +44,8 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             DispatchConfiguration config);
 
     @Specialization(
-            guards = {
-                    "metaClass == cachedMetaClass",
-                    "name == cachedName",
-                    "config == cachedConfig",
-                    "contextReference.get() == cachedContext" },
+            // no need to guard on the context, the metaClass is context-specific
+            guards = { "metaClass == cachedMetaClass", "name == cachedName", "config == cachedConfig" },
             assumptions = "methodLookupResult.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
@@ -57,12 +53,11 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             RubyClass metaClass,
             String name,
             DispatchConfiguration config,
-            @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
-            @Cached("contextReference.get()") RubyContext cachedContext,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("metaClass") RubyClass cachedMetaClass,
             @Cached("name") String cachedName,
             @Cached("config") DispatchConfiguration cachedConfig,
-            @Cached("lookupCached(cachedContext, frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
+            @Cached("lookupCached(context, frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
     }
@@ -76,7 +71,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,
-            @Cached ConditionProfile isSendProfile,
             @Cached ConditionProfile foreignProfile,
             @Cached ConditionProfile noPrependedModulesProfile,
             @Cached ConditionProfile onMetaClassProfile,

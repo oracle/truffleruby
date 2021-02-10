@@ -316,7 +316,7 @@ public class TranslatorDriver {
                         sourceIndexLength,
                         Arrays.asList(new ChompLoopNode(), truffleNode));
             }
-            truffleNode = new WhileNode(new WhileNode.WhileRepeatingNode(context, new KernelGetsNode(), truffleNode));
+            truffleNode = new WhileNode(new WhileNode.WhileRepeatingNode(new KernelGetsNode(), truffleNode));
         }
 
         if (beginNode != null) {

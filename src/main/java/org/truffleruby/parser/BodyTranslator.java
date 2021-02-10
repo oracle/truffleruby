@@ -3258,9 +3258,9 @@ public class BodyTranslator extends Translator {
         final RubyNode loop;
 
         if (node.evaluateAtStart()) {
-            loop = new WhileNode(new WhileNode.WhileRepeatingNode(context, condition, body));
+            loop = new WhileNode(new WhileNode.WhileRepeatingNode(condition, body));
         } else {
-            loop = new WhileNode(new WhileNode.DoWhileRepeatingNode(context, condition, body));
+            loop = new WhileNode(new WhileNode.DoWhileRepeatingNode(condition, body));
         }
 
         final RubyNode ret = new CatchBreakNode(whileBreakID, loop, true);

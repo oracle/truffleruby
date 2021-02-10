@@ -47,7 +47,7 @@ public final class WhileNode extends RubyContextSourceNode {
         protected final BranchProfile redoUsed = BranchProfile.create();
         protected final BranchProfile nextUsed = BranchProfile.create();
 
-        public WhileRepeatingBaseNode(RubyContext context, RubyNode condition, RubyNode body) {
+        public WhileRepeatingBaseNode(RubyNode condition, RubyNode body) {
             this.condition = BooleanCastNodeGen.create(condition);
             this.body = body;
         }
@@ -61,8 +61,8 @@ public final class WhileNode extends RubyContextSourceNode {
 
     public static class WhileRepeatingNode extends WhileRepeatingBaseNode implements RepeatingNode {
 
-        public WhileRepeatingNode(RubyContext context, RubyNode condition, RubyNode body) {
-            super(context, condition, body);
+        public WhileRepeatingNode(RubyNode condition, RubyNode body) {
+            super(condition, body);
         }
 
         @Override
@@ -90,8 +90,8 @@ public final class WhileNode extends RubyContextSourceNode {
 
     public static class DoWhileRepeatingNode extends WhileRepeatingBaseNode implements RepeatingNode {
 
-        public DoWhileRepeatingNode(RubyContext context, RubyNode condition, RubyNode body) {
-            super(context, condition, body);
+        public DoWhileRepeatingNode(RubyNode condition, RubyNode body) {
+            super(condition, body);
         }
 
         @Override
