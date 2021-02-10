@@ -169,20 +169,6 @@ module Truffle
       Primitive.integer_ulong_from_bignum(val)
     end
 
-    def self.rb_range_values(range)
-      if Primitive.object_kind_of?(range, Range)
-        [true, range.begin, range.end, range.exclude_end?]
-      elsif Primitive.object_kind_of?(range, Enumerator::ArithmeticSequence)
-        [false, nil, nil, nil]
-      else
-        b = check_funcall(range, :begin)
-        e = check_funcall(range, :end)
-        exc = check_funcall(range, :exclude_end?)
-        return [false , nil, nil, nil] if Primitive.undefined?(b) || Primitive.undefined?(e) || Primitive.undefined?(exc)
-        [true, b, e, exc]
-      end
-    end
-
     def self.rb_to_f(val)
       if Primitive.object_kind_of?(val, Float)
         val

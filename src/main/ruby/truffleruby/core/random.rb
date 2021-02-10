@@ -120,11 +120,12 @@ module Random::Formatter
   def random_number(limit=undefined)
     randomizer = if Primitive.object_equal(self, Random)
                    Primitive.thread_randomizer
-                 elsif !Primitive.nil?(@randomizer)
+                 elsif defined?(@randomizer)
                    @randomizer
                  else
                    Truffle::CustomRandomizer.new(self)
                  end
+
     v = Truffle::RandomOperations.random(randomizer, limit)
     if Primitive.nil?(v)
       v = Truffle::RandomOperations.random(randomizer, undefined)

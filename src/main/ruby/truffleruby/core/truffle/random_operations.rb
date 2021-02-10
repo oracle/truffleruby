@@ -13,8 +13,12 @@ module Truffle
 
     # MRI: rand_random
     def self.random(randomizer, limit)
-      return random_real(randomizer, true) if Primitive.undefined?(limit)
+      if Primitive.undefined?(limit)
+        return random_real(randomizer, true)
+      end
+
       return nil if Primitive.nil?(limit)
+
       unless Primitive.object_kind_of?(limit, Float)
         limit_converted = Truffle::Type.rb_check_to_integer(limit, :to_int)
         return rand_int(randomizer, limit_converted, true) if limit_converted
@@ -30,8 +34,10 @@ module Truffle
           r *= limit_converted if limit_converted > 0.0
           r
         end
-      else
+      elsif Primitive.object_kind_of?(limit, Range)
         rand_range(randomizer, limit)
+      else
+        false
       end
     end
 
@@ -71,28 +77,17 @@ module Truffle
       randomizer.random_integer(limit - 1)
     end
 
-    def self.range_values(range)
-      result, b, e, exc = Truffle::Type.rb_range_values(range)
-      return [false, nil, nil, false] unless result
-      return [nil, nil, nil, false] if Primitive.nil?(b) || Primitive.nil?(e)
-      r = Truffle::Type.check_funcall(e, :-, [b])
-      return [false, nil, nil, false, nil] if Primitive.undefined?(r)
-      [r, b, e, exc]
-    end
+    def self.rand_range(randomizer, range)
+      b, e, exclude_end = range.begin, range.end, range.exclude_end?
+      raise Errno::EDOM if Primitive.nil?(b) || Primitive.nil?(e)
 
-    def self.rand_range(randomizer, limit)
-      vmax, b, e, exc = range_values(limit)
-
-      return false if vmax == false
-      raise Errno::EDOM if Primitive.nil?(vmax)
-
-      v = vmax
-      if !Primitive.object_kind_of?(vmax, Float) &&
-        !Primitive.nil?(v = Truffle::Type.rb_check_to_integer(vmax, :to_int))
-        max = exc ? v - 1 : v
+      diff = e - b
+      if !Primitive.object_kind_of?(diff, Float) &&
+        !Primitive.nil?(v = Truffle::Type.rb_check_to_integer(diff, :to_int))
+        max = exclude_end ? v - 1 : v
         v = nil
         v = randomizer.random_integer(max) if max >= 0
-      elsif !Primitive.nil?(v = Truffle::Type.rb_check_to_float(vmax))
+      elsif !Primitive.nil?(v = Truffle::Type.rb_check_to_float(diff))
         scale = 1
         max = v
         mid = 0.5
@@ -106,15 +101,17 @@ module Truffle
         elsif v.nan?
           raise Errno::EDOM
         end
-        v = nil
+
         if max > 0.0
           if scale > 1
-            r = random_real(randomizer, exc)
+            r = random_real(randomizer, exclude_end)
             return +(+(+(r - 0.5) * max) * scale) + mid
           end
           v = r * max
-        elsif max == 0.0 && !exc
+        elsif max == 0.0 && !exclude_end
           v = 0.0
+        else
+          v = nil
         end
       end
 

@@ -488,9 +488,9 @@ module Kernel
     randomizer = Primitive.thread_randomizer
     if Primitive.nil?(limit)
       randomizer.random_float
+    elsif Primitive.object_kind_of?(limit, Range)
+      Truffle::RandomOperations.rand_range(randomizer, limit)
     else
-      v = Truffle::RandomOperations.rand_range(randomizer, limit)
-      return v if v != false
       max = Primitive.rb_to_int(limit)
       if max != 0
         v = Truffle::RandomOperations.rand_int(randomizer, max, false)
