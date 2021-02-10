@@ -12,9 +12,9 @@ module Truffle
   module RandomOperations
 
     # MRI: rand_random
-    def self.random(randomizer, limit)
+    def self.random(randomizer, limit, error = TypeError)
       if Primitive.undefined?(limit)
-        return random_real(randomizer, true)
+        return randomizer.random_float
       end
 
       return nil if Primitive.nil?(limit)
@@ -31,14 +31,14 @@ module Truffle
           nil
         else
           check_float(limit_float)
-          r = random_real(randomizer, true)
+          r = randomizer.random_float
           r *= limit_float if limit_float > 0.0
           r
         end
       elsif Primitive.object_kind_of?(limit, Range)
         rand_range(randomizer, limit)
       else
-        false
+        error == ArgumentError ? invalid_argument(limit) : Primitive.rb_num2long(limit)
       end
     end
 
@@ -47,26 +47,13 @@ module Truffle
       value
     end
 
-    def self.check_random_number(random, limit)
-      case random
-      when false
-        Primitive.rb_num2long(limit)
-      when nil
-        invalid_argument(limit)
-      end
-      random
+    def self.check_random_number(value, limit)
+      invalid_argument(limit) if Primitive.nil?(value)
+      value
     end
 
     def self.invalid_argument(limit)
       raise ArgumentError, "invalid argument - #{limit}"
-    end
-
-    def self.random_real(randomizer, exclusive)
-      if exclusive
-        randomizer.random_float
-      else
-        randomizer.random_float * 1.0000000000000002
-      end
     end
 
     def self.rand_int(randomizer, limit, restricted)
@@ -105,7 +92,8 @@ module Truffle
 
         if max > 0.0
           if scale > 1
-            r = random_real(randomizer, exclude_end)
+            r = randomizer.random_float
+            r *= 1.0000000000000002 unless exclude_end
             return +(+(+(r - 0.5) * max) * scale) + mid
           end
           v = r * max
@@ -139,9 +127,10 @@ module Truffle
     def self.obj_random_bytes(obj, len)
       bytes = obj.bytes(len)
       raise TypeError, 'type must by String' unless Primitive.object_kind_of?(bytes, String)
-      strlen = bytes.bytesize
-      raise RangeError, "random data too short #{strlen}" if strlen < len
-      raise RangeError, "random data too long #{strlen}" if strlen > len
+      bytesize = bytes.bytesize
+      unless bytesize == len
+        raise RangeError, "random data too #{bytesize < len ? 'short' : 'long'} #{bytesize}"
+      end
       bytes
     end
   end
