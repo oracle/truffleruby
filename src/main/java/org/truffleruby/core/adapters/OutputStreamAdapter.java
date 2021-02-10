@@ -35,7 +35,7 @@ public class OutputStreamAdapter extends OutputStream {
 
     @Override
     public void write(int bite) {
-        context.send(
+        RubyContext.send(
                 object,
                 "write",
                 StringOperations

@@ -304,11 +304,11 @@ public class CoreLibrary {
 
         // Create the cyclic classes and modules
 
-        classClass = ClassNodes.createClassClass(context);
+        classClass = ClassNodes.createClassClass(language);
 
-        basicObjectClass = ClassNodes.createBootClass(context, classClass, Nil.INSTANCE, "BasicObject");
-        objectClass = ClassNodes.createBootClass(context, classClass, basicObjectClass, "Object");
-        moduleClass = ClassNodes.createBootClass(context, classClass, objectClass, "Module");
+        basicObjectClass = ClassNodes.createBootClass(language, classClass, Nil.INSTANCE, "BasicObject");
+        objectClass = ClassNodes.createBootClass(language, classClass, basicObjectClass, "Object");
+        moduleClass = ClassNodes.createBootClass(language, classClass, objectClass, "Module");
 
         // Close the cycles
         // Set superclass of Class to Module

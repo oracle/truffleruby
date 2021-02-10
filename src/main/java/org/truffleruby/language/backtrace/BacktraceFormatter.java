@@ -119,7 +119,7 @@ public class BacktraceFormatter {
         }
 
         try {
-            final Object fullMessage = context.send(
+            final Object fullMessage = RubyContext.send(
                     context.getCoreLibrary().truffleExceptionOperationsModule,
                     "get_formatted_backtrace",
                     rubyException);
@@ -326,7 +326,7 @@ public class BacktraceFormatter {
     private String formatException(RubyException exception) {
         final StringBuilder builder = new StringBuilder();
 
-        final String message = ExceptionOperations.messageToString(context, exception);
+        final String message = ExceptionOperations.messageToString(exception);
 
         final String exceptionClass = exception.getLogicalClass().fields
                 .getName();

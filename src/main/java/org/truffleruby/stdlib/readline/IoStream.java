@@ -49,7 +49,7 @@ public class IoStream {
         if (in == null) {
             // Always use the InputStreamAdapter as reading from System.in with
             // FileInputStream.readBytes() is not interruptible.
-            in = new InputStreamAdapter(context, io);
+            in = new InputStreamAdapter(io);
         }
 
         return in;

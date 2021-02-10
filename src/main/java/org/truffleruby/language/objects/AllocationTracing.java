@@ -137,7 +137,7 @@ public abstract class AllocationTracing {
 
     private static void callAllocationTrace(RubyLanguage language, RubyContext context, Object object,
             SourceSection allocatingSourceSection, String className, String allocatingMethod) {
-        context.send(
+        RubyContext.send(
                 context.getCoreLibrary().objectSpaceModule,
                 "trace_allocation",
                 object,

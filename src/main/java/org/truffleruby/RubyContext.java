@@ -169,7 +169,7 @@ public class RubyContext {
         this.preInitializing = isPreInitializingContext();
         this.preInitialized = preInitializing;
 
-        preInitializationManager = preInitializing ? new PreInitializationManager(this) : null;
+        preInitializationManager = preInitializing ? new PreInitializationManager() : null;
 
         this.language = language;
         this.env = env;
@@ -437,7 +437,7 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public Object send(Object object, String methodName, Object... arguments) {
+    public static Object send(Object object, String methodName, Object... arguments) {
         final InternalMethod method = ModuleOperations
                 .lookupMethodUncached(MetaClassNode.getUncached().execute(object), methodName, null);
         if (method == null || method.isUndefined()) {
@@ -450,7 +450,7 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public Object send(Node currentNode, Object object, String methodName, Object... arguments) {
+    public static Object send(Node currentNode, Object object, String methodName, Object... arguments) {
         final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
         final Node prev = callNodeRef.set(currentNode);
         try {

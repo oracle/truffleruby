@@ -86,11 +86,13 @@ public abstract class SingletonClassNode extends RubySourceNode {
     }
 
     @Specialization(
+            // no need to guard on the context, the rubyClass is context-specific
             guards = { "rubyClass == cachedClass", "cachedSingletonClass != null" },
             limit = "getIdentityCacheLimit()")
     protected RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass") RubyClass cachedClass,
-            @Cached("getSingletonClassOrNull(cachedClass)") RubyClass cachedSingletonClass) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached("getSingletonClassOrNull(context, cachedClass)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
@@ -101,35 +103,37 @@ public abstract class SingletonClassNode extends RubySourceNode {
     }
 
     @Specialization(
+            // no need to guard on the context, the RubyDynamicObject is context-specific
             guards = { "object == cachedObject", "!isRubyClass(cachedObject)" },
             limit = "getIdentityCacheLimit()")
     protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
-            @Cached("getSingletonClassForInstance(object)") RubyClass cachedSingletonClass) {
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached("getSingletonClassForInstance(context, object)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(guards = "!isRubyClass(object)", replaces = "singletonClassInstanceCached")
-    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
-        return getSingletonClassForInstance(object);
+    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return getSingletonClassForInstance(context, object);
     }
 
     private RubyClass noSingletonClass(RubyContext context) {
         throw new RaiseException(context, context.getCoreExceptions().typeErrorCantDefineSingleton(this));
     }
 
-    protected RubyClass getSingletonClassOrNull(RubyClass rubyClass) {
-        return ClassNodes.getSingletonClassOrNull(rubyClass.fields.getContext(), rubyClass);
+    protected RubyClass getSingletonClassOrNull(RubyContext context, RubyClass rubyClass) {
+        return ClassNodes.getSingletonClassOrNull(context, rubyClass);
     }
 
     @TruffleBoundary
-    protected RubyClass getSingletonClassForInstance(RubyDynamicObject object) {
+    protected RubyClass getSingletonClassForInstance(RubyContext context, RubyDynamicObject object) {
         synchronized (object) {
             RubyClass metaClass = object.getMetaClass();
             if (metaClass.isSingleton) {
                 return metaClass;
             }
-            final RubyContext context = metaClass.fields.getContext();
 
             final RubyClass logicalClass = object.getLogicalClass();
 

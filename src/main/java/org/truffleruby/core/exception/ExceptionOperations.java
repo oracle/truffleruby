@@ -51,9 +51,9 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    public static String messageToString(RubyContext context, RubyException exception) {
+    public static String messageToString(RubyException exception) {
         try {
-            final Object messageObject = context.send(exception, "message");
+            final Object messageObject = RubyContext.send(exception, "message");
 
             final RubyStringLibrary libString = RubyStringLibrary.getUncached();
             if (libString.isRubyString(messageObject)) {

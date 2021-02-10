@@ -18,19 +18,17 @@ import org.truffleruby.language.Nil;
  * calling readLine(). */
 public class InputStreamAdapter extends NonBlockingInputStream {
 
-    private final RubyContext context;
     private final RubyIO object;
 
     private int peeked = EOF;
 
-    public InputStreamAdapter(RubyContext context, RubyIO object) {
-        this.context = context;
+    public InputStreamAdapter(RubyIO object) {
         this.object = object;
     }
 
     @Override
     public int read() {
-        final Object result = context.send(object, "getbyte");
+        final Object result = RubyContext.send(object, "getbyte");
 
         if (result == Nil.INSTANCE) {
             return EOF;
