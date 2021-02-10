@@ -104,9 +104,9 @@ public final class HeredocTerm extends StrTerm {
             return error(lexer, nd_lit);
         }
 
-        // Found end marker for this heredoc, on the very first line
+        // Found end marker for this heredoc, at the start of a line
         if (lexer.was_bol() && lexer.whole_match_p(this.nd_lit, indent)) {
-            lexer.heredoc_restore(this);
+            lexer.heredoc_restore(this); // will also skip over the end marker
             lexer.setStrTerm(null);
             lexer.setState(EXPR_END);
             return RubyParser.tSTRING_END;
@@ -173,11 +173,15 @@ public final class HeredocTerm extends StrTerm {
             RopeBuilder tok = new RopeBuilder();
             tok.setEncoding(lexer.getEncoding());
 
-            // TODO why is this needed at the start?
             if (c == '#') {
                 // interpolated variable or block begin
+                // This returns tSTRING_DVAR (if it finds $, @ or @@), tSTRING_DBEG (if it finds '{'), or 0 (none of
+                // these things were found).
                 int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
                 if (token != 0) {
+                    // Emit the token - note that the parser will unset RubyLexer#lex_strTerm while the variable or
+                    // block is being parse and restore it when it is done, allowing the rest of the heredoc to be
+                    // processed.
                     return token;
                 }
                 tok.append('#');
@@ -187,10 +191,12 @@ public final class HeredocTerm extends StrTerm {
             do {
                 lexer.pushback(c);
 
-                Encoding enc[] = new Encoding[1];
+                Encoding[] enc = new Encoding[1];
                 enc[0] = lexer.getEncoding();
 
-                // parse the line into the buffer, as a regular string (with expansion)
+                // Parse the next string segment into the buffer, as a regular string (with expansion).
+                // The segment might terminate because of a newline, line continuation (\\) or because of a
+                // an interpolation (#{...}, #@foo, #$foo, etc).
                 if ((c = new StringTerm(flags, '\0', '\n', lexer.ruby_sourceline)
                         .parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
                     if (lexer.eofp) {
@@ -205,7 +211,7 @@ public final class HeredocTerm extends StrTerm {
                     return RubyParser.tSTRING_CONTENT;
                 }
 
-                // TODO is this a newline?
+                // append the terminating newline
                 tok.append(lexer.nextc());
 
                 if (lexer.getHeredocIndent() > 0) {
@@ -219,6 +225,7 @@ public final class HeredocTerm extends StrTerm {
                 if ((c = lexer.nextc()) == EOF) {
                     return error(lexer, nd_lit);
                 }
+                // NOTE: The end marker is not processed here, but in the next call to HeredocTerm#parseString
             } while (!lexer.whole_match_p(nd_lit, indent));
             str = tok;
         }

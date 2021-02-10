@@ -3455,7 +3455,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /** Sets {@link #heredoc_indent}. Usually used to reset the indent to 0 in the parser after we've finished parsing a
-     * heredoc ({@link RubyParser#tSTRING_END} or {@link RubyParser#tSTRING_DEND} has been seen). */
+     * heredoc ({@link RubyParser#tSTRING_END} has been seen). */
     public void setHeredocIndent(int heredoc_indent) {
         this.heredoc_indent = heredoc_indent;
     }
@@ -3555,18 +3555,29 @@ public class RubyLexer implements MagicCommentHandler {
         buffer.append(bytes);
     }
 
-    /** Updates {@link #heredoc_line_indent} and {@link #heredoc_indent} based on the character {@code c} read on the
-     * current line. If the character is whitespace, increments {@link #heredoc_line_indent} with its width and return
-     * true. If not, sets {@link #heredoc_indent} to {@link #heredoc_line_indent} if line_indent is lesser, sets
-     * {@link #heredoc_line_indent} to -1, and returns false.
+    /** Updates {@link #heredoc_line_indent} and {@link #heredoc_indent} based on the current value of these two
+     * variables and of the character {@code c} read on the current line.
+     *
      * <p>
-     * Further invocations of this after {@link #heredoc_line_indent} has been set to 1 will return false. If {@code c}
-     * is a newline in this case, will reset {@link #heredoc_line_indent} to 0. */
+     * This always returns false if {@link #heredoc_line_indent} is -1, and the only effect to to reset
+     * {@link #heredoc_line_indent} to 0 if if the character is a newline.
+     *
+     * <p>
+     * Otherwise, if the character is a space or a tab, increments {@link #heredoc_line_indent} with its width and
+     * return true. In every other case, false is returned. Refer to the source code for more details.
+     *
+     * <p>
+     * Return false without further actions for newlines.
+     *
+     * <p>
+     * Otherwise, this is the first non-whitespace character, and {@link #heredoc_indent} is set to
+     * {@link #heredoc_line_indent} if the later is smaller. {@link #heredoc_line_indent} is set to -1. */
     public boolean update_heredoc_indent(int c) {
         if (heredoc_line_indent == -1) {
             if (c == '\n') {
                 heredoc_line_indent = 0;
             }
+            return false;
         } else if (c == ' ') {
             heredoc_line_indent++;
             return true;
@@ -3574,14 +3585,15 @@ public class RubyLexer implements MagicCommentHandler {
             int w = (heredoc_line_indent / TAB_WIDTH) + 1;
             heredoc_line_indent = w * TAB_WIDTH;
             return true;
-        } else if (c != '\n') {
+        } else if (c == '\n') {
+            return false;
+        } else {
             if (heredoc_indent > heredoc_line_indent) {
                 heredoc_indent = heredoc_line_indent;
             }
             heredoc_line_indent = -1;
+            return false;
         }
-
-        return false;
     }
 
     public void validateFormalIdentifier(Rope identifier) {
@@ -3633,7 +3645,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /** Indicates whether the current line matches the given marker, after stripping away leading whitespace if
-     * {@code indent} is true. */
+     * {@code indent} is true. Does not advance the input position ({@link #lex_p}). */
     boolean whole_match_p(Rope eos, boolean indent) {
         int len = eos.byteLength();
         int p = lex_pbeg;
