@@ -14,12 +14,6 @@ module TruffleRuby
     ::RUBY_REVISION
   end
 
-  def self.synchronized(object)
-    Truffle::System.synchronized(object) do
-      yield
-    end
-  end
-
   class AtomicReference
 
     def compare_and_set(expected_value, new_value)

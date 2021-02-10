@@ -46,6 +46,8 @@ if Truffle::Boot.preinitializing?
         if path.start_with?(old_home)
           path.replace Truffle::Ropes.flatten_rope(path[old_home.size..-1])
           paths_starting_with_home << path
+        elsif !path.include?('/')
+          # relative path for always provided features like 'ruby2_keywords.rb'
         else
           raise "Path #{path.inspect} in $LOAD_PATH or $LOADED_FEATURES was expected to start with #{old_home}"
         end

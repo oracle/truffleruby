@@ -54,15 +54,12 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
-import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.Platform;
@@ -205,18 +202,6 @@ public abstract class TruffleSystemNodes {
             return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
-    }
-
-    @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)
-    public abstract static class SynchronizedPrimitiveNode extends YieldingCoreMethodNode {
-
-        // We must not allow to synchronize on boxed primitives.
-        @Specialization
-        protected Object synchronize(RubyDynamicObject object, RubyProc block) {
-            synchronized (object) {
-                return yield(block);
-            }
-        }
     }
 
     @CoreMethod(names = "log", onSingleton = true, required = 2)

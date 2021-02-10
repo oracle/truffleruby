@@ -34,6 +34,9 @@ module Truffle
     LOAD_PATH = Truffle::SynchronizedArray.new
     LOADED_FEATURES = Truffle::SynchronizedArray.new
 
+    # Always provided features: ruby --disable-gems -e 'puts $"'
+    LOADED_FEATURES << 'ruby2_keywords.rb'
+
     define_read_only_global(:$LOAD_PATH, -> { LOAD_PATH })
     define_read_only_global(:$LOADED_FEATURES, -> { LOADED_FEATURES })
 

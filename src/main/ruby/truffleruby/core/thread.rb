@@ -135,7 +135,7 @@ class Thread
   end
 
   def freeze
-    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self).freeze }
+    TruffleRuby.synchronized(self) { Primitive.thread_local_variables(self).freeze }
     super
   end
 
@@ -231,7 +231,7 @@ class Thread
     warn 'block supersedes default value argument' if !Primitive.undefined?(default) && block_given?
 
     key = convert_to_local_name(name)
-    Truffle::System.synchronized(self) do
+    TruffleRuby.synchronized(self) do
       locals = Primitive.thread_get_fiber_locals self
       if Primitive.object_ivar_defined? locals, key
         return Primitive.object_ivar_get locals, key
@@ -248,7 +248,7 @@ class Thread
 
   def [](name)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) do
+    TruffleRuby.synchronized(self) do
       locals = Primitive.thread_get_fiber_locals self
       Primitive.object_ivar_get locals, var
     end
@@ -256,7 +256,7 @@ class Thread
 
   def []=(name, value)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) do
+    TruffleRuby.synchronized(self) do
       Primitive.check_frozen self
       locals = Primitive.thread_get_fiber_locals self
       Primitive.object_ivar_set locals, var, value
@@ -265,14 +265,14 @@ class Thread
 
   def key?(name)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) do
+    TruffleRuby.synchronized(self) do
       locals = Primitive.thread_get_fiber_locals self
       Primitive.object_ivar_defined? locals, var
     end
   end
 
   def keys
-    Truffle::System.synchronized(self) do
+    TruffleRuby.synchronized(self) do
       locals = Primitive.thread_get_fiber_locals self
       locals.instance_variables
     end
@@ -282,21 +282,21 @@ class Thread
 
   def thread_variable_get(name)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self)[var] }
+    TruffleRuby.synchronized(self) { Primitive.thread_local_variables(self)[var] }
   end
 
   def thread_variable_set(name, value)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self)[var] = value }
+    TruffleRuby.synchronized(self) { Primitive.thread_local_variables(self)[var] = value }
   end
 
   def thread_variable?(name)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self).key? var }
+    TruffleRuby.synchronized(self) { Primitive.thread_local_variables(self).key? var }
   end
 
   def thread_variables
-    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self).keys }
+    TruffleRuby.synchronized(self) { Primitive.thread_local_variables(self).keys }
   end
 
   def backtrace(omit = 0, length = undefined)
