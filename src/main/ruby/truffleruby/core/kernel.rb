@@ -484,7 +484,7 @@ module Kernel
   end
   module_function :puts
 
-  def rand(limit=nil)
+  def rand(limit = nil)
     randomizer = Primitive.thread_randomizer
     if Primitive.nil?(limit)
       randomizer.random_float

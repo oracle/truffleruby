@@ -179,7 +179,7 @@ module Truffle
         e = check_funcall(range, :end)
         exc = check_funcall(range, :exclude_end?)
         return [false , nil, nil, nil] if Primitive.undefined?(b) || Primitive.undefined?(e) || Primitive.undefined?(exc)
-        [true , b, e, exc]
+        [true, b, e, exc]
       end
     end
 
