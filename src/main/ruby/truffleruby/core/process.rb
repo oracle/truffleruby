@@ -156,7 +156,7 @@ module Process
 
     case id
     when CLOCK_REALTIME
-      time = Primitive.process_time_currenttimemillis * 1_000_000
+      time = Primitive.process_time_currenttimenanos
     when CLOCK_MONOTONIC
       time = Primitive.process_time_nanotime
     else
