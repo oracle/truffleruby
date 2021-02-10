@@ -492,11 +492,11 @@ module Kernel
       Truffle::RandomOperations.rand_range(randomizer, limit)
     else
       max = Primitive.rb_to_int(limit)
-      if max != 0
-        v = Truffle::RandomOperations.rand_int(randomizer, max, false)
-        return v unless Primitive.nil?(v)
+      if max == 0
+        randomizer.random_float
+      else
+        Truffle::RandomOperations.rand_int(randomizer, max, false)
       end
-      randomizer.random_float
     end
   end
   module_function :rand

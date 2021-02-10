@@ -17,7 +17,7 @@ module Truffle
         return randomizer.random_float
       end
 
-      return nil if Primitive.nil?(limit)
+      invalid_argument(limit) if Primitive.nil?(limit)
 
       unless Primitive.object_kind_of?(limit, Float)
         if limit_int = Truffle::Type.rb_check_to_integer(limit, :to_int)
@@ -28,7 +28,7 @@ module Truffle
       limit_float = Truffle::Type.rb_check_to_float(limit)
       if !Primitive.nil?(limit_float)
         if limit_float < 0.0
-          nil
+          invalid_argument(limit)
         else
           check_float(limit_float)
           r = randomizer.random_float
@@ -47,19 +47,14 @@ module Truffle
       value
     end
 
-    def self.check_random_number(value, limit)
-      invalid_argument(limit) if Primitive.nil?(value)
-      value
-    end
-
     def self.invalid_argument(limit)
       raise ArgumentError, "invalid argument - #{limit}"
     end
 
     def self.rand_int(randomizer, limit, restricted)
-      return nil if limit == 0
+      invalid_argument(limit) if limit == 0
       if limit < 0
-        return nil if restricted
+        invalid_argument(limit) if restricted
         limit = -limit
       end
       randomizer.random_integer(limit - 1)
@@ -73,8 +68,11 @@ module Truffle
       if !Primitive.object_kind_of?(diff, Float) &&
         !Primitive.nil?(v = Truffle::Type.rb_check_to_integer(diff, :to_int))
         max = exclude_end ? v - 1 : v
-        v = nil
-        v = randomizer.random_integer(max) if max >= 0
+        if max >= 0
+          v = randomizer.random_integer(max)
+        else
+          invalid_argument(range)
+        end
       elsif !Primitive.nil?(v = Truffle::Type.rb_check_to_float(diff))
         scale = 1
         max = v
@@ -100,7 +98,7 @@ module Truffle
         elsif max == 0.0 && !exclude_end
           v = 0.0
         else
-          v = nil
+          invalid_argument(range)
         end
       end
 
@@ -109,8 +107,6 @@ module Truffle
       end
 
       case v
-      when NilClass
-        v
       when Float
         f = Truffle::Type.rb_check_to_float(b)
         return v + f unless Primitive.nil?(f)

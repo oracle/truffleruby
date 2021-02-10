@@ -67,8 +67,7 @@ class Random
   end
 
   def self.rand(limit = undefined)
-    r = Truffle::RandomOperations.random(Primitive.thread_randomizer, limit)
-    Truffle::RandomOperations.check_random_number(r, limit)
+    Truffle::RandomOperations.random(Primitive.thread_randomizer, limit)
   end
 
   def self.urandom(size)
@@ -89,8 +88,7 @@ class Random
   end
 
   def rand(limit = undefined)
-    r = Truffle::RandomOperations.random(@randomizer, limit)
-    Truffle::RandomOperations.check_random_number(r, limit)
+    Truffle::RandomOperations.random(@randomizer, limit)
   end
 
   def seed
@@ -124,14 +122,12 @@ module Random::Formatter
                    Truffle::CustomRandomizer.new(self)
                  end
 
-    v = Truffle::RandomOperations.random(randomizer, limit, ArgumentError)
-    if v
-      v
-    elsif Primitive.nil?(v)
-      randomizer.random_float
-    else
-      Truffle::RandomOperations.invalid_argument(limit)
+    # Weird case, spec'd for SecureRandom.random_number
+    if Primitive.object_kind_of?(limit, Numeric) and limit <= 0
+      return randomizer.random_float
     end
+
+    Truffle::RandomOperations.random(randomizer, limit, ArgumentError)
   end
   alias_method :rand, :random_number
 end
