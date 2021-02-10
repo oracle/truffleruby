@@ -57,16 +57,16 @@ class Random
     Primitive.thread_randomizer.generate_seed
   end
 
-  def self.srand(seed=undefined)
-    if Primitive.undefined? seed
+  def self.srand(seed = undefined)
+    if Primitive.undefined?(seed)
       seed = Primitive.thread_randomizer.generate_seed
     end
 
-    seed = Truffle::Type.coerce_to seed, Integer, :to_int
-    Primitive.thread_randomizer.swap_seed seed
+    seed = Truffle::Type.coerce_to(seed, Integer, :to_int)
+    Primitive.thread_randomizer.swap_seed(seed)
   end
 
-  def self.rand(limit=undefined)
+  def self.rand(limit = undefined)
     r = Truffle::RandomOperations.random(Primitive.thread_randomizer, limit)
     Truffle::RandomOperations.check_random_number(r, limit)
     r
@@ -82,14 +82,14 @@ class Random
     Primitive.randomizer_bytes(Primitive.thread_randomizer, length)
   end
 
-  def initialize(seed=undefined)
+  def initialize(seed = undefined)
     @randomizer = Truffle::PRNGRandomizer.new
-    if !Primitive.undefined?(seed)
+    unless Primitive.undefined?(seed)
       @randomizer.swap_seed Primitive.rb_to_int(seed)
     end
   end
 
-  def rand(limit=undefined)
+  def rand(limit = undefined)
     r = Truffle::RandomOperations.random(@randomizer, limit)
     Truffle::RandomOperations.check_random_number(r, limit)
     r
@@ -117,7 +117,7 @@ class Random
 end
 
 module Random::Formatter
-  def random_number(limit=undefined)
+  def random_number(limit = undefined)
     randomizer = if Primitive.object_equal(self, Random)
                    Primitive.thread_randomizer
                  elsif defined?(@randomizer)
@@ -128,11 +128,12 @@ module Random::Formatter
 
     v = Truffle::RandomOperations.random(randomizer, limit)
     if Primitive.nil?(v)
-      v = Truffle::RandomOperations.random(randomizer, undefined)
+      randomizer.random_float
     elsif v == false
       Truffle::RandomOperations.invalid_argument(limit)
+    else
+      v
     end
-    v
   end
   alias_method :rand, :random_number
 end

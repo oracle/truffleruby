@@ -20,18 +20,19 @@ module Truffle
       return nil if Primitive.nil?(limit)
 
       unless Primitive.object_kind_of?(limit, Float)
-        limit_converted = Truffle::Type.rb_check_to_integer(limit, :to_int)
-        return rand_int(randomizer, limit_converted, true) if limit_converted
+        if limit_int = Truffle::Type.rb_check_to_integer(limit, :to_int)
+          return rand_int(randomizer, limit_int, true)
+        end
       end
-      limit_converted = Truffle::Type.rb_check_to_float(limit)
 
-      if !Primitive.nil?(limit_converted)
-        if limit_converted < 0.0
+      limit_float = Truffle::Type.rb_check_to_float(limit)
+      if !Primitive.nil?(limit_float)
+        if limit_float < 0.0
           nil
         else
-          check_float(limit_converted)
+          check_float(limit_float)
           r = random_real(randomizer, true)
-          r *= limit_converted if limit_converted > 0.0
+          r *= limit_float if limit_float > 0.0
           r
         end
       elsif Primitive.object_kind_of?(limit, Range)
