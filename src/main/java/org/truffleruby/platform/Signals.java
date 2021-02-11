@@ -9,6 +9,7 @@
  */
 package org.truffleruby.platform;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -33,7 +34,7 @@ public class Signals {
     }
 
     public static boolean restoreDefaultHandler(String signalName) {
-        final SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signalName);
+        final SignalHandler defaultHandler = DEFAULT_HANDLERS.get(signalName);
         if (defaultHandler == null) {
             // it is already the default signal
             return false;
@@ -47,6 +48,12 @@ public class Signals {
     public static void restoreSystemHandler(String signalName) {
         final Signal signal = new Signal(signalName);
         Signal.handle(signal, SignalHandler.SIG_DFL);
+    }
+
+    public static void restoreDefaultHandlers() {
+        for (String signalName : new ArrayList<>(DEFAULT_HANDLERS.keySet())) {
+            restoreDefaultHandler(signalName);
+        }
     }
 
 }

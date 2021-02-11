@@ -78,6 +78,7 @@ import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.options.Options;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
+import org.truffleruby.platform.Signals;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
@@ -517,6 +518,8 @@ public class RubyContext {
 
         threadManager.cleanupMainThread();
         safepointManager.checkNoRunningThreads();
+
+        Signals.restoreDefaultHandlers();
 
         if (options.ROPE_PRINT_INTERN_STATS) {
             RubyLanguage.LOGGER.info("ropes re-used: " + language.ropeCache.getRopesReusedCount());
