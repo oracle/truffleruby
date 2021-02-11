@@ -19,6 +19,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 import sun.misc.Signal;
 
+import java.time.Instant;
+
 @CoreModule(value = "Process", isClass = true)
 public abstract class ProcessNodes {
 
@@ -33,13 +35,14 @@ public abstract class ProcessNodes {
 
     }
 
-    @Primitive(name = "process_time_currenttimemillis")
-    public abstract static class ProcessTimeCurrentTimeMillisNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "process_time_instant")
+    public abstract static class ProcessTimeInstantNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected long currentTimeMillis() {
-            return System.currentTimeMillis();
+        protected long instant() {
+            final Instant now = Instant.now();
+            return (now.getEpochSecond() * 1_000_000_000L) + now.getNano();
         }
 
     }

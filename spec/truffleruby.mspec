@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 require 'rbconfig'
 
 # Inherit from the default configuration
@@ -121,6 +123,10 @@ class MSpecScript
 
   if arm64?
     excludes << 'arm64'
+  end
+
+  if defined?(::TruffleRuby) and Primitive.vm_java_version <= 8
+    excludes << 'java8'
   end
 
   # All specs, excluding specs needing C-extensions support.
