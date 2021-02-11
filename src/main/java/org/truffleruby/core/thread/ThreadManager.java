@@ -534,7 +534,6 @@ public class ThreadManager {
     }
 
     public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
-
         if (Thread.currentThread() == thread) {
             currentThread.set(rubyThread);
         }
@@ -556,6 +555,10 @@ public class ThreadManager {
             currentThread.remove();
         }
         foreignThreadMap.remove(thread);
+
+        if (pthread_self != null) {
+            blockingNativeCallUnblockingAction.remove();
+        }
 
         unblockingActions.remove(thread);
     }
