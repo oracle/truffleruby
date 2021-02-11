@@ -35,12 +35,12 @@ public abstract class ProcessNodes {
 
     }
 
-    @Primitive(name = "process_time_currenttimenanos")
-    public abstract static class ProcessTimeCurrentTimeNanosNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "process_time_instant")
+    public abstract static class ProcessTimeInstantNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected long currentTimeNanos() {
+        protected long instant() {
             final Instant now = Instant.now();
             return (now.getEpochSecond() * 1_000_000_000L) + now.getNano();
         }

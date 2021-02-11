@@ -112,7 +112,8 @@ module Process
                :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
             1_000
           when CLOCK_REALTIME
-            1_000_000
+            # https://bugs.openjdk.java.net/browse/JDK-8068730
+            Primitive.vm_java_version >= 9 ? 1000 : 1_000_000
           when :TIMES_BASED_CLOCK_MONOTONIC,
                :TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID
             10_000_000
@@ -156,7 +157,7 @@ module Process
 
     case id
     when CLOCK_REALTIME
-      time = Primitive.process_time_currenttimenanos
+      time = Primitive.process_time_instant
     when CLOCK_MONOTONIC
       time = Primitive.process_time_nanotime
     else

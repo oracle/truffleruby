@@ -531,4 +531,24 @@ public abstract class VMPrimitiveNodes {
 
     }
 
+    @Primitive(name = "vm_java_version")
+    public abstract static class VMJavaVersionNode extends PrimitiveArrayArgumentsNode {
+
+        private static final int JAVA_SPECIFICATION_VERSION = getJavaSpecificationVersion();
+
+        private static int getJavaSpecificationVersion() {
+            String value = System.getProperty("java.specification.version");
+            if (value.startsWith("1.")) {
+                value = value.substring(2);
+            }
+            return Integer.parseInt(value);
+        }
+
+        @Specialization
+        protected int javaVersion() {
+            return JAVA_SPECIFICATION_VERSION;
+        }
+
+    }
+
 }
