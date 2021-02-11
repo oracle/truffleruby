@@ -489,7 +489,11 @@ module Kernel
     if Primitive.nil?(limit)
       randomizer.random_float
     elsif Primitive.object_kind_of?(limit, Range)
-      Truffle::RandomOperations.rand_range(randomizer, limit)
+      begin
+        Truffle::RandomOperations.rand_range(randomizer, limit)
+      rescue ArgumentError # invalid argument - negative limit
+        nil
+      end
     else
       max = Primitive.rb_to_int(limit)
       if max == 0
