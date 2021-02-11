@@ -1,3 +1,2 @@
-exclude :test_repeated_gen_random, "needs investigation"
-exclude :test_alphanumeric, "needs investigation"
 exclude :test_with_openssl, "needs investigation"
+exclude :test_s_random_number_not_default, "needs to not use default randomizer"

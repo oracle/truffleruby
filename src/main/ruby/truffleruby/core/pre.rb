@@ -73,6 +73,11 @@ class Proc
 end
 
 module Kernel
+  def extend(mod)
+    mod.__send__ :extend_object, self
+    mod.__send__ :extended, self
+    self
+  end
   # Methods from BasicObject with a different name
   alias_method :eql?, :equal?
   alias_method :object_id, :__id__

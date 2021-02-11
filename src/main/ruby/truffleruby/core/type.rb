@@ -233,6 +233,20 @@ module Truffle
       end
     end
 
+    def self.rb_check_to_float(val)
+      return nil if !Primitive.object_kind_of?(val, Numeric)
+      if Primitive.object_kind_of?(val, Float)
+        val
+      else
+        v = convert_type(val, Float, :to_f, false)
+        if Primitive.object_kind_of?(v, Float)
+          v
+        else
+          nil
+        end
+      end
+    end
+
     # Try to coerce obj to cls using meth.
     # Similar to coerce_to but returns nil if conversion fails.
     def self.rb_check_convert_type(obj, cls, meth)

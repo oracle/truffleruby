@@ -1384,6 +1384,17 @@ public abstract class ModuleNodes {
 
     }
 
+    @CoreMethod(names = "extended", required = 1, visibility = Visibility.PRIVATE)
+    public abstract static class ExtendedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object extended(RubyModule module, Object object) {
+            return nil;
+        }
+
+    }
+
+
     @CoreMethod(names = "initialize", needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 

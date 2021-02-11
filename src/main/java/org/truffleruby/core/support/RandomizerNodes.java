@@ -33,156 +33,20 @@
  */
 package org.truffleruby.core.support;
 
-import java.math.BigInteger;
-
-import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.algorithms.Randomizer;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.numeric.BigIntegerOps;
-import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.language.Visibility;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.numeric.RubyBignum;
+
+import java.math.BigInteger;
 
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
-
-    public static RubyRandomizer newRandomizer(RubyContext context, RubyLanguage language, boolean threadSafe) {
-        final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
-        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
-        return new RubyRandomizer(
-                context.getCoreLibrary().randomizerClass,
-                language.randomizerShape,
-                randomizer,
-                threadSafe);
-    }
-
-    public static void resetSeed(RubyContext context, RubyRandomizer random) {
-        final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
-        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
-        random.setRandomizer(randomizer);
-    }
-
-    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public static abstract class AllocateNode extends UnaryCoreMethodNode {
-
-        @Specialization
-        protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
-            // Since this is a manually-created Truffle::Randomizer instance that can be shared by multiple threads,
-            // we enable thread-safe mode in the Randomizer.
-            final boolean threadSafe = true;
-
-            return new RubyRandomizer(
-                    coreLibrary().randomizerClass,
-                    getLanguage().randomizerShape,
-                    new Randomizer(),
-                    threadSafe);
-        }
-
-    }
-
-    @CoreMethod(names = "seed")
-    public static abstract class RandomizerSeedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object seed(RubyRandomizer randomizer) {
-            return randomizer.getSeed();
-        }
-
-    }
-
-    @CoreMethod(names = "seed=", required = 1)
-    public static abstract class RandomizerSetSeedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected RubyRandomizer setSeed(RubyRandomizer randomizer, long seed) {
-            randomizer.setRandomizer(randomFromLong(seed));
-            return randomizer;
-        }
-
-        @Specialization
-        protected RubyRandomizer setSeed(RubyRandomizer randomizer, RubyBignum seed) {
-            randomizer.setRandomizer(randomFromBignum(seed));
-            return randomizer;
-        }
-
-        @TruffleBoundary
-        static Randomizer randomFromLong(long seed) {
-            long v = Math.abs(seed);
-            if (v == (v & 0xffffffffL)) {
-                return new Randomizer(seed, (int) v);
-            } else {
-                int[] ints = new int[2];
-                ints[0] = (int) v;
-                ints[1] = (int) (v >> 32);
-                return new Randomizer(seed, ints);
-            }
-        }
-
-        private static final int N = 624;
-
-        @TruffleBoundary
-        static Randomizer randomFromBignum(RubyBignum seed) {
-            BigInteger big = seed.value;
-            if (big.signum() < 0) {
-                big = big.abs();
-            }
-            byte[] buf = big.toByteArray();
-            int buflen = buf.length;
-            if (buf[0] == 0) {
-                buflen -= 1;
-            }
-            int len = Math.min((buflen + 3) / 4, N);
-            int[] ints = bigEndianToInts(buf, len);
-            if (len <= 1) {
-                return new Randomizer(seed, ints[0]);
-            } else {
-                return new Randomizer(seed, ints);
-            }
-        }
-
-        private static int[] bigEndianToInts(byte[] buf, int initKeyLen) {
-            int[] initKey = new int[initKeyLen];
-            for (int idx = 0; idx < initKey.length; ++idx) {
-                initKey[idx] = getIntBigIntegerBuffer(buf, idx);
-            }
-            return initKey;
-        }
-
-        static int getIntBigIntegerBuffer(byte[] src, int loc) {
-            int v = 0;
-            int idx = src.length - loc * 4 - 1;
-            if (idx >= 0) {
-                v |= (src[idx--] & 0xff);
-                if (idx >= 0) {
-                    v |= (src[idx--] & 0xff) << 8;
-                    if (idx >= 0) {
-                        v |= (src[idx--] & 0xff) << 16;
-                        if (idx >= 0) {
-                            v |= (src[idx--] & 0xff) << 24;
-                        }
-                    }
-                }
-            }
-            return v;
-        }
-
-    }
 
     // Generate a random Float, in the range 0...1.0
     @CoreMethod(names = "random_float")
@@ -190,10 +54,11 @@ public abstract class RandomizerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected double randomFloat(RubyRandomizer randomizer) {
+        protected double randomFloat(RubyRandomizer randomizer,
+                @Cached GetRandomIntNode getRandomIntNode) {
             // Logic copied from org.jruby.util.Random
-            final int a = randomizer.genrandInt32() >>> 5;
-            final int b = randomizer.genrandInt32() >>> 6;
+            final int a = getRandomIntNode.execute(randomizer) >>> 5;
+            final int b = getRandomIntNode.execute(randomizer) >>> 6;
             return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
         }
 
@@ -202,6 +67,8 @@ public abstract class RandomizerNodes {
     // Generate a random Integer, in the range 0...limit
     @CoreMethod(names = "random_integer", required = 1)
     public static abstract class RandomIntNode extends CoreMethodArrayArgumentsNode {
+
+        @Child GetRandomIntNode getRandomIntNode = GetRandomIntNode.create();
 
         @Specialization
         protected int randomizerRandInt(RubyRandomizer randomizer, int limit) {
@@ -220,7 +87,7 @@ public abstract class RandomizerNodes {
         }
 
         @TruffleBoundary
-        public static long randLimitedFixnumInner(RubyRandomizer randomizer, long limit) {
+        public long randLimitedFixnumInner(RubyRandomizer randomizer, long limit) {
             long val;
             if (limit == 0) {
                 val = 0;
@@ -231,7 +98,7 @@ public abstract class RandomizerNodes {
                     val = 0;
                     for (int i = 1; 0 <= i; --i) {
                         if (((mask >>> (i * 32)) & 0xffffffffL) != 0) {
-                            val |= (randomizer.genrandInt32() & 0xffffffffL) << (i * 32);
+                            val |= (getRandomIntNode.execute(randomizer) & 0xffffffffL) << (i * 32);
                             val &= mask;
                         }
                         if (limit < val) {
@@ -245,7 +112,7 @@ public abstract class RandomizerNodes {
         }
 
         @TruffleBoundary
-        private static BigInteger randLimitedBignum(RubyRandomizer randomizer, BigInteger limit) {
+        private BigInteger randLimitedBignum(RubyRandomizer randomizer, BigInteger limit) {
             byte[] buf = BigIntegerOps.toByteArray(limit);
             byte[] bytes = new byte[buf.length];
             int len = (buf.length + 3) / 4;
@@ -258,7 +125,7 @@ public abstract class RandomizerNodes {
                     mask = (mask != 0) ? 0xffffffffL : makeMask(lim);
                     long rnd;
                     if (mask != 0) {
-                        rnd = (randomizer.genrandInt32() & 0xffffffffL) & mask;
+                        rnd = (getRandomIntNode.execute(randomizer) & 0xffffffffL) & mask;
                         if (boundary) {
                             if (lim < rnd) {
                                 continue retry;
@@ -323,51 +190,5 @@ public abstract class RandomizerNodes {
 
     }
 
-    @CoreMethod(names = "generate_seed", needsSelf = false)
-    public static abstract class RandomizerGenSeedNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected RubyBignum generateSeed() {
-            return randomSeedBignum(getContext());
-        }
-
-        private static final int DEFAULT_SEED_CNT = 4;
-
-        @TruffleBoundary
-        public static RubyBignum randomSeedBignum(RubyContext context) {
-            byte[] seed = context.getRandomSeedBytes(DEFAULT_SEED_CNT * 4);
-            final BigInteger bigInteger = new BigInteger(seed).abs();
-            return BignumOperations.createBignum(bigInteger);
-        }
-
-    }
-
-    @Primitive(name = "randomizer_bytes", lowerFixnum = 1)
-    public static abstract class RandomizerBytesPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyString genRandBytes(RubyRandomizer randomizer, int length,
-                @Cached MakeStringNode makeStringNode) {
-            final byte[] bytes = new byte[length];
-            int idx = 0;
-            for (; length >= 4; length -= 4) {
-                int r = randomizer.genrandInt32();
-                for (int i = 0; i < 4; ++i) {
-                    bytes[idx++] = (byte) (r & 0xff);
-                    r >>>= 8;
-                }
-            }
-            if (length > 0) {
-                int r = randomizer.genrandInt32();
-                for (int i = 0; i < length; ++i) {
-                    bytes[idx++] = (byte) (r & 0xff);
-                    r >>>= 8;
-                }
-            }
-
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-    }
 
 }

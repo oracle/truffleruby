@@ -11,12 +11,11 @@ package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.RubyDynamicObject;
 
-public abstract class RubyRandomizer extends RubyDynamicObject {
+public class RubyCustomRandomizer extends RubyRandomizer {
 
-    public RubyRandomizer(RubyClass metaClass, Shape shape) {
-        super(metaClass, shape);
+    public RubyCustomRandomizer(RubyClass rubyClass, Shape shape) {
+        super(rubyClass, shape);
     }
 
 }

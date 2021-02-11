@@ -27,8 +27,8 @@ import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.support.RandomizerNodes;
-import org.truffleruby.core.support.RubyRandomizer;
+import org.truffleruby.core.support.PRNGRandomizerNodes;
+import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -51,7 +51,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     final RubyHash threadLocalVariables;
     final RubyHash recursiveObjects;
     final RubyHash recursiveObjectsSingle;
-    final RubyRandomizer randomizer;
+    final RubyPRNGRandomizer randomizer;
     public final TracePointState tracePointState = new TracePointState();
     boolean reportOnException;
     boolean abortOnException;
@@ -82,7 +82,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         this.recursiveObjectsSingle = HashOperations.newEmptyHash(context, language);
         this.recursiveObjectsSingle.compareByIdentity = true;
         // This random instance is only for this thread and thus does not need to be thread-safe
-        this.randomizer = RandomizerNodes.newRandomizer(context, language, false);
+        this.randomizer = PRNGRandomizerNodes.newRandomizer(context, language, false);
         this.reportOnException = reportOnException;
         this.abortOnException = abortOnException;
         this.threadGroup = threadGroup;

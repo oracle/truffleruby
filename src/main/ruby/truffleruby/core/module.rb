@@ -61,9 +61,6 @@ class Module
     ancestors.any? { |m| mod.equal?(m) }
   end
 
-  private def extended(name)
-  end
-
   private def method_added(name)
   end
 

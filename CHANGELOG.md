@@ -51,6 +51,7 @@ Compatibility:
 * Coerce the inherit argument to a boolean in `Module#const_defined?` and `Module#const_get` (#2240).
 * Refinements take place at `Object#method` and `Module#instance_method` (#2004, @ssnickolay).
 * Add support for `rb_scan_args_kw` in C API (#2244, @LillianZ).
+* Update random implementation layout to be more compatible (#2234).
 
 Performance:
 

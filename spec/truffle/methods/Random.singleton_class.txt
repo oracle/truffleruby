@@ -1,0 +1,5 @@
+bytes
+new_seed
+rand
+srand
+urandom
