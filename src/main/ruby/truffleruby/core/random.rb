@@ -67,7 +67,7 @@ class Random
   end
 
   def self.rand(limit = undefined)
-    Truffle::RandomOperations.random(Primitive.thread_randomizer, limit)
+    Truffle::RandomOperations.random(Primitive.thread_randomizer, limit, TypeError)
   end
 
   def self.urandom(size)
@@ -88,7 +88,7 @@ class Random
   end
 
   def rand(limit = undefined)
-    Truffle::RandomOperations.random(@randomizer, limit)
+    Truffle::RandomOperations.random(@randomizer, limit, TypeError)
   end
 
   def seed

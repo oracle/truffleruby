@@ -12,7 +12,7 @@ module Truffle
   module RandomOperations
 
     # MRI: rand_random
-    def self.random(randomizer, limit, error = TypeError)
+    def self.random(randomizer, limit, error)
       if Primitive.undefined?(limit)
         return randomizer.random_float
       end
