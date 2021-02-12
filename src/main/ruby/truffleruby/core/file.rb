@@ -56,6 +56,9 @@ class File < IO
     F_DUPFD_CLOEXEC = Truffle::Config['platform.fcntl.F_DUPFD_CLOEXEC']
     FD_CLOEXEC = Truffle::Config['platform.fcntl.FD_CLOEXEC']
 
+    # These constants are copied from lib/cext/include/ruby/io.h and
+    # are used to help ensure that the flags set in IO modes in C and
+    # Ruby use the same values.
     FMODE_READABLE = 0x00000001
     FMODE_WRITABLE = 0x00000002
     FMODE_READWRITE = (FMODE_READABLE|FMODE_WRITABLE)
