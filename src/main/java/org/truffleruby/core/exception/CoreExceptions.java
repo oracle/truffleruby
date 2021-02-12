@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.EnumSet;
 
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
@@ -22,6 +23,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -90,11 +92,16 @@ public class CoreExceptions {
             if (backtrace != null && backtrace.getStackTrace().length > 0) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
-            Object stderr = context.getCoreLibrary().getStderr();
-            String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
-            RubyString outputString = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
-            RubyContext.send(stderr, "write", outputString);
+            final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
+            if (context.getCoreLibrary().isLoaded()) {
+                RubyString outputString = StringOperations
+                        .createString(context, language, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
+                Object stderr = context.getCoreLibrary().getStderr();
+                RubyContext.send(stderr, "write", outputString);
+            } else {
+                final PrintStream printStream = BacktraceFormatter.printStreamFor(context.getEnv().err());
+                printStream.println(output);
+            }
         }
     }
 
@@ -316,20 +323,17 @@ public class CoreExceptions {
     // SystemStackError
 
     @TruffleBoundary
-    public RubyException systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
-        RubyClass exceptionClass = context.getCoreLibrary().systemStackErrorClass;
-        StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
-        String topOfTheStack = stackTrace.length > 0
+    public RubyException systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable,
+            boolean showExceptionIfDebug) {
+        final StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
+        final String topOfTheStack = stackTrace.length > 0
                 ? BacktraceFormatter.formatJava(stackTrace[0])
                 : "<empty Java stacktrace>";
         final String message = coreStrings().STACK_LEVEL_TOO_DEEP + "\n\tfrom " + topOfTheStack;
-        return ExceptionOperations.createRubyException(
-                context,
-                exceptionClass,
-                StringOperations
-                        .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                currentNode,
-                javaThrowable);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 0, javaThrowable);
+        final RubyString messageString = StringOperations
+                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createSystemStackError(context, messageString, backtrace, showExceptionIfDebug);
     }
 
     // NoMemoryError
@@ -794,25 +798,56 @@ public class CoreExceptions {
                 language.getSymbol(name));
     }
 
-    public RubyNameError nameErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
+    @TruffleBoundary
+    public RubyNameError nameErrorFromMethodMissing(ExceptionFormatter formatter, Object receiver, String name,
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
+
+        final RubyProc formatterProc = formatter.getProc(context);
+        final String message = formatter.getMessage(formatterProc, name, receiver);
+
         final RubyNameError exception = new RubyNameError(
                 context.getCoreLibrary().nameErrorClass,
                 language.nameErrorShape,
-                null,
+                message,
                 backtrace,
                 cause,
                 receiver,
                 language.getSymbol(name));
-        exception.formatter = formatter;
+        exception.formatter = formatterProc;
         showExceptionIfDebug(exception, backtrace);
         return exception;
     }
 
     // NoMethodError
+
+    @TruffleBoundary
+    public RubyNoMethodError noMethodErrorFromMethodMissing(ExceptionFormatter formatter, Object receiver, String name,
+            Object[] args, Node currentNode) {
+        final RubyArray argsArray = createArray(context, language, args);
+
+        // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
+
+        final RubyProc formatterProc = formatter.getProc(context);
+        final String message = formatter.getMessage(formatterProc, name, receiver);
+
+        final RubyNoMethodError exception = new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorClass,
+                language.noMethodErrorShape,
+                message,
+                backtrace,
+                cause,
+                receiver,
+                language.getSymbol(name),
+                argsArray);
+        exception.formatter = formatterProc;
+        showExceptionIfDebug(exception, backtrace);
+        return exception;
+    }
 
     public RubyNoMethodError noMethodError(String message, Object receiver, String name, Object[] args,
             Node currentNode) {
@@ -832,27 +867,6 @@ public class CoreExceptions {
                 receiver,
                 language.getSymbol(name),
                 argsArray);
-    }
-
-    public RubyNoMethodError noMethodErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
-            Object[] args, Node currentNode) {
-        final RubyArray argsArray = createArray(context, language, args);
-
-        // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
-        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final Object cause = ThreadGetExceptionNode.getLastException(context);
-        final RubyNoMethodError exception = new RubyNoMethodError(
-                context.getCoreLibrary().noMethodErrorClass,
-                language.noMethodErrorShape,
-                null,
-                backtrace,
-                cause,
-                receiver,
-                language.getSymbol(name),
-                argsArray);
-        exception.formatter = formatter;
-        showExceptionIfDebug(exception, backtrace);
-        return exception;
     }
 
     @TruffleBoundary

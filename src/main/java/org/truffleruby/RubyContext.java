@@ -45,6 +45,7 @@ import org.truffleruby.core.hash.PreInitializationManager;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
 import org.truffleruby.core.kernel.AtExitManager;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -58,7 +59,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -235,17 +235,13 @@ public class RubyContext {
         coverageManager = new CoverageManager(this, instrumenter);
         Metrics.printTime("after-instruments");
 
-        // Initialize RaiseException eagerly so StackOverflowError is correctly handled and does not become
-        // NoClassDefFoundError: Could not initialize class org.truffleruby.language.control.RaiseException
-        Pointer.UNSAFE.ensureClassInitialized(RaiseException.class);
-
         Metrics.printTime("after-context-constructor");
     }
 
     public void initialize() {
         assert !initialized : "Already initialized";
-        // Load the nodes
 
+        // Load the nodes
         Metrics.printTime("before-load-nodes");
         coreLibrary.loadCoreNodes();
         Metrics.printTime("after-load-nodes");
@@ -438,24 +434,36 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public static Object send(Object object, String methodName, Object... arguments) {
+    public static Object send(Object receiver, String methodName, Object... arguments) {
         final InternalMethod method = ModuleOperations
-                .lookupMethodUncached(MetaClassNode.getUncached().execute(object), methodName, null);
+                .lookupMethodUncached(MetaClassNode.getUncached().execute(receiver), methodName, null);
         if (method == null || method.isUndefined()) {
-            return null;
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            final String message = String.format(
+                    "undefined method `%s' for %s when using RubyContext#send() which ignores #method_missing",
+                    methodName,
+                    KernelNodes.ToSNode.uncachedBasicToS(receiver));
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().noMethodError(
+                            message,
+                            receiver,
+                            methodName,
+                            arguments,
+                            EncapsulatingNodeReference.getCurrent().get()));
         }
 
         return IndirectCallNode.getUncached().call(
                 method.getCallTarget(),
-                RubyArguments.pack(null, null, method, null, object, Nil.INSTANCE, arguments));
+                RubyArguments.pack(null, null, method, null, receiver, Nil.INSTANCE, arguments));
     }
 
     @TruffleBoundary
-    public static Object send(Node currentNode, Object object, String methodName, Object... arguments) {
+    public static Object send(Node currentNode, Object receiver, String methodName, Object... arguments) {
         final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
         final Node prev = callNodeRef.set(currentNode);
         try {
-            return send(object, methodName, arguments);
+            return send(receiver, methodName, arguments);
         } finally {
             callNodeRef.set(prev);
         }

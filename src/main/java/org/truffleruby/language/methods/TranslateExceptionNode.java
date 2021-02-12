@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.VMPrimitiveNodes.InitStackOverflowClassesEagerlyNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.hash.RubyHash;
@@ -138,13 +139,17 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
     @TruffleBoundary
     private RubyException translateStackOverflow(RubyContext context, StackOverflowError error) {
-        if (context.getOptions().EXCEPTIONS_WARN_STACKOVERFLOW) {
-            // We cannot afford to initialize the Log class
-            System.err.print("[ruby] WARNING StackOverflowError\n");
+        boolean ignore = InitStackOverflowClassesEagerlyNode.ignore(error);
+        if (!ignore) {
+            if (context.getOptions().EXCEPTIONS_WARN_STACKOVERFLOW) {
+                // We cannot afford to initialize the Log class
+                System.err.print("[ruby] WARNING StackOverflowError\n");
+            }
+
+            logJavaException(context, this, error);
         }
 
-        logJavaException(context, this, error);
-        return context.getCoreExceptions().systemStackErrorStackLevelTooDeep(this, error);
+        return context.getCoreExceptions().systemStackErrorStackLevelTooDeep(this, error, !ignore);
     }
 
     @TruffleBoundary

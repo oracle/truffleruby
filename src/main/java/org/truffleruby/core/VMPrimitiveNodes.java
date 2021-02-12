@@ -40,6 +40,7 @@ package org.truffleruby.core;
 import java.io.PrintStream;
 import java.util.Map.Entry;
 
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -518,6 +519,25 @@ public abstract class VMPrimitiveNodes {
             return Hashing.end(hash);
         }
 
+    }
+
+    /** Initialize RaiseException, StackOverflowError and related classes eagerly, so StackOverflowError is correctly
+     * handled and does not become, e.g., NoClassDefFoundError: Could not initialize class SomeExceptionRelatedClass */
+    @Primitive(name = "vm_stack_overflow_error_to_init_classes")
+    public abstract static class InitStackOverflowClassesEagerlyNode extends PrimitiveArrayArgumentsNode {
+
+        private static final String MESSAGE = "initStackOverflowClassesEagerly";
+
+        public static boolean ignore(StackOverflowError e) {
+            return e.getMessage() == MESSAGE;
+        }
+
+        @Specialization
+        protected Object initStackOverflowClassesEagerly() {
+            final StackOverflowError stackOverflowError = new StackOverflowError("initStackOverflowClassesEagerly");
+            TruffleStackTrace.fillIn(stackOverflowError);
+            throw stackOverflowError;
+        }
     }
 
     @Primitive(name = "should_not_reach_here")

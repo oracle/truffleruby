@@ -11,11 +11,14 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -25,11 +28,45 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 public abstract class ExceptionOperations {
 
-    public static final String SUPER_METHOD_ERROR = "SUPER_METHOD_ERROR";
-    public static final String PROTECTED_METHOD_ERROR = "PROTECTED_METHOD_ERROR";
-    public static final String PRIVATE_METHOD_ERROR = "PRIVATE_METHOD_ERROR";
-    public static final String NO_METHOD_ERROR = "NO_METHOD_ERROR";
-    public static final String NO_LOCAL_VARIABLE_OR_METHOD_ERROR = "NO_LOCAL_VARIABLE_OR_METHOD_ERROR";
+    public enum ExceptionFormatter {
+        // These patterns must all have 2 %s, for the method name and for the receiver string.
+        SUPER_METHOD_ERROR("super: no superclass method `%s' for %s"),
+        PROTECTED_METHOD_ERROR("protected method `%s' called for %s"),
+        PRIVATE_METHOD_ERROR("private method `%s' called for %s"),
+        NO_METHOD_ERROR("undefined method `%s' for %s"),
+        NO_LOCAL_VARIABLE_OR_METHOD_ERROR("undefined local variable or method `%s' for %s");
+
+        private final String fallbackFormat;
+
+        ExceptionFormatter(String fallbackFormat) {
+            this.fallbackFormat = fallbackFormat;
+        }
+
+        @TruffleBoundary
+        public RubyProc getProc(RubyContext context) {
+            final RubyModule truffleExceptionOperations = context.getCoreLibrary().truffleExceptionOperationsModule;
+            final RubyConstant constant = truffleExceptionOperations.fields.getConstant(name());
+            if (constant == null) { // core/truffle/exception_operations.rb not yet loaded
+                return null;
+            } else {
+                return (RubyProc) constant.getValue();
+            }
+        }
+
+        @TruffleBoundary
+        public String getMessage(RubyProc formatterProc, String methodName, Object receiver) {
+            if (formatterProc != null) {
+                return null;
+            } else {
+                return getFallbackMessage(methodName, receiver);
+            }
+        }
+
+        private String getFallbackMessage(String methodName, Object receiver) {
+            return String.format(fallbackFormat, methodName, KernelNodes.ToSNode.uncachedBasicToS(receiver)) +
+                    " (could not find formatter " + name() + ")";
+        }
+    }
 
     @TruffleBoundary
     public static String getMessage(Throwable throwable) {
@@ -81,16 +118,24 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
+    public static RubyException createSystemStackError(RubyContext context, Object message, Backtrace backtrace,
+            boolean showExceptionIfDebug) {
+        final RubyClass rubyClass = context.getCoreLibrary().systemStackErrorClass;
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        if (showExceptionIfDebug) {
+            context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
+        }
+        final Shape shape = context.getLanguageSlow().exceptionShape;
+        return new RubyException(rubyClass, shape, message, backtrace, cause);
+    }
+
+    @TruffleBoundary
     public static RubySystemCallError createSystemCallError(RubyContext context, RubyClass rubyClass,
             Object message, int errno, Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         final Shape shape = context.getLanguageSlow().systemCallErrorShape;
         return new RubySystemCallError(rubyClass, shape, message, backtrace, cause, errno);
-    }
-
-    public static RubyProc getFormatter(String name, RubyContext context) {
-        return (RubyProc) context.getCoreLibrary().truffleExceptionOperationsModule.fields.getConstant(name).getValue();
     }
 
     /** @see org.truffleruby.cext.CExtNodes.RaiseExceptionNode */

@@ -1996,6 +1996,15 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
+        public static String uncachedBasicToS(Object self) {
+            String className = LogicalClassNode.getUncached().execute(self).fields.getName();
+            Object id = ObjectIDNode.getUncached().execute(self);
+            String hexID = ToHexStringNode.getUncached().executeToHexString(id);
+
+            return "#<" + className + ":0x" + hexID + ">";
+        }
+
+        @TruffleBoundary
         public static String uncachedBasicToS(RubyDynamicObject self) {
             String className = self.getLogicalClass().fields.getName();
             long id = ObjectIDNode.getUncached().execute(self);
