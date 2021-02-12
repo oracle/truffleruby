@@ -793,7 +793,7 @@ class IO
 
   def self.translate_fmode_to_omode(f_mode)
     omode = 0
-    if f_mode & FMODE_WRITABLE != 0 && f_mode & FMODE_READABLE != 0
+    if f_mode & FMODE_READWRITE == FMODE_READWRITE
       omode |= RDWR
     elsif f_mode & FMODE_READABLE != 0
       omode |= RDONLY
@@ -2217,7 +2217,7 @@ class IO
     when String
       @external = nil
     when nil
-      if (@mode & FMODE_READABLE != 0) && (@mode & FMODE_WRITABLE == 0) || @external
+      if (@mode & FMODE_READWRITE == FMODE_READABLE) || @external
         @external = nil
       else
         @external = Encoding.default_external
