@@ -1697,14 +1697,6 @@ module Truffle::CExt
     end
   end
 
-  def rb_tr_readable(mode)
-    mode & File::Constants::FMODE_READABLE != 0
-  end
-
-  def rb_tr_writable(mode)
-    mode & File::Constants::FMODE_WRITABLE != 0
-  end
-
   def rb_backref_get
     Primitive.regexp_last_match_get(Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]))
   end
