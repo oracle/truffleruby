@@ -25,7 +25,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNode
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.inlined.InlinedMethodNode;
@@ -512,8 +512,7 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private RubyException buildMethodMissingException(Object self, Object nameObject, Object[] args,
-                Object block) {
+        private RubyException buildMethodMissingException(Object self, Object nameObject, Object[] args, Object block) {
             final String name;
             if (nameObject instanceof RubySymbol) {
                 name = ((RubySymbol) nameObject).getString();
@@ -523,30 +522,37 @@ public abstract class BasicObjectNodes {
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
 
-            final RubyProc formatter;
             if (lastCallWasSuper(relevantCallerFrame)) {
-                formatter = ExceptionOperations.getFormatter(ExceptionOperations.SUPER_METHOD_ERROR, getContext());
-                return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
+                return coreExceptions()
+                        .noMethodErrorFromMethodMissing(ExceptionFormatter.SUPER_METHOD_ERROR, self, name, args, this);
             } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(
                     self,
                     name,
                     relevantCallerFrame)) != null) {
                 if (visibility == Visibility.PRIVATE) {
-                    formatter = ExceptionOperations
-                            .getFormatter(ExceptionOperations.PRIVATE_METHOD_ERROR, getContext());
-                    return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
+                    return coreExceptions().noMethodErrorFromMethodMissing(
+                            ExceptionFormatter.PRIVATE_METHOD_ERROR,
+                            self,
+                            name,
+                            args,
+                            this);
                 } else {
-                    formatter = ExceptionOperations
-                            .getFormatter(ExceptionOperations.PROTECTED_METHOD_ERROR, getContext());
-                    return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
+                    return coreExceptions().noMethodErrorFromMethodMissing(
+                            ExceptionFormatter.PROTECTED_METHOD_ERROR,
+                            self,
+                            name,
+                            args,
+                            this);
                 }
             } else if (lastCallWasVCall(relevantCallerFrame)) {
-                formatter = ExceptionOperations
-                        .getFormatter(ExceptionOperations.NO_LOCAL_VARIABLE_OR_METHOD_ERROR, getContext());
-                return coreExceptions().nameErrorFromMethodMissing(formatter, self, name, this);
+                return coreExceptions().nameErrorFromMethodMissing(
+                        ExceptionFormatter.NO_LOCAL_VARIABLE_OR_METHOD_ERROR,
+                        self,
+                        name,
+                        this);
             } else {
-                formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
-                return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
+                return coreExceptions()
+                        .noMethodErrorFromMethodMissing(ExceptionFormatter.NO_METHOD_ERROR, self, name, args, this);
             }
         }
 

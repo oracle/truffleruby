@@ -19,7 +19,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToSymbolNode;
-import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.exception.ExceptionOperations.ExceptionFormatter;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -148,10 +148,8 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         if (result == MISSING) {
             methodMissingMissing.enter();
-            final RubyProc formatter = ExceptionOperations
-                    .getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
             throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
-                    formatter,
+                    ExceptionFormatter.NO_METHOD_ERROR,
                     receiver,
                     methodName,
                     arguments,
