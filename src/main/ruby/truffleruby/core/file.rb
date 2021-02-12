@@ -1298,7 +1298,13 @@ class File < IO
   end
 end     # File
 
-# Inject the constants into IO
+# Inject the constants into IO and IOOperations
 class IO
   include File::Constants
+end
+
+module Truffle
+  module IOOperations
+    include File::Constants
+  end
 end

@@ -706,119 +706,6 @@ class IO
     end
   end
 
-  def self.parse_mode(mode)
-    return mode if Primitive.object_kind_of? mode, Integer
-
-    mode = StringValue(mode)
-
-    ret = CLOEXEC
-
-    case mode[0]
-    when ?r
-      ret |= RDONLY
-    when ?w
-      ret |= WRONLY | CREAT | TRUNC
-    when ?a
-      ret |= WRONLY | CREAT | APPEND
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 1
-
-    case mode[1]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    when ?t
-      ret &= ~BINARY
-    when ?:
-      return ret
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 2
-
-    case mode[2]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    when ?t
-      ret &= ~BINARY
-    when ?:
-      return ret
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    ret
-  end
-
-  # The constants used to express a mode for the opening of files are
-  # different to the fmode constants used to express the mode of an
-  # opened file used by C extensions. Thus we will need to translate
-  # from the o_mode to the fmode and vice versa.
-  def self.translate_omode_to_fmode(o_mode)
-    fmode = 0
-    if (o_mode & WRONLY != 0)
-      fmode |= FMODE_WRITABLE
-    elsif (o_mode & RDWR != 0)
-      fmode |= FMODE_READWRITE
-    else
-      fmode |= FMODE_READABLE
-    end
-
-    if (o_mode & CREAT != 0)
-      fmode |= FMODE_CREATE
-    end
-
-    if (o_mode & TRUNC != 0)
-      fmode |= FMODE_TRUNC
-    end
-
-    if (o_mode & APPEND != 0)
-      fmode |= FMODE_APPEND
-    end
-
-    if (o_mode & BINARY != 0)
-      fmode |= FMODE_BINMODE
-    end
-    fmode
-  end
-
-  def self.translate_fmode_to_omode(f_mode)
-    omode = 0
-    if f_mode & FMODE_READWRITE == FMODE_READWRITE
-      omode |= RDWR
-    elsif f_mode & FMODE_READABLE != 0
-      omode |= RDONLY
-    else
-      omode |= WRONLY
-    end
-
-    if (f_mode & FMODE_CREATE != 0)
-      omode |= CREAT
-    end
-
-    if (f_mode & FMODE_TRUNC != 0)
-      omode |= TRUNC
-    end
-
-    if (f_mode & FMODE_APPEND != 0)
-      omode |= APPEND
-    end
-
-    if (f_mode & FMODE_BINMODE != 0)
-      omode |= BINARY
-    end
-    omode
-  end
-
   def self.pipe(external = nil, internal = nil, options = nil)
     lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal, options)
 
@@ -862,7 +749,7 @@ class IO
     end
 
     mode, binary, external, internal, _autoclose, _perm = IO.normalize_options(mode, nil, io_options)
-    mode_int = parse_mode mode
+    mode_int = Truffle::IOOperations.parse_mode mode
 
     readable = false
     writable = false
@@ -1024,7 +911,7 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = nil, perm = nil)
     path = Truffle::Type.coerce_to_path path
-    mode = parse_mode(mode || 'r')
+    mode = Truffle::IOOperations.parse_mode(mode || 'r')
     perm ||= 0666
 
     fd = Truffle::POSIX.open(path, mode, perm)
@@ -1048,7 +935,7 @@ class IO
     end
 
     if mode
-      mode = parse_mode(mode)
+      mode = Truffle::IOOperations.parse_mode(mode)
       mode &= ACCMODE
 
       if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
@@ -1062,7 +949,7 @@ class IO
     io.close if Primitive.io_fd(io) != -1
 
     Primitive.io_set_fd(io, fd)
-    io.instance_variable_set :@mode, translate_omode_to_fmode(mode)
+    io.instance_variable_set :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
     io.sync = Primitive.as_boolean(sync)
     io.autoclose  = true
     ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
@@ -1571,7 +1458,7 @@ class IO
   end
 
   def external_encoding
-    if @mode & FMODE_READWRITE == FMODE_READABLE
+    if @mode & FMODE_WRITABLE == 0
       @external || Encoding.default_external
     else
       @external
@@ -2138,9 +2025,9 @@ class IO
         if (mode & FMODE_WRITABLE != 0)
           mode |= FMODE_CREATE
         end
-        mode = IO.translate_fmode_to_omode(mode)
+        mode = Truffle::IOOperations.translate_fmode_to_omode(mode)
       else
-        mode = IO.parse_mode(mode)
+        mode = Truffle::IOOperations.parse_mode(mode)
       end
 
       path = Truffle::Type.coerce_to_path(other)
@@ -2159,7 +2046,7 @@ class IO
       mode = Truffle::POSIX.fcntl(Primitive.io_fd(self), F_GETFL, 0)
       Errno.handle if mode < 0
 
-      @mode = IO.translate_omode_to_fmode((mode & ACCMODE))
+      @mode = Truffle::IOOperations.translate_omode_to_fmode((mode & ACCMODE))
       @ibuffer = (@mode & FMODE_READWRITE) != FMODE_WRITABLE ? IO::InternalBuffer.new : nil
     end
 
