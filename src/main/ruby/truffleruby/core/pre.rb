@@ -121,4 +121,18 @@ module Truffle::Boot
       get_option(name)
     end
   end
+
+  # To load Java classes eagerly, so a real StackOverflowError will not result in
+  # 'NoClassDefFoundError: Could not initialize class SomeExceptionRelatedClass'
+  def self.throw_stack_overflow_error
+    Primitive.vm_stack_overflow_error_to_init_classes
+  end
+end
+
+unless TruffleRuby.native?
+  begin
+    Truffle::Boot.throw_stack_overflow_error
+  rescue SystemStackError
+    nil # expected
+  end
 end

@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.EnumSet;
 
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
@@ -90,11 +91,16 @@ public class CoreExceptions {
             if (backtrace != null && backtrace.getStackTrace().length > 0) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
-            Object stderr = context.getCoreLibrary().getStderr();
-            String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
-            RubyString outputString = StringOperations
-                    .createString(context, language, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
-            RubyContext.send(stderr, "write", outputString);
+            final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
+            if (context.getCoreLibrary().isLoaded()) {
+                RubyString outputString = StringOperations
+                        .createString(context, language, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
+                Object stderr = context.getCoreLibrary().getStderr();
+                RubyContext.send(stderr, "write", outputString);
+            } else {
+                final PrintStream printStream = BacktraceFormatter.printStreamFor(context.getEnv().err());
+                printStream.println(output);
+            }
         }
     }
 
@@ -316,20 +322,17 @@ public class CoreExceptions {
     // SystemStackError
 
     @TruffleBoundary
-    public RubyException systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
-        RubyClass exceptionClass = context.getCoreLibrary().systemStackErrorClass;
-        StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
-        String topOfTheStack = stackTrace.length > 0
+    public RubyException systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable,
+            boolean showExceptionIfDebug) {
+        final StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
+        final String topOfTheStack = stackTrace.length > 0
                 ? BacktraceFormatter.formatJava(stackTrace[0])
                 : "<empty Java stacktrace>";
         final String message = coreStrings().STACK_LEVEL_TOO_DEEP + "\n\tfrom " + topOfTheStack;
-        return ExceptionOperations.createRubyException(
-                context,
-                exceptionClass,
-                StringOperations
-                        .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                currentNode,
-                javaThrowable);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 0, javaThrowable);
+        final RubyString messageString = StringOperations
+                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createSystemStackError(context, messageString, backtrace, showExceptionIfDebug);
     }
 
     // NoMemoryError

@@ -16,6 +16,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -81,6 +82,18 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
+    public static RubyException createSystemStackError(RubyContext context, Object message, Backtrace backtrace,
+            boolean showExceptionIfDebug) {
+        final RubyClass rubyClass = context.getCoreLibrary().systemStackErrorClass;
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
+        if (showExceptionIfDebug) {
+            context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
+        }
+        final Shape shape = context.getLanguageSlow().exceptionShape;
+        return new RubyException(rubyClass, shape, message, backtrace, cause);
+    }
+
+    @TruffleBoundary
     public static RubySystemCallError createSystemCallError(RubyContext context, RubyClass rubyClass,
             Object message, int errno, Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
@@ -90,7 +103,8 @@ public abstract class ExceptionOperations {
     }
 
     public static RubyProc getFormatter(String name, RubyContext context) {
-        return (RubyProc) context.getCoreLibrary().truffleExceptionOperationsModule.fields.getConstant(name).getValue();
+        RubyConstant constant = context.getCoreLibrary().truffleExceptionOperationsModule.fields.getConstant(name);
+        return (RubyProc) constant.getValue();
     }
 
     /** @see org.truffleruby.cext.CExtNodes.RaiseExceptionNode */

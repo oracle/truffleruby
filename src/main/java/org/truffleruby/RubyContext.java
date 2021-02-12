@@ -58,7 +58,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.debug.MetricsProfiler;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -235,17 +234,13 @@ public class RubyContext {
         coverageManager = new CoverageManager(this, instrumenter);
         Metrics.printTime("after-instruments");
 
-        // Initialize RaiseException eagerly so StackOverflowError is correctly handled and does not become
-        // NoClassDefFoundError: Could not initialize class org.truffleruby.language.control.RaiseException
-        Pointer.UNSAFE.ensureClassInitialized(RaiseException.class);
-
         Metrics.printTime("after-context-constructor");
     }
 
     public void initialize() {
         assert !initialized : "Already initialized";
-        // Load the nodes
 
+        // Load the nodes
         Metrics.printTime("before-load-nodes");
         coreLibrary.loadCoreNodes();
         Metrics.printTime("after-load-nodes");
