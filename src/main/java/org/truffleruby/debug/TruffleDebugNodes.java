@@ -45,6 +45,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
@@ -59,8 +60,6 @@ import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -196,48 +195,15 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(
-            names = "ast",
-            onSingleton = true,
-            optional = 1,
-            needsBlock = true,
-            argumentNames = { "method_or_proc", "block" })
+    @CoreMethod(names = "ast", onSingleton = true, required = 1)
     public abstract static class ASTNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
-        protected Object astMethod(RubyMethod method, Nil block) {
-            ast(method.method);
+        protected Object ast(Object executable,
+                @Cached ToCallTargetNode toCallTargetNode) {
+            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            ast(callTarget.getRootNode());
             return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object astUnboundMethod(RubyUnboundMethod method, Nil block) {
-            ast(method.method);
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object astProc(RubyProc proc, Nil block) {
-            ast(proc.callTarget);
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object astBlock(NotProvided proc, RubyProc block) {
-            ast(block.callTarget);
-            return nil;
-        }
-
-        private Object ast(InternalMethod method) {
-            return ast(method.getCallTarget());
-        }
-
-        private Object ast(RootCallTarget rootCallTarget) {
-            return ast(rootCallTarget.getRootNode());
         }
 
         private Object ast(Node node) {
@@ -255,53 +221,18 @@ public abstract class TruffleDebugNodes {
 
             return createArray(array.toArray());
         }
-
     }
 
-    @CoreMethod(
-            names = "print_ast",
-            onSingleton = true,
-            optional = 1,
-            needsBlock = true,
-            argumentNames = { "method_or_proc", "block" })
+    @CoreMethod(names = "print_ast", onSingleton = true, required = 1)
     public abstract static class PrintASTNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
-        protected Object astMethod(RubyMethod method, Nil block) {
-            printAst(method.method);
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object astUnboundMethod(RubyUnboundMethod method, Nil block) {
-            printAst(method.method);
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object astProc(RubyProc proc, Nil block) {
-            printAst(proc.callTarget);
-            return nil;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected Object astBlock(NotProvided proc, RubyProc block) {
-            printAst(block.callTarget);
-            return nil;
-        }
-
-        public static void printAst(InternalMethod method) {
-            NodeUtil.printCompactTree(System.err, method.getCallTarget().getRootNode());
-        }
-
-        private void printAst(RootCallTarget callTarget) {
+        protected Object printAST(Object executable,
+                @Cached ToCallTargetNode toCallTargetNode) {
+            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             NodeUtil.printCompactTree(System.err, callTarget.getRootNode());
+            return nil;
         }
-
     }
 
     @CoreMethod(names = "shape", onSingleton = true, required = 1)

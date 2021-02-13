@@ -9,14 +9,14 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.core.method.RubyMethod;
-import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
@@ -43,69 +43,33 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 @CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
 
-    @CoreMethod(names = "always_split", onSingleton = true, required = 1, argumentNames = "method_or_proc")
+    @CoreMethod(names = "always_split", onSingleton = true, required = 1)
     public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
-        protected RubyMethod splitMethod(RubyMethod rubyMethod) {
+        protected Object alwaysSplit(Object executable,
+                @Cached ToCallTargetNode toCallTargetNode) {
+            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
+                RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
                 rootNode.setSplit(Split.ALWAYS);
             }
-            return rubyMethod;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyUnboundMethod splitUnboundMethod(RubyUnboundMethod rubyMethod) {
-            if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
-                rootNode.setSplit(Split.ALWAYS);
-            }
-            return rubyMethod;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyProc splitProc(RubyProc rubyProc) {
-            if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                ((RubyRootNode) rubyProc.callTarget.getRootNode()).setSplit(Split.ALWAYS);
-            }
-            return rubyProc;
+            return executable;
         }
     }
 
-    @CoreMethod(names = "never_split", onSingleton = true, required = 1, argumentNames = "method_or_proc")
+    @CoreMethod(names = "never_split", onSingleton = true, required = 1)
     public abstract static class NeverSplitNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
-        protected RubyMethod neverSplitMethod(RubyMethod rubyMethod) {
+        protected Object neverSplit(Object executable,
+                @Cached ToCallTargetNode toCallTargetNode) {
+            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
+                RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
                 rootNode.setSplit(Split.NEVER);
             }
-            return rubyMethod;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyUnboundMethod neverSplitUnboundMethod(RubyUnboundMethod rubyMethod) {
-            if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) rubyMethod.method.getCallTarget().getRootNode();
-                rootNode.setSplit(Split.NEVER);
-            }
-            return rubyMethod;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected RubyProc neverSplitProc(RubyProc rubyProc) {
-            if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                ((RubyRootNode) rubyProc.callTarget.getRootNode()).setSplit(Split.NEVER);
-            }
-            return rubyProc;
+            return executable;
         }
     }
 
