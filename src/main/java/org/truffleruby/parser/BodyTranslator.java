@@ -2193,7 +2193,6 @@ public class BodyTranslator extends Translator {
         final ParseNode rhs = node.getValueNode();
 
         RubyNode rhsTranslated;
-
         if (rhs == null) {
             throw CompilerDirectives.shouldNotReachHere("null rhs");
         } else {
@@ -2357,10 +2356,9 @@ public class BodyTranslator extends Translator {
             result = new ElidableResultNode(
                     sequence(sourceSection, sequence),
                     environment.findLocalVarNode(tempRHSName, sourceSection));
-        } else if (preArray == null && postArray == null && rest instanceof StarParseNode) {
+        } else if (postArray == null && rest instanceof StarParseNode) {
             result = rhsTranslated;
-        } else if (preArray == null && postArray == null && rest != null &&
-                !(rhs instanceof ArrayParseNode)) {
+        } else if (postArray == null && rest != null && !(rhs instanceof ArrayParseNode)) {
             /* *a = b
              *
              * >= 1.8, this seems to be the same as:
@@ -2417,14 +2415,14 @@ public class BodyTranslator extends Translator {
             }
 
             result = new ElidableResultNode(sequence(sourceSection, sequence), assignmentResult);
-        } else if (preArray == null && postArray == null && rest != null && rhs instanceof ArrayParseNode) {
+        } else if (postArray == null && rest != null) {
             /* *a = [b, c]
              *
              * This seems to be the same as:
              *
              * a = [b, c] */
             result = translateDummyAssignment(rest, rhsTranslated);
-        } else if (preArray == null && rest != null && postArray != null) {
+        } else if (rest != null) {
             /* Something like
              *
              * *a,b = [1, 2, 3, 4] */
@@ -2463,12 +2461,9 @@ public class BodyTranslator extends Translator {
 
             /* Then index the temp array for each assignment on the LHS. */
 
-            if (rest != null) {
-                final ArrayDropTailNode assignedValue = ArrayDropTailNodeGen
-                        .create(postArray.size(), environment.findLocalVarNode(tempName, sourceSection));
-
-                sequence.add(translateDummyAssignment(rest, assignedValue));
-            }
+            final ArrayDropTailNode assignedRestValue = ArrayDropTailNodeGen
+                    .create(postArray.size(), environment.findLocalVarNode(tempName, sourceSection));
+            sequence.add(translateDummyAssignment(rest, assignedRestValue));
 
             final List<RubyNode> smallerSequence = new ArrayList<>();
 
