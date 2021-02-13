@@ -80,22 +80,23 @@ class Numeric
            else
              1
            end
-
-    kwargs = {}
-    kwargs[:by] = by unless Primitive.undefined?(by)
-    kwargs[:to] = to unless Primitive.undefined?(to)
+    uses_kwargs = !Primitive.undefined?(by) || !Primitive.undefined?(to)
 
     unless block_given?
       step = 1 if Primitive.nil?(step)
       if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
         return Enumerator::ArithmeticSequence.new(self, :step, self, limit, step, false)
       end
+
+      kwargs = {}
+      kwargs[:by] = by unless Primitive.undefined?(by)
+      kwargs[:to] = to unless Primitive.undefined?(to)
       return to_enum(:step, orig_limit, orig_step, kwargs) do
-        Truffle::NumericOperations.step_size(self, limit, step, !kwargs.empty?, false)
+        Truffle::NumericOperations.step_size(self, limit, step, uses_kwargs, false)
       end
     end
 
-    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, !kwargs.empty?)
+    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, uses_kwargs)
 
     value = values[0]
     limit = values[1]
