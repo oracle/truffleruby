@@ -24,7 +24,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
@@ -59,7 +58,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     public abstract RubyNode getChild();
 
     @Specialization
-    protected Object splatNil(VirtualFrame frame, Nil nil) {
+    protected Object splatNil(Nil nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
                 return createEmptyArray();
@@ -68,7 +67,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
                 return createArray(new Object[]{ nil });
 
             case CONVERT:
-                return callToA(frame, nil);
+                return callToA(nil);
 
             case NIL:
                 return nil;
@@ -79,18 +78,18 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected RubyArray splat(VirtualFrame frame, RubyArray array) {
+    protected RubyArray splat(RubyArray array) {
         // TODO(cs): is it necessary to dup here in all cases?
         // It is needed at least for [*ary] (parsed as just a SplatParseNode) and b = *ary.
         if (copy) {
-            return executeDup(frame, array);
+            return executeDup(array);
         } else {
             return array;
         }
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
-    protected RubyArray splat(VirtualFrame frame, Object object,
+    protected RubyArray splat(Object object,
             @Cached DispatchNode toArrayNode) {
         final Object array = toArrayNode.call(
                 coreLibrary().truffleTypeModule,
@@ -102,14 +101,14 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
             return createArray(new Object[]{ object });
         } else {
             if (copy) {
-                return executeDup(frame, (RubyArray) array);
+                return executeDup((RubyArray) array);
             } else {
                 return (RubyArray) array;
             }
         }
     }
 
-    private Object callToA(VirtualFrame frame, Object nil) {
+    private Object callToA(Object nil) {
         if (toA == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toA = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
@@ -117,12 +116,12 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
         return toA.call(nil, "to_a");
     }
 
-    private RubyArray executeDup(VirtualFrame frame, RubyArray array) {
+    private RubyArray executeDup(RubyArray array) {
         if (dup == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dup = insert(ArrayDupNodeGen.create());
         }
-        return dup.executeDup(frame, array);
+        return dup.executeDup(array);
     }
 
 }
