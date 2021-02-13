@@ -2188,13 +2188,14 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final ListParseNode preArray = node.getPre();
+        final ParseNode rest = node.getRest();
         final ListParseNode postArray = node.getPost();
         final ParseNode rhs = node.getValueNode();
 
         RubyNode rhsTranslated;
 
         if (rhs == null) {
-            throw new UnsupportedOperationException("null rhs");
+            throw CompilerDirectives.shouldNotReachHere("null rhs");
         } else {
             rhsTranslated = rhs.accept(this);
         }
@@ -2203,8 +2204,7 @@ public class BodyTranslator extends Translator {
 
         // TODO CS 5-Jan-15 we shouldn't be doing this kind of low level optimisation or pattern matching - EA should do it for us
 
-        if (preArray != null && node.getPost() == null && node.getRest() == null &&
-                rhsTranslated instanceof ArrayLiteralNode &&
+        if (preArray != null && postArray == null && rest == null && rhsTranslated instanceof ArrayLiteralNode &&
                 ((ArrayLiteralNode) rhsTranslated).getSize() == preArray.size()) {
             /* We can deal with this common case be rewriting
              *
@@ -2310,7 +2310,7 @@ public class BodyTranslator extends Translator {
                 sequence.add(translateDummyAssignment(preArray.get(n), assignedValue));
             }
 
-            if (node.getRest() != null) {
+            if (rest != null) {
                 RubyNode assignedValue = ArrayGetTailNodeGen
                         .create(preArray.size(), environment.findLocalVarNode(tempName, sourceSection));
 
@@ -2318,7 +2318,7 @@ public class BodyTranslator extends Translator {
                     assignedValue = ArrayDropTailNodeGen.create(postArray.size(), assignedValue);
                 }
 
-                sequence.add(translateDummyAssignment(node.getRest(), assignedValue));
+                sequence.add(translateDummyAssignment(rest, assignedValue));
             }
 
             if (postArray != null) {
@@ -2357,9 +2357,9 @@ public class BodyTranslator extends Translator {
             result = new ElidableResultNode(
                     sequence(sourceSection, sequence),
                     environment.findLocalVarNode(tempRHSName, sourceSection));
-        } else if (node.getPre() == null && node.getPost() == null && node.getRest() instanceof StarParseNode) {
+        } else if (preArray == null && postArray == null && rest instanceof StarParseNode) {
             result = rhsTranslated;
-        } else if (node.getPre() == null && node.getPost() == null && node.getRest() != null &&
+        } else if (preArray == null && postArray == null && rest != null &&
                 !(rhs instanceof ArrayParseNode)) {
             /* *a = b
              *
@@ -2405,7 +2405,7 @@ public class BodyTranslator extends Translator {
 
             sequence.add(
                     translateDummyAssignment(
-                            node.getRest(),
+                            rest,
                             environment.findLocalVarNode(tempRHSSplattedName, sourceSection)));
 
             final RubyNode assignmentResult;
@@ -2417,15 +2417,14 @@ public class BodyTranslator extends Translator {
             }
 
             result = new ElidableResultNode(sequence(sourceSection, sequence), assignmentResult);
-        } else if (node.getPre() == null && node.getPost() == null && node.getRest() != null &&
-                rhs instanceof ArrayParseNode) {
+        } else if (preArray == null && postArray == null && rest != null && rhs instanceof ArrayParseNode) {
             /* *a = [b, c]
              *
              * This seems to be the same as:
              *
              * a = [b, c] */
-            result = translateDummyAssignment(node.getRest(), rhsTranslated);
-        } else if (node.getPre() == null && node.getRest() != null && node.getPost() != null) {
+            result = translateDummyAssignment(rest, rhsTranslated);
+        } else if (preArray == null && rest != null && postArray != null) {
             /* Something like
              *
              * *a,b = [1, 2, 3, 4] */
@@ -2464,11 +2463,11 @@ public class BodyTranslator extends Translator {
 
             /* Then index the temp array for each assignment on the LHS. */
 
-            if (node.getRest() != null) {
+            if (rest != null) {
                 final ArrayDropTailNode assignedValue = ArrayDropTailNodeGen
                         .create(postArray.size(), environment.findLocalVarNode(tempName, sourceSection));
 
-                sequence.add(translateDummyAssignment(node.getRest(), assignedValue));
+                sequence.add(translateDummyAssignment(rest, assignedValue));
             }
 
             final List<RubyNode> smallerSequence = new ArrayList<>();
