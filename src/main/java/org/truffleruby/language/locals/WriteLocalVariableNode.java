@@ -11,6 +11,7 @@ package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -27,13 +28,26 @@ public class WriteLocalVariableNode extends WriteLocalNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        final Object value = valueNode.execute(frame);
+
         if (writeFrameSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             writeFrameSlotNode = insert(WriteFrameSlotNodeGen.create(frameSlot));
         }
 
-        final Object value = valueNode.execute(frame);
-        return writeFrameSlotNode.executeWrite(frame, value);
+        writeFrameSlotNode.executeWrite(frame, value);
+        return value;
+    }
+
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
+        throw CompilerDirectives.shouldNotReachHere("Should be simplified with getSimplifiedAssignableNode()");
+    }
+
+    @Override
+    public AssignableNode toAssignableNode() {
+        this.valueNode = null;
+        return WriteFrameSlotNodeGen.create(frameSlot);
     }
 
     @Override

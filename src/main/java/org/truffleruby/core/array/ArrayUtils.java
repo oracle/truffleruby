@@ -219,6 +219,12 @@ public abstract class ArrayUtils {
         return newArray;
     }
 
+    public static Object[] append(Object[] array, Object element) {
+        final Object[] newArray = grow(array, array.length + 1);
+        newArray[array.length] = element;
+        return newArray;
+    }
+
     public static int memcmp(final byte[] first, final int firstStart, final byte[] second, final int secondStart,
             int size) {
         assert firstStart + size <= first.length;

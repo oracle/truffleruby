@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -20,7 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class WriteInstanceVariableNode extends RubyContextSourceNode {
+public class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
@@ -40,7 +41,17 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object object = receiver.execute(frame);
         final Object value = rhs.execute(frame);
+        write(object, value);
+        return value;
+    }
 
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
+        final Object object = receiver.execute(frame);
+        write(object, value);
+    }
+
+    private void write(Object object, Object value) {
         if (objectProfile.profile(object instanceof RubyDynamicObject)) {
             if (writeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -51,8 +62,6 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode {
         } else {
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
-
-        return value;
     }
 
     @Override
@@ -60,4 +69,9 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode {
         return coreStrings().ASSIGNMENT.createInstance(context);
     }
 
+    @Override
+    public AssignableNode toAssignableNode() {
+        this.rhs = null;
+        return this;
+    }
 }

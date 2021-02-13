@@ -11,6 +11,7 @@ package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -21,13 +22,20 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@NodeChild(value = "value", type = RubyNode.class)
-public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
+@NodeChild(value = "valueNode", type = RubyNode.class)
+public abstract class WriteGlobalVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     protected final String name;
 
     public WriteGlobalVariableNode(String name) {
         this.name = name;
+    }
+
+    public abstract Object execute(VirtualFrame frame, Object value);
+
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
+        execute(frame, value);
     }
 
     @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
@@ -73,4 +81,9 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
         return coreStrings().ASSIGNMENT.createInstance(context);
     }
 
+    @Override
+    public AssignableNode toAssignableNode() {
+        // Cannot reassign a @NodeChild
+        return WriteGlobalVariableNodeGen.create(name, null);
+    }
 }

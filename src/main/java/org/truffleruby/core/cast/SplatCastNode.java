@@ -57,6 +57,8 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
 
     public abstract RubyNode getChild();
 
+    public abstract Object execute(Object value);
+
     @Specialization
     protected Object splatNil(Nil nil) {
         switch (nilBehavior) {

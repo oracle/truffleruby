@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
@@ -21,7 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class WriteConstantNode extends RubyContextSourceNode {
+public class WriteConstantNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
@@ -40,6 +41,12 @@ public class WriteConstantNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object value = valueNode.execute(frame);
+        assign(frame, value);
+        return value;
+    }
+
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
         final Object moduleObject = moduleNode.execute(frame);
 
         if (!moduleProfile.profile(moduleObject instanceof RubyModule)) {
@@ -51,7 +58,6 @@ public class WriteConstantNode extends RubyContextSourceNode {
         if (previous != null && previous.hasValue()) {
             warnAlreadyInitializedConstant((RubyModule) moduleObject, name, previous.getSourceSection());
         }
-        return value;
     }
 
     private void warnAlreadyInitializedConstant(RubyModule module, String name, SourceSection prevSourceSection) {
@@ -65,4 +71,9 @@ public class WriteConstantNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public AssignableNode toAssignableNode() {
+        this.valueNode = null;
+        return this;
+    }
 }

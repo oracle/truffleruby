@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -25,17 +24,15 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayAppendOneNodeGen;
 import org.truffleruby.core.array.ArrayConcatNode;
-import org.truffleruby.core.array.ArrayDropTailNode;
-import org.truffleruby.core.array.ArrayDropTailNodeGen;
-import org.truffleruby.core.array.ArrayGetTailNodeGen;
-import org.truffleruby.core.array.ArrayIndexNodes.ReadConstantIndexNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.core.array.AssignableNode;
+import org.truffleruby.core.array.MultipleAssignmentNode;
+import org.truffleruby.core.array.NoopAssignableNode;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
@@ -70,7 +67,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
@@ -79,7 +75,6 @@ import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
 import org.truffleruby.language.control.DynamicReturnNode;
-import org.truffleruby.language.control.ElidableResultNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfNode;
@@ -128,6 +123,7 @@ import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.LocalFlipFlopStateNode;
 import org.truffleruby.language.locals.ReadLocalNode;
+import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;
@@ -263,7 +259,6 @@ import org.truffleruby.parser.ast.WhileParseNode;
 import org.truffleruby.parser.ast.XStrParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ZArrayParseNode;
-import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
@@ -1269,13 +1264,14 @@ public class BodyTranslator extends Translator {
     }
 
     @Override
-    public RubyNode visitDAsgnNode(DAsgnParseNode node) {
-        final RubyNode ret = new LocalAsgnParseNode(
+    public WriteLocalNode visitDAsgnNode(DAsgnParseNode node) {
+        final WriteLocalNode ret = visitLocalAsgnNode(new LocalAsgnParseNode(
                 node.getPosition(),
                 node.getName(),
                 node.getDepth(),
-                node.getValueNode()).accept(this);
-        return addNewlineIfNeeded(node, ret);
+                node.getValueNode()));
+        addNewlineIfNeeded(node, ret);
+        return ret;
     }
 
     @Override
@@ -1731,6 +1727,49 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, translated);
     }
 
+    protected AssignableNode[] toAssignableNodes(ListParseNode nodes) {
+        if (nodes == null) {
+            return AssignableNode.EMPTY_ARRAY;
+        }
+
+        AssignableNode[] assignableNodes = new AssignableNode[nodes.size()];
+        for (int i = 0; i < assignableNodes.length; i++) {
+            assignableNodes[i] = toAssignableNode(nodes.get(i));
+        }
+        return assignableNodes;
+    }
+
+    protected AssignableNode toAssignableNode(ParseNode node) {
+        if (node instanceof StarParseNode) {
+            // Nothing to assign to, just execute the RHS
+            return new NoopAssignableNode();
+        } else if (node instanceof AssignableParseNode) {
+            final AssignableParseNode assignable = (AssignableParseNode) node;
+
+            if (assignable instanceof MultipleAsgnParseNode && assignable.getValueNode() == null) {
+                // nested MultipleAsgnParseNode
+                assignable.setValueNode(NilImplicitParseNode.NIL);
+            }
+
+            final ParseNode valueNode = assignable.getValueNode();
+            if (valueNode != NilImplicitParseNode.NIL) {
+                throw CompilerDirectives.shouldNotReachHere(
+                        "value of assignable node is not implicit nil: " + valueNode.getClass());
+            }
+
+            final RubyNode translated = node.accept(this);
+            return ((AssignableNode) translated).toAssignableNode();
+        } else if (node instanceof AttrAssignParseNode) {
+            final AttrAssignParseNode attrAssignParseNode = (AttrAssignParseNode) node;
+
+            final RubyNode translated = attrAssignParseNode.accept(this);
+            return ((AssignableNode) translated).toAssignableNode();
+        } else {
+            throw CompilerDirectives
+                    .shouldNotReachHere("toAssignableNode() does not know how to convert " + node.getClass());
+        }
+    }
+
     /** Same as {@link ParserSupport#node_assign(ParseNode, ParseNode)} but without needing a ParserSupport instance.
      * {@link ParserSupport#value_expr} was already done during parsing, no need to re-check it. */
     private ParseNode setRHS(ParseNode lhs, ParseNode rhs) {
@@ -1743,40 +1782,6 @@ public class BodyTranslator extends Translator {
                     .setArgsNode(ParserSupport.arg_add(lhs.getPosition(), invokableNode.getArgsNode(), rhs));
         } else {
             throw new UnsupportedOperationException("Don't know how to set the RHS of a " + lhs.getClass().getName());
-        }
-    }
-
-    @SuppressFBWarnings("SIC")
-    private RubyNode translateDummyAssignment(ParseNode dummyAssignment, final RubyNode rhs) {
-        // The JRuby AST includes assignment nodes without a proper value,
-        // so we need to patch them to include the proper rhs value to translate them correctly.
-
-        if (dummyAssignment instanceof StarParseNode) {
-            // Nothing to assign to, just execute the RHS
-            return rhs;
-        } else if (dummyAssignment instanceof AssignableParseNode || dummyAssignment instanceof IArgumentNode) {
-            final ParseNode wrappedRHS = new ParseNode(dummyAssignment.getPosition()) {
-                @SuppressWarnings("unchecked")
-                @Override
-                public <T> T accept(NodeVisitor<T> visitor) {
-                    return (T) rhs;
-                }
-
-                @Override
-                public List<ParseNode> childNodes() {
-                    return Collections.emptyList();
-                }
-
-                @Override
-                public NodeType getNodeType() {
-                    return NodeType.FIXNUMNODE; // since we behave like a value
-                }
-            };
-
-            return setRHS(dummyAssignment, wrappedRHS).accept(this);
-        } else {
-            throw new UnsupportedOperationException(
-                    "Don't know how to translate the dummy asgn " + dummyAssignment.getClass().getName());
         }
     }
 
@@ -2022,7 +2027,7 @@ public class BodyTranslator extends Translator {
     }
 
     @Override
-    public RubyNode visitLocalAsgnNode(LocalAsgnParseNode node) {
+    public WriteLocalNode visitLocalAsgnNode(LocalAsgnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
         final String name = node.getName();
 
@@ -2055,9 +2060,10 @@ public class BodyTranslator extends Translator {
             rhs = node.getValueNode().accept(this);
         }
 
-        final RubyNode ret = lhs.makeWriteNode(rhs);
+        final WriteLocalNode ret = lhs.makeWriteNode(rhs);
         ret.unsafeSetSourceSection(sourceSection);
-        return addNewlineIfNeeded(node, ret);
+        addNewlineIfNeeded(node, ret);
+        return ret;
     }
 
     @Override
@@ -2187,323 +2193,33 @@ public class BodyTranslator extends Translator {
     public RubyNode visitMultipleAsgnNode(MultipleAsgnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final ListParseNode preArray = node.getPre();
-        final ParseNode rest = node.getRest();
-        final ListParseNode postArray = node.getPost();
         final ParseNode rhs = node.getValueNode();
-
-        RubyNode rhsTranslated;
+        final RubyNode rhsTranslated;
         if (rhs == null) {
             throw CompilerDirectives.shouldNotReachHere("null rhs");
         } else {
             rhsTranslated = rhs.accept(this);
         }
 
-        final RubyNode result;
-
-        // TODO CS 5-Jan-15 we shouldn't be doing this kind of low level optimisation or pattern matching - EA should do it for us
-
-        if (preArray != null && postArray == null && rest == null && rhsTranslated instanceof ArrayLiteralNode &&
-                ((ArrayLiteralNode) rhsTranslated).getSize() == preArray.size()) {
-            /* We can deal with this common case be rewriting
-             *
-             * a, b = c, d
-             *
-             * as
-             *
-             * temp1 = c; temp2 = d; a = temp1; b = temp2
-             *
-             * We can't just do
-             *
-             * a = c; b = d
-             *
-             * As we don't know if d depends on the original value of a.
-             *
-             * We also need to return an array [c, d], but we make that result elidable so it isn't executed if it isn't
-             * actually demanded. */
-
-            final ArrayLiteralNode rhsArrayLiteral = (ArrayLiteralNode) rhsTranslated;
-            final int assignedValuesCount = preArray.size();
-
-            final RubyNode[] sequence = new RubyNode[assignedValuesCount * 2];
-
-            final RubyNode[] tempValues = new RubyNode[assignedValuesCount];
-
-            for (int n = 0; n < assignedValuesCount; n++) {
-                final String tempName = environment.allocateLocalTemp("multi");
-                final ReadLocalNode readTemp = environment.findLocalVarNode(tempName, sourceSection);
-                final RubyNode assignTemp = readTemp.makeWriteNode(rhsArrayLiteral.stealNode(n));
-                final RubyNode assignFinalValue = translateDummyAssignment(
-                        preArray.get(n),
-                        NodeUtil.cloneNode(readTemp));
-
-                sequence[n] = assignTemp;
-                sequence[assignedValuesCount + n] = assignFinalValue;
-
-                tempValues[n] = NodeUtil.cloneNode(readTemp);
-            }
-
-            final RubyNode blockNode = sequence(sourceSection, Arrays.asList(sequence));
-
-            final ArrayLiteralNode arrayNode = ArrayLiteralNode.create(language, tempValues);
-            arrayNode.unsafeSetSourceSection(sourceSection);
-            result = new ElidableResultNode(blockNode, arrayNode);
-        } else if (preArray != null) {
-            /* The other simple case is
-             *
-             * a, b, c = x
-             *
-             * If x is an array, then it's
-             *
-             * a = x[0] etc
-             *
-             * If x isn't an array then it's
-             *
-             * a, b, c = [x, nil, nil]
-             *
-             * Which I believe is the same effect as
-             *
-             * a, b, c, = *x
-             *
-             * So we insert the splat cast node, even though it isn't there.
-             *
-             * In either case, we return the RHS */
-
-            final List<RubyNode> sequence = new ArrayList<>();
-
-            /* Store the RHS in a temp. */
-
-            final String tempRHSName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempRHS = environment
-                    .findLocalVarNode(tempRHSName, sourceSection)
-                    .makeWriteNode(rhsTranslated);
-            sequence.add(writeTempRHS);
-
-            /* Create a temp for the array. */
-
-            final String tempName = environment.allocateLocalTemp("array");
-
-            /* Create a sequence of instructions, with the first being the literal array assigned to the temp. */
-
-            final RubyNode splatCastNode = SplatCastNodeGen.create(
-                    language,
-                    translatingNextExpression
-                            ? SplatCastNode.NilBehavior.EMPTY_ARRAY
-                            : SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
-                    true,
-                    environment.findLocalVarNode(tempRHSName, sourceSection));
-            splatCastNode.unsafeSetSourceSection(sourceSection);
-
-            final RubyNode writeTemp = environment
-                    .findLocalVarNode(tempName, sourceSection)
-                    .makeWriteNode(splatCastNode);
-
-            sequence.add(writeTemp);
-
-            /* Then index the temp array for each assignment on the LHS. */
-
-            for (int n = 0; n < preArray.size(); n++) {
-                final RubyNode assignedValue = ReadConstantIndexNode
-                        .create(environment.findLocalVarNode(tempName, sourceSection), n);
-
-                sequence.add(translateDummyAssignment(preArray.get(n), assignedValue));
-            }
-
-            if (rest != null) {
-                RubyNode assignedValue = ArrayGetTailNodeGen
-                        .create(preArray.size(), environment.findLocalVarNode(tempName, sourceSection));
-
-                if (postArray != null) {
-                    assignedValue = ArrayDropTailNodeGen.create(postArray.size(), assignedValue);
-                }
-
-                sequence.add(translateDummyAssignment(rest, assignedValue));
-            }
-
-            if (postArray != null) {
-                final List<RubyNode> smallerSequence = new ArrayList<>();
-
-                for (int n = 0; n < postArray.size(); n++) {
-                    final RubyNode assignedValue = ReadConstantIndexNode
-                            .create(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
-                    smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
-                }
-
-                final RubyNode smaller = sequence(sourceSection, smallerSequence);
-
-                final List<RubyNode> atLeastAsLargeSequence = new ArrayList<>();
-
-                for (int n = 0; n < postArray.size(); n++) {
-                    int index = -(postArray.size() - n);
-                    final RubyNode assignedValue = ReadConstantIndexNode
-                            .create(environment.findLocalVarNode(tempName, sourceSection), index);
-
-                    atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
-                }
-
-                final RubyNode atLeastAsLarge = sequence(sourceSection, atLeastAsLargeSequence);
-
-                final RubyNode assignPost = new IfElseNode(
-                        new ArrayIsAtLeastAsLargeAsNode(
-                                node.getPreCount() + node.getPostCount(),
-                                environment.findLocalVarNode(tempName, sourceSection)),
-                        atLeastAsLarge,
-                        smaller);
-
-                sequence.add(assignPost);
-            }
-
-            result = new ElidableResultNode(
-                    sequence(sourceSection, sequence),
-                    environment.findLocalVarNode(tempRHSName, sourceSection));
-        } else if (postArray == null && rest instanceof StarParseNode) {
-            result = rhsTranslated;
-        } else if (postArray == null && rest != null && !(rhs instanceof ArrayParseNode)) {
-            /* *a = b
-             *
-             * >= 1.8, this seems to be the same as:
-             *
-             * a = *b */
-
-            final List<RubyNode> sequence = new ArrayList<>();
-
-            SplatCastNode.NilBehavior nilBehavior;
-
-            if (translatingNextExpression) {
-                nilBehavior = SplatCastNode.NilBehavior.EMPTY_ARRAY;
-            } else {
-                if (rhsTranslated instanceof SplatCastNode &&
-                        ((SplatCastNodeGen) rhsTranslated).getChild() instanceof NilLiteralNode) {
-                    rhsTranslated = ((SplatCastNodeGen) rhsTranslated).getChild();
-                    nilBehavior = SplatCastNode.NilBehavior.CONVERT;
-                } else {
-                    nilBehavior = SplatCastNode.NilBehavior.ARRAY_WITH_NIL;
-                }
-            }
-
-            final String tempRHSName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempRHS = environment
-                    .findLocalVarNode(tempRHSName, sourceSection)
-                    .makeWriteNode(rhsTranslated);
-            sequence.add(writeTempRHS);
-
-            final SplatCastNode rhsSplatCast = SplatCastNodeGen.create(
-                    language,
-                    nilBehavior,
-                    true,
-                    environment.findLocalVarNode(tempRHSName, sourceSection));
-
-            rhsSplatCast.unsafeSetSourceSection(sourceSection);
-
-            final String tempRHSSplattedName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempSplattedRHS = environment
-                    .findLocalVarNode(tempRHSSplattedName, sourceSection)
-                    .makeWriteNode(rhsSplatCast);
-            sequence.add(writeTempSplattedRHS);
-
-            sequence.add(
-                    translateDummyAssignment(
-                            rest,
-                            environment.findLocalVarNode(tempRHSSplattedName, sourceSection)));
-
-            final RubyNode assignmentResult;
-
-            if (nilBehavior == SplatCastNode.NilBehavior.CONVERT) {
-                assignmentResult = environment.findLocalVarNode(tempRHSSplattedName, sourceSection);
-            } else {
-                assignmentResult = environment.findLocalVarNode(tempRHSName, sourceSection);
-            }
-
-            result = new ElidableResultNode(sequence(sourceSection, sequence), assignmentResult);
-        } else if (postArray == null && rest != null) {
-            /* *a = [b, c]
-             *
-             * This seems to be the same as:
-             *
-             * a = [b, c] */
-            result = translateDummyAssignment(rest, rhsTranslated);
-        } else if (rest != null) {
-            /* Something like
-             *
-             * *a,b = [1, 2, 3, 4] */
-
-            // This is very similar to the case with pre and rest, so unify with that
-
-            final List<RubyNode> sequence = new ArrayList<>();
-
-            final String tempRHSName = environment.allocateLocalTemp("rhs");
-            final RubyNode writeTempRHS = environment
-                    .findLocalVarNode(tempRHSName, sourceSection)
-                    .makeWriteNode(rhsTranslated);
-            sequence.add(writeTempRHS);
-
-            /* Create a temp for the array. */
-
-            final String tempName = environment.allocateLocalTemp("array");
-
-            /* Create a sequence of instructions, with the first being the literal array assigned to the temp. */
-
-
-            final RubyNode splatCastNode = SplatCastNodeGen.create(
-                    language,
-                    translatingNextExpression
-                            ? SplatCastNode.NilBehavior.EMPTY_ARRAY
-                            : SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
-                    false,
-                    environment.findLocalVarNode(tempRHSName, sourceSection));
-            splatCastNode.unsafeSetSourceSection(sourceSection);
-
-            final RubyNode writeTemp = environment
-                    .findLocalVarNode(tempName, sourceSection)
-                    .makeWriteNode(splatCastNode);
-
-            sequence.add(writeTemp);
-
-            /* Then index the temp array for each assignment on the LHS. */
-
-            final ArrayDropTailNode assignedRestValue = ArrayDropTailNodeGen
-                    .create(postArray.size(), environment.findLocalVarNode(tempName, sourceSection));
-            sequence.add(translateDummyAssignment(rest, assignedRestValue));
-
-            final List<RubyNode> smallerSequence = new ArrayList<>();
-
-            for (int n = 0; n < postArray.size(); n++) {
-                final RubyNode assignedValue = ReadConstantIndexNode
-                        .create(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
-                smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
-            }
-
-            final RubyNode smaller = sequence(sourceSection, smallerSequence);
-
-            final List<RubyNode> atLeastAsLargeSequence = new ArrayList<>();
-
-            for (int n = 0; n < postArray.size(); n++) {
-                int index = -(postArray.size() - n);
-                final RubyNode assignedValue = ReadConstantIndexNode
-                        .create(environment.findLocalVarNode(tempName, sourceSection), index);
-
-                atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
-            }
-
-            final RubyNode atLeastAsLarge = sequence(sourceSection, atLeastAsLargeSequence);
-
-            final RubyNode assignPost = new IfElseNode(
-                    new ArrayIsAtLeastAsLargeAsNode(
-                            node.getPreCount() + node.getPostCount(),
-                            environment.findLocalVarNode(tempName, sourceSection)),
-                    atLeastAsLarge,
-                    smaller);
-
-            sequence.add(assignPost);
-
-            result = new ElidableResultNode(
-                    sequence(sourceSection, sequence),
-                    environment.findLocalVarNode(tempRHSName, sourceSection));
-        } else {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
-
-        final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, result);
+        final AssignableNode[] preNodes = toAssignableNodes(node.getPre());
+        final AssignableNode restNode = node.getRest() == null ? null : toAssignableNode(node.getRest());
+        final AssignableNode[] postNodes = toAssignableNodes(node.getPost());
+
+        final SplatCastNode splatCastNode = SplatCastNodeGen.create(
+                language,
+                translatingNextExpression
+                        ? SplatCastNode.NilBehavior.EMPTY_ARRAY
+                        : SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
+                true,
+                null);
+        splatCastNode.unsafeSetSourceSection(sourceSection);
+
+        final MultipleAssignmentNode ret = new MultipleAssignmentNode(
+                preNodes,
+                restNode,
+                postNodes,
+                splatCastNode,
+                rhsTranslated);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
