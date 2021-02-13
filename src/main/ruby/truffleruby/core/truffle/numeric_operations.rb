@@ -53,7 +53,7 @@ module Truffle
 
     def self.step_non_float(value, limit, step, desc)
       if step == 0
-        loop do
+        while true
           yield value
           value += step
         end
@@ -79,7 +79,7 @@ module Truffle
         if step.infinite?
           yield value
         elsif step == 0
-          loop do
+          while true
             yield value
           end
         else
