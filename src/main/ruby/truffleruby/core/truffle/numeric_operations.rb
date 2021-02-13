@@ -84,12 +84,8 @@ module Truffle
     end
 
     def self.step_size(value, limit, step, uses_kwargs, exclude_end)
-      values = step_fetch_args(value, limit, step, uses_kwargs)
-      value = values[0]
-      limit = values[1]
-      step = values[2]
-      desc = values[3]
-      is_float = values[4]
+      value, limit, step, desc, is_float =
+        step_fetch_args(value, limit, step, uses_kwargs)
 
       if stepping_forever?(limit, step, desc)
         Float::INFINITY
@@ -139,13 +135,14 @@ module Truffle
       desc = step < 0
       default_limit = desc ? -Float::INFINITY : Float::INFINITY
 
-      if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
+      if Primitive.object_kind_of?(value, Float) or
+          Primitive.object_kind_of?(limit, Float) or
+          Primitive.object_kind_of?(step, Float)
         [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit || default_limit),
          Truffle::Type.rb_num2dbl(step), desc, true]
       else
         [value, limit || default_limit, step, desc, false]
       end
     end
-
   end
 end

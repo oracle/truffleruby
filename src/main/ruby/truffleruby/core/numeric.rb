@@ -62,37 +62,28 @@ class Numeric
   end
 
   def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined)
-    limit = if !Primitive.undefined?(orig_limit) && !Primitive.undefined?(to)
-              raise ArgumentError, 'to is given twice'
-            elsif !Primitive.undefined?(orig_limit)
-              orig_limit
-            elsif !Primitive.undefined?(to)
-              to
+    uses_kwargs = false
+    limit = if Primitive.undefined?(to)
+              Primitive.undefined?(orig_limit) ? nil : orig_limit
             else
-              nil
+              raise ArgumentError, 'to is given twice' unless Primitive.undefined?(orig_limit)
+              uses_kwargs = true
+              to
             end
-    step = if !Primitive.undefined?(orig_step) && !Primitive.undefined?(by)
-             raise ArgumentError, 'step is given twice'
-           elsif !Primitive.undefined?(orig_step)
-             orig_step
-           elsif !Primitive.undefined?(by)
-             by
+    step = if Primitive.undefined?(by)
+             Primitive.undefined?(orig_step) ? 1 : orig_step
            else
-             1
+             raise ArgumentError, 'step is given twice' unless Primitive.undefined?(orig_step)
+             uses_kwargs = true
+             by
            end
-    uses_kwargs = !Primitive.undefined?(by) || !Primitive.undefined?(to)
 
     unless block_given?
       return Truffle::NumericOperations.step_no_block(self, orig_limit, orig_step, by, to, limit, step, uses_kwargs)
     end
 
-    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, uses_kwargs)
-
-    value = values[0]
-    limit = values[1]
-    step = values[2]
-    desc = values[3]
-    is_float = values[4]
+    value, limit, step, desc, is_float =
+      Truffle::NumericOperations.step_fetch_args(self, limit, step, uses_kwargs)
 
     infinite = step == 0
 
