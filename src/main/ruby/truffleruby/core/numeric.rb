@@ -91,11 +91,11 @@ class Numeric
         return Enumerator::ArithmeticSequence.new(self, :step, self, limit, step, false)
       end
       return to_enum(:step, orig_limit, orig_step, kwargs) do
-        Truffle::NumericOperations.step_size(self, limit, step, kwargs.any?, false)
+        Truffle::NumericOperations.step_size(self, limit, step, !kwargs.empty?, false)
       end
     end
 
-    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, kwargs.any?)
+    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, !kwargs.empty?)
 
     value = values[0]
     limit = values[1]
