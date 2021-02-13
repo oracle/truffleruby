@@ -36,6 +36,20 @@
 
 module Truffle
   module NumericOperations
+    def self.step_no_block(from, orig_limit, orig_step, by, to, limit, step, uses_kwargs)
+      step = 1 if Primitive.nil?(step)
+
+      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
+        return Enumerator::ArithmeticSequence.new(from, :step, from, limit, step, false)
+      end
+
+      kwargs = {}
+      kwargs[:by] = by unless Primitive.undefined?(by)
+      kwargs[:to] = to unless Primitive.undefined?(to)
+      from.to_enum(:step, orig_limit, orig_step, kwargs) do
+        Truffle::NumericOperations.step_size(from, limit, step, uses_kwargs, false)
+      end
+    end
 
     def self.float_step_size(value, limit, step, exclude_end)
       if step.infinite?

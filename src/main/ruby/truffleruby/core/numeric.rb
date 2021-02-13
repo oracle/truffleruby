@@ -83,17 +83,7 @@ class Numeric
     uses_kwargs = !Primitive.undefined?(by) || !Primitive.undefined?(to)
 
     unless block_given?
-      step = 1 if Primitive.nil?(step)
-      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
-        return Enumerator::ArithmeticSequence.new(self, :step, self, limit, step, false)
-      end
-
-      kwargs = {}
-      kwargs[:by] = by unless Primitive.undefined?(by)
-      kwargs[:to] = to unless Primitive.undefined?(to)
-      return to_enum(:step, orig_limit, orig_step, kwargs) do
-        Truffle::NumericOperations.step_size(self, limit, step, uses_kwargs, false)
-      end
+      return Truffle::NumericOperations.step_no_block(self, orig_limit, orig_step, by, to, limit, step, uses_kwargs)
     end
 
     values = Truffle::NumericOperations.step_fetch_args(self, limit, step, uses_kwargs)
@@ -393,5 +383,4 @@ class Numeric
     self.singleton_class.send(:remove_method, name)
     raise TypeError, "can't define singleton method #{name} for #{self.class}"
   end
-
 end
