@@ -235,6 +235,17 @@ public abstract class TruffleDebugNodes {
         }
     }
 
+    @CoreMethod(names = "ast_size", onSingleton = true, required = 1)
+    public abstract static class ASTSizeNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization
+        protected int astSize(Object executable,
+                @Cached ToCallTargetNode toCallTargetNode) {
+            final RootCallTarget callTarget = toCallTargetNode.execute(executable);
+            return NodeUtil.countNodes(callTarget.getRootNode());
+        }
+    }
+
     @CoreMethod(names = "shape", onSingleton = true, required = 1)
     public abstract static class ShapeNode extends CoreMethodArrayArgumentsNode {
 
