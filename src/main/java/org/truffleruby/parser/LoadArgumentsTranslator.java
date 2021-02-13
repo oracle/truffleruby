@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -28,7 +29,6 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.MissingKeywordArgumentNode;
-import org.truffleruby.language.arguments.ReadBlockFromCurrentFrameArgumentsNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadKeywordRestArgumentNode;
 import org.truffleruby.language.arguments.ReadOptionalArgumentNode;
@@ -36,6 +36,7 @@ import org.truffleruby.language.arguments.ReadPostArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRestArgumentNode;
 import org.truffleruby.language.arguments.RunBlockKWArgsHelperNode;
+import org.truffleruby.language.arguments.SaveMethodBlockNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -357,19 +358,16 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     public RubyNode saveMethodBlockArg() {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode();
-        final FrameSlot slot = methodBodyTranslator
-                .getEnvironment()
-                .getFrameDescriptor()
-                .findOrAddFrameSlot(TranslatorEnvironment.METHOD_BLOCK_NAME);
-        return new WriteLocalVariableNode(slot, readNode);
+        final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(
+                TranslatorEnvironment.METHOD_BLOCK_NAME,
+                FrameSlotKind.Object);
+        return new SaveMethodBlockNode(slot);
     }
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode();
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
-        return new WriteLocalVariableNode(slot, readNode);
+        return new SaveMethodBlockNode(slot);
     }
 
     @Override
