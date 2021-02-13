@@ -51,6 +51,58 @@ module Truffle
       end
     end
 
+    def self.step_non_float(value, limit, step, desc)
+      if step == 0
+        loop do
+          yield value
+          value += step
+        end
+      else
+        if desc
+          until value < limit
+            yield value
+            value += step
+          end
+        else
+          until value > limit
+            yield value
+            value += step
+          end
+        end
+      end
+    end
+
+    def self.step_float(value, limit, step, desc)
+      n = float_step_size(value, limit, step, false)
+
+      if n > 0
+        if step.infinite?
+          yield value
+        elsif step == 0
+          loop do
+            yield value
+          end
+        else
+          i = 0
+          if desc
+            while i < n
+              d = i * step + value
+              d = limit if limit > d
+              yield d
+              i += 1
+            end
+          else
+            while i < n
+              d = i * step + value
+              d = limit if limit < d
+              yield d
+              i += 1
+            end
+          end
+        end
+      end
+    end
+
     def self.float_step_size(value, limit, step, exclude_end)
       if step.infinite?
         return step > 0 ? (value <= limit ? 1 : 0) : (value >= limit ? 1 : 0)

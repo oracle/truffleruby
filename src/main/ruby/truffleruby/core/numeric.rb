@@ -61,7 +61,7 @@ class Numeric
     nil
   end
 
-  def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined)
+  def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined, &block)
     uses_kwargs = false
     limit = if Primitive.undefined?(to)
               Primitive.undefined?(orig_limit) ? nil : orig_limit
@@ -85,56 +85,10 @@ class Numeric
     value, limit, step, desc, is_float =
       Truffle::NumericOperations.step_fetch_args(self, limit, step, uses_kwargs)
 
-    infinite = step == 0
-
     if is_float
-      n = Truffle::NumericOperations.float_step_size(value, limit, step, false)
-
-      if n > 0
-        if step.infinite?
-          yield value
-        elsif infinite
-          loop do
-            yield value
-          end
-        else
-          i = 0
-          if desc
-            while i < n
-              d = i * step + value
-              d = limit if limit > d
-              yield d
-              i += 1
-            end
-          else
-            while i < n
-              d = i * step + value
-              d = limit if limit < d
-              yield d
-              i += 1
-            end
-          end
-        end
-      end
+      Truffle::NumericOperations.step_float(value, limit, step, desc, &block)
     else
-      if infinite
-        loop do
-          yield value
-          value += step
-        end
-      else
-        if desc
-          until value < limit
-            yield value
-            value += step
-          end
-        else
-          until value > limit
-            yield value
-            value += step
-          end
-        end
-      end
+      Truffle::NumericOperations.step_non_float(value, limit, step, desc, &block)
     end
 
     self
