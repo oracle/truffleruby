@@ -45,9 +45,7 @@ import org.truffleruby.core.hash.PreInitializationManager;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.inlined.CoreMethods;
 import org.truffleruby.core.kernel.AtExitManager;
-import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.TraceManager;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
@@ -63,16 +61,13 @@ import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
-import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.options.Options;
@@ -435,27 +430,7 @@ public class RubyContext {
 
     @TruffleBoundary
     public static Object send(Object receiver, String methodName, Object... arguments) {
-        final InternalMethod method = ModuleOperations
-                .lookupMethodUncached(MetaClassNode.getUncached().execute(receiver), methodName, null);
-        if (method == null || method.isUndefined()) {
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            final String message = String.format(
-                    "undefined method `%s' for %s when using RubyContext#send() which ignores #method_missing",
-                    methodName,
-                    KernelNodes.ToSNode.uncachedBasicToS(receiver));
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().noMethodError(
-                            message,
-                            receiver,
-                            methodName,
-                            arguments,
-                            EncapsulatingNodeReference.getCurrent().get()));
-        }
-
-        return IndirectCallNode.getUncached().call(
-                method.getCallTarget(),
-                RubyArguments.pack(null, null, method, null, receiver, Nil.INSTANCE, arguments));
+        return DispatchNode.getUncached().call(receiver, methodName, arguments);
     }
 
     @TruffleBoundary
