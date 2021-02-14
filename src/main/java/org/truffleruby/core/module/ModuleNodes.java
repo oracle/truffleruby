@@ -104,6 +104,7 @@ import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
+import org.truffleruby.language.objects.classvariables.SetClassVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
@@ -856,12 +857,10 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        @TruffleBoundary
-        protected Object setClassVariable(RubyModule module, String name, Object value) {
+        protected Object setClassVariable(RubyModule module, String name, Object value,
+                                          @Cached SetClassVariableNode setClassVariableNode) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
-
-            ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
-
+            setClassVariableNode.execute(module, name, value);
             return value;
         }
 

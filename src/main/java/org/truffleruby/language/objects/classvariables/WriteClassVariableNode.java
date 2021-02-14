@@ -25,9 +25,10 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
 
     private final String name;
 
+    @Child private RubyNode rhs;
     @Child private RubyNode lexicalScopeNode;
     @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode.create();
-    @Child private RubyNode rhs;
+    @Child private SetClassVariableNode setClassVariableNode = SetClassVariableNode.create();
     @Child private WarnNode warnNode;
 
     public WriteClassVariableNode(RubyNode lexicalScopeNode, String name, RubyNode rhs) {
@@ -39,11 +40,10 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object rhsValue = rhs.execute(frame);
-
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
 
-        ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, rhsValue, this);
+        setClassVariableNode.execute(module, name, rhsValue);
 
         if (lexicalScope.getParent() == null) {
             warnTopLevelClassVariableAccess();
