@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.objects.classvariables;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -30,19 +31,16 @@ public abstract class LookupClassVariableNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object lookupClassVariable(RubyModule module, String name,
-                                         @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode) {
+                                         @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode,
+                                         @Cached("createBinaryProfile()") ConditionProfile noStorageProfile,
+                                         @CachedLibrary(limit = "getRubyLibraryCacheLimit()") DynamicObjectLibrary readStorageNode) {
         final ClassVariableStorage objectForClassVariables = lookupClassVariableStorageNode.lookupClassVariable(module, name);
 
-        if (objectForClassVariables == null) {
+        if (noStorageProfile.profile(objectForClassVariables == null)) {
             return null;
         } else {
-            return readClassVariableFromObject(objectForClassVariables, name);
+            return readStorageNode.getOrDefault(objectForClassVariables, name, null);
         }
-    }
-
-    @TruffleBoundary
-    private Object readClassVariableFromObject(ClassVariableStorage objectForClassVariables, String name) {
-        return DynamicObjectLibrary.getUncached().getOrDefault(objectForClassVariables, name, null);
     }
 
 }
