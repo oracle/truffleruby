@@ -34,7 +34,7 @@ public abstract class LookupClassVariableNode extends RubyContextSourceNode {
                                          @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode,
                                          @Cached("createBinaryProfile()") ConditionProfile noStorageProfile,
                                          @CachedLibrary(limit = "getRubyLibraryCacheLimit()") DynamicObjectLibrary readStorageNode) {
-        final ClassVariableStorage objectForClassVariables = lookupClassVariableStorageNode.lookupClassVariable(module, name);
+        final ClassVariableStorage objectForClassVariables = lookupClassVariableStorageNode.execute(module, name);
 
         if (noStorageProfile.profile(objectForClassVariables == null)) {
             return null;
