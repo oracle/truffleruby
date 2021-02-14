@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -26,6 +26,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
     private final String name;
 
     @Child private RubyNode lexicalScopeNode;
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode.create();
     @Child private RubyNode rhs;
     @Child private WarnNode warnNode;
 
@@ -40,8 +41,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
         final Object rhsValue = rhs.execute(frame);
 
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        // TODO CS 21-Feb-16 these two operations are uncached and use loops
-        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
 
         ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, rhsValue, this);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,6 +29,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     private final BranchProfile missingProfile = BranchProfile.create();
 
     @Child private RubyNode lexicalScopeNode;
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode.create();
     @Child private WarnNode warnNode;
 
     public ReadClassVariableNode(RubyNode lexicalScopeNode, String name) {
@@ -39,8 +40,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        // TODO CS 21-Feb-16 these two operations are uncached and use loops - same for isDefined below
-        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 
@@ -61,7 +61,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 
