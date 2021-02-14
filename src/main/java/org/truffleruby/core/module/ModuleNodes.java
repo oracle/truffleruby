@@ -61,7 +61,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -875,12 +874,18 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray getClassVariables(RubyModule module) {
-            final Map<String, Object> allClassVariables = ModuleOperations.getAllClassVariables(module);
-            final int size = allClassVariables.size();
+            final Map<String, Object> classVariables = new HashMap<>();
+
+            ModuleOperations.classVariableLookup(module, m -> {
+                classVariables.putAll(m.fields.getClassVariables());
+                return null;
+            });
+
+            final int size = classVariables.size();
             final Object[] store = new Object[size];
 
             int i = 0;
-            for (String variable : allClassVariables.keySet()) {
+            for (String variable : classVariables.keySet()) {
                 store[i++] = getSymbol(variable);
             }
             return createArray(store);

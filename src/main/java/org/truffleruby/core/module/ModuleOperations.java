@@ -615,23 +615,6 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static Map<String, Object> getAllClassVariables(RubyModule module) {
-        final Map<String, Object> classVariables = new HashMap<>();
-
-        classVariableLookup(module, m -> {
-            classVariables.putAll(m.fields.getClassVariables());
-            return null;
-        });
-
-        return classVariables;
-    }
-
-    @TruffleBoundary
-    public static Object lookupClassVariable(RubyModule module, final String name) {
-        return classVariableLookup(module, m -> m.fields.getClassVariables().get(name));
-    }
-
-    @TruffleBoundary
     public static void setClassVariable(RubyLanguage language, RubyContext context, RubyModule module, String name,
             Object value, Node currentNode) {
         ModuleFields moduleFields = module.fields;
@@ -684,7 +667,7 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    private static <R> R classVariableLookup(RubyModule module, Function<RubyModule, R> action) {
+    public static <R> R classVariableLookup(RubyModule module, Function<RubyModule, R> action) {
         // Look in the current module
         R result = action.apply(module);
         if (result != null) {
