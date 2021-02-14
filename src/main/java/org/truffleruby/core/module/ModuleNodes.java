@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -806,13 +807,11 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @TruffleBoundary
         @Specialization
         protected boolean isClassVariableDefinedString(RubyModule module, String name,
                                                        @Cached LookupClassVariableNode lookupClassVariableNode) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
-            final Object value = lookupClassVariableNode.execute(module, name);
-            return value != null;
+            return lookupClassVariableNode.execute(module, name) != null;
         }
 
     }
@@ -828,13 +827,13 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        @TruffleBoundary
         protected Object getClassVariable(RubyModule module, String name,
-                                          @Cached LookupClassVariableNode lookupClassVariableNode) {
+                                          @Cached LookupClassVariableNode lookupClassVariableNode,
+                                          @Cached("createBinaryProfile()") ConditionProfile undefinedProfile) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
             final Object value = lookupClassVariableNode.execute(module, name);
 
-            if (value == null) {
+            if (undefinedProfile.profile(value == null)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
@@ -1940,7 +1939,6 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @TruffleBoundary
         @Specialization
         protected Object removeClassVariableString(RubyModule module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
