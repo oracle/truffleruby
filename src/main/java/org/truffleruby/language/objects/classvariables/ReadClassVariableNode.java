@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.objects;
+package org.truffleruby.language.objects.classvariables;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -17,44 +17,63 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class WriteClassVariableNode extends RubyContextSourceNode {
+public class ReadClassVariableNode extends RubyContextSourceNode {
 
     private final String name;
+    private final BranchProfile missingProfile = BranchProfile.create();
 
     @Child private RubyNode lexicalScopeNode;
-    @Child private RubyNode rhs;
     @Child private WarnNode warnNode;
 
-    public WriteClassVariableNode(RubyNode lexicalScopeNode, String name, RubyNode rhs) {
+    public ReadClassVariableNode(RubyNode lexicalScopeNode, String name) {
         this.lexicalScopeNode = lexicalScopeNode;
         this.name = name;
-        this.rhs = rhs;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object rhsValue = rhs.execute(frame);
-
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        // TODO CS 21-Feb-16 these two operations are uncached and use loops
+        // TODO CS 21-Feb-16 these two operations are uncached and use loops - same for isDefined below
         final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
-        ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, rhsValue, this);
+        final Object value = ModuleOperations.lookupClassVariable(module, name);
+
+        if (value == null) {
+            missingProfile.enter();
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
+        }
 
         if (lexicalScope.getParent() == null) {
             warnTopLevelClassVariableAccess();
         }
 
-        return rhsValue;
+        return value;
     }
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance(context);
+        final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
+        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+
+        final Object value = ModuleOperations.lookupClassVariable(module, name);
+
+        if (lexicalScope.getParent() == null) {
+            warnTopLevelClassVariableAccess();
+        }
+
+        if (value == null) {
+            return nil;
+        } else {
+            return coreStrings().CLASS_VARIABLE.createInstance(context);
+        }
     }
 
     private void warnTopLevelClassVariableAccess() {
