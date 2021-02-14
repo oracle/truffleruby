@@ -618,8 +618,8 @@ public abstract class ModuleOperations {
     public static Map<String, Object> getAllClassVariables(RubyModule module) {
         final Map<String, Object> classVariables = new HashMap<>();
 
-        classVariableLookup(module, module1 -> {
-            classVariables.putAll(module1.fields.getClassVariables());
+        classVariableLookup(module, m -> {
+            classVariables.putAll(m.fields.getClassVariables());
             return null;
         });
 
@@ -628,7 +628,7 @@ public abstract class ModuleOperations {
 
     @TruffleBoundary
     public static Object lookupClassVariable(RubyModule module, final String name) {
-        return classVariableLookup(module, module1 -> module1.fields.getClassVariables().get(name));
+        return classVariableLookup(module, m -> m.fields.getClassVariables().get(name));
     }
 
     @TruffleBoundary
