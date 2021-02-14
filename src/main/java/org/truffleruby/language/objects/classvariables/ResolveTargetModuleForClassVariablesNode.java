@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.module.RubyModule;
@@ -27,9 +28,16 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyConte
 
     public abstract RubyModule execute(LexicalScope lexicalScope);
 
+    @Specialization(guards = "lexicalScope == cachedLexicalScope")
+    protected RubyModule cached(LexicalScope lexicalScope,
+                                @Cached("lexicalScope") LexicalScope cachedLexicalScope,
+                                @Cached("uncached(lexicalScope)") RubyModule cachedModule) {
+        return cachedModule;
+    }
+
     @TruffleBoundary
-    @Specialization
-    protected RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
+    @Specialization(replaces = "cached")
+    protected RubyModule uncached(LexicalScope lexicalScope) {
         LexicalScope scope = lexicalScope;
 
         // MRI logic: ignore lexical scopes (cref) referring to singleton classes
