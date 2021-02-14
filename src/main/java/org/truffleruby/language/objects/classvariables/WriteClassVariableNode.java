@@ -27,7 +27,8 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
 
     @Child private RubyNode rhs;
     @Child private RubyNode lexicalScopeNode;
-    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode.create();
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode
+            .create();
     @Child private SetClassVariableNode setClassVariableNode = SetClassVariableNode.create();
     @Child private WarnNode warnNode;
 

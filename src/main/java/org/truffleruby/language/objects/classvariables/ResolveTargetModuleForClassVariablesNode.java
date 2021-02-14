@@ -29,7 +29,7 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyConte
 
     @TruffleBoundary
     @Specialization
-    public RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
+    protected RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
         LexicalScope scope = lexicalScope;
 
         // MRI logic: ignore lexical scopes (cref) referring to singleton classes

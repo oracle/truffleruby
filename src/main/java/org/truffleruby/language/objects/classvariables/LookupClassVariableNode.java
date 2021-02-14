@@ -27,7 +27,7 @@ public abstract class LookupClassVariableNode extends RubyContextSourceNode {
     public abstract Object execute(RubyModule module, String name);
 
     @Specialization
-    public Object lookupClassVariable(RubyModule module, String name) {
+    protected Object lookupClassVariable(RubyModule module, String name) {
         return ModuleOperations.lookupClassVariable(module, name);
     }
 

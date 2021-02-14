@@ -28,7 +28,7 @@ public abstract class SetClassVariableNode extends RubyContextSourceNode {
     public abstract Object execute(RubyModule module, String name, Object value);
 
     @Specialization
-    public Object setClassVariableNode(RubyModule module, String name, Object value) {
+    protected Object setClassVariableNode(RubyModule module, String name, Object value) {
         ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
         return value;
     }

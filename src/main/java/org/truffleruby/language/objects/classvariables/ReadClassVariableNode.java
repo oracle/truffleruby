@@ -29,7 +29,8 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     private final BranchProfile missingProfile = BranchProfile.create();
 
     @Child private RubyNode lexicalScopeNode;
-    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode.create();
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode
+            .create();
     @Child private LookupClassVariableNode lookupClassVariableNode = LookupClassVariableNode.create();
     @Child private WarnNode warnNode;
 

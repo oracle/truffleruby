@@ -810,8 +810,8 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected boolean isClassVariableDefinedString(RubyModule module, String name,
-                                                       @Cached CheckClassVariableNameNode checkClassVariableNameNode,
-                                                       @Cached LookupClassVariableNode lookupClassVariableNode) {
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode,
+                @Cached LookupClassVariableNode lookupClassVariableNode) {
             checkClassVariableNameNode.execute(module, name);
             return lookupClassVariableNode.execute(module, name) != null;
         }
@@ -830,9 +830,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object getClassVariable(RubyModule module, String name,
-                                          @Cached CheckClassVariableNameNode checkClassVariableNameNode,
-                                          @Cached LookupClassVariableNode lookupClassVariableNode,
-                                          @Cached("createBinaryProfile()") ConditionProfile undefinedProfile) {
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode,
+                @Cached LookupClassVariableNode lookupClassVariableNode,
+                @Cached("createBinaryProfile()") ConditionProfile undefinedProfile) {
             checkClassVariableNameNode.execute(module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
@@ -860,8 +860,8 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object setClassVariable(RubyModule module, String name, Object value,
-                                          @Cached CheckClassVariableNameNode checkClassVariableNameNode,
-                                          @Cached SetClassVariableNode setClassVariableNode) {
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode,
+                @Cached SetClassVariableNode setClassVariableNode) {
             checkClassVariableNameNode.execute(module, name);
             setClassVariableNode.execute(module, name, value);
             return value;
@@ -1945,7 +1945,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object removeClassVariableString(RubyModule module, String name,
-                                                   @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
             checkClassVariableNameNode.execute(module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
         }
