@@ -9,11 +9,13 @@
  */
 package org.truffleruby.language.objects.classvariables;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 @NodeChild(value = "lexicalScopeNode", type = RubyNode.class)
@@ -25,9 +27,17 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyConte
 
     public abstract RubyModule execute(LexicalScope lexicalScope);
 
+    @TruffleBoundary
     @Specialization
     public RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
-        return LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        LexicalScope scope = lexicalScope;
+
+        // MRI logic: ignore lexical scopes (cref) referring to singleton classes
+        while (RubyGuards.isSingletonClass(scope.getLiveModule())) {
+            scope = scope.getParent();
+        }
+
+        return scope.getLiveModule();
     }
 
 }

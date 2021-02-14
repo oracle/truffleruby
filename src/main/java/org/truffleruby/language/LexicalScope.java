@@ -48,18 +48,6 @@ public class LexicalScope {
         this.liveModule = liveModule;
     }
 
-    @TruffleBoundary
-    public static RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
-        LexicalScope scope = lexicalScope;
-
-        // MRI logic: ignore lexical scopes (cref) referring to singleton classes
-        while (RubyGuards.isSingletonClass(scope.liveModule)) {
-            scope = scope.parent;
-        }
-
-        return scope.liveModule;
-    }
-
     @Override
     public String toString() {
         return " :: " + liveModule + (parent == null ? "" : parent.toString());
