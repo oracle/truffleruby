@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.Memo;
@@ -27,6 +28,7 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.Identifiers;
 
@@ -626,12 +628,7 @@ public abstract class ModuleOperations {
         if (!trySetClassVariable(module, name, value)) {
             synchronized (context.getClassVariableDefinitionLock()) {
                 if (!trySetClassVariable(module, name, value)) {
-                    /* This is double-checked locking, but it is safe because when writing to a ConcurrentHashMap "an
-                     * update operation for a given key bears a happens-before relation with any (non-null) retrieval
-                     * for that key reporting the updated value" (JavaDoc) so the value is guaranteed to be fully
-                     * published before it can be found in the map. */
-
-                    moduleFields.getClassVariables().put(name, value);
+                    DynamicObjectLibrary.getUncached().put(moduleFields.getClassVariables(), name, value);
                 }
             }
         }
@@ -639,11 +636,14 @@ public abstract class ModuleOperations {
 
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
         final RubyModule found = classVariableLookup(topModule, module -> {
-            final ModuleFields moduleFields = module.fields;
-            if (moduleFields.getClassVariables().replace(name, value) != null) {
-                return module;
-            } else {
+            final ClassVariableStorage classVariableStorage = module.fields.getClassVariables();
+            final Object previousValue = DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, name, null);
+
+            if (previousValue == null) {
                 return null;
+            } else {
+                DynamicObjectLibrary.getUncached().put(classVariableStorage, name, value);
+                return module;
             }
         });
         return found != null;
@@ -654,7 +654,10 @@ public abstract class ModuleOperations {
             String name) {
         moduleFields.checkFrozen(context, currentNode);
 
-        final Object found = moduleFields.getClassVariables().remove(name);
+        final ClassVariableStorage classVariableStorage = moduleFields.getClassVariables();
+
+        final Object found = DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, name, null);
+
         if (found == null) {
             throw new RaiseException(
                     context,
@@ -662,8 +665,10 @@ public abstract class ModuleOperations {
                             name,
                             moduleFields.rubyModule,
                             currentNode));
+        } else {
+            classVariableStorage.delete(name);
+            return found;
         }
-        return found;
     }
 
     @TruffleBoundary

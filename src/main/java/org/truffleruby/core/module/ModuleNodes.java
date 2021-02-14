@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -104,6 +105,7 @@ import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
 import org.truffleruby.language.objects.classvariables.SetClassVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -877,7 +879,12 @@ public abstract class ModuleNodes {
             final Map<String, Object> classVariables = new HashMap<>();
 
             ModuleOperations.classVariableLookup(module, m -> {
-                classVariables.putAll(m.fields.getClassVariables());
+                final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
+
+                for (Object key : m.fields.getClassVariables().getShape().getKeys()) {
+                    classVariables.put((String) key, DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, key, null));
+                }
+
                 return null;
             });
 

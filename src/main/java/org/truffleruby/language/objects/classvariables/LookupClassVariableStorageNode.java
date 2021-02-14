@@ -12,12 +12,11 @@ package org.truffleruby.language.objects.classvariables;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-
-import java.util.concurrent.ConcurrentMap;
 
 @NodeChild(value = "module", type = RubyNode.class)
 @NodeChild(value = "name", type = RubyNode.class)
@@ -27,14 +26,15 @@ public abstract class LookupClassVariableStorageNode extends RubyContextSourceNo
         return LookupClassVariableStorageNodeGen.create(null, null);
     }
 
-    public abstract ConcurrentMap<String, Object> execute(RubyModule module, String name);
+    public abstract ClassVariableStorage execute(RubyModule module, String name);
 
     @TruffleBoundary
     @Specialization
-    protected ConcurrentMap<String, Object> lookupClassVariable(RubyModule module, String name) {
+    protected ClassVariableStorage lookupClassVariable(RubyModule module, String name) {
         return ModuleOperations.classVariableLookup(module, m -> {
-            if (m.fields.getClassVariables().get(name) != null) {
-                return m.fields.getClassVariables();
+            final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
+            if (DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, name, null) != null) {
+                return classVariableStorage;
             } else {
                 return null;
             }
