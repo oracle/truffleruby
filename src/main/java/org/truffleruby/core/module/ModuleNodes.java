@@ -808,7 +808,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected boolean isClassVariableDefinedString(RubyModule module, String name,
-                                                       @Cached("create()")LookupClassVariableNode lookupClassVariableNode) {
+                                                       @Cached LookupClassVariableNode lookupClassVariableNode) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
             final Object value = lookupClassVariableNode.execute(module, name);
             return value != null;
@@ -829,7 +829,7 @@ public abstract class ModuleNodes {
         @Specialization
         @TruffleBoundary
         protected Object getClassVariable(RubyModule module, String name,
-                                          @Cached("create()") LookupClassVariableNode lookupClassVariableNode) {
+                                          @Cached LookupClassVariableNode lookupClassVariableNode) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
             final Object value = lookupClassVariableNode.execute(module, name);
 
