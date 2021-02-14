@@ -104,6 +104,7 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
+import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
 import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
 import org.truffleruby.language.objects.classvariables.SetClassVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -809,8 +810,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected boolean isClassVariableDefinedString(RubyModule module, String name,
+                                                       @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                                                        @Cached LookupClassVariableNode lookupClassVariableNode) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
+            checkClassVariableNameNode.execute(module, name);
             return lookupClassVariableNode.execute(module, name) != null;
         }
 
@@ -828,9 +830,10 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object getClassVariable(RubyModule module, String name,
+                                          @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                                           @Cached LookupClassVariableNode lookupClassVariableNode,
                                           @Cached("createBinaryProfile()") ConditionProfile undefinedProfile) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
+            checkClassVariableNameNode.execute(module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
             if (undefinedProfile.profile(value == null)) {
@@ -857,8 +860,9 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object setClassVariable(RubyModule module, String name, Object value,
+                                          @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                                           @Cached SetClassVariableNode setClassVariableNode) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
+            checkClassVariableNameNode.execute(module, name);
             setClassVariableNode.execute(module, name, value);
             return value;
         }
@@ -1940,8 +1944,9 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected Object removeClassVariableString(RubyModule module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
+        protected Object removeClassVariableString(RubyModule module, String name,
+                                                   @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
+            checkClassVariableNameNode.execute(module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
         }
 
