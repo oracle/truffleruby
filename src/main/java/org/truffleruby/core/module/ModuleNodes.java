@@ -103,6 +103,7 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
+import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
@@ -806,11 +807,10 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean isClassVariableDefinedString(RubyModule module, String name) {
+        protected boolean isClassVariableDefinedString(RubyModule module, String name,
+                                                       @Cached("create()")LookupClassVariableNode lookupClassVariableNode) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
-
-            final Object value = ModuleOperations.lookupClassVariable(module, name);
-
+            final Object value = lookupClassVariableNode.execute(module, name);
             return value != null;
         }
 
@@ -828,10 +828,10 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected Object getClassVariable(RubyModule module, String name) {
+        protected Object getClassVariable(RubyModule module, String name,
+                                          @Cached("create()") LookupClassVariableNode lookupClassVariableNode) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
-
-            final Object value = ModuleOperations.lookupClassVariable(module, name);
+            final Object value = lookupClassVariableNode.execute(module, name);
 
             if (value == null) {
                 throw new RaiseException(

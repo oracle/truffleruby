@@ -30,6 +30,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
 
     @Child private RubyNode lexicalScopeNode;
     @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode.create();
+    @Child private LookupClassVariableNode lookupClassVariableNode = LookupClassVariableNode.create();
     @Child private WarnNode warnNode;
 
     public ReadClassVariableNode(RubyNode lexicalScopeNode, String name) {
@@ -41,8 +42,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
-
-        final Object value = ModuleOperations.lookupClassVariable(module, name);
+        final Object value = lookupClassVariableNode.execute(module, name);
 
         if (value == null) {
             missingProfile.enter();
@@ -62,8 +62,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
-
-        final Object value = ModuleOperations.lookupClassVariable(module, name);
+        final Object value = lookupClassVariableNode.execute(module, name);
 
         if (lexicalScope.getParent() == null) {
             warnTopLevelClassVariableAccess();
