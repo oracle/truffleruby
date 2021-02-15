@@ -108,6 +108,7 @@ import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.EncodingLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
+import org.truffleruby.language.literal.FrozenStringLiteralNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
 import org.truffleruby.language.literal.LongFixnumLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -506,13 +507,11 @@ public class BodyTranslator extends Translator {
         if (receiver instanceof StrParseNode && methodName.equals("freeze")) {
             final StrParseNode strNode = (StrParseNode) receiver;
             final Rope nodeRope = strNode.getValue();
-
             final ImmutableRubyString frozenString = language
                     .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), strNode.getCodeRange());
-
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
-                    new DefinedWrapperNode(language.coreStrings.METHOD, new ObjectLiteralNode(frozenString))));
+                    new FrozenStringLiteralNode(frozenString, language.coreStrings.METHOD)));
         }
 
         if (receiver instanceof ConstParseNode &&
@@ -2862,8 +2861,7 @@ public class BodyTranslator extends Translator {
         if (node.isFrozen()) {
             final ImmutableRubyString frozenString = language
                     .getFrozenStringLiteral(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
-
-            ret = new DefinedWrapperNode(language.coreStrings.EXPRESSION, new ObjectLiteralNode(frozenString));
+            ret = new FrozenStringLiteralNode(frozenString, language.coreStrings.EXPRESSION);
         } else {
             final LeafRope cachedRope = language.ropeCache
                     .getRope(nodeRope.getBytes(), nodeRope.getEncoding(), node.getCodeRange());
