@@ -7,10 +7,6 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.truffleruby.core.regexp;
 
 import org.jcodings.Encoding;

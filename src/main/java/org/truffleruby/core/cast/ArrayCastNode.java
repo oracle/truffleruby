@@ -25,12 +25,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-
-/*
- * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
- */
-
-/** See also org.truffleruby.core.array.ArrayConvertNode */
+// TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
+/** See also {@link org.truffleruby.core.array.ArrayConvertNode} */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ArrayCastNode extends RubyContextSourceNode {
 
