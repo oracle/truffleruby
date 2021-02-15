@@ -666,7 +666,7 @@ public abstract class ModuleOperations {
                             moduleFields.rubyModule,
                             currentNode));
         } else {
-            classVariableStorage.delete(name);
+            DynamicObjectLibrary.getUncached().removeKey(classVariableStorage, name);
             return found;
         }
     }
