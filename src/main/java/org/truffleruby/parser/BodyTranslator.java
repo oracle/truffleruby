@@ -1916,8 +1916,7 @@ public class BodyTranslator extends Translator {
             rhs = node.getValueNode().accept(this);
         }
 
-        RubyNode self = new SelfNode(environment.getFrameDescriptor());
-        self = TypeNodes.CheckFrozenNode.create(self);
+        final RubyNode self = new SelfNode(environment.getFrameDescriptor());
         final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);

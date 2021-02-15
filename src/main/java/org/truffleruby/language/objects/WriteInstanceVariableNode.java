@@ -19,17 +19,16 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.library.RubyLibrary;
 
 public class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
     @Child private RubyNode receiver;
+    @Child private RubyLibrary rubyLibrary;
     @Child private RubyNode rhs;
     @Child private WriteObjectFieldNode writeNode;
-
-    private final ConditionProfile objectProfile = ConditionProfile.create();
 
     public WriteInstanceVariableNode(String name, RubyNode receiver, RubyNode rhs) {
         this.name = name;
@@ -52,21 +51,29 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode implements 
     }
 
     private void write(Object object, Object value) {
-        if (objectProfile.profile(object instanceof RubyDynamicObject)) {
-            if (writeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                writeNode = insert(WriteObjectFieldNode.create());
-            }
-
-            writeNode.execute((RubyDynamicObject) object, name, value);
-        } else {
+        if (getRubyLibrary().isFrozen(object)) {
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
+
+        if (writeNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            writeNode = insert(WriteObjectFieldNode.create());
+        }
+
+        writeNode.execute((RubyDynamicObject) object, name, value);
     }
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance(context);
+    }
+
+    private RubyLibrary getRubyLibrary() {
+        if (rubyLibrary == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
+        }
+        return rubyLibrary;
     }
 
     @Override
