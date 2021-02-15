@@ -32,12 +32,16 @@ public abstract class SetClassVariableNode extends RubyContextSourceNode {
 
     public abstract Object execute(RubyModule module, String name, Object value);
 
-    @Specialization(guards = { "name == cachedName", "module.getClassVariables().getShape() == cachedClassVariableStorageShape", "cachedProperty != null" })
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "module.getClassVariables().getShape() == cachedClassVariableStorageShape",
+                    "cachedProperty != null" })
     protected Object setClassVariable(RubyModule module, String name, Object value,
-                                      @Cached("name") String cachedName,
-                                      @Cached("module.getClassVariables()") ClassVariableStorage cachedClassVariableStorage,
-                                      @Cached("cachedClassVariableStorage.getShape()") Shape cachedClassVariableStorageShape,
-                                      @Cached("cachedClassVariableStorage.getShape().getProperty(cachedName)") Property cachedProperty) {
+            @Cached("name") String cachedName,
+            @Cached("module.getClassVariables()") ClassVariableStorage cachedClassVariableStorage,
+            @Cached("cachedClassVariableStorage.getShape()") Shape cachedClassVariableStorageShape,
+            @Cached("cachedClassVariableStorage.getShape().getProperty(cachedName)") Property cachedProperty) {
         try {
             cachedProperty.set(cachedClassVariableStorage, value, cachedClassVariableStorageShape);
         } catch (IncompatibleLocationException | FinalLocationException e) {

@@ -29,12 +29,16 @@ public abstract class LookupClassVariableStorageNode extends RubyContextSourceNo
 
     public abstract ClassVariableStorage execute(RubyModule module, String name);
 
-    @Specialization(guards = { "name == cachedName", "module.getClassVariables().getShape() == cachedClassVariableStorageShape", "moduleHasVariable" })
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "module.getClassVariables().getShape() == cachedClassVariableStorageShape",
+                    "moduleHasVariable" })
     protected ClassVariableStorage lookupClassVariable(RubyModule module, String name,
-                                                       @Cached("name") String cachedName,
-                                                       @Cached("module.getClassVariables()") ClassVariableStorage cachedClassVariableStorage,
-                                                       @Cached("cachedClassVariableStorage.getShape()") Shape cachedClassVariableStorageShape,
-                                                       @Cached("cachedClassVariableStorage.getShape().hasProperty(cachedName)") boolean moduleHasVariable) {
+            @Cached("name") String cachedName,
+            @Cached("module.getClassVariables()") ClassVariableStorage cachedClassVariableStorage,
+            @Cached("cachedClassVariableStorage.getShape()") Shape cachedClassVariableStorageShape,
+            @Cached("cachedClassVariableStorage.getShape().hasProperty(cachedName)") boolean moduleHasVariable) {
         return cachedClassVariableStorage;
     }
 

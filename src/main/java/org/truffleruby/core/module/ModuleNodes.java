@@ -833,7 +833,7 @@ public abstract class ModuleNodes {
         protected Object getClassVariable(RubyModule module, String name,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode,
-                @Cached("createBinaryProfile()") ConditionProfile undefinedProfile) {
+                @Cached ConditionProfile undefinedProfile) {
             checkClassVariableNameNode.execute(module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
