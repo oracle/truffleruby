@@ -196,7 +196,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         for (Object key : fromFields.classVariables.getShape().getKeys()) {
-            DynamicObjectLibrary.getUncached().put(this.classVariables, key, DynamicObjectLibrary.getUncached().getOrDefault(fromFields.classVariables, key, null));
+            DynamicObjectLibrary.getUncached().put(
+                    this.classVariables,
+                    key,
+                    DynamicObjectLibrary.getUncached().getOrDefault(fromFields.classVariables, key, null));
         }
 
         if (fromFields.hasPrependedModules()) {
@@ -854,7 +857,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         for (Object key : classVariables.getShape().getKeys()) {
-            ObjectGraph.addProperty(adjacent, DynamicObjectLibrary.getUncached().getOrDefault(classVariables, key, null));
+            ObjectGraph
+                    .addProperty(adjacent, DynamicObjectLibrary.getUncached().getOrDefault(classVariables, key, null));
         }
 
         for (InternalMethod method : methods.values()) {

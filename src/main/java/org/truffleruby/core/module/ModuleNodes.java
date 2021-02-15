@@ -882,7 +882,9 @@ public abstract class ModuleNodes {
                 final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
 
                 for (Object key : m.fields.getClassVariables().getShape().getKeys()) {
-                    classVariables.put((String) key, DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, key, null));
+                    classVariables.put(
+                            (String) key,
+                            DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, key, null));
                 }
 
                 return null;

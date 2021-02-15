@@ -637,7 +637,9 @@ public abstract class ModuleOperations {
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
         final RubyModule found = classVariableLookup(topModule, module -> {
             final ClassVariableStorage classVariableStorage = module.fields.getClassVariables();
-            final Object previousValue = DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, name, null);
+            final Object previousValue = DynamicObjectLibrary
+                    .getUncached()
+                    .getOrDefault(classVariableStorage, name, null);
 
             if (previousValue == null) {
                 return null;

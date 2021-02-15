@@ -12,11 +12,9 @@ package org.truffleruby.language.objects.classvariables;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.objects.CheckIVarNameNodeGen;
 import org.truffleruby.parser.Identifiers;
 
 @ImportStatic(Identifiers.class)

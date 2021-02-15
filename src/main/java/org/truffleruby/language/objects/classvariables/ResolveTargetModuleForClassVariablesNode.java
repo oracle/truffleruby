@@ -30,8 +30,8 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyConte
 
     @Specialization(guards = "lexicalScope == cachedLexicalScope")
     protected RubyModule cached(LexicalScope lexicalScope,
-                                @Cached("lexicalScope") LexicalScope cachedLexicalScope,
-                                @Cached("uncached(lexicalScope)") RubyModule cachedModule) {
+            @Cached("lexicalScope") LexicalScope cachedLexicalScope,
+            @Cached("uncached(lexicalScope)") RubyModule cachedModule) {
         return cachedModule;
     }
 

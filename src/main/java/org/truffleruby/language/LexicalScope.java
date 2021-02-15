@@ -12,7 +12,6 @@ package org.truffleruby.language;
 import org.truffleruby.core.module.RubyModule;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** Instances of this class represent the Ruby lexical scope for constants, which is only changed by `class Name`,
  * `module Name` and `class << expr`. Other lexical scope features such as refinement and the default definee are
