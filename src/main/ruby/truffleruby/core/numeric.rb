@@ -61,102 +61,39 @@ class Numeric
     nil
   end
 
-  def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined)
-    limit = if !Primitive.undefined?(orig_limit) && !Primitive.undefined?(to)
-              raise ArgumentError, 'to is given twice'
-            elsif !Primitive.undefined?(orig_limit)
-              orig_limit
-            elsif !Primitive.undefined?(to)
-              to
+  def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined, &block)
+    uses_kwargs = false
+    limit = if Primitive.undefined?(to)
+              Primitive.undefined?(orig_limit) ? nil : orig_limit
             else
-              nil
+              raise ArgumentError, 'to is given twice' unless Primitive.undefined?(orig_limit)
+              uses_kwargs = true
+              to
             end
-    step = if !Primitive.undefined?(orig_step) && !Primitive.undefined?(by)
-             raise ArgumentError, 'step is given twice'
-           elsif !Primitive.undefined?(orig_step)
-             orig_step
-           elsif !Primitive.undefined?(by)
-             by
+    step = if Primitive.undefined?(by)
+             Primitive.undefined?(orig_step) ? 1 : orig_step
            else
-             1
+             raise ArgumentError, 'step is given twice' unless Primitive.undefined?(orig_step)
+             uses_kwargs = true
+             by
            end
 
-    kwargs = {}
-    kwargs[:by] = by unless Primitive.undefined?(by)
-    kwargs[:to] = to unless Primitive.undefined?(to)
-
     unless block_given?
-      step = 1 if Primitive.nil?(step)
-      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
-        return Enumerator::ArithmeticSequence.new(self, :step, self, limit, step, false)
-      end
-      return to_enum(:step, orig_limit, orig_step, kwargs) do
-        Truffle::NumericOperations.step_size(self, limit, step, kwargs.any?, false)
-      end
+      return Truffle::NumericOperations.step_no_block(self, orig_limit, orig_step, by, to, limit, step, uses_kwargs)
     end
 
-    values = Truffle::NumericOperations.step_fetch_args(self, limit, step, kwargs.any?)
-
-    value = values[0]
-    limit = values[1]
-    step = values[2]
-    desc = values[3]
-    is_float = values[4]
-
-    infinite = step == 0
+    value, limit, step, desc, is_float =
+      Truffle::NumericOperations.step_fetch_args(self, limit, step, uses_kwargs)
 
     if is_float
-      n = Truffle::NumericOperations.float_step_size(value, limit, step, false)
-
-      if n > 0
-        if step.infinite?
-          yield value
-        elsif infinite
-          loop do
-            yield value
-          end
-        else
-          i = 0
-          if desc
-            while i < n
-              d = i * step + value
-              d = limit if limit > d
-              yield d
-              i += 1
-            end
-          else
-            while i < n
-              d = i * step + value
-              d = limit if limit < d
-              yield d
-              i += 1
-            end
-          end
-        end
-      end
+      Truffle::NumericOperations.step_float(value, limit, step, desc, &block)
     else
-      if infinite
-        loop do
-          yield value
-          value += step
-        end
-      else
-        if desc
-          until value < limit
-            yield value
-            value += step
-          end
-        else
-          until value > limit
-            yield value
-            value += step
-          end
-        end
-      end
+      Truffle::NumericOperations.step_non_float(value, limit, step, desc, &block)
     end
 
     self
   end
+  Truffle::Graal.always_split instance_method(:step) # above 100 nodes but always worth splitting
 
   def truncate
     Float(self).truncate
@@ -392,5 +329,4 @@ class Numeric
     self.singleton_class.send(:remove_method, name)
     raise TypeError, "can't define singleton method #{name} for #{self.class}"
   end
-
 end

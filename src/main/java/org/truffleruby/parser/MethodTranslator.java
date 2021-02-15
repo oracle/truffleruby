@@ -403,11 +403,9 @@ public class MethodTranslator extends BodyTranslator {
         body = createCheckArityNode(
                 language,
                 arity,
-                sequence(bodySourceSection, Arrays.asList(loadArguments, body)));
+                sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body)));
 
         body.unsafeSetSourceSection(sourceSection);
-
-        body = sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), body));
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));

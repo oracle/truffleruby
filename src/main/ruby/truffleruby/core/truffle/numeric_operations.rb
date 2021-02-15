@@ -36,6 +36,72 @@
 
 module Truffle
   module NumericOperations
+    def self.step_no_block(from, orig_limit, orig_step, by, to, limit, step, uses_kwargs)
+      step = 1 if Primitive.nil?(step)
+
+      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
+        return Enumerator::ArithmeticSequence.new(from, :step, from, limit, step, false)
+      end
+
+      kwargs = {}
+      kwargs[:by] = by unless Primitive.undefined?(by)
+      kwargs[:to] = to unless Primitive.undefined?(to)
+      from.to_enum(:step, orig_limit, orig_step, kwargs) do
+        Truffle::NumericOperations.step_size(from, limit, step, uses_kwargs, false)
+      end
+    end
+
+    def self.step_non_float(value, limit, step, desc)
+      if step == 0
+        while true
+          yield value
+          value += step
+        end
+      else
+        if desc
+          until value < limit
+            yield value
+            value += step
+          end
+        else
+          until value > limit
+            yield value
+            value += step
+          end
+        end
+      end
+    end
+
+    def self.step_float(value, limit, step, desc)
+      n = float_step_size(value, limit, step, false)
+
+      if n > 0
+        if step.infinite?
+          yield value
+        elsif step == 0
+          while true
+            yield value
+          end
+        else
+          i = 0
+          if desc
+            while i < n
+              d = i * step + value
+              d = limit if limit > d
+              yield d
+              i += 1
+            end
+          else
+            while i < n
+              d = i * step + value
+              d = limit if limit < d
+              yield d
+              i += 1
+            end
+          end
+        end
+      end
+    end
 
     def self.float_step_size(value, limit, step, exclude_end)
       if step.infinite?
@@ -70,12 +136,8 @@ module Truffle
     end
 
     def self.step_size(value, limit, step, uses_kwargs, exclude_end)
-      values = step_fetch_args(value, limit, step, uses_kwargs)
-      value = values[0]
-      limit = values[1]
-      step = values[2]
-      desc = values[3]
-      is_float = values[4]
+      value, limit, step, desc, is_float =
+        step_fetch_args(value, limit, step, uses_kwargs)
 
       if stepping_forever?(limit, step, desc)
         Float::INFINITY
@@ -125,13 +187,14 @@ module Truffle
       desc = step < 0
       default_limit = desc ? -Float::INFINITY : Float::INFINITY
 
-      if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
+      if Primitive.object_kind_of?(value, Float) or
+          Primitive.object_kind_of?(limit, Float) or
+          Primitive.object_kind_of?(step, Float)
         [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit || default_limit),
          Truffle::Type.rb_num2dbl(step), desc, true]
       else
         [value, limit || default_limit, step, desc, false]
       end
     end
-
   end
 end

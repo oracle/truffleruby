@@ -17,7 +17,6 @@ import org.truffleruby.language.RubyContextNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -26,7 +25,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDupNode extends RubyContextNode {
 
-    public abstract RubyArray executeDup(VirtualFrame frame, RubyArray array);
+    public abstract RubyArray executeDup(RubyArray array);
 
     @Specialization(
             guards = {

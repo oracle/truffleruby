@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -14,10 +14,18 @@ import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-/** {@link SaveMethodBlockNode} should be preferred when writing the result to a {@link FrameSlot}. */
-public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNode {
+public class SaveMethodBlockNode extends RubyContextSourceNode {
+
+    private final FrameSlot slot;
+
+    public SaveMethodBlockNode(FrameSlot slot) {
+        this.slot = slot;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
-        return RubyArguments.getBlock(frame);
+        frame.setObject(slot, RubyArguments.getBlock(frame));
+        return nil;
     }
+
 }

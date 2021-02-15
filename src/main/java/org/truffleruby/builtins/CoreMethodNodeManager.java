@@ -358,9 +358,6 @@ public class CoreMethodNodeManager {
         }
 
         if (method.needsBlock()) {
-            /* The way we write specializations for getting a block or not is that we use NotProvided like a missing
-             * argument. The block coming into the method is actually always Nil or RubyProc, so here we check which and
-             * convert Nil to NotProvided. */
             argumentsNodes[i++] = new ReadBlockFromCurrentFrameArgumentsNode();
         }
 
