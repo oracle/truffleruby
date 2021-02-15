@@ -23,6 +23,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
@@ -61,6 +62,10 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     public String getName() {
         return fields.getName();
+    }
+
+    public ClassVariableStorage getClassVariables() {
+        return fields.getClassVariables();
     }
 
     @TruffleBoundary

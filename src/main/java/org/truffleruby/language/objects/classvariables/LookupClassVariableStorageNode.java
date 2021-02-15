@@ -10,8 +10,10 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -27,9 +29,18 @@ public abstract class LookupClassVariableStorageNode extends RubyContextSourceNo
 
     public abstract ClassVariableStorage execute(RubyModule module, String name);
 
+    @Specialization(guards = { "name == cachedName", "module.getClassVariables().getShape() == cachedClassVariableStorageShape", "moduleHasVariable" })
+    protected ClassVariableStorage lookupClassVariable(RubyModule module, String name,
+                                                       @Cached("name") String cachedName,
+                                                       @Cached("module.getClassVariables()") ClassVariableStorage cachedClassVariableStorage,
+                                                       @Cached("cachedClassVariableStorage.getShape()") Shape cachedClassVariableStorageShape,
+                                                       @Cached("cachedClassVariableStorage.getShape().hasProperty(cachedName)") boolean moduleHasVariable) {
+        return cachedClassVariableStorage;
+    }
+
+    @Specialization(replaces = "lookupClassVariable")
     @TruffleBoundary
-    @Specialization
-    protected ClassVariableStorage lookupClassVariable(RubyModule module, String name) {
+    protected ClassVariableStorage uncachedLookupClassVariable(RubyModule module, String name) {
         return ModuleOperations.classVariableLookup(module, m -> {
             final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
             if (classVariableStorage.getShape().hasProperty(name)) {
