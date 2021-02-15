@@ -161,6 +161,7 @@ public class CoreLibrary {
     public final RubyClass systemStackErrorClass;
     public final RubyClass securityErrorClass;
     public final RubyClass standardErrorClass;
+    public final RubyClass stopIterationClass;
     public final RubyModule polyglotModule;
     public final RubyClass unsupportedMessageErrorClass;
     public final RubyClass stringClass;
@@ -360,7 +361,7 @@ public class CoreLibrary {
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
         keyErrorClass = defineClass(indexErrorClass, "KeyError");
-        RubyClass stopIterationClass = defineClass(indexErrorClass, "StopIteration");
+        stopIterationClass = defineClass(indexErrorClass, "StopIteration");
         closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
         // StandardError > IOError

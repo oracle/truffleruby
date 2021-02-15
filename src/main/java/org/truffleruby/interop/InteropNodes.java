@@ -2097,10 +2097,9 @@ public abstract class InteropNodes {
             return context.getTopScopeObject();
         }
     }
-    // endregion scope
+    // endregion
 
     // region Buffer Messages
-
     @CoreMethod(names = "has_buffer_elements?", onSingleton = true, required = 1)
     public abstract static class HasBufferElementsNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -2438,7 +2437,68 @@ public abstract class InteropNodes {
         }
 
     }
+    // endregion
 
-    // endregion Buffer Messages
+    // region Iterator
+    @CoreMethod(names = "has_iterator?", onSingleton = true, required = 1)
+    public abstract static class HasIteratorNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasIterator(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasIterator(receiver);
+        }
+    }
+
+    @CoreMethod(names = "iterator?", onSingleton = true, required = 1)
+    public abstract static class IsIteratorNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean isIterator(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isIterator(receiver);
+        }
+    }
+
+    @CoreMethod(names = "iterator", onSingleton = true, required = 1)
+    public abstract static class GetIteratorNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getIterator(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getIterator(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "has_iterator_next_element?", onSingleton = true, required = 1)
+    public abstract static class HasIteratorNextElementNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasIteratorNextElement(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.hasIteratorNextElement(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "iterator_next_element", onSingleton = true, required = 1)
+    public abstract static class GetIteratorNextElementNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getIteratorNextElement(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getIteratorNextElement(receiver);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+    // endregion
 
 }
