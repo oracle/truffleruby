@@ -10,12 +10,12 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
+import com.oracle.truffle.api.interop.StopIterationException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -111,7 +111,6 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         }
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnsupportedTypeException exception,
@@ -134,6 +133,19 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                         exception.getActualArity(),
                         exception.getExpectedArity(),
                         this),
+                exception);
+    }
+
+    @Specialization
+    protected RuntimeException handle(
+            StopIterationException exception,
+            boolean inInvokeMember,
+            Object receiver,
+            Object[] args,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return new RaiseException(
+                context,
+                context.getCoreExceptions().stopIteration(exception.getMessage(), this),
                 exception);
     }
 

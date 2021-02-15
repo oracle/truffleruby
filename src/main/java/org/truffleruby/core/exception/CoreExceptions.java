@@ -254,10 +254,6 @@ public class CoreExceptions {
                 javaThrowable);
     }
 
-    public RubyException argumentErrorInvalidBigDecimal(String string, Node currentNode) {
-        return argumentError(StringUtils.format("invalid value for BigDecimal(): \"%s\"", string), currentNode);
-    }
-
     @TruffleBoundary
     public RubyException argumentErrorCantUnfreeze(Object self, Node currentNode) {
         String className = LogicalClassNode.getUncached().execute(self).fields.getName();
@@ -449,6 +445,16 @@ public class CoreExceptions {
     public RubyException indexErrorInvalidBufferOffsetException(InvalidBufferOffsetException exception,
             Node currentNode) {
         return indexError("invalid buffer offset " + exception.getByteOffset(), currentNode);
+    }
+
+    // StopIteration
+
+    @TruffleBoundary
+    public RubyException stopIteration(String message, Node currentNode) {
+        RubyClass exceptionClass = context.getCoreLibrary().stopIterationClass;
+        RubyString errorMessage = StringOperations
+                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // LocalJumpError
