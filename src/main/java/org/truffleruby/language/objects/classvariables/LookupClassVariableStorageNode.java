@@ -33,7 +33,7 @@ public abstract class LookupClassVariableStorageNode extends RubyContextSourceNo
     protected ClassVariableStorage lookupClassVariable(RubyModule module, String name) {
         return ModuleOperations.classVariableLookup(module, m -> {
             final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
-            if (DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, name, null) != null) {
+            if (classVariableStorage.getShape().hasProperty(name)) {
                 return classVariableStorage;
             } else {
                 return null;
