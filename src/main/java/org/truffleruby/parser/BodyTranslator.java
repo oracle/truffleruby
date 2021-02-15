@@ -2354,9 +2354,7 @@ public class BodyTranslator extends Translator {
                     pos,
                     receiverValue.get(pos),
                     node.getVariableName() + "=",
-                    buildArrayNode(
-                            pos,
-                            node.getValueNode()),
+                    buildArrayNode(pos, node.getValueNode()),
                     false,
                     node.getReceiverNode() instanceof SelfParseNode);
 
@@ -2432,9 +2430,7 @@ public class BodyTranslator extends Translator {
 
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode ret = new DefinedWrapperNode(
-                language.coreStrings.ASSIGNMENT,
-                new OrLazyValueDefinedNode(lhs, rhs));
+        final RubyNode ret = new OrLazyValueDefinedNode(lhs, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
