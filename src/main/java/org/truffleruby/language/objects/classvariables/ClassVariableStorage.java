@@ -14,7 +14,15 @@ import com.oracle.truffle.api.object.Shape;
 
 public class ClassVariableStorage extends DynamicObject {
 
-    private static final Shape INITIAL_SHAPE = Shape.newBuilder().build();
+    private static final Shape INITIAL_SHAPE = Shape.newBuilder().layout(ClassVariableStorage.class).build();
+
+    @DynamicField private long primitive1;
+    @DynamicField private long primitive2;
+    @DynamicField private long primitive3;
+    @DynamicField private Object object1;
+    @DynamicField private Object object2;
+    @DynamicField private Object object3;
+    @DynamicField private Object object4;
 
     public ClassVariableStorage() {
         super(INITIAL_SHAPE);
