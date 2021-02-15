@@ -93,6 +93,7 @@ class Numeric
 
     self
   end
+  Truffle::Graal.always_split instance_method(:step) # above 100 nodes but always worth splitting
 
   def truncate
     Float(self).truncate
