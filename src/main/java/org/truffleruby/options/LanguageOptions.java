@@ -26,11 +26,13 @@ public class LanguageOptions {
     public final boolean FROZEN_STRING_LITERALS;
     /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
+    /** --lazy-calltargets=DEFAULT_LAZY */
+    public final boolean LAZY_CALLTARGETS;
     /** --core-as-internal=false */
     public final boolean CORE_AS_INTERNAL;
     /** --stdlib-as-internal=false */
     public final boolean STDLIB_AS_INTERNAL;
-    /** --lazy-translation-user=DEFAULT_LAZY */
+    /** --lazy-translation-user=LAZY_CALLTARGETS */
     public final boolean LAZY_TRANSLATION_USER;
     /** --backtraces-omit-unused=true */
     public final boolean BACKTRACES_OMIT_UNUSED;
@@ -38,9 +40,9 @@ public class LanguageOptions {
     public final boolean LAZY_TRANSLATION_LOG;
     /** --constant-dynamic-lookup-log=false */
     public final boolean LOG_DYNAMIC_CONSTANT_LOOKUP;
-    /** --lazy-builtins=DEFAULT_LAZY */
+    /** --lazy-builtins=LAZY_CALLTARGETS */
     public final boolean LAZY_BUILTINS;
-    /** --lazy-translation-core=DEFAULT_LAZY */
+    /** --lazy-translation-core=LAZY_CALLTARGETS */
     public final boolean LAZY_TRANSLATION_CORE;
     /** --basic-ops-inline=true */
     public final boolean BASICOPS_INLINE;
@@ -108,14 +110,15 @@ public class LanguageOptions {
     public LanguageOptions(Env env, OptionValues options) {
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
+        LAZY_CALLTARGETS = options.hasBeenSet(OptionsCatalog.LAZY_CALLTARGETS_KEY) ? options.get(OptionsCatalog.LAZY_CALLTARGETS_KEY) : DEFAULT_LAZY;
         CORE_AS_INTERNAL = options.get(OptionsCatalog.CORE_AS_INTERNAL_KEY);
         STDLIB_AS_INTERNAL = options.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY);
-        LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : DEFAULT_LAZY;
+        LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : LAZY_CALLTARGETS;
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
         LAZY_TRANSLATION_LOG = options.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY);
         LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
-        LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : DEFAULT_LAZY;
-        LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : DEFAULT_LAZY;
+        LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : LAZY_CALLTARGETS;
+        LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : LAZY_CALLTARGETS;
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
@@ -155,6 +158,8 @@ public class LanguageOptions {
                 return FROZEN_STRING_LITERALS;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
+            case "ruby.lazy-calltargets":
+                return LAZY_CALLTARGETS;
             case "ruby.core-as-internal":
                 return CORE_AS_INTERNAL;
             case "ruby.stdlib-as-internal":
@@ -241,6 +246,7 @@ public class LanguageOptions {
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
         return one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
+               one.get(OptionsCatalog.LAZY_CALLTARGETS_KEY).equals(two.get(OptionsCatalog.LAZY_CALLTARGETS_KEY)) &&
                one.get(OptionsCatalog.CORE_AS_INTERNAL_KEY).equals(two.get(OptionsCatalog.CORE_AS_INTERNAL_KEY)) &&
                one.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY).equals(two.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY)) &&
@@ -297,6 +303,13 @@ public class LanguageOptions {
         newValue = newOptions.DEFAULT_LAZY;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --lazy-default differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.LAZY_CALLTARGETS;
+        newValue = newOptions.LAZY_CALLTARGETS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --lazy-calltargets differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 
