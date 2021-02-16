@@ -151,18 +151,10 @@ public class RubyContext {
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
 
-    private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
-
-    private static boolean isPreInitializingContext() {
-        boolean isPreInitializingContext = preInitializeContexts;
-        preInitializeContexts = false; // Only the first context is pre-initialized
-        return isPreInitializingContext;
-    }
-
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
-        this.preInitializing = isPreInitializingContext();
+        this.preInitializing = env.isPreInitialization();
         this.preInitialized = preInitializing;
 
         preInitializationManager = preInitializing ? new PreInitializationManager() : null;

@@ -23,8 +23,6 @@ public class TruffleRuby {
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-" +
             BuildInformationImpl.INSTANCE.getCopyrightYear() + " Oracle and/or its affiliates";
-    public static final boolean PRE_INITIALIZE_CONTEXTS = System
-            .getProperty("polyglot.image-build-time.PreinitializeContexts") != null;
 
     public static String getVersionString(String implementationName) {
         final String buildName = BuildInformationImpl.INSTANCE.getBuildName();
