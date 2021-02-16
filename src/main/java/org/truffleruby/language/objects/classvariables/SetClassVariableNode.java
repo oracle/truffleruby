@@ -9,13 +9,10 @@
  */
 package org.truffleruby.language.objects.classvariables;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.FinalLocationException;
-import com.oracle.truffle.api.object.IncompatibleLocationException;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -32,22 +29,9 @@ public abstract class SetClassVariableNode extends RubyContextSourceNode {
 
     public abstract Object execute(RubyModule module, String name, Object value);
 
-    @Specialization(
-            guards = {
-                    "name == cachedName",
-                    "module.getClassVariables().getShape() == cachedClassVariableStorageShape",
-                    "cachedProperty != null" })
+    @Specialization(guards = "putLibrary.putIfPresent(module.getClassVariables(), name, value)")
     protected Object setClassVariable(RubyModule module, String name, Object value,
-            @Cached("name") String cachedName,
-            @Cached("module.getClassVariables()") ClassVariableStorage cachedClassVariableStorage,
-            @Cached("cachedClassVariableStorage.getShape()") Shape cachedClassVariableStorageShape,
-            @Cached("cachedClassVariableStorage.getShape().getProperty(cachedName)") Property cachedProperty) {
-        try {
-            cachedProperty.set(cachedClassVariableStorage, value, cachedClassVariableStorageShape);
-        } catch (IncompatibleLocationException | FinalLocationException e) {
-            uncachedSetClassVariableNode(module, name, value);
-        }
-
+            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary putLibrary) {
         return value;
     }
 
