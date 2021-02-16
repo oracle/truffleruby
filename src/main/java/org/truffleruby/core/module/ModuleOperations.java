@@ -635,20 +635,12 @@ public abstract class ModuleOperations {
     }
 
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
-        final RubyModule found = classVariableLookup(topModule, module -> {
-            final ClassVariableStorage classVariableStorage = module.fields.getClassVariables();
-            final Object previousValue = DynamicObjectLibrary
-                    .getUncached()
-                    .getOrDefault(classVariableStorage, name, null);
-
-            if (previousValue == null) {
-                return null;
-            } else {
-                DynamicObjectLibrary.getUncached().put(classVariableStorage, name, value);
-                return module;
-            }
-        });
-        return found != null;
+        return classVariableLookup(
+                topModule,
+                module -> DynamicObjectLibrary.getUncached().putIfPresent(
+                        module.fields.getClassVariables(),
+                        name,
+                        value) ? module : null) != null;
     }
 
     @TruffleBoundary
