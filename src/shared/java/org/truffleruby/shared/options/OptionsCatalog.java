@@ -34,6 +34,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> FROZEN_STRING_LITERALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> RUBYGEMS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> DEFAULT_LAZY_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> LAZY_CALLTARGETS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_RUBYGEMS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> DID_YOU_MEAN_KEY = new OptionKey<>(true);
@@ -50,7 +51,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> COVERAGE_GLOBAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CORE_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> STDLIB_AS_INTERNAL_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY = new OptionKey<>(false);
@@ -92,8 +93,8 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PREINITIALIZATION_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
-    public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Integer> DEFAULT_CACHE_KEY = new OptionKey<>(8);
@@ -243,6 +244,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor DEFAULT_LAZY = OptionDescriptor
             .newBuilder(DEFAULT_LAZY_KEY, "ruby.lazy-default")
             .help("Enable default lazy options")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor LAZY_CALLTARGETS = OptionDescriptor
+            .newBuilder(LAZY_CALLTARGETS_KEY, "ruby.lazy-calltargets")
+            .help("Create CallTargets lazily when possible")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1075,6 +1083,8 @@ public class OptionsCatalog {
                 return RUBYGEMS;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
+            case "ruby.lazy-calltargets":
+                return LAZY_CALLTARGETS;
             case "ruby.lazy-rubygems":
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
@@ -1324,6 +1334,7 @@ public class OptionsCatalog {
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             DEFAULT_LAZY,
+            LAZY_CALLTARGETS,
             LAZY_RUBYGEMS,
             PATCHING,
             DID_YOU_MEAN,

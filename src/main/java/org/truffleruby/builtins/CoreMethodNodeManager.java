@@ -267,8 +267,14 @@ public class CoreMethodNodeManager {
                 final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
                 alwaysInlinedNodeFactory = ((ReRaiseInlinedExceptionNode) rootNode.getBody()).nodeFactory;
             } else {
-                callTarget = null;
-                callTargetSupplier = new CachedSupplier<>(() -> callTargetFactory.apply(sharedMethodInfo));
+                if (context.getLanguageSlow().options.LAZY_CALLTARGETS) {
+                    callTarget = null;
+                    callTargetSupplier = new CachedSupplier<>(() -> callTargetFactory.apply(sharedMethodInfo));
+                } else {
+                    callTarget = callTargetFactory.apply(sharedMethodInfo);
+                    callTargetSupplier = null;
+                }
+
                 alwaysInlinedNodeFactory = null;
             }
 

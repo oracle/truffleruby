@@ -8,6 +8,7 @@ LANGUAGE_OPTIONS:
 - LOG_DYNAMIC_CONSTANT_LOOKUP
 - PROFILE_ARGUMENTS
 - DEFAULT_LAZY
+- LAZY_CALLTARGETS
 - BASICOPS_INLINE
 - LAZY_BUILTINS
 - SHARED_OBJECTS_ENABLED
@@ -65,6 +66,7 @@ EXPERT:
     FROZEN_STRING_LITERALS: [frozen-string-literals, boolean, false, Use frozen string literals]
     RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
     DEFAULT_LAZY: [lazy-default, boolean, true, Enable default lazy options]
+    LAZY_CALLTARGETS: [lazy-calltargets, boolean, DEFAULT_LAZY, Create CallTargets lazily when possible]
     LAZY_RUBYGEMS: [lazy-rubygems, boolean, ['RUBYGEMS && ', DEFAULT_LAZY], Load RubyGems lazily on first failing require]
     PATCHING: [patching, boolean, true, Use patching]
     DID_YOU_MEAN: [did-you-mean, boolean, true, Use did_you_mean]
@@ -87,7 +89,7 @@ EXPERT:
     # Options helpful in for debugging, potentially also for user code
     CORE_AS_INTERNAL: [core-as-internal, boolean, false, 'Mark core library sources as internal']
     STDLIB_AS_INTERNAL: [stdlib-as-internal, boolean, false, 'Mark stdlib sources as internal']
-    LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, DEFAULT_LAZY, 'Lazily translation of stdlib, gem and user source files']
+    LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, LAZY_CALLTARGETS, 'Lazily translation of stdlib, gem and user source files']
 
     # Options to tweak backtraces
     EXCEPTIONS_STORE_JAVA: [exceptions-store-java, boolean, false, Store the Java exception with the Ruby backtrace]
@@ -150,8 +152,8 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Options to debug the implementation
     PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
-    LAZY_BUILTINS: [lazy-builtins, boolean, DEFAULT_LAZY, Load builtin classes (core methods & primitives) lazily on first use]
-    LAZY_TRANSLATION_CORE: [lazy-translation-core, boolean, DEFAULT_LAZY, Lazily translation of core source files]
+    LAZY_BUILTINS: [lazy-builtins, boolean, LAZY_CALLTARGETS, Load builtin classes (core methods & primitives) lazily on first use]
+    LAZY_TRANSLATION_CORE: [lazy-translation-core, boolean, LAZY_CALLTARGETS, Lazily translation of core source files]
 
     # Options to help debugging the implementation performance
     BASICOPS_INLINE: [basic-ops-inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]

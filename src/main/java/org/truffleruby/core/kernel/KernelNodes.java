@@ -1838,7 +1838,7 @@ public abstract class KernelNodes {
         protected RootCallTarget compileFormat(Object format, Object[] arguments, boolean isDebug,
                 RubyStringLibrary libFormat) {
             try {
-                return new PrintfCompiler(getContext(), this)
+                return new PrintfCompiler(getLanguage(), this)
                         .compile(libFormat.getRope(format), arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));

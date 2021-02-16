@@ -14,7 +14,7 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
@@ -40,7 +40,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 
 public class PrintfSimpleTreeBuilder {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final List<FormatNode> sequence = new ArrayList<>();
     private final List<SprintfConfig> configs;
 
@@ -48,8 +48,8 @@ public class PrintfSimpleTreeBuilder {
 
     private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
 
-    public PrintfSimpleTreeBuilder(RubyContext context, List<SprintfConfig> configs) {
-        this.context = context;
+    public PrintfSimpleTreeBuilder(RubyLanguage language, List<SprintfConfig> configs) {
+        this.language = language;
         this.configs = configs;
     }
 
@@ -62,7 +62,7 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode valueNode;
 
                 if (config.getNamesBytes() != null) {
-                    final RubySymbol key = context.getLanguageSlow().getSymbol(RopeOperations.create(
+                    final RubySymbol key = language.getSymbol(RopeOperations.create(
                             config.getNamesBytes(),
                             USASCIIEncoding.INSTANCE,
                             CodeRange.CR_7BIT));

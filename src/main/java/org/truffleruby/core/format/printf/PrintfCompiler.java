@@ -12,7 +12,7 @@ package org.truffleruby.core.format.printf;
 import java.util.List;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.rope.Rope;
@@ -22,22 +22,22 @@ import com.oracle.truffle.api.Truffle;
 
 public class PrintfCompiler {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final Node currentNode;
 
-    public PrintfCompiler(RubyContext context, Node currentNode) {
-        this.context = context;
+    public PrintfCompiler(RubyLanguage language, Node currentNode) {
+        this.language = language;
         this.currentNode = currentNode;
     }
 
     public RootCallTarget compile(Rope format, Object[] arguments, boolean isDebug) {
         final PrintfSimpleParser parser = new PrintfSimpleParser(bytesToChars(format.getBytes()), arguments, isDebug);
         final List<SprintfConfig> configs = parser.parse();
-        final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(context, configs);
+        final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(language, configs);
 
         return Truffle.getRuntime().createCallTarget(
                 new FormatRootNode(
-                        context,
+                        language,
                         currentNode.getEncapsulatingSourceSection(),
                         FormatEncoding.find(format.getEncoding()),
                         builder.getNode()));

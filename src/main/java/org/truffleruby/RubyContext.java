@@ -151,18 +151,10 @@ public class RubyContext {
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
 
-    private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
-
-    private static boolean isPreInitializingContext() {
-        boolean isPreInitializingContext = preInitializeContexts;
-        preInitializeContexts = false; // Only the first context is pre-initialized
-        return isPreInitializingContext;
-    }
-
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
-        this.preInitializing = isPreInitializingContext();
+        this.preInitializing = env.isPreInitialization();
         this.preInitialized = preInitializing;
 
         preInitializationManager = preInitializing ? new PreInitializationManager() : null;
@@ -268,8 +260,6 @@ public class RubyContext {
         } else {
             initialized = true;
         }
-
-        this.preInitializing = false;
     }
 
     /** Re-initialize parts of the RubyContext depending on the running process. This is a small subset of the full
@@ -278,6 +268,10 @@ public class RubyContext {
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(newEnv);
+        this.preInitializing = newEnv.isPreInitialization();
+        if (preInitializing) {
+            throw CompilerDirectives.shouldNotReachHere("Expected patch Env#isPreInitialization() to be false");
+        }
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
