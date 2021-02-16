@@ -53,6 +53,7 @@ Compatibility:
 * Refinements take place at `Object#method` and `Module#instance_method` (#2004, @ssnickolay).
 * Add support for `rb_scan_args_kw` in C API (#2244, @LillianZ).
 * Update random implementation layout to be more compatible (#2234).
+* Set `RbConfig::CONFIG['LIBPATHFLAG'/'RPATHFLAG']` like MRI to let `$LIBPATH` changes in `extconf.rb` work.
 
 Performance:
 
