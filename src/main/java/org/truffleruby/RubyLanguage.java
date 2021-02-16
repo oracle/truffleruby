@@ -82,6 +82,7 @@ import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.language.objects.RubyObjectType;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
@@ -210,6 +211,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape truffleFFIPointerShape = createShape(RubyPointer.class);
     public final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
     public final Shape weakMapShape = createShape(RubyWeakMap.class);
+
+    public final Shape classVariableShape = Shape.newBuilder().layout(ClassVariableStorage.class).build();
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);

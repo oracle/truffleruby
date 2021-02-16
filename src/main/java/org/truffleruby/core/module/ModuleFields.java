@@ -97,7 +97,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
-    private final ClassVariableStorage classVariables = new ClassVariableStorage();
+    private final ClassVariableStorage classVariables;
 
     /** The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
      * map of refined classes and modules (C) to refinement modules (R). */
@@ -123,6 +123,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.rubyModule = rubyModule;
         this.methodsUnmodifiedAssumption = new CyclicAssumption("methods are unmodified");
         this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
+        classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
     }
 

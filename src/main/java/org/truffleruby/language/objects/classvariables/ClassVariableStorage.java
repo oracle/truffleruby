@@ -10,12 +10,11 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.RubyLanguage;
 
 public class ClassVariableStorage extends DynamicObject {
 
-    private static final Shape INITIAL_SHAPE = Shape.newBuilder().layout(ClassVariableStorage.class).build();
-
+    // Same number of inline fields as DynamicObjectBasic
     @DynamicField private long primitive1;
     @DynamicField private long primitive2;
     @DynamicField private long primitive3;
@@ -24,8 +23,8 @@ public class ClassVariableStorage extends DynamicObject {
     @DynamicField private Object object3;
     @DynamicField private Object object4;
 
-    public ClassVariableStorage() {
-        super(INITIAL_SHAPE);
+    public ClassVariableStorage(RubyLanguage language) {
+        super(language.classVariableShape);
     }
 
 }
