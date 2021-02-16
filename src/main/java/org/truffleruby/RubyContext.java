@@ -260,8 +260,6 @@ public class RubyContext {
         } else {
             initialized = true;
         }
-
-        this.preInitializing = false;
     }
 
     /** Re-initialize parts of the RubyContext depending on the running process. This is a small subset of the full
@@ -270,6 +268,10 @@ public class RubyContext {
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(newEnv);
+        this.preInitializing = newEnv.isPreInitialization();
+        if (preInitializing) {
+            throw CompilerDirectives.shouldNotReachHere("Expected patch Env#isPreInitialization() to be false");
+        }
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
