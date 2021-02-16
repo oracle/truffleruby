@@ -11,7 +11,7 @@ package org.truffleruby.core.format;
 
 import java.util.List;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseRootNode;
@@ -27,16 +27,20 @@ import com.oracle.truffle.api.source.SourceSection;
 /** The node at the root of a pack expression. */
 public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final FormatEncoding encoding;
 
     @Child private FormatNode child;
 
     @CompilationFinal private int expectedLength = 0;
 
-    public FormatRootNode(RubyContext context, SourceSection sourceSection, FormatEncoding encoding, FormatNode child) {
-        super(context.getLanguageSlow(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
-        this.context = context;
+    public FormatRootNode(
+            RubyLanguage language,
+            SourceSection sourceSection,
+            FormatEncoding encoding,
+            FormatNode child) {
+        super(language, FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
+        this.language = language;
         this.encoding = encoding;
         this.child = child;
     }
@@ -138,9 +142,5 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
     @Override
     public String toString() {
         return getName();
-    }
-
-    public RubyContext getContext() {
-        return context;
     }
 }
