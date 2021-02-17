@@ -117,7 +117,7 @@ public abstract class RequireNode extends RubyContextNode {
             }
 
             for (RubyConstant constant : toAutoload) {
-                GetConstantNode.autoloadConstantStart(constant);
+                GetConstantNode.autoloadConstantStart(getContext(), constant, this);
             }
         }
 
@@ -168,7 +168,7 @@ public abstract class RequireNode extends RubyContextNode {
                 }
             }
 
-            if (!fileLocks.lock(this, getContext().getThreadManager(), expandedPath, lock)) {
+            if (!fileLocks.lock(getContext(), expandedPath, lock, this)) {
                 continue;
             }
 

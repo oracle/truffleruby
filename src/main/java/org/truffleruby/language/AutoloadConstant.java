@@ -12,6 +12,9 @@ package org.truffleruby.language;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public class AutoloadConstant {
@@ -44,8 +47,8 @@ public class AutoloadConstant {
     }
 
     @TruffleBoundary
-    public void startAutoLoad() {
-        getAutoloadLock().lock();
+    public void startAutoLoad(RubyContext context, Node currentNode) {
+        MutexOperations.lockInternal(context, getAutoloadLock(), currentNode);
     }
 
     @TruffleBoundary
