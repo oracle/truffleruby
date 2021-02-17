@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.interop.StopIterationException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -30,6 +31,7 @@ import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.GetMethodObjectNode;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
@@ -282,6 +284,71 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
         Object value = dispatchNode.call(this, "polyglot_array_element_removable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+    // endregion
+
+    // region Iterable Messages
+    @ExportMessage
+    public boolean hasIterator(
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached IsANode isANode) {
+        return isANode.executeIsA(this, context.getCoreLibrary().enumerableModule);
+    }
+
+    @ExportMessage
+    public Object getIterator(
+            @CachedLibrary("this") InteropLibrary interopLibrary,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached DispatchNode dispatchNode) throws UnsupportedMessageException {
+        if (!interopLibrary.hasIterator(this)) {
+            throw UnsupportedMessageException.create();
+        }
+        return dispatchNode.call(context.getCoreLibrary().truffleInteropOperationsModule, "get_iterator", this);
+    }
+
+    @ExportMessage
+    public boolean isIterator(
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached IsANode isANode) {
+        return isANode.executeIsA(this, context.getCoreLibrary().enumeratorClass);
+    }
+
+    @ExportMessage
+    public boolean hasIteratorNextElement(
+            @CachedLibrary("this") InteropLibrary interopLibrary,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached DispatchNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) throws UnsupportedMessageException {
+        if (!interopLibrary.isIterator(this)) {
+            throw UnsupportedMessageException.create();
+        }
+        return booleanCastNode.executeToBoolean(
+                dispatchNode.call(
+                        context.getCoreLibrary().truffleInteropOperationsModule,
+                        "enumerator_has_next?",
+                        this));
+    }
+
+    @ExportMessage
+    public Object getIteratorNextElement(
+            @CachedLibrary("this") InteropLibrary interopLibrary,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached DispatchNode dispatchNode,
+            @Exclusive @Cached IsANode isANode,
+            @Exclusive @Cached ConditionProfile stopIterationProfile)
+            throws UnsupportedMessageException, StopIterationException {
+        if (!interopLibrary.isIterator(this)) {
+            throw UnsupportedMessageException.create();
+        }
+        try {
+            return dispatchNode.call(this, "next");
+        } catch (RaiseException e) {
+            if (stopIterationProfile
+                    .profile(isANode.executeIsA(e.getException(), context.getCoreLibrary().stopIterationClass))) {
+                throw StopIterationException.create(e);
+            }
+            throw e;
+        }
     }
     // endregion
 

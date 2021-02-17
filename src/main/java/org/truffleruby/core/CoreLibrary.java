@@ -175,6 +175,7 @@ public class CoreLibrary {
     public final RubyClass typeErrorClass;
     public final RubyClass zeroDivisionErrorClass;
     public final RubyModule enumerableModule;
+    public final RubyClass enumeratorClass;
     public final RubyModule errnoModule;
     public final RubyModule kernelModule;
     public final RubyModule truffleFFIModule;
@@ -194,6 +195,7 @@ public class CoreLibrary {
     public final RubyClass arityExceptionClass;
     public final RubyModule truffleFeatureLoaderModule;
     public final RubyModule truffleKernelOperationsModule;
+    public final RubyModule truffleInteropOperationsModule;
     public final RubyModule truffleStringOperationsModule;
     public final RubyModule truffleRegexpOperationsModule;
     public final RubyModule truffleRandomOperationsModule;
@@ -411,6 +413,7 @@ public class CoreLibrary {
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
+        enumeratorClass = defineClass("Enumerator");
         falseClass = defineClass("FalseClass");
         fiberClass = defineClass("Fiber");
         defineModule("FileTest");
@@ -516,6 +519,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "System");
         truffleFeatureLoaderModule = defineModule(truffleModule, "FeatureLoader");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
+        truffleInteropOperationsModule = defineModule(truffleModule, "InteropOperations");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
         defineModule(truffleModule, "Readline");
@@ -997,6 +1001,7 @@ public class CoreLibrary {
             "/core/truffle/debug.rb",
             "/core/truffle/encoding_operations.rb",
             "/core/truffle/hash_operations.rb",
+            "/core/truffle/interop_operations.rb",
             "/core/truffle/numeric_operations.rb",
             "/core/truffle/proc_operations.rb",
             "/core/truffle/range_operations.rb",
