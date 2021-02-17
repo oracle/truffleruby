@@ -12,7 +12,8 @@ package org.truffleruby.language.loader;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.mutex.MutexOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -68,19 +69,9 @@ public class ReentrantLockFreeingMap<K> {
     }
 
     @TruffleBoundary
-    public boolean lock(
-            Node currentNode,
-            ThreadManager threadManager,
-            K key,
-            final ReentrantLock lock) {
-
+    public boolean lock(RubyContext context, K key, ReentrantLock lock, Node currentNode) {
         // Also sets status to sleep in MRI
-        threadManager.runUntilResult(
-                currentNode,
-                () -> {
-                    lock.lockInterruptibly();
-                    return ThreadManager.BlockingAction.SUCCESS;
-                });
+        MutexOperations.lockInternal(context, lock, currentNode);
         // ensure that we are not holding removed lock
         if (lock == locks.get(key)) {
             return true;

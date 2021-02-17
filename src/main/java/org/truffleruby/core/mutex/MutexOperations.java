@@ -32,7 +32,7 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
-    public static void lockInternal(RubyContext context, ReentrantLock lock, RubyNode currentNode) {
+    public static void lockInternal(RubyContext context, ReentrantLock lock, Node currentNode) {
         if (lock.tryLock()) {
             return;
         }

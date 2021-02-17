@@ -168,7 +168,7 @@ public abstract class RequireNode extends RubyContextNode {
                 }
             }
 
-            if (!fileLocks.lock(this, getContext().getThreadManager(), expandedPath, lock)) {
+            if (!fileLocks.lock(getContext(), expandedPath, lock, this)) {
                 continue;
             }
 
