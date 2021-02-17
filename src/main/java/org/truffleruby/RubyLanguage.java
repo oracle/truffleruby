@@ -212,7 +212,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
     public final Shape weakMapShape = createShape(RubyWeakMap.class);
 
-    public final Shape classVariableShape = Shape.newBuilder().layout(ClassVariableStorage.class).build();
+    public final Shape classVariableShape = Shape
+            .newBuilder()
+            .allowImplicitCastIntToLong(true)
+            .layout(ClassVariableStorage.class)
+            .build();
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
