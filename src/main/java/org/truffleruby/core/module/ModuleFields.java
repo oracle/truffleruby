@@ -861,7 +861,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             ObjectGraph.addProperty(adjacent, constant);
         }
 
-        ObjectGraph.addProperty(adjacent, classVariables);
+        for (Object key : classVariables.getShape().getKeys()) {
+            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(classVariables, key, null);
+            if (value != null) {
+                ObjectGraph.addProperty(adjacent, value);
+            }
+        }
 
         for (InternalMethod method : methods.values()) {
             ObjectGraph.addProperty(adjacent, method);
