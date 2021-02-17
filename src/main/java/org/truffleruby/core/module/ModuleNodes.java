@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -60,7 +61,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -103,6 +103,10 @@ import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
+import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
+import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
+import org.truffleruby.language.objects.classvariables.SetClassVariableNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
@@ -804,14 +808,12 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @TruffleBoundary
         @Specialization
-        protected boolean isClassVariableDefinedString(RubyModule module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
-
-            final Object value = ModuleOperations.lookupClassVariable(module, name);
-
-            return value != null;
+        protected boolean isClassVariableDefinedString(RubyModule module, String name,
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode,
+                @Cached LookupClassVariableNode lookupClassVariableNode) {
+            checkClassVariableNameNode.execute(module, name);
+            return lookupClassVariableNode.execute(module, name) != null;
         }
 
     }
@@ -827,13 +829,14 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        @TruffleBoundary
-        protected Object getClassVariable(RubyModule module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
+        protected Object getClassVariable(RubyModule module, String name,
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode,
+                @Cached LookupClassVariableNode lookupClassVariableNode,
+                @Cached ConditionProfile undefinedProfile) {
+            checkClassVariableNameNode.execute(module, name);
+            final Object value = lookupClassVariableNode.execute(module, name);
 
-            final Object value = ModuleOperations.lookupClassVariable(module, name);
-
-            if (value == null) {
+            if (undefinedProfile.profile(value == null)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
@@ -856,12 +859,11 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        @TruffleBoundary
-        protected Object setClassVariable(RubyModule module, String name, Object value) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
-
-            ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
-
+        protected Object setClassVariable(RubyModule module, String name, Object value,
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode,
+                @Cached SetClassVariableNode setClassVariableNode) {
+            checkClassVariableNameNode.execute(module, name);
+            setClassVariableNode.execute(module, name, value);
             return value;
         }
 
@@ -873,15 +875,17 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray getClassVariables(RubyModule module) {
-            final Map<String, Object> allClassVariables = ModuleOperations.getAllClassVariables(module);
-            final int size = allClassVariables.size();
-            final Object[] store = new Object[size];
+            final Set<Object> variables = new HashSet<>();
 
-            int i = 0;
-            for (String variable : allClassVariables.keySet()) {
-                store[i++] = getSymbol(variable);
-            }
-            return createArray(store);
+            ModuleOperations.classVariableLookup(module, m -> {
+                final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
+                for (Object key : classVariableStorage.getShape().getKeys()) {
+                    variables.add(getSymbol((String) key));
+                }
+                return null;
+            });
+
+            return createArray(variables.toArray());
         }
     }
 
@@ -1941,10 +1945,10 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @TruffleBoundary
         @Specialization
-        protected Object removeClassVariableString(RubyModule module, String name) {
-            SymbolTable.checkClassVariableName(getContext(), name, module, this);
+        protected Object removeClassVariableString(RubyModule module, String name,
+                @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
+            checkClassVariableNameNode.execute(module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
         }
 

@@ -100,7 +100,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
     protected void shareUncached(RubyDynamicObject object) {
-        SharedObjects.shareInternalFields(getContext(), object);
+        SharedObjects.shareInternalFields(object);
     }
 
     protected static boolean isDelegatedObjectArray(RubyArray array) {

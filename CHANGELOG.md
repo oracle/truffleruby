@@ -61,6 +61,7 @@ Performance:
 * Improve the performance of checks for recursion (#2189, @LillianZ).
 * Improve random number generation performance by avoiding synchronization (#2190, @ivoanjo).
 * We now create a single call target per block by default instead of two.
+* Some uses of class variables are now much better optimized (#2259, @chrisseaton).
 
 Changes:
 

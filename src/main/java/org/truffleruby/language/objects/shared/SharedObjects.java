@@ -15,16 +15,18 @@ import java.util.Set;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.objects.ShapeCachingGuards;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 
 public class SharedObjects {
 
@@ -155,10 +157,16 @@ public class SharedObjects {
     }
 
     public static void onShareHook(RubyDynamicObject object) {
+        if (object instanceof RubyModule) {
+            // We want to share ClassVariableStorage but not expose is to ObjectSpace.reachable_objects_from
+            final ClassVariableStorage classVariables = ((RubyModule) object).fields.getClassVariables();
+            DynamicObjectLibrary.getUncached().updateShape(classVariables);
+            DynamicObjectLibrary.getUncached().markShared(classVariables);
+        }
     }
 
     @TruffleBoundary
-    public static void shareInternalFields(RubyContext context, RubyDynamicObject object) {
+    public static void shareInternalFields(RubyDynamicObject object) {
         onShareHook(object);
         // This will also share user fields, but that's OK
         final Deque<Object> stack = new ArrayDeque<>(ObjectGraph.getAdjacentObjects(object));

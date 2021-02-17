@@ -12,7 +12,6 @@ package org.truffleruby.language;
 import org.truffleruby.core.module.RubyModule;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** Instances of this class represent the Ruby lexical scope for constants, which is only changed by `class Name`,
  * `module Name` and `class << expr`. Other lexical scope features such as refinement and the default definee are
@@ -46,18 +45,6 @@ public class LexicalScope {
 
     public void unsafeSetLiveModule(RubyModule liveModule) {
         this.liveModule = liveModule;
-    }
-
-    @TruffleBoundary
-    public static RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
-        LexicalScope scope = lexicalScope;
-
-        // MRI logic: ignore lexical scopes (cref) referring to singleton classes
-        while (RubyGuards.isSingletonClass(scope.liveModule)) {
-            scope = scope.parent;
-        }
-
-        return scope.liveModule;
     }
 
     @Override

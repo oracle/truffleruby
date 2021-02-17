@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.Memo;
@@ -27,6 +28,7 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.Identifiers;
 
@@ -615,23 +617,6 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static Map<String, Object> getAllClassVariables(RubyModule module) {
-        final Map<String, Object> classVariables = new HashMap<>();
-
-        classVariableLookup(module, module1 -> {
-            classVariables.putAll(module1.fields.getClassVariables());
-            return null;
-        });
-
-        return classVariables;
-    }
-
-    @TruffleBoundary
-    public static Object lookupClassVariable(RubyModule module, final String name) {
-        return classVariableLookup(module, module1 -> module1.fields.getClassVariables().get(name));
-    }
-
-    @TruffleBoundary
     public static void setClassVariable(RubyLanguage language, RubyContext context, RubyModule module, String name,
             Object value, Node currentNode) {
         ModuleFields moduleFields = module.fields;
@@ -643,48 +628,41 @@ public abstract class ModuleOperations {
         if (!trySetClassVariable(module, name, value)) {
             synchronized (context.getClassVariableDefinitionLock()) {
                 if (!trySetClassVariable(module, name, value)) {
-                    /* This is double-checked locking, but it is safe because when writing to a ConcurrentHashMap "an
-                     * update operation for a given key bears a happens-before relation with any (non-null) retrieval
-                     * for that key reporting the updated value" (JavaDoc) so the value is guaranteed to be fully
-                     * published before it can be found in the map. */
-
-                    moduleFields.getClassVariables().put(name, value);
+                    moduleFields.getClassVariables().put(name, value, DynamicObjectLibrary.getUncached());
                 }
             }
         }
     }
 
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
-        final RubyModule found = classVariableLookup(topModule, module -> {
-            final ModuleFields moduleFields = module.fields;
-            if (moduleFields.getClassVariables().replace(name, value) != null) {
-                return module;
-            } else {
-                return null;
-            }
-        });
-        return found != null;
+        return classVariableLookup(
+                topModule,
+                module -> module.fields.getClassVariables().putIfPresent(
+                        name,
+                        value,
+                        DynamicObjectLibrary.getUncached()) ? module : null) != null;
     }
 
     @TruffleBoundary
-    public static Object removeClassVariable(ModuleFields moduleFields, RubyContext context, Node currentNode,
-            String name) {
-        moduleFields.checkFrozen(context, currentNode);
+    public static Object removeClassVariable(ModuleFields fields, RubyContext context, Node currentNode, String name) {
+        fields.checkFrozen(context, currentNode);
 
-        final Object found = moduleFields.getClassVariables().remove(name);
+        final ClassVariableStorage classVariables = fields.getClassVariables();
+        final Object found = classVariables.remove(name, DynamicObjectLibrary.getUncached());
         if (found == null) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().nameErrorClassVariableNotDefined(
                             name,
-                            moduleFields.rubyModule,
+                            fields.rubyModule,
                             currentNode));
+        } else {
+            return found;
         }
-        return found;
     }
 
     @TruffleBoundary
-    private static <R> R classVariableLookup(RubyModule module, Function<RubyModule, R> action) {
+    public static <R> R classVariableLookup(RubyModule module, Function<RubyModule, R> action) {
         // Look in the current module
         R result = action.apply(module);
         if (result != null) {

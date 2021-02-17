@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -46,6 +47,7 @@ import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.Assumption;
@@ -95,7 +97,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
+    private final ClassVariableStorage classVariables;
 
     /** The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
      * map of refined classes and modules (C) to refinement modules (R). */
@@ -121,6 +123,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.rubyModule = rubyModule;
         this.methodsUnmodifiedAssumption = new CyclicAssumption("methods are unmodified");
         this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
+        classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
     }
 
@@ -193,7 +196,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             this.constants.put(entry.getKey(), entry.getValue());
         }
 
-        this.classVariables.putAll(fromFields.classVariables);
+        for (Object key : fromFields.classVariables.getShape().getKeys()) {
+            final Object value = fromFields.classVariables.read((String) key, DynamicObjectLibrary.getUncached());
+            if (value != null) { // do not copy if it was removed concurrently
+                this.classVariables.put((String) key, value, DynamicObjectLibrary.getUncached());
+            }
+        }
 
         if (fromFields.hasPrependedModules()) {
             // Then the parent is the first in the prepend chain
@@ -745,7 +753,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return methods.get(name);
     }
 
-    public ConcurrentMap<String, Object> getClassVariables() {
+    /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
+     * the ClassVariableStorage Shape is not shared */
+    public ClassVariableStorage getClassVariables() {
         return classVariables;
     }
 
@@ -849,8 +859,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             ObjectGraph.addProperty(adjacent, constant);
         }
 
-        for (Object value : classVariables.values()) {
-            ObjectGraph.addProperty(adjacent, value);
+        for (Object key : classVariables.getShape().getKeys()) {
+            final Object value = classVariables.read((String) key, DynamicObjectLibrary.getUncached());
+            if (value != null) {
+                ObjectGraph.addProperty(adjacent, value);
+            }
         }
 
         for (InternalMethod method : methods.values()) {

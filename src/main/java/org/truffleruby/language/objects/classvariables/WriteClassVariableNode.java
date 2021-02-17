@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -7,11 +7,10 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.objects;
+package org.truffleruby.language.objects.classvariables;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -25,8 +24,11 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
 
     private final String name;
 
-    @Child private RubyNode lexicalScopeNode;
     @Child private RubyNode rhs;
+    @Child private RubyNode lexicalScopeNode;
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleNode = ResolveTargetModuleForClassVariablesNode
+            .create();
+    @Child private SetClassVariableNode setClassVariableNode = SetClassVariableNode.create();
     @Child private WarnNode warnNode;
 
     public WriteClassVariableNode(RubyNode lexicalScopeNode, String name, RubyNode rhs) {
@@ -38,12 +40,10 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object rhsValue = rhs.execute(frame);
-
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        // TODO CS 21-Feb-16 these two operations are uncached and use loops
-        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
 
-        ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, rhsValue, this);
+        setClassVariableNode.execute(module, name, rhsValue);
 
         if (lexicalScope.getParent() == null) {
             warnTopLevelClassVariableAccess();
