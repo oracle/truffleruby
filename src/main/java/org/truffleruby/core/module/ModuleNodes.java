@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -876,28 +875,17 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray getClassVariables(RubyModule module) {
-            final Map<String, Object> classVariables = new HashMap<>();
+            final Set<Object> variables = new HashSet<>();
 
             ModuleOperations.classVariableLookup(module, m -> {
                 final ClassVariableStorage classVariableStorage = m.fields.getClassVariables();
-
-                for (Object key : m.fields.getClassVariables().getShape().getKeys()) {
-                    classVariables.put(
-                            (String) key,
-                            DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, key, null));
+                for (Object key : classVariableStorage.getShape().getKeys()) {
+                    variables.add(getSymbol((String) key));
                 }
-
                 return null;
             });
 
-            final int size = classVariables.size();
-            final Object[] store = new Object[size];
-
-            int i = 0;
-            for (String variable : classVariables.keySet()) {
-                store[i++] = getSymbol(variable);
-            }
-            return createArray(store);
+            return createArray(variables.toArray());
         }
     }
 

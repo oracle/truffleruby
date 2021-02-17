@@ -9,14 +9,19 @@
  */
 package org.truffleruby.language.objects.classvariables;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @NodeChild(value = "module", type = RubyNode.class)
 @NodeChild(value = "name", type = RubyNode.class)
@@ -29,15 +34,37 @@ public abstract class SetClassVariableNode extends RubyContextSourceNode {
 
     public abstract Object execute(RubyModule module, String name, Object value);
 
-    @Specialization(guards = "putLibrary.putIfPresent(module.getClassVariables(), name, value)")
-    protected Object setClassVariable(RubyModule module, String name, Object value,
-            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary putLibrary) {
+    @Specialization(guards = "!objectLibrary.isShared(classVariableStorage)")
+    protected Object setClassVariableLocal(RubyModule module, String name, Object value,
+            @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
+            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
+            @Cached BranchProfile slowPath) {
+        if (!objectLibrary.putIfPresent(classVariableStorage, name, value)) {
+            slowPath.enter();
+            ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
+        }
         return value;
     }
 
-    @Specialization(replaces = "setClassVariable")
-    protected Object uncachedSetClassVariableNode(RubyModule module, String name, Object value) {
-        ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
+    @Specialization(guards = "objectLibrary.isShared(classVariableStorage)")
+    protected Object setClassVariableShared(RubyModule module, String name, Object value,
+            @Bind("module.fields.getClassVariables()") ClassVariableStorage classVariableStorage,
+            @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
+            @Cached WriteBarrierNode writeBarrierNode,
+            @Cached BranchProfile slowPath) {
+        // See WriteObjectFieldNode
+        writeBarrierNode.executeWriteBarrier(value);
+        Pointer.UNSAFE.storeFence();
+
+        final boolean set;
+        synchronized (classVariableStorage) {
+            set = objectLibrary.putIfPresent(classVariableStorage, name, value);
+        }
+
+        if (!set) {
+            slowPath.enter();
+            ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);
+        }
         return value;
     }
 

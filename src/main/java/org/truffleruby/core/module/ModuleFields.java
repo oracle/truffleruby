@@ -197,10 +197,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         for (Object key : fromFields.classVariables.getShape().getKeys()) {
-            DynamicObjectLibrary.getUncached().put(
-                    this.classVariables,
-                    key,
-                    DynamicObjectLibrary.getUncached().getOrDefault(fromFields.classVariables, key, null));
+            final Object value = DynamicObjectLibrary.getUncached().getOrDefault(fromFields.classVariables, key, null);
+            if (value != null) { // do not copy if it was removed concurrently
+                synchronized (this.classVariables) {
+                    DynamicObjectLibrary.getUncached().put(this.classVariables, key, value);
+                }
+            }
         }
 
         if (fromFields.hasPrependedModules()) {
@@ -753,6 +755,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return methods.get(name);
     }
 
+    /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
+     * the ClassVariableStorage Shape is not shared */
     public ClassVariableStorage getClassVariables() {
         return classVariables;
     }

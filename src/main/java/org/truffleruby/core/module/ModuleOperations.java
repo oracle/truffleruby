@@ -628,7 +628,9 @@ public abstract class ModuleOperations {
         if (!trySetClassVariable(module, name, value)) {
             synchronized (context.getClassVariableDefinitionLock()) {
                 if (!trySetClassVariable(module, name, value)) {
-                    DynamicObjectLibrary.getUncached().put(moduleFields.getClassVariables(), name, value);
+                    synchronized (moduleFields.getClassVariables()) {
+                        DynamicObjectLibrary.getUncached().put(moduleFields.getClassVariables(), name, value);
+                    }
                 }
             }
         }
@@ -637,10 +639,14 @@ public abstract class ModuleOperations {
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
         return classVariableLookup(
                 topModule,
-                module -> DynamicObjectLibrary.getUncached().putIfPresent(
-                        module.fields.getClassVariables(),
-                        name,
-                        value) ? module : null) != null;
+                module -> {
+                    synchronized (module.fields.getClassVariables()) {
+                        return DynamicObjectLibrary.getUncached().putIfPresent(
+                                module.fields.getClassVariables(),
+                                name,
+                                value) ? module : null;
+                    }
+                }) != null;
     }
 
     @TruffleBoundary
@@ -648,9 +654,9 @@ public abstract class ModuleOperations {
             String name) {
         moduleFields.checkFrozen(context, currentNode);
 
-        final ClassVariableStorage classVariableStorage = moduleFields.getClassVariables();
+        final ClassVariableStorage classVariables = moduleFields.getClassVariables();
 
-        final Object found = DynamicObjectLibrary.getUncached().getOrDefault(classVariableStorage, name, null);
+        final Object found = DynamicObjectLibrary.getUncached().getOrDefault(classVariables, name, null);
 
         if (found == null) {
             throw new RaiseException(
@@ -660,7 +666,9 @@ public abstract class ModuleOperations {
                             moduleFields.rubyModule,
                             currentNode));
         } else {
-            DynamicObjectLibrary.getUncached().removeKey(classVariableStorage, name);
+            synchronized (classVariables) {
+                DynamicObjectLibrary.getUncached().removeKey(classVariables, name);
+            }
             return found;
         }
     }
