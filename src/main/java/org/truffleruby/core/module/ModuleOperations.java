@@ -650,25 +650,27 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static Object removeClassVariable(ModuleFields moduleFields, RubyContext context, Node currentNode,
-            String name) {
-        moduleFields.checkFrozen(context, currentNode);
+    public static Object removeClassVariable(ModuleFields fields, RubyContext context, Node currentNode, String name) {
+        fields.checkFrozen(context, currentNode);
 
-        final ClassVariableStorage classVariables = moduleFields.getClassVariables();
+        final ClassVariableStorage classVariables = fields.getClassVariables();
 
-        final Object found = DynamicObjectLibrary.getUncached().getOrDefault(classVariables, name, null);
+        final Object found;
+        synchronized (classVariables) {
+            found = DynamicObjectLibrary.getUncached().getOrDefault(classVariables, name, null);
+            if (found != null) {
+                DynamicObjectLibrary.getUncached().removeKey(classVariables, name);
+            }
+        }
 
         if (found == null) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().nameErrorClassVariableNotDefined(
                             name,
-                            moduleFields.rubyModule,
+                            fields.rubyModule,
                             currentNode));
         } else {
-            synchronized (classVariables) {
-                DynamicObjectLibrary.getUncached().removeKey(classVariables, name);
-            }
             return found;
         }
     }
