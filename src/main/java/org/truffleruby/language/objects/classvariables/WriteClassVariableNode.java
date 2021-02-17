@@ -26,7 +26,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
 
     @Child private RubyNode rhs;
     @Child private RubyNode lexicalScopeNode;
-    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleNode = ResolveTargetModuleForClassVariablesNode
             .create();
     @Child private SetClassVariableNode setClassVariableNode = SetClassVariableNode.create();
     @Child private WarnNode warnNode;
@@ -41,7 +41,7 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object rhsValue = rhs.execute(frame);
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
+        final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
 
         setClassVariableNode.execute(module, name, rhsValue);
 

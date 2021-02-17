@@ -28,7 +28,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     private final BranchProfile missingProfile = BranchProfile.create();
 
     @Child private RubyNode lexicalScopeNode;
-    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleForClassVariablesNode = ResolveTargetModuleForClassVariablesNode
+    @Child private ResolveTargetModuleForClassVariablesNode resolveTargetModuleNode = ResolveTargetModuleForClassVariablesNode
             .create();
     @Child private LookupClassVariableNode lookupClassVariableNode = LookupClassVariableNode.create();
     @Child private WarnNode warnNode;
@@ -41,7 +41,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
+        final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
         final Object value = lookupClassVariableNode.execute(module, name);
 
         if (value == null) {
@@ -61,7 +61,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        final RubyModule module = resolveTargetModuleForClassVariablesNode.execute(lexicalScope);
+        final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
         final Object value = lookupClassVariableNode.execute(module, name);
 
         if (lexicalScope.getParent() == null) {
