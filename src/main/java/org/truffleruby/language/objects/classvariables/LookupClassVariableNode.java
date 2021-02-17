@@ -31,12 +31,12 @@ public abstract class LookupClassVariableNode extends RubyBaseNode {
             @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode,
             @Cached ConditionProfile noStorageProfile,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
-        final ClassVariableStorage objectForClassVariables = lookupClassVariableStorageNode.execute(module, name);
+        final ClassVariableStorage classVariables = lookupClassVariableStorageNode.execute(module, name);
 
-        if (noStorageProfile.profile(objectForClassVariables == null)) {
+        if (noStorageProfile.profile(classVariables == null)) {
             return null;
         } else {
-            return objectLibrary.getOrDefault(objectForClassVariables, name, null);
+            return classVariables.read(name, objectLibrary);
         }
     }
 

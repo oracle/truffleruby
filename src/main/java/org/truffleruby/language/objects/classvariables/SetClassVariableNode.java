@@ -17,7 +17,6 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
@@ -49,13 +48,8 @@ public abstract class SetClassVariableNode extends RubyContextNode {
             @Cached BranchProfile slowPath) {
         // See WriteObjectFieldNode
         writeBarrierNode.executeWriteBarrier(value);
-        Pointer.UNSAFE.storeFence();
 
-        final boolean set;
-        synchronized (classVariableStorage) {
-            set = objectLibrary.putIfPresent(classVariableStorage, name, value);
-        }
-
+        final boolean set = classVariableStorage.putIfPresent(name, value, objectLibrary);
         if (!set) {
             slowPath.enter();
             ModuleOperations.setClassVariable(getLanguage(), getContext(), module, name, value, this);

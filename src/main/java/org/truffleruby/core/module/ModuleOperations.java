@@ -628,9 +628,7 @@ public abstract class ModuleOperations {
         if (!trySetClassVariable(module, name, value)) {
             synchronized (context.getClassVariableDefinitionLock()) {
                 if (!trySetClassVariable(module, name, value)) {
-                    synchronized (moduleFields.getClassVariables()) {
-                        DynamicObjectLibrary.getUncached().put(moduleFields.getClassVariables(), name, value);
-                    }
+                    moduleFields.getClassVariables().put(name, value, DynamicObjectLibrary.getUncached());
                 }
             }
         }
@@ -639,14 +637,10 @@ public abstract class ModuleOperations {
     private static boolean trySetClassVariable(RubyModule topModule, String name, Object value) {
         return classVariableLookup(
                 topModule,
-                module -> {
-                    synchronized (module.fields.getClassVariables()) {
-                        return DynamicObjectLibrary.getUncached().putIfPresent(
-                                module.fields.getClassVariables(),
-                                name,
-                                value) ? module : null;
-                    }
-                }) != null;
+                module -> module.fields.getClassVariables().putIfPresent(
+                        name,
+                        value,
+                        DynamicObjectLibrary.getUncached()) ? module : null) != null;
     }
 
     @TruffleBoundary
@@ -654,15 +648,7 @@ public abstract class ModuleOperations {
         fields.checkFrozen(context, currentNode);
 
         final ClassVariableStorage classVariables = fields.getClassVariables();
-
-        final Object found;
-        synchronized (classVariables) {
-            found = DynamicObjectLibrary.getUncached().getOrDefault(classVariables, name, null);
-            if (found != null) {
-                DynamicObjectLibrary.getUncached().removeKey(classVariables, name);
-            }
-        }
-
+        final Object found = classVariables.remove(name, DynamicObjectLibrary.getUncached());
         if (found == null) {
             throw new RaiseException(
                     context,

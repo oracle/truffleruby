@@ -10,7 +10,9 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.extra.ffi.Pointer;
 
 public class ClassVariableStorage extends DynamicObject {
 
@@ -25,6 +27,42 @@ public class ClassVariableStorage extends DynamicObject {
 
     public ClassVariableStorage(RubyLanguage language) {
         super(language.classVariableShape);
+    }
+
+    public Object read(String name, DynamicObjectLibrary objectLibrary) {
+        final Object value = objectLibrary.getOrDefault(this, name, null);
+        if (objectLibrary.isShared(this)) {
+            // This extra fence is to ensure acquire-release semantics for class variables, so the read above behaves
+            // like a load-acquire. There is a corresponding store-release barrier for class variables writes.
+            Pointer.UNSAFE.loadFence(); // load-acquire
+        }
+        return value;
+    }
+
+    public void put(String name, Object value, DynamicObjectLibrary objectLibrary) {
+        Pointer.UNSAFE.storeFence(); // store-release
+        synchronized (this) {
+            objectLibrary.put(this, name, value);
+        }
+    }
+
+    public boolean putIfPresent(String name, Object value, DynamicObjectLibrary objectLibrary) {
+        Pointer.UNSAFE.storeFence(); // store-release
+        synchronized (this) {
+            return objectLibrary.putIfPresent(this, name, value);
+        }
+    }
+
+    public Object remove(String name, DynamicObjectLibrary objectLibrary) {
+        final Object prev;
+        synchronized (this) {
+            prev = read(name, objectLibrary);
+            if (prev != null) {
+                Pointer.UNSAFE.storeFence(); // store-release
+                objectLibrary.removeKey(this, name);
+            }
+        }
+        return prev;
     }
 
 }
