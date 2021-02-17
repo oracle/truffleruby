@@ -117,7 +117,7 @@ public abstract class RequireNode extends RubyContextNode {
             }
 
             for (RubyConstant constant : toAutoload) {
-                GetConstantNode.autoloadConstantStart(constant);
+                GetConstantNode.autoloadConstantStart(getContext(), constant, this);
             }
         }
 

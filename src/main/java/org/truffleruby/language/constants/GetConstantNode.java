@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -118,7 +119,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         }
 
         // Mark the autoload constant as loading already here and not in RequireNode so that recursive lookups act as "being loaded"
-        autoloadConstantStart(autoloadConstant);
+        autoloadConstantStart(getContext(), autoloadConstant, this);
         try {
             callRequireNode.call(coreLibrary().mainObject, "require", feature);
 
@@ -130,8 +131,8 @@ public abstract class GetConstantNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    public static void autoloadConstantStart(RubyConstant autoloadConstant) {
-        autoloadConstant.getAutoloadConstant().startAutoLoad();
+    public static void autoloadConstantStart(RubyContext context, RubyConstant autoloadConstant, Node currentNode) {
+        autoloadConstant.getAutoloadConstant().startAutoLoad(context, currentNode);
 
         // We need to notify cached lookup that we are autoloading the constant, as constant
         // lookup changes based on whether an autoload constant is loading or not (constant

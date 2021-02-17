@@ -374,7 +374,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
             // if Object.autoload(name, filename) is executed from filename.rb
-            GetConstantNode.autoloadConstantStart(autoloadConstant);
+            GetConstantNode.autoloadConstantStart(context, autoloadConstant, currentNode);
         }
 
         context.getFeatureLoader().addAutoload(autoloadConstant);
