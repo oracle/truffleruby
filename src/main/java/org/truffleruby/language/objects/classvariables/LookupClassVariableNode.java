@@ -10,21 +10,18 @@
 package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChild(value = "module", type = RubyNode.class)
-@NodeChild(value = "name", type = RubyNode.class)
-public abstract class LookupClassVariableNode extends RubyContextSourceNode {
+public abstract class LookupClassVariableNode extends RubyBaseNode {
 
     public static LookupClassVariableNode create() {
-        return LookupClassVariableNodeGen.create(null, null);
+        return LookupClassVariableNodeGen.create();
     }
 
     public abstract Object execute(RubyModule module, String name);
@@ -41,6 +38,10 @@ public abstract class LookupClassVariableNode extends RubyContextSourceNode {
         } else {
             return objectLibrary.getOrDefault(objectForClassVariables, name, null);
         }
+    }
+
+    protected int getDynamicObjectCacheLimit() {
+        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 
 }

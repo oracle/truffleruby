@@ -11,21 +11,18 @@ package org.truffleruby.language.objects.classvariables;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
-@NodeChild(value = "module", type = RubyNode.class)
-@NodeChild(value = "name", type = RubyNode.class)
-public abstract class LookupClassVariableStorageNode extends RubyContextSourceNode {
+public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
 
     public static LookupClassVariableStorageNode create() {
-        return LookupClassVariableStorageNodeGen.create(null, null);
+        return LookupClassVariableStorageNodeGen.create();
     }
 
     public abstract ClassVariableStorage execute(RubyModule module, String name);
@@ -48,6 +45,10 @@ public abstract class LookupClassVariableStorageNode extends RubyContextSourceNo
                 return null;
             }
         });
+    }
+
+    protected int getDynamicObjectCacheLimit() {
+        return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
     }
 
 }
