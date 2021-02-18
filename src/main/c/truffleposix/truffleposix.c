@@ -211,12 +211,14 @@ retry:
       return NULL;
     }
     goto retry;
-  } else if (ret != 0) {
+  } else if (ret == EINTR) {
+    goto retry;
+  } else if (ret == EIO || ret == EMFILE || ret == ENFILE) {
     free(buffer);
     errno = ret;
     return NULL;
-  } else {
-    /* ret == 0 && result == NULL means not found */
+  } else { // result == NULL, which means not found
+    // ret should be 0 in that case according to the man page, but it doesn't seem to always hold
     free(buffer);
     return strdup("");
   }
