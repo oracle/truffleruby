@@ -126,9 +126,8 @@ module RbConfig
     dldflags << rpath_libcxx
   end
 
-  # Link to libtruffleruby by absolute path
-  libtruffleruby_dir = File.dirname(libtruffleruby)
-  librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lgraalvm-llvm"
+  # We do not link to libtruffleruby here to workaround GR-29448
+  librubyarg = '-lgraalvm-llvm'
 
   warnflags = warnflags.join(' ')
 
@@ -173,6 +172,7 @@ module RbConfig
     'LIBRUBYARG_STATIC' => '',
     'LIBRUBY_SO'        => "cext/libtruffleruby.#{Truffle::Platform::SOEXT}",
     'LIBS'              => libs,
+    'libtruffleruby'    => libtruffleruby,
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',
     'optflags'          => optflags,
