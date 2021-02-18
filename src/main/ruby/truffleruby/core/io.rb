@@ -2007,7 +2007,7 @@ class IO
         # We need to use that mode of other here like MRI, and not fcntl(), because fcntl(fd, F_GETFL)
         # gives O_RDWR for the 3 standard IOs, even though they are not bidirectional.
         @mode = other.instance_variable_get :@mode
-        @ibuffer = (@mode & FMODE_READWRITE != FMODE_WRITABLE) ? IO::InternalBuffer.new : nil
+        @ibuffer = (@mode & FMODE_READABLE != 0) ? IO::InternalBuffer.new : nil
 
 
         if io.respond_to?(:path)
@@ -2047,7 +2047,7 @@ class IO
       Errno.handle if mode < 0
 
       @mode = Truffle::IOOperations.translate_omode_to_fmode((mode & ACCMODE))
-      @ibuffer = (@mode & FMODE_READWRITE) != FMODE_WRITABLE ? IO::InternalBuffer.new : nil
+      @ibuffer = (@mode & FMODE_READABLE) != 0 ? IO::InternalBuffer.new : nil
     end
 
     self
@@ -2104,7 +2104,7 @@ class IO
     when String
       @external = nil
     when nil
-      if (@mode & FMODE_READWRITE == FMODE_READABLE) || @external
+      if (@mode & FMODE_WRITABLE == 0) || @external
         @external = nil
       else
         @external = Encoding.default_external
@@ -2252,11 +2252,12 @@ class IO
   # See also IO#fsync.
   def sync=(v)
     ensure_open
-    if Primitive.as_boolean(v)
+    if v
       @mode |= FMODE_SYNC
     else
       @mode &= ~FMODE_SYNC
     end
+    v
   end
 
   ##
