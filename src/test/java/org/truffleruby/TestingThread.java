@@ -21,6 +21,7 @@ public class TestingThread {
                 runnable.run();
             } catch (Throwable t) {
                 throwable = t;
+                throw t;
             }
         });
     }
