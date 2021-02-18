@@ -35,7 +35,7 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
 
     protected abstract Object readFrameSlot(VirtualFrame frame);
 
-    public abstract RubyNode makeWriteNode(RubyNode rhs);
+    public abstract WriteLocalNode makeWriteNode(RubyNode rhs);
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {

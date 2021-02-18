@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -30,14 +31,26 @@ public class WriteDeclarationVariableNode extends WriteLocalNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        final Object value = valueNode.execute(frame);
+        assign(frame, value);
+        return value;
+    }
+
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
         if (writeFrameSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             writeFrameSlotNode = insert(WriteFrameSlotNodeGen.create(frameSlot));
         }
 
         final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameDepth);
-        final Object value = valueNode.execute(frame);
-        return writeFrameSlotNode.executeWrite(declarationFrame, value);
+        writeFrameSlotNode.executeWrite(declarationFrame, value);
+    }
+
+    @Override
+    public AssignableNode toAssignableNode() {
+        this.valueNode = null;
+        return this;
     }
 
 }

@@ -60,7 +60,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     @Override
-    public abstract Object execute(VirtualFrame frame);
+    public abstract RubyArray execute(VirtualFrame frame);
 
     @ExplodeLoop
     @Override
@@ -100,7 +100,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         }
 
         @Override
-        public Object execute(VirtualFrame frame) {
+        public RubyArray execute(VirtualFrame frame) {
             return cachedCreateArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
@@ -114,7 +114,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @ExplodeLoop
         @Override
-        public Object execute(VirtualFrame frame) {
+        public RubyArray execute(VirtualFrame frame) {
             final double[] executedValues = new double[values.length];
 
             for (int n = 0; n < values.length; n++) {
@@ -151,7 +151,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @ExplodeLoop
         @Override
-        public Object execute(VirtualFrame frame) {
+        public RubyArray execute(VirtualFrame frame) {
             final int[] executedValues = new int[values.length];
 
             for (int n = 0; n < values.length; n++) {
@@ -188,7 +188,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @ExplodeLoop
         @Override
-        public Object execute(VirtualFrame frame) {
+        public RubyArray execute(VirtualFrame frame) {
             final long[] executedValues = new long[values.length];
 
             for (int n = 0; n < values.length; n++) {
@@ -225,7 +225,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @ExplodeLoop
         @Override
-        public Object execute(VirtualFrame frame) {
+        public RubyArray execute(VirtualFrame frame) {
             final Object[] executedValues = new Object[values.length];
 
             for (int n = 0; n < values.length; n++) {
@@ -244,7 +244,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         }
 
         @Override
-        public Object execute(VirtualFrame frame) {
+        public RubyArray execute(VirtualFrame frame) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
             final Object[] executedValues = new Object[values.length];

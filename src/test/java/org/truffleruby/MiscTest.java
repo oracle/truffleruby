@@ -12,7 +12,6 @@ package org.truffleruby;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
@@ -53,13 +52,17 @@ public class MiscTest {
                 Thread.sleep(1000);
                 context.close(true);
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                fail();
+                throw new Error(e);
             } catch (PolyglotException e) {
-                assertTrue(e.isCancelled());
+                if (e.isCancelled()) {
+                    assertTrue(e.isCancelled());
+                } else {
+                    throw e;
+                }
             }
         });
 
+        context.eval("ruby", "init = 1");
         thread.start();
         try {
             String maliciousCode = "while true; end";

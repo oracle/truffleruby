@@ -1020,13 +1020,14 @@ module Commands
     when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
     when 'unit', 'unittest'
-      rest, mx_options = args_split(rest)
-      tests = rest.empty? ? ['org.truffleruby'] : rest
+      unittest_args, mx_options = args_split(rest)
+      unittest_options, tests = unittest_args.partition { |arg| arg.start_with?('-') }
+      tests = tests.empty? ? ['org.truffleruby'] : tests
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
       # because it cannot find the correct home.
-      home = "-Dorg.graalvm.language.ruby.home=#{ruby_home}"
-      mx(*mx_options, 'unittest', home, *tests)
+      unittest_options << "-Dorg.graalvm.language.ruby.home=#{ruby_home}"
+      mx(*mx_options, 'unittest', *unittest_options, *tests)
     when 'tck' then mx 'tck', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")

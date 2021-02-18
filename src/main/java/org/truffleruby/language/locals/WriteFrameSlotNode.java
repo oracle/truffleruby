@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.locals;
 
+import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
@@ -19,7 +21,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 
 @ImportStatic(RubyGuards.class)
-public abstract class WriteFrameSlotNode extends RubyBaseNode {
+public abstract class WriteFrameSlotNode extends RubyBaseNode implements AssignableNode {
 
     private final FrameSlot frameSlot;
 
@@ -28,6 +30,11 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode {
     }
 
     public abstract Object executeWrite(Frame frame, Object value);
+
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
+        executeWrite(frame, value);
+    }
 
     @Specialization(guards = "checkBooleanKind(frame)")
     protected boolean writeBoolean(Frame frame, boolean value) {
@@ -103,4 +110,8 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode {
         return frameSlot;
     }
 
+    @Override
+    public AssignableNode toAssignableNode() {
+        return this;
+    }
 }

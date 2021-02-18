@@ -51,7 +51,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
     }
 
     @Override
-    public RubyNode makeWriteNode(RubyNode rhs) {
+    public WriteLocalNode makeWriteNode(RubyNode rhs) {
         return new WriteDeclarationVariableNode(frameSlot, frameDepth, rhs);
     }
 

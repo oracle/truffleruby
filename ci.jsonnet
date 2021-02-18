@@ -301,7 +301,7 @@ local part_definitions = {
 
     test_unit_tck: {
       # Run unittests first before cleaning, they need a full non-cleaned build
-      run+: jt(["test", "unit"]) +
+      run+: jt(["test", "unit", "--verbose"]) +
             jt(["test", "tck"])
     },
 

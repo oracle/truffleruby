@@ -11,6 +11,7 @@ package org.truffleruby.language.objects.classvariables;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -20,7 +21,7 @@ import org.truffleruby.language.WarnNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteClassVariableNode extends RubyContextSourceNode {
+public class WriteClassVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     private final String name;
 
@@ -39,17 +40,22 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object rhsValue = rhs.execute(frame);
+        final Object value = rhs.execute(frame);
+        assign(frame, value);
+        return value;
+    }
+
+
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         final RubyModule module = resolveTargetModuleNode.execute(lexicalScope);
 
-        setClassVariableNode.execute(module, name, rhsValue);
+        setClassVariableNode.execute(module, name, value);
 
         if (lexicalScope.getParent() == null) {
             warnTopLevelClassVariableAccess();
         }
-
-        return rhsValue;
     }
 
     @Override
@@ -68,4 +74,9 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public AssignableNode toAssignableNode() {
+        this.rhs = null;
+        return this;
+    }
 }
