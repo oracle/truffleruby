@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
@@ -19,6 +20,10 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.Split;
 
 public final class RubyRootNode extends RubyBaseRootNode {
+
+    public static RubyRootNode forTarget(RootCallTarget callTarget) {
+        return (RubyRootNode) callTarget.getRootNode();
+    }
 
     private final RubyLanguage language;
     private final SharedMethodInfo sharedMethodInfo;

@@ -323,7 +323,7 @@ public abstract class MethodNodes {
             // We need to preserve the method receiver and we want to have the same argument list
 
             final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
-            final RootNode oldRootNode = method.getCallTarget().getRootNode();
+            final RubyRootNode oldRootNode = RubyRootNode.forTarget(method.getCallTarget());
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
             final RootNode newRootNode = new RubyRootNode(
@@ -332,7 +332,7 @@ public abstract class MethodNodes {
                     oldRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),
                     setReceiverNode,
-                    ((RubyRootNode) oldRootNode).getSplit());
+                    oldRootNode.getSplit());
             return Truffle.getRuntime().createCallTarget(newRootNode);
         }
 
