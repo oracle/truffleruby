@@ -2212,7 +2212,6 @@ public class BodyTranslator extends Translator {
                         : SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
                 true,
                 null);
-        splatCastNode.unsafeSetSourceSection(sourceSection);
 
         final MultipleAssignmentNode ret = new MultipleAssignmentNode(
                 preNodes,
