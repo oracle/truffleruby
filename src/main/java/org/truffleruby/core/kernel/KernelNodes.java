@@ -1488,7 +1488,7 @@ public abstract class KernelNodes {
     public abstract static class PublicSendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block,
+        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = args[0];

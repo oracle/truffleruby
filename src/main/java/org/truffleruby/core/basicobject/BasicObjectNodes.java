@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
@@ -616,7 +617,7 @@ public abstract class BasicObjectNodes {
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block,
+        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = args[0];

@@ -140,6 +140,14 @@ public class CoreModuleChecks {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
         int n = getLastParameterIndex(parameters);
 
+        if (coreMethod.alwaysInlined()) {
+            if (!processor.isSameType(parameters.get(n).asType(), processor.rootCallTargetType)) {
+                processor.error("last argument must be a RootCallTarget for alwaysInlined ", specializationMethod);
+                return;
+            }
+            n--;
+        }
+
         if (coreMethod.needsBlock()) {
             if (n < 0) {
                 processor.error("invalid block method parameter position for", specializationMethod);

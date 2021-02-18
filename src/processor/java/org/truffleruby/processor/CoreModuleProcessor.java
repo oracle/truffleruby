@@ -91,6 +91,8 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     TypeMirror nilType;
     TypeMirror notProvidedType;
     TypeMirror rubyProcType;
+    TypeMirror rootCallTargetType;
+    // node types
     TypeMirror rubyNodeType;
     TypeMirror rubyBaseNodeType;
 
@@ -102,6 +104,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         nilType = elementUtils.getTypeElement("org.truffleruby.language.Nil").asType();
         notProvidedType = elementUtils.getTypeElement("org.truffleruby.language.NotProvided").asType();
         rubyProcType = elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType();
+        rootCallTargetType = elementUtils.getTypeElement("com.oracle.truffle.api.RootCallTarget").asType();
         rubyNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyNode").asType();
         rubyBaseNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyBaseNode").asType();
 

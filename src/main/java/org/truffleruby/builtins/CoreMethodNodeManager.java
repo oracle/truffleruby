@@ -177,7 +177,12 @@ public class CoreMethodNodeManager {
 
         final RubyModule module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
-        final Split finalSplit = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : split;
+        final Split finalSplit;
+        if (alwaysInlined) {
+            finalSplit = Split.NEVER;
+        } else {
+            finalSplit = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : split;
+        }
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
             final NodeFactory<? extends RubyBaseNode> nodeFactory = loadNodeFactory(nodeFactoryName);

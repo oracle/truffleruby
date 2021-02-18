@@ -32,16 +32,9 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     private final ConditionProfile objectProfile = ConditionProfile.create();
 
-    private final boolean warnIfUndefined;
-
-    public ReadInstanceVariableNode(String name, RubyNode receiver, boolean warnIfUndefined) {
-        this.warnIfUndefined = warnIfUndefined;
+    public ReadInstanceVariableNode(String name, RubyNode receiver) {
         this.name = name;
         this.receiver = receiver;
-    }
-
-    public ReadInstanceVariableNode(String name, RubyNode receiver) {
-        this(name, receiver, false);
     }
 
     @Override
@@ -51,7 +44,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
         if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
             final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
-            if (warnIfUndefined && !objectLibrary.containsKey(dynamicObject, name)) {
+            if (!objectLibrary.containsKey(dynamicObject, name)) {
                 warnNotInitialized();
             }
             return objectLibrary.getOrDefault(dynamicObject, name, nil);

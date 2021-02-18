@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.RubyBaseNode;
@@ -21,6 +22,6 @@ import org.truffleruby.language.RubyBaseNode;
 @GenerateNodeFactory
 public abstract class AlwaysInlinedMethodNode extends RubyBaseNode {
 
-    public abstract Object execute(Frame callerFrame, Object self, Object[] args, Object block);
+    public abstract Object execute(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target);
 
 }

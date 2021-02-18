@@ -18,7 +18,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -30,6 +35,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -38,6 +44,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -46,6 +53,8 @@ import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
+import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
@@ -64,6 +73,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -73,10 +83,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode;
-import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
-import org.truffleruby.language.arguments.ReadPreArgumentNode;
-import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -85,6 +92,7 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.AddMethodNode;
@@ -100,9 +108,8 @@ import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.WriteInstanceVariableNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
@@ -111,7 +118,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -384,6 +390,56 @@ public abstract class ModuleNodes {
         }
     }
 
+    @GenerateUncached
+    public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object reader(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+                @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
+            // Or a subclass of RubyRootNode with an extra field?
+            final String ivarName = RubyRootNode.forTarget(target).getSharedMethodInfo().getNotes();
+            CompilerAsserts.partialEvaluationConstant(ivarName);
+
+            return objectLibrary.getOrDefault(self, ivarName, nil);
+        }
+
+        @Specialization(guards = "!isRubyDynamicObject(self)")
+        protected Object notObject(Frame frame, Object self, Object[] args, Object block, RootCallTarget target) {
+            return nil;
+        }
+
+        protected int getCacheLimit() {
+            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+        }
+    }
+
+    @GenerateUncached
+    public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
+
+        @Specialization(guards = "!rubyLibrary.isFrozen(self)")
+        protected Object writer(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @Cached WriteObjectFieldNode writeObjectFieldNode) {
+            final String ivarName = RubyRootNode.forTarget(target).getSharedMethodInfo().getNotes();
+            CompilerAsserts.partialEvaluationConstant(ivarName);
+
+            final Object value = args[0];
+            writeObjectFieldNode.execute(self, ivarName, value);
+            return value;
+        }
+
+        @Specialization(guards = "rubyLibrary.isFrozen(self)")
+        protected Object frozen(Frame frame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(self, this));
+        }
+
+        protected int getRubyLibraryCacheLimit() {
+            return RubyLanguage.getCurrentLanguage().options.RUBY_LIBRARY_CACHE;
+        }
+    }
+
     public abstract static class GenerateAccessorNode extends RubyContextNode {
 
         final boolean isGetter;
@@ -423,29 +479,22 @@ public abstract class ModuleNodes {
                     accessorName,
                     0,
                     SharedMethodInfo.moduleAndMethodName(module, accessorName),
-                    isGetter ? "attr_reader" : "attr_writer",
+                    ivar, // notes
                     null);
 
-            final RubyNode accessInstanceVariable;
-            if (isGetter) {
-                accessInstanceVariable = new ReadInstanceVariableNode(ivar, new ReadSelfNode());
-            } else {
-                RubyNode readArgument = Translator.profileArgument(
-                        language,
-                        new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
-                accessInstanceVariable = new WriteInstanceVariableNode(ivar, new ReadSelfNode(), readArgument);
-            }
+            final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory = isGetter
+                    ? GeneratedReaderNodeFactory.getInstance()
+                    : GeneratedWriterNodeFactory.getInstance();
 
-            final RubyNode body = Translator
-                    .createCheckArityNode(language, arity, accessInstanceVariable);
             final RubyRootNode rootNode = new RubyRootNode(
                     language,
                     sourceSection,
                     null,
                     sharedMethodInfo,
-                    body,
-                    Split.HEURISTIC);
+                    new ReRaiseInlinedExceptionNode(alwaysInlinedNodeFactory),
+                    Split.NEVER);
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+
             final InternalMethod method = new InternalMethod(
                     getContext(),
                     sharedMethodInfo,
@@ -454,7 +503,12 @@ public abstract class ModuleNodes {
                     accessorName,
                     module,
                     visibility,
-                    callTarget);
+                    false,
+                    alwaysInlinedNodeFactory,
+                    null,
+                    callTarget,
+                    null,
+                    nil);
 
             module.fields.addMethod(getContext(), this, method);
         }

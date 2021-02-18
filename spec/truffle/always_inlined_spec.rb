@@ -38,6 +38,31 @@ describe "Always-inlined core methods" do
           __send__(Object.new)
         }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == '__send__' }
       end
+
+      it "for a generated attr_reader" do
+        obj = Class.new { attr_reader :foo }.new
+        -> {
+          obj.foo(:too, :many, :args)
+        }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'foo' }
+      end
+
+      it "for a generated attr_writer" do
+        obj = Class.new do
+          attr_writer :foo
+          alias_method :writer, :foo= # so it can be called without send and a different number of arguments
+        end.new
+        -> {
+          obj.send(:foo=, :too, :many, :args)
+        }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'foo=' }
+        -> {
+          obj.writer(:too, :many, :args)
+        }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'foo=' }
+
+        obj.freeze
+        -> {
+          obj.foo = 42
+        }.should raise_error(FrozenError) { |e| e.backtrace_locations[0].label.should == 'foo=' }
+      end
     end
   end
 

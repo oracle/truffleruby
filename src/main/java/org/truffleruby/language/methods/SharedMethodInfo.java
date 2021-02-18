@@ -184,6 +184,11 @@ public class SharedMethodInfo {
         return notes != null && blockDepth == 0;
     }
 
+    public String getNotes() {
+        assert hasNotes();
+        return notes;
+    }
+
     @Override
     public String toString() {
         return getDescriptiveNameAndSource();
