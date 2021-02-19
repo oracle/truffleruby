@@ -117,13 +117,6 @@ module RbConfig
     warnflags << '-Werror' # Make sure there are no warnings in core C extensions
   else
     libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
-
-    # Needed to find libc++.so when using NFI on the library since the toolchain does not pass -rpath automatically
-    libcxx_dir = Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
-    raise 'libcxx_dir should not be empty' if libcxx_dir.empty?
-    rpath_libcxx = " -rpath #{libcxx_dir}"
-    ldflags << rpath_libcxx
-    dldflags << rpath_libcxx
   end
 
   # We do not link to libtruffleruby here to workaround GR-29448

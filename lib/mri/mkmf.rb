@@ -2302,6 +2302,16 @@ RULES
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
   def create_makefile(target, srcprefix = nil)
+    if defined?(::TruffleRuby) and $LIBRUBYARG.to_s.strip.empty?
+      # $LIBRUBYARG was explicitly unset, the built library is not a C extension but used with FFI (e.g., sassc does).
+      # Since $LIBRUBYARG is unset we won't link to libgraalvm-llvm.so, which is wanted.
+      # In the case the library uses C++ code, libc++.so/libc++abi.so will be linked and needs to be found by NFI.
+      # The toolchain does not pass -rpath automatically for libc++.so/libc++abi.so, so we do it.
+      libcxx_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
+      raise 'libcxx_dir should not be empty' if libcxx_dir.empty?
+      $DLDFLAGS << " -rpath #{libcxx_dir}"
+    end
+
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"
@@ -2650,7 +2660,9 @@ site-install-rb: install-rb
     $LIBRUBYARG = ""
     $LIBRUBYARG_STATIC = config['LIBRUBYARG_STATIC']
     $LIBRUBYARG_SHARED = config['LIBRUBYARG_SHARED']
-    $DEFLIBPATH = [$extmk ? "$(topdir)" : "$(#{config["libdirname"] || "libdir"})"]
+    # TruffleRuby: no need to add libdir to rpath of C exts, since we do not link to libtruffleruby (GR-29448)
+    # That way, C extensions do not depend on a specific TruffleRuby build.
+    $DEFLIBPATH = defined?(::TruffleRuby) ? [] : [$extmk ? "$(topdir)" : "$(#{config["libdirname"] || "libdir"})"]
     $DEFLIBPATH.unshift(".")
     $LIBPATH = []
     $INSTALLFILES = []
