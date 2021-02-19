@@ -87,6 +87,7 @@ public final class SafepointManager {
     @TruffleBoundary
     public void leaveThread() {
         final Thread thread = Thread.currentThread();
+        assert runningThreads.contains(thread);
 
         phaser.arriveAndDeregister();
         if (!runningThreads.remove(thread)) {

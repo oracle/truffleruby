@@ -10,8 +10,12 @@
 package org.truffleruby;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ContextPermissionsTest {
 
@@ -74,6 +78,34 @@ public class ContextPermissionsTest {
 
             String code = "begin; Thread.new {}.join; rescue SecurityError => e; e.message; end";
             Assert.assertEquals("threads not allowed in single-threaded mode", context.eval("ruby", code).asString());
+        }
+    }
+
+    @Test
+    public void testFiberDoesNotTriggerMultiThreading() {
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(false).build()) {
+            final Value array = context.eval(
+                    "ruby",
+                    "a = [1]; f = Fiber.new { a << 3; Fiber.yield; a << 5 }; a << 2; f.resume; a << 4; f.resume");
+            assertTrue(array.hasArrayElements());
+            assertEquals(5, array.getArraySize());
+            for (int i = 0; i < 5; i++) {
+                assertEquals(i + 1, array.getArrayElement(i).asInt());
+            }
+        }
+    }
+
+    @Test
+    public void testNestedFiberAndTerminateFiber() {
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(false).build()) {
+            final Value array = context.eval(
+                    "ruby",
+                    "a = []; Fiber.new { a << 1; Fiber.new { a << 2; Fiber.yield; unreachable }.resume; a << 3 }.resume");
+            assertTrue(array.hasArrayElements());
+            assertEquals(3, array.getArraySize());
+            for (int i = 0; i < 3; i++) {
+                assertEquals(i + 1, array.getArrayElement(i).asInt());
+            }
         }
     }
 

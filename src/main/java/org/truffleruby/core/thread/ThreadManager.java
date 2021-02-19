@@ -151,9 +151,20 @@ public class ThreadManager {
     public static final ThreadLocal<RubyFiber> FIBER_BEING_SPAWNED = new ThreadLocal<>();
 
     private Thread createFiberJavaThread(Runnable runnable) {
-        RubyFiber fiber = FIBER_BEING_SPAWNED.get();
+        final RubyFiber fiber = FIBER_BEING_SPAWNED.get();
         assert fiber != null;
-        return createJavaThread(runnable, fiber);
+
+        if (context.isPreInitializing()) {
+            throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
+        }
+
+        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
+            System.err.println("Throwable escaped Fiber pool thread:");
+            throwable.printStackTrace();
+        });
+        rubyManagedThreads.add(thread);
+        return thread;
     }
 
     private Thread createJavaThread(Runnable runnable, RubyFiber fiber) {
@@ -168,26 +179,39 @@ public class ThreadManager {
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
-
-        assert fiber != null;
-        thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
-            try {
-                fiber.uncaughtException = throwable;
-                fiber.initializedLatch.countDown();
-            } catch (Throwable t) {
-                t.initCause(throwable);
-                t.printStackTrace();
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(javaThread, t);
-            }
-        });
-
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
         rubyManagedThreads.add(thread);
         return thread;
     }
 
+    private static Thread.UncaughtExceptionHandler uncaughtExceptionHandler(RubyFiber fiber) {
+        assert fiber != null;
+        return (javaThread, throwable) -> {
+            printInternalError(throwable);
+            try {
+                // the Fiber is not yet initialized, unblock the caller and rethrow the exception to it
+                if (fiber.initializedLatch.getCount() > 0) {
+                    fiber.uncaughtException = throwable;
+                    fiber.initializedLatch.countDown();
+                }
+            } catch (Throwable t) { // exception inside this UncaughtExceptionHandler
+                t.initCause(throwable);
+                printInternalError(t);
+            }
+        };
+    }
+
     @SuppressFBWarnings("RV")
-    public void spawnFiber(Runnable task) {
-        fiberPool.submit(task);
+    public void spawnFiber(RubyFiber fiber, Runnable task) {
+        fiberPool.submit(() -> {
+            try {
+                task.run();
+            } catch (Throwable t) {
+                // Fibers are run on a thread-pool, so make sure any exception escaping
+                // is handled here as the thread pool ignores exceptions.
+                uncaughtExceptionHandler(fiber).uncaughtException(Thread.currentThread(), t);
+            }
+        });
     }
 
     @TruffleBoundary
@@ -280,17 +304,22 @@ public class ThreadManager {
             rethrowOnMainThread(currentNode, e);
             setThreadValue(thread, Nil.INSTANCE);
         } catch (Throwable e) {
-            final String message = StringUtils
-                    .format("%s terminated with internal error:", Thread.currentThread().getName());
-            final RuntimeException runtimeException = new RuntimeException(message, e);
-            // Immediately print internal exceptions, in case they would cause a deadlock
-            runtimeException.printStackTrace();
+            final RuntimeException runtimeException = printInternalError(e);
             rethrowOnMainThread(currentNode, runtimeException);
             setThreadValue(thread, Nil.INSTANCE);
         } finally {
             assert thread.value != null || thread.exception != null;
             cleanup(thread, Thread.currentThread());
         }
+    }
+
+    public static RuntimeException printInternalError(Throwable e) {
+        final String message = StringUtils
+                .format("%s terminated with internal error:", Thread.currentThread().getName());
+        final RuntimeException runtimeException = new RuntimeException(message, e);
+        // Immediately print internal exceptions, in case they would cause a deadlock
+        runtimeException.printStackTrace();
+        return runtimeException;
     }
 
     private void rethrowOnMainThread(Node currentNode, RuntimeException e) {
@@ -361,7 +390,7 @@ public class ThreadManager {
         registerThread(thread);
 
         final FiberManager fiberManager = thread.fiberManager;
-        fiberManager.start(fiberManager.getRootFiber(), javaThread);
+        fiberManager.start(fiberManager.getRootFiber(), javaThread, true);
     }
 
     public void cleanup(RubyThread thread, Thread javaThread) {
@@ -441,6 +470,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     public <T> T runUntilResultKeepStatus(Node currentNode, BlockingAction<T> action) {
+        assert context.getEnv().getContext().isEntered() : "Use retryWhileInterrupted() when not entered";
         T result = null;
 
         do {

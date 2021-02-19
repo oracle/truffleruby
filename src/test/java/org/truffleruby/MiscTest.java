@@ -19,7 +19,6 @@ import org.graalvm.polyglot.Value;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.truffleruby.shared.options.OptionsCatalog;
 
 public class MiscTest {
 
@@ -93,11 +92,7 @@ public class MiscTest {
 
     @Test
     public void testFiberFromIntegratorThread() throws Throwable {
-        try (Context context = RubyTest
-                .setupContext(Context.newBuilder())
-                .option(OptionsCatalog.SINGLE_THREADED.getName(), "false")
-                .allowCreateThread(true)
-                .build()) {
+        try (Context context = RubyTest.createContext()) {
             context.eval("ruby", ":init");
 
             TestingThread thread = new TestingThread(() -> {
