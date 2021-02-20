@@ -471,10 +471,9 @@ public abstract class ModuleNodes {
             final String ivar = "@" + name;
             final String accessorName = isGetter ? name : name + "=";
 
-            final LexicalScope lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), module);
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
-                    lexicalScope,
+                    LexicalScope.IGNORE,
                     arity,
                     accessorName,
                     0,
@@ -498,7 +497,7 @@ public abstract class ModuleNodes {
             final InternalMethod method = new InternalMethod(
                     getContext(),
                     sharedMethodInfo,
-                    lexicalScope,
+                    LexicalScope.IGNORE,
                     DeclarationContext.NONE,
                     accessorName,
                     module,
