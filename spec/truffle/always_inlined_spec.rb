@@ -101,4 +101,10 @@ describe "Always-inlined core methods" do
       }
     end
   end
+
+  it "go uncached if seeing too many different always-inlined methods at a call site" do
+    names = (1..10).map { |i| :"attr#{i}" }
+    obj = Class.new { attr_reader(*names) }.new
+    names.each { |name| obj.send(name).should == nil }
+  end
 end

@@ -23,6 +23,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
@@ -37,6 +38,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -52,7 +54,6 @@ import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
-import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
@@ -82,7 +83,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.WarningNode;
+import org.truffleruby.language.WarningNode.UncachedWarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -137,6 +138,10 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
+import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.BOTH;
+import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.READER;
+import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.WRITER;
 
 @CoreModule(value = "Module", isClass = true)
 public abstract class ModuleNodes {
@@ -440,36 +445,52 @@ public abstract class ModuleNodes {
         }
     }
 
-    public abstract static class GenerateAccessorNode extends RubyContextNode {
-
-        final boolean isGetter;
-
-        public GenerateAccessorNode(boolean isGetter) {
-            this.isGetter = isGetter;
+    public abstract static class GenerateAccessorNode extends AlwaysInlinedMethodNode {
+        enum Accessor {
+            READER,
+            WRITER,
+            BOTH
         }
 
-        public abstract Object executeGenerateAccessor(VirtualFrame frame, RubyModule module, Object name);
-
-        @Specialization
-        protected Object generateAccessor(VirtualFrame frame, RubyModule module, Object nameObject,
-                @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached ReadCallerFrameNode readCallerFrame) {
-            final String name = nameToJavaStringNode.execute(nameObject);
-            createAccessor(module, name, readCallerFrame.execute(frame), getLanguage());
-            return nil;
+        protected void generateAccessor(Frame callerFrame, RubyModule module, Object[] names, Accessor accessor,
+                Node currentNode) {
+            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
+            createAccessors(module, names, accessor, visibility, currentNode);
         }
 
         @TruffleBoundary
-        private void createAccessor(RubyModule module, String name, MaterializedFrame callerFrame,
-                RubyLanguage language) {
-            final SourceSection sourceSection = getContext()
-                    .getCallStack()
-                    .getCallerNode()
-                    .getEncapsulatingSourceSection();
-            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
-            final Arity arity = isGetter ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
+        private void createAccessors(RubyModule module, Object[] names, Accessor accessor, Visibility visibility,
+                Node currentNode) {
+            if (!currentNode.isAdoptable()) {
+                currentNode = EncapsulatingNodeReference.getCurrent().get();
+            }
+            final SourceSection sourceSection;
+            if (currentNode != null) {
+                sourceSection = currentNode.getEncapsulatingSourceSection();
+            } else {
+                sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
+            }
+
+            for (Object nameObject : names) {
+                final String name = NameToJavaStringNode.getUncached().execute(nameObject);
+                if (accessor == BOTH) {
+                    createAccessor(module, name, READER, visibility, sourceSection);
+                    createAccessor(module, name, WRITER, visibility, sourceSection);
+                } else {
+                    createAccessor(module, name, accessor, visibility, sourceSection);
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private void createAccessor(RubyModule module, String name, Accessor accessor, Visibility visibility,
+                SourceSection sourceSection) {
+            assert accessor != BOTH;
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            final RubyLanguage language = context.getLanguageSlow();
+            final Arity arity = accessor == READER ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
             final String ivar = "@" + name;
-            final String accessorName = isGetter ? name : name + "=";
+            final String accessorName = accessor == READER ? name : name + "=";
 
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
@@ -481,7 +502,7 @@ public abstract class ModuleNodes {
                     ivar, // notes
                     null);
 
-            final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory = isGetter
+            final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory = accessor == READER
                     ? GeneratedReaderNodeFactory.getInstance()
                     : GeneratedWriterNodeFactory.getInstance();
 
@@ -495,7 +516,7 @@ public abstract class ModuleNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             final InternalMethod method = new InternalMethod(
-                    getContext(),
+                    context,
                     sharedMethodInfo,
                     LexicalScope.IGNORE,
                     DeclarationContext.NONE,
@@ -509,19 +530,20 @@ public abstract class ModuleNodes {
                     null,
                     nil);
 
-            module.fields.addMethod(getContext(), this, method);
+            module.fields.addMethod(context, this, method);
         }
     }
 
-    @CoreMethod(names = "attr", rest = true)
-    public abstract static class AttrNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
-        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
-        @Child private WarningNode warnNode;
-
+    @GenerateUncached
+    @CoreMethod(names = "attr", rest = true, alwaysInlined = true)
+    public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attr(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected Object attr(
+                Frame callerFrame,
+                RubyModule module,
+                Object[] names,
+                Object block,
+                RootCallTarget target) {
             final boolean setter;
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
@@ -531,74 +553,66 @@ public abstract class ModuleNodes {
                 setter = false;
             }
 
-            for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-                if (setter) {
-                    generateSetterNode.executeGenerateAccessor(frame, module, name);
-                }
-            }
+            generateAccessor(callerFrame, module, names, setter ? BOTH : READER, this);
             return nil;
         }
 
+        @TruffleBoundary
         private void warnObsoletedBooleanArgument() {
-            if (warnNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                warnNode = insert(new WarningNode());
-            }
-
-            if (warnNode.shouldWarn()) {
-                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-                warnNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
+            final UncachedWarningNode warningNode = UncachedWarningNode.INSTANCE;
+            if (warningNode.shouldWarn()) {
+                final SourceSection sourceSection = RubyLanguage
+                        .getCurrentContext()
+                        .getCallStack()
+                        .getTopMostUserSourceSection();
+                warningNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
             }
         }
-
     }
 
-    @CoreMethod(names = "attr_accessor", rest = true)
-    public abstract static class AttrAccessorNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
-        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
-
+    @GenerateUncached
+    @CoreMethod(names = "attr_accessor", rest = true, alwaysInlined = true)
+    public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrAccessor(VirtualFrame frame, RubyModule module, Object[] names) {
-            for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-                generateSetterNode.executeGenerateAccessor(frame, module, name);
-            }
+        protected Object attrAccessor(
+                Frame callerFrame,
+                RubyModule module,
+                Object[] names,
+                Object block,
+                RootCallTarget target) {
+            generateAccessor(callerFrame, module, names, BOTH, this);
             return nil;
         }
-
     }
 
-    @CoreMethod(names = "attr_reader", rest = true)
-    public abstract static class AttrReaderNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
-
+    @GenerateUncached
+    @CoreMethod(names = "attr_reader", rest = true, alwaysInlined = true)
+    public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrReader(VirtualFrame frame, RubyModule module, Object[] names) {
-            for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-            }
+        protected Object attrReader(
+                Frame callerFrame,
+                RubyModule module,
+                Object[] names,
+                Object block,
+                RootCallTarget target) {
+            generateAccessor(callerFrame, module, names, READER, this);
             return nil;
         }
-
     }
 
-    @CoreMethod(names = "attr_writer", rest = true)
-    public abstract static class AttrWriterNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
-
+    @GenerateUncached
+    @CoreMethod(names = "attr_writer", rest = true, alwaysInlined = true)
+    public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrWriter(VirtualFrame frame, RubyModule module, Object[] names) {
-            for (Object name : names) {
-                generateSetterNode.executeGenerateAccessor(frame, module, name);
-            }
+        protected Object attrWriter(
+                Frame callerFrame,
+                RubyModule module,
+                Object[] names,
+                Object block,
+                RootCallTarget target) {
+            generateAccessor(callerFrame, module, names, WRITER, this);
             return nil;
         }
-
     }
 
     @CoreMethod(names = "autoload", required = 2)

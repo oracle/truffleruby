@@ -240,6 +240,10 @@ public abstract class StringNodes {
             return MakeStringNodeGen.create();
         }
 
+        public static MakeStringNode getUncached() {
+            return MakeStringNodeGen.getUncached();
+        }
+
         @Specialization
         protected RubyString makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
                 @CachedContext(RubyLanguage.class) RubyContext context,
