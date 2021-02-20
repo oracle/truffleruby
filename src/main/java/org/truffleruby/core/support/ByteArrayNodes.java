@@ -121,11 +121,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected Object fillFromString(
-                RubyByteArray byteArray,
-                int dstStart,
-                RubyString source,
-                int srcStart,
-                int length,
+                RubyByteArray byteArray, int dstStart, RubyString source, int srcStart, int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = source.rope;
             final byte[] bytes = byteArray.bytes;
@@ -136,11 +132,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected Object fillFromPointer(
-                RubyByteArray byteArray,
-                int dstStart,
-                RubyPointer source,
-                int srcStart,
-                int length,
+                RubyByteArray byteArray, int dstStart, RubyPointer source, int srcStart, int length,
                 @Cached BranchProfile nullPointerProfile) {
             assert length > 0;
 

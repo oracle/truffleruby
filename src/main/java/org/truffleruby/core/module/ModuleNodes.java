@@ -539,11 +539,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
         protected Object attr(
-                Frame callerFrame,
-                RubyModule module,
-                Object[] names,
-                Object block,
-                RootCallTarget target) {
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
             final boolean setter;
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
@@ -575,11 +571,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrAccessor(
-                Frame callerFrame,
-                RubyModule module,
-                Object[] names,
-                Object block,
-                RootCallTarget target) {
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
             generateAccessor(callerFrame, module, names, BOTH, this);
             return nil;
         }
@@ -590,11 +582,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrReader(
-                Frame callerFrame,
-                RubyModule module,
-                Object[] names,
-                Object block,
-                RootCallTarget target) {
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
             generateAccessor(callerFrame, module, names, READER, this);
             return nil;
         }
@@ -605,11 +593,7 @@ public abstract class ModuleNodes {
     public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
         protected Object attrWriter(
-                Frame callerFrame,
-                RubyModule module,
-                Object[] names,
-                Object block,
-                RootCallTarget target) {
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
             generateAccessor(callerFrame, module, names, WRITER, this);
             return nil;
         }
@@ -708,12 +692,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "libCode.isRubyString(code)" })
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                NotProvided file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
@@ -721,12 +700,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "libCode.isRubyString(code)", "libFile.isRubyString(file)" })
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                Object file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
@@ -749,24 +723,14 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "wasProvided(code)")
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                NotProvided file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                Object file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
@@ -816,11 +780,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object classEval(
-                RubyModule self,
-                NotProvided code,
-                NotProvided file,
-                NotProvided line,
-                RubyProc block,
+                RubyModule self, NotProvided code, NotProvided file, NotProvided line, RubyProc block,
                 @Cached ClassExecNode classExecNode) {
             return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
@@ -1299,21 +1259,13 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubySymbol defineMethodBlock(
-                VirtualFrame frame,
-                RubyModule module,
-                String name,
-                NotProvided proc,
-                RubyProc block) {
+                VirtualFrame frame, RubyModule module, String name, NotProvided proc, RubyProc block) {
             return defineMethodProc(frame, module, name, block, nil);
         }
 
         @Specialization
         protected RubySymbol defineMethodProc(
-                VirtualFrame frame,
-                RubyModule module,
-                String name,
-                RubyProc proc,
-                Nil block) {
+                VirtualFrame frame, RubyModule module, String name, RubyProc proc, Nil block) {
             return defineMethod(module, name, proc, readCallerFrame.execute(frame));
         }
 
@@ -1342,11 +1294,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubySymbol defineMethod(
-                VirtualFrame frame,
-                RubyModule module,
-                String name,
-                RubyUnboundMethod method,
-                Nil block) {
+                VirtualFrame frame, RubyModule module, String name, RubyUnboundMethod method, Nil block) {
             final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
             return defineMethodInternal(module, name, method, callerFrame);
         }

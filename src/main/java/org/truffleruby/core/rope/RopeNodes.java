@@ -514,28 +514,19 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "is7Bit(codeRange)")
         protected LeafRope makeAsciiOnlyLeafRope(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                Object characterLength) {
+                byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
             return new AsciiOnlyLeafRope(bytes, encoding);
         }
 
         @Specialization(guards = "isValid(codeRange)")
         protected LeafRope makeValidLeafRopeWithCharacterLength(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                int characterLength) {
+                byte[] bytes, Encoding encoding, CodeRange codeRange, int characterLength) {
             return new ValidLeafRope(bytes, encoding, characterLength);
         }
 
         @Specialization(guards = { "isValid(codeRange)", "isFixedWidth(encoding)" })
         protected LeafRope makeValidLeafRopeFixedWidthEncoding(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                NotProvided characterLength) {
+                byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
             final int calculatedCharacterLength = bytes.length / encoding.minLength();
 
             return new ValidLeafRope(bytes, encoding, calculatedCharacterLength);
@@ -543,10 +534,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
         protected LeafRope makeValidLeafRopeAsciiCompat(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                NotProvided characterLength,
+                byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
                 @Cached BranchProfile errorProfile,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode) {
             // Extracted from StringSupport.strLength.
@@ -584,10 +572,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "!isAsciiCompatible(encoding)" })
         protected LeafRope makeValidLeafRope(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                NotProvided characterLength) {
+                byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength;
@@ -603,19 +588,13 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "isBroken(codeRange)")
         protected LeafRope makeInvalidLeafRope(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                Object characterLength) {
+                byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
             return new InvalidLeafRope(bytes, encoding, RopeOperations.strLength(encoding, bytes, 0, bytes.length));
         }
 
         @Specialization(guards = { "isUnknown(codeRange)", "isEmpty(bytes)" })
         protected LeafRope makeUnknownLeafRopeEmpty(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                Object characterLength,
+                byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
                 @Cached ConditionProfile isUTF8,
                 @Cached ConditionProfile isUSAscii,
                 @Cached ConditionProfile isAscii8Bit,
@@ -641,10 +620,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)" })
         protected LeafRope makeUnknownLeafRopeGeneric(
-                byte[] bytes,
-                Encoding encoding,
-                CodeRange codeRange,
-                Object characterLength,
+                byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached BranchProfile asciiOnlyProfile,
                 @Cached BranchProfile validProfile,

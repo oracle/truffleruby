@@ -268,12 +268,7 @@ public class CExtNodes {
         @Specialization
         @TruffleBoundary
         protected RubyArray bytes(
-                int num,
-                int num_words,
-                int word_length,
-                boolean msw_first,
-                boolean twosComp,
-                boolean bigEndian) {
+                int num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
@@ -281,12 +276,7 @@ public class CExtNodes {
         @Specialization
         @TruffleBoundary
         protected RubyArray bytes(
-                long num,
-                int num_words,
-                int word_length,
-                boolean msw_first,
-                boolean twosComp,
-                boolean bigEndian) {
+                long num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }

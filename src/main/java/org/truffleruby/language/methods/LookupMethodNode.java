@@ -49,10 +49,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             assumptions = "methodLookupResult.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(
-            Frame frame,
-            RubyClass metaClass,
-            String name,
-            DispatchConfiguration config,
+            Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("metaClass") RubyClass cachedMetaClass,
             @Cached("name") String cachedName,
@@ -64,10 +61,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
     @Specialization(replaces = "lookupMethodCached")
     protected InternalMethod lookupMethodUncached(
-            Frame frame,
-            RubyClass metaClass,
-            String name,
-            DispatchConfiguration config,
+            Frame frame, RubyClass metaClass, String name, DispatchConfiguration config,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached MetaClassNode metaClassNode,
             @Cached ConditionProfile noCallerMethodProfile,

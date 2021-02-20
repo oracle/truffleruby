@@ -177,10 +177,7 @@ public abstract class TruffleKernelNodes {
         @TruffleBoundary
         @Specialization
         protected Object defineHookedVariableInnerNode(
-                RubySymbol name,
-                RubyProc getter,
-                RubyProc setter,
-                RubyProc isDefined) {
+                RubySymbol name, RubyProc getter, RubyProc setter, RubyProc isDefined) {
             getContext().getCoreLibrary().globalVariables.define(
                     name.getString(),
                     getter,

@@ -91,10 +91,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
             limit = "1")
     protected AssertionError unsupportedMessageExceptionClass(
-            RaiseException exception,
-            long index,
-            String identifier,
-            Object[] arguments,
+            RaiseException exception, long index, String identifier, Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedMessageException {
         throw UnsupportedMessageException.create(exception);
@@ -104,10 +101,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().invalidArrayIndexExceptionClass",
             limit = "1")
     protected AssertionError invalidArrayIndexExceptionClass(
-            RaiseException exception,
-            long index,
-            String identifier,
-            Object[] arguments,
+            RaiseException exception, long index, String identifier, Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws InvalidArrayIndexException {
         throw InvalidArrayIndexException.create(index, exception);
@@ -117,10 +111,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unknownIdentifierExceptionClass",
             limit = "1")
     protected AssertionError unknownIdentifierExceptionClass(
-            RaiseException exception,
-            long index,
-            String identifier,
-            Object[] arguments,
+            RaiseException exception, long index, String identifier, Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(identifier, exception);
@@ -130,10 +121,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unsupportedTypeExceptionClass",
             limit = "1")
     protected AssertionError unsupportedTypeExceptionClass(
-            RaiseException exception,
-            long index,
-            String identifier,
-            Object[] arguments,
+            RaiseException exception, long index, String identifier, Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedTypeException {
         throw UnsupportedTypeException.create(arguments, null, exception);
@@ -143,10 +131,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().arityExceptionClass",
             limit = "1")
     protected AssertionError arityExceptionClass(
-            RaiseException exception,
-            long index,
-            String identifier,
-            Object[] arguments,
+            RaiseException exception, long index, String identifier, Object[] arguments,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached DispatchNode dispatch,
             @Cached IntegerCastNode intCastNode,

@@ -761,11 +761,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
-                Object target,
-                Object source,
-                RubyBinding binding,
-                Object file,
-                int line,
+                Object target, Object source, RubyBinding binding, Object file, int line,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
@@ -792,11 +788,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
-                Object target,
-                Object source,
-                RubyBinding binding,
-                Object file,
-                int line,
+                Object target, Object source, RubyBinding binding, Object file, int line,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
@@ -1532,10 +1524,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean doesRespondTo(
-                VirtualFrame frame,
-                Object object,
-                Object name,
-                boolean includeProtectedAndPrivate,
+                VirtualFrame frame, Object object, Object name, boolean includeProtectedAndPrivate,
                 @Cached ConditionProfile notSymbolOrStringProfile,
                 @Cached ToJavaStringNode toJavaString,
                 @Cached ToSymbolNode toSymbolNode) {

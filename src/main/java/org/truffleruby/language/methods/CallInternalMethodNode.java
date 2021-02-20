@@ -68,12 +68,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
     protected Object alwaysInlinedCached(
-            Frame frame,
-            Object callerData,
-            InternalMethod method,
-            Object self,
-            Object block,
-            Object[] args,
+            Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached(value = "method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
             @Cached("createAlwaysInlinedMethodNode(cachedMethod)") AlwaysInlinedMethodNode alwaysInlinedNode,
@@ -101,12 +96,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
     @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlinedCached")
     protected Object alwaysInlinedUncached(
-            Frame frame,
-            Object callerData,
-            InternalMethod method,
-            Object self,
-            Object block,
-            Object[] args,
+            Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile,
             @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {

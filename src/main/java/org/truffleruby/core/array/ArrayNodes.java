@@ -1076,10 +1076,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected RubyArray initializeOnlyBlock(
-                RubyArray array,
-                NotProvided size,
-                NotProvided fillingValue,
-                RubyProc block) {
+                RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block) {
             setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
             return array;
         }
@@ -1087,20 +1084,14 @@ public abstract class ArrayNodes {
         @TruffleBoundary
         @Specialization(guards = "size < 0")
         protected RubyArray initializeNegativeIntSize(
-                RubyArray array,
-                int size,
-                Object unusedFillingValue,
-                Object unusedBlock) {
+                RubyArray array, int size, Object unusedFillingValue, Object unusedBlock) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
         protected RubyArray initializeNegativeLongSize(
-                RubyArray array,
-                long size,
-                Object unusedFillingValue,
-                Object unusedBlock) {
+                RubyArray array, long size, Object unusedFillingValue, Object unusedBlock) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative array size", this));
         }
 
@@ -1175,10 +1166,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected RubyArray initializeFromArray(
-                RubyArray array,
-                RubyArray copy,
-                NotProvided unusedValue,
-                Object maybeBlock,
+                RubyArray array, RubyArray copy, NotProvided unusedValue, Object maybeBlock,
                 @Cached ReplaceNode replaceNode) {
             replaceNode.executeReplace(array, copy);
             return array;
@@ -1271,10 +1259,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected Object injectEmptyArrayNoInitial(
-                RubyArray array,
-                NotProvided initialOrSymbol,
-                NotProvided symbol,
-                RubyProc block) {
+                RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block) {
             return nil;
         }
 
@@ -1294,10 +1279,7 @@ public abstract class ArrayNodes {
                 guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         protected Object injectNoInitial(
-                RubyArray array,
-                NotProvided initialOrSymbol,
-                NotProvided symbol,
-                RubyProc block,
+                RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final Object store = array.store;
@@ -1333,10 +1315,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isEmptyArray(array)" })
         protected Object injectSymbolEmptyArrayNoInitial(
-                RubyArray array,
-                RubySymbol initialOrSymbol,
-                NotProvided symbol,
-                Nil block) {
+                RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block) {
             return nil;
         }
 
@@ -1346,11 +1325,7 @@ public abstract class ArrayNodes {
                         "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolWithInitial(
-                VirtualFrame frame,
-                RubyArray array,
-                Object initialOrSymbol,
-                RubySymbol symbol,
-                Nil block,
+                VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
                 @Cached ToJavaStringNode toJavaString) {
@@ -1370,11 +1345,7 @@ public abstract class ArrayNodes {
                 guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolNoInitial(
-                VirtualFrame frame,
-                RubyArray array,
-                RubySymbol initialOrSymbol,
-                NotProvided symbol,
-                Nil block,
+                VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
                 @Cached ToJavaStringNode toJavaString) {

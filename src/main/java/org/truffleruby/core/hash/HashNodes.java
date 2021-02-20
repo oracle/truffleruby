@@ -937,10 +937,7 @@ public abstract class HashNodes {
                 guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" },
                 limit = "getPackedHashLimit()")
         protected Object eachPackedArrayCached(
-                VirtualFrame frame,
-                RubyHash hash,
-                BiConsumerNode callbackNode,
-                Object state,
+                VirtualFrame frame, RubyHash hash, BiConsumerNode callbackNode, Object state,
                 @Cached("getSize(hash)") int cachedSize) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] store = (Object[]) hash.store;

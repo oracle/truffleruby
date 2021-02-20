@@ -49,10 +49,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            UnsupportedMessageException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+            UnsupportedMessageException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new RaiseException(
                 context,
@@ -62,10 +59,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            InvalidArrayIndexException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+            InvalidArrayIndexException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new RaiseException(
                 context,
@@ -75,10 +69,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            InvalidBufferOffsetException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+            InvalidBufferOffsetException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new RaiseException(
                 context,
@@ -88,10 +79,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            UnknownIdentifierException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+            UnknownIdentifierException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         if (inInvokeMember) {
             return new RaiseException(
@@ -113,10 +101,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            UnsupportedTypeException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+            UnsupportedTypeException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new RaiseException(
                 context,
@@ -138,10 +123,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 
     @Specialization
     protected RuntimeException handle(
-            StopIterationException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+            StopIterationException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new RaiseException(
                 context,

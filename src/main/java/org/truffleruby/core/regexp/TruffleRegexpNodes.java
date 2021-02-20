@@ -409,12 +409,7 @@ public class TruffleRegexpNodes {
         // same as when the MatchData was created.
         @Specialization
         protected Object executeMatch(
-                RubyRegexp regexp,
-                Object string,
-                Matcher matcher,
-                int startPos,
-                int range,
-                boolean onlyMatchAtStart,
+                RubyRegexp regexp, Object string, Matcher matcher, int startPos, int range, boolean onlyMatchAtStart,
                 @Cached ConditionProfile matchesProfile) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
                 instrument(regexp, string, onlyMatchAtStart);
