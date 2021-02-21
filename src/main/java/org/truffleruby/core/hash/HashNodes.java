@@ -845,6 +845,7 @@ public abstract class HashNodes {
     public abstract static class InternalRehashNode extends RubyContextNode {
 
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
+        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
 
         public static InternalRehashNode create() {
             return InternalRehashNodeGen.create();
@@ -866,14 +867,8 @@ public abstract class HashNodes {
             final Object[] store = (Object[]) hash.store;
             final int size = hash.size;
 
-            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    PackedArrayStrategy.setHashed(
-                            store,
-                            n,
-                            hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity));
-                }
-            }
+            PackedArrayStrategy.promoteToBuckets(getContext(), hash, store, size);
+            rehashBuckets(hash, byIdentityProfile);
 
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -890,6 +885,7 @@ public abstract class HashNodes {
             Arrays.fill(entries, null);
 
             Entry entry = hash.firstInSequence;
+            Entry previousEntry = null;
 
             while (entry != null) {
                 final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
@@ -900,14 +896,37 @@ public abstract class HashNodes {
 
                 if (bucketEntry == null) {
                     entries[index] = entry;
+                    previousEntry = entry;
                 } else {
+                    boolean encounteredDuplicateKey = false;
                     while (bucketEntry.getNextInLookup() != null) {
+                        if (compareHashKeysNode.equalKeys(
+                                compareByIdentity,
+                                entry.getKey(),
+                                entry.getHashed(),
+                                bucketEntry.getKey(),
+                                bucketEntry.getHashed())) {
+                            encounteredDuplicateKey = true;
+                            break;
+                        }
                         bucketEntry = bucketEntry.getNextInLookup();
                     }
+                    if (encounteredDuplicateKey || compareHashKeysNode.equalKeys(
+                            compareByIdentity,
+                            entry.getKey(),
+                            entry.getHashed(),
+                            bucketEntry.getKey(),
+                            bucketEntry.getHashed())) { // If the bucket contains a single entry, we never set the flag
+                        if (previousEntry != null) {
+                            previousEntry.setNextInSequence(entry.getNextInSequence());
+                        }
+                        hash.size--;
+                    } else {
+                        bucketEntry.setNextInLookup(entry);
+                        previousEntry = entry;
+                    }
 
-                    bucketEntry.setNextInLookup(entry);
                 }
-
                 entry = entry.getNextInSequence();
             }
 
