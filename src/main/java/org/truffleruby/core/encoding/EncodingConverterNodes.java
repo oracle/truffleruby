@@ -79,10 +79,7 @@ public abstract class EncodingConverterNodes {
         @TruffleBoundary
         @Specialization
         protected Object initialize(
-                RubyEncodingConverter self,
-                RubyEncoding source,
-                RubyEncoding destination,
-                int options) {
+                RubyEncodingConverter self, RubyEncoding source, RubyEncoding destination, int options) {
             // Adapted from RubyConverter - see attribution there
             //
             // This method should only be called after the Encoding::Converter instance has already been initialized

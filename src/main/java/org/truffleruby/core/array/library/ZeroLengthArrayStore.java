@@ -168,9 +168,7 @@ public class ZeroLengthArrayStore {
 
         @Specialization
         protected static Object allocateForNewStore(
-                ZeroLengthArrayStore store,
-                ZeroLengthArrayStore newStore,
-                int length) {
+                ZeroLengthArrayStore store, ZeroLengthArrayStore newStore, int length) {
             return ZERO_LENGTH_ALLOCATOR.allocate(length);
         }
 

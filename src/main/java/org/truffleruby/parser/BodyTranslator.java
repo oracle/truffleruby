@@ -1930,7 +1930,7 @@ public class BodyTranslator extends Translator {
         // About every case will use a SelfParseNode, just don't it use more than once.
         final SelfNode self = new SelfNode(environment.getFrameDescriptor());
 
-        final RubyNode ret = new ReadInstanceVariableNode(name, self, true);
+        final RubyNode ret = new ReadInstanceVariableNode(name, self);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

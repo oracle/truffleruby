@@ -17,10 +17,10 @@ import org.junit.Test;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
-import org.truffleruby.language.methods.AddMethodNode;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 
 public class SourceSectionTest extends RubyTest {
 
@@ -72,7 +72,7 @@ public class SourceSectionTest extends RubyTest {
     public void testMethod() {
         testSourceSection(
                 "10\n\ndef foo(a, b)\n  a + b\nend\n\n11",
-                AddMethodNode.class,
+                LiteralMethodDefinitionNode.class,
                 "def foo(a, b)\n  a + b\nend",
                 3,
                 5,

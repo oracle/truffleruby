@@ -2471,18 +2471,21 @@ module Commands
 
         dynamic_arguments, cached_arguments = arguments.partition { |segment| segment !~ /^ *@/ || segment =~ /^ *@SuppressWarnings/ }
 
-        one_line = indent + declaration + dynamic_arguments.join(', ')
-        one_line += case [dynamic_arguments.empty?, cached_arguments.empty?]
-                    when [true, true], [false, true]
-                      rest
-                    when [true, false]
-                      ''
-                    when [false, false]
-                      ','
-                    end
+        if cached_arguments.empty?
+          tail = rest
+        else
+          tail = dynamic_arguments.empty? ? '' : ','
+        end
+        one_line = indent + declaration + dynamic_arguments.join(', ') + tail
+        one_line_below = arg_indent + dynamic_arguments.join(', ') + tail
 
         if one_line.size <= 120
           [one_line + "\n",
+           *cached_arguments[0..-2].map { |c| arg_indent + c + ",\n" },
+           *(arg_indent + cached_arguments[-1] + rest + "\n" unless cached_arguments.empty?)]
+        elsif one_line_below.size <= 120
+          ["#{indent}#{declaration}\n",
+           one_line_below + "\n",
            *cached_arguments[0..-2].map { |c| arg_indent + c + ",\n" },
            *(arg_indent + cached_arguments[-1] + rest + "\n" unless cached_arguments.empty?)]
         else
@@ -2490,7 +2493,6 @@ module Commands
            *arguments[0..-2].map { |c| arg_indent + c + ",\n" },
            arg_indent + arguments[-1] + rest + "\n"]
         end
-        # lines
       end
     end
 

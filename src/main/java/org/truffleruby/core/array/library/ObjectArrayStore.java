@@ -82,11 +82,7 @@ public class ObjectArrayStore {
 
         @Specialization
         protected static void copyContents(
-                Object[] srcStore,
-                int srcStart,
-                Object[] destStore,
-                int destStart,
-                int length) {
+                Object[] srcStore, int srcStart, Object[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 

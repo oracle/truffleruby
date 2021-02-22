@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
@@ -351,12 +352,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
-                VirtualFrame frame,
-                Object receiver,
-                Object string,
-                Object fileName,
-                int line,
-                Nil block,
+                VirtualFrame frame, Object receiver, Object string, Object fileName, int line, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
@@ -374,12 +370,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
-                VirtualFrame frame,
-                Object receiver,
-                Object string,
-                Object fileName,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, Object receiver, Object string, Object fileName, NotProvided line, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFileName,
                 @Cached ReadCallerFrameNode callerFrameNode,
@@ -397,12 +388,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object instanceEval(
-                VirtualFrame frame,
-                Object receiver,
-                Object string,
-                NotProvided fileName,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, Object receiver, Object string, NotProvided fileName, NotProvided line, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
@@ -419,11 +405,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected Object instanceEval(
-                Object receiver,
-                NotProvided string,
-                NotProvided fileName,
-                NotProvided line,
-                RubyProc block,
+                Object receiver, NotProvided string, NotProvided fileName, NotProvided line, RubyProc block,
                 @Cached InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
         }
@@ -616,7 +598,7 @@ public abstract class BasicObjectNodes {
     public abstract static class SendNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object send(Frame callerFrame, Object self, Object[] args, Object block,
+        protected Object send(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @Cached DispatchNode dispatchNode,
                 @Cached NameToJavaStringNode nameToJavaString) {
             Object name = args[0];

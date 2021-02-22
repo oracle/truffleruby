@@ -62,6 +62,7 @@ Performance:
 * Improve random number generation performance by avoiding synchronization (#2190, @ivoanjo).
 * We now create a single call target per block by default instead of two.
 * Some uses of class variables are now much better optimized (#2259, @chrisseaton).
+* Several methods that need the caller frame are now always inlined in their caller, which speeds up the interpreter and reduces footprint.
 
 Changes:
 

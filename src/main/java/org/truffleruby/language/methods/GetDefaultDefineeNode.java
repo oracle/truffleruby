@@ -12,26 +12,12 @@ package org.truffleruby.language.methods;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.SingletonClassNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class GetDefaultDefineeNode extends RubyContextSourceNode {
-
-    @Child private SingletonClassNode singletonClassNode;
-
     @Override
     public RubyModule execute(VirtualFrame frame) {
-        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-        return declarationContext.getModuleToDefineMethods(getSingletonClassNode());
-    }
-
-    private SingletonClassNode getSingletonClassNode() {
-        if (singletonClassNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            singletonClassNode = insert(SingletonClassNode.create());
-        }
-        return singletonClassNode;
+        return RubyArguments.getDeclarationContext(frame).getModuleToDefineMethods();
     }
 }

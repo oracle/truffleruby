@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.RubyLanguage;
+
 /** Warns only if $VERBOSE is true. Corresponds to Kernel#warn(message, uplevel: 1) if $VERBOSE, but in Java with a
  * given SourceSection. */
 public class WarningNode extends WarnNode {
@@ -17,6 +19,19 @@ public class WarningNode extends WarnNode {
     public boolean shouldWarn() {
         final Object verbosity = readVerboseNode.execute();
         return verbosity == Boolean.TRUE;
+    }
+
+    public static class UncachedWarningNode extends UncachedWarnNode {
+
+        public static final UncachedWarningNode INSTANCE = new UncachedWarningNode();
+
+        private UncachedWarningNode() {
+        }
+
+        @Override
+        public boolean shouldWarn() {
+            return RubyLanguage.getCurrentContext().getCoreLibrary().isVerbose();
+        }
     }
 
 }

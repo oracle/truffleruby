@@ -240,6 +240,10 @@ public abstract class StringNodes {
             return MakeStringNodeGen.create();
         }
 
+        public static MakeStringNode getUncached() {
+            return MakeStringNodeGen.getUncached();
+        }
+
         @Specialization
         protected RubyString makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
                 @CachedContext(RubyLanguage.class) RubyContext context,
@@ -4920,11 +4924,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "libOther.isRubyString(other)", "indexAtStartBound(spliceByteIndex)" })
         protected Object splicePrepend(
-                RubyString string,
-                Object other,
-                int spliceByteIndex,
-                int byteCountToReplace,
-                RubyEncoding rubyEncoding,
+                RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
                 @Cached RopeNodes.SubstringNode prependSubstringNode,
                 @Cached RopeNodes.ConcatNode prependConcatNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOther) {
@@ -4942,11 +4942,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "libOther.isRubyString(other)", "indexAtEndBound(string, spliceByteIndex)" })
         protected Object spliceAppend(
-                RubyString string,
-                Object other,
-                int spliceByteIndex,
-                int byteCountToReplace,
-                RubyEncoding rubyEncoding,
+                RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
                 @Cached RopeNodes.ConcatNode appendConcatNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOther) {
             final Encoding encoding = rubyEncoding.encoding;
@@ -4960,11 +4956,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "libOther.isRubyString(other)", "!indexAtEitherBounds(string, spliceByteIndex)" })
         protected RubyString splice(
-                RubyString string,
-                Object other,
-                int spliceByteIndex,
-                int byteCountToReplace,
-                RubyEncoding rubyEncoding,
+                RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
                 @Cached ConditionProfile insertStringIsEmptyProfile,
                 @Cached ConditionProfile splitRightIsEmptyProfile,
                 @Cached RopeNodes.SubstringNode leftSubstringNode,
@@ -5301,10 +5293,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString stringFromByteArray(
-                RubyByteArray byteArray,
-                int start,
-                int count,
-                RubyEncoding rubyEncoding,
+                RubyByteArray byteArray, int start, int count, RubyEncoding rubyEncoding,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final byte[] bytes = byteArray.bytes;
             final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);

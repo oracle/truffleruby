@@ -12,16 +12,16 @@ package org.truffleruby.language.methods;
 import java.util.Collections;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.SingletonClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import org.truffleruby.language.objects.SingletonClassNode;
 
 /** The set of values captured when a method is defined:
  * <ul>
@@ -35,7 +35,7 @@ public class DeclarationContext {
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
-        RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode);
+        RubyModule getModuleToDefineMethods();
     }
 
     /** #instance_eval, the default definee is self.singleton_class */
@@ -46,8 +46,8 @@ public class DeclarationContext {
             this.self = self;
         }
 
-        public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
-            return singletonClassNode.executeSingletonClass(self);
+        public RubyModule getModuleToDefineMethods() {
+            return SingletonClassNode.getUncached().executeSingletonClass(self);
         }
     }
 
@@ -59,7 +59,7 @@ public class DeclarationContext {
             this.module = module;
         }
 
-        public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+        public RubyModule getModuleToDefineMethods() {
             return module;
         }
     }
@@ -92,8 +92,17 @@ public class DeclarationContext {
         this.refinements = refinements;
     }
 
-    @TruffleBoundary
     private static Frame lookupVisibility(Frame frame) {
+        final Visibility visibility = RubyArguments.getDeclarationContext(frame).visibility;
+        if (visibility != null) {
+            return frame;
+        } else {
+            return lookupVisibilityInternal(RubyArguments.getDeclarationFrame(frame));
+        }
+    }
+
+    @TruffleBoundary
+    private static Frame lookupVisibilityInternal(MaterializedFrame frame) {
         while (frame != null) {
             final Visibility visibility = RubyArguments.getDeclarationContext(frame).visibility;
             if (visibility != null) {
@@ -105,13 +114,11 @@ public class DeclarationContext {
         throw new UnsupportedOperationException("No declaration frame with visibility found");
     }
 
-    @TruffleBoundary
     public static Visibility findVisibility(Frame frame) {
         final Frame visibilityFrame = lookupVisibility(frame);
         return RubyArguments.getDeclarationContext(visibilityFrame).visibility;
     }
 
-    @TruffleBoundary
     private static void changeVisibility(Frame frame, Visibility newVisibility) {
         final Frame visibilityFrame = lookupVisibility(frame);
         final DeclarationContext oldDeclarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
@@ -120,13 +127,10 @@ public class DeclarationContext {
         }
     }
 
-    @TruffleBoundary
-    public static void setCurrentVisibility(RubyContext context, Visibility visibility) {
-        final Frame callerFrame = context.getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
+    public static void setCurrentVisibility(Frame callerFrame, Visibility visibility) {
         changeVisibility(callerFrame, visibility);
     }
 
-    @TruffleBoundary
     public static void setRefinements(Frame callerFrame, DeclarationContext declarationContext,
             Map<RubyModule, RubyModule[]> refinements) {
         RubyArguments.setDeclarationContext(callerFrame, declarationContext.withRefinements(refinements));
@@ -154,9 +158,9 @@ public class DeclarationContext {
     }
 
     @TruffleBoundary
-    public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+    public RubyModule getModuleToDefineMethods() {
         assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
-        return defaultDefinee.getModuleToDefineMethods(singletonClassNode);
+        return defaultDefinee.getModuleToDefineMethods();
     }
 
     public boolean hasRefinements() {

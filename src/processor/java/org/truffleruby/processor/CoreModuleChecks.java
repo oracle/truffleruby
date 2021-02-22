@@ -140,12 +140,20 @@ public class CoreModuleChecks {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
         int n = getLastParameterIndex(parameters);
 
+        if (coreMethod.alwaysInlined()) {
+            if (!processor.isSameType(parameters.get(n).asType(), processor.rootCallTargetType)) {
+                processor.error("last argument must be a RootCallTarget for alwaysInlined ", specializationMethod);
+                return;
+            }
+            n--;
+        }
+
         if (coreMethod.needsBlock()) {
             if (n < 0) {
                 processor.error("invalid block method parameter position for", specializationMethod);
                 return;
             }
-            isParameterBlock(parameters.get(n));
+            checkParameterBlock(parameters.get(n));
             n--; // Ignore block argument.
         }
 
@@ -167,7 +175,7 @@ public class CoreModuleChecks {
                 processor.error("invalid optional parameter count for", specializationMethod);
                 continue;
             }
-            isParameterUnguarded(specializationAnnotation, parameters.get(n));
+            checkParameterUnguarded(specializationAnnotation, parameters.get(n));
         }
     }
 
@@ -209,7 +217,7 @@ public class CoreModuleChecks {
         return n;
     }
 
-    private void isParameterUnguarded(Specialization specializationAnnotation, VariableElement parameter) {
+    private void checkParameterUnguarded(Specialization specializationAnnotation, VariableElement parameter) {
         String name = parameter.getSimpleName().toString();
 
         // A specialization will only be called if the types of the arguments match its declared parameter
@@ -249,7 +257,7 @@ public class CoreModuleChecks {
         return false;
     }
 
-    private void isParameterBlock(VariableElement parameter) {
+    private void checkParameterBlock(VariableElement parameter) {
         final TypeMirror blockType = parameter.asType();
 
         if (!(processor.isSameType(blockType, processor.nilType) ||

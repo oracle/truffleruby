@@ -51,8 +51,7 @@ public abstract class TruffleGraalNodes {
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
-                rootNode.setSplit(Split.ALWAYS);
+                RubyRootNode.of(callTarget).setSplit(Split.ALWAYS);
             }
             return executable;
         }
@@ -66,8 +65,7 @@ public abstract class TruffleGraalNodes {
                 @Cached ToCallTargetNode toCallTargetNode) {
             final RootCallTarget callTarget = toCallTargetNode.execute(executable);
             if (getContext().getOptions().NEVER_SPLIT_HONOR) {
-                RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
-                rootNode.setSplit(Split.NEVER);
+                RubyRootNode.of(callTarget).setSplit(Split.NEVER);
             }
             return executable;
         }

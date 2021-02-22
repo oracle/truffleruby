@@ -9,8 +9,10 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.nodes.NodeCost;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -45,30 +47,66 @@ public class WarnNode extends RubyContextNode {
      * computing a SourceSection and message if not needed. */
     public void warningMessage(SourceSection sourceSection, String message) {
         assert shouldWarn();
-        callWarn(sourceSection, message);
-    }
-
-    void callWarn(SourceSection sourceSection, String message) {
-        final String warningMessage = buildWarningMessage(sourceSection, message);
 
         if (makeStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             makeStringNode = insert(MakeStringNode.create());
         }
-        final RubyString warningString = makeStringNode
-                .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
         if (callWarnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callWarnNode = insert(DispatchNode.create());
         }
-        callWarnNode.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
+
+        callWarn(getContext(), sourceSection, message, makeStringNode, callWarnNode);
+    }
+
+    static void callWarn(RubyContext context, SourceSection sourceSection, String message,
+            MakeStringNode makeStringNode, DispatchNode callWarnNode) {
+        final String warningMessage = buildWarningMessage(sourceSection, message);
+
+        final RubyString warningString = makeStringNode
+                .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+
+        callWarnNode.call(context.getCoreLibrary().kernelModule, "warn", warningString);
     }
 
     @TruffleBoundary
     private static String buildWarningMessage(SourceSection sourceSection, String message) {
         final String sourceLocation = sourceSection != null ? RubyContext.fileLine(sourceSection) + ": " : "";
         return sourceLocation + "warning: " + message;
+    }
+
+    public static class UncachedWarnNode extends RubyBaseNode {
+
+        public static final UncachedWarnNode INSTANCE = new UncachedWarnNode();
+
+        UncachedWarnNode() {
+        }
+
+        public boolean shouldWarn() {
+            return RubyLanguage.getCurrentContext().getCoreLibrary().warningsEnabled();
+        }
+
+        public void warningMessage(SourceSection sourceSection, String message) {
+            assert shouldWarn();
+            WarnNode.callWarn(
+                    RubyLanguage.getCurrentContext(),
+                    sourceSection,
+                    message,
+                    MakeStringNode.getUncached(),
+                    DispatchNode.getUncached());
+        }
+
+        @Override
+        public NodeCost getCost() {
+            return NodeCost.MEGAMORPHIC;
+        }
+
+        @Override
+        public boolean isAdoptable() {
+            return false;
+        }
+
     }
 
 }

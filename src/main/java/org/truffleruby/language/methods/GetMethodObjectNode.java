@@ -55,11 +55,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
 
     @Specialization
     protected RubyMethod getMethodObject(
-            Frame frame,
-            Object self,
-            Object name,
-            DispatchConfiguration dispatchConfig,
-            MaterializedFrame callerFrame,
+            Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig, MaterializedFrame callerFrame,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached NameToJavaStringNode nameToJavaStringNode,

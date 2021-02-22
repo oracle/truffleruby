@@ -110,11 +110,7 @@ public class DoubleArrayStore {
 
         @Specialization
         protected static void copyContents(
-                double[] srcStore,
-                int srcStart,
-                double[] destStore,
-                int destStart,
-                int length) {
+                double[] srcStore, int srcStart, double[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 

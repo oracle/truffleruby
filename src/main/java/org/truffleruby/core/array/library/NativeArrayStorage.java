@@ -153,11 +153,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
         @Specialization
         protected static void copyContents(
-                NativeArrayStorage srcStore,
-                int srcStart,
-                Object destStore,
-                int destStart,
-                int length,
+                NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
             for (int i = 0; i < length; i++) {

@@ -11,9 +11,13 @@ package org.truffleruby.core.module;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -23,6 +27,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.objects.SingletonClassNode;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
@@ -67,6 +72,31 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
     @Override
     public String toString() {
         return fields.getName();
+    }
+
+    @TruffleBoundary
+    public void addMethodConsiderNameVisibility(RubyContext context, InternalMethod method, Visibility visibility,
+            Node currentNode) {
+        if (ModuleOperations.isMethodPrivateFromName(method.getName())) {
+            visibility = Visibility.PRIVATE;
+        }
+
+        addMethodIgnoreNameVisibility(context, method, visibility, currentNode);
+    }
+
+    @TruffleBoundary
+    public void addMethodIgnoreNameVisibility(RubyContext context, InternalMethod method, Visibility visibility,
+            Node currentNode) {
+        if (visibility == Visibility.MODULE_FUNCTION) {
+            fields.addMethod(context, currentNode, method.withVisibility(Visibility.PRIVATE));
+            final RubyClass singletonClass = SingletonClassNode.getUncached().executeSingletonClass(this);
+            singletonClass.fields.addMethod(
+                    context,
+                    currentNode,
+                    method.withDeclaringModule(singletonClass).withVisibility(Visibility.PUBLIC));
+        } else {
+            fields.addMethod(context, currentNode, method.withVisibility(visibility));
+        }
     }
 
     @Override

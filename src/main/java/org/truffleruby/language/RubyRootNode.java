@@ -9,16 +9,20 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.Split;
 
 public final class RubyRootNode extends RubyBaseRootNode {
+
+    public static RubyRootNode of(RootCallTarget callTarget) {
+        return (RubyRootNode) callTarget.getRootNode();
+    }
 
     private final RubyLanguage language;
     private final SharedMethodInfo sharedMethodInfo;
@@ -91,12 +95,5 @@ public final class RubyRootNode extends RubyBaseRootNode {
     public RubyNode getBody() {
         return body;
     }
-
-    @Override
-    public Node copy() {
-        RubyRootNode root = (RubyRootNode) super.copy();
-        return root;
-    }
-
 
 }

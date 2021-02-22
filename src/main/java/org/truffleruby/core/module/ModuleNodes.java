@@ -18,7 +18,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -30,7 +36,9 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -38,6 +46,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
@@ -45,7 +54,8 @@ import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetUncheckedNodeGen;
-import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
+import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
+import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
@@ -64,6 +74,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -72,11 +83,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.WarningNode;
-import org.truffleruby.language.arguments.MissingArgumentBehavior;
+import org.truffleruby.language.WarningNode.UncachedWarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
-import org.truffleruby.language.arguments.ReadPreArgumentNode;
-import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -85,9 +93,9 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
-import org.truffleruby.language.methods.AddMethodNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -97,12 +105,10 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UsingNode;
-import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.WriteInstanceVariableNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.language.objects.classvariables.LookupClassVariableNode;
@@ -111,7 +117,6 @@ import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -131,6 +136,10 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
+import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.BOTH;
+import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.READER;
+import static org.truffleruby.core.module.ModuleNodes.GenerateAccessorNode.Accessor.WRITER;
 
 @CoreModule(value = "Module", isClass = true)
 public abstract class ModuleNodes {
@@ -328,8 +337,6 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(oldName);
         }
 
-        @Child AddMethodNode addMethodNode = AddMethodNode.create(false);
-
         @Specialization
         protected RubyModule aliasMethod(RubyModule module, String newName, String oldName,
                 @Cached BranchProfile errorProfile) {
@@ -344,9 +351,8 @@ public abstract class ModuleNodes {
                         this));
             }
 
-            InternalMethod aliasMethod = method.withName(newName);
-
-            addMethodNode.executeAddMethod(module, aliasMethod, aliasMethod.getVisibility());
+            final InternalMethod aliasMethod = method.withName(newName);
+            module.addMethodConsiderNameVisibility(getContext(), aliasMethod, aliasMethod.getVisibility(), this);
             return module;
         }
 
@@ -384,91 +390,151 @@ public abstract class ModuleNodes {
         }
     }
 
-    public abstract static class GenerateAccessorNode extends RubyContextNode {
+    @GenerateUncached
+    public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
-        final boolean isGetter;
+        @Specialization(limit = "getCacheLimit()")
+        protected Object reader(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+                @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
+            // Or a subclass of RubyRootNode with an extra field?
+            final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
+            CompilerAsserts.partialEvaluationConstant(ivarName);
 
-        public GenerateAccessorNode(boolean isGetter) {
-            this.isGetter = isGetter;
+            return objectLibrary.getOrDefault(self, ivarName, nil);
         }
 
-        public abstract Object executeGenerateAccessor(VirtualFrame frame, RubyModule module, Object name);
-
-        @Specialization
-        protected Object generateAccessor(VirtualFrame frame, RubyModule module, Object nameObject,
-                @Cached NameToJavaStringNode nameToJavaStringNode,
-                @Cached ReadCallerFrameNode readCallerFrame) {
-            final String name = nameToJavaStringNode.execute(nameObject);
-            createAccessor(module, name, readCallerFrame.execute(frame), getLanguage());
+        @Specialization(guards = "!isRubyDynamicObject(self)")
+        protected Object notObject(Frame frame, Object self, Object[] args, Object block, RootCallTarget target) {
             return nil;
         }
 
-        @TruffleBoundary
-        private void createAccessor(RubyModule module, String name, MaterializedFrame callerFrame,
-                RubyLanguage language) {
-            final SourceSection sourceSection = getContext()
-                    .getCallStack()
-                    .getCallerNode()
-                    .getEncapsulatingSourceSection();
-            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
-            final Arity arity = isGetter ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
-            final String ivar = "@" + name;
-            final String accessorName = isGetter ? name : name + "=";
+        protected int getCacheLimit() {
+            return RubyLanguage.getCurrentLanguage().options.INSTANCE_VARIABLE_CACHE;
+        }
+    }
 
-            final LexicalScope lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), module);
+    @GenerateUncached
+    public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
+
+        @Specialization(guards = "!rubyLibrary.isFrozen(self)")
+        protected Object writer(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @Cached WriteObjectFieldNode writeObjectFieldNode) {
+            final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
+            CompilerAsserts.partialEvaluationConstant(ivarName);
+
+            final Object value = args[0];
+            writeObjectFieldNode.execute(self, ivarName, value);
+            return value;
+        }
+
+        @Specialization(guards = "rubyLibrary.isFrozen(self)")
+        protected Object frozen(Frame frame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(self, this));
+        }
+
+        protected int getRubyLibraryCacheLimit() {
+            return RubyLanguage.getCurrentLanguage().options.RUBY_LIBRARY_CACHE;
+        }
+    }
+
+    public abstract static class GenerateAccessorNode extends AlwaysInlinedMethodNode {
+        enum Accessor {
+            READER,
+            WRITER,
+            BOTH
+        }
+
+        protected void generateAccessor(Frame callerFrame, RubyModule module, Object[] names, Accessor accessor,
+                Node currentNode) {
+            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
+            createAccessors(module, names, accessor, visibility, currentNode);
+        }
+
+        @TruffleBoundary
+        private void createAccessors(RubyModule module, Object[] names, Accessor accessor, Visibility visibility,
+                Node currentNode) {
+            if (!currentNode.isAdoptable()) {
+                currentNode = EncapsulatingNodeReference.getCurrent().get();
+            }
+            final SourceSection sourceSection;
+            if (currentNode != null) {
+                sourceSection = currentNode.getEncapsulatingSourceSection();
+            } else {
+                sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
+            }
+
+            for (Object nameObject : names) {
+                final String name = NameToJavaStringNode.getUncached().execute(nameObject);
+                if (accessor == BOTH) {
+                    createAccessor(module, name, READER, visibility, sourceSection);
+                    createAccessor(module, name, WRITER, visibility, sourceSection);
+                } else {
+                    createAccessor(module, name, accessor, visibility, sourceSection);
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private void createAccessor(RubyModule module, String name, Accessor accessor, Visibility visibility,
+                SourceSection sourceSection) {
+            assert accessor != BOTH;
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            final RubyLanguage language = context.getLanguageSlow();
+            final Arity arity = accessor == READER ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
+            final String ivar = "@" + name;
+            final String accessorName = accessor == READER ? name : name + "=";
+
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
-                    lexicalScope,
+                    LexicalScope.IGNORE,
                     arity,
                     accessorName,
                     0,
                     SharedMethodInfo.moduleAndMethodName(module, accessorName),
-                    isGetter ? "attr_reader" : "attr_writer",
+                    ivar, // notes
                     null);
 
-            final RubyNode accessInstanceVariable;
-            if (isGetter) {
-                accessInstanceVariable = new ReadInstanceVariableNode(ivar, new ReadSelfNode());
-            } else {
-                RubyNode readArgument = Translator.profileArgument(
-                        language,
-                        new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
-                accessInstanceVariable = new WriteInstanceVariableNode(ivar, new ReadSelfNode(), readArgument);
-            }
+            final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory = accessor == READER
+                    ? GeneratedReaderNodeFactory.getInstance()
+                    : GeneratedWriterNodeFactory.getInstance();
 
-            final RubyNode body = Translator
-                    .createCheckArityNode(language, arity, accessInstanceVariable);
             final RubyRootNode rootNode = new RubyRootNode(
                     language,
                     sourceSection,
                     null,
                     sharedMethodInfo,
-                    body,
-                    Split.HEURISTIC);
+                    new ReRaiseInlinedExceptionNode(alwaysInlinedNodeFactory),
+                    Split.NEVER);
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+
             final InternalMethod method = new InternalMethod(
-                    getContext(),
+                    context,
                     sharedMethodInfo,
-                    lexicalScope,
+                    LexicalScope.IGNORE,
                     DeclarationContext.NONE,
                     accessorName,
                     module,
                     visibility,
-                    callTarget);
+                    false,
+                    alwaysInlinedNodeFactory,
+                    null,
+                    callTarget,
+                    null,
+                    nil);
 
-            module.fields.addMethod(getContext(), this, method);
+            module.fields.addMethod(context, this, method);
         }
     }
 
-    @CoreMethod(names = "attr", rest = true)
-    public abstract static class AttrNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
-        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
-        @Child private WarningNode warnNode;
-
+    @GenerateUncached
+    @CoreMethod(names = "attr", rest = true, alwaysInlined = true)
+    public abstract static class AttrNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attr(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected Object attr(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
             final boolean setter;
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
@@ -478,74 +544,54 @@ public abstract class ModuleNodes {
                 setter = false;
             }
 
-            for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-                if (setter) {
-                    generateSetterNode.executeGenerateAccessor(frame, module, name);
-                }
-            }
+            generateAccessor(callerFrame, module, names, setter ? BOTH : READER, this);
             return nil;
         }
 
+        @TruffleBoundary
         private void warnObsoletedBooleanArgument() {
-            if (warnNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                warnNode = insert(new WarningNode());
-            }
-
-            if (warnNode.shouldWarn()) {
-                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-                warnNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
+            final UncachedWarningNode warningNode = UncachedWarningNode.INSTANCE;
+            if (warningNode.shouldWarn()) {
+                final SourceSection sourceSection = RubyLanguage
+                        .getCurrentContext()
+                        .getCallStack()
+                        .getTopMostUserSourceSection();
+                warningNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
             }
         }
-
     }
 
-    @CoreMethod(names = "attr_accessor", rest = true)
-    public abstract static class AttrAccessorNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
-        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
-
+    @GenerateUncached
+    @CoreMethod(names = "attr_accessor", rest = true, alwaysInlined = true)
+    public abstract static class AttrAccessorNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrAccessor(VirtualFrame frame, RubyModule module, Object[] names) {
-            for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-                generateSetterNode.executeGenerateAccessor(frame, module, name);
-            }
+        protected Object attrAccessor(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            generateAccessor(callerFrame, module, names, BOTH, this);
             return nil;
         }
-
     }
 
-    @CoreMethod(names = "attr_reader", rest = true)
-    public abstract static class AttrReaderNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
-
+    @GenerateUncached
+    @CoreMethod(names = "attr_reader", rest = true, alwaysInlined = true)
+    public abstract static class AttrReaderNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrReader(VirtualFrame frame, RubyModule module, Object[] names) {
-            for (Object name : names) {
-                generateGetterNode.executeGenerateAccessor(frame, module, name);
-            }
+        protected Object attrReader(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            generateAccessor(callerFrame, module, names, READER, this);
             return nil;
         }
-
     }
 
-    @CoreMethod(names = "attr_writer", rest = true)
-    public abstract static class AttrWriterNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
-
+    @GenerateUncached
+    @CoreMethod(names = "attr_writer", rest = true, alwaysInlined = true)
+    public abstract static class AttrWriterNode extends GenerateAccessorNode {
         @Specialization
-        protected Object attrWriter(VirtualFrame frame, RubyModule module, Object[] names) {
-            for (Object name : names) {
-                generateSetterNode.executeGenerateAccessor(frame, module, name);
-            }
+        protected Object attrWriter(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            generateAccessor(callerFrame, module, names, WRITER, this);
             return nil;
         }
-
     }
 
     @CoreMethod(names = "autoload", required = 2)
@@ -641,12 +687,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "libCode.isRubyString(code)" })
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                NotProvided file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
@@ -654,12 +695,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = { "libCode.isRubyString(code)", "libFile.isRubyString(file)" })
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                Object file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile) {
@@ -682,24 +718,14 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "wasProvided(code)")
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                NotProvided file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, NotProvided file, NotProvided line, Nil block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)", "wasProvided(file)" })
         protected Object classEval(
-                VirtualFrame frame,
-                RubyModule module,
-                Object code,
-                Object file,
-                NotProvided line,
-                Nil block,
+                VirtualFrame frame, RubyModule module, Object code, Object file, NotProvided line, Nil block,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libCode) {
@@ -749,11 +775,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object classEval(
-                RubyModule self,
-                NotProvided code,
-                NotProvided file,
-                NotProvided line,
-                RubyProc block,
+                RubyModule self, NotProvided code, NotProvided file, NotProvided line, RubyProc block,
                 @Cached ClassExecNode classExecNode) {
             return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
@@ -1216,7 +1238,6 @@ public abstract class ModuleNodes {
     @NodeChild(value = "block", type = RubyNode.class)
     public abstract static class DefineMethodNode extends CoreMethodNode {
 
-        @Child private AddMethodNode addMethodNode = AddMethodNode.create(false);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @CreateCast("name")
@@ -1232,21 +1253,13 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubySymbol defineMethodBlock(
-                VirtualFrame frame,
-                RubyModule module,
-                String name,
-                NotProvided proc,
-                RubyProc block) {
+                VirtualFrame frame, RubyModule module, String name, NotProvided proc, RubyProc block) {
             return defineMethodProc(frame, module, name, block, nil);
         }
 
         @Specialization
         protected RubySymbol defineMethodProc(
-                VirtualFrame frame,
-                RubyModule module,
-                String name,
-                RubyProc proc,
-                Nil block) {
+                VirtualFrame frame, RubyModule module, String name, RubyProc proc, Nil block) {
             return defineMethod(module, name, proc, readCallerFrame.execute(frame));
         }
 
@@ -1275,11 +1288,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected RubySymbol defineMethod(
-                VirtualFrame frame,
-                RubyModule module,
-                String name,
-                RubyUnboundMethod method,
-                Nil block) {
+                VirtualFrame frame, RubyModule module, String name, RubyUnboundMethod method, Nil block) {
             final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
             return defineMethodInternal(module, name, method, callerFrame);
         }
@@ -1310,7 +1319,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
                 MaterializedFrame callerFrame) {
-            final RubyRootNode rootNode = (RubyRootNode) proc.callTargets.getCallTargetForLambda().getRootNode();
+            final RubyRootNode rootNode = RubyRootNode.of(proc.callTargets.getCallTargetForLambda());
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
@@ -1360,7 +1369,7 @@ public abstract class ModuleNodes {
             method = method.withName(name);
 
             final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, callerFrame);
-            addMethodNode.executeAddMethod(module, method, visibility);
+            module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
         }
 
@@ -1540,7 +1549,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class ModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNode.create();
 
         @Specialization
         protected RubyModule moduleFunction(VirtualFrame frame, RubyModule module, Object[] names,
@@ -1552,7 +1561,7 @@ public abstract class ModuleNodes {
                         coreExceptions().typeError("module_function must be called for modules", this));
             }
 
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+            return setVisibilityNode.execute(frame, module, names, Visibility.MODULE_FUNCTION);
         }
 
     }
@@ -1590,51 +1599,64 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE)
-    public abstract static class PublicNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PUBLIC);
-
-        public abstract RubyModule executePublic(VirtualFrame frame, RubyModule module, Object[] args);
-
-        @Specialization
-        protected RubyModule doPublic(VirtualFrame frame, RubyModule module, Object[] names) {
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+    @GenerateUncached
+    @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class PublicNode extends AlwaysInlinedMethodNode {
+        @Specialization(guards = "names.length == 0")
+        protected RubyModule frame(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PUBLIC);
+            return module;
         }
 
+        @Specialization(guards = "names.length > 0")
+        protected RubyModule methods(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+            for (Object name : names) {
+                setMethodVisibilityNode.execute(module, name, Visibility.PUBLIC);
+            }
+            return module;
+        }
     }
 
     @CoreMethod(names = "public_class_method", rest = true)
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen
-                .create(Visibility.PUBLIC);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
-        protected RubyModule publicClassMethod(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected RubyModule publicClassMethod(RubyModule module, Object[] names) {
             final RubyClass singletonClass = singletonClassNode.executeSingletonClass(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.executeSetMethodVisibility(frame, singletonClass, name);
+                setMethodVisibilityNode.execute(singletonClass, name, Visibility.PUBLIC);
             }
 
             return module;
         }
     }
 
-    @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE)
-    public abstract static class PrivateNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PRIVATE);
-
-        public abstract RubyModule executePrivate(VirtualFrame frame, RubyModule module, Object[] args);
-
-        @Specialization
-        protected RubyModule doPrivate(VirtualFrame frame, RubyModule module, Object[] names) {
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+    @GenerateUncached
+    @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
+        @Specialization(guards = "names.length == 0")
+        protected RubyModule frame(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PRIVATE);
+            return module;
         }
 
+        @Specialization(guards = "names.length > 0")
+        protected RubyModule methods(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+            for (Object name : names) {
+                setMethodVisibilityNode.execute(module, name, Visibility.PRIVATE);
+            }
+            return module;
+        }
     }
 
     @CoreMethod(names = "prepend_features", required = 1, visibility = Visibility.PRIVATE, split = Split.NEVER)
@@ -1658,15 +1680,14 @@ public abstract class ModuleNodes {
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen
-                .create(Visibility.PRIVATE);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
         protected RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names) {
             final RubyClass singletonClass = singletonClassNode.executeSingletonClass(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.executeSetMethodVisibility(frame, singletonClass, name);
+                setMethodVisibilityNode.execute(singletonClass, name, Visibility.PRIVATE);
             }
 
             return module;
@@ -1923,16 +1944,25 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE)
-    public abstract static class ProtectedNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PROTECTED);
-
-        @Specialization
-        protected RubyModule doProtected(VirtualFrame frame, RubyModule module, Object[] names) {
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+    @GenerateUncached
+    @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class ProtectedNode extends AlwaysInlinedMethodNode {
+        @Specialization(guards = "names.length == 0")
+        protected RubyModule frame(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PROTECTED);
+            return module;
         }
 
+        @Specialization(guards = "names.length > 0")
+        protected RubyModule methods(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode) {
+            for (Object name : names) {
+                setMethodVisibilityNode.execute(module, name, Visibility.PROTECTED);
+            }
+            return module;
+        }
     }
 
     @CoreMethod(names = "remove_class_variable", required = 1)
@@ -2098,25 +2128,24 @@ public abstract class ModuleNodes {
 
     public abstract static class SetVisibilityNode extends RubyContextNode {
 
-        private final Visibility visibility;
-
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode;
-
-        public SetVisibilityNode(Visibility visibility) {
-            this.visibility = visibility;
-            setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(visibility);
+        public static SetVisibilityNode create() {
+            return SetVisibilityNodeGen.create();
         }
 
-        public abstract RubyModule executeSetVisibility(VirtualFrame frame, RubyModule module,
-                Object[] arguments);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
+
+        public abstract RubyModule execute(VirtualFrame frame, RubyModule module, Object[] names,
+                Visibility visibility);
 
         @Specialization
-        protected RubyModule setVisibility(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected RubyModule setVisibility(
+                VirtualFrame frame, RubyModule module, Object[] names, Visibility visibility) {
             if (names.length == 0) {
-                DeclarationContext.setCurrentVisibility(getContext(), visibility);
+                final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
+                DeclarationContext.setCurrentVisibility(callerFrame, visibility);
             } else {
                 for (Object name : names) {
-                    setMethodVisibilityNode.executeSetMethodVisibility(frame, module, name);
+                    setMethodVisibilityNode.execute(module, name, visibility);
                 }
             }
 
@@ -2125,31 +2154,29 @@ public abstract class ModuleNodes {
 
     }
 
-    public abstract static class SetMethodVisibilityNode extends RubyContextNode {
+    @GenerateUncached
+    public abstract static class SetMethodVisibilityNode extends RubyBaseNode {
 
-        private final Visibility visibility;
-
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private AddMethodNode addMethodNode = AddMethodNode.create(true);
-
-        public SetMethodVisibilityNode(Visibility visibility) {
-            this.visibility = visibility;
+        public static SetMethodVisibilityNode create() {
+            return SetMethodVisibilityNodeGen.create();
         }
 
-        public abstract void executeSetMethodVisibility(VirtualFrame frame, RubyModule module, Object name);
+        public abstract void execute(RubyModule module, Object name, Visibility visibility);
 
         @Specialization
-        protected void setMethodVisibility(RubyModule module, Object name,
-                @Cached BranchProfile errorProfile) {
+        protected void setMethodVisibility(RubyModule module, Object name, Visibility visibility,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached BranchProfile errorProfile,
+                @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String methodName = nameToJavaStringNode.execute(name);
 
-            final InternalMethod method = module.fields.deepMethodSearch(getContext(), methodName);
+            final InternalMethod method = module.fields.deepMethodSearch(context, methodName);
 
             if (method == null) {
                 errorProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().nameErrorUndefinedMethod(methodName, module, this));
+                        context,
+                        context.getCoreExceptions().nameErrorUndefinedMethod(methodName, module, this));
             }
 
             // Do nothing if the method already exists with the same visibility, like MRI
@@ -2159,7 +2186,7 @@ public abstract class ModuleNodes {
 
             /* If the method was already defined in this class, that's fine {@link addMethod} will overwrite it,
              * otherwise we do actually want to add a copy of the method with a different visibility to this module. */
-            addMethodNode.executeAddMethod(module, method, visibility);
+            module.addMethodIgnoreNameVisibility(context, method, visibility, this);
         }
 
     }
@@ -2236,32 +2263,33 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE)
-    public abstract static class ModuleUsingNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private UsingNode usingNode = UsingNodeGen.create();
-
-        @TruffleBoundary
+    @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
-        protected RubyModule moduleUsing(RubyModule self, RubyModule refinementModule) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
+        protected Object moduleUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached BranchProfile errorProfile) {
+            final Object refinementModule = args[0];
             if (self != RubyArguments.getSelf(callerFrame)) {
+                errorProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("Module#using is not called on self", this));
+                        context,
+                        context.getCoreExceptions().runtimeError("Module#using is not called on self", this));
             }
-            if (!isCalledFromClassOrModule(callerFrame)) {
+            final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
+            if (!isCalledFromClassOrModule(callerMethod)) {
+                errorProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("Module#using is not permitted in methods", this));
+                        context,
+                        context.getCoreExceptions().runtimeError("Module#using is not permitted in methods", this));
             }
-            usingNode.executeUsing(refinementModule);
+            using(context, callerFrame, refinementModule, errorProfile);
             return self;
         }
 
         @TruffleBoundary
-        private boolean isCalledFromClassOrModule(Frame callerFrame) {
-            final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getBacktraceName();
+        private boolean isCalledFromClassOrModule(InternalMethod callerMethod) {
+            final String name = callerMethod.getSharedMethodInfo().getBacktraceName();
             // Handles cases: <main> | <top | <class: | <module: | <singleton
             return name.startsWith("<");
         }

@@ -19,6 +19,8 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import java.util.Arrays;
+
 public class ReRaiseInlinedExceptionNode extends RubyContextSourceNode {
 
     public final NodeFactory<? extends RubyBaseNode> nodeFactory;
@@ -31,8 +33,10 @@ public class ReRaiseInlinedExceptionNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object[] arguments = frame.getArguments();
         if (arguments.length != 1 || !(arguments[0] instanceof RaiseException)) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives.shouldNotReachHere(
-                    "CallTarget of always-inlined builtin should be called with a single RaiseException argument");
+                    "CallTarget of always-inlined builtin should be called with a single RaiseException argument" +
+                            ", but was called with: " + Arrays.toString(arguments));
         }
 
         final RaiseException raiseException = (RaiseException) arguments[0];

@@ -15,39 +15,36 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 
-public abstract class UsingNode extends RubyContextNode {
+public abstract class UsingNode extends AlwaysInlinedMethodNode {
 
-    public abstract void executeUsing(RubyModule module);
-
-    @TruffleBoundary
-    @Specialization
-    protected void using(RubyModule module) {
-        if (module instanceof RubyClass) {
-            throw new RaiseException(getContext(), coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
+    protected void using(RubyContext context, Frame callerFrame, Object refinementModule, BranchProfile errorProfile) {
+        if (refinementModule.getClass() != RubyModule.class) {
+            errorProfile.enter();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().typeErrorWrongArgumentType(refinementModule, "Module", this));
         }
-
-        final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
+        final RubyModule module = (RubyModule) refinementModule;
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
         final Map<RubyModule, RubyModule[]> newRefinements = usingModule(declarationContext, module);
-        if (!newRefinements.isEmpty()) {
+        if (newRefinements != null) {
             DeclarationContext.setRefinements(callerFrame, declarationContext, newRefinements);
         }
     }
 
     @TruffleBoundary
-    private Map<RubyModule, RubyModule[]> usingModule(DeclarationContext declarationContext, RubyModule module) {
+    private static Map<RubyModule, RubyModule[]> usingModule(DeclarationContext declarationContext, RubyModule module) {
         final Map<RubyModule, RubyModule[]> newRefinements = new HashMap<>(declarationContext.getRefinements());
 
         // Iterate ancestors in reverse order so refinements upper in the chain have precedence
@@ -64,7 +61,7 @@ public abstract class UsingNode extends RubyContextNode {
             }
         }
 
-        return newRefinements;
+        return newRefinements.isEmpty() ? null : newRefinements;
     }
 
     private static void applyRefinements(RubyModule refinedModule, RubyModule refinementModule,
