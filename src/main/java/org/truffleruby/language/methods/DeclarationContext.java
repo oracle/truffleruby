@@ -22,7 +22,6 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 
 /** The set of values captured when a method is defined:
  * <ul>
@@ -120,7 +119,6 @@ public class DeclarationContext {
         return RubyArguments.getDeclarationContext(visibilityFrame).visibility;
     }
 
-    @TruffleBoundary
     private static void changeVisibility(Frame frame, Visibility newVisibility) {
         final Frame visibilityFrame = lookupVisibility(frame);
         final DeclarationContext oldDeclarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
@@ -129,9 +127,7 @@ public class DeclarationContext {
         }
     }
 
-    @TruffleBoundary
-    public static void setCurrentVisibility(RubyContext context, Visibility visibility) {
-        final Frame callerFrame = context.getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
+    public static void setCurrentVisibility(Frame callerFrame, Visibility visibility) {
         changeVisibility(callerFrame, visibility);
     }
 

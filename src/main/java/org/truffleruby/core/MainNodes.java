@@ -9,11 +9,16 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -26,31 +31,30 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "main", isClass = true)
 public abstract class MainNodes {
 
-    @CoreMethod(names = "public", rest = true, needsSelf = false, visibility = Visibility.PRIVATE)
-    public abstract static class PublicNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private ModuleNodes.PublicNode publicNode = ModuleNodesFactory.PublicNodeFactory.create(null);
-
+    @GenerateUncached
+    @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class PublicNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyModule doPublic(VirtualFrame frame, Object[] args) {
-            return publicNode.executePublic(frame, coreLibrary().objectClass, args);
+        protected Object forward(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @Cached ModuleNodes.PublicNode publicNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return publicNode.execute(callerFrame, context.getCoreLibrary().objectClass, args, block, target);
         }
     }
 
-    @CoreMethod(names = "private", rest = true, needsSelf = false, visibility = Visibility.PRIVATE)
-    public abstract static class PrivateNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private ModuleNodes.PrivateNode privateNode = ModuleNodesFactory.PrivateNodeFactory.create(null);
-
+    @GenerateUncached
+    @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class PrivateNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyModule doPrivate(VirtualFrame frame, Object[] args) {
-            return privateNode.executePrivate(frame, coreLibrary().objectClass, args);
+        protected Object forward(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @Cached ModuleNodes.PrivateNode privateNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return privateNode.execute(callerFrame, context.getCoreLibrary().objectClass, args, block, target);
         }
     }
 

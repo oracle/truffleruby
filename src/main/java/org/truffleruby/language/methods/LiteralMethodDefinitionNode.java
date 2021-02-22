@@ -37,8 +37,6 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
     @Child private RubyNode moduleNode;
     @Child private GetCurrentVisibilityNode visibilityNode;
 
-    @Child private AddMethodNode addMethodNode;
-
     public LiteralMethodDefinitionNode(
             RubyNode moduleNode,
             String name,
@@ -53,7 +51,6 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
         if (!isDefSingleton) {
             this.visibilityNode = new GetCurrentVisibilityNode();
         }
-        this.addMethodNode = AddMethodNode.create(isDefSingleton);
     }
 
     @Override
@@ -87,7 +84,11 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
                 callTargetSupplier,
                 Nil.INSTANCE);
 
-        addMethodNode.executeAddMethod(module, method, visibility);
+        if (isDefSingleton) {
+            module.addMethodIgnoreNameVisibility(getContext(), method, visibility, this);
+        } else {
+            module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
+        }
 
         return getSymbol(name);
     }
