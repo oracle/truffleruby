@@ -252,18 +252,17 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "libSignalString.isRubyString(signalString)")
         protected boolean watchSignalProc(Object signalString, RubyProc action,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSignalString) {
-            if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
+            final RubyContext context = getContext();
+
+            if (context.getThreadManager().getCurrentThread() != context.getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getLanguage(), action);
             }
 
-            final RubyContext context = getContext();
-
-            String signalName = libSignalString.getJavaString(signalString);
+            final String signalName = libSignalString.getJavaString(signalString);
             return registerHandler(signalName, signal -> {
                 if (context.getOptions().SINGLE_THREADED) {
-                    RubyLanguage.LOGGER.severe(
-                            "signal " + signal + " caught but can't create a thread to handle it so ignoring");
+                    warnRestoreAndRaise(context, signalName, signal, "create a thread");
                     return;
                 }
 
@@ -276,16 +275,7 @@ public abstract class VMPrimitiveNodes {
                 try {
                     prev = truffleContext.enter(this);
                 } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
-                    // Not in a context, so we cannot use TruffleLogger
-                    context.getEnvErrStream().println(
-                            "[ruby] SEVERE: signal " + signal +
-                                    " caught but can't attach a thread to handle it so restoring the default handler and re-raising the signal");
-                    Signals.restoreDefaultHandler(signalName);
-                    try {
-                        Signal.raise(signal);
-                    } catch (IllegalArgumentException illegalArgumentException) {
-                        illegalArgumentException.printStackTrace(context.getEnvErrStream());
-                    }
+                    warnRestoreAndRaise(context, signalName, signal, "attach a thread");
                     return;
                 }
                 try {
@@ -297,6 +287,19 @@ public abstract class VMPrimitiveNodes {
                     truffleContext.leave(this, prev);
                 }
             });
+        }
+
+        private static void warnRestoreAndRaise(RubyContext context, String signalName, Signal signal, String failure) {
+            // Not in a context, so we cannot use TruffleLogger
+            context.getEnvErrStream().println(
+                    "[ruby] SEVERE: signal " + signal + " caught but can't " + failure +
+                            " to handle it so restoring the default handler and re-raising the signal");
+            Signals.restoreDefaultHandler(signalName);
+            try {
+                Signal.raise(signal);
+            } catch (IllegalArgumentException illegalArgumentException) {
+                illegalArgumentException.printStackTrace(context.getEnvErrStream());
+            }
         }
 
         @TruffleBoundary

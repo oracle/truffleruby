@@ -13,6 +13,7 @@ Bug fixes:
 * Fix `Thread.handle_interrupt` to defer non-pure interrupts until the end of the `handle_interrupt` block (#2219).
 * Clear and restore errinfo on entry and normal return from methods in C extensions (#2227).
 * Fix extra whitespace in squiggly heredoc with escaped newline (#2238, @wildmaples and @norswap).
+* Fix handling of signals with `--single-threaded` (#2265).
 
 Compatibility:
 
