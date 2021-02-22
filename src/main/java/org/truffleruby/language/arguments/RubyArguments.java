@@ -142,15 +142,6 @@ public final class RubyArguments {
         }
     }
 
-    public static FrameAndVariables getCallerFrameAndVariables(Frame frame) {
-        Object frameOrVariables = frame.getArguments()[ArgumentIndicies.CALLER_FRAME_OR_VARIABLES.ordinal()];
-        if (frameOrVariables instanceof FrameAndVariables) {
-            return (FrameAndVariables) frameOrVariables;
-        } else {
-            return null;
-        }
-    }
-
     public static InternalMethod getMethod(Frame frame) {
         return (InternalMethod) frame.getArguments()[ArgumentIndicies.METHOD.ordinal()];
     }

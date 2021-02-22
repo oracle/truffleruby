@@ -113,4 +113,12 @@ describe "Always-inlined core methods" do
     obj = Class.new { attr_reader(*names) }.new
     names.each { |name| obj.send(name).should == nil }
   end
+
+  it "work with each(&method(:always_inlined_method))" do
+    obj = Class.new do
+      [:foo].each(&method(:attr_accessor))
+    end.new
+    obj.foo = 42
+    obj.foo.should == 42
+  end
 end

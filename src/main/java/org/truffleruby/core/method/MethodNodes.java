@@ -38,6 +38,7 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
+import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -51,7 +52,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -132,8 +132,7 @@ public abstract class MethodNodes {
 
         @Specialization
         protected Object call(VirtualFrame frame, RubyMethod method, Object[] arguments, Object maybeBlock) {
-            return callBoundMethodNode
-                    .execute(frame, method, arguments, maybeBlock);
+            return callBoundMethodNode.execute(frame, method, arguments, maybeBlock);
         }
 
     }
@@ -320,20 +319,21 @@ public abstract class MethodNodes {
         protected RootCallTarget methodCallTarget(InternalMethod method) {
             // translate to something like:
             // lambda { |same args list| method.call(args) }
-            // We need to preserve the method receiver and we want to have the same argument list
+            // We need to preserve the method receiver and we want to have the same argument list.
+            // We create a new CallTarget for the Proc that calls the method CallTarget and passes the correct receiver.
 
             final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
-            final RubyRootNode oldRootNode = RubyRootNode.of(method.getCallTarget());
+            final RubyRootNode methodRootNode = RubyRootNode.of(method.getCallTarget());
 
-            final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
-            final RootNode newRootNode = new RubyRootNode(
+            final SetReceiverNode setReceiverNode = new SetReceiverNode(method);
+            final RootNode wrapRootNode = new RubyRootNode(
                     getLanguage(),
                     sourceSection,
-                    oldRootNode.getFrameDescriptor(),
+                    methodRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),
                     setReceiverNode,
-                    oldRootNode.getSplit());
-            return Truffle.getRuntime().createCallTarget(newRootNode);
+                    methodRootNode.getSplit());
+            return Truffle.getRuntime().createCallTarget(wrapRootNode);
         }
 
         protected int getCacheLimit() {
@@ -378,23 +378,24 @@ public abstract class MethodNodes {
     }
 
     private static class SetReceiverNode extends RubyContextSourceNode {
+        private final InternalMethod method;
+        @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
 
-        @Child private DirectCallNode methodCallNode;
-
-        public SetReceiverNode(RootCallTarget methodCallTarget) {
-            this.methodCallNode = DirectCallNode.create(methodCallTarget);
+        public SetReceiverNode(InternalMethod method) {
+            this.method = method;
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
-            Object receiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            RubyArguments.setSelf(frame, receiver);
-            /* Remove the declaration frame from the arguments so that the method will not see the special variables
-             * associated with the proc. This matches the behaviour in MRI. */
-            RubyArguments.setDeclarationFrame(frame, null);
-            return methodCallNode.call(frame.getArguments());
+            final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
+            return callInternalMethodNode.execute(
+                    frame,
+                    null,
+                    method,
+                    originalBoundMethodReceiver,
+                    RubyArguments.getBlock(frame),
+                    RubyArguments.getArguments(frame));
         }
-
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
