@@ -278,7 +278,7 @@ module Truffle::FFI
                     when Integer
                       type
                     when Symbol
-                      Pointer.find_type_size(type)
+                      Primitive.pointer_find_type_size(type)
                     else
                       raise ArgumentError, "incorrect pointer type: #{type.inspect}"
                     end
