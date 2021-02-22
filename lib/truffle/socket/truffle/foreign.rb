@@ -120,7 +120,7 @@ module Truffle
       end
 
       def self.getsockopt(descriptor, level, optname)
-        val, length = Truffle::FFI::Pool.stack_alloc(:char, 256, :socklen_t, 1)
+        val, length = Truffle::FFI::Pool.stack_alloc(256, Primitive.pointer_find_type_size(:socklen_t))
 
         begin
           length.write_int(256)
@@ -199,7 +199,7 @@ module Truffle
         name_info = []
 
         sockaddr_p, node, service = Truffle::FFI::Pool.stack_alloc(
-          :char, sockaddr.bytesize, :char, ::Socket::NI_MAXHOST, :char, ::Socket::NI_MAXSERV)
+          sockaddr.bytesize, ::Socket::NI_MAXHOST, ::Socket::NI_MAXSERV)
 
         begin
           sockaddr_p.write_bytes(sockaddr)
@@ -232,7 +232,7 @@ module Truffle
       end
 
       def self.getpeername(descriptor)
-        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(:char, 128, :socklen_t, 1)
+        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
         begin
           len_p.write_int(128)
 
@@ -247,7 +247,7 @@ module Truffle
       end
 
       def self.getsockname(descriptor)
-        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(:char, 128, :socklen_t, 1)
+        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
 
         begin
           len_p.write_int(128)
