@@ -34,9 +34,6 @@ fails:Public methods on Digest.singleton_class should include const_missing
 fails:Public methods on Digest::Instance should not include finish
 fails:Public methods on Dir should not include closed?
 fails:Public methods on Exception should include respond_to?
-fails:Public methods on FalseClass should include ===
-fails:Public methods on TrueClass should include ===
-fails:Public methods on NilClass should include ===
 fails:Public methods on Fiber should not include alive?
 fails:Public methods on Fiber should not include transfer
 fails:Public methods on Fiber should include inspect
@@ -64,4 +61,3 @@ fails:Public methods on Enumerator::Lazy should include filter_map
 fails:Public methods on Enumerator::Lazy should include with_index
 fails:Public methods on Fiber should include raise
 fails:Public methods on IO should include set_encoding_by_bom
-fails:Public methods on Module should include const_source_location

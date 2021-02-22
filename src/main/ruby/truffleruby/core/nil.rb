@@ -76,6 +76,8 @@ class NilClass
   def to_h
     {}
   end
+
+  alias_method :===, :===
 end
 
 NIL = nil

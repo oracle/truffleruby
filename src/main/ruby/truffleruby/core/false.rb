@@ -38,6 +38,7 @@ class FalseClass
     to_s
   end
 
+  alias_method :===, :===
 end
 
 FALSE = false
