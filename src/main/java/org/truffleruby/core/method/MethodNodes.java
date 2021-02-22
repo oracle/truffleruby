@@ -323,7 +323,7 @@ public abstract class MethodNodes {
             // We need to preserve the method receiver and we want to have the same argument list
 
             final SourceSection sourceSection = method.getSharedMethodInfo().getSourceSection();
-            final RubyRootNode oldRootNode = RubyRootNode.forTarget(method.getCallTarget());
+            final RubyRootNode oldRootNode = RubyRootNode.of(method.getCallTarget());
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(method.getCallTarget());
             final RootNode newRootNode = new RubyRootNode(

@@ -397,7 +397,7 @@ public abstract class ModuleNodes {
         protected Object reader(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
             // Or a subclass of RubyRootNode with an extra field?
-            final String ivarName = RubyRootNode.forTarget(target).getSharedMethodInfo().getNotes();
+            final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
             CompilerAsserts.partialEvaluationConstant(ivarName);
 
             return objectLibrary.getOrDefault(self, ivarName, nil);
@@ -420,7 +420,7 @@ public abstract class ModuleNodes {
         protected Object writer(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
-            final String ivarName = RubyRootNode.forTarget(target).getSharedMethodInfo().getNotes();
+            final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
             CompilerAsserts.partialEvaluationConstant(ivarName);
 
             final Object value = args[0];
@@ -1319,7 +1319,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private RubySymbol defineMethod(RubyModule module, String name, RubyProc proc,
                 MaterializedFrame callerFrame) {
-            final RubyRootNode rootNode = RubyRootNode.forTarget(proc.callTargets.getCallTargetForLambda());
+            final RubyRootNode rootNode = RubyRootNode.of(proc.callTargets.getCallTargetForLambda());
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());

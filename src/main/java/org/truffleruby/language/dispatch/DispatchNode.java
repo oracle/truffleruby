@@ -200,7 +200,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         final boolean isMethodMissing = methodName.equals("method_missing");
 
         if (callNode.isCallTargetCloningAllowed() &&
-                (RubyRootNode.forTarget(callTarget).shouldAlwaysClone() ||
+                (RubyRootNode.of(callTarget).shouldAlwaysClone() ||
                         isMethodMissing && options.METHODMISSING_ALWAYS_CLONE)) {
             callNode.cloneCallTarget();
         }

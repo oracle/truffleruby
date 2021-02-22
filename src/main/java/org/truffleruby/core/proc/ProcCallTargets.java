@@ -68,6 +68,6 @@ public final class ProcCallTargets {
     }
 
     private void copySplit(RootCallTarget src, RootCallTarget dst) {
-        RubyRootNode.forTarget(dst).setSplit(RubyRootNode.forTarget(src).getSplit());
+        RubyRootNode.of(dst).setSplit(RubyRootNode.of(src).getSplit());
     }
 }

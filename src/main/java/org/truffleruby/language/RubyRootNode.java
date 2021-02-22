@@ -20,7 +20,7 @@ import org.truffleruby.language.methods.Split;
 
 public final class RubyRootNode extends RubyBaseRootNode {
 
-    public static RubyRootNode forTarget(RootCallTarget callTarget) {
+    public static RubyRootNode of(RootCallTarget callTarget) {
         return (RubyRootNode) callTarget.getRootNode();
     }
 

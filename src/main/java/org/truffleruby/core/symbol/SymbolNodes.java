@@ -174,7 +174,7 @@ public abstract class SymbolNodes {
                     context.getCoreLibrary().procClass,
                     language.procShape,
                     ProcType.PROC,
-                    RubyRootNode.forTarget(callTarget).getSharedMethodInfo(),
+                    RubyRootNode.of(callTarget).getSharedMethodInfo(),
                     new ProcCallTargets(callTarget, callTarget),
                     declarationFrame,
                     variables,

@@ -269,7 +269,7 @@ public class CoreMethodNodeManager {
             if (alwaysInlined) {
                 callTarget = callTargetFactory.apply(sharedMethodInfo);
                 callTargetSupplier = null;
-                final RubyRootNode rootNode = RubyRootNode.forTarget(callTarget);
+                final RubyRootNode rootNode = RubyRootNode.of(callTarget);
                 alwaysInlinedNodeFactory = ((ReRaiseInlinedExceptionNode) rootNode.getBody()).nodeFactory;
             } else {
                 if (context.getLanguageSlow().options.LAZY_CALLTARGETS) {
