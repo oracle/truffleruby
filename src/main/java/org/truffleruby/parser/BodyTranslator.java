@@ -685,8 +685,22 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = createArray(arguments.length);
-        for (int i = 0; i < arguments.length; i++) {
+        // If there are one or more **{} for keywords, then these do not need to be translated. Furthermore, excluding
+        // them allows arity to be correctly calculated in the case where the method does not take keywords.
+        int argumentsLength = arguments.length;
+        if (argumentsLength > 0 && arguments[argumentsLength - 1] instanceof HashParseNode) {
+            for (ParseNodeTuple pair : ((HashParseNode) arguments[argumentsLength - 1]).getPairs()) {
+                if (pair.getKey() == null && pair.getValue() instanceof HashParseNode) {
+                    if (((HashParseNode) pair.getValue()).isEmpty()) {
+                        argumentsLength -= 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        final RubyNode[] argumentsTranslated = createArray(argumentsLength);
+        for (int i = 0; i < argumentsLength; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
 
