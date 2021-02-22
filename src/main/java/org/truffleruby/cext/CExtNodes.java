@@ -40,8 +40,7 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes.ConstSetUncheckedNode;
-import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
-import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
+import org.truffleruby.core.module.ModuleNodes.SetMethodVisibilityNode;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.mutex.MutexOperations;
@@ -717,11 +716,12 @@ public class CExtNodes {
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
+        @Child SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
-        protected RubyModule cextModuleFunction(VirtualFrame frame, RubyModule module, RubySymbol name) {
-            return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
+        protected RubyModule cextModuleFunction(RubyModule module, RubySymbol name) {
+            setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
+            return module;
         }
 
     }

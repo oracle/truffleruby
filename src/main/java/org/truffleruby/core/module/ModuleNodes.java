@@ -1555,7 +1555,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class ModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNode.create();
 
         @Specialization
         protected RubyModule moduleFunction(VirtualFrame frame, RubyModule module, Object[] names,
@@ -1567,7 +1567,7 @@ public abstract class ModuleNodes {
                         coreExceptions().typeError("module_function must be called for modules", this));
             }
 
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+            return setVisibilityNode.execute(frame, module, names, Visibility.MODULE_FUNCTION);
         }
 
     }
@@ -1608,13 +1608,13 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class PublicNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PUBLIC);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNode.create();
 
         public abstract RubyModule executePublic(VirtualFrame frame, RubyModule module, Object[] args);
 
         @Specialization
         protected RubyModule doPublic(VirtualFrame frame, RubyModule module, Object[] names) {
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+            return setVisibilityNode.execute(frame, module, names, Visibility.PUBLIC);
         }
 
     }
@@ -1623,15 +1623,14 @@ public abstract class ModuleNodes {
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen
-                .create(Visibility.PUBLIC);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
-        protected RubyModule publicClassMethod(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected RubyModule publicClassMethod(RubyModule module, Object[] names) {
             final RubyClass singletonClass = singletonClassNode.executeSingletonClass(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.executeSetMethodVisibility(frame, singletonClass, name);
+                setMethodVisibilityNode.execute(singletonClass, name, Visibility.PUBLIC);
             }
 
             return module;
@@ -1641,13 +1640,13 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class PrivateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PRIVATE);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNode.create();
 
         public abstract RubyModule executePrivate(VirtualFrame frame, RubyModule module, Object[] args);
 
         @Specialization
         protected RubyModule doPrivate(VirtualFrame frame, RubyModule module, Object[] names) {
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+            return setVisibilityNode.execute(frame, module, names, Visibility.PRIVATE);
         }
 
     }
@@ -1673,15 +1672,14 @@ public abstract class ModuleNodes {
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNodeGen
-                .create(Visibility.PRIVATE);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
 
         @Specialization
         protected RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names) {
             final RubyClass singletonClass = singletonClassNode.executeSingletonClass(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.executeSetMethodVisibility(frame, singletonClass, name);
+                setMethodVisibilityNode.execute(singletonClass, name, Visibility.PRIVATE);
             }
 
             return module;
@@ -1941,11 +1939,11 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class ProtectedNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.PROTECTED);
+        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNode.create();
 
         @Specialization
         protected RubyModule doProtected(VirtualFrame frame, RubyModule module, Object[] names) {
-            return setVisibilityNode.executeSetVisibility(frame, module, names);
+            return setVisibilityNode.execute(frame, module, names, Visibility.PROTECTED);
         }
 
     }
@@ -2113,25 +2111,23 @@ public abstract class ModuleNodes {
 
     public abstract static class SetVisibilityNode extends RubyContextNode {
 
-        private final Visibility visibility;
-
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode;
-
-        public SetVisibilityNode(Visibility visibility) {
-            this.visibility = visibility;
-            setMethodVisibilityNode = SetMethodVisibilityNodeGen.create(visibility);
+        public static SetVisibilityNode create() {
+            return SetVisibilityNodeGen.create();
         }
 
-        public abstract RubyModule executeSetVisibility(VirtualFrame frame, RubyModule module,
-                Object[] arguments);
+        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
+
+        public abstract RubyModule execute(VirtualFrame frame, RubyModule module, Object[] names,
+                Visibility visibility);
 
         @Specialization
-        protected RubyModule setVisibility(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected RubyModule setVisibility(
+                VirtualFrame frame, RubyModule module, Object[] names, Visibility visibility) {
             if (names.length == 0) {
                 DeclarationContext.setCurrentVisibility(getContext(), visibility);
             } else {
                 for (Object name : names) {
-                    setMethodVisibilityNode.executeSetMethodVisibility(frame, module, name);
+                    setMethodVisibilityNode.execute(module, name, visibility);
                 }
             }
 
@@ -2142,19 +2138,17 @@ public abstract class ModuleNodes {
 
     public abstract static class SetMethodVisibilityNode extends RubyContextNode {
 
-        private final Visibility visibility;
+        public static SetMethodVisibilityNode create() {
+            return SetMethodVisibilityNodeGen.create();
+        }
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private AddMethodNode addMethodNode = AddMethodNode.create(true);
 
-        public SetMethodVisibilityNode(Visibility visibility) {
-            this.visibility = visibility;
-        }
-
-        public abstract void executeSetMethodVisibility(VirtualFrame frame, RubyModule module, Object name);
+        public abstract void execute(RubyModule module, Object name, Visibility visibility);
 
         @Specialization
-        protected void setMethodVisibility(RubyModule module, Object name,
+        protected void setMethodVisibility(RubyModule module, Object name, Visibility visibility,
                 @Cached BranchProfile errorProfile) {
             final String methodName = nameToJavaStringNode.execute(name);
 
