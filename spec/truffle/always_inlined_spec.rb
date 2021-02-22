@@ -64,6 +64,12 @@ describe "Always-inlined core methods" do
         }.should raise_error(FrozenError) { |e| e.backtrace_locations[0].label.should == 'foo=' }
       end
     end
+
+    it "for main.using" do
+      -> do
+        eval('using "foo"', TOPLEVEL_BINDING)
+      end.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'using' }
+    end
   end
 
   describe "are not part of the backtrace if the error happens in a different method" do

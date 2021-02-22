@@ -105,7 +105,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.UsingNode;
-import org.truffleruby.language.methods.UsingNodeGen;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -2264,32 +2263,33 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE)
-    public abstract static class ModuleUsingNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private UsingNode usingNode = UsingNodeGen.create();
-
-        @TruffleBoundary
+    @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
-        protected RubyModule moduleUsing(RubyModule self, RubyModule refinementModule) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
+        protected Object moduleUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached BranchProfile errorProfile) {
+            final Object refinementModule = args[0];
             if (self != RubyArguments.getSelf(callerFrame)) {
+                errorProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("Module#using is not called on self", this));
+                        context,
+                        context.getCoreExceptions().runtimeError("Module#using is not called on self", this));
             }
-            if (!isCalledFromClassOrModule(callerFrame)) {
+            final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
+            if (!isCalledFromClassOrModule(callerMethod)) {
+                errorProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("Module#using is not permitted in methods", this));
+                        context,
+                        context.getCoreExceptions().runtimeError("Module#using is not permitted in methods", this));
             }
-            usingNode.executeUsing(refinementModule);
+            using(context, callerFrame, refinementModule, errorProfile);
             return self;
         }
 
         @TruffleBoundary
-        private boolean isCalledFromClassOrModule(Frame callerFrame) {
-            final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getBacktraceName();
+        private boolean isCalledFromClassOrModule(InternalMethod callerMethod) {
+            final String name = callerMethod.getSharedMethodInfo().getBacktraceName();
             // Handles cases: <main> | <top | <class: | <module: | <singleton
             return name.startsWith("<");
         }

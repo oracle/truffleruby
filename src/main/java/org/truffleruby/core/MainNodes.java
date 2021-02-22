@@ -15,22 +15,19 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UsingNode;
-import org.truffleruby.language.methods.UsingNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "main", isClass = true)
@@ -58,31 +55,30 @@ public abstract class MainNodes {
         }
     }
 
-    @CoreMethod(names = "using", required = 1, needsSelf = false)
-    public abstract static class MainUsingNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private UsingNode usingNode = UsingNodeGen.create();
-
+    @GenerateUncached
+    @CoreMethod(names = "using", required = 1, alwaysInlined = true)
+    public abstract static class MainUsingNode extends UsingNode {
         @Specialization
-        protected Object mainUsing(RubyModule refinementModule,
+        protected Object mainUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile) {
-            if (!isCalledFromTopLevel()) {
+            final Object refinementModule = args[0];
+            final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
+            if (!isCalledFromTopLevel(callerMethod)) {
                 errorProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("main.using is permitted only at toplevel", this));
+                        context,
+                        context.getCoreExceptions().runtimeError("main.using is permitted only at toplevel", this));
             }
-            usingNode.executeUsing(refinementModule);
+            using(context, callerFrame, refinementModule, errorProfile);
             return nil;
         }
 
         @TruffleBoundary
-        private boolean isCalledFromTopLevel() {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_ONLY);
-            final String name = RubyArguments.getMethod(callerFrame).getSharedMethodInfo().getBacktraceName();
+        private boolean isCalledFromTopLevel(InternalMethod callerMethod) {
+            final String name = callerMethod.getSharedMethodInfo().getBacktraceName();
             return name.equals("<main>") || name.startsWith("<top ");
         }
-
     }
 
 }

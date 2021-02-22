@@ -131,7 +131,6 @@ public class DeclarationContext {
         changeVisibility(callerFrame, visibility);
     }
 
-    @TruffleBoundary
     public static void setRefinements(Frame callerFrame, DeclarationContext declarationContext,
             Map<RubyModule, RubyModule[]> refinements) {
         RubyArguments.setDeclarationContext(callerFrame, declarationContext.withRefinements(refinements));
