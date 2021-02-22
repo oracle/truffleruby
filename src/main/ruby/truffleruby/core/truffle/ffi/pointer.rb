@@ -280,7 +280,7 @@ module Truffle::FFI
                     when Symbol
                       Pointer.find_type_size(type)
                     else
-                      type.size
+                      raise ArgumentError, "incorrect pointer type: #{type.inspect}"
                     end
         length = (type_size * count)
         offsets << [total_length, length]
