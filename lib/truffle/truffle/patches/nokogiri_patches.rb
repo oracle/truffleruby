@@ -31,14 +31,28 @@ EOF
           # is called with. This works on MRI but causes an error in
           # TruffleRuby.
           match: 'static VALUE to_array(VALUE self, VALUE rb_node)',
-          replacement: 'static VALUE to_array(VALUE self)'
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+static VALUE to_array(VALUE self, VALUE rb_node)
+#else
+static VALUE to_array(VALUE self)
+#endif
+EOF
         },
       ],
       'xslt_stylesheet.c' => [
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: 'va_list args;',
-          replacement: 'va_list args; rb_str_cat2(ctx, "Generic error"); return;'
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+va_list args;
+#else
+va_list args; rb_str_cat2(ctx, "Generic error"); return;
+#endif
+EOF
         }
       ],
       'xml_document.c' => [
@@ -51,31 +65,74 @@ EOF
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
-          replacement: 'rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));'
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+\\&
+#else
+rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));
+#endif
+EOF
         },
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
-          replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));'
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+\\&
+#else
+rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));
+#endif
+EOF
         }
       ],
       'xml_xpath_context.c' => [
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: 'va_list args;',
-          replacement: 'va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;'
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+va_list args;
+#else
+va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;
+#endif
+EOF
         },
         {
           match: 'VALUE thing = Qnil;',
-          replacement: "VALUE thing = Qnil;\n  VALUE errors = rb_ary_new();"
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+VALUE thing = Qnil;
+#else
+VALUE thing = Qnil;
+VALUE errors = rb_ary_new();
+#endif
+EOF
         },
         {
           match: 'xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);',
-          replacement: 'xmlSetStructuredErrorFunc(errors, Nokogiri_error_array_pusher);'
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);
+#else
+xmlSetStructuredErrorFunc(errors, Nokogiri_error_array_pusher);
+#endif
+EOF
         },
         {
           match: 'if(xpath == NULL)',
-          replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)"
+          no_rstrip: true,
+          replacement: <<-EOF
+#ifdef NOKOGIRI_PACKAGED_LIBRARIES
+if(xpath == NULL)
+#else
+if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }
+if(xpath == NULL)
+#endif
+EOF
         },
       ],
     }
