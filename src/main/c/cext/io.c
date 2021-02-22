@@ -153,11 +153,11 @@ VALUE rb_get_path(VALUE object) {
 }
 
 int rb_tr_readable(int mode) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_tr_readable", mode));
+  return mode & FMODE_READABLE;
 }
 
 int rb_tr_writable(int mode) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_tr_writable", mode));
+  return mode & FMODE_WRITABLE;
 }
 
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {

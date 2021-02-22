@@ -190,5 +190,118 @@ module Truffle
 
     end
 
+    # The constants used to express a mode for the opening of files are
+    # different to the fmode constants used to express the mode of an
+    # opened file used by C extensions. Thus we will need to translate
+    # from the o_mode to the fmode and vice versa.
+    def self.translate_omode_to_fmode(o_mode)
+      fmode = 0
+      if (o_mode & WRONLY != 0)
+        fmode |= FMODE_WRITABLE
+      elsif (o_mode & RDWR != 0)
+        fmode |= FMODE_READWRITE
+      else
+        fmode |= FMODE_READABLE
+      end
+
+      if (o_mode & CREAT != 0)
+        fmode |= FMODE_CREATE
+      end
+
+      if (o_mode & TRUNC != 0)
+        fmode |= FMODE_TRUNC
+      end
+
+      if (o_mode & APPEND != 0)
+        fmode |= FMODE_APPEND
+      end
+
+      if (o_mode & BINARY != 0)
+        fmode |= FMODE_BINMODE
+      end
+      fmode
+    end
+
+    def self.translate_fmode_to_omode(f_mode)
+      omode = 0
+      if f_mode & FMODE_READWRITE == FMODE_READWRITE
+        omode |= RDWR
+      elsif f_mode & FMODE_READABLE != 0
+        omode |= RDONLY
+      else
+        omode |= WRONLY
+      end
+
+      if (f_mode & FMODE_CREATE != 0)
+        omode |= CREAT
+      end
+
+      if (f_mode & FMODE_TRUNC != 0)
+        omode |= TRUNC
+      end
+
+      if (f_mode & FMODE_APPEND != 0)
+        omode |= APPEND
+      end
+
+      if (f_mode & FMODE_BINMODE != 0)
+        omode |= BINARY
+      end
+      omode
+    end
+
+    def self.parse_mode(mode)
+      return mode if Primitive.object_kind_of? mode, Integer
+
+      mode = StringValue(mode)
+
+      ret = CLOEXEC
+
+      case mode[0]
+      when ?r
+        ret |= RDONLY
+      when ?w
+        ret |= WRONLY | CREAT | TRUNC
+      when ?a
+        ret |= WRONLY | CREAT | APPEND
+      else
+        raise ArgumentError, "invalid mode -- #{mode}"
+      end
+
+      return ret if mode.length == 1
+
+      case mode[1]
+      when ?+
+        ret &= ~(RDONLY | WRONLY)
+        ret |= RDWR
+      when ?b
+        ret |= BINARY
+      when ?t
+        ret &= ~BINARY
+      when ?:
+        return ret
+      else
+        raise ArgumentError, "invalid mode -- #{mode}"
+      end
+
+      return ret if mode.length == 2
+
+      case mode[2]
+      when ?+
+        ret &= ~(RDONLY | WRONLY)
+        ret |= RDWR
+      when ?b
+        ret |= BINARY
+      when ?t
+        ret &= ~BINARY
+      when ?:
+        return ret
+      else
+        raise ArgumentError, "invalid mode -- #{mode}"
+      end
+
+      ret
+    end
+
   end
 end

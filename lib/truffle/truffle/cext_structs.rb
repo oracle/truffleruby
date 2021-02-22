@@ -358,7 +358,7 @@ class Truffle::CExt::RbIO
     when 'mode'
       @io.instance_variable_get(:@mode)
     when 'pathv'
-      Primitive.cext_wrap(@pathv)
+      Primitive.cext_wrap(@io.instance_variable_get(:@path))
     when 'tied_io_for_writing'
       Primitive.cext_wrap(@tied_io_for_writing)
     else
@@ -371,7 +371,7 @@ class Truffle::CExt::RbIO
     when 'mode'
       @io.instance_variable_set(:@mode, value)
     when 'pathv'
-      @pathv = Primitive.cext_unwrap(value)
+      @io.instance_variable_set(:@path, Primitive.cext_unwrap(value))
     when 'tied_io_for_writing'
       @tied_io_for_writing = Primitive.cext_unwrap(value)
     else

@@ -301,19 +301,19 @@ class IO
   end
 
   private def mode_read_only?
-    @mode == RDONLY
+    (@mode & FMODE_READWRITE) == FMODE_READABLE
   end
 
   private def mode_write_only?
-    @mode == WRONLY
+    (@mode & FMODE_READWRITE) == FMODE_WRITABLE
   end
 
   private def force_read_only
-    @mode = RDONLY
+    @mode = (@mode | FMODE_READABLE) & ~FMODE_WRITABLE
   end
 
   private def force_write_only
-    @mode = WRONLY
+    @mode = (@mode | FMODE_WRITABLE) & ~FMODE_READABLE
   end
 
   def self.binread(file, length=nil, offset=0)
@@ -706,59 +706,6 @@ class IO
     end
   end
 
-  def self.parse_mode(mode)
-    return mode if Primitive.object_kind_of? mode, Integer
-
-    mode = StringValue(mode)
-
-    ret = CLOEXEC
-
-    case mode[0]
-    when ?r
-      ret |= RDONLY
-    when ?w
-      ret |= WRONLY | CREAT | TRUNC
-    when ?a
-      ret |= WRONLY | CREAT | APPEND
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 1
-
-    case mode[1]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    when ?t
-      ret &= ~BINARY
-    when ?:
-      return ret
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 2
-
-    case mode[2]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    when ?t
-      ret &= ~BINARY
-    when ?:
-      return ret
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    ret
-  end
-
   def self.pipe(external = nil, internal = nil, options = nil)
     lhs, rhs = Truffle::IOOperations.create_pipe(self, self, external, internal, options)
 
@@ -802,7 +749,7 @@ class IO
     end
 
     mode, binary, external, internal, _autoclose, _perm = IO.normalize_options(mode, nil, io_options)
-    mode_int = parse_mode mode
+    mode_int = Truffle::IOOperations.parse_mode mode
 
     readable = false
     writable = false
@@ -964,7 +911,7 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = nil, perm = nil)
     path = Truffle::Type.coerce_to_path path
-    mode = parse_mode(mode || 'r')
+    mode = Truffle::IOOperations.parse_mode(mode || 'r')
     perm ||= 0666
 
     fd = Truffle::POSIX.open(path, mode, perm)
@@ -988,7 +935,7 @@ class IO
     end
 
     if mode
-      mode = parse_mode(mode)
+      mode = Truffle::IOOperations.parse_mode(mode)
       mode &= ACCMODE
 
       if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
@@ -1002,7 +949,7 @@ class IO
     io.close if Primitive.io_fd(io) != -1
 
     Primitive.io_set_fd(io, fd)
-    io.instance_variable_set :@mode, mode
+    io.instance_variable_set :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
     io.sync = Primitive.as_boolean(sync)
     io.autoclose  = true
     ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
@@ -1050,7 +997,7 @@ class IO
          (@external || Encoding.default_external) == Encoding::ASCII_8BIT
         @internal = nil
       end
-    elsif @mode != RDONLY
+    elsif !mode_read_only?
       if Encoding.default_external != Encoding.default_internal
         @internal = Encoding.default_internal
       end
@@ -1161,7 +1108,7 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
-    if @mode == WRONLY || @mode == RDWR
+    if @mode & FMODE_WRITABLE != 0
       raise IOError, 'closing non-duplex IO for reading'
     end
     close
@@ -1181,7 +1128,7 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
-    if @mode == RDONLY || @mode == RDWR
+    if @mode & FMODE_READABLE != 0
       raise IOError, 'closing non-duplex IO for writing'
     end
     close
@@ -1502,16 +1449,16 @@ class IO
 
   private def ensure_open_and_readable
     ensure_open
-    raise IOError, 'not opened for reading' if @mode == WRONLY
+    raise IOError, 'not opened for reading' if @mode & FMODE_READABLE == 0
   end
 
   private def ensure_open_and_writable
     ensure_open
-    raise IOError, 'not opened for writing' if @mode == RDONLY
+    raise IOError, 'not opened for writing' if @mode & FMODE_WRITABLE == 0
   end
 
   def external_encoding
-    if @mode == RDONLY
+    if @mode & FMODE_WRITABLE == 0
       @external || Encoding.default_external
     else
       @external
@@ -2060,7 +2007,8 @@ class IO
         # We need to use that mode of other here like MRI, and not fcntl(), because fcntl(fd, F_GETFL)
         # gives O_RDWR for the 3 standard IOs, even though they are not bidirectional.
         @mode = other.instance_variable_get :@mode
-        @ibuffer = @mode != WRONLY ? IO::InternalBuffer.new : nil
+        @ibuffer = (@mode & FMODE_READABLE != 0) ? IO::InternalBuffer.new : nil
+
 
         if io.respond_to?(:path)
           @path = io.path
@@ -2074,11 +2022,12 @@ class IO
         mode = @mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
-        if (mode & RDWR == RDWR) || (mode & WRONLY == WRONLY)
-          mode |= CREAT
+        if (mode & FMODE_WRITABLE != 0)
+          mode |= FMODE_CREATE
         end
+        mode = Truffle::IOOperations.translate_fmode_to_omode(mode)
       else
-        mode = IO.parse_mode(mode)
+        mode = Truffle::IOOperations.parse_mode(mode)
       end
 
       path = Truffle::Type.coerce_to_path(other)
@@ -2097,8 +2046,8 @@ class IO
       mode = Truffle::POSIX.fcntl(Primitive.io_fd(self), F_GETFL, 0)
       Errno.handle if mode < 0
 
-      @mode = (mode & ACCMODE)
-      @ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
+      @mode = Truffle::IOOperations.translate_omode_to_fmode((mode & ACCMODE))
+      @ibuffer = (@mode & FMODE_READABLE) != 0 ? IO::InternalBuffer.new : nil
     end
 
     self
@@ -2155,7 +2104,7 @@ class IO
     when String
       @external = nil
     when nil
-      if @mode == RDONLY || @external
+      if (@mode & FMODE_WRITABLE == 0) || @external
         @external = nil
       else
         @external = Encoding.default_external
@@ -2293,7 +2242,7 @@ class IO
   #  f.sync   #=> false
   def sync
     ensure_open
-    @sync == true
+    @mode & FMODE_SYNC != 0
   end
 
   ##
@@ -2303,7 +2252,12 @@ class IO
   # See also IO#fsync.
   def sync=(v)
     ensure_open
-    @sync = Primitive.as_boolean(v)
+    if v
+      @mode |= FMODE_SYNC
+    else
+      @mode &= ~FMODE_SYNC
+    end
+    v
   end
 
   ##
@@ -2370,7 +2324,7 @@ class IO
     return 0 if data.empty?
 
     ensure_open_and_writable
-    reset_buffering unless @sync
+    reset_buffering unless @mode & FMODE_SYNC != 0
 
     Truffle::POSIX.write_string(self, data, false)
   end
@@ -2434,7 +2388,7 @@ class IO
     data = String data
     return 0 if data.empty?
 
-    reset_buffering unless @sync
+    reset_buffering unless @mode & FMODE_SYNC != 0
 
     self.nonblock = true
 
