@@ -12,7 +12,6 @@ package org.truffleruby.core.exception;
 import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.EnumSet;
 
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
@@ -99,8 +98,7 @@ public class CoreExceptions {
                 Object stderr = context.getCoreLibrary().getStderr();
                 RubyContext.send(stderr, "write", outputString);
             } else {
-                final PrintStream printStream = BacktraceFormatter.printStreamFor(context.getEnv().err());
-                printStream.println(output);
+                context.getEnvErrStream().println(output);
             }
         }
     }

@@ -10,6 +10,9 @@
 package org.truffleruby;
 
 import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -96,6 +99,8 @@ public class RubyContext {
 
     private final RubyLanguage language;
     @CompilationFinal private TruffleLanguage.Env env;
+    @CompilationFinal private PrintStream outStream;
+    @CompilationFinal private PrintStream errStream;
     @CompilationFinal private boolean hasOtherPublicLanguages;
 
     @CompilationFinal private Options options;
@@ -154,14 +159,11 @@ public class RubyContext {
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
-        this.preInitializing = env.isPreInitialization();
+        this.language = language;
+        setEnv(env);
         this.preInitialized = preInitializing;
 
         preInitializationManager = preInitializing ? new PreInitializationManager() : null;
-
-        this.language = language;
-        this.env = env;
-        this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
 
         options = createOptions(env, language.options);
 
@@ -266,9 +268,7 @@ public class RubyContext {
      * initialization which needs to be performed to adapt to the new process and external environment. Calls are kept
      * in the same order as during normal initialization. */
     protected boolean patch(Env newEnv) {
-        this.env = newEnv;
-        this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(newEnv);
-        this.preInitializing = newEnv.isPreInitialization();
+        setEnv(newEnv);
         if (preInitializing) {
             throw CompilerDirectives.shouldNotReachHere("Expected patch Env#isPreInitialization() to be false");
         }
@@ -387,6 +387,22 @@ public class RubyContext {
 
         Metrics.printTime("after-options");
         return options;
+    }
+
+    private void setEnv(Env env) {
+        this.env = env;
+        this.outStream = printStreamFor(env.out());
+        this.errStream = printStreamFor(env.err());
+        this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
+        this.preInitializing = env.isPreInitialization();
+    }
+
+    private static PrintStream printStreamFor(OutputStream outputStream) {
+        try {
+            return new PrintStream(outputStream, true, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
     }
 
     private static boolean computeHasOtherPublicLanguages(Env env) {
@@ -830,6 +846,14 @@ public class RubyContext {
 
     public AssumedValue<Boolean> getWarningCategoryExperimental() {
         return warningCategoryExperimental;
+    }
+
+    public PrintStream getEnvOutStream() {
+        return outStream;
+    }
+
+    public PrintStream getEnvErrStream() {
+        return errStream;
     }
 
     @TruffleBoundary
