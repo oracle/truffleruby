@@ -17,11 +17,11 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.SingletonClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
+import org.truffleruby.language.objects.SingletonClassNode;
 
 /** The set of values captured when a method is defined:
  * <ul>
@@ -35,7 +35,7 @@ public class DeclarationContext {
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
-        RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode);
+        RubyModule getModuleToDefineMethods();
     }
 
     /** #instance_eval, the default definee is self.singleton_class */
@@ -46,8 +46,8 @@ public class DeclarationContext {
             this.self = self;
         }
 
-        public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
-            return singletonClassNode.executeSingletonClass(self);
+        public RubyModule getModuleToDefineMethods() {
+            return SingletonClassNode.getUncached().executeSingletonClass(self);
         }
     }
 
@@ -59,7 +59,7 @@ public class DeclarationContext {
             this.module = module;
         }
 
-        public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+        public RubyModule getModuleToDefineMethods() {
             return module;
         }
     }
@@ -159,9 +159,9 @@ public class DeclarationContext {
     }
 
     @TruffleBoundary
-    public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+    public RubyModule getModuleToDefineMethods() {
         assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
-        return defaultDefinee.getModuleToDefineMethods(singletonClassNode);
+        return defaultDefinee.getModuleToDefineMethods();
     }
 
     public boolean hasRefinements() {
