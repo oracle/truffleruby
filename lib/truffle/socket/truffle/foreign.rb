@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -95,31 +97,30 @@ module Truffle
       attach_function :freeifaddrs, [:pointer], :void
 
       def self.bind(descriptor, sockaddr)
-        sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
+        sockaddr_p = Primitive.io_thread_buffer_allocate(sockaddr.bytesize)
         begin
           sockaddr_p.write_bytes(sockaddr)
           _bind(descriptor, sockaddr_p, sockaddr.bytesize)
         ensure
-          Truffle::FFI::Pool.stack_free(sockaddr_p)
+          Primitive.io_thread_buffer_free(sockaddr_p)
         end
       end
 
       def self.connect(descriptor, sockaddr)
         sockaddr = Socket.coerce_to_string(sockaddr)
 
-        sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
-
+        sockaddr_p = Primitive.io_thread_buffer_allocate(sockaddr.bytesize)
         begin
           sockaddr_p.write_bytes(sockaddr)
 
           _connect(descriptor, sockaddr_p, sockaddr.bytesize)
         ensure
-          Truffle::FFI::Pool.stack_free(sockaddr_p)
+          Primitive.io_thread_buffer_free(sockaddr_p)
         end
       end
 
       def self.getsockopt(descriptor, level, optname)
-        val, length = Truffle::FFI::Pool.stack_alloc(:char, 256, :socklen_t, 1)
+        val, length = Truffle::FFI::Pool.stack_alloc(256, Primitive.pointer_find_type_size(:socklen_t))
 
         begin
           length.write_int(256)
@@ -143,10 +144,10 @@ module Truffle
         hints[:ai_protocol] = protocol || 0
         hints[:ai_flags]    = flags || 0
 
-        res_p = Truffle::FFI::Pool.stack_alloc(:pointer, 1)
+        res_p = Primitive.io_thread_buffer_allocate(Primitive.pointer_find_type_size(:pointer))
 
         res_p.clear
-        err   = _getaddrinfo(host, service, hints.pointer, res_p)
+        err = _getaddrinfo(host, service, hints.pointer, res_p)
 
         raise SocketError, gai_strerror(err) unless err == 0
 
@@ -183,7 +184,7 @@ module Truffle
 
           # Be sure to feed a legit pointer to freeaddrinfo
           freeaddrinfo(ptr) unless ptr.null?
-          Truffle::FFI::Pool.stack_free(res_p)
+          Primitive.io_thread_buffer_free(res_p)
         end
       end
 
@@ -198,7 +199,7 @@ module Truffle
         name_info = []
 
         sockaddr_p, node, service = Truffle::FFI::Pool.stack_alloc(
-          :char, sockaddr.bytesize, :char, ::Socket::NI_MAXHOST, :char, ::Socket::NI_MAXSERV)
+          sockaddr.bytesize, ::Socket::NI_MAXHOST, ::Socket::NI_MAXSERV)
 
         begin
           sockaddr_p.write_bytes(sockaddr)
@@ -231,7 +232,7 @@ module Truffle
       end
 
       def self.getpeername(descriptor)
-        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(:char, 128, :socklen_t, 1)
+        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
         begin
           len_p.write_int(128)
 
@@ -246,7 +247,7 @@ module Truffle
       end
 
       def self.getsockname(descriptor)
-        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(:char, 128, :socklen_t, 1)
+        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
 
         begin
           len_p.write_int(128)
@@ -283,7 +284,7 @@ module Truffle
           host = '0.0.0.0'
         end
 
-        res_p = Truffle::FFI::Pool.stack_alloc(:pointer, 1)
+        res_p = Primitive.io_thread_buffer_allocate(Primitive.pointer_find_type_size(:pointer))
         res_p.clear
 
         err = _getaddrinfo(host, port.to_s, hints.pointer, res_p)
@@ -302,7 +303,7 @@ module Truffle
           ptr = res_p.read_pointer
 
           freeaddrinfo(ptr) unless ptr.null?
-          Truffle::FFI::Pool.stack_free(res_p)
+          Primitive.io_thread_buffer_free(res_p)
         end
       end
 
@@ -328,7 +329,7 @@ module Truffle
       end
 
       def self.socketpair(family, type, protocol)
-        pointer = Truffle::FFI::Pool.stack_alloc(:int, 2)
+        pointer = Primitive.io_thread_buffer_allocate(Primitive.pointer_find_type_size(:int) * 2)
         begin
           pointer.clear
           status = _socketpair(family, type, protocol, pointer)
@@ -337,7 +338,7 @@ module Truffle
 
           pointer.read_array_of_int(2)
         ensure
-          Truffle::FFI::Pool.stack_free(pointer)
+          Primitive.io_thread_buffer_free(pointer)
         end
       end
 
@@ -373,7 +374,7 @@ module Truffle
           address = address[0...i]
         end
 
-        pointer = Truffle::FFI::Pool.stack_alloc(:pointer, size)
+        pointer = Primitive.io_thread_buffer_allocate(Primitive.pointer_find_type_size(:pointer) * size)
 
         begin
           status = inet_pton(family, address, pointer)
@@ -382,7 +383,7 @@ module Truffle
 
           pointer.get_array_of_uchar(0, size)
         ensure
-          Truffle::FFI::Pool.stack_free(pointer)
+          Primitive.io_thread_buffer_free(pointer)
         end
       end
     end

@@ -137,7 +137,7 @@ module Truffle
       end
 
       readables_pointer, writables_pointer, errorables_pointer =
-          Truffle::FFI::Pool.stack_alloc(:int, readables.size, :int, writables.size, :int, errorables.size)
+          Truffle::FFI::Pool.stack_alloc(readables.size * SIZEOF_INT, writables.size * SIZEOF_INT, errorables.size * SIZEOF_INT)
 
       begin
         to_fds(readable_ios, readables_pointer)

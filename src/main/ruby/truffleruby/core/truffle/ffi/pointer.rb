@@ -266,30 +266,23 @@ module Truffle::FFI
   end
 
   class Pool
-
+    # Use Primitive.io_thread_buffer_allocate(Primitive.pointer_find_type_size(:type) * n)
+    # instead for a single pointer. This method always returns an Array of FFI::Pointer.
     def self.stack_alloc(*args)
       total_length = 0
       offsets = []
-      args.each_slice(2) do |type, count|
-        type_size = case type
-                    when nil
-                      1
-                    when Integer
-                      type
-                    when Symbol
-                      Pointer.find_type_size(type)
-                    else
-                      type.size
-                    end
-        length = (type_size * count)
+      args.each do |length|
+        unless Primitive.object_kind_of?(length, Integer)
+          raise ArgumentError, "incorrect pointer type: #{length.inspect}"
+        end
         offsets << [total_length, length]
         total_length += length
       end
       buffer = Primitive.io_thread_buffer_allocate(total_length)
-      pointers = offsets.map { |offset, length| buffer.slice(offset, length) }
-      pointers.size == 1 ? pointers[0] : pointers
+      offsets.map { |offset, length| buffer.slice(offset, length) }
     end
 
+    # The argument is the first pointer returned by #stack_alloc
     def self.stack_free(pointer)
       Primitive.io_thread_buffer_free(pointer)
     end
