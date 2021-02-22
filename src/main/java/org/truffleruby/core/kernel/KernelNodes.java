@@ -13,7 +13,6 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
 
 import java.io.File;
-import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +25,6 @@ import com.oracle.truffle.api.utilities.AssumedValue;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -1369,11 +1367,9 @@ public abstract class KernelNodes {
             return value;
         }
 
-        @SuppressFBWarnings("OS")
         @TruffleBoundary
         private void print(Object inspected) {
-            final PrintStream stream = BacktraceFormatter.printStreamFor(getContext().getEnv().out());
-            stream.println(inspected.toString());
+            getContext().getEnvOutStream().println(inspected.toString());
         }
     }
 

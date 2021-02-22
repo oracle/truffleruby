@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.backtrace;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
@@ -34,9 +33,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.RubySource;
 
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -113,7 +110,7 @@ public class BacktraceFormatter {
     @SuppressFBWarnings("OS")
     @TruffleBoundary
     public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
-        final PrintStream printer = printStreamFor(context.getEnv().err());
+        final PrintStream printer = context.getEnvErrStream();
         if (!info.isEmpty()) {
             printer.print(info);
         }
@@ -149,16 +146,7 @@ public class BacktraceFormatter {
     @TruffleBoundary
     public void printBacktraceOnEnvStderr(Node currentNode) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final PrintStream printer = printStreamFor(context.getEnv().err());
-        printer.println(formatBacktrace(null, backtrace));
-    }
-
-    public static PrintStream printStreamFor(OutputStream outputStream) {
-        try {
-            return new PrintStream(outputStream, true, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw CompilerDirectives.shouldNotReachHere(e);
-        }
+        context.getEnvErrStream().println(formatBacktrace(null, backtrace));
     }
 
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
@@ -396,7 +384,7 @@ public class BacktraceFormatter {
             throw ExceptionOperations.rethrow(throwable);
         }
 
-        final PrintStream stream = BacktraceFormatter.printStreamFor(context.getEnv().err());
+        final PrintStream stream = context.getEnvErrStream();
         final BacktraceFormatter formatter = context.getDefaultBacktraceFormatter();
         stream.println();
         stream.println("truffleruby: " + from + ",");
