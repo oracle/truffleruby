@@ -8,20 +8,32 @@
 
 # Set OPENSSL_PREFIX in ENV to find the OpenSSL headers
 
+search_homebrew = -> homebrew {
+  if prefix = "#{homebrew}/opt/openssl@1.1" and Dir.exist?(prefix)
+    prefix
+  elsif prefix = "#{homebrew}/opt/openssl" and Dir.exist?(prefix)
+    prefix
+  end
+}
+
 macOS = RUBY_PLATFORM.include?('darwin')
 
 if macOS && !ENV['OPENSSL_PREFIX']
-  homebrew = `brew --prefix 2>/dev/null`.strip
-  unless $?.success? and !homebrew.empty? and Dir.exist?(homebrew)
-    homebrew = nil
+  if prefix = search_homebrew.call('/usr/local')
+    # found
+  else
+    homebrew = `brew --prefix 2>/dev/null`.strip
+    homebrew = nil unless $?.success? and !homebrew.empty? and Dir.exist?(homebrew)
+
+    if homebrew and prefix = search_homebrew.call(homebrew)
+      # found
+    elsif Dir.exist?('/opt/local/include/openssl') # MacPorts
+      prefix = '/opt/local'
+    end
   end
 
-  if homebrew and prefix = "#{homebrew}/opt/openssl@1.1" and Dir.exist?(prefix)
+  if prefix
     ENV['OPENSSL_PREFIX'] = prefix
-  elsif homebrew and prefix = "#{homebrew}/opt/openssl" and Dir.exist?(prefix)
-    ENV['OPENSSL_PREFIX'] = prefix
-  elsif Dir.exist?('/opt/local/include/openssl') # MacPorts
-    ENV['OPENSSL_PREFIX'] = '/opt/local'
   else
     abort 'Could not find OpenSSL headers, install via Homebrew or MacPorts or set OPENSSL_PREFIX'
   end
