@@ -1024,9 +1024,6 @@ module Commands
       unittest_options, tests = unittest_args.partition { |arg| arg.start_with?('-') }
       tests = tests.empty? ? ['org.truffleruby'] : tests
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
-      # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
-      # because it cannot find the correct home.
-      unittest_options << "-Dorg.graalvm.language.ruby.home=#{ruby_home}"
       mx(*mx_options, 'unittest', *unittest_options, *tests)
     when 'tck' then mx 'tck', *rest
     else

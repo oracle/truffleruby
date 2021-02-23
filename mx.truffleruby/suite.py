@@ -513,7 +513,11 @@ suite = {
             "distDependencies": [
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-SERVICES",
+                "TRUFFLERUBY_GRAALVM_SUPPORT",
             ],
+            "javaProperties": {
+                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
+            },
             "license": ["EPL-2.0"],
         },
 
@@ -521,6 +525,9 @@ suite = {
             "testDistribution": True,
             "dependencies": ["org.truffleruby.tck"],
             "distDependencies": ["truffle:TRUFFLE_TCK"],
+            "javaProperties": {
+                "org.graalvm.language.ruby.home": "<path:TRUFFLERUBY_GRAALVM_SUPPORT>"
+            },
             "license": ["EPL-2.0"],
         },
     },
