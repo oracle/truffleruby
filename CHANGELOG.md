@@ -16,6 +16,7 @@ Bug fixes:
 * Fix extra whitespace in squiggly heredoc with escaped newline (#2238, @wildmaples and @norswap).
 * Fix handling of signals with `--single-threaded` (#2265).
 * Fix `Enumerator::Lazy#{chunk_while, slice_before, slice_after, slice_when}` to return instances of `Enumerator::Lazy` (#2273).
+* Fix `Truffle::Interop.source_location` to return unavailable source sections for modules instead of null (#2257).
 
 Compatibility:
 
