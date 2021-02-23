@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -96,6 +97,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private RubyModule refinementNamespace;
 
     private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Assumption> methodAssumptions = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ClassVariableStorage classVariables;
 
@@ -190,6 +192,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         for (InternalMethod method : fromFields.methods.values()) {
             this.methods.put(method.getName(), method.withDeclaringModule(rubyModule));
+            this.methodAssumptions.put(method.getName(), Truffle.getRuntime().createAssumption(method.getName()));
         }
 
         for (Entry<String, RubyConstant> entry : fromFields.constants.entrySet()) {
@@ -449,6 +452,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (!context.getCoreLibrary().isInitializing()) {
             newMethodsVersion();
+            newMethodVersion(method.getName());
+            methodAssumptions.put(method.getName(), Truffle.getRuntime().createAssumption(method.getName()));
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
             if (refinedModule != null) {
@@ -475,8 +480,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         methods.remove(methodName);
+        newMethodVersion(methodName);
+        methodAssumptions.remove(methodName);
 
-        newMethodsVersion();
         changedMethod(methodName);
         return true;
     }
@@ -718,7 +724,20 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
+    public Assumption getMethodAssumption(String name) {
+        return methodAssumptions.get(name);
+    }
+
+    public void newMethodVersion(String name) {
+        if (methodAssumptions.containsKey(name)) {
+            methodAssumptions.get(name).invalidate();
+        }
+    }
+
     public void newMethodsVersion() {
+        for (Assumption assumption : methodAssumptions.values()) {
+            assumption.invalidate();
+        }
         methodsUnmodifiedAssumption.invalidate(givenBaseName);
     }
 

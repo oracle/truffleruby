@@ -441,11 +441,13 @@ public abstract class ModuleOperations {
             }
 
             final ModuleFields fields = ancestor.fields;
-            assumptions.add(fields.getMethodsUnmodifiedAssumption());
             final InternalMethod method = fields.getMethod(name);
 
             if (method != null) {
+                assumptions.add(fields.getMethodAssumption(name));
                 return new MethodLookupResult(method, toArray(assumptions));
+            } else {
+                assumptions.add(fields.getMethodsUnmodifiedAssumption());
             }
         }
 
