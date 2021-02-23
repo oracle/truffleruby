@@ -537,6 +537,11 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
+    public RubyThread getCurrentThreadOrNull() {
+        return currentThread.get();
+    }
+
+    @TruffleBoundary
     public RubyFiber getRubyFiberFromCurrentJavaThread() {
         return rubyFiber.get();
     }

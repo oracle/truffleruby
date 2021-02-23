@@ -4,6 +4,7 @@ New features:
 
 * Access to local variables of the interactive Binding via language bindings is now supported: `context.getBindings("ruby").putMember("my_var", 42);` (#2030).
 * `VALUE`s in C extensions now expose the Ruby object when viewed in the debugger, as long as they have not been converted to native values.
+* Signal handlers can now be run without triggering multi-threading.
 
 Bug fixes:
 

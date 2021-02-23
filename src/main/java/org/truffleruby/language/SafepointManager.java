@@ -144,8 +144,6 @@ public final class SafepointManager {
     private SafepointAction step(Node currentNode, boolean isDrivingThread, String reason) {
         assert isDrivingThread == lock.isHeldByCurrentThread();
 
-        final RubyThread thread = context.getThreadManager().getCurrentThread();
-
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
             driveArrivalAtPhaser(reason);
@@ -162,7 +160,9 @@ public final class SafepointManager {
         SafepointAction deferredAction = null;
 
         try {
-            if (filter.test(thread)) {
+            final RubyThread thread = context.getThreadManager().getCurrentThreadOrNull();
+
+            if (thread != null && filter.test(thread)) {
                 if (SafepointAction.isDeferred(action)) {
                     deferredAction = action;
                 } else {
@@ -196,8 +196,9 @@ public final class SafepointManager {
                 // retry
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
-                    RubyLanguage.LOGGER.severe(String.format(
-                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking call - reason for the safepoint: %s",
+                    // Possibly not in a context, so we cannot use TruffleLogger
+                    context.getEnvErrStream().println(String.format(
+                            "[ruby] SEVERE: waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking call - reason for the safepoint: %s",
                             waits * WAIT_TIME_IN_SECONDS,
                             phaser.getUnarrivedParties(),
                             phaser.getRegisteredParties(),
@@ -207,8 +208,8 @@ public final class SafepointManager {
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
-                        RubyLanguage.LOGGER.severe(
-                                "waited " + MAX_WAIT_TIME_IN_SECONDS +
+                        context.getEnvErrStream().println(
+                                "[ruby] SEVERE: waited " + MAX_WAIT_TIME_IN_SECONDS +
                                         " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
                         System.exit(1);
                     }
@@ -253,12 +254,12 @@ public final class SafepointManager {
     }
 
     private void restoreDefaultInterruptHandler() {
-        RubyLanguage.LOGGER.warning("restoring default interrupt handler");
-
+        // Possibly not in a context, so we cannot use TruffleLogger
+        context.getEnvErrStream().println("[ruby] WARNING: restoring default interrupt handler");
         try {
             Signals.restoreDefaultHandler("INT");
         } catch (Throwable t) {
-            RubyLanguage.LOGGER.warning("failed to restore default interrupt handler\n" + t);
+            context.getEnvErrStream().println("[ruby] WARNING: failed to restore default interrupt handler\n" + t);
         }
     }
 

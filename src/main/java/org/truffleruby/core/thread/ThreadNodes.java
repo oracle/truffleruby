@@ -43,6 +43,7 @@ package org.truffleruby.core.thread;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -558,7 +559,7 @@ public abstract class ThreadNodes {
             if (unblocker == nil) {
                 unblockingAction = threadManager.getNativeCallUnblockingAction();
             } else {
-                unblockingAction = makeUnblockingAction(unblocker, unblockerArg);
+                unblockingAction = makeUnblockingAction(getContext(), unblocker, unblockerArg);
             }
 
             final UnblockingActionHolder actionHolder = threadManager.getActionHolder(Thread.currentThread());
@@ -574,13 +575,37 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        private UnblockingAction makeUnblockingAction(Object function, Object argument) {
+        private static UnblockingAction makeUnblockingAction(RubyContext context, Object function, Object argument) {
             assert InteropLibrary.getUncached().isExecutable(function);
+
             return () -> {
+                final TruffleContext truffleContext = context.getEnv().getContext();
+                final boolean alreadyEntered = truffleContext.isEntered();
+                Object prev = null;
+                if (!alreadyEntered) {
+                    // We need to enter the context to execute this unblocking action, as it runs on Sulong.
+                    try {
+                        if (context.getOptions().SINGLE_THREADED) {
+                            throw new IllegalStateException("--single-threaded was passed");
+                        }
+                        prev = truffleContext.enter(null);
+                    } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
+                        // Not in a context, so we cannot use TruffleLogger
+                        context.getEnvErrStream().println(
+                                "[ruby] SEVERE: could not unblock thread inside blocking call in C extension because " +
+                                        "the context does not allow multithreading (" + e.getMessage() + ")");
+                        return;
+                    }
+                }
+
                 try {
                     InteropLibrary.getUncached().execute(function, argument);
                 } catch (InteropException e) {
                     throw CompilerDirectives.shouldNotReachHere(e);
+                } finally {
+                    if (!alreadyEntered) {
+                        truffleContext.leave(null, prev);
+                    }
                 }
             };
         }

@@ -80,14 +80,12 @@ import org.truffleruby.platform.Signals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 @CoreModule(value = "VMPrimitives", isClass = true)
@@ -260,46 +258,14 @@ public abstract class VMPrimitiveNodes {
             }
 
             final String signalName = libSignalString.getJavaString(signalString);
+
             return registerHandler(signalName, signal -> {
-                if (context.getOptions().SINGLE_THREADED) {
-                    warnRestoreAndRaise(context, signalName, signal, "create a thread");
-                    return;
-                }
-
                 final RubyThread rootThread = context.getThreadManager().getRootThread();
-
-                // Workaround: we need to register with Truffle (which means going multithreaded),
-                // so that NFI can get its context to call pthread_kill() (GR-7405).
-                final TruffleContext truffleContext = context.getEnv().getContext();
-                final Object prev;
-                try {
-                    prev = truffleContext.enter(this);
-                } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
-                    warnRestoreAndRaise(context, signalName, signal, "attach a thread");
-                    return;
-                }
-                try {
-                    context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
-                            "Handling of signal " + signal,
-                            SafepointPredicate.currentFiberOfThread(context, rootThread),
-                            (rubyThread, currentNode) -> ProcOperations.rootCall(action));
-                } finally {
-                    truffleContext.leave(this, prev);
-                }
+                context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
+                        "Handling of signal " + signal,
+                        SafepointPredicate.currentFiberOfThread(context, rootThread),
+                        (rubyThread, currentNode) -> ProcOperations.rootCall(action));
             });
-        }
-
-        private static void warnRestoreAndRaise(RubyContext context, String signalName, Signal signal, String failure) {
-            // Not in a context, so we cannot use TruffleLogger
-            context.getEnvErrStream().println(
-                    "[ruby] SEVERE: signal " + signal + " caught but can't " + failure +
-                            " to handle it so restoring the default handler and re-raising the signal");
-            Signals.restoreDefaultHandler(signalName);
-            try {
-                Signal.raise(signal);
-            } catch (IllegalArgumentException illegalArgumentException) {
-                illegalArgumentException.printStackTrace(context.getEnvErrStream());
-            }
         }
 
         @TruffleBoundary
