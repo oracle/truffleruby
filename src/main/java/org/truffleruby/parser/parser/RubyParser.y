@@ -480,7 +480,7 @@ command_asgn    : lhs '=' command_rhs {
                 }
                 | primary_value tCOLON2 tCONSTANT tOP_ASGN command_rhs {
                     SourceIndexLength pos = $1.getPosition();
-                    $$ = support.newOpConstAsgn(pos, support.new_colon2(pos, $1, $2), $4, $5);
+                    $$ = support.newOpConstAsgn(pos, support.new_colon2(pos, $1, $3), $4, $5);
                 }
 
                 | primary_value tCOLON2 tIDENTIFIER tOP_ASGN command_rhs {
