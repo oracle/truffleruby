@@ -105,6 +105,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         ruby_options = [
             '--experimental-options',
             '--building-core-cexts',
+            '--platform-native-interrupt=false', # no librubysignal in the ruby home yet
             '--launcher=' + result,
             '--disable-gems',
             '--disable-rubyopt',
@@ -267,6 +268,6 @@ mx.update_commands(_suite, {
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
     'ruby_spotbugs': [ruby_spotbugs, ''],
-    'verify-ci' : [verify_ci, '[options]'],
+    'verify-ci': [verify_ci, '[options]'],
     'ruby_jacoco_args': [ruby_jacoco_args, ''],
 })

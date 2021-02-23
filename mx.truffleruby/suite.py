@@ -2,15 +2,15 @@ suite = {
     "mxversion": "5.281.0",
     "name": "truffleruby",
 
-    "imports" : {
-        "suites" : [
+    "imports": {
+        "suites": [
             {
                 "name": "regex",
                 "subdir": True,
                 "version": "8c1abd10ad2992580462d7629db316177a256f82",
                 "urls": [
-                    {"url": "https://github.com/oracle/graal.git", "kind" : "git"},
-                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind" : "binary"},
+                    {"url": "https://github.com/oracle/graal.git", "kind": "git"},
+                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
                 ]
             },
             {
@@ -172,9 +172,20 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
+        "org.truffleruby.rubysignal": {
+            "dir": "src/main/c/rubysignal",
+            "native": "shared_lib",
+            "deliverable": "rubysignal",
+            "buildDependencies": [
+                "org.truffleruby", # for the generated JNI header file
+            ],
+            "cflags": ["-g", "-Wall", "-Werror"],
+        },
+
         "org.truffleruby": {
             "dir": "src/main",
             "sourceDirs": ["java"],
+            "jniHeaders": True,
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",
@@ -446,6 +457,7 @@ suite = {
                     "file:lib/cext/*.rb",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
+                    "dependency:org.truffleruby.rubysignal",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/ccan",
