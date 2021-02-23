@@ -1,0 +1,4 @@
+fails:CApiModule rb_define_method returns the correct arity of the method in class
+fails:CApiModule rb_define_method returns the correct arity of the method in module
+fails:CApiModule rb_define_module_function returns the correct arity of the module function
+fails:CApiModule rb_define_module_function returns the correct arity for private instance method
