@@ -38,6 +38,7 @@ class TrueClass
     to_s
   end
 
+  alias_method :===, :===
 end
 
 TRUE = true
