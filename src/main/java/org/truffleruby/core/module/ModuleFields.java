@@ -451,7 +451,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         methods.put(method.getName(), method);
 
         if (!context.getCoreLibrary().isInitializing()) {
-            newMethodsVersion();
             newMethodVersion(method.getName());
             methodAssumptions.put(method.getName(), Truffle.getRuntime().createAssumption(method.getName()));
             // invalidate assumptions to not use an AST-inlined methods
@@ -726,6 +725,17 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public Assumption getMethodAssumption(String name) {
         return methodAssumptions.get(name);
+    }
+
+    public Assumption getOrCreateMethodAssumption(String name) {
+        if (methodAssumptions.containsKey(name)) {
+            return methodAssumptions.get(name);
+        } else {
+            Assumption assumption = Truffle.getRuntime().createAssumption(name);
+            this.methodAssumptions.put(name, assumption);
+            return assumption;
+        }
+
     }
 
     public void newMethodVersion(String name) {
