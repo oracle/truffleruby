@@ -46,12 +46,16 @@ public class ReadConstantNode extends RubyContextSourceNode {
     }
 
     private Object lookupAndGetConstant(RubyModule module) {
+        return getGetConstantNode()
+                .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
+    }
+
+    private GetConstantNode getGetConstantNode() {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
         }
-
-        return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
+        return getConstantNode;
     }
 
     private LookupConstantNode getLookupConstantNode() {
@@ -60,6 +64,24 @@ public class ReadConstantNode extends RubyContextSourceNode {
             lookupConstantNode = insert(LookupConstantNode.create(false, true, false));
         }
         return lookupConstantNode;
+    }
+
+    /** Reads the constant value, wrapping exceptions due to module autoloading in an {@link AutoloadException}. */
+    private Object readConstantAsModule(VirtualFrame frame) {
+        final Object moduleObject = moduleNode instanceof ReadConstantNode
+                ? ((ReadConstantNode) moduleNode).readConstantAsModule(frame)
+                : moduleNode.execute(frame);
+        final RubyModule module = checkModule(moduleObject);
+        final RubyConstant constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name, true);
+        try {
+            return getGetConstantNode()
+                    .executeGetConstant(LexicalScope.IGNORE, module, name, constant, getLookupConstantNode());
+        } catch (RaiseException e) {
+            if (constant.isAutoload()) {
+                throw new AutoloadException(e);
+            }
+            throw e;
+        }
     }
 
     @Override
@@ -72,11 +94,14 @@ public class ReadConstantNode extends RubyContextSourceNode {
         }
 
         final Object moduleObject;
+
         try {
-            moduleObject = moduleNode.execute(frame);
-        } catch (RaiseException e) {
-            // If reading the module raised an exception, it must have been an autoloaded module that failed while
-            // loading. MRI dictates that in this case we should swallow the exception and return `nil`.
+            moduleObject = moduleNode instanceof ReadConstantNode
+                    ? ((ReadConstantNode) moduleNode).readConstantAsModule(frame)
+                    : moduleNode.execute(frame);
+        } catch (AutoloadException e) {
+            // If autoloading a module raised an exception,
+            // MRI dictates that we should swallow the exception and return `nil`.
             return nil;
         }
 
