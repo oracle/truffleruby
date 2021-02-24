@@ -18,6 +18,11 @@ import sun.misc.SignalHandler;
 
 public class Signals {
 
+    /** This is used instead of {@link SignalHandler.SIG_IGN} as {@code Signal.handle(sig, anyHandler)} seems to no
+     * longer work after {@code Signal.handle(sig, SIG_IGN)} on (on Native Image it seems fine). */
+    private static final SignalHandler IGNORE = sig -> {
+    };
+
     // Use String and not Signal as key to work around SVM not allowing new Signal("PROF")
     private static final ConcurrentMap<String, SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
@@ -29,7 +34,7 @@ public class Signals {
 
     public static void registerIgnoreHandler(String signalName) {
         final Signal signal = new Signal(signalName);
-        final SignalHandler oldHandler = Signal.handle(signal, SignalHandler.SIG_IGN);
+        final SignalHandler oldHandler = Signal.handle(signal, IGNORE);
         DEFAULT_HANDLERS.putIfAbsent(signalName, oldHandler);
     }
 
