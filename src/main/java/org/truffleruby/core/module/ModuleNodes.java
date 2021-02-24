@@ -394,7 +394,8 @@ public abstract class ModuleNodes {
     public abstract static class GeneratedReaderNode extends AlwaysInlinedMethodNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object reader(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+        protected Object reader(
+                Frame callerFrame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary) {
             // Or a subclass of RubyRootNode with an extra field?
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
@@ -404,7 +405,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyDynamicObject(self)")
-        protected Object notObject(Frame frame, Object self, Object[] args, Object block, RootCallTarget target) {
+        protected Object notObject(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target) {
             return nil;
         }
 
@@ -417,7 +418,8 @@ public abstract class ModuleNodes {
     public abstract static class GeneratedWriterNode extends AlwaysInlinedMethodNode {
 
         @Specialization(guards = "!rubyLibrary.isFrozen(self)")
-        protected Object writer(Frame frame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
+        protected Object writer(
+                Frame callerFrame, RubyDynamicObject self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @Cached WriteObjectFieldNode writeObjectFieldNode) {
             final String ivarName = RubyRootNode.of(target).getSharedMethodInfo().getNotes();
@@ -429,7 +431,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "rubyLibrary.isFrozen(self)")
-        protected Object frozen(Frame frame, Object self, Object[] args, Object block, RootCallTarget target,
+        protected Object frozen(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             throw new RaiseException(context, context.getCoreExceptions().frozenError(self, this));

@@ -32,7 +32,6 @@ import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.PRNGRandomizerNodes;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.DynamicReturnException;
@@ -40,15 +39,13 @@ import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.platform.NativeConfiguration;
-import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.signal.LibRubySignal;
 
 public class ThreadManager {
 
@@ -104,12 +101,9 @@ public class ThreadManager {
     public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
+    private boolean nativeInterrupt;
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal
             .withInitial(() -> EMPTY_UNBLOCKING_ACTION);
-
-    private int SIGVTALRM;
-    private NativeFunction pthread_self;
-    private NativeFunction pthread_kill;
 
     private final ExecutorService fiberPool;
 
@@ -120,10 +114,11 @@ public class ThreadManager {
         this.fiberPool = Executors.newCachedThreadPool(this::createFiberJavaThread);
     }
 
-    public void initialize(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
-        if (context.getOptions().NATIVE_INTERRUPT && nfi != null) {
-            setupSignalHandler(nfi, nativeConfiguration);
-            setupNativeThreadSupport(nfi, nativeConfiguration);
+    public void initialize() {
+        nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && context.getRubyHome() != null;
+        if (nativeInterrupt) {
+            LibRubySignal.loadLibrary(context.getRubyHome());
+            LibRubySignal.setupSIGVTALRMEmptySignalHandler();
         }
     }
 
@@ -249,37 +244,6 @@ public class ThreadManager {
     private boolean getGlobalAbortOnException() {
         final RubyClass threadClass = context.getCoreLibrary().threadClass;
         return (boolean) DynamicObjectLibrary.getUncached().getOrDefault(threadClass, "@abort_on_exception", null);
-    }
-
-    private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {
-        SIGVTALRM = (int) config.get("platform.signal.SIGVTALRM");
-
-        final Object libC = nfi.getDefaultLibrary();
-
-        // We use abs() as a function taking a int and having no side effects
-        final Object abs = nfi.lookup(libC, "abs");
-        final NativeFunction sigaction = nfi.getFunction("sigaction", "(sint32,pointer,pointer):sint32");
-
-        final int sizeOfSigAction = (int) config.get("platform.sigaction.sizeof");
-        final int handlerOffset = (int) config.get("platform.sigaction.sa_handler.offset");
-
-        try (Pointer structSigAction = Pointer.calloc(sizeOfSigAction)) {
-            structSigAction.writeLong(handlerOffset, nfi.asPointer(abs));
-
-            // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
-            final int result = (int) sigaction.call(SIGVTALRM, structSigAction.getAddress(), 0L);
-            if (result != 0) {
-                // TODO (eregon, 24 Nov. 2017): we should show the NFI errno here.
-                throw new UnsupportedOperationException("sigaction() failed");
-            }
-        }
-    }
-
-    private void setupNativeThreadSupport(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
-        final String pthread_t = nfi.resolveType(nativeConfiguration, "pthread_t");
-
-        pthread_self = nfi.getFunction("pthread_self", "():" + pthread_t);
-        pthread_kill = nfi.getFunction("pthread_kill", "(" + pthread_t + ",sint32):sint32");
     }
 
     public void initialize(RubyThread rubyThread, Node currentNode, String info, String sharingReason,
@@ -541,10 +505,9 @@ public class ThreadManager {
             foreignThreadMap.put(thread, rubyThread);
         }
 
-        if (pthread_self != null && isRubyManagedThread(thread)) {
-            final Object pThreadID = pthread_self.call();
-
-            blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
+        if (nativeInterrupt && isRubyManagedThread(thread)) {
+            final long threadID = LibRubySignal.threadID();
+            blockingNativeCallUnblockingAction.set(() -> LibRubySignal.sendSIGVTALRMToThread(threadID));
         }
 
         unblockingActions.put(thread, new UnblockingActionHolder(thread, () -> thread.interrupt()));
@@ -556,7 +519,7 @@ public class ThreadManager {
         }
         foreignThreadMap.remove(thread);
 
-        if (pthread_self != null) {
+        if (nativeInterrupt) {
             blockingNativeCallUnblockingAction.remove();
         }
 
@@ -571,6 +534,11 @@ public class ThreadManager {
                     "No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
         }
         return rubyThread;
+    }
+
+    @TruffleBoundary
+    public RubyThread getCurrentThreadOrNull() {
+        return currentThread.get();
     }
 
     @TruffleBoundary
