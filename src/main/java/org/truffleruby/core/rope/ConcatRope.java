@@ -15,6 +15,7 @@ import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.extra.ffi.Pointer;
 
 public class ConcatRope extends ManagedRope {
 
@@ -93,6 +94,7 @@ public class ConcatRope extends ManagedRope {
     @Override
     protected byte[] getBytesSlow() {
         bytes = RopeOperations.flattenBytes(this);
+        Pointer.UNSAFE.storeFence();
         left = null;
         right = null;
         return bytes;
@@ -112,22 +114,17 @@ public class ConcatRope extends ManagedRope {
      * <p>
      * Outside compiled code, you can use {@link #getState()}. */
     public ConcatState getState(ConditionProfile bytesNotNull) {
-        if (bytesNotNull.profile(this.bytes != null)) {
-            return new ConcatState(null, null, this.bytes);
-        }
-
         final ManagedRope left = this.left;
         final ManagedRope right = this.right;
-        if (left != null && right != null) {
+        Pointer.UNSAFE.loadFence();
+        final byte[] bytes = this.bytes;
+        if (bytesNotNull.profile(bytes != null)) {
+            return new ConcatState(null, null, bytes);
+        } else if (left != null && right != null) {
             return new ConcatState(left, right, null);
-        }
-
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        if (this.bytes != null) {
+        } else {
             throw CompilerDirectives
                     .shouldNotReachHere("our assumptions about reordering and memory barriers seem incorrect");
         }
-
-        return new ConcatState(null, null, this.bytes);
     }
 }
