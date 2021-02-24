@@ -52,6 +52,21 @@ platform_is_not :windows do
       Process.kill(:HUP, Process.pid).should == 1
     end
 
+    it "can register a new handler after :IGNORE" do
+      Signal.trap :HUP, :IGNORE
+      Process.kill(:HUP, Process.pid).should == 1
+
+      done = false
+      Signal.trap(:HUP) do
+        ScratchPad.record :block_trap
+        done = true
+      end
+
+      Process.kill(:HUP, Process.pid).should == 1
+      Thread.pass until done
+      ScratchPad.recorded.should == :block_trap
+    end
+
     it "ignores the signal when passed nil" do
       Signal.trap :HUP, nil
       Signal.trap(:HUP, @saved_trap).should be_nil
