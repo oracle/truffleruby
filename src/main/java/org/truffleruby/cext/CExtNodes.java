@@ -1188,11 +1188,9 @@ public class CExtNodes {
     @CoreMethod(names = "extract_ruby_exception", onSingleton = true, required = 1)
     public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
 
-        /** Profiled version of {@link ExceptionOperations#rethrow(Throwable)} */
         @Specialization
         protected Object executeThrow(CapturedException captured,
-                @Cached ConditionProfile rubyExceptionProfile,
-                @Cached ConditionProfile errorProfile) {
+                @Cached ConditionProfile rubyExceptionProfile) {
             final Throwable e = captured.getException();
             if (rubyExceptionProfile.profile(e instanceof RaiseException)) {
                 return ((RaiseException) e).getException();
