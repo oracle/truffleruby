@@ -33,13 +33,10 @@ public class OptionsCatalog {
     public static final OptionKey<String> CORE_LOAD_PATH_KEY = new OptionKey<>("resource:/truffleruby");
     public static final OptionKey<Boolean> FROZEN_STRING_LITERALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> RUBYGEMS_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> DID_YOU_MEAN_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> DEFAULT_LAZY_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LAZY_CALLTARGETS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_RUBYGEMS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
-    public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> DID_YOU_MEAN_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> PATTERN_MATCHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EMBEDDED_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> NATIVE_PLATFORM_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> NATIVE_INTERRUPT_KEY = new OptionKey<>(NATIVE_PLATFORM_KEY.getDefaultValue());
@@ -49,9 +46,12 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> HOST_INTEROP_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> TRACE_CALLS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> COVERAGE_GLOBAL_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PATTERN_MATCHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CORE_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> STDLIB_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY = new OptionKey<>(false);
@@ -242,6 +242,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor DID_YOU_MEAN = OptionDescriptor
+            .newBuilder(DID_YOU_MEAN_KEY, "ruby.did-you-mean")
+            .help("Use did_you_mean")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor DEFAULT_LAZY = OptionDescriptor
             .newBuilder(DEFAULT_LAZY_KEY, "ruby.lazy-default")
             .help("Enable default lazy options")
@@ -259,34 +266,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor LAZY_RUBYGEMS = OptionDescriptor
             .newBuilder(LAZY_RUBYGEMS_KEY, "ruby.lazy-rubygems")
             .help("Load RubyGems lazily on first failing require")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor PATCHING = OptionDescriptor
-            .newBuilder(PATCHING_KEY, "ruby.patching")
-            .help("Use patching")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor DID_YOU_MEAN = OptionDescriptor
-            .newBuilder(DID_YOU_MEAN_KEY, "ruby.did-you-mean")
-            .help("Use did_you_mean")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
-            .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
-            .help("Produce deterministic hash values")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor PATTERN_MATCHING = OptionDescriptor
-            .newBuilder(PATTERN_MATCHING_KEY, "ruby.pattern-matching")
-            .help("Enable pattern matching syntax")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -354,6 +333,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor PATTERN_MATCHING = OptionDescriptor
+            .newBuilder(PATTERN_MATCHING_KEY, "ruby.pattern-matching")
+            .help("Enable pattern matching syntax")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor CORE_AS_INTERNAL = OptionDescriptor
             .newBuilder(CORE_AS_INTERNAL_KEY, "ruby.core-as-internal")
             .help("Mark core library sources as internal")
@@ -371,6 +357,20 @@ public class OptionsCatalog {
     public static final OptionDescriptor LAZY_TRANSLATION_USER = OptionDescriptor
             .newBuilder(LAZY_TRANSLATION_USER_KEY, "ruby.lazy-translation-user")
             .help("Lazily translation of stdlib, gem and user source files")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PATCHING = OptionDescriptor
+            .newBuilder(PATCHING_KEY, "ruby.patching")
+            .help("Use patching")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
+            .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
+            .help("Produce deterministic hash values")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1089,20 +1089,14 @@ public class OptionsCatalog {
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
+            case "ruby.did-you-mean":
+                return DID_YOU_MEAN;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
             case "ruby.lazy-calltargets":
                 return LAZY_CALLTARGETS;
             case "ruby.lazy-rubygems":
                 return LAZY_RUBYGEMS;
-            case "ruby.patching":
-                return PATCHING;
-            case "ruby.did-you-mean":
-                return DID_YOU_MEAN;
-            case "ruby.hashing-deterministic":
-                return HASHING_DETERMINISTIC;
-            case "ruby.pattern-matching":
-                return PATTERN_MATCHING;
             case "ruby.embedded":
                 return EMBEDDED;
             case "ruby.platform-native":
@@ -1121,12 +1115,18 @@ public class OptionsCatalog {
                 return TRACE_CALLS;
             case "ruby.coverage-global":
                 return COVERAGE_GLOBAL;
+            case "ruby.pattern-matching":
+                return PATTERN_MATCHING;
             case "ruby.core-as-internal":
                 return CORE_AS_INTERNAL;
             case "ruby.stdlib-as-internal":
                 return STDLIB_AS_INTERNAL;
             case "ruby.lazy-translation-user":
                 return LAZY_TRANSLATION_USER;
+            case "ruby.patching":
+                return PATCHING;
+            case "ruby.hashing-deterministic":
+                return HASHING_DETERMINISTIC;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":
@@ -1343,13 +1343,10 @@ public class OptionsCatalog {
             CORE_LOAD_PATH,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
+            DID_YOU_MEAN,
             DEFAULT_LAZY,
             LAZY_CALLTARGETS,
             LAZY_RUBYGEMS,
-            PATCHING,
-            DID_YOU_MEAN,
-            HASHING_DETERMINISTIC,
-            PATTERN_MATCHING,
             EMBEDDED,
             NATIVE_PLATFORM,
             NATIVE_INTERRUPT,
@@ -1359,9 +1356,12 @@ public class OptionsCatalog {
             HOST_INTEROP,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
+            PATTERN_MATCHING,
             CORE_AS_INTERNAL,
             STDLIB_AS_INTERNAL,
             LAZY_TRANSLATION_USER,
+            PATCHING,
+            HASHING_DETERMINISTIC,
             EXCEPTIONS_STORE_JAVA,
             EXCEPTIONS_PRINT_JAVA,
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,

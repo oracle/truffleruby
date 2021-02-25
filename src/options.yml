@@ -66,13 +66,12 @@ EXPERT:
     # CRuby features (--enable/disable-FEATURE), also exposed as options so they can be used outside the Ruby launcher
     FROZEN_STRING_LITERALS: [frozen-string-literals, boolean, false, Use frozen string literals]
     RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
+    DID_YOU_MEAN: [did-you-mean, boolean, true, Use did_you_mean]
+
+    # Control lazy behavior
     DEFAULT_LAZY: [lazy-default, boolean, true, Enable default lazy options]
     LAZY_CALLTARGETS: [lazy-calltargets, boolean, DEFAULT_LAZY, Create CallTargets lazily when possible]
     LAZY_RUBYGEMS: [lazy-rubygems, boolean, ['RUBYGEMS && ', DEFAULT_LAZY], Load RubyGems lazily on first failing require]
-    PATCHING: [patching, boolean, true, Use patching]
-    DID_YOU_MEAN: [did-you-mean, boolean, true, Use did_you_mean]
-    HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
-    PATTERN_MATCHING: [pattern-matching, boolean, false, Enable pattern matching syntax]
 
     # Embedding options
     EMBEDDED: [embedded, boolean, true, 'Set default options for an embedded use of TruffleRuby, rather than top-level use']
@@ -86,11 +85,14 @@ EXPERT:
     # Ruby-level features
     TRACE_CALLS: [trace-calls, boolean, true, 'Support tracing (set_trace_func, TracePoint) of method calls']
     COVERAGE_GLOBAL: [coverage-global, boolean, false, Run coverage for all code and print results on exit]
+    PATTERN_MATCHING: [pattern-matching, boolean, false, Enable pattern matching syntax]
 
     # Options helpful in for debugging, potentially also for user code
     CORE_AS_INTERNAL: [core-as-internal, boolean, false, 'Mark core library sources as internal']
     STDLIB_AS_INTERNAL: [stdlib-as-internal, boolean, false, 'Mark stdlib sources as internal']
     LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, LAZY_CALLTARGETS, 'Lazily translation of stdlib, gem and user source files']
+    PATCHING: [patching, boolean, true, Use patching]
+    HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
 
     # Options to tweak backtraces
     EXCEPTIONS_STORE_JAVA: [exceptions-store-java, boolean, false, Store the Java exception with the Ruby backtrace]
