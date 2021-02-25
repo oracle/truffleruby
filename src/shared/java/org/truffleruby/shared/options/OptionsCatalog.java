@@ -118,6 +118,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> THREAD_CACHE_KEY = new OptionKey<>(1);
+    public static final OptionKey<Integer> CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_DUP_CACHE_KEY = new OptionKey<>(3);
@@ -836,9 +837,16 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor CONTEXT_SPECIFIC_IDENTITY_CACHE = OptionDescriptor
+            .newBuilder(CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY, "ruby.context-identity-cache")
+            .help("Cache size for inline caches comparing by identity for context-specific objects")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
             .newBuilder(IDENTITY_CACHE_KEY, "ruby.identity-cache")
-            .help("Cache size for inline caches comparing against an object identity")
+            .help("Cache size for inline caches comparing by identity for context-independent objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1251,6 +1259,8 @@ public class OptionsCatalog {
                 return RUBY_LIBRARY_CACHE;
             case "ruby.thread-cache":
                 return THREAD_CACHE;
+            case "ruby.context-identity-cache":
+                return CONTEXT_SPECIFIC_IDENTITY_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
             case "ruby.class-cache":
@@ -1418,6 +1428,7 @@ public class OptionsCatalog {
             POW_CACHE,
             RUBY_LIBRARY_CACHE,
             THREAD_CACHE,
+            CONTEXT_SPECIFIC_IDENTITY_CACHE,
             IDENTITY_CACHE,
             CLASS_CACHE,
             ARRAY_DUP_CACHE,

@@ -38,6 +38,7 @@ LANGUAGE_OPTIONS:
 - POW_CACHE
 - RUBY_LIBRARY_CACHE
 - THREAD_CACHE
+- CONTEXT_SPECIFIC_IDENTITY_CACHE
 - IDENTITY_CACHE
 - CLASS_CACHE
 - ARRAY_DUP_CACHE
@@ -184,7 +185,8 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Inline caches with a non-default size
     THREAD_CACHE: [thread-cache, integer, 1, Cache size of operations that depend on a particular thread]
-    IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing against an object identity]
+    CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-specific objects]
+    IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
     ARRAY_DUP_CACHE: [array-dup-cache, integer, 3, Cache size for copying small arrays]
     ARRAY_STRATEGY_CACHE: [array-strategy-cache, integer, 4, Cache size for array strategies]

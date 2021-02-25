@@ -90,6 +90,8 @@ public class LanguageOptions {
     public final int RUBY_LIBRARY_CACHE;
     /** --thread-cache=1 */
     public final int THREAD_CACHE;
+    /** --context-identity-cache=1 */
+    public final int CONTEXT_SPECIFIC_IDENTITY_CACHE;
     /** --identity-cache=1 */
     public final int IDENTITY_CACHE;
     /** --class-cache=3 */
@@ -142,6 +144,7 @@ public class LanguageOptions {
         POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
         RUBY_LIBRARY_CACHE = options.hasBeenSet(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) ? options.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) : DEFAULT_CACHE;
         THREAD_CACHE = options.get(OptionsCatalog.THREAD_CACHE_KEY);
+        CONTEXT_SPECIFIC_IDENTITY_CACHE = options.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY);
         IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
         ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);
@@ -222,6 +225,8 @@ public class LanguageOptions {
                 return RUBY_LIBRARY_CACHE;
             case "ruby.thread-cache":
                 return THREAD_CACHE;
+            case "ruby.context-identity-cache":
+                return CONTEXT_SPECIFIC_IDENTITY_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
             case "ruby.class-cache":
@@ -278,6 +283,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.POW_CACHE_KEY).equals(two.get(OptionsCatalog.POW_CACHE_KEY)) &&
                one.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY).equals(two.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY)) &&
                one.get(OptionsCatalog.THREAD_CACHE_KEY).equals(two.get(OptionsCatalog.THREAD_CACHE_KEY)) &&
+               one.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY).equals(two.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY)) &&
                one.get(OptionsCatalog.IDENTITY_CACHE_KEY).equals(two.get(OptionsCatalog.IDENTITY_CACHE_KEY)) &&
                one.get(OptionsCatalog.CLASS_CACHE_KEY).equals(two.get(OptionsCatalog.CLASS_CACHE_KEY)) &&
                one.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY).equals(two.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY)) &&
@@ -527,6 +533,13 @@ public class LanguageOptions {
         newValue = newOptions.THREAD_CACHE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --thread-cache differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.CONTEXT_SPECIFIC_IDENTITY_CACHE;
+        newValue = newOptions.CONTEXT_SPECIFIC_IDENTITY_CACHE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --context-identity-cache differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

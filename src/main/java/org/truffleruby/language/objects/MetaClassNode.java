@@ -105,7 +105,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     @Specialization(
             guards = { "object == cachedObject", "metaClass.isSingleton" },
-            limit = "getIdentityCacheLimit()")
+            limit = "getIdentityCacheContextLimit()")
     protected RubyClass singletonClassCached(RubyDynamicObject object,
             @Cached("object") RubyDynamicObject cachedObject,
             @Cached("object.getMetaClass()") RubyClass metaClass) {
@@ -129,7 +129,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return RubyLanguage.getCurrentLanguage().options.CLASS_CACHE;
     }
 
-    protected int getIdentityCacheLimit() {
-        return RubyLanguage.getCurrentLanguage().options.IDENTITY_CACHE;
+    protected int getIdentityCacheContextLimit() {
+        return RubyLanguage.getCurrentLanguage().options.CONTEXT_SPECIFIC_IDENTITY_CACHE;
     }
 }
