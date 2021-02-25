@@ -20,8 +20,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -30,6 +30,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.method.MethodEntry;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -96,8 +97,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     /** The namespace module (M) around the #refine call */
     private RubyModule refinementNamespace;
 
-    private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Assumption> methodAssumptions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, MethodEntry> methods = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ClassVariableStorage classVariables;
 
@@ -190,9 +190,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         // Do not copy name, the copy is an anonymous module
         final ModuleFields fromFields = from.fields;
 
-        for (InternalMethod method : fromFields.methods.values()) {
-            this.methods.put(method.getName(), method.withDeclaringModule(rubyModule));
-            this.methodAssumptions.put(method.getName(), Truffle.getRuntime().createAssumption(method.getName()));
+        for (MethodEntry methodEntry : fromFields.methods.values()) {
+            if (methodEntry.getMethod() != null) {
+                this.methods.put(methodEntry.getMethod().getName(), new MethodEntry(methodEntry
+                        .getMethod()
+                        .withDeclaringModule(rubyModule), methodEntry.getMethod().getName()));
+            }
         }
 
         for (Entry<String, RubyConstant> entry : fromFields.constants.entrySet()) {
@@ -448,11 +451,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        methods.put(method.getName(), method);
+        Assumption previousAssumption = getMethodAssumption(method.getName());
+        methods.put(method.getName(), new MethodEntry(method, method.getName()));
 
         if (!context.getCoreLibrary().isInitializing()) {
-            newMethodVersion(method.getName());
-            methodAssumptions.put(method.getName(), Truffle.getRuntime().createAssumption(method.getName()));
+            if (previousAssumption != null) {
+                previousAssumption.invalidate();
+            }
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
             if (refinedModule != null) {
@@ -478,9 +483,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return false;
         }
 
-        methods.remove(methodName);
         newMethodVersion(methodName);
-        methodAssumptions.remove(methodName);
+        methods.remove(methodName);
 
         changedMethod(methodName);
         return true;
@@ -724,29 +728,31 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public Assumption getMethodAssumption(String name) {
-        return methodAssumptions.get(name);
+        MethodEntry methodEntry = methods.get(name);
+        if (methodEntry != null) {
+            return methodEntry.getAssumption();
+        } else {
+            return null;
+        }
     }
 
     public Assumption getOrCreateMethodAssumption(String name) {
-        if (methodAssumptions.containsKey(name)) {
-            return methodAssumptions.get(name);
-        } else {
-            Assumption assumption = Truffle.getRuntime().createAssumption(name);
-            this.methodAssumptions.put(name, assumption);
-            return assumption;
-        }
-
+        return ConcurrentOperations.getOrCompute(
+                methods,
+                name,
+                n -> new MethodEntry(null, name)).getAssumption();
     }
 
     public void newMethodVersion(String name) {
-        if (methodAssumptions.containsKey(name)) {
-            methodAssumptions.get(name).invalidate();
+        MethodEntry methodEntry = methods.get(name);
+        if (methodEntry != null) {
+            methodEntry.invalidate();
         }
     }
 
     public void newMethodsVersion() {
-        for (Assumption assumption : methodAssumptions.values()) {
-            assumption.invalidate();
+        for (MethodEntry methodEntry : methods.values()) {
+            methodEntry.invalidate();
         }
         methodsUnmodifiedAssumption.invalidate(givenBaseName);
     }
@@ -774,12 +780,22 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public Iterable<InternalMethod> getMethods() {
-        return methods.values();
+        return methods
+                .values()
+                .stream()
+                .filter(me -> me.getMethod() != null)
+                .map(MethodEntry::getMethod)
+                .collect(Collectors.toList());
     }
 
     @TruffleBoundary
     public InternalMethod getMethod(String name) {
-        return methods.get(name);
+        MethodEntry methodEntry = methods.get(name);
+        if (methodEntry != null) {
+            return methodEntry.getMethod();
+        } else {
+            return null;
+        }
     }
 
     /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
@@ -818,7 +834,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getAllMethods(rubyModule);
         } else {
-            allMethods = methods;
+            allMethods = methods
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getValue() != null && e.getValue().getMethod() != null)
+                    .collect(Collectors.toMap(e -> e.getKey(), me -> me.getValue().getMethod()));
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -844,7 +864,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getMethodsBeforeLogicalClass(rubyModule);
         } else {
-            allMethods = methods;
+            allMethods = methods
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getValue() != null && e.getValue().getMethod() != null)
+                    .collect(Collectors.toMap(e -> e.getKey(), me -> me.getValue().getMethod()));
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -895,8 +919,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        for (InternalMethod method : methods.values()) {
-            ObjectGraph.addProperty(adjacent, method);
+        for (MethodEntry methodEntry : methods.values()) {
+            if (methodEntry.getMethod() != null) {
+                ObjectGraph.addProperty(adjacent, methodEntry.getMethod());
+            }
         }
     }
 
