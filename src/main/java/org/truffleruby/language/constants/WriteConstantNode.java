@@ -45,18 +45,30 @@ public class WriteConstantNode extends RubyContextSourceNode implements Assignab
         return value;
     }
 
+    public Object execute(VirtualFrame frame, RubyModule module) {
+        final Object value = valueNode.execute(frame);
+        assign(module, value);
+        return value;
+    }
+
+    public void evaluateValue(VirtualFrame frame) {
+        valueNode.execute(frame);
+    }
+
     @Override
     public void assign(VirtualFrame frame, Object value) {
         final Object moduleObject = moduleNode.execute(frame);
-
         if (!moduleProfile.profile(moduleObject instanceof RubyModule)) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
         }
+        assign((RubyModule) moduleObject, value);
+    }
 
-        final RubyConstant previous = ((RubyModule) moduleObject).fields
+    private void assign(RubyModule module, Object value) {
+        final RubyConstant previous = module.fields
                 .setConstant(getContext(), this, name, value);
         if (previous != null && previous.hasValue()) {
-            warnAlreadyInitializedConstant((RubyModule) moduleObject, name, previous.getSourceSection());
+            warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
         }
     }
 
