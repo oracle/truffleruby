@@ -992,6 +992,7 @@ module Truffle::CExt
     unless Primitive.object_equal(nil, e)
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
+      Primitive.thread_set_exception(extract_ruby_exception(e))
     end
 
     Truffle::Interop.execute_without_conversion(write_status, status, pos)
