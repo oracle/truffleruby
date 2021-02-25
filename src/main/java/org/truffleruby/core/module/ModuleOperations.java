@@ -555,8 +555,8 @@ public abstract class ModuleOperations {
                 }
             } else {
                 final ModuleFields fields = ancestor.fields;
-                assumptions.add(fields.getMethodsUnmodifiedAssumption());
                 final InternalMethod method = fields.getMethod(name);
+                assumptions.add(fields.getOrCreateMethodAssumption(name));
                 if (method != null) {
                     return new MethodLookupResult(method, toArray(assumptions));
                 }

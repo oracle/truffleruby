@@ -141,7 +141,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
     protected Assumption getModuleAssumption(InternalMethod method) {
         return RubyLanguage.getCurrentLanguage().singleContext
-                ? method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption()
+                ? method.getDeclaringModule().fields.getConstantsUnmodifiedAssumption()
                 : AlwaysValidAssumption.INSTANCE;
     }
 

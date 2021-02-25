@@ -105,7 +105,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * map of refined classes and modules (C) to refinement modules (R). */
     private final ConcurrentMap<RubyModule, RubyModule> refinements = new ConcurrentHashMap<>();
 
-    private final CyclicAssumption methodsUnmodifiedAssumption;
     private final CyclicAssumption constantsUnmodifiedAssumption;
 
     // Concurrency: only modified during boot
@@ -123,7 +122,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
         this.rubyModule = rubyModule;
-        this.methodsUnmodifiedAssumption = new CyclicAssumption("methods are unmodified");
         this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
@@ -754,20 +752,15 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         for (MethodEntry methodEntry : methods.values()) {
             methodEntry.invalidate();
         }
-        methodsUnmodifiedAssumption.invalidate(givenBaseName);
     }
 
     public Assumption getConstantsUnmodifiedAssumption() {
         return constantsUnmodifiedAssumption.getAssumption();
     }
 
-    public Assumption getMethodsUnmodifiedAssumption() {
-        return methodsUnmodifiedAssumption.getAssumption();
-    }
-
     public Assumption getHierarchyUnmodifiedAssumption() {
         // Both assumptions are invalidated on hierarchy changes, just pick one of them.
-        return getMethodsUnmodifiedAssumption();
+        return getConstantsUnmodifiedAssumption();
     }
 
     public Iterable<Entry<String, RubyConstant>> getConstants() {
