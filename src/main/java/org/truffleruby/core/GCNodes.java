@@ -11,6 +11,8 @@ package org.truffleruby.core;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
 import java.time.Duration;
 
 import org.truffleruby.SuppressFBWarnings;
@@ -23,6 +25,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.RaiseException;
 
@@ -103,10 +106,6 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected int count() {
-            return getCollectionCount();
-        }
-
-        public static int getCollectionCount() {
             int count = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 count += bean.getCollectionCount();
@@ -122,15 +121,100 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected long time() {
-            return getCollectionTime();
-        }
-
-        public static long getCollectionTime() {
             long time = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 time += bean.getCollectionTime();
             }
             return time;
+        }
+
+    }
+
+    @Primitive(name = "gc_stat")
+    public static abstract class GCStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray stat() {
+            long time = 0;
+            int count = 0;
+            int minorCount = 0;
+            int majorCount = 0;
+            int unknownCount = 0;
+            String[] memoryPoolNames = new String[0];
+            Object[] memoryPools;
+
+            // Get GC time and counts from GarbageCollectorMXBean
+            for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
+                // Get MemoryPoolName relevant to GC
+                if (bean.getMemoryPoolNames().length > memoryPoolNames.length) {
+                    // Since old generation memory pools are a superset of young generation memory pools,
+                    // it suffices to check that we have the longer list of memory pools
+                    memoryPoolNames = bean.getMemoryPoolNames();
+                }
+                time += bean.getCollectionTime();
+                count += bean.getCollectionCount();
+                switch (bean.getName()) {
+                    case "G1 Young Generation": // during 'jvm' and 'jvm-ce'
+                    case "PS Scavenge": // during 'jvm --vm.XX:+UseParallelGC'
+                    case "young generation scavenger": // during 'native'
+                        minorCount += bean.getCollectionCount();
+                        break;
+                    case "G1 Old Generation": // during 'jvm' and 'jvm-ce'
+                    case "PS MarkSweep": // during 'jvm --vm.XX:+UseParallelGC'
+                    case "complete scavenger": // during 'native'
+                        majorCount += bean.getCollectionCount();
+                        break;
+                    default:
+                        unknownCount += bean.getCollectionCount();
+                        break;
+                }
+            }
+
+            // Get memory usage values from relevant memory pools (2-3 / ~8 are relevant)
+            memoryPools = new Object[memoryPoolNames.length];
+            for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
+                if (bean.getName().equals(memoryPoolNames[0])) {
+                    memoryPools[0] = beanToArray(bean);
+                } else if (bean.getName().equals(memoryPoolNames[1])) {
+                    memoryPools[1] = beanToArray(bean);
+                } else if (memoryPoolNames.length == 3 && bean.getName().equals(memoryPoolNames[2])) {
+                    memoryPools[2] = beanToArray(bean);
+                }
+            }
+
+            MemoryUsage usage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+
+            // Use an object array instead because otherwise ArrayHelpers.java line 51 complains
+            Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
+            for (int i = 0; i < memoryPoolNames.length; i++) {
+                memoryPoolNamesCast[i] = memoryPoolNames[i];
+            }
+
+
+            return createArray(
+                    new Object[]{
+                            time,
+                            count,
+                            minorCount,
+                            majorCount,
+                            unknownCount,
+                            usage.getCommitted(),
+                            usage.getUsed(),
+                            createArray(memoryPoolNamesCast),
+                            createArray(memoryPools) });
+        }
+
+        protected RubyArray usageToArray(MemoryUsage usage) {
+            return createArray(new Object[]{ usage.getCommitted(), usage.getInit(), usage.getMax(), usage.getUsed() });
+        }
+
+        protected RubyArray beanToArray(MemoryPoolMXBean bean) {
+            return createArray(
+                    new Object[]{
+                            usageToArray(bean.getUsage()),
+                            usageToArray(bean.getPeakUsage()),
+                            usageToArray(bean.getCollectionUsage()) });
         }
 
     }

@@ -76,10 +76,55 @@ module GC
   end
 
   def self.stat(option = nil)
+    time, count, minor_count, major_count, unknown_count, commited, used, memory_pool_names, memory_pool_info = Primitive.gc_stat()
+
+    # Initialize stat for statistics that come from memory pools, and populate it with some final stats
     stat = {
-      count: GC.count,
-      time: GC.time,
+      :count => count,
+      :time => time,
+      :minor_gc_count => minor_count,
+      :major_gc_count => major_count,
+      :unknown_count => unknown_count, # if nonzero, major or minor count needs to be updated for this GC case
+      :committed => 0.0,
+      :init => 0.0,
+      :max => 0.0,
+      :used => 0.0,
+      :peak_committed => 0.0,
+      :peak_init => 0.0,
+      :peak_max => 0.0,
+      :peak_used => 0.0,
+      :last_committed => 0.0,
+      :last_init => 0.0,
+      :last_max => 0.0,
+      :last_used => 0.0,
+      :heap_available_slots => commited, # should be the same as the calculated commited
+      :heap_live_slots => used, # should be the same as the calculated used
+      :heap_free_slots => commited - used,
     }
+
+    (0...memory_pool_names.length).each do |i|
+      # Populate memory pool specific stats
+      stat[Truffle::Interop.to_string(memory_pool_names[i])] = {
+        :committed => memory_pool_info[i][0][0],
+        :init => memory_pool_info[i][0][1],
+        :max => memory_pool_info[i][0][2],
+        :used => memory_pool_info[i][0][3],
+        :peak_committed => memory_pool_info[i][1][0],
+        :peak_init => memory_pool_info[i][1][1],
+        :peak_max => memory_pool_info[i][1][2],
+        :peak_used => memory_pool_info[i][1][3],
+        :last_committed => memory_pool_info[i][2][0],
+        :last_init => memory_pool_info[i][2][1],
+        :last_max => memory_pool_info[i][2][2],
+        :last_used => memory_pool_info[i][2][3],
+      }
+
+      # Calculate stats across memory pools
+      stat[Truffle::Interop.to_string(memory_pool_names[i])].each_pair do |key, value|
+        stat[key] += value
+      end
+    end
+
     return stat unless option
 
     if stat[option]
