@@ -20,6 +20,7 @@ Bug fixes:
 * Fix `Truffle::Interop.source_location` to return unavailable source sections for modules instead of null (#2257).
 * Fix usage of `Thread.handle_interrupt` in `MonitorMixin#mon_synchronize`.
 * Fixed `TruffleRuby.synchronized` to handle guest safepoints (#2277).
+* Fix control flow bug when assigning constants using ||= (#1489).
 
 Compatibility:
 
@@ -87,7 +88,7 @@ Changes:
 
 Release notes:
 
-* The new IRB is quite slow when copy/pasting code into it. This is due to an inefficient `io/console` implementation which will be addressed in the next release. A workaround is to use `irb --readline`, which disables some IRB features but is much faster for copy/pasting code. 
+* The new IRB is quite slow when copy/pasting code into it. This is due to an inefficient `io/console` implementation which will be addressed in the next release. A workaround is to use `irb --readline`, which disables some IRB features but is much faster for copy/pasting code.
 
 New features:
 
@@ -184,7 +185,7 @@ Compatibility:
 * Pass the final `super` specs (#2104, @chrisseaton).
 * Fix arity for arguments with optional kwargs (#1669, @ssnickolay)
 * Fix arity for `Proc` (#2098, @ssnickolay)
-* Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known. 
+* Check bounds for `FFI::Pointer` accesses when the size of the memory behind is known.
 * Implement negative line numbers for eval (#1482).
 * Support refinements for `#to_s` called by string interpolation (#2110, @ssnickolay)
 * Module#using raises error in method scope (#2112, @ssnickolay)
