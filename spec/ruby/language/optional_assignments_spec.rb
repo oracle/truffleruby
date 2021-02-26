@@ -351,3 +351,62 @@ describe 'Optional variable assignments' do
     end
   end
 end
+
+describe 'Optional constant assignment' do
+  it 'correctly defines non-existing constants' do
+    ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1 ||= :assigned
+    ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT1.should == :assigned
+  end
+
+  it 'correctly overwrites nil constants' do
+    suppress_warning do # already initialized constant
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1 = nil
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1 ||= :assigned
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT1.should == :assigned
+    end
+  end
+
+  it 'causes side-effects of the module part to be applied only once (for undefined constant)' do
+    x = 0
+    (x += 1; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT2 ||= :assigned
+    x.should == 1
+    ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
+  end
+
+  it 'causes side-effects of the module part to be applied (for nil constant)' do
+    suppress_warning do # already initialized constant
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2 = nil
+    x = 0
+    (x += 1; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT2 ||= :assigned
+    x.should == 1
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2.should == :assigned
+    end
+  end
+
+  it 'does not evaluate the right-hand side if the module part raises an exception (for undefined constant)' do
+    x = 0
+    y = 0
+
+    -> {
+      (x += 1; raise Exception; ConstantSpecs::ClassA)::OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
+    }.should raise_error(Exception)
+
+    x.should == 1
+    y.should == 0
+    defined?(ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT3).should == nil
+  end
+
+  it 'does not evaluate the right-hand side if the module part raises an exception (for nil constant)' do
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3 = nil
+    x = 0
+    y = 0
+
+    -> {
+      (x += 1; raise Exception; ConstantSpecs::ClassA)::NIL_OR_ASSIGNED_CONSTANT3 ||= (y += 1; :assigned)
+    }.should raise_error(Exception)
+
+    x.should == 1
+    y.should == 0
+    ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT3.should == nil
+  end
+end
