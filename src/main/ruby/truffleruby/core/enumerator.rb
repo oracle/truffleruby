@@ -523,11 +523,21 @@ class Enumerator
       super(&block).lazy
     end
 
-    # clone these methods from the superclass
-    alias_method :chunk_while, :chunk_while
-    alias_method :slice_after, :slice_after
-    alias_method :slice_before, :slice_before
-    alias_method :slice_when, :slice_when
+    def chunk_while(&block)
+      super(&block).lazy
+    end
+
+    def slice_after(&block)
+      super(&block).lazy
+    end
+
+    def slice_before(&block)
+      super(&block).lazy
+    end
+
+    def slice_when(&block)
+      super(&block).lazy
+    end
 
     def uniq
       if block_given?
