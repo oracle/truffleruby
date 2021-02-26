@@ -91,6 +91,18 @@ public class SharedMethodInfo {
                 newArgs);
     }
 
+    public SharedMethodInfo withArity(Arity newArity) {
+        return new SharedMethodInfo(
+                sourceSection,
+                lexicalScope,
+                newArity,
+                backtraceName,
+                blockDepth,
+                parseName,
+                notes,
+                argumentDescriptors);
+    }
+
     public SourceSection getSourceSection() {
         return sourceSection;
     }

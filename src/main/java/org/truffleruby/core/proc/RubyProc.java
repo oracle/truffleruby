@@ -74,6 +74,22 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
         this.declarationContext = declarationContext;
     }
 
+    public RubyProc withSharedMethodInfo(SharedMethodInfo newSharedMethodInfo, RubyClass newRubyClass, Shape newShape) {
+        return new RubyProc(
+                newRubyClass,
+                newShape,
+                type,
+                newSharedMethodInfo,
+                callTargets,
+                callTarget,
+                declarationFrame,
+                declarationVariables,
+                method,
+                block,
+                frameOnStackMarker,
+                declarationContext);
+    }
+
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.getObjectsInFrame(declarationFrame, reachable);
