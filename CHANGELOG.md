@@ -18,6 +18,7 @@ Bug fixes:
 
 Compatibility:
 
+* Prepend the GraalVM LLVM Toolchain to `PATH` when installing gems (#1974).
 * Implemented `$LOAD_PATH.resolve_feature_path`.
 * Add `Pathname#/` alias to `Pathname#+` (#2178).
 * Fixed issue with large `Integer`s in `Math.log` (#2184).
