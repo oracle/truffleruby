@@ -313,7 +313,7 @@ describe "C-API Kernel function" do
       @s.rb_protect_null_status(42) { |x| raise }.should == nil
     end
 
-    it "poulates errinfo with the captured exception" do
+    it "populates errinfo with the captured exception" do
       proof = []
       @s.rb_protect_errinfo(77, proof) { |x| raise NameError }.class.should == NameError
       proof[0].should == 23
