@@ -55,6 +55,10 @@ if defined?(::TruffleRuby)
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
 end
 
+if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-prepend-toolchain-to-path')
+  ENV['PATH'] = "#{RbConfig::CONFIG['toolchain_path']}:#{ENV['PATH']}"
+end
+
 class String
   # :stopdoc:
 
