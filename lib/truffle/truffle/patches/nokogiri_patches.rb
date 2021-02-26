@@ -31,7 +31,6 @@ EOF
           # is called with. This works on MRI but causes an error in
           # TruffleRuby.
           match: 'static VALUE to_array(VALUE self, VALUE rb_node)',
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 static VALUE to_array(VALUE self, VALUE rb_node)
@@ -45,7 +44,6 @@ EOF
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: 'va_list args;',
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 va_list args;
@@ -65,7 +63,6 @@ EOF
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 \\&
@@ -77,7 +74,6 @@ EOF
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 \\&
@@ -91,7 +87,6 @@ EOF
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
           match: 'va_list args;',
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 va_list args;
@@ -113,7 +108,6 @@ EOF
         },
         {
           match: 'xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);',
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);
@@ -124,7 +118,6 @@ EOF
         },
         {
           match: 'if(xpath == NULL)',
-          no_rstrip: true,
           replacement: <<-EOF
 #ifdef NOKOGIRI_PACKAGED_LIBRARIES
 if(xpath == NULL)
