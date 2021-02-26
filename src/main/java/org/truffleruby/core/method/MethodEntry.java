@@ -19,9 +19,22 @@ public class MethodEntry {
     private final Assumption assumption;
     private final InternalMethod method;
 
-    public MethodEntry(InternalMethod method, String name) {
-        this.assumption = Truffle.getRuntime().createAssumption(name);
+    public MethodEntry(InternalMethod method) {
+        this.assumption = Truffle.getRuntime().createAssumption(method.getName());
         this.method = method;
+    }
+
+    public MethodEntry(String name) {
+        this.assumption = Truffle.getRuntime().createAssumption(name);
+        this.method = null;
+    }
+
+    public MethodEntry withNewAssumption() {
+        if (method != null) {
+            return new MethodEntry(method);
+        } else {
+            return new MethodEntry(assumption.getName());
+        }
     }
 
     public Assumption getAssumption() {

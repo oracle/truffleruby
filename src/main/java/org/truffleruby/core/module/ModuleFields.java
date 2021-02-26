@@ -10,10 +10,12 @@
 package org.truffleruby.core.module;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -190,9 +192,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         for (MethodEntry methodEntry : fromFields.methods.values()) {
             if (methodEntry.getMethod() != null) {
-                this.methods.put(methodEntry.getMethod().getName(), new MethodEntry(methodEntry
+                MethodEntry newMethodEntry = new MethodEntry(methodEntry
                         .getMethod()
-                        .withDeclaringModule(rubyModule), methodEntry.getMethod().getName()));
+                        .withDeclaringModule(rubyModule));
+                this.methods.put(methodEntry.getMethod().getName(), newMethodEntry);
             }
         }
 
@@ -449,12 +452,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        Assumption previousAssumption = getMethodAssumption(method.getName());
-        methods.put(method.getName(), new MethodEntry(method, method.getName()));
+        MethodEntry previousMethodEntry = methods.put(method.getName(), new MethodEntry(method));
 
         if (!context.getCoreLibrary().isInitializing()) {
-            if (previousAssumption != null) {
-                previousAssumption.invalidate();
+            if (previousMethodEntry != null) {
+                previousMethodEntry.invalidate();
             }
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
@@ -481,8 +483,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return false;
         }
 
-        newMethodVersion(methodName);
-        methods.remove(methodName);
+        MethodEntry removedEntry = methods.remove(methodName);
+        if (removedEntry != null) {
+            removedEntry.invalidate();
+        }
 
         changedMethod(methodName);
         return true;
@@ -725,32 +729,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public Assumption getMethodAssumption(String name) {
-        MethodEntry methodEntry = methods.get(name);
-        if (methodEntry != null) {
-            return methodEntry.getAssumption();
-        } else {
-            return null;
-        }
-    }
-
-    public Assumption getOrCreateMethodAssumption(String name) {
-        return ConcurrentOperations.getOrCompute(
-                methods,
-                name,
-                n -> new MethodEntry(null, name)).getAssumption();
-    }
-
-    public void newMethodVersion(String name) {
-        MethodEntry methodEntry = methods.get(name);
-        if (methodEntry != null) {
-            methodEntry.invalidate();
-        }
-    }
-
     public void newMethodsVersion() {
-        for (MethodEntry methodEntry : methods.values()) {
-            methodEntry.invalidate();
+        for (Entry<String, MethodEntry> entry : methods.entrySet()) {
+            entry.getValue().invalidate();
+            entry.setValue(entry.getValue().withNewAssumption());
         }
     }
 
@@ -773,12 +755,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public Iterable<InternalMethod> getMethods() {
-        return methods
-                .values()
-                .stream()
-                .filter(me -> me.getMethod() != null)
-                .map(MethodEntry::getMethod)
-                .collect(Collectors.toList());
+        List<InternalMethod> results = new ArrayList<>();
+        for (MethodEntry methodEntry : methods.values()) {
+            if (methodEntry.getMethod() != null) {
+                results.add(methodEntry.getMethod());
+            }
+        }
+        return results;
     }
 
     @TruffleBoundary
@@ -789,6 +772,17 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } else {
             return null;
         }
+    }
+
+    @TruffleBoundary
+    public InternalMethod getOrCreateMethodAndAssumption(String name, List<Assumption> assumptions) {
+        MethodEntry methodEntry = ConcurrentOperations.getOrCompute(
+                methods,
+                name,
+                n -> new MethodEntry(name));
+        assumptions.add(methodEntry.getAssumption());
+        assert methodEntry.getAssumption().isValid();
+        return methodEntry.getMethod();
     }
 
     /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
