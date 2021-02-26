@@ -49,12 +49,11 @@ platform_is_not :windows do
 
     it "registers an handler doing nothing with :IGNORE" do
       Signal.trap :HUP, :IGNORE
-      Process.kill(:HUP, Process.pid).should == 1
+      Signal.trap(:HUP, @saved_trap).should == "IGNORE"
     end
 
     it "can register a new handler after :IGNORE" do
       Signal.trap :HUP, :IGNORE
-      Process.kill(:HUP, Process.pid).should == 1
 
       done = false
       Signal.trap(:HUP) do
