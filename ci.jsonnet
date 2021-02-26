@@ -244,7 +244,7 @@ local part_definitions = {
       platform: "linux",
       arch:: "amd64",
       packages+: {
-        ruby: ">=" + mri_version,
+        ruby: "==" + mri_version,
       },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -256,7 +256,7 @@ local part_definitions = {
       platform: "linux",
       arch:: "aarch64",
       packages+: {
-        ruby: ">=2.6",
+        ruby: "==2.6.6",
       },
       "$.cap":: {
         normal_machine: ["linux", "aarch64"],
