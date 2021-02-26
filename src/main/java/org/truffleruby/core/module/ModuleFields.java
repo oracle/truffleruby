@@ -785,6 +785,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return methodEntry.getMethod();
     }
 
+    public Assumption getOrCreateMethodAssumption(String name) {
+        return ConcurrentOperations.getOrCompute(
+                methods,
+                name,
+                n -> new MethodEntry(name)).getAssumption();
+    }
+
     /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
      * the ClassVariableStorage Shape is not shared */
     public ClassVariableStorage getClassVariables() {

@@ -14,7 +14,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
 
-public class MethodEntry {
+public final class MethodEntry {
 
     private final Assumption assumption;
     private final InternalMethod method;

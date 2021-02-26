@@ -52,7 +52,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     "isSingleContext()",
                     "method.getCallTarget() == cachedCallTarget",
                     "!cachedMethod.alwaysInlined()" },
-            assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
+            assumptions = "getMethodAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
     protected Object callCached(Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
@@ -72,7 +72,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     "isSingleContext()",
                     "method.getCallTarget() == cachedCallTarget",
                     "cachedMethod.alwaysInlined()" },
-            assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
+            assumptions = "getMethodAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
     protected Object alwaysInlined(
             Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
@@ -139,9 +139,9 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return RubyArguments.pack(null, callerData, method, null, self, block, args);
     }
 
-    protected Assumption getModuleAssumption(InternalMethod method) {
+    protected Assumption getMethodAssumption(InternalMethod method) {
         return RubyLanguage.getCurrentLanguage().singleContext
-                ? method.getDeclaringModule().fields.getConstantsUnmodifiedAssumption()
+                ? method.getDeclaringModule().fields.getOrCreateMethodAssumption(method.getName())
                 : AlwaysValidAssumption.INSTANCE;
     }
 
