@@ -34,6 +34,8 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
+import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ArgumentDescriptor;
@@ -256,19 +258,32 @@ public abstract class ProcNodes {
 
         @Specialization
         protected RubyProc createSameArityProc(RubyProc userProc, RubyProc block) {
-            final RubyProc composedProc = new RubyProc(
-                    coreLibrary().procClass,
-                    getLanguage().procShape,
-                    block.type,
+            final RubyProc composedProc = block.withSharedMethodInfo(
                     userProc.sharedMethodInfo,
-                    block.callTargets,
-                    block.callTarget,
-                    block.declarationFrame,
-                    block.declarationVariables,
-                    block.method,
-                    block.block,
-                    block.frameOnStackMarker,
-                    block.declarationContext);
+                    coreLibrary().procClass,
+                    getLanguage().procShape);
+            AllocationTracing.trace(composedProc, this);
+            return composedProc;
+        }
+    }
+
+    @Primitive(name = "proc_specify_arity", lowerFixnum = 1)
+    public abstract static class ProcSpecifyArityNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyProc specifyArityProc(RubyProc block, int argc) {
+            Arity oldArity = block.sharedMethodInfo.getArity();
+            final Arity newArity;
+            if (argc <= -1) {
+                newArity = new Arity(-(argc + 1), 0, true);
+            } else {
+                newArity = new Arity(argc, 0, false);
+            }
+
+            SharedMethodInfo newSharedMethodInfo = block.sharedMethodInfo.withArity(newArity);
+            final RubyProc composedProc = block.withSharedMethodInfo(
+                    newSharedMethodInfo,
+                    coreLibrary().procClass,
+                    getLanguage().procShape);
             AllocationTracing.trace(composedProc, this);
             return composedProc;
         }
