@@ -155,14 +155,14 @@ describe "C-API Thread function" do
       end
     end
 
-    guard -> { platform_is :mingw and ruby_version_is ""..."2.7" } do
+    guard_not -> { platform_is :mingw and ruby_version_is ""..."2.7" } do
       it "runs a C function with the global lock unlocked and unlocks IO with the generic RUBY_UBF_IO" do
         thr = Thread.new do
           @t.rb_thread_call_without_gvl_with_ubf_io
         end
 
         # Wait until it's blocking...
-        Thread.pass while thr.status and thr.status != "sleep"
+        Thread.pass until thr.stop?
 
         # The thread status is set to sleep by rb_thread_call_without_gvl(),
         # but the thread might not be in the blocking read(2) yet, so wait a bit.
