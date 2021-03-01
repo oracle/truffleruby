@@ -91,8 +91,18 @@ EOF
                       directory.split('/').last(3).any? { |part| part =~ regexp } || file.split('/').last(2).any? { |part| part =~ regexp }
                     end
           if matched
+            # Generally we strip any trailing newlines and whitespce
+            # from a patch, but on occasions we need to patch with a
+            # preprocessor macro which _must_ end with a newline and
+            # so requires that we preserve the trailing whitespace.
             patched_file[:patches].each do |patch|
-              contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
+              last_line = patch[:replacement].rstrip.lines.last.lstrip
+              contents = contents.gsub(patch[:match],
+                                       if last_line && last_line.start_with?('#')
+                                         patch[:replacement]
+                                       else
+                                         patch[:replacement].rstrip
+                                       end)
             end
           end
         end

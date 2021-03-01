@@ -40,7 +40,19 @@ static void warning_func(void * ctx, const char *msg, ...)
   char * message;
   VALUE ruby_message;
 
-  rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));
+  #ifdef NOKOGIRI_PACKAGED_LIBRARIES
+va_list args;
+  va_start(args, msg);
+  vasprintf(&message, msg, args);
+  va_end(args);
+
+  ruby_message = NOKOGIRI_STR_NEW2(message);
+  vasprintf_free(message);
+  rb_funcall(doc, id_warning, 1, ruby_message);
+#else
+rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));
+#endif
+
 }
 EOF
 
