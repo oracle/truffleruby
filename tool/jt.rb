@@ -741,6 +741,8 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
+        JT_JDK                                       The JDK version to use: 8 or 11 (default)
+        JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
     TXT
   end
 
@@ -1953,7 +1955,7 @@ module Commands
   def install(name, *options)
     case name
     when 'jvmci'
-      puts install_jvmci('Downloading JDK8 with JVMCI', (@ruby_name || '').include?('ee'))
+      puts install_jvmci("Downloading JDK#{@jdk_version} with JVMCI", (@ruby_name || '').include?('ee'))
     when 'eclipse'
       puts install_eclipse
     else
@@ -2706,7 +2708,7 @@ class JT
     needs_build = false
     needs_rebuild = false
     @silent = false
-    @jdk_version = 11
+    @jdk_version = Integer(ENV['JT_JDK'] || 11)
 
     until args.empty?
       arg = args.shift
