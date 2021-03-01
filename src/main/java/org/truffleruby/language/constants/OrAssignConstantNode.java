@@ -44,25 +44,12 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
             return writeConstant.execute(frame);
         }
 
-        // Conceptually, we want to rewrite `<x>::Foo ||= <y>` to `(<x>.isDefined && <x>) || (<x>::Foo = <y>)`
+        // Conceptually, we want to rewrite `<x>::Foo ||= <y>` to `(defined?(<x>) && <x>) || (<x>::Foo = <y>)`
         // BUT, we want the side-effects of <x> (the module part) to be only triggered once.
-        //
-        // To do so, we start by evaluating the module part.
-        // Possible issues:
-        //     - An exception is raised (not during module autoloading)
-        //         -> let it go through
-        //     - An exception is raised (during module autoloading)
-        //         -> capture the exception, evaluate the right-hand, then throw the exception.
-        //       Normally, this would be swallowed by `isDefined`, but because it causes the left of `||` to be false,
-        //       it will be thrown again when evaluating the left-hand side of the assignment.
-        //       We do need to evaluate the right-hand side because of Ruby semantics.
-        final RubyModule module;
-        try {
-            module = readConstant.evaluateModuleWrappingAutoloadExceptions(frame);
-        } catch (AutoloadException e) {
-            writeConstant.evaluateValue(frame);
-            throw e.raiseException;
-        }
+        // We do let any exception raised bubble through. Normally they would be swallowed by `defined?`, but
+        // MRI raises them anyway, *before* evaluation the right-hand side (which is a different behaviour from
+        // regular constant assignment, which evaluates the right-hand side first).
+        final RubyModule module = readConstant.evaluateModule(frame);
 
         // Next we check if the constant itself is defined, and if it is, we get its value.
         final RubyConstant constant = readConstant.getConstantIfDefined(module);

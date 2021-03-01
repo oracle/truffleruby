@@ -75,31 +75,9 @@ public class ReadConstantNode extends RubyContextSourceNode {
         return lookupConstantNode;
     }
 
-    /** Reads the constant value, wrapping any exception occuring during module autoloading in an
-     * {@link AutoloadException}. */
-    private Object readConstantWrappingAutoloadExceptions(VirtualFrame frame) {
-        final Object moduleObject = moduleNode instanceof ReadConstantNode
-                ? ((ReadConstantNode) moduleNode).readConstantWrappingAutoloadExceptions(frame)
-                : moduleNode.execute(frame);
-        final RubyModule module = checkModule(moduleObject);
-        final RubyConstant constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name, true);
-        try {
-            return getConstant(module, constant);
-        } catch (RaiseException e) {
-            if (constant.isAutoload()) {
-                throw new AutoloadException(e);
-            }
-            throw e;
-        }
-    }
-
-    /** Returns the evaluated module part, wrapping any exception occuring during module autoloading in an
-     * {@link AutoloadException}. */
-    public RubyModule evaluateModuleWrappingAutoloadExceptions(VirtualFrame frame) {
-        final Object moduleObject = moduleNode instanceof ReadConstantNode
-                ? ((ReadConstantNode) moduleNode).readConstantWrappingAutoloadExceptions(frame)
-                : moduleNode.execute(frame);
-        return checkModule(moduleObject);
+    /** Evaluate the module part of the constant read. */
+    public RubyModule evaluateModule(VirtualFrame frame) {
+        return checkModule(moduleNode.execute(frame));
     }
 
     /** Whether the module part of this constant read is undefined, without attempting to evaluate it. */
@@ -109,26 +87,16 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        final RubyConstant constant = getConstantIfDefined(frame, language, context);
-        return constant == null ? nil : coreStrings().CONSTANT.createInstance(getContext());
-    }
-
-    /** Returns the constant, it it is defined. Otherwise returns {@code null}. */
-    private RubyConstant getConstantIfDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         if (isModuleTriviallyUndefined(frame, language, context)) {
-            return null;
+            return nil;
         }
-
-        final RubyModule module;
         try {
-            module = evaluateModuleWrappingAutoloadExceptions(frame);
-        } catch (AutoloadException e) {
-            // If autoloading a module raised an exception,
-            // MRI dictates that we should swallow the exception and return `nil`.
-            return null;
+            final RubyModule module = checkModule(moduleNode.execute(frame));
+            final RubyConstant constant = getConstantIfDefined(module);
+            return constant == null ? nil : coreStrings().CONSTANT.createInstance(getContext());
+        } catch (RaiseException e) {
+            return nil; // MRI swallows all exceptions in defined? (MRI Bug#5786)
         }
-
-        return getConstantIfDefined(module);
     }
 
     /** Given the module, returns the constant, it it is defined. Otherwise returns {@code null}. */
