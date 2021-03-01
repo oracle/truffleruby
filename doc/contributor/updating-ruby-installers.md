@@ -46,7 +46,7 @@ script/update-truffleruby-graalvm $VERSION ../ruby-versions/pkg
 
 ### Create a Release
 
-Once pushed/merged to the main branch, it's a good idea to create a `ruby-build` release,
+Once pushed/merged to the default branch, it's a good idea to create a `ruby-build` release,
 so `ruby-build` Homebrew users can get the new TruffleRuby release too:
 
 ```bash
