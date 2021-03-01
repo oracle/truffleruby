@@ -165,6 +165,7 @@ public class CoreLibrary {
     public final RubyClass standardErrorClass;
     public final RubyClass stopIterationClass;
     public final RubyModule polyglotModule;
+    public final RubyClass polyglotInnerContextClass;
     public final RubyClass unsupportedMessageErrorClass;
     public final RubyClass stringClass;
     public final RubyClass symbolClass;
@@ -330,6 +331,7 @@ public class CoreLibrary {
         typeErrorClass = defineClass(standardErrorClass, "TypeError");
         zeroDivisionErrorClass = defineClass(standardErrorClass, "ZeroDivisionError");
         polyglotModule = defineModule("Polyglot");
+        polyglotInnerContextClass = defineClass(polyglotModule, objectClass, "InnerContext");
         unsupportedMessageErrorClass = defineClass(polyglotModule, standardErrorClass, "UnsupportedMessageError");
 
         // StandardError > RuntimeError
