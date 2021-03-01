@@ -90,7 +90,7 @@ public abstract class QueueNodes {
         }
 
         @TruffleBoundary
-        private Object doPop(final UnsizedQueue queue) {
+        private Object doPop(UnsizedQueue queue) {
             return getContext().getThreadManager().runUntilResult(this, queue::take);
         }
 
@@ -134,20 +134,22 @@ public abstract class QueueNodes {
                 if (waited >= durationInMillis) {
                     // Try again to make sure we at least tried once
                     final Object result = queue.poll();
-                    if (result == null) {
-                        return false;
-                    } else {
-                        return result;
-                    }
+                    return translateResult(result);
                 }
 
                 final Object result = queue.poll(durationInMillis);
-                if (result == null) {
-                    return false;
-                } else {
-                    return result;
-                }
+                return translateResult(result);
             });
+        }
+
+        private Object translateResult(Object result) {
+            if (result == null) {
+                return false;
+            } else if (result == UnsizedQueue.CLOSED) {
+                return nil;
+            } else {
+                return result;
+            }
         }
 
     }

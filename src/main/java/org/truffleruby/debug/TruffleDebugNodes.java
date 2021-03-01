@@ -823,24 +823,6 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "thread_info", onSingleton = true)
-    public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
-
-        @Specialization
-        protected RubyString threadInfo() {
-            return makeStringNode.executeMake(getThreadDebugInfo(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-        @TruffleBoundary
-        private String getThreadDebugInfo() {
-            return getContext().getThreadManager().getThreadDebugInfo() +
-                    getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
-        }
-
-    }
-
     @CoreMethod(names = "associated", onSingleton = true, required = 1)
     public abstract static class AssociatedNode extends CoreMethodArrayArgumentsNode {
 

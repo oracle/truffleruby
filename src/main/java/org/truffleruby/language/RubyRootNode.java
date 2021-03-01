@@ -67,7 +67,6 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        SafepointManager.poll(language, this);
         return body.execute(frame);
     }
 

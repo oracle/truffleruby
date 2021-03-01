@@ -19,10 +19,10 @@ import java.util.Set;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointAction;
-import org.truffleruby.language.SafepointPredicate;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -32,6 +32,8 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Property;
+
+import static org.truffleruby.language.SafepointPredicate.ALL_THREADS_AND_FIBERS;
 
 public abstract class ObjectGraph {
 
@@ -46,43 +48,42 @@ public abstract class ObjectGraph {
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        final SafepointAction.Pure action = (thread, node) -> {
-            synchronized (visited) {
-                final Set<Object> reachable = newObjectSet();
-                // Thread.current
-                reachable.add(thread);
-                // Fiber.current
-                reachable.add(thread.fiberManager.getCurrentFiber());
+        context.getSafepointManager().pauseAllThreadsAndExecute(
+                currentNode,
+                new SafepointAction(reason, ALL_THREADS_AND_FIBERS, false, true) {
+                    @Override
+                    public void run(RubyThread rubyThread, Node currentNode) {
+                        synchronized (visited) {
+                            final Set<Object> reachable = newObjectSet();
+                            // Thread.current
+                            reachable.add(rubyThread);
+                            // Fiber.current
+                            reachable.add(rubyThread.fiberManager.getCurrentFiber());
 
-                if (Thread.currentThread() == initiatingJavaThread) {
-                    visitContextRoots(context, reachable);
-                }
+                            if (Thread.currentThread() == initiatingJavaThread) {
+                                visitContextRoots(context, reachable);
+                            }
 
-                Truffle.getRuntime().iterateFrames(frameInstance -> {
-                    final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
-                    getObjectsInFrame(frame, reachable);
-                    return null;
-                });
+                            Truffle.getRuntime().iterateFrames(frameInstance -> {
+                                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+                                getObjectsInFrame(frame, reachable);
+                                return null;
+                            });
 
-                // NOTE: similar to SharedObjects.shareObjects()
-                final Deque<Object> stack = new ArrayDeque<>(reachable);
-                while (!stack.isEmpty()) {
-                    final Object object = stack.pop();
+                            // NOTE: similar to SharedObjects.shareObjects()
+                            final Deque<Object> stack = new ArrayDeque<>(reachable);
+                            while (!stack.isEmpty()) {
+                                final Object object = stack.pop();
 
-                    if (visited.add(object)) {
-                        if (object instanceof RubyDynamicObject) {
-                            stack.addAll(ObjectGraph.getAdjacentObjects((RubyDynamicObject) object));
+                                if (visited.add(object)) {
+                                    if (object instanceof RubyDynamicObject) {
+                                        stack.addAll(ObjectGraph.getAdjacentObjects((RubyDynamicObject) object));
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-            }
-        };
-
-        context.getSafepointManager().pauseAllThreadsAndExecute(
-                reason,
-                currentNode,
-                SafepointPredicate.ALL_THREADS_AND_FIBERS,
-                action);
+                });
 
         return visited;
     }
@@ -93,21 +94,20 @@ public abstract class ObjectGraph {
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
-        final SafepointAction.Pure action = (thread, node) -> {
-            synchronized (visited) {
-                visited.add(thread);
-
-                if (Thread.currentThread() == initiatingJavaThread) {
-                    visitContextRoots(context, visited);
-                }
-            }
-        };
-
         context.getSafepointManager().pauseAllThreadsAndExecute(
-                reason,
                 currentNode,
-                SafepointPredicate.ALL_THREADS_AND_FIBERS,
-                action);
+                new SafepointAction(reason, ALL_THREADS_AND_FIBERS, false, true) {
+                    @Override
+                    public void run(RubyThread rubyThread, Node currentNode) {
+                        synchronized (visited) {
+                            visited.add(rubyThread);
+
+                            if (Thread.currentThread() == initiatingJavaThread) {
+                                visitContextRoots(context, visited);
+                            }
+                        }
+                    }
+                });
 
         return visited;
     }

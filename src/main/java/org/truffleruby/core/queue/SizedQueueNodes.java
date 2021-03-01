@@ -177,7 +177,7 @@ public abstract class SizedQueueNodes {
         }
 
         @TruffleBoundary
-        private Object doPop(final SizedQueue queue) {
+        private Object doPop(SizedQueue queue) {
             return getContext().getThreadManager().runUntilResult(this, queue::take);
         }
 

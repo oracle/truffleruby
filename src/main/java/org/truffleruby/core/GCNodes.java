@@ -16,6 +16,7 @@ import java.lang.management.MemoryUsage;
 import java.time.Duration;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Cached;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
@@ -31,7 +32,6 @@ import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.RaiseException;
 
 @CoreModule("GC")
@@ -99,7 +99,7 @@ public abstract class GCNodes {
                                     this));
                 }
                 System.gc();
-                SafepointManager.poll(getLanguage(), this);
+                TruffleSafepoint.poll(this);
             } while (cache.get(key) != null);
         }
     }
