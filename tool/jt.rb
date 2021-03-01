@@ -1953,7 +1953,7 @@ module Commands
   def install(name, *options)
     case name
     when 'jvmci'
-      puts install_jvmci('Downloading JDK8 with JVMCI', (@ruby_name || '').include?('ee'))
+      puts install_jvmci("Downloading JDK#{@jdk_version} with JVMCI", (@ruby_name || '').include?('ee'))
     when 'eclipse'
       puts install_eclipse
     else
