@@ -84,9 +84,9 @@ That seems like a lot - and what is actually happening here is that TruffleRuby 
 away your benchmark.
 The effect is less pronounced with complex code that cannot be optimized away.
 
-### Final Technical Note: Black Holes and Value Profiling
+### Final Technical Note: Gaps and Value Profiling
 
-Some benchmarking tools for other languages have features called "black holes."
+Some benchmarking tools for other languages have features called "gaps."
 These surround a value and make it appear to be a variable at runtime, even if it is in fact a constant, so that the optimizer does not remove it and actually performs any computations that use it.
 However, TruffleRuby uses extensive value profiling (caching of values and turning them into constants), so that even if you make a value appear to be a variable at its source, it is likely to be value-profiled at an intermediate stage.
 In general, more complex benchmarks that naturally defeat value profiling are preferable, rather than manually adding annotations to turn off important features.
