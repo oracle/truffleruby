@@ -89,8 +89,8 @@ module Truffle
     def self.execute_coerce_to(obj, cls, meth)
       begin
         ret = obj.__send__(meth)
-      rescue => orig
-        coerce_to_failed obj, cls, meth, orig
+      rescue
+        coerce_to_failed obj, cls, meth
       end
 
       if Primitive.object_kind_of?(ret, cls)
@@ -100,15 +100,11 @@ module Truffle
       end
     end
 
-    def self.coerce_to_failed(object, klass, method, exc=nil)
+    def self.coerce_to_failed(object, klass, method)
       if Primitive.object_respond_to? object, :inspect, false
-        raise TypeError,
-            "Coercion error: #{object.inspect}.#{method} => #{klass} failed",
-            exc
+        raise TypeError, "Coercion error: #{object.inspect}.#{method} => #{klass} failed"
       else
-        raise TypeError,
-            "Coercion error: #{method} => #{klass} failed",
-            exc
+        raise TypeError, "Coercion error: #{method} => #{klass} failed"
       end
     end
 
