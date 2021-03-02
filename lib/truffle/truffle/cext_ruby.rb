@@ -43,7 +43,12 @@ module Truffle::CExt
       res
     end
 
-    mod.define_method(name, method_body)
+    # Even if the argc is -2, the arity number
+    # is still any number of arguments, -1
+    arity = argc == -2 ? -1 : argc
+
+    method_body_with_arity = Primitive.proc_specify_arity(method_body, arity)
+    mod.define_method(name, method_body_with_arity)
   end
 
   private
