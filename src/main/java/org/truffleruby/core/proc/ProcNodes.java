@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.proc;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.frame.Frame;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -20,6 +23,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
@@ -186,13 +190,13 @@ public abstract class ProcNodes {
         }
     }
 
-    @CoreMethod(names = { "call", "[]", "yield" }, rest = true, needsBlock = true)
-    public abstract static class CallNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallBlockNode callBlockNode = CallBlockNode.create();
+    @GenerateUncached
+    @CoreMethod(names = { "call", "[]", "yield" }, rest = true, needsBlock = true, alwaysInlined = true)
+    public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(RubyProc proc, Object[] args, Object block) {
+        protected Object call(Frame callerFrame, RubyProc proc, Object[] args, Object block, RootCallTarget target,
+                @Cached CallBlockNode callBlockNode) {
             return callBlockNode.executeCallBlock(
                     proc.declarationContext,
                     proc,

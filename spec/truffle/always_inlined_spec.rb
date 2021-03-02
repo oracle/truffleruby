@@ -106,6 +106,20 @@ describe "Always-inlined core methods" do
         e.backtrace_locations[2].label.should.start_with?('block (4 levels)')
       }
     end
+
+    it "for Proc#call" do
+      line = 0
+      -> {
+        line = __LINE__
+        proc = -> { raise "foo" }
+        proc.call
+      }.should raise_error(RuntimeError, "foo") { |e|
+        e.backtrace_locations[0].label.should.start_with?('block (5 levels)')
+        e.backtrace_locations[0].lineno.should == line + 1
+        e.backtrace_locations[1].label.should.start_with?('block (4 levels)')
+        e.backtrace_locations[1].lineno.should == line + 2
+      }
+    end
   end
 
   it "go uncached if seeing too many different always-inlined methods at a call site" do
