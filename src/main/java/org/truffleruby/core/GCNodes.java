@@ -15,6 +15,8 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.time.Duration;
 
+import com.oracle.truffle.api.dsl.Cached;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -26,6 +28,8 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.RaiseException;
 
@@ -135,7 +139,8 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray stat() {
+        protected RubyArray stat(
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             long time = 0;
             int count = 0;
             int minorCount = 0;
@@ -173,13 +178,12 @@ public abstract class GCNodes {
 
             // Get memory usage values from relevant memory pools (2-3 / ~8 are relevant)
             memoryPools = new Object[memoryPoolNames.length];
-            for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
-                if (bean.getName().equals(memoryPoolNames[0])) {
-                    memoryPools[0] = beanToArray(bean);
-                } else if (bean.getName().equals(memoryPoolNames[1])) {
-                    memoryPools[1] = beanToArray(bean);
-                } else if (memoryPoolNames.length == 3 && bean.getName().equals(memoryPoolNames[2])) {
-                    memoryPools[2] = beanToArray(bean);
+            for (int i = 0; i < memoryPoolNames.length; i++) {
+                String memoryPoolName = memoryPoolNames[i];
+                for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
+                    if (bean.getName().equals(memoryPoolName)) {
+                        memoryPools[i] = beanToArray(bean);
+                    }
                 }
             }
 
@@ -188,7 +192,8 @@ public abstract class GCNodes {
             // Use an object array instead because otherwise ArrayHelpers.java line 51 complains
             Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
             for (int i = 0; i < memoryPoolNames.length; i++) {
-                memoryPoolNamesCast[i] = memoryPoolNames[i];
+                memoryPoolNamesCast[i] = makeStringNode
+                        .executeMake(memoryPoolNames[i], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
 
 
@@ -205,16 +210,24 @@ public abstract class GCNodes {
                             createArray(memoryPools) });
         }
 
-        protected RubyArray usageToArray(MemoryUsage usage) {
-            return createArray(new Object[]{ usage.getCommitted(), usage.getInit(), usage.getMax(), usage.getUsed() });
-        }
-
         protected RubyArray beanToArray(MemoryPoolMXBean bean) {
+            MemoryUsage usage = bean.getUsage();
+            MemoryUsage peak = bean.getPeakUsage();
+            MemoryUsage last = bean.getCollectionUsage();
             return createArray(
-                    new Object[]{
-                            usageToArray(bean.getUsage()),
-                            usageToArray(bean.getPeakUsage()),
-                            usageToArray(bean.getCollectionUsage()) });
+                    new long[]{
+                            usage.getCommitted(),
+                            usage.getInit(),
+                            usage.getMax(),
+                            usage.getUsed(),
+                            peak.getCommitted(),
+                            peak.getInit(),
+                            peak.getMax(),
+                            peak.getUsed(),
+                            last.getCommitted(),
+                            last.getInit(),
+                            last.getMax(),
+                            last.getUsed() });
         }
 
     }

@@ -76,7 +76,7 @@ module GC
   end
 
   def self.stat(option = nil)
-    time, count, minor_count, major_count, unknown_count, commited, used, memory_pool_names, memory_pool_info = Primitive.gc_stat()
+    time, count, minor_count, major_count, unknown_count, committed, used, memory_pool_names, memory_pool_info = Primitive.gc_stat()
 
     # Initialize stat for statistics that come from memory pools, and populate it with some final stats
     stat = {
@@ -97,30 +97,31 @@ module GC
       :last_init => 0.0,
       :last_max => 0.0,
       :last_used => 0.0,
-      :heap_available_slots => commited, # should be the same as the calculated commited
+      :heap_available_slots => committed, # should be the same as the calculated committed
       :heap_live_slots => used, # should be the same as the calculated used
-      :heap_free_slots => commited - used,
+      :heap_free_slots => committed - used,
     }
 
     (0...memory_pool_names.length).each do |i|
       # Populate memory pool specific stats
-      stat[Truffle::Interop.to_string(memory_pool_names[i])] = {
-        :committed => memory_pool_info[i][0][0],
-        :init => memory_pool_info[i][0][1],
-        :max => memory_pool_info[i][0][2],
-        :used => memory_pool_info[i][0][3],
-        :peak_committed => memory_pool_info[i][1][0],
-        :peak_init => memory_pool_info[i][1][1],
-        :peak_max => memory_pool_info[i][1][2],
-        :peak_used => memory_pool_info[i][1][3],
-        :last_committed => memory_pool_info[i][2][0],
-        :last_init => memory_pool_info[i][2][1],
-        :last_max => memory_pool_info[i][2][2],
-        :last_used => memory_pool_info[i][2][3],
+      info = memory_pool_info[i]
+      stat[memory_pool_names[i]] = {
+        :committed => info[0],
+        :init => info[1],
+        :max => info[2],
+        :used => info[3],
+        :peak_committed => info[4],
+        :peak_init => info[5],
+        :peak_max => info[6],
+        :peak_used => info[7],
+        :last_committed => info[8],
+        :last_init => info[9],
+        :last_max => info[10],
+        :last_used => info[11],
       }
 
       # Calculate stats across memory pools
-      stat[Truffle::Interop.to_string(memory_pool_names[i])].each_pair do |key, value|
+      stat[memory_pool_names[i]].each_pair do |key, value|
         stat[key] += value
       end
     end
