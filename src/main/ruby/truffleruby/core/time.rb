@@ -300,18 +300,25 @@ class Time
   private :_dump
 
   class << self
-    def at(sec, usec=undefined, unit=undefined)
-      if Primitive.undefined?(usec)
-        if Primitive.object_kind_of?(sec, Time)
-          copy = allocate
-          copy.send(:initialize_copy, sec)
-          return copy
-        elsif Primitive.object_kind_of?(sec, Integer)
-          return Primitive.time_at self, sec, 0
-        elsif Primitive.object_kind_of?(sec, Float) and sec >= 0.0
-          ns = (sec % 1.0 * 1e9).round
-          return Primitive.time_at self, sec.to_i, ns
-        end
+    def at(sec, usec=undefined, unit=undefined, **kwargs)
+      # **kwargs is used here because 'in' is a ruby keyword
+      offset = kwargs[:in] ? Truffle::Type.coerce_to_utc_offset(kwargs[:in]) : nil
+
+      result = if Primitive.undefined?(usec)
+                 if Primitive.object_kind_of?(sec, Time)
+                   copy = allocate
+                   copy.send(:initialize_copy, sec)
+                   copy
+                 elsif Primitive.object_kind_of?(sec, Integer)
+                   Primitive.time_at self, sec, 0
+                 elsif Primitive.object_kind_of?(sec, Float) and sec >= 0.0
+                   ns = (sec % 1.0 * 1e9).round
+                   Primitive.time_at self, sec.to_i, ns
+                 end
+               end
+      if result
+        result = Primitive.time_localtime(result, offset) if offset
+        return result
       end
 
       if Primitive.object_kind_of?(sec, Time) && Primitive.object_kind_of?(usec, Integer)
@@ -343,7 +350,9 @@ class Time
       sec += nsec / 1_000_000_000
       nsec %= 1_000_000_000
 
-      Primitive.time_at self, sec, nsec
+      time = Primitive.time_at self, sec, nsec
+      time = Primitive.time_localtime(time, offset) if offset
+      time
     end
 
     def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
