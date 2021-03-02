@@ -14,6 +14,7 @@ import java.util.Set;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
@@ -112,7 +113,12 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public SourceSection getSourceLocation() {
-        return fields.getSourceSection();
+        SourceSection sourceSection = fields.getSourceSection();
+        if (sourceSection != null) {
+            return sourceSection;
+        } else {
+            return CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
+        }
     }
     // endregion
 
