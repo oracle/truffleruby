@@ -13,4 +13,16 @@ describe "GC.stat" do
     stat.should be_kind_of(Hash)
     stat.keys.should include(:count)
   end
+
+  it "increases count after GC is run" do
+    count = GC.stat(:count)
+    GC.start
+    (GC.stat(:count) > count).should be_true
+  end
+
+  it "increases major_gc_count after GC is run" do
+    count = GC.stat(:major_gc_count)
+    GC.start
+    (GC.stat(:major_gc_count) > count).should be_true
+  end
 end
