@@ -61,8 +61,7 @@ public class WriteConstantNode extends RubyContextSourceNode implements Assignab
     }
 
     private void assign(RubyModule module, Object value) {
-        final RubyConstant previous = module.fields
-                .setConstant(getContext(), this, name, value);
+        final RubyConstant previous = module.fields.setConstant(getContext(), this, name, value);
         if (previous != null && previous.hasValue()) {
             warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
         }

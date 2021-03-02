@@ -55,7 +55,7 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
         final RubyConstant constant = readConstant.getConstantIfDefined(module);
         final Object value = constant == null
                 ? null
-                : readConstant.execute(frame, module, constant);
+                : readConstant.getConstant(module, constant);
 
         // Write if the constant is undefined or if its value is falsy.
         if (constant == null || !castToBoolean(value)) {

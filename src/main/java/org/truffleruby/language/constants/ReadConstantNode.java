@@ -41,12 +41,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object moduleObject = moduleNode.execute(frame);
-        return lookupAndGetConstant(checkModule(moduleObject));
-    }
-
-    public Object execute(VirtualFrame frame, RubyModule module, RubyConstant constant) {
-        return getConstant(module, constant);
+        return lookupAndGetConstant(evaluateModule(frame));
     }
 
     private Object lookupAndGetConstant(RubyModule module) {
@@ -54,7 +49,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
                 .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
     }
 
-    private Object getConstant(RubyModule module, RubyConstant constant) {
+    public Object getConstant(RubyModule module, RubyConstant constant) {
         return getGetConstantNode()
                 .executeGetConstant(LexicalScope.IGNORE, module, name, constant, getLookupConstantNode());
     }
@@ -95,7 +90,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
             final RubyConstant constant = getConstantIfDefined(module);
             return constant == null ? nil : coreStrings().CONSTANT.createInstance(getContext());
         } catch (RaiseException e) {
-            return nil; // MRI swallows all exceptions in defined? (MRI Bug#5786)
+            return nil; // MRI swallows all exceptions in defined? (https://bugs.ruby-lang.org/issues/5786)
         }
     }
 
