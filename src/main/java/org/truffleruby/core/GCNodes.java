@@ -189,7 +189,6 @@ public abstract class GCNodes {
 
             MemoryUsage usage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
 
-            // Use an object array instead because otherwise ArrayHelpers.java line 51 complains
             Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
             for (int i = 0; i < memoryPoolNames.length; i++) {
                 memoryPoolNamesCast[i] = makeStringNode
