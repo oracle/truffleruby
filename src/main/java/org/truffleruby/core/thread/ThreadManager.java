@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
+import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -217,6 +218,8 @@ public class ThreadManager {
         });
     }
 
+    /** Whether the thread was created by TruffleRuby. Also decides whether we use the {@link SafepointManager} on the
+     * thread. */
     @TruffleBoundary
     public boolean isRubyManagedThread(Thread thread) {
         return rubyManagedThreads.contains(thread);
@@ -449,6 +452,23 @@ public class ThreadManager {
 
     public interface UnblockingAction {
         void unblock();
+    }
+
+    public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext,
+            boolean isRubyManagedThread) {
+        assert truffleContext.isEntered();
+        assert isRubyManagedThread == isRubyManagedThread(Thread.currentThread());
+
+        if (isRubyManagedThread) {
+            context.getSafepointManager().leaveThread();
+        }
+        try {
+            return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
+        } finally {
+            if (isRubyManagedThread) {
+                context.getSafepointManager().enterThread();
+            }
+        }
     }
 
     /** Only use when no context is available. */

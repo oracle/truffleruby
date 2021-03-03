@@ -246,22 +246,12 @@ public class FiberManager {
     @TruffleBoundary
     public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args) {
         final TruffleContext truffleContext = context.getEnv().getContext();
-
-        final FiberMessage message;
         final boolean isRubyManagedThread = context.getThreadManager().isRubyManagedThread(Thread.currentThread());
-        if (isRubyManagedThread) {
-            context.getSafepointManager().leaveThread();
-        }
-        try {
-            message = truffleContext.leaveAndEnter(null, () -> {
-                resume(fromFiber, fiber, operation, args);
-                return waitMessage(fromFiber);
-            });
-        } finally {
-            if (isRubyManagedThread) {
-                context.getSafepointManager().enterThread();
-            }
-        }
+
+        final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
+            resume(fromFiber, fiber, operation, args);
+            return waitMessage(fromFiber);
+        }, isRubyManagedThread);
 
         return handleMessage(fromFiber, message);
     }
@@ -325,18 +315,10 @@ public class FiberManager {
         // This method might not be executed on the rootFiber Java Thread but possibly on another Java Thread.
 
         final TruffleContext truffleContext = context.getEnv().getContext();
-        assert truffleContext.isEntered();
-        assert context.getThreadManager().isRubyManagedThread(Thread.currentThread());
-
-        context.getSafepointManager().leaveThread();
-        try {
-            truffleContext.leaveAndEnter(null, () -> {
-                doKillOtherFibers();
-                return null;
-            });
-        } finally {
-            context.getSafepointManager().enterThread();
-        }
+        context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
+            doKillOtherFibers();
+            return null;
+        }, true);
     }
 
     private void doKillOtherFibers() {
