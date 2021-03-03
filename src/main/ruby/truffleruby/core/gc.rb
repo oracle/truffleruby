@@ -80,44 +80,44 @@ module GC
 
     # Initialize stat for statistics that come from memory pools, and populate it with some final stats
     stat = {
-      :count => count,
-      :time => time,
-      :minor_gc_count => minor_count,
-      :major_gc_count => major_count,
-      :unknown_count => unknown_count, # if nonzero, major or minor count needs to be updated for this GC case
-      :committed => 0,
-      :init => 0,
-      :max => 0,
-      :used => 0,
-      :peak_committed => 0,
-      :peak_init => 0,
-      :peak_max => 0,
-      :peak_used => 0,
-      :last_committed => 0,
-      :last_init => 0,
-      :last_max => 0,
-      :last_used => 0,
-      :heap_available_slots => committed, # should be the same as the calculated committed
-      :heap_live_slots => used, # should be the same as the calculated used
-      :heap_free_slots => committed - used,
+      count: count,
+      time: time,
+      minor_gc_count: minor_count,
+      major_gc_count: major_count,
+      unknown_count: unknown_count, # if nonzero, major or minor count needs to be updated for this GC case
+      committed: 0,
+      init: 0,
+      max: 0,
+      used: 0,
+      peak_committed: 0,
+      peak_init: 0,
+      peak_max: 0,
+      peak_used: 0,
+      last_committed: 0,
+      last_init: 0,
+      last_max: 0,
+      last_used: 0,
+      heap_available_slots: committed, # should be the same as the calculated committed
+      heap_live_slots: used, # should be the same as the calculated used
+      heap_free_slots: committed - used,
     }
 
     (0...memory_pool_names.length).each do |i|
       # Populate memory pool specific stats
       info = memory_pool_info[i]
       stat[memory_pool_names[i]] = {
-        :committed => info[0],
-        :init => info[1],
-        :max => info[2],
-        :used => info[3],
-        :peak_committed => info[4],
-        :peak_init => info[5],
-        :peak_max => info[6],
-        :peak_used => info[7],
-        :last_committed => info[8],
-        :last_init => info[9],
-        :last_max => info[10],
-        :last_used => info[11],
+        committed: info[0],
+        init: info[1],
+        max: info[2],
+        used: info[3],
+        peak_committed: info[4],
+        peak_init: info[5],
+        peak_max: info[6],
+        peak_used: info[7],
+        last_committed: info[8],
+        last_init: info[9],
+        last_max: info[10],
+        last_used: info[11],
       }
 
       # Calculate stats across memory pools
