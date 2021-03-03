@@ -350,6 +350,11 @@ public class FiberManager {
                     finishedLatch.await();
                     return BlockingAction.SUCCESS;
                 });
+
+                final Throwable uncaughtException = fiber.uncaughtException;
+                if (uncaughtException != null) {
+                    ExceptionOperations.rethrow(uncaughtException);
+                }
             }
         }
     }
