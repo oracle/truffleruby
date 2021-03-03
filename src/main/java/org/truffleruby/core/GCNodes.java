@@ -14,6 +14,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.time.Duration;
+import java.util.Arrays;
 
 import com.oracle.truffle.api.dsl.Cached;
 import org.jcodings.specific.UTF8Encoding;
@@ -178,6 +179,8 @@ public abstract class GCNodes {
 
             // Get memory usage values from relevant memory pools (2-3 / ~8 are relevant)
             memoryPools = new Object[memoryPoolNames.length];
+            // On Native Image, ManagementFactory.getMemoryPoolMXBeans() is empty
+            Arrays.fill(memoryPools, nil);
             for (int i = 0; i < memoryPoolNames.length; i++) {
                 String memoryPoolName = memoryPoolNames[i];
                 for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {

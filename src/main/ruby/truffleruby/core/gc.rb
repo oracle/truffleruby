@@ -102,27 +102,29 @@ module GC
       heap_free_slots: committed - used,
     }
 
-    (0...memory_pool_names.length).each do |i|
+    memory_pool_names.each_with_index do |memory_pool_name, i|
       # Populate memory pool specific stats
       info = memory_pool_info[i]
-      stat[memory_pool_names[i]] = {
-        committed: info[0],
-        init: info[1],
-        max: info[2],
-        used: info[3],
-        peak_committed: info[4],
-        peak_init: info[5],
-        peak_max: info[6],
-        peak_used: info[7],
-        last_committed: info[8],
-        last_init: info[9],
-        last_max: info[10],
-        last_used: info[11],
-      }
+      if info
+        stat[memory_pool_name] = data = {
+          committed: info[0],
+          init: info[1],
+          max: info[2],
+          used: info[3],
+          peak_committed: info[4],
+          peak_init: info[5],
+          peak_max: info[6],
+          peak_used: info[7],
+          last_committed: info[8],
+          last_init: info[9],
+          last_max: info[10],
+          last_used: info[11],
+        }
 
-      # Calculate stats across memory pools
-      stat[memory_pool_names[i]].each_pair do |key, value|
-        stat[key] += value
+        # Calculate stats across memory pools
+        data.each_pair do |key, value|
+          stat[key] += value
+        end
       end
     end
 
