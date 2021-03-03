@@ -17,6 +17,7 @@ Bug fixes:
 * Fix handling of signals with `--single-threaded` (#2265).
 * Fix `Enumerator::Lazy#{chunk_while, slice_before, slice_after, slice_when}` to return instances of `Enumerator::Lazy` (#2273).
 * Fix `Truffle::Interop.source_location` to return unavailable source sections for modules instead of null (#2257).
+* Fix usage of `Thread.handle_interrupt` in `MonitorMixin#mon_synchronize`.
 
 Compatibility:
 
