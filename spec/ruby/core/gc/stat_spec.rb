@@ -17,12 +17,12 @@ describe "GC.stat" do
   it "increases count after GC is run" do
     count = GC.stat(:count)
     GC.start
-    (GC.stat(:count) > count).should be_true
+    GC.stat(:count).should > count
   end
 
   it "increases major_gc_count after GC is run" do
     count = GC.stat(:major_gc_count)
     GC.start
-    (GC.stat(:major_gc_count) > count).should be_true
+    GC.stat(:major_gc_count).should > count
   end
 end
