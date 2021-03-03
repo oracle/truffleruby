@@ -189,11 +189,14 @@ public class ThreadManager {
         return (javaThread, throwable) -> {
             printInternalError(throwable);
             try {
+                fiber.uncaughtException = throwable;
+
+                // If an uncaught exception happens, we already left the context, so it is safe to let other Fibers run
+
                 // the Fiber is not yet initialized, unblock the caller and rethrow the exception to it
-                if (fiber.initializedLatch.getCount() > 0) {
-                    fiber.uncaughtException = throwable;
-                    fiber.initializedLatch.countDown();
-                }
+                fiber.initializedLatch.countDown();
+                // the Fiber thread is dying, unblock the caller
+                fiber.finishedLatch.countDown();
             } catch (Throwable t) { // exception inside this UncaughtExceptionHandler
                 t.initCause(throwable);
                 printInternalError(t);
