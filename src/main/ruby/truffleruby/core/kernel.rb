@@ -683,16 +683,19 @@ module Kernel
   end
   module_function :warn
 
-  def raise(exc = undefined, msg = undefined, ctx = nil)
-    last = $!
-    if Primitive.undefined?(exc) and last
-      exc = last
+  def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined)
+    cause_given = !Primitive.undefined?(cause)
+    cause = cause_given ? cause : $!
+
+    if Primitive.undefined?(exc) and cause
+      raise ArgumentError, 'only cause is given with no arguments' if cause_given
+      exc = cause
     else
       exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
       exc.set_backtrace(ctx) if ctx
       Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
-      Primitive.exception_set_cause exc, last unless Primitive.object_equal(exc, last)
+      Primitive.exception_set_cause exc, cause unless Primitive.object_equal(exc, cause)
     end
 
     Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG

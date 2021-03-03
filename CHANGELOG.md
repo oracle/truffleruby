@@ -61,6 +61,7 @@ Compatibility:
 * Set `RbConfig::CONFIG['LIBPATHFLAG'/'RPATHFLAG']` like MRI to let `$LIBPATH` changes in `extconf.rb` work.
 * Access to path and mode via `rb_io_t` from C has been changed to improve compatibility for io-console.
 * Implemented the `Time.at` `in:` parameter.
+* Implemented `Kernel#raise` `cause` parameter.
 
 Performance:
 
