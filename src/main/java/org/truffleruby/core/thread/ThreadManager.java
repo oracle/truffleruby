@@ -287,6 +287,8 @@ public class ThreadManager {
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
 
         thread.start();
+
+        // Must not leave the context here, to perform safepoint actions, if e.g. the new thread Thread#raise this one
         FiberManager.waitForInitialization(context, rootFiber, currentNode);
     }
 
@@ -396,7 +398,10 @@ public class ThreadManager {
         registerThread(thread);
 
         final FiberManager fiberManager = thread.fiberManager;
-        fiberManager.start(fiberManager.getRootFiber(), javaThread, true);
+        final RubyFiber rootFiber = fiberManager.getRootFiber();
+        fiberManager.start(rootFiber, javaThread, true);
+        // fully initialized
+        rootFiber.initializedLatch.countDown();
     }
 
     public void cleanup(RubyThread thread, Thread javaThread) {
