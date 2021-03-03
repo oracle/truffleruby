@@ -777,18 +777,7 @@ describe "A method" do
           m("a" => 1, b: 2).should == [{"a" => 1, b: 2}, {}]
         end
       end
-
-      evaluate <<-ruby do
-        def m(a)
-          a.delete(:one); a
-        end
-      ruby
-      h = { one: 1, two: 2 }
-
-      m(**h).should == { two: 2 }
-      m(**h).should_not equal(h)
     end
-  end
 
     ruby_version_is "3.0" do
       evaluate <<-ruby do
@@ -816,17 +805,6 @@ describe "A method" do
         m(1).should == [1, {}]
         m(1, a: 2, b: 3).should == [1, {a: 2, b: 3}]
         -> { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
-      end
-
-      evaluate <<-ruby do
-          def m(a)
-            a.delete(:one); a
-          end
-        ruby
-        h = { one: 1, two: 2 }
-
-        m(**h).should == { two: 2 }
-        m(**h).should equal(h)
       end
     end
 
