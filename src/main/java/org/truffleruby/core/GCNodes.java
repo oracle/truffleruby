@@ -190,7 +190,7 @@ public abstract class GCNodes {
                 }
             }
 
-            MemoryUsage usage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+            MemoryUsage total = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
 
             Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
             for (int i = 0; i < memoryPoolNames.length; i++) {
@@ -206,8 +206,12 @@ public abstract class GCNodes {
                             minorCount,
                             majorCount,
                             unknownCount,
-                            usage.getCommitted(),
-                            usage.getUsed(),
+                            createArray(new long[]{
+                                    total.getUsed(),
+                                    total.getCommitted(),
+                                    total.getInit(),
+                                    total.getMax(),
+                            }),
                             createArray(memoryPoolNamesCast),
                             createArray(memoryPools) });
         }
@@ -218,18 +222,19 @@ public abstract class GCNodes {
             MemoryUsage last = bean.getCollectionUsage();
             return createArray(
                     new long[]{
+                            usage.getUsed(),
                             usage.getCommitted(),
                             usage.getInit(),
                             usage.getMax(),
-                            usage.getUsed(),
+                            peak.getUsed(),
                             peak.getCommitted(),
                             peak.getInit(),
                             peak.getMax(),
-                            peak.getUsed(),
+                            last.getUsed(),
                             last.getCommitted(),
                             last.getInit(),
                             last.getMax(),
-                            last.getUsed() });
+                    });
         }
 
     }

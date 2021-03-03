@@ -76,7 +76,8 @@ module GC
   end
 
   def self.stat(option = nil)
-    time, count, minor_count, major_count, unknown_count, committed, used, memory_pool_names, memory_pool_info = Primitive.gc_stat()
+    time, count, minor_count, major_count, unknown_count, heap, memory_pool_names, memory_pool_info = Primitive.gc_stat()
+    used, committed, init, max = heap
 
     # Initialize stat for statistics that come from memory pools, and populate it with some final stats
     stat = {
@@ -85,21 +86,21 @@ module GC
       minor_gc_count: minor_count,
       major_gc_count: major_count,
       unknown_count: unknown_count, # if nonzero, major or minor count needs to be updated for this GC case
-      committed: 0,
-      init: 0,
-      max: 0,
-      used: 0,
+      heap_available_slots: committed,
+      heap_live_slots: used,
+      heap_free_slots: committed - used,
+      used: used,
+      committed: committed,
+      init: init,
+      max: max,
+      peak_used: 0,
       peak_committed: 0,
       peak_init: 0,
       peak_max: 0,
-      peak_used: 0,
+      last_used: 0,
       last_committed: 0,
       last_init: 0,
       last_max: 0,
-      last_used: 0,
-      heap_available_slots: committed, # should be the same as the calculated committed
-      heap_live_slots: used, # should be the same as the calculated used
-      heap_free_slots: committed - used,
     }
 
     memory_pool_names.each_with_index do |memory_pool_name, i|
@@ -107,23 +108,23 @@ module GC
       info = memory_pool_info[i]
       if info
         stat[memory_pool_name] = data = {
-          committed: info[0],
-          init: info[1],
-          max: info[2],
-          used: info[3],
-          peak_committed: info[4],
-          peak_init: info[5],
-          peak_max: info[6],
-          peak_used: info[7],
-          last_committed: info[8],
-          last_init: info[9],
-          last_max: info[10],
-          last_used: info[11],
+          used: info[0],
+          committed: info[1],
+          init: info[2],
+          max: info[3],
+          peak_used: info[4],
+          peak_committed: info[5],
+          peak_init: info[6],
+          peak_max: info[7],
+          last_used: info[8],
+          last_committed: info[9],
+          last_init: info[10],
+          last_max: info[11],
         }
 
-        # Calculate stats across memory pools
+        # Calculate stats across memory pools for peak_/last_ (we already know the values for current usage)
         data.each_pair do |key, value|
-          stat[key] += value
+          stat[key] += value if key.start_with?('peak_', 'last_')
         end
       end
     end
