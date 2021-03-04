@@ -541,7 +541,7 @@ public abstract class RangeNodes {
             return range;
         }
 
-        @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
+        @Specialization(guards = { "rubyClass != getRangeClass() || (!isImplicitLong(begin) || !isImplicitLong(end))" })
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
                 @Cached DispatchNode compare) {
 

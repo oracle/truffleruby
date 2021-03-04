@@ -1638,7 +1638,7 @@ public abstract class IntegerNodes {
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(
                 guards = {
-                        "isIntOrLong(base)",
+                        "isImplicitLong(base)",
                         "exponent == cachedExponent",
                         "cachedExponent >= 0",
                         "cachedExponent <= 10" },
@@ -1667,7 +1667,7 @@ public abstract class IntegerNodes {
             return result;
         }
 
-        @Specialization(guards = { "isIntOrLong(base)", "exponent >= 0" })
+        @Specialization(guards = { "isImplicitLong(base)", "exponent >= 0" })
         protected Object powLoop(Object base, long exponent,
                 @Cached BranchProfile overflowProfile,
                 @Cached MulNode mulNode) {
@@ -1787,10 +1787,6 @@ public abstract class IntegerNodes {
         @Specialization(guards = "!isRubyNumber(exponent)")
         protected Object pow(Object base, Object exponent) {
             return FAILURE;
-        }
-
-        protected static boolean isIntOrLong(Object value) {
-            return value instanceof Integer || value instanceof Long;
         }
 
         protected int getLimit() {

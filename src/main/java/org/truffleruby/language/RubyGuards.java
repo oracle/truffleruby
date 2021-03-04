@@ -58,10 +58,6 @@ public abstract class RubyGuards {
         return value instanceof String;
     }
 
-    public static boolean isIntOrLong(Object value) {
-        return value instanceof Integer || value instanceof Long;
-    }
-
     public static boolean isImplicitDouble(Object object) {
         return object instanceof Float || object instanceof Double;
     }
