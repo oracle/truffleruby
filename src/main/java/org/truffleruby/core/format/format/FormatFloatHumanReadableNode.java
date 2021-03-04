@@ -20,18 +20,18 @@ import org.truffleruby.core.rope.RopeOperations;
 public abstract class FormatFloatHumanReadableNode extends FormatNode {
 
     @TruffleBoundary
-    @Specialization(guards = "isInteger(value)")
+    @Specialization(guards = "isIntegerValue(value)")
     protected byte[] formatInteger(double value) {
         return RopeOperations.encodeAsciiBytes(String.valueOf((long) value));
     }
 
     @TruffleBoundary
-    @Specialization(guards = "!isInteger(value)")
+    @Specialization(guards = "!isIntegerValue(value)")
     protected byte[] format(double value) {
         return RopeOperations.encodeAsciiBytes(String.valueOf(value));
     }
 
-    protected boolean isInteger(double value) {
+    protected boolean isIntegerValue(double value) {
         /** General approach taken from StackOverflow:
          * http://stackoverflow.com/questions/703396/how-to-nicely-format-floating-numbers-to-string-without-unnecessary
          * -decimal-0 Answers provided by JasonD (http://stackoverflow.com/users/1288598/jasond) and Darthenius

@@ -212,7 +212,7 @@ public abstract class ArrayNodes {
                     0);
         }
 
-        @Specialization(guards = { "!isInteger(count)", "!isLong(count)" })
+        @Specialization(guards = { "!isImplicitLong(count)" })
         protected Object fallback(RubyArray array, Object count) {
             return FAILURE;
         }
@@ -245,7 +245,7 @@ public abstract class ArrayNodes {
             return nil;
         }
 
-        @Specialization(guards = "!isBasicInteger(index)")
+        @Specialization(guards = "!isImplicitLong(index)")
         protected Object at(RubyArray array, Object index,
                 @Cached ToLongNode toLongNode,
                 @Cached FixnumLowerNode lowerNode,
@@ -284,7 +284,7 @@ public abstract class ArrayNodes {
             return readSlice.executeReadSlice(array, startLength[0], len);
         }
 
-        @Specialization(guards = { "!isInteger(index)", "!isRubyRange(index)" })
+        @Specialization(guards = { "!isImplicitInteger(index)", "!isRubyRange(index)" })
         protected Object indexFallback(RubyArray array, Object index, NotProvided length,
                 @Cached AtNode accessWithIndexConversion) {
             return accessWithIndexConversion.executeAt(array, index);
@@ -303,7 +303,7 @@ public abstract class ArrayNodes {
             return readSliceNode.executeReadSlice(array, start, length);
         }
 
-        @Specialization(guards = { "wasProvided(length)", "!isInteger(start) || !isInteger(length)" })
+        @Specialization(guards = { "wasProvided(length)", "!isImplicitInteger(start) || !isImplicitInteger(length)" })
         protected Object sliceFallback(RubyArray array, Object start, Object length,
                 @Cached ToIntNode indexToInt,
                 @Cached ToIntNode lengthToInt) {
@@ -359,7 +359,7 @@ public abstract class ArrayNodes {
             return executeIntIndices(array, start, length, value);
         }
 
-        @Specialization(guards = { "!isInteger(start)", "!isRubyRange(start)" })
+        @Specialization(guards = { "!isImplicitInteger(start)", "!isRubyRange(start)" })
         protected Object fallbackBinary(RubyArray array, Object start, Object value, NotProvided unused,
                 @Cached ToIntNode toInt) {
             return executeIntIndex(array, toInt.execute(start), value, unused);
@@ -423,7 +423,8 @@ public abstract class ArrayNodes {
             return replacement;
         }
 
-        @Specialization(guards = { "!isInteger(start) || !isInteger(length)", "wasProvided(replacement)" })
+        @Specialization(
+                guards = { "!isImplicitInteger(start) || !isImplicitInteger(length)", "wasProvided(replacement)" })
         protected Object fallbackTernary(RubyArray array, Object start, Object length, Object replacement,
                 @Cached ToIntNode startToInt,
                 @Cached ToIntNode lengthToInt) {
@@ -1133,7 +1134,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "wasProvided(size)", "!isInteger(size)", "!isLong(size)", "wasProvided(fillingValue)" })
+                guards = { "wasProvided(size)", "!isImplicitLong(size)", "wasProvided(fillingValue)" })
         protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, Nil block) {
             int intSize = toInt(size);
             return executeInitialize(array, intSize, fillingValue, block);
@@ -1173,7 +1174,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
+                guards = { "!isImplicitLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
         protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block) {
             RubyArray copy = null;
             if (respondToToAry(getLanguage(), object)) {
@@ -1608,7 +1609,7 @@ public abstract class ArrayNodes {
             return createArray(popped, numPop);
         }
 
-        @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
+        @Specialization(guards = { "wasProvided(n)", "!isImplicitInteger(n)" })
         protected Object popNToInt(RubyArray array, Object n,
                 @Cached ToIntNode toIntNode) {
             return executePop(array, toIntNode.execute(n));
@@ -2038,7 +2039,7 @@ public abstract class ArrayNodes {
             return createArray(result, numShift);
         }
 
-        @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
+        @Specialization(guards = { "wasProvided(n)", "!isImplicitInteger(n)" })
         protected Object shiftNToInt(RubyArray array, Object n,
                 @Cached ToIntNode toIntNode) {
             return executeShift(array, toIntNode.execute(n));

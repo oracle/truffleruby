@@ -95,7 +95,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "cachedName.equals(INDEX_READ)",
                     "args.length == 1",
-                    "isBasicInteger(first(args))" },
+                    "isImplicitLong(first(args))" },
             limit = "1")
     protected Object readArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -121,7 +121,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "cachedName.equals(INDEX_WRITE)",
                     "args.length == 2",
-                    "isBasicInteger(first(args))" },
+                    "isImplicitLong(first(args))" },
             limit = "1")
     protected Object writeArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -193,7 +193,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "cachedName.equals(DELETE)",
                     "args.length == 1",
-                    "isBasicInteger(first(args))" },
+                    "isImplicitLong(first(args))" },
             limit = "1")
     protected Object deleteArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,

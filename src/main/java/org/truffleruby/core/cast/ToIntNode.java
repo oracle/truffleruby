@@ -107,7 +107,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
                 coreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
-    @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)", "!isNil(object)" })
+    @Specialization(guards = { "!isRubyInteger(object)", "!isImplicitDouble(object)", "!isNil(object)" })
     protected int coerceObject(Object object,
             @Cached DispatchNode toIntNode,
             @Cached ToIntNode fitNode) {

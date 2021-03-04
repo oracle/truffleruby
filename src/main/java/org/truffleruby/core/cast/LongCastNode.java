@@ -43,7 +43,7 @@ public abstract class LongCastNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    @Specialization(guards = "!isBasicInteger(value)")
+    @Specialization(guards = "!isImplicitLong(value)")
     protected long doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(

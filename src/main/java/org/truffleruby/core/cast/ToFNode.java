@@ -51,7 +51,7 @@ public abstract class ToFNode extends RubyContextNode {
         return BigIntegerOps.doubleValue(value);
     }
 
-    @Specialization(guards = { "!isRubyBignum(object)", "!isBasicNumber(object)" })
+    @Specialization(guards = { "!isRubyBignum(object)", "!isImplicitLongOrDouble(object)" })
     protected double coerceObject(Object object,
             @Cached BranchProfile errorProfile) {
         if (toFNode == null) {

@@ -51,7 +51,7 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
         return value;
     }
 
-    @Specialization(guards = { "!isInteger(value)", "!isLong(value)" })
+    @Specialization(guards = "!isImplicitLong(value)")
     protected Object passThrough(Object value) {
         return value;
     }

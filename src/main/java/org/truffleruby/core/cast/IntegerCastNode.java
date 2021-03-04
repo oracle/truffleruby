@@ -50,7 +50,7 @@ public abstract class IntegerCastNode extends RubyBaseNode {
                 context.getCoreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
-    @Specialization(guards = "!isBasicInteger(value)")
+    @Specialization(guards = "!isImplicitLong(value)")
     protected int doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(

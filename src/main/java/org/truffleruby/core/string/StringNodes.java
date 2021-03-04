@@ -2611,10 +2611,7 @@ public abstract class StringNodes {
             return sum(string, 16, strings);
         }
 
-        @Specialization(guards = {
-                "!isInteger(bits)",
-                "!isLong(bits)",
-                "wasProvided(bits)" })
+        @Specialization(guards = { "!isImplicitLong(bits)", "wasProvided(bits)" })
         protected Object sum(Object string, Object bits,
                 @Cached ToLongNode toLongNode,
                 @Cached SumNode sumNode) {

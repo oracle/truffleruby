@@ -34,20 +34,8 @@ public abstract class RubyGuards {
 
     // Basic Java types
 
-    public static boolean isInteger(Object value) {
-        return value instanceof Integer;
-    }
-
     public static boolean fitsInInteger(long value) {
         return CoreLibrary.fitsIntoInteger(value);
-    }
-
-    public static boolean isLong(Object value) {
-        return value instanceof Long;
-    }
-
-    public static boolean isDouble(Object value) {
-        return value instanceof Double;
     }
 
     public static boolean isCharacter(Object value) {
@@ -58,19 +46,27 @@ public abstract class RubyGuards {
         return value instanceof String;
     }
 
-    public static boolean isIntOrLong(Object value) {
-        return value instanceof Integer || value instanceof Long;
+    // no isInteger/isLong/isDouble, use isImplicit* instead in guards to account for implicit casts of RubyTypes
+
+    public static boolean isImplicitInteger(Object object) {
+        return object instanceof Byte || object instanceof Short || object instanceof Integer;
     }
 
-    public static boolean isBasicInteger(Object object) {
+    public static boolean isImplicitLong(Object object) {
         return object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long;
     }
 
-    public static boolean isBasicNumber(Object object) {
+    public static boolean isImplicitDouble(Object object) {
+        return object instanceof Float || object instanceof Double;
+    }
+
+    public static boolean isImplicitLongOrDouble(Object object) {
         return object instanceof Byte || object instanceof Short || object instanceof Integer ||
                 object instanceof Long || object instanceof Float || object instanceof Double;
     }
 
+    /** Does not include {@link Character} as those are converted as the interop boundary and are not implicit casts in
+     * {@link RubyTypes}. */
     public static boolean isPrimitive(Object object) {
         return object instanceof Boolean || object instanceof Byte || object instanceof Short ||
                 object instanceof Integer || object instanceof Long || object instanceof Float ||
@@ -155,12 +151,12 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyInteger(Object object) {
-        return isBasicInteger(object) || object instanceof RubyBignum;
+        return isImplicitLong(object) || object instanceof RubyBignum;
     }
 
     public static boolean isRubyNumber(Object object) {
         // Doesn't include classes like BigDecimal
-        return isBasicNumber(object) || object instanceof RubyBignum;
+        return isImplicitLongOrDouble(object) || object instanceof RubyBignum;
     }
 
     public static boolean isNil(Object object) {
