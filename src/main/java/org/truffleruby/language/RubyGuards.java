@@ -34,20 +34,8 @@ public abstract class RubyGuards {
 
     // Basic Java types
 
-    public static boolean isInteger(Object value) {
-        return value instanceof Integer;
-    }
-
     public static boolean fitsInInteger(long value) {
         return CoreLibrary.fitsIntoInteger(value);
-    }
-
-    public static boolean isLong(Object value) {
-        return value instanceof Long;
-    }
-
-    public static boolean isDouble(Object value) {
-        return value instanceof Double;
     }
 
     public static boolean isCharacter(Object value) {
@@ -58,12 +46,18 @@ public abstract class RubyGuards {
         return value instanceof String;
     }
 
-    public static boolean isImplicitDouble(Object object) {
-        return object instanceof Float || object instanceof Double;
+    // no isInteger/isLong/isDouble, use isImplicit* instead in guards to account for implicit casts of RubyTypes
+
+    public static boolean isImplicitInteger(Object object) {
+        return object instanceof Byte || object instanceof Short || object instanceof Integer;
     }
 
     public static boolean isImplicitLong(Object object) {
         return object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long;
+    }
+
+    public static boolean isImplicitDouble(Object object) {
+        return object instanceof Float || object instanceof Double;
     }
 
     public static boolean isImplicitLongOrDouble(Object object) {

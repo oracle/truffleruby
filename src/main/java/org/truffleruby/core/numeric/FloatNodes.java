@@ -345,7 +345,7 @@ public abstract class FloatNodes {
             return a == b;
         }
 
-        @Specialization(guards = { "!isDouble(b)" })
+        @Specialization(guards = { "!isImplicitDouble(b)" })
         protected boolean eqlGeneral(double a, Object b) {
             return false;
         }

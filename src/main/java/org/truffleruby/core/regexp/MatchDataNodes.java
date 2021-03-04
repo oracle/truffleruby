@@ -315,7 +315,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = {
-                        "!isInteger(index)",
+                        "!isImplicitInteger(index)",
                         "!isRubySymbol(index)",
                         "isNotRubyString(index)",
                         "!isIntRange(index)" })

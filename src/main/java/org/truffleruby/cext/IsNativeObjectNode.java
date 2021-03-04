@@ -11,6 +11,7 @@ package org.truffleruby.cext;
 
 import static org.truffleruby.cext.ValueWrapperManager.isMallocAligned;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -29,7 +30,7 @@ public abstract class IsNativeObjectNode extends RubyBaseNode {
         return isMallocAligned(handle) && handle < ValueWrapperManager.ALLOCATION_BASE;
     }
 
-    @Specialization(guards = "!isLong(handle)")
+    @Fallback
     protected boolean isNativeObjectFallback(Object handle) {
         return false;
     }
