@@ -11,8 +11,13 @@ package org.truffleruby.core;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
 import java.time.Duration;
+import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.Cached;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -23,6 +28,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.RaiseException;
 
@@ -103,10 +111,6 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected int count() {
-            return getCollectionCount();
-        }
-
-        public static int getCollectionCount() {
             int count = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 count += bean.getCollectionCount();
@@ -122,15 +126,115 @@ public abstract class GCNodes {
         @TruffleBoundary
         @Specialization
         protected long time() {
-            return getCollectionTime();
-        }
-
-        public static long getCollectionTime() {
             long time = 0;
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
                 time += bean.getCollectionTime();
             }
             return time;
+        }
+
+    }
+
+    @Primitive(name = "gc_stat")
+    public static abstract class GCStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray stat(
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            long time = 0;
+            int count = 0;
+            int minorCount = 0;
+            int majorCount = 0;
+            int unknownCount = 0;
+            String[] memoryPoolNames = new String[0];
+            Object[] memoryPools;
+
+            // Get GC time and counts from GarbageCollectorMXBean
+            for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
+                // Get MemoryPoolName relevant to GC
+                if (bean.getMemoryPoolNames().length > memoryPoolNames.length) {
+                    // Since old generation memory pools are a superset of young generation memory pools,
+                    // it suffices to check that we have the longer list of memory pools
+                    memoryPoolNames = bean.getMemoryPoolNames();
+                }
+                time += bean.getCollectionTime();
+                count += bean.getCollectionCount();
+                switch (bean.getName()) {
+                    case "G1 Young Generation": // during 'jvm' and 'jvm-ce'
+                    case "PS Scavenge": // during 'jvm --vm.XX:+UseParallelGC'
+                    case "young generation scavenger": // during 'native'
+                        minorCount += bean.getCollectionCount();
+                        break;
+                    case "G1 Old Generation": // during 'jvm' and 'jvm-ce'
+                    case "PS MarkSweep": // during 'jvm --vm.XX:+UseParallelGC'
+                    case "complete scavenger": // during 'native'
+                        majorCount += bean.getCollectionCount();
+                        break;
+                    default:
+                        unknownCount += bean.getCollectionCount();
+                        break;
+                }
+            }
+
+            // Get memory usage values from relevant memory pools (2-3 / ~8 are relevant)
+            memoryPools = new Object[memoryPoolNames.length];
+            // On Native Image, ManagementFactory.getMemoryPoolMXBeans() is empty
+            Arrays.fill(memoryPools, nil);
+            for (int i = 0; i < memoryPoolNames.length; i++) {
+                String memoryPoolName = memoryPoolNames[i];
+                for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
+                    if (bean.getName().equals(memoryPoolName)) {
+                        memoryPools[i] = beanToArray(bean);
+                    }
+                }
+            }
+
+            MemoryUsage total = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+
+            Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
+            for (int i = 0; i < memoryPoolNames.length; i++) {
+                memoryPoolNamesCast[i] = makeStringNode
+                        .executeMake(memoryPoolNames[i], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
+
+
+            return createArray(
+                    new Object[]{
+                            time,
+                            count,
+                            minorCount,
+                            majorCount,
+                            unknownCount,
+                            createArray(new long[]{
+                                    total.getUsed(),
+                                    total.getCommitted(),
+                                    total.getInit(),
+                                    total.getMax(),
+                            }),
+                            createArray(memoryPoolNamesCast),
+                            createArray(memoryPools) });
+        }
+
+        protected RubyArray beanToArray(MemoryPoolMXBean bean) {
+            MemoryUsage usage = bean.getUsage();
+            MemoryUsage peak = bean.getPeakUsage();
+            MemoryUsage last = bean.getCollectionUsage();
+            return createArray(
+                    new long[]{
+                            usage.getUsed(),
+                            usage.getCommitted(),
+                            usage.getInit(),
+                            usage.getMax(),
+                            peak.getUsed(),
+                            peak.getCommitted(),
+                            peak.getInit(),
+                            peak.getMax(),
+                            last.getUsed(),
+                            last.getCommitted(),
+                            last.getInit(),
+                            last.getMax(),
+                    });
         }
 
     }
