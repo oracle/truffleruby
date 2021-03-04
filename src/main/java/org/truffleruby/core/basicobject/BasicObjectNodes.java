@@ -11,6 +11,7 @@ package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.CachedLanguage;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -113,6 +114,9 @@ public abstract class BasicObjectNodes {
 
     }
 
+    /** This node is not trivial because primitives must be compared by value and never by identity. Also, this node
+     * must consider (byte) n and (short) n and (int) n and (long) n equal, as well as (float) n and (double) n. So even
+     * if a and b have different classes they might still be equal if they are primitives. */
     @CoreMethod(names = { "equal?", "==" }, required = 1)
     public abstract static class ReferenceEqualNode extends CoreMethodArrayArgumentsNode {
 
@@ -142,55 +146,14 @@ public abstract class BasicObjectNodes {
             return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
         }
 
-        @Specialization
-        protected boolean equal(RubyDynamicObject a, RubyDynamicObject b) {
+        @Specialization(guards = { "a.getClass() == b.getClass()", "!isPrimitive(a)" }) // since a and b have the same class, implies !isPrimitive(b)
+        protected boolean equalSameClassNonPrimitive(Object a, Object b) {
             return a == b;
         }
 
-        @Specialization(
-                guards = {
-                        "isNotRubyDynamicObject(a)",
-                        "isNotRubyDynamicObject(b)",
-                        "!sameClass(a, b)",
-                        "isNotIntLong(a) || isNotIntLong(b)" })
-        protected boolean equalIncompatiblePrimitiveTypes(Object a, Object b) {
+        @Fallback
+        protected boolean fallback(Object a, Object b) {
             return false;
-        }
-
-        @Specialization(
-                guards = {
-                        "isNotRubyDynamicObject(a)",
-                        "isNotRubyDynamicObject(b)",
-                        "sameClass(a, b)",
-                        "isNotIntLongDouble(a) || isNotIntLongDouble(b)" })
-        protected boolean equalOtherSameClass(Object a, Object b) {
-            return a == b;
-        }
-
-        @Specialization(guards = "isNotRubyDynamicObject(a)")
-        protected boolean equal(Object a, RubyDynamicObject b) {
-            return false;
-        }
-
-        @Specialization(guards = "isNotRubyDynamicObject(b)")
-        protected boolean equal(RubyDynamicObject a, Object b) {
-            return false;
-        }
-
-        protected boolean isNotRubyDynamicObject(Object value) {
-            return !(value instanceof RubyDynamicObject);
-        }
-
-        protected boolean sameClass(Object a, Object b) {
-            return a.getClass() == b.getClass();
-        }
-
-        protected boolean isNotIntLong(Object v) {
-            return !(v instanceof Integer) && !(v instanceof Long);
-        }
-
-        protected boolean isNotIntLongDouble(Object v) {
-            return !(v instanceof Integer) && !(v instanceof Long) && !(v instanceof Double);
         }
 
     }

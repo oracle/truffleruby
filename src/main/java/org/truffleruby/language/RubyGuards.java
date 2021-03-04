@@ -65,6 +65,8 @@ public abstract class RubyGuards {
                 object instanceof Long || object instanceof Float || object instanceof Double;
     }
 
+    /** Does not include {@link Character} as those are converted as the interop boundary and are not implicit casts in
+     * {@link RubyTypes}. */
     public static boolean isPrimitive(Object object) {
         return object instanceof Boolean || object instanceof Byte || object instanceof Short ||
                 object instanceof Integer || object instanceof Long || object instanceof Float ||
