@@ -62,11 +62,15 @@ public abstract class RubyGuards {
         return value instanceof Integer || value instanceof Long;
     }
 
-    public static boolean isBasicInteger(Object object) {
+    public static boolean isImplicitDouble(Object object) {
+        return object instanceof Float || object instanceof Double;
+    }
+
+    public static boolean isImplicitLong(Object object) {
         return object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long;
     }
 
-    public static boolean isBasicNumber(Object object) {
+    public static boolean isImplicitLongOrDouble(Object object) {
         return object instanceof Byte || object instanceof Short || object instanceof Integer ||
                 object instanceof Long || object instanceof Float || object instanceof Double;
     }
@@ -155,12 +159,12 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyInteger(Object object) {
-        return isBasicInteger(object) || object instanceof RubyBignum;
+        return isImplicitLong(object) || object instanceof RubyBignum;
     }
 
     public static boolean isRubyNumber(Object object) {
         // Doesn't include classes like BigDecimal
-        return isBasicNumber(object) || object instanceof RubyBignum;
+        return isImplicitLongOrDouble(object) || object instanceof RubyBignum;
     }
 
     public static boolean isNil(Object object) {

@@ -245,7 +245,7 @@ public abstract class ArrayNodes {
             return nil;
         }
 
-        @Specialization(guards = "!isBasicInteger(index)")
+        @Specialization(guards = "!isImplicitLong(index)")
         protected Object at(RubyArray array, Object index,
                 @Cached ToLongNode toLongNode,
                 @Cached FixnumLowerNode lowerNode,
