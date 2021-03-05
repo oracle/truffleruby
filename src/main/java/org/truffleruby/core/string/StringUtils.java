@@ -21,7 +21,7 @@ public abstract class StringUtils {
 
     @TruffleBoundary
     public static String toString(Object value) {
-        return value.toString();
+        return String.valueOf(value);
     }
 
     @TruffleBoundary

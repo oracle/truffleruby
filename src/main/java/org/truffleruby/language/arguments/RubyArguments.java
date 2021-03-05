@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -161,7 +162,7 @@ public final class RubyArguments {
     public static Object getBlock(Frame frame) {
         final Object block = frame.getArguments()[ArgumentIndicies.BLOCK.ordinal()];
         /* We put into the arguments array either a Nil or RubyProc, so that's all we'll get out at this point. */
-        assert block instanceof Nil || block instanceof RubyProc : block;
+        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         return block;
     }
 

@@ -20,17 +20,22 @@ public abstract class ArrayUtils {
 
     public static final Object[] EMPTY_ARRAY = new Object[0];
 
+    public static boolean assertNoNullElement(Object[] array) {
+        return assertNoNullElement(array, array.length);
+    }
+
     public static boolean assertNoNullElement(Object[] array, int size) {
         assert size <= array.length;
         for (int i = 0; i < size; i++) {
             final Object element = array[i];
-            assert element != null : element;
+            assert element != null : nullElementAt(array, i);
         }
         return true;
     }
 
-    public static boolean assertNoNullElement(Object[] array) {
-        return assertNoNullElement(array, array.length);
+    @TruffleBoundary
+    private static String nullElementAt(Object[] array, int index) {
+        return "null element in Object[] at index " + index + ": " + Arrays.toString(array);
     }
 
     /** Extracts part of an array into a newly allocated byte[] array. Does not perform safety checks on parameters.
