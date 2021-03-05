@@ -55,16 +55,6 @@ public abstract class WeakMapNodes {
     @CoreMethod(names = { "key?", "member?", "include?" }, required = 1)
     public abstract static class MemberNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization // ensures all integer keys are promoted to long
-        protected Object isMember(RubyWeakMap map, long key) {
-            return isMember(map, (Object) key);
-        }
-
-        @Specialization // ensures all floating keys are promoted to double
-        protected Object isMember(RubyWeakMap map, double key) {
-            return isMember(map, (Object) key);
-        }
-
         @Specialization
         protected boolean isMember(RubyWeakMap map, Object key) {
             return map.storage.get(key) != null;
@@ -73,16 +63,6 @@ public abstract class WeakMapNodes {
 
     @CoreMethod(names = "[]", required = 1)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization // ensures all integer keys are promoted to long
-        protected Object get(RubyWeakMap map, long key) {
-            return get(map, (Object) key);
-        }
-
-        @Specialization // ensures all floating keys are promoted to double
-        protected Object get(RubyWeakMap map, double key) {
-            return get(map, (Object) key);
-        }
 
         @Specialization
         protected Object get(RubyWeakMap map, Object key) {
@@ -93,16 +73,6 @@ public abstract class WeakMapNodes {
 
     @Primitive(name = "weakmap_aset")
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization // ensures all integer keys are promoted to long
-        protected Object set(RubyWeakMap map, long key, Object value) {
-            return set(map, (Object) key, value);
-        }
-
-        @Specialization // ensures all floating keys are promoted to double
-        protected Object set(RubyWeakMap map, double key, Object value) {
-            return set(map, (Object) key, value);
-        }
 
         @Specialization
         protected Object set(RubyWeakMap map, Object key, Object value) {
