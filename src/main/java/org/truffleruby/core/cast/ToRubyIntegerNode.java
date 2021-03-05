@@ -9,25 +9,23 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
+@GenerateUncached
+public abstract class ToRubyIntegerNode extends RubyBaseNode {
 
     public static ToRubyIntegerNode create() {
-        return ToRubyIntegerNodeGen.create(null);
-    }
-
-    public static ToRubyIntegerNode create(RubyNode child) {
-        return ToRubyIntegerNodeGen.create(child);
+        return ToRubyIntegerNodeGen.create();
     }
 
     public abstract Object execute(Object object);
@@ -49,7 +47,8 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyInteger(object)")
     protected Object coerceObject(Object object,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached DispatchNode toIntNode) {
-        return toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
+        return toIntNode.call(context.getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
     }
 }

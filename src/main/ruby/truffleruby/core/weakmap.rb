@@ -9,12 +9,7 @@
 # GNU Lesser General Public License version 2.1.
 
 module ObjectSpace
-  # WeakMap uses identity comparison semantics. The implementation assumes that the Java representation of objects
-  # do compare (equals() and hashCode()) using object identity. This is the case for instances of RubyDynamicObject,
-  # boxed primitives, and RubySymbol.
-  #
-  # However, results are unspecified if used with instances of TruffleObject that override equals() and
-  # hashCode().
+  # WeakMap uses Ruby identity semantics to compare and hash keys.
   class WeakMap
     include Enumerable
 
