@@ -11,6 +11,10 @@ package org.truffleruby.core.array;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -125,6 +129,66 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
     public boolean isArrayElementInsertable(long index,
             @CachedLibrary("this") RubyLibrary rubyLibrary) {
         return !rubyLibrary.isFrozen(this) && RubyGuards.fitsInInteger(index) && index >= size;
+    }
+    // endregion
+
+    // region Iterable Messages
+    @ExportMessage
+    public boolean hasIterator() {
+        return true;
+    }
+
+    /** Override {@link RubyDynamicObject#getIterator} to avoid the extra Fiber for RubyArray */
+    @ExportMessage
+    public ArrayIterator getIterator() {
+        return new ArrayIterator(this);
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    static final class ArrayIterator implements TruffleObject {
+
+        final RubyArray array;
+        private long currentItemIndex;
+
+        ArrayIterator(RubyArray array) {
+            this.array = array;
+        }
+
+        @ExportMessage
+        boolean isIterator() {
+            return true;
+        }
+
+        @ExportMessage
+        boolean hasIteratorNextElement(
+                @CachedLibrary("this.array") InteropLibrary arrays) {
+            try {
+                return currentItemIndex < arrays.getArraySize(array);
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+
+        @ExportMessage
+        Object getIteratorNextElement(
+                @CachedLibrary("this.array") InteropLibrary arrays,
+                @Cached BranchProfile concurrentModification) throws StopIterationException {
+            try {
+                final long size = arrays.getArraySize(array);
+                if (currentItemIndex >= size) {
+                    throw StopIterationException.create();
+                }
+
+                final Object element = arrays.readArrayElement(array, currentItemIndex);
+                currentItemIndex++;
+                return element;
+            } catch (InvalidArrayIndexException e) {
+                concurrentModification.enter();
+                throw StopIterationException.create();
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
     }
     // endregion
 
