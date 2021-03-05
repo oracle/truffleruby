@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
+import com.oracle.truffle.api.TruffleContext;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -101,10 +102,15 @@ public class FiberManager {
     }
 
     public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {
+        final TruffleContext truffleContext = context.getEnv().getContext();
+
         ThreadManager.FIBER_BEING_SPAWNED.set(fiber);
         try {
-            context.getThreadManager().spawnFiber(() -> fiberMain(context, fiber, block, currentNode));
-            waitForInitialization(context, fiber, currentNode);
+            context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
+                context.getThreadManager().spawnFiber(fiber, () -> fiberMain(context, fiber, block, currentNode));
+                waitForInitialization(context, fiber, currentNode);
+                return BlockingAction.SUCCESS;
+            }, context.getThreadManager().isRubyManagedThread(Thread.currentThread()));
         } finally {
             ThreadManager.FIBER_BEING_SPAWNED.remove();
         }
@@ -114,10 +120,16 @@ public class FiberManager {
     public static void waitForInitialization(RubyContext context, RubyFiber fiber, Node currentNode) {
         final CountDownLatch initializedLatch = fiber.initializedLatch;
 
-        context.getThreadManager().runUntilResultKeepStatus(currentNode, () -> {
+        final BlockingAction<Boolean> blockingAction = () -> {
             initializedLatch.await();
             return BlockingAction.SUCCESS;
-        });
+        };
+
+        if (context.getEnv().getContext().isEntered()) {
+            context.getThreadManager().runUntilResultKeepStatus(currentNode, blockingAction);
+        } else {
+            context.getThreadManager().retryWhileInterrupted(blockingAction);
+        }
 
         final Throwable uncaughtException = fiber.uncaughtException;
         if (uncaughtException != null) {
@@ -125,7 +137,7 @@ public class FiberManager {
         }
     }
 
-    private static final BranchProfile UNPROFILED = BranchProfile.create();
+    private static final BranchProfile UNPROFILED = BranchProfile.getUncached();
 
     private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
@@ -135,16 +147,30 @@ public class FiberManager {
         final String oldName = thread.getName();
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyContext.fileLine(sourceSection));
 
-        start(fiber, thread);
-        try {
+        start(fiber, thread, false);
 
-            final Object[] args = waitForResume(fiber);
+        final TruffleContext truffleContext = context.getEnv().getContext();
+        assert !truffleContext.isEntered();
+
+        final Object prev = truffleContext.enter(currentNode); // enter and leave now to workaround GR-29773
+        context.getSafepointManager().enterThread(); // not done in start() above because the context was not entered
+        final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
+            // fully initialized
+            fiber.initializedLatch.countDown();
+            return waitMessage(fiber);
+        }, true);
+
+        try {
             final Object result;
             try {
+                final Object[] args = handleMessage(fiber, message);
                 result = ProcOperations.rootCall(block, args);
             } finally {
                 // Make sure that other fibers notice we are dead before they gain control back
                 fiber.alive = false;
+                // Leave before resume/sendExceptionToParentFiber -> addToMessageQueue() -> parent Fiber starts executing
+                context.getSafepointManager().leaveThread();
+                truffleContext.leave(currentNode, prev);
             }
             resume(fiber, getReturnFiber(fiber, currentNode, UNPROFILED), FiberOperation.YIELD, result);
 
@@ -164,8 +190,11 @@ public class FiberManager {
                     fiber,
                     new RaiseException(context, context.getCoreExceptions().unexpectedReturn(currentNode)),
                     currentNode);
+        } catch (Throwable e) {
+            final RuntimeException exception = ThreadManager.printInternalError(e);
+            sendExceptionToParentFiber(fiber, exception, currentNode);
         } finally {
-            cleanup(fiber, thread);
+            cleanup(fiber, thread, false);
             thread.setName(oldName);
         }
     }
@@ -193,16 +222,19 @@ public class FiberManager {
 
     @TruffleBoundary
     private void addToMessageQueue(RubyFiber fiber, FiberMessage message) {
+        assert !context.getEnv().getContext().isEntered() : "should have left context when sending message to fiber";
         fiber.messageQueue.add(message);
     }
 
-    /** Send the Java thread that represents this fiber to sleep until it receives a resume or exit message. */
+    /** Send the Java thread that represents this fiber to sleep until it receives a message. */
     @TruffleBoundary
-    private Object[] waitForResume(RubyFiber fiber) {
-        final FiberMessage message = context.getThreadManager().runUntilResultKeepStatus(
-                null,
-                () -> fiber.messageQueue.take());
+    private FiberMessage waitMessage(RubyFiber fiber) {
+        assert !context.getEnv().getContext().isEntered() : "should have left context while waiting fiber message";
+        return context.getThreadManager().retryWhileInterrupted(fiber.messageQueue::take);
+    }
 
+    @TruffleBoundary
+    private Object[] handleMessage(RubyFiber fiber, FiberMessage message) {
         setCurrentFiber(fiber);
 
         if (message instanceof FiberShutdownMessage) {
@@ -227,12 +259,21 @@ public class FiberManager {
         addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, args));
     }
 
+    @TruffleBoundary
     public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args) {
-        resume(fromFiber, fiber, operation, args);
-        return waitForResume(fromFiber);
+        final TruffleContext truffleContext = context.getEnv().getContext();
+        final boolean isRubyManagedThread = context.getThreadManager().isRubyManagedThread(Thread.currentThread());
+
+        final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
+            resume(fromFiber, fiber, operation, args);
+            return waitMessage(fromFiber);
+        }, isRubyManagedThread);
+
+        return handleMessage(fromFiber, message);
     }
 
-    public void start(RubyFiber fiber, Thread javaThread) {
+    public void start(RubyFiber fiber, Thread javaThread, boolean entered) {
+        assert entered == context.getEnv().getContext().isEntered();
         final ThreadManager threadManager = context.getThreadManager();
 
         if (Thread.currentThread() == javaThread) {
@@ -249,31 +290,31 @@ public class FiberManager {
 
         runningFibers.add(fiber);
 
-        if (threadManager.isRubyManagedThread(javaThread)) {
+        if (threadManager.isRubyManagedThread(javaThread) && Thread.currentThread() == javaThread && entered) {
             context.getSafepointManager().enterThread();
         }
-
-        // fully initialized
-        fiber.initializedLatch.countDown();
     }
 
-    public void cleanup(RubyFiber fiber, Thread javaThread) {
+    public void cleanup(RubyFiber fiber, Thread javaThread, boolean entered) {
+        assert entered == context.getEnv().getContext().isEntered();
+        final ThreadManager threadManager = context.getThreadManager();
+
         fiber.alive = false;
 
-        if (context.getThreadManager().isRubyManagedThread(javaThread)) {
+        if (threadManager.isRubyManagedThread(javaThread) && Thread.currentThread() == javaThread && entered) {
             context.getSafepointManager().leaveThread();
         }
 
-        context.getThreadManager().cleanupValuesForJavaThread(javaThread);
+        threadManager.cleanupValuesForJavaThread(javaThread);
 
         runningFibers.remove(fiber);
 
         fiber.thread = null;
 
         if (Thread.currentThread() == javaThread) {
-            context.getThreadManager().rubyFiber.remove();
+            threadManager.rubyFiber.remove();
         }
-        context.getThreadManager().rubyFiberForeignMap.remove(javaThread);
+        threadManager.rubyFiberForeignMap.remove(javaThread);
 
         fiber.finishedLatch.countDown();
     }
@@ -283,16 +324,32 @@ public class FiberManager {
         // All Fibers except the current one are in waitForResume(),
         // so sending a FiberShutdownMessage is enough to finish them.
         // This also avoids the performance cost of a safepoint.
+
+        // This method might not be executed on the rootFiber Java Thread but possibly on another Java Thread.
+
+        final TruffleContext truffleContext = context.getEnv().getContext();
+        context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
+            doKillOtherFibers();
+            return BlockingAction.SUCCESS;
+        }, true);
+    }
+
+    private void doKillOtherFibers() {
         for (RubyFiber fiber : runningFibers) {
             if (fiber != rootFiber) {
                 addToMessageQueue(fiber, new FiberShutdownMessage());
 
                 // Wait for the Fiber to finish so we only run one Fiber at a time
                 final CountDownLatch finishedLatch = fiber.finishedLatch;
-                context.getThreadManager().runUntilResultKeepStatus(null, () -> {
+                context.getThreadManager().retryWhileInterrupted(() -> {
                     finishedLatch.await();
                     return BlockingAction.SUCCESS;
                 });
+
+                final Throwable uncaughtException = fiber.uncaughtException;
+                if (uncaughtException != null) {
+                    ExceptionOperations.rethrow(uncaughtException);
+                }
             }
         }
     }
@@ -300,7 +357,7 @@ public class FiberManager {
     @TruffleBoundary
     public void shutdown(Thread javaThread) {
         killOtherFibers();
-        cleanup(rootFiber, javaThread);
+        cleanup(rootFiber, javaThread, true);
     }
 
     public String getFiberDebugInfo() {

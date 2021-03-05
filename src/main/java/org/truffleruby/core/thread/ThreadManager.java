@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
+import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -151,9 +152,20 @@ public class ThreadManager {
     public static final ThreadLocal<RubyFiber> FIBER_BEING_SPAWNED = new ThreadLocal<>();
 
     private Thread createFiberJavaThread(Runnable runnable) {
-        RubyFiber fiber = FIBER_BEING_SPAWNED.get();
+        final RubyFiber fiber = FIBER_BEING_SPAWNED.get();
         assert fiber != null;
-        return createJavaThread(runnable, fiber);
+
+        if (context.isPreInitializing()) {
+            throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
+        }
+
+        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
+            System.err.println("Throwable escaped Fiber pool thread:");
+            throwable.printStackTrace();
+        });
+        rubyManagedThreads.add(thread);
+        return thread;
     }
 
     private Thread createJavaThread(Runnable runnable, RubyFiber fiber) {
@@ -168,28 +180,46 @@ public class ThreadManager {
         }
 
         final Thread thread = context.getEnv().createThread(runnable);
-
-        assert fiber != null;
-        thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
-            try {
-                fiber.uncaughtException = throwable;
-                fiber.initializedLatch.countDown();
-            } catch (Throwable t) {
-                t.initCause(throwable);
-                t.printStackTrace();
-                Thread.getDefaultUncaughtExceptionHandler().uncaughtException(javaThread, t);
-            }
-        });
-
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler(fiber));
         rubyManagedThreads.add(thread);
         return thread;
     }
 
-    @SuppressFBWarnings("RV")
-    public void spawnFiber(Runnable task) {
-        fiberPool.submit(task);
+    private static Thread.UncaughtExceptionHandler uncaughtExceptionHandler(RubyFiber fiber) {
+        assert fiber != null;
+        return (javaThread, throwable) -> {
+            printInternalError(throwable);
+            try {
+                fiber.uncaughtException = throwable;
+
+                // If an uncaught exception happens, we already left the context, so it is safe to let other Fibers run
+
+                // the Fiber is not yet initialized, unblock the caller and rethrow the exception to it
+                fiber.initializedLatch.countDown();
+                // the Fiber thread is dying, unblock the caller
+                fiber.finishedLatch.countDown();
+            } catch (Throwable t) { // exception inside this UncaughtExceptionHandler
+                t.initCause(throwable);
+                printInternalError(t);
+            }
+        };
     }
 
+    @SuppressFBWarnings("RV")
+    public void spawnFiber(RubyFiber fiber, Runnable task) {
+        fiberPool.submit(() -> {
+            try {
+                task.run();
+            } catch (Throwable t) {
+                // Fibers are run on a thread-pool, so make sure any exception escaping
+                // is handled here as the thread pool ignores exceptions.
+                uncaughtExceptionHandler(fiber).uncaughtException(Thread.currentThread(), t);
+            }
+        });
+    }
+
+    /** Whether the thread was created by TruffleRuby. Also decides whether we use the {@link SafepointManager} on the
+     * thread. */
     @TruffleBoundary
     public boolean isRubyManagedThread(Thread thread) {
         return rubyManagedThreads.contains(thread);
@@ -257,6 +287,8 @@ public class ThreadManager {
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
 
         thread.start();
+
+        // Must not leave the context here, to perform safepoint actions, if e.g. the new thread Thread#raise this one
         FiberManager.waitForInitialization(context, rootFiber, currentNode);
     }
 
@@ -280,17 +312,22 @@ public class ThreadManager {
             rethrowOnMainThread(currentNode, e);
             setThreadValue(thread, Nil.INSTANCE);
         } catch (Throwable e) {
-            final String message = StringUtils
-                    .format("%s terminated with internal error:", Thread.currentThread().getName());
-            final RuntimeException runtimeException = new RuntimeException(message, e);
-            // Immediately print internal exceptions, in case they would cause a deadlock
-            runtimeException.printStackTrace();
+            final RuntimeException runtimeException = printInternalError(e);
             rethrowOnMainThread(currentNode, runtimeException);
             setThreadValue(thread, Nil.INSTANCE);
         } finally {
             assert thread.value != null || thread.exception != null;
             cleanup(thread, Thread.currentThread());
         }
+    }
+
+    public static RuntimeException printInternalError(Throwable e) {
+        final String message = StringUtils
+                .format("%s terminated with internal error:", Thread.currentThread().getName());
+        final RuntimeException runtimeException = new RuntimeException(message, e);
+        // Immediately print internal exceptions, in case they would cause a deadlock
+        runtimeException.printStackTrace();
+        return runtimeException;
     }
 
     private void rethrowOnMainThread(Node currentNode, RuntimeException e) {
@@ -361,7 +398,10 @@ public class ThreadManager {
         registerThread(thread);
 
         final FiberManager fiberManager = thread.fiberManager;
-        fiberManager.start(fiberManager.getRootFiber(), javaThread);
+        final RubyFiber rootFiber = fiberManager.getRootFiber();
+        fiberManager.start(rootFiber, javaThread, true);
+        // fully initialized
+        rootFiber.initializedLatch.countDown();
     }
 
     public void cleanup(RubyThread thread, Thread javaThread) {
@@ -419,9 +459,27 @@ public class ThreadManager {
         void unblock();
     }
 
-    /** Only use when no context is available. */
+    public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext,
+            boolean isRubyManagedThread) {
+        assert truffleContext.isEntered();
+        assert isRubyManagedThread == isRubyManagedThread(Thread.currentThread());
+
+        if (isRubyManagedThread) {
+            context.getSafepointManager().leaveThread();
+        }
+        try {
+            return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
+        } finally {
+            if (isRubyManagedThread) {
+                context.getSafepointManager().enterThread();
+            }
+        }
+    }
+
+    /** Only use when the context is not entered. */
     @TruffleBoundary
-    public static <T> T retryWhileInterrupted(BlockingAction<T> action) {
+    public <T> T retryWhileInterrupted(BlockingAction<T> action) {
+        assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
         boolean interrupted = false;
         try {
             while (true) {
@@ -441,6 +499,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     public <T> T runUntilResultKeepStatus(Node currentNode, BlockingAction<T> action) {
+        assert context.getEnv().getContext().isEntered() : "Use retryWhileInterrupted() when not entered";
         T result = null;
 
         do {
