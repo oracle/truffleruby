@@ -2837,9 +2837,13 @@ MESSAGE
     "$(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
   if defined?(::TruffleRuby)
-    # We need to link to libtruffleruby for MakeMakefile#try_link to succeed
+    # We need to link to libtruffleruby for MakeMakefile#try_link to succeed.
+    # The created executable will link against both libgraalvm-llvm.so and libtruffleruby and
+    # might be executed for #try_constant and #try_run so we also need -rpath for both.
     libtruffleruby_dir = File.dirname(RbConfig::CONFIG['libtruffleruby'])
-    TRY_LINK << " -L#{libtruffleruby_dir} -ltruffleruby"
+    TRY_LINK << " -L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby"
+    libgraalvm_llvm_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
+    TRY_LINK << " -rpath #{libgraalvm_llvm_dir}"
   end
 
   ##
