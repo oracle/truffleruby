@@ -476,9 +476,10 @@ public class ThreadManager {
         }
     }
 
-    /** Only use when no context is available. */
+    /** Only use when the context is not entered. */
     @TruffleBoundary
-    public static <T> T retryWhileInterrupted(BlockingAction<T> action) {
+    public <T> T retryWhileInterrupted(BlockingAction<T> action) {
+        assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
         boolean interrupted = false;
         try {
             while (true) {

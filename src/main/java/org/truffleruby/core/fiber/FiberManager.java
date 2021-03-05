@@ -128,7 +128,7 @@ public class FiberManager {
         if (context.getEnv().getContext().isEntered()) {
             context.getThreadManager().runUntilResultKeepStatus(currentNode, blockingAction);
         } else {
-            ThreadManager.retryWhileInterrupted(blockingAction);
+            context.getThreadManager().retryWhileInterrupted(blockingAction);
         }
 
         final Throwable uncaughtException = fiber.uncaughtException;
@@ -230,7 +230,7 @@ public class FiberManager {
     @TruffleBoundary
     private FiberMessage waitMessage(RubyFiber fiber) {
         assert !context.getEnv().getContext().isEntered() : "should have left context while waiting fiber message";
-        return ThreadManager.retryWhileInterrupted(fiber.messageQueue::take);
+        return context.getThreadManager().retryWhileInterrupted(fiber.messageQueue::take);
     }
 
     @TruffleBoundary
@@ -330,7 +330,7 @@ public class FiberManager {
         final TruffleContext truffleContext = context.getEnv().getContext();
         context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
             doKillOtherFibers();
-            return null;
+            return BlockingAction.SUCCESS;
         }, true);
     }
 
@@ -341,7 +341,7 @@ public class FiberManager {
 
                 // Wait for the Fiber to finish so we only run one Fiber at a time
                 final CountDownLatch finishedLatch = fiber.finishedLatch;
-                ThreadManager.retryWhileInterrupted(() -> {
+                context.getThreadManager().retryWhileInterrupted(() -> {
                     finishedLatch.await();
                     return BlockingAction.SUCCESS;
                 });
