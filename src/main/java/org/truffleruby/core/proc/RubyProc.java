@@ -12,6 +12,7 @@ package org.truffleruby.core.proc;
 import java.util.Set;
 
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -61,7 +62,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
             FrameOnStackMarker frameOnStackMarker,
             DeclarationContext declarationContext) {
         super(rubyClass, shape);
-        assert block instanceof Nil || block instanceof RubyProc : block;
+        assert block instanceof Nil || block instanceof RubyProc : StringUtils.toString(block);
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTargets = callTargets;
