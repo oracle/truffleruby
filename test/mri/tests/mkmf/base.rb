@@ -124,6 +124,7 @@ module TestMkmf::Base
     }
     Logging.quiet = @quiet
     Logging.log_close
+    # puts nil, MKMFLOG[], nil # TruffleRuby: useful to debug if a test fails
     FileUtils.rm_f("mkmf.log")
     Dir.chdir(@curdir)
     FileUtils.rm_rf(@tmpdir)

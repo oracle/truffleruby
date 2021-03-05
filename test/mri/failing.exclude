@@ -136,7 +136,6 @@ mkmf/test_have_library.rb
 mkmf/test_have_macro.rb
 mkmf/test_libs.rb
 mkmf/test_signedness.rb
-mkmf/test_sizeof.rb
 net/http/test_https.rb
 net/imap/test_imap.rb
 net/imap/test_imap_response_parser.rb
