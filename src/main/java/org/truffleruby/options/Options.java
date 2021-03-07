@@ -47,16 +47,10 @@ public class Options {
     public final String CORE_LOAD_PATH;
     /** --rubygems=true */
     public final boolean RUBYGEMS;
-    /** --lazy-rubygems=RUBYGEMS && DEFAULT_LAZY */
-    public final boolean LAZY_RUBYGEMS;
-    /** --patching=true */
-    public final boolean PATCHING;
     /** --did-you-mean=true */
     public final boolean DID_YOU_MEAN;
-    /** --hashing-deterministic=false */
-    public final boolean HASHING_DETERMINISTIC;
-    /** --pattern-matching=false */
-    public final boolean PATTERN_MATCHING;
+    /** --lazy-rubygems=RUBYGEMS && DEFAULT_LAZY */
+    public final boolean LAZY_RUBYGEMS;
     /** --embedded=true */
     public final boolean EMBEDDED;
     /** --platform-native=env.isNativeAccessAllowed() && true */
@@ -75,6 +69,12 @@ public class Options {
     public final boolean TRACE_CALLS;
     /** --coverage-global=false */
     public final boolean COVERAGE_GLOBAL;
+    /** --pattern-matching=false */
+    public final boolean PATTERN_MATCHING;
+    /** --patching=true */
+    public final boolean PATCHING;
+    /** --hashing-deterministic=false */
+    public final boolean HASHING_DETERMINISTIC;
     /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;
     /** --exceptions-print-java=false */
@@ -213,11 +213,8 @@ public class Options {
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
-        LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : languageOptions.DEFAULT_LAZY);
-        PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
-        HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
-        PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
+        LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : languageOptions.DEFAULT_LAZY);
         EMBEDDED = options.get(OptionsCatalog.EMBEDDED_KEY);
         NATIVE_PLATFORM = env.isNativeAccessAllowed() && (options.get(OptionsCatalog.NATIVE_PLATFORM_KEY));
         NATIVE_INTERRUPT = options.hasBeenSet(OptionsCatalog.NATIVE_INTERRUPT_KEY) ? options.get(OptionsCatalog.NATIVE_INTERRUPT_KEY) : NATIVE_PLATFORM;
@@ -227,6 +224,9 @@ public class Options {
         HOST_INTEROP = env.isHostLookupAllowed() && (options.get(OptionsCatalog.HOST_INTEROP_KEY));
         TRACE_CALLS = options.get(OptionsCatalog.TRACE_CALLS_KEY);
         COVERAGE_GLOBAL = options.get(OptionsCatalog.COVERAGE_GLOBAL_KEY);
+        PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
+        PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
+        HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
         EXCEPTIONS_PRINT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_JAVA_KEY);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY);
@@ -317,16 +317,10 @@ public class Options {
                 return CORE_LOAD_PATH;
             case "ruby.rubygems":
                 return RUBYGEMS;
-            case "ruby.lazy-rubygems":
-                return LAZY_RUBYGEMS;
-            case "ruby.patching":
-                return PATCHING;
             case "ruby.did-you-mean":
                 return DID_YOU_MEAN;
-            case "ruby.hashing-deterministic":
-                return HASHING_DETERMINISTIC;
-            case "ruby.pattern-matching":
-                return PATTERN_MATCHING;
+            case "ruby.lazy-rubygems":
+                return LAZY_RUBYGEMS;
             case "ruby.embedded":
                 return EMBEDDED;
             case "ruby.platform-native":
@@ -345,6 +339,12 @@ public class Options {
                 return TRACE_CALLS;
             case "ruby.coverage-global":
                 return COVERAGE_GLOBAL;
+            case "ruby.pattern-matching":
+                return PATTERN_MATCHING;
+            case "ruby.patching":
+                return PATCHING;
+            case "ruby.hashing-deterministic":
+                return HASHING_DETERMINISTIC;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":
