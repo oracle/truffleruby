@@ -264,7 +264,7 @@ public abstract class VMPrimitiveNodes {
                 context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
                         "Handling of signal " + signal,
                         SafepointPredicate.currentFiberOfThread(context, rootThread),
-                        (rubyThread, currentNode) -> ProcOperations.rootCall(action));
+                        (rubyThread, currentNode) -> ProcOperations.rootCall(action, signal.getNumber()));
             });
         }
 

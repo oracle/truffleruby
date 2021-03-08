@@ -98,10 +98,13 @@ module Signal
       handler = proc { exit }
     when String
       raise ArgumentError, "Unsupported command '#{handler}'"
+    when Proc
+      # handler is already callable
     else
-      unless handler.respond_to? :call
-        raise ArgumentError, "Handler must respond to #call (was #{handler.class})"
-      end
+      underlying_handler = handler
+      handler = ->(signo) {
+        underlying_handler.call(signo)
+      }
     end
 
     had_old = @handlers.key?(number)
