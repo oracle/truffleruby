@@ -341,7 +341,7 @@ class Time
         seconds, fractional_seconds = rational.divmod(1)
         nano_fractional_seconds = fractional_seconds * 1_000_000_000
 
-        time = Primitive.time_at self, seconds.to_i, nano_fractional_seconds.to_i
+        time = Primitive.time_at self, seconds, nano_fractional_seconds.to_i
         time = Primitive.time_localtime(time, offset) if offset
         return time
       elsif Primitive.undefined?(usec)
