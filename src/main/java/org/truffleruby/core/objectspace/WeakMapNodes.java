@@ -15,8 +15,9 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.collections.WeakValueCache.WeakMapEntry;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.hash.CompareByRubyIdentityWrapper;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
@@ -26,6 +27,8 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.AllocationTracing;
+
+import java.util.Collection;
 
 /** Note that WeakMap uses identity comparison semantics. See top comment in src/main/ruby/truffleruby/core/weakmap.rb
  * for more information. */
@@ -57,7 +60,7 @@ public abstract class WeakMapNodes {
 
         @Specialization
         protected boolean isMember(RubyWeakMap map, Object key) {
-            return map.storage.get(key) != null;
+            return map.storage.get(new CompareByRubyIdentityWrapper(key)) != null;
         }
     }
 
@@ -66,7 +69,7 @@ public abstract class WeakMapNodes {
 
         @Specialization
         protected Object get(RubyWeakMap map, Object key) {
-            Object value = map.storage.get(key);
+            Object value = map.storage.get(new CompareByRubyIdentityWrapper(key));
             return value == null ? nil : value;
         }
     }
@@ -76,7 +79,7 @@ public abstract class WeakMapNodes {
 
         @Specialization
         protected Object set(RubyWeakMap map, Object key, Object value) {
-            map.storage.put(key, value);
+            map.storage.put(new CompareByRubyIdentityWrapper(key), value);
             return value;
         }
     }
@@ -144,8 +147,8 @@ public abstract class WeakMapNodes {
         @Specialization
         protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
 
-            for (WeakValueCache.WeakMapEntry<?, ?> e : entries(map.storage)) {
-                yield(block, e.getKey(), e.getValue());
+            for (MapEntry entry : entries(map.storage)) {
+                yield(block, entry.key, entry.value);
             }
 
             return map;
@@ -154,7 +157,13 @@ public abstract class WeakMapNodes {
 
     @TruffleBoundary
     private static Object[] keys(WeakMapStorage storage) {
-        return storage.keys().toArray();
+        final Collection<CompareByRubyIdentityWrapper> keyWrappers = storage.keys();
+        final Object[] keys = new Object[keyWrappers.size()];
+        int i = 0;
+        for (CompareByRubyIdentityWrapper keyWrapper : keyWrappers) {
+            keys[i++] = keyWrapper.value;
+        }
+        return keys;
     }
 
     @TruffleBoundary
@@ -162,9 +171,25 @@ public abstract class WeakMapNodes {
         return storage.values().toArray();
     }
 
+    private static class MapEntry {
+        final Object key;
+        final Object value;
+
+        private MapEntry(Object key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
     @TruffleBoundary
-    private static WeakValueCache.WeakMapEntry<?, ?>[] entries(WeakMapStorage storage) {
-        return storage.entries().toArray(new WeakValueCache.WeakMapEntry<?, ?>[0]);
+    private static MapEntry[] entries(WeakMapStorage storage) {
+        final Collection<WeakMapEntry<CompareByRubyIdentityWrapper, Object>> wrappedEntries = storage.entries();
+        final MapEntry[] entries = new MapEntry[wrappedEntries.size()];
+        int i = 0;
+        for (WeakMapEntry<CompareByRubyIdentityWrapper, Object> wrappedEntry : wrappedEntries) {
+            entries[i++] = new MapEntry(wrappedEntry.getKey().value, wrappedEntry.getValue());
+        }
+        return entries;
     }
 
     private static RubyWeakMap eachNoBlockProvided(YieldingCoreMethodNode node, RubyWeakMap map) {
