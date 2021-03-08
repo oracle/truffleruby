@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.UTF8Encoding;
@@ -49,6 +48,7 @@ import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
@@ -456,7 +456,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (!context.getCoreLibrary().isInitializing()) {
             if (previousMethodEntry != null) {
-                previousMethodEntry.invalidate();
+                previousMethodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, method.getName()));
             }
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
@@ -485,7 +485,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         MethodEntry removedEntry = methods.remove(methodName);
         if (removedEntry != null) {
-            removedEntry.invalidate();
+            removedEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, methodName));
         }
 
         changedMethod(methodName);
@@ -731,7 +731,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public void newMethodsVersion() {
         for (Entry<String, MethodEntry> entry : methods.entrySet()) {
-            entry.getValue().invalidate();
+            entry.getValue().invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entry.getKey()));
             entry.setValue(entry.getValue().withNewAssumption());
         }
     }
@@ -775,13 +775,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public InternalMethod getOrCreateMethodAndAssumption(String name, List<Assumption> assumptions) {
+    public InternalMethod getMethodAndAssumption(String name, List<Assumption> assumptions) {
         MethodEntry methodEntry = ConcurrentOperations.getOrCompute(
                 methods,
                 name,
-                n -> new MethodEntry(name));
+                n -> new MethodEntry());
         assumptions.add(methodEntry.getAssumption());
-        assert methodEntry.getAssumption().isValid();
         return methodEntry.getMethod();
     }
 
@@ -789,7 +788,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return ConcurrentOperations.getOrCompute(
                 methods,
                 name,
-                n -> new MethodEntry(name)).getAssumption();
+                n -> new MethodEntry()).getAssumption();
     }
 
     /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
@@ -828,11 +827,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getAllMethods(rubyModule);
         } else {
-            allMethods = methods
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null && e.getValue().getMethod() != null)
-                    .collect(Collectors.toMap(e -> e.getKey(), me -> me.getValue().getMethod()));
+            Map<String, InternalMethod> results = new HashMap<>();
+            for (Entry<String, MethodEntry> e : methods.entrySet()) {
+                if (e.getValue().getMethod() != null) {
+                    results.put(e.getKey(), e.getValue().getMethod());
+                }
+            }
+            allMethods = results;
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -858,11 +859,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getMethodsBeforeLogicalClass(rubyModule);
         } else {
-            allMethods = methods
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null && e.getValue().getMethod() != null)
-                    .collect(Collectors.toMap(e -> e.getKey(), me -> me.getValue().getMethod()));
+            Map<String, InternalMethod> results = new HashMap<>();
+            for (Entry<String, MethodEntry> e : methods.entrySet()) {
+                if (e.getValue().getMethod() != null) {
+                    results.put(e.getKey(), e.getValue().getMethod());
+                }
+            }
+            allMethods = results;
         }
         return filterMethods(language, allMethods, filter);
     }

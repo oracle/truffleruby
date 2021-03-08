@@ -20,12 +20,12 @@ public final class MethodEntry {
     private final InternalMethod method;
 
     public MethodEntry(InternalMethod method) {
-        this.assumption = Truffle.getRuntime().createAssumption(method.getName());
+        this.assumption = Truffle.getRuntime().createAssumption();
         this.method = method;
     }
 
-    public MethodEntry(String name) {
-        this.assumption = Truffle.getRuntime().createAssumption(name);
+    public MethodEntry() {
+        this.assumption = Truffle.getRuntime().createAssumption();
         this.method = null;
     }
 
@@ -33,7 +33,7 @@ public final class MethodEntry {
         if (method != null) {
             return new MethodEntry(method);
         } else {
-            return new MethodEntry(assumption.getName());
+            return new MethodEntry();
         }
     }
 
@@ -45,8 +45,8 @@ public final class MethodEntry {
         return method;
     }
 
-    public void invalidate() {
-        assumption.invalidate();
+    public void invalidate(String message) {
+        assumption.invalidate(message);
     }
 
 }
