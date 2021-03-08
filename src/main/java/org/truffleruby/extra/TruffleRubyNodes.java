@@ -10,7 +10,9 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -18,6 +20,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -28,6 +31,8 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyDynamicObject;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 @CoreModule("TruffleRuby")
 public abstract class TruffleRubyNodes {
@@ -104,11 +109,39 @@ public abstract class TruffleRubyNodes {
     @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)
     public abstract static class SynchronizedNode extends YieldingCoreMethodNode {
 
-        // We must not allow to synchronize on boxed primitives.
+        /** We must not allow to synchronize on boxed primitives as that would be misleading. We use a ReentrantLock and
+         * not simply Java's {@code synchronized} here as we need to be able to interrupt for guest safepoints and it is
+         * not possible to interrupt Java's {@code synchronized (object) {}}. */
         @Specialization
         protected Object synchronize(RubyDynamicObject object, RubyProc block) {
-            synchronized (object) {
+            final ReentrantLock lock = getLockAndLock(object);
+            try {
                 return yield(block);
+            } finally {
+                MutexOperations.unlockInternal(lock);
+            }
+        }
+
+        @TruffleBoundary
+        private ReentrantLock getLockAndLock(RubyDynamicObject object) {
+            final ReentrantLock lock = getLock(object);
+            MutexOperations.lockInternal(getContext(), lock, this);
+            return lock;
+        }
+
+        @TruffleBoundary
+        private ReentrantLock getLock(RubyDynamicObject object) {
+            final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
+
+            synchronized (object) {
+                ReentrantLock lock = (ReentrantLock) objectLibrary.getOrDefault(object, Layouts.OBJECT_LOCK, null);
+                if (lock != null) {
+                    return lock;
+                } else {
+                    lock = new ReentrantLock();
+                    objectLibrary.put(object, Layouts.OBJECT_LOCK, lock);
+                    return lock;
+                }
             }
         }
 

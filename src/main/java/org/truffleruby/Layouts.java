@@ -19,6 +19,7 @@ public abstract class Layouts {
 
     public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id"); // long
     public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?"); // boolean
+    public static final HiddenKey OBJECT_LOCK = new HiddenKey("object_lock"); // ReentrantLock
     public static final HiddenKey ASSOCIATED_IDENTIFIER = new HiddenKey("associated"); // Pointer[]
     public static final HiddenKey FINALIZER_REF_IDENTIFIER = new HiddenKey("finalizerRef"); // FinalizerReference
     public static final HiddenKey MARKED_OBJECTS_IDENTIFIER = new HiddenKey("marked_objects"); // Object[]
