@@ -159,6 +159,14 @@ class Symbol
 
   # Use equal? for ===
   alias_method :===, :equal?
+
+  class << self
+    undef_method :new
+  end
+
+  def self.__allocate__
+    raise TypeError, "allocator undefined for #{self}"
+  end
 end
 
 module Truffle::SymbolOperations

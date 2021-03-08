@@ -354,4 +354,12 @@ class Integer < Numeric
     end
     self
   end
+
+  class << self
+    undef_method :new
+  end
+
+  def self.__allocate__
+    raise TypeError, "allocator undefined for #{self}"
+  end
 end

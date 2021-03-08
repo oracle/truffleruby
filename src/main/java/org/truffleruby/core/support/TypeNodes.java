@@ -38,6 +38,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -118,6 +119,46 @@ public abstract class TypeNodes {
         protected boolean objectEqual(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
+        }
+
+    }
+
+    @Primitive(name = "immediate_value?")
+    public static abstract class IsImmediateValueNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean doBoolean(boolean value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doInt(int value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doLong(long value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doFloat(double value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doSymbol(RubySymbol value) {
+            return true;
+        }
+
+        @Specialization
+        protected boolean doNil(Nil value) {
+            return true;
+        }
+
+        @Fallback
+        protected boolean doFallback(Object value) {
+            return false;
         }
 
     }

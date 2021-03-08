@@ -22,9 +22,8 @@ module ObjectSpace
     include Enumerable
 
     private def check_key_or_value(kv, type)
-      klass = Truffle::Type.object_class(kv) # necessary to account for BasicObject et al.
-      if klass.include?(ImmediateValue)
-        raise ArgumentError, "WeakMap #{type} can't be an instance of #{klass}"
+      if Primitive.immediate_value?(kv)
+        raise ArgumentError, "WeakMap #{type} can't be an instance of #{kv.class}"
       elsif Truffle::KernelOperations.value_frozen?(kv)
         raise FrozenError, "WeakMap #{type} can't be a frozen object"
       end

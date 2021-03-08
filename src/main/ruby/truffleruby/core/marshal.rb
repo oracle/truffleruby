@@ -542,7 +542,7 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      return if Primitive.object_kind_of? obj, ImmediateValue
+      return if Primitive.immediate_value?(obj)
       add_object(obj)
     end
 

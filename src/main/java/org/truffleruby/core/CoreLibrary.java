@@ -1013,7 +1013,6 @@ public class CoreLibrary {
             "/core/splitter.rb",
             "/core/stat.rb",
             "/core/io.rb",
-            "/core/immediate.rb",
             "/core/proc.rb",
             "/core/enumerable_helper.rb",
             "/core/enumerable.rb",

@@ -23,7 +23,7 @@ module Truffle::CExt
   end
 
   def RBASIC(object)
-    if ImmediateValue === object
+    if Primitive.immediate_value?(object)
       raise TypeError, "immediate values don't include the RBasic struct"
     end
     RBasic.new(object)
