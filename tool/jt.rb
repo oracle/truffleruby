@@ -205,10 +205,10 @@ module Utilities
                     end
 
     raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
-    ruby_launcher = File.realpath(ruby_launcher)
-
     raise "The Ruby executable #{ruby_launcher} is not executable" unless File.executable?(ruby_launcher)
+
     @ruby_launcher = ruby_launcher
+    @ruby_launcher_realpath = File.realpath(ruby_launcher)
 
     unless @silent
       shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/(ruby|truffleruby)$], '')
@@ -222,13 +222,14 @@ module Utilities
 
     # use same ruby_launcher in subprocess jt instances
     # cannot be set while building
-    ENV['RUBY_BIN'] = ruby_launcher
+    ENV['RUBY_BIN'] = @ruby_launcher
     @ruby_launcher
   end
   alias_method :require_ruby_launcher!, :ruby_launcher
 
   def ruby_home
-    File.expand_path('../..', ruby_launcher)
+    require_ruby_launcher!
+    File.expand_path('../..', @ruby_launcher_realpath)
   end
 
   def graalvm_home
@@ -280,7 +281,8 @@ module Utilities
   end
 
   def truffleruby_launcher_path
-    @truffleruby_launcher_path ||= File.join File.dirname(ruby_launcher), 'truffleruby'
+    require_ruby_launcher!
+    @truffleruby_launcher_path ||= File.expand_path('../truffleruby', @ruby_launcher_realpath)
   end
 
   def truffleruby!
