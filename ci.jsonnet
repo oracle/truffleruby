@@ -75,7 +75,7 @@ local part_definitions = {
       environment+: { path+:: ["$MAVEN_HOME/bin"] },
     },
 
-    build_no_clean: {
+    build: {
       setup+: [["mx", "sversions"]] +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
               jt(["build", "--env", self.mx_env, "--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
@@ -84,13 +84,6 @@ local part_definitions = {
                 ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],
               ],
     },
-
-    clean: {
-      # Clean build results to make sure nothing refers to them while testing
-      setup+: [["mx", "--env", self.mx_env, "clean"]],
-    },
-
-    build: $.use.build_no_clean + $.use.clean,
 
     truffleruby: {
       "$.benchmark.server":: { options: [] },
@@ -294,13 +287,7 @@ local part_definitions = {
   },
 
   run: {
-    clean: {
-      # $.use.clean but as run instead of setup
-      run+: [["mx", "--env", self.mx_env, "clean"]],
-    },
-
     test_unit_tck: {
-      # Run unittests first before cleaning, they need a full non-cleaned build
       run+: jt(["test", "unit", "--verbose"]) +
             jt(["test", "tck"])
     },
@@ -324,7 +311,7 @@ local part_definitions = {
     },
 
     lint: {
-      is_after:: ["$.use.build_no_clean"],
+      is_after:: ["$.use.build"],
       downloads+: {
         JDT: { name: "ecj", version: "4.14.0", platformspecific: false },
         ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
@@ -482,7 +469,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v11 + $.use.common + $.env.jvm + $.use.build_no_clean + $.run.lint + { timelimit: "30:00" },
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v11 + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "30:00" },
       # Run specs on MRI to make sure new specs are compatible and have the needed version guards
       "ruby-test-specs-mri": $.platform.linux + $.cap.gate + $.use.common + $.run.test_specs_mri + { timelimit: "30:00" },
     } +
@@ -494,10 +481,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-8":     $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "50:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "50:00" },
-      "ruby-test-specs-darwin-8":    $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "01:35:00" },
-      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "01:35:00" },
+      "ruby-test-specs-linux-8":     $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "50:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "50:00" },
+      "ruby-test-specs-darwin-8":    $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:35:00" },
+      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:35:00" },
       "ruby-test-fast-linux-arm64":  $.platform.linux_arm64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "30:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_mri + { timelimit: "45:00" },
