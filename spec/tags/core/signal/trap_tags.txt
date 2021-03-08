@@ -1,6 +1,3 @@
-fails:Signal.trap raises an exception for a non-callable at the point of use
-fails:Signal.trap raises ArgumentError or Errno::EINVAL for SIGKILL
-fails:Signal.trap raises ArgumentError or Errno::EINVAL for SIGSTOP
 fails:Signal.trap the special EXIT signal code accepts the EXIT code
 fails:Signal.trap the special EXIT signal code runs the proc before at_exit handlers
 slow:Signal.trap allows to register a handler for all known signals, except reserved signals for which it raises ArgumentError
