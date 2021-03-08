@@ -336,25 +336,11 @@ class Time
           raise ArgumentError, "unexpected unit: #{unit}"
         end
 
-      if Primitive.undefined?(sub_sec) && Primitive.object_kind_of?(sec, Rational)
-        rational = Truffle::Type.coerce_to_exact_num(sec)
-        seconds, fractional_seconds = rational.divmod(1)
-        nano_fractional_seconds = fractional_seconds * 1_000_000_000
-
-        time = Primitive.time_at self, seconds, nano_fractional_seconds.to_i
-        time = Primitive.time_localtime(time, offset) if offset
-        return time
-      elsif Primitive.undefined?(sub_sec)
-        sub_sec = 0
-      end
-
       sec = Truffle::Type.coerce_to_exact_num(sec)
-      sub_sec = Truffle::Type.coerce_to_exact_num(sub_sec)
+      sub_sec = Primitive.undefined?(sub_sec) ? 0 : Truffle::Type.coerce_to_exact_num(sub_sec)
 
-      seconds = sec.to_i
-      sec_frac = sec % 1.0
+      seconds, sec_frac = sec.divmod(1)
 
-      seconds -= 1 if sec < 0 && sec_frac > 0
       nsec = (sec_frac * 1_000_000_000 + 0.5).to_i + (sub_sec * sub_sec_scale).to_i
 
       seconds += nsec / 1_000_000_000
