@@ -131,7 +131,7 @@ module Timeout
   def self.add_timeout(time, exc, message)
     r = TimeoutRequest.new(time, Thread.current, exc, message)
     @chan << r
-    ensure_timeout_thread_running
+    ensure_timeout_thread_running unless defined?(@controller)
     r
   end
 
