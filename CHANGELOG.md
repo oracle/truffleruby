@@ -75,6 +75,7 @@ Performance:
 * We now create a single call target per block by default instead of two.
 * Some uses of class variables are now much better optimized (#2259, @chrisseaton).
 * Several methods that need the caller frame are now always inlined in their caller, which speeds up the interpreter and reduces footprint.
+* Pasting code in IRB should be reasonably fast, by updating to `irb` 1.3.3 and `reline` 0.2.3 (#2233).
 
 Changes:
 
