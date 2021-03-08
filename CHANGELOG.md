@@ -19,6 +19,7 @@ Bug fixes:
 * Fix `Enumerator::Lazy#{chunk_while, slice_before, slice_after, slice_when}` to return instances of `Enumerator::Lazy` (#2273).
 * Fix `Truffle::Interop.source_location` to return unavailable source sections for modules instead of null (#2257).
 * Fix usage of `Thread.handle_interrupt` in `MonitorMixin#mon_synchronize`.
+* Fixed `TruffleRuby.synchronized` to handle guest safepoints (#2277).
 
 Compatibility:
 
@@ -78,6 +79,7 @@ Changes:
 
 * Standalone builds of TruffleRuby are now based on JDK11 (they used JDK8 previously). There should be no user-visible changes. Similarly, JDK11 is now used by default in development instead of JDK8.
 * The deprecated `Truffle::System.synchronized` has been removed.
+* `Java.synchronized` has been removed, it did not work on host objects.
 
 # 21.0.0
 
