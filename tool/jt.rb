@@ -195,10 +195,8 @@ module Utilities
     @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
-                    elsif File.executable?(@ruby_name) and File.file?(@ruby_name)
-                      @ruby_name
-                    elsif @ruby_name.start_with?('/') and File.directory?(@ruby_name)
-                      "#{@ruby_name}/bin/ruby"
+                    elsif @ruby_name.start_with?('/')
+                      File.directory?(@ruby_name) ? "#{@ruby_name}/bin/ruby" : @ruby_name
                     else
                       graalvm = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}"
                       "#{graalvm}/#{language_dir(graalvm)}/ruby/bin/ruby"
