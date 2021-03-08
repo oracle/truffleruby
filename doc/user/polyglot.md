@@ -128,8 +128,6 @@ To access instance methods use `.class`, such as `MyClass.class.getName`.
 
 To import a Java class as a top-level constant, use `Java.import 'name'`.
 
-`Java.synchronized(object) { }` will use the Java object's monitor to synchronize.
-
 ## Embedding in Java
 
 TruffleRuby is embedded via the Polyglot API, which is part of GraalVM.

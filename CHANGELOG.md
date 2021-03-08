@@ -79,6 +79,7 @@ Changes:
 
 * Standalone builds of TruffleRuby are now based on JDK11 (they used JDK8 previously). There should be no user-visible changes. Similarly, JDK11 is now used by default in development instead of JDK8.
 * The deprecated `Truffle::System.synchronized` has been removed.
+* `Java.synchronized` has been removed, it did not work on host objects.
 
 # 21.0.0
 
