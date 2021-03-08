@@ -300,11 +300,11 @@ class Time
   private :_dump
 
   class << self
-    def at(sec, usec=undefined, unit=undefined, **kwargs)
+    def at(sec, sub_sec=undefined, unit=undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
       offset = kwargs[:in] ? Truffle::Type.coerce_to_utc_offset(kwargs[:in]) : nil
 
-      result = if Primitive.undefined?(usec)
+      result = if Primitive.undefined?(sub_sec)
                  if Primitive.object_kind_of?(sec, Time)
                    copy = allocate
                    copy.send(:initialize_copy, sec)
@@ -321,11 +321,11 @@ class Time
         return result
       end
 
-      if Primitive.object_kind_of?(sec, Time) && Primitive.object_kind_of?(usec, Integer)
+      if Primitive.object_kind_of?(sec, Time) && Primitive.object_kind_of?(sub_sec, Integer)
         raise TypeError, "can't convert Time into an exact number"
       end
 
-      second_arg_scale =
+      sub_sec_scale =
         if Primitive.undefined?(unit) || :microsecond == unit || :usec == unit
           1_000
         elsif :millisecond == unit
@@ -336,7 +336,7 @@ class Time
           raise ArgumentError, "unexpected unit: #{unit}"
         end
 
-      if Primitive.undefined?(usec) && Primitive.object_kind_of?(sec, Rational)
+      if Primitive.undefined?(sub_sec) && Primitive.object_kind_of?(sec, Rational)
         rational = Truffle::Type.coerce_to_exact_num(sec)
         seconds, fractional_seconds = rational.divmod(1)
         nano_fractional_seconds = fractional_seconds * 1_000_000_000
@@ -344,23 +344,23 @@ class Time
         time = Primitive.time_at self, seconds, nano_fractional_seconds.to_i
         time = Primitive.time_localtime(time, offset) if offset
         return time
-      elsif Primitive.undefined?(usec)
-        usec = 0
+      elsif Primitive.undefined?(sub_sec)
+        sub_sec = 0
       end
 
-      s = Truffle::Type.coerce_to_exact_num(sec)
-      u = Truffle::Type.coerce_to_exact_num(usec)
+      sec = Truffle::Type.coerce_to_exact_num(sec)
+      sub_sec = Truffle::Type.coerce_to_exact_num(sub_sec)
 
-      sec = s.to_i
-      nsec_frac = s % 1.0
+      seconds = sec.to_i
+      sec_frac = sec % 1.0
 
-      sec -= 1 if s < 0 && nsec_frac > 0
-      nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i + (u * second_arg_scale).to_i
+      seconds -= 1 if sec < 0 && sec_frac > 0
+      nsec = (sec_frac * 1_000_000_000 + 0.5).to_i + (sub_sec * sub_sec_scale).to_i
 
-      sec += nsec / 1_000_000_000
+      seconds += nsec / 1_000_000_000
       nsec %= 1_000_000_000
 
-      time = Primitive.time_at self, sec, nsec
+      time = Primitive.time_at self, seconds, nsec
       time = Primitive.time_localtime(time, offset) if offset
       time
     end
