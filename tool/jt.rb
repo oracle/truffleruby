@@ -2170,11 +2170,11 @@ module Commands
     dest_ruby = "#{dest}/#{language_dir(build_dir)}/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
-    FileUtils.cp_r build_dir, dest
+    File.symlink(build_dir, dest)
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if darwin? && !truffleruby_native?
+    if darwin? && File.binread(truffleruby_launcher_path)[2] == '#!'
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
