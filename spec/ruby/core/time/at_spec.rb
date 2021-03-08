@@ -40,10 +40,16 @@ describe "Time.at" do
     end
 
     describe "passed Rational" do
-      it "returns Time with correct nanosecond and microsecond" do
+      it "returns Time with correct microseconds" do
         t = Time.at(Rational(1_486_570_508_539_759, 1_000_000))
         t.usec.should == 539_759
         t.nsec.should == 539_759_000
+      end
+
+      it "returns Time with correct nanoseconds" do
+        t = Time.at(Rational(1_486_570_508_539_759_123, 1_000_000_000))
+        t.usec.should == 539_759
+        t.nsec.should == 539_759_123
       end
     end
   end
