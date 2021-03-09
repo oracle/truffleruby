@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AssumedValue;
@@ -103,6 +104,7 @@ public class RubyContext {
     @CompilationFinal private PrintStream errStream;
     @CompilationFinal private boolean hasOtherPublicLanguages;
 
+    @CompilationFinal public TruffleLogger logger;
     @CompilationFinal private Options options;
     @CompilationFinal private String rubyHome;
     @CompilationFinal private TruffleFile rubyHomeTruffleFile;
@@ -159,6 +161,7 @@ public class RubyContext {
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
+        this.logger = env.getLogger("");
         this.language = language;
         setEnv(env);
         this.preInitialized = preInitializing;
@@ -677,6 +680,10 @@ public class RubyContext {
 
     public PreInitializationManager getPreInitializationManager() {
         return preInitializationManager;
+    }
+
+    public TruffleLogger getLogger() {
+        return logger;
     }
 
     public String getRubyHome() {
