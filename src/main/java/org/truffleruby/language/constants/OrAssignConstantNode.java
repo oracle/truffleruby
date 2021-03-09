@@ -10,7 +10,6 @@
 package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -18,6 +17,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.utils.RunTwiceBranchProfile;
 
 /** e.g. for {@code module::FOO ||= 1}
  *
@@ -31,25 +31,9 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
     @Child protected WriteConstantNode writeConstant;
     @Child private BooleanCastNode cast;
 
-    private enum ExecuteCounter {
-        NEVER,
-        ONCE,
-        MANY;
-
-        public ExecuteCounter next() {
-            if (this == NEVER) {
-                return ONCE;
-            } else {
-                return MANY;
-            }
-        }
-
-    }
-
-    @CompilationFinal private ExecuteCounter executeCounter = ExecuteCounter.NEVER;
     private final ConditionProfile triviallyUndefined = ConditionProfile.create();
     private final ConditionProfile defined = ConditionProfile.create();
-    private final ConditionProfile truthy = ConditionProfile.create();
+    private final RunTwiceBranchProfile writeTwiceProfile = new RunTwiceBranchProfile();
 
     public OrAssignConstantNode(ReadConstantNode readConstant, WriteConstantNode writeConstant) {
         this.readConstant = readConstant;
@@ -59,17 +43,11 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
 
-        if (executeCounter != ExecuteCounter.MANY) {
-            // Make sure to reset the profiles after the first execution, as we expect the first execution to write
-            // the constant and subsequent execution to simply read it.
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            executeCounter = executeCounter.next();
-        }
-
         if (triviallyUndefined.profile(readConstant.isModuleTriviallyUndefined(frame, getLanguage(), getContext()))) {
             // It might not be defined because of autoloaded constants (maybe other reasons?),
             // simply attempt writing (which will trigger autoloads if required).
             // Since we didn't evaluate the module part yet, no side-effects can occur.
+            writeTwiceProfile.enter();
             return writeConstant.execute(frame);
         }
 
@@ -82,12 +60,16 @@ public class OrAssignConstantNode extends RubyContextSourceNode {
 
         // Next we check if the constant itself is defined, and if it is, we get its value.
         final RubyConstant constant = readConstant.getConstantIfDefined(module);
-        final Object value = defined.profile(constant != null)
+
+        final boolean isDefined = defined.profile(constant != null);
+
+        final Object value = isDefined
                 ? readConstant.getConstant(module, constant)
                 : null;
 
         // Write if the constant is undefined or if its value is falsy.
-        if (!defined.profile(constant != null) || !truthy.profile(castToBoolean(value))) {
+        if (!isDefined || !castToBoolean(value)) {
+            writeTwiceProfile.enter();
             return writeConstant.execute(frame, module);
         } else {
             return value;
