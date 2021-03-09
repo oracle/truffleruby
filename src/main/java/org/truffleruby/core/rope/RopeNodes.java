@@ -1498,32 +1498,13 @@ public abstract class RopeNodes {
          * checks. If the `codeRange` is not known for the supplied `encoding`, then `CodeRange.CR_UNKNOWN` should be
          * passed. If the byte sequence is invalid, a negative value will be returned. See `Encoding#length` for details
          * on how to interpret the return value. */
-        public int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
-            // TODO switch callers over to Bytes version
-            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), false);
-        }
-
-        /** This method returns the byte length for the first character encountered in `bytes`, starting at `byteOffset`
-         * and ending at `byteEnd`. The validity of a character is defined by the `encoding`. If the `codeRange` for the
-         * byte sequence is known for the supplied `encoding`, it should be passed to help short-circuit some validation
-         * checks. If the `codeRange` is not known for the supplied `encoding`, then `CodeRange.CR_UNKNOWN` should be
-         * passed. If the byte sequence is invalid, a negative value will be returned. See `Encoding#length` for details
-         * on how to interpret the return value. */
         public int characterLength(Encoding encoding, CodeRange codeRange, Bytes bytes, int byteOffset, int byteEnd) {
             return executeLength(encoding, codeRange, bytes.clampedRange(byteOffset, byteEnd), false);
         }
 
-        /** This method works very similarly to `characterLength` and maintains the same invariants on inputs. Where it
-         * differs is in the treatment of invalid byte sequences. Whereas `characterLength` will return a negative
-         * value, this method will always return a positive value. MRI provides an arbitrary, but deterministic,
-         * algorithm for returning a byte length for invalid byte sequences. This method is to be used when the
-         * `codeRange` might be `CodeRange.CR_BROKEN` and the caller must handle the case without raising an error.
-         * E.g., if `String#each_char` is called on a String that is `CR_BROKEN`, you wouldn't want negative byte
-         * lengths to be returned because it would break iterating through the bytes. */
-        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
-                int byteEnd) {
+        public int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
             // TODO switch callers over to Bytes version
-            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), true);
+            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), false);
         }
 
         /** This method works very similarly to `characterLength` and maintains the same invariants on inputs. Where it
@@ -1536,6 +1517,12 @@ public abstract class RopeNodes {
         public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, Bytes bytes, int byteOffset,
                 int byteEnd) {
             return executeLength(encoding, codeRange, bytes.clampedRange(byteOffset, byteEnd), true);
+        }
+
+        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
+                int byteEnd) {
+            // TODO switch callers over to Bytes version
+            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), true);
         }
 
         @Specialization(guards = "codeRange == CR_7BIT")
