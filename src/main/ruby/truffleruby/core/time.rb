@@ -341,7 +341,7 @@ class Time
 
       seconds, sec_frac = sec.divmod(1)
 
-      nsec = (sec_frac * 1_000_000_000 + 0.5).to_i + (sub_sec * sub_sec_scale).to_i
+      nsec = (sec_frac * 1_000_000_000).round + (sub_sec * sub_sec_scale).to_i
 
       seconds += nsec / 1_000_000_000
       nsec %= 1_000_000_000
