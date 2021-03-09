@@ -2308,7 +2308,7 @@ RULES
   def create_makefile(target, srcprefix = nil)
     if defined?(::TruffleRuby) and $LIBRUBYARG.to_s.strip.empty?
       # $LIBRUBYARG was explicitly unset, the built library is not a C extension but used with FFI (e.g., sassc does).
-      # Since $LIBRUBYARG is unset we won't link to libgraalvm-llvm.so, which is wanted.
+      # Since $LIBRUBYARG is unset we won't link to libgraalvm-llvm.so, which is expected.
       # In the case the library uses C++ code, libc++.so/libc++abi.so will be linked and needs to be found by NFI.
       # The toolchain does not pass -rpath automatically for libc++.so/libc++abi.so, so we do it.
       libcxx_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
