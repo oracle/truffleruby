@@ -23,4 +23,10 @@ require 'mkmf'
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
 
+if Truffle::Platform.darwin?
+  # Set the install_name of libtruffleruby on macOS, so mkmf executables linking to it
+  # will know they need to look at the rpath to find it.
+  $LIBRUBYARG = "-Wl,-install_name,@rpath/libtruffleruby.dylib #{$LIBRUBYARG}"
+end
+
 create_makefile('libtruffleruby')
