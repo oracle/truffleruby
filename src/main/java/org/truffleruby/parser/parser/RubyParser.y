@@ -11,7 +11,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.ArgumentParseNode;
 import org.truffleruby.parser.ast.ArrayParseNode;
@@ -115,7 +115,7 @@ public class RubyParser {
     protected final ParserSupport support;
     protected final RubyLexer lexer;
 
-    public RubyParser(RubyContext context, LexerSource source, RubyWarnings warnings) {
+    public RubyParser(RubyContext context, LexerSource source, RubyDeferredWarnings warnings) {
         this.support = new ParserSupport(context, source, warnings);
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);

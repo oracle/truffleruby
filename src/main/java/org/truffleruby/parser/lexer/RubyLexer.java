@@ -73,7 +73,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.SafeDoubleParser;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BigRationalParseNode;
@@ -226,7 +226,7 @@ public class RubyLexer implements MagicCommentHandler {
     private ParserSupport parserSupport = null;
 
     // What handles warnings
-    private RubyWarnings warnings;
+    private RubyDeferredWarnings warnings;
 
     public int tokenize_ident(int result) {
         Rope value = createTokenRope();
@@ -242,7 +242,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private StrTerm lex_strterm;
 
-    public RubyLexer(ParserSupport support, LexerSource source, RubyWarnings warnings) {
+    public RubyLexer(ParserSupport support, LexerSource source, RubyDeferredWarnings warnings) {
         this.src = source;
         this.parserSupport = support;
         this.warnings = warnings;
@@ -504,7 +504,7 @@ public class RubyLexer implements MagicCommentHandler {
         this.lex_strterm = strterm;
     }
 
-    public void setWarnings(RubyWarnings warnings) {
+    public void setWarnings(RubyDeferredWarnings warnings) {
         this.warnings = warnings;
     }
 
@@ -802,12 +802,10 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     private boolean arg_ambiguous() {
-        if (warnings.isVerbose()) {
-            warnings.warning(
-                    getFile(),
-                    getPosition().toSourceSection(src.getSource()).getStartLine(),
-                    "Ambiguous first argument; make sure.");
-        }
+        warnings.warning(
+                getFile(),
+                getPosition().toSourceSection(src.getSource()).getStartLine(),
+                "Ambiguous first argument; make sure.");
         return true;
     }
 
@@ -1115,12 +1113,10 @@ public class RubyLexer implements MagicCommentHandler {
         //a wrong position if the "inclusive" flag is not set.
         SourceIndexLength tmpPosition = getPosition();
         if (isSpaceArg(c, spaceSeen)) {
-            if (warnings.isVerbose()) {
-                warnings.warning(
-                        getFile(),
-                        tmpPosition.toSourceSection(src.getSource()).getStartLine(),
-                        "`&' interpreted as argument prefix");
-            }
+            warnings.warning(
+                    getFile(),
+                    tmpPosition.toSourceSection(src.getSource()).getStartLine(),
+                    "`&' interpreted as argument prefix");
             c = RubyParser.tAMPER;
         } else if (isBEG()) {
             c = RubyParser.tAMPER;
@@ -2310,12 +2306,10 @@ public class RubyLexer implements MagicCommentHandler {
                 yaccValue = RopeConstants.STAR_STAR;
 
                 if (isSpaceArg(c, spaceSeen)) {
-                    if (warnings.isVerbose()) {
-                        warnings.warning(
-                                getFile(),
-                                getPosition().toSourceSection(src.getSource()).getStartLine(),
-                                "`**' interpreted as argument prefix");
-                    }
+                    warnings.warning(
+                            getFile(),
+                            getPosition().toSourceSection(src.getSource()).getStartLine(),
+                            "`**' interpreted as argument prefix");
                     c = RubyParser.tDSTAR;
                 } else if (isBEG()) {
                     c = RubyParser.tDSTAR;
@@ -2331,12 +2325,10 @@ public class RubyLexer implements MagicCommentHandler {
             default:
                 pushback(c);
                 if (isSpaceArg(c, spaceSeen)) {
-                    if (warnings.isVerbose()) {
-                        warnings.warning(
-                                getFile(),
-                                getPosition().toSourceSection(src.getSource()).getStartLine(),
-                                "`*' interpreted as argument prefix");
-                    }
+                    warnings.warning(
+                            getFile(),
+                            getPosition().toSourceSection(src.getSource()).getStartLine(),
+                            "`*' interpreted as argument prefix");
                     c = RubyParser.tSTAR;
                 } else if (isBEG()) {
                     c = RubyParser.tSTAR;

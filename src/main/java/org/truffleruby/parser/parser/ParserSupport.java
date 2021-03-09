@@ -57,7 +57,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
 import org.truffleruby.parser.ast.ArgsCatParseNode;
@@ -178,10 +178,10 @@ public class ParserSupport {
 
     private final RubyContext context;
     private final String file;
-    private final RubyWarnings warnings;
+    private final RubyDeferredWarnings warnings;
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
-    public ParserSupport(RubyContext context, LexerSource source, RubyWarnings warnings) {
+    public ParserSupport(RubyContext context, LexerSource source, RubyDeferredWarnings warnings) {
         this.context = context;
         this.file = source.getSourcePath();
         this.warnings = warnings;
@@ -408,7 +408,7 @@ public class ParserSupport {
             head = new BlockParseNode(head.getPosition()).add(head);
         }
 
-        if (warnings.isVerbose() && isBreakStatement(((ListParseNode) head).getLast())) {
+        if (isVerbose() && isBreakStatement(((ListParseNode) head).getLast())) {
             warnings.warning(
                     file,
                     tail.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
@@ -418,6 +418,14 @@ public class ParserSupport {
         // Assumption: tail is never a list node
         ((ListParseNode) head).add(tail);
         return head;
+    }
+
+    private boolean isVerbose() {
+        return context != null && context.getCoreLibrary().isVerbose();
+    }
+
+    private boolean warningsEnabled() {
+        return context.getCoreLibrary().warningsEnabled();
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
@@ -642,7 +650,7 @@ public class ParserSupport {
      *
      * @param node to be checked. */
     public void checkUselessStatement(ParseNode node) {
-        if (!warnings.isVerbose() || (!configuration.isInlineSource() && configuration.isEvalParse())) {
+        if (!isVerbose() || (!configuration.isInlineSource() && configuration.isEvalParse())) {
             return;
         }
 
@@ -728,7 +736,7 @@ public class ParserSupport {
      *
      * @param blockNode to be checked. */
     public void checkUselessStatements(BlockParseNode blockNode) {
-        if (warnings.isVerbose()) {
+        if (isVerbose()) {
             ParseNode lastNode = blockNode.getLast();
 
             for (int i = 0; i < blockNode.size(); i++) {
@@ -1532,15 +1540,11 @@ public class ParserSupport {
     }
 
     public void warn(SourceIndexLength position, String message) {
-        if (warnings.warningsEnabled()) {
-            warnings.warn(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
-        }
+        warnings.warn(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
     }
 
     public void warning(SourceIndexLength position, String message) {
-        if (warnings.isVerbose()) {
-            warnings.warning(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
-        }
+        warnings.warning(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]
@@ -1699,7 +1703,7 @@ public class ParserSupport {
                 int slot = scope.isDefined(names[i]);
                 if (slot >= 0) {
                     // If verbose and the variable is not just another named capture, warn
-                    if (warnings.isVerbose() && !scope.isNamedCapture(slot)) {
+                    if (isVerbose() && !scope.isNamedCapture(slot)) {
                         warn(getPosition(regexpNode), "named capture conflicts a local variable - " + names[i]);
                     }
                 } else {
