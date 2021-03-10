@@ -44,7 +44,7 @@ local part_definitions = {
       },
 
       packages+: {
-        "mx": "5.274.1",
+        "mx": "5.285.1",
         "pip:ninja_syntax": "==1.7.2",  # Required by NFI and mx
       },
 
@@ -236,6 +236,9 @@ local part_definitions = {
       platform_name:: "LinuxAMD64",
       platform: "linux",
       arch:: "amd64",
+      packages+: {
+        ruby: "==" + mri_version,
+      },
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
@@ -245,6 +248,9 @@ local part_definitions = {
       platform_name:: "LinuxARM64",
       platform: "linux",
       arch:: "aarch64",
+      packages+: {
+        ruby: "==2.6.6",
+      },
       "$.cap":: {
         normal_machine: ["linux", "aarch64"],
       },
