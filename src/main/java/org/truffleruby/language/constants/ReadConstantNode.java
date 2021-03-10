@@ -41,17 +41,25 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object moduleObject = moduleNode.execute(frame);
-        return lookupAndGetConstant(checkModule(moduleObject));
+        return lookupAndGetConstant(evaluateModule(frame));
     }
 
     private Object lookupAndGetConstant(RubyModule module) {
+        return getGetConstantNode()
+                .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
+    }
+
+    public Object getConstant(RubyModule module, RubyConstant constant) {
+        return getGetConstantNode()
+                .executeGetConstant(LexicalScope.IGNORE, module, name, constant, getLookupConstantNode());
+    }
+
+    private GetConstantNode getGetConstantNode() {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
         }
-
-        return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, getLookupConstantNode());
+        return getConstantNode;
     }
 
     private LookupConstantNode getLookupConstantNode() {
@@ -62,40 +70,47 @@ public class ReadConstantNode extends RubyContextSourceNode {
         return lookupConstantNode;
     }
 
+    /** Evaluate the module part of the constant read. */
+    public RubyModule evaluateModule(VirtualFrame frame) {
+        return checkModule(moduleNode.execute(frame));
+    }
+
+    /** Whether the module part of this constant read is undefined, without attempting to evaluate it. */
+    public boolean isModuleTriviallyUndefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return moduleNode.isDefined(frame, language, context) == nil;
+    }
+
     @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
-        // TODO (eregon, 17 May 2016): We execute moduleNode twice here but we both want to make sure the LHS is defined and get the result value.
-        // Possible solution: have a isDefinedAndReturnValue()?
-        final Object isModuleDefined = moduleNode.isDefined(frame, language, context);
-        if (isModuleDefined == nil) {
+        if (isModuleTriviallyUndefined(frame, language, context)) {
             return nil;
         }
-
-        final Object moduleObject;
         try {
-            moduleObject = moduleNode.execute(frame);
+            final RubyModule module = checkModule(moduleNode.execute(frame));
+            final RubyConstant constant = getConstantIfDefined(module);
+            return constant == null ? nil : coreStrings().CONSTANT.createInstance(getContext());
         } catch (RaiseException e) {
-            // If reading the module raised an exception, it must have been an autoloaded module that failed while
-            // loading. MRI dictates that in this case we should swallow the exception and return `nil`.
-            return nil;
+            return nil; // MRI swallows all exceptions in defined? (https://bugs.ruby-lang.org/issues/5786)
         }
+    }
 
-        final RubyModule module = checkModule(moduleObject);
+    /** Given the module, returns the constant, it it is defined. Otherwise returns {@code null}. */
+    public RubyConstant getConstantIfDefined(RubyModule module) {
         final RubyConstant constant;
         try {
             constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name, true);
         } catch (RaiseException e) {
             if (e.getException().getLogicalClass() == coreLibrary().nameErrorClass) {
                 // private constant
-                return nil;
+                return null;
             }
             throw e;
         }
 
         if (ModuleOperations.isConstantDefined(constant)) {
-            return coreStrings().CONSTANT.createInstance(getContext());
+            return constant;
         } else {
-            return nil;
+            return null;
         }
     }
 

@@ -1272,7 +1272,7 @@ states[41] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[42] = (support, lexer, yyVal, yyVals, yyTop) -> {
     SourceIndexLength pos = ((ParseNode)yyVals[-4+yyTop]).getPosition();
-    yyVal = support.newOpConstAsgn(pos, support.new_colon2(pos, ((ParseNode)yyVals[-4+yyTop]), ((Rope)yyVals[-3+yyTop])), ((Rope)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+    yyVal = support.newOpConstAsgn(pos, support.new_colon2(pos, ((ParseNode)yyVals[-4+yyTop]), ((Rope)yyVals[-2+yyTop])), ((Rope)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[43] = (support, lexer, yyVal, yyVals, yyTop) -> {

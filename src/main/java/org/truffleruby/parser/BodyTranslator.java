@@ -67,6 +67,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.constants.OrAssignConstantNode;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
@@ -2296,11 +2297,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitOpAsgnConstDeclNode(OpAsgnConstDeclParseNode node) {
-        RubyNode lhs = node.getFirstNode().accept(this);
+        final ReadConstantNode lhs = (ReadConstantNode) node.getFirstNode().accept(this);
         RubyNode rhs = node.getSecondNode().accept(this);
 
         if (!(rhs instanceof WriteConstantNode)) {
-            rhs = ((ReadConstantNode) lhs).makeWriteNode(rhs);
+            rhs = lhs.makeWriteNode(rhs);
         }
 
         switch (node.getOperator()) {
@@ -2309,9 +2310,7 @@ public class BodyTranslator extends Translator {
             }
 
             case "||": {
-                final RubyNode defined = new DefinedNode(lhs);
-                lhs = new AndNode(defined, lhs);
-                return translateOpAsgOrNode(node, lhs, rhs);
+                return new OrAssignConstantNode(lhs, (WriteConstantNode) rhs);
             }
 
             default: {
@@ -2324,7 +2323,7 @@ public class BodyTranslator extends Translator {
                         false,
                         true);
                 final RubyNode opNode = language.coreMethodAssumptions.createCallNode(callParameters, environment);
-                final RubyNode ret = ((ReadConstantNode) lhs).makeWriteNode(opNode);
+                final RubyNode ret = lhs.makeWriteNode(opNode);
                 ret.unsafeSetSourceSection(sourceSection);
                 return addNewlineIfNeeded(node, ret);
             }
