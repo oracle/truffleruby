@@ -478,8 +478,13 @@ module Kernel
   end
   module_function :putc
 
-  def puts(*a)
-    $stdout.puts(*a)
+  def puts(*args)
+    stdout = $stdout
+    if Primitive.object_equal(self, stdout)
+      Truffle::IOOperations.puts(stdout, *args)
+    else
+      stdout.__send__(:puts, *args)
+    end
     nil
   end
   module_function :puts

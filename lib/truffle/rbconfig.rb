@@ -149,6 +149,7 @@ module RbConfig
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
     'EXEEXT'            => '',
+    'EXTOUT'            => '.ext',
     'extra_bindirs'     => extra_bindirs.join(File::PATH_SEPARATOR),
     'host_alias'        => '',
     'host_cpu'          => host_cpu,

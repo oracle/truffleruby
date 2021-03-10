@@ -1094,7 +1094,13 @@ module Commands
       elsif !pattern.start_with?(MRI_TEST_PREFIX)
         pattern = "#{MRI_TEST_PREFIX}/#{pattern}"
       end
-      glob = Dir.glob(pattern)
+      glob = Dir.glob(pattern).flat_map do |path|
+        if File.directory?(path)
+          Dir.glob("#{path}/**/test_*.rb")
+        else
+          path
+        end
+      end
       abort "pattern #{pattern} matched no files" if glob.empty?
       glob.map { |path| mri_test_name(path) }
     end.sort

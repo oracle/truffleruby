@@ -2308,7 +2308,7 @@ RULES
   def create_makefile(target, srcprefix = nil)
     if defined?(::TruffleRuby) and $LIBRUBYARG.to_s.strip.empty?
       # $LIBRUBYARG was explicitly unset, the built library is not a C extension but used with FFI (e.g., sassc does).
-      # Since $LIBRUBYARG is unset we won't link to libgraalvm-llvm.so, which is wanted.
+      # Since $LIBRUBYARG is unset we won't link to libgraalvm-llvm.so, which is expected.
       # In the case the library uses C++ code, libc++.so/libc++abi.so will be linked and needs to be found by NFI.
       # The toolchain does not pass -rpath automatically for libc++.so/libc++abi.so, so we do it.
       libcxx_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
@@ -2837,9 +2837,13 @@ MESSAGE
     "$(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
   if defined?(::TruffleRuby)
-    # We need to link to libtruffleruby for MakeMakefile#try_link to succeed
+    # We need to link to libtruffleruby for MakeMakefile#try_link to succeed.
+    # The created executable will link against both libgraalvm-llvm.so and libtruffleruby and
+    # might be executed for #try_constant and #try_run so we also need -rpath for both.
     libtruffleruby_dir = File.dirname(RbConfig::CONFIG['libtruffleruby'])
-    TRY_LINK << " -L#{libtruffleruby_dir} -ltruffleruby"
+    TRY_LINK << " -L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby"
+    libgraalvm_llvm_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
+    TRY_LINK << " -rpath #{libgraalvm_llvm_dir}"
   end
 
   ##

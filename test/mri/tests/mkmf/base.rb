@@ -1,11 +1,13 @@
 # frozen_string_literal: false
 $extmk = true
 require 'rbconfig'
-RbConfig.fire_update!("top_srcdir", File.expand_path("../..", __dir__))
-File.foreach(RbConfig::CONFIG["topdir"]+"/Makefile") do |line|
-  if /^CC_WRAPPER\s*=\s*/ =~ line
-    RbConfig.fire_update!('CC_WRAPPER', $'.strip)
-    break
+if RbConfig.respond_to?(:fire_update!)
+  RbConfig.fire_update!("top_srcdir", File.expand_path("../..", __dir__))
+  File.foreach(RbConfig::CONFIG["topdir"]+"/Makefile") do |line|
+    if /^CC_WRAPPER\s*=\s*/ =~ line
+      RbConfig.fire_update!('CC_WRAPPER', $'.strip)
+      break
+    end
   end
 end
 
@@ -122,6 +124,7 @@ module TestMkmf::Base
     }
     Logging.quiet = @quiet
     Logging.log_close
+    # puts nil, MKMFLOG[], nil # TruffleRuby: useful to debug if a test fails
     FileUtils.rm_f("mkmf.log")
     Dir.chdir(@curdir)
     FileUtils.rm_rf(@tmpdir)
