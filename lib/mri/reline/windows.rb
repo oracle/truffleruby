@@ -199,6 +199,20 @@ class Reline::Windows
     @@output_buf.unshift(c)
   end
 
+  def self.in_pasting?
+    not self.empty_buffer?
+  end
+
+  def self.empty_buffer?
+    if not @@input_buf.empty?
+      false
+    elsif @@kbhit.call == 0
+      true
+    else
+      false
+    end
+  end
+
   def self.get_screen_size
     csbi = 0.chr * 22
     @@GetConsoleScreenBufferInfo.call(@@hConsoleHandle, csbi)
@@ -219,7 +233,9 @@ class Reline::Windows
 
   def self.move_cursor_up(val)
     if val > 0
-      @@SetConsoleCursorPosition.call(@@hConsoleHandle, (cursor_pos.y - val) * 65536 + cursor_pos.x)
+      y = cursor_pos.y - val
+      y = 0 if y < 0
+      @@SetConsoleCursorPosition.call(@@hConsoleHandle, y * 65536 + cursor_pos.x)
     elsif val < 0
       move_cursor_down(-val)
     end
@@ -227,6 +243,9 @@ class Reline::Windows
 
   def self.move_cursor_down(val)
     if val > 0
+      screen_height = get_screen_size.first
+      y = cursor_pos.y + val
+      y = screen_height - 1 if y > (screen_height - 1)
       @@SetConsoleCursorPosition.call(@@hConsoleHandle, (cursor_pos.y + val) * 65536 + cursor_pos.x)
     elsif val < 0
       move_cursor_up(-val)
@@ -239,10 +258,13 @@ class Reline::Windows
     cursor = csbi[4, 4].unpack('L').first
     written = 0.chr * 4
     @@FillConsoleOutputCharacter.call(@@hConsoleHandle, 0x20, get_screen_size.last - cursor_pos.x, cursor, written)
+    @@FillConsoleOutputAttribute.call(@@hConsoleHandle, 0, get_screen_size.last - cursor_pos.x, cursor, written)
   end
 
   def self.scroll_down(val)
     return if val.zero?
+    screen_height = get_screen_size.first
+    val = screen_height - 1 if val > (screen_height - 1)
     scroll_rectangle = [0, val, get_screen_size.last, get_screen_size.first].pack('s4')
     destination_origin = 0 # y * 65536 + x
     fill = [' '.ord, 0].pack('SS')

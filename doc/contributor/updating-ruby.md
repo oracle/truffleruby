@@ -8,6 +8,17 @@ have to MRI source code while updating.
 You can re-run these instructions at any time to compare against unmodified
 MRI files.
 
+## Updating a specific default gem
+
+To update a specific default gem to a newer version than in the MRI release, run:
+```
+cd ruby
+git checkout -b truffleruby-updates-$VERSION vn_n_n
+ruby tool/sync_default_gems.rb $GEM
+```
+to update the default gem in MRI.
+Then follow the instructions below to reimport MRI files and to update default gems.
+
 ## Setup
 
 Set the environment variable `$VERSION` to the target version:
