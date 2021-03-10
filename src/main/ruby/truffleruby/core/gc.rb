@@ -89,20 +89,12 @@ module GC
       heap_available_slots: committed,
       heap_live_slots: used,
       heap_free_slots: committed - used,
-      total_allocated_objects: 0,
       used: used,
       committed: committed,
       init: init,
       max: max,
-      peak_used: 0,
-      peak_committed: 0,
-      peak_init: 0,
-      peak_max: 0,
-      last_used: 0,
-      last_committed: 0,
-      last_init: 0,
-      last_max: 0,
     }
+    stat.default = 0
 
     memory_pool_names.each_with_index do |memory_pool_name, i|
       # Populate memory pool specific stats
