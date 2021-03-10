@@ -76,10 +76,10 @@ module GC
   end
 
   def self.stat(option = nil)
-    time, count, minor_count, major_count, unknown_count, heap, memory_pool_names, memory_pool_info = Primitive.gc_stat()
+    time, count, minor_count, major_count, unknown_count, heap, memory_pool_names, memory_pool_info = Primitive.gc_stat
     used, committed, init, max = heap
 
-    # Initialize stat for statistics that come from memory pools, and populate it with some final stats
+    # Initialize stat for statistics that come from memory pools, and populate it with some final stats (ordering similar to MRI)
     stat = {
       count: count,
       time: time,
@@ -89,6 +89,7 @@ module GC
       heap_available_slots: committed,
       heap_live_slots: used,
       heap_free_slots: committed - used,
+      total_allocated_objects: 0,
       used: used,
       committed: committed,
       init: init,
