@@ -958,6 +958,7 @@ public abstract class RopeNodes {
             return rope.get(index) & 0xff;
         }
 
+        @TruffleBoundary
         @Specialization(guards = "rope.getRawBytes() == null")
         protected int getByte(LazyIntRope rope, int index) {
             return rope.getBytes()[index] & 0xff;
@@ -1384,11 +1385,12 @@ public abstract class RopeNodes {
 
         @Specialization
         protected CodeRange getCodeRangeNative(NativeRope rope,
+                @Cached BytesNode getBytes,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached ConditionProfile unknownCodeRangeProfile) {
             if (unknownCodeRangeProfile.profile(rope.getRawCodeRange() == CR_UNKNOWN)) {
                 final StringAttributes attributes = calculateAttributesNode
-                        .executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                        .executeCalculateAttributes(rope.getEncoding(), getBytes.execute(rope));
                 rope.updateAttributes(attributes);
                 return attributes.getCodeRange();
             } else {
@@ -1433,12 +1435,13 @@ public abstract class RopeNodes {
 
         @Specialization
         protected int getCharacterLengthNative(NativeRope rope,
+                @Cached BytesNode getBytes,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached ConditionProfile unknownCharacterLengthProfile) {
             if (unknownCharacterLengthProfile
                     .profile(rope.rawCharacterLength() == NativeRope.UNKNOWN_CHARACTER_LENGTH)) {
                 final StringAttributes attributes = calculateAttributesNode
-                        .executeCalculateAttributes(rope.getEncoding(), rope.getBytes());
+                        .executeCalculateAttributes(rope.getEncoding(), getBytes.execute(rope));
                 rope.updateAttributes(attributes);
                 return attributes.getCharacterLength();
             } else {

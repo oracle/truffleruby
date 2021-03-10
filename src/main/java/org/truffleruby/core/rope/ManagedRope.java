@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.rope;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import org.jcodings.Encoding;
 
 public abstract class ManagedRope extends Rope {
@@ -45,6 +46,7 @@ public abstract class ManagedRope extends Rope {
 
     @Override
     public final byte[] getBytes() {
+        CompilerAsserts.neverPartOfCompilation("Use RopeNodes.ByteNodes instead, or add a @TruffleBoundary.");
         if (bytes == null) {
             bytes = getBytesSlow();
         }
