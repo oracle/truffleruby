@@ -11,6 +11,10 @@ describe "GC.stat" do
     GC.stat(:count).should be_kind_of(Integer)
   end
 
+  it "returns nil for a non-existent stat" do
+    GC.stat(:does_not_exist).should be_nil
+  end
+
   it "increases count after GC is run" do
     count = GC.stat(:count)
     GC.start

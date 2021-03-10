@@ -130,12 +130,10 @@ module GC
       end
     end
 
-    return stat unless option
-
-    if stat[option]
+    if option
       stat[option]
     else
-      0
+      stat
     end
   end
 
