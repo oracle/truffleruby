@@ -157,6 +157,10 @@ Additionally, `FPE`, `ILL`, `KILL`, `SEGV`, `STOP`, and `VTALRM` cannot be trapp
 
 When TruffleRuby is run as part of a polyglot application, any signals that are handled by another language become unavailable for TruffleRuby to trap.
 
+### GC statistics
+
+TruffleRuby provides similar `GC.stat` statistics to MRI, but not all statistics are available, and some statistics may be approximations. Use `GC.stat.keys` to see which are provided with real or approximate values. Missing values will return `0`.
+
 ## Features with Very Low Performance
 
 ### `ObjectSpace`
