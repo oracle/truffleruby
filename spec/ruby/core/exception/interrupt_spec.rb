@@ -29,7 +29,7 @@ describe "rescuing Interrupt" do
       sleep
     rescue Interrupt => e
       e.signo.should == Signal.list["INT"]
-      e.signm.should == ""
+      ["", "Interrupt"].should.include?(e.message)
     end
   end
 end
