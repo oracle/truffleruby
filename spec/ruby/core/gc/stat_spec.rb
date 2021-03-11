@@ -25,13 +25,16 @@ describe "GC.stat" do
 
   it "provides some number for count" do
     GC.stat(:count).should be_kind_of(Integer)
+    GC.stat[:count].should be_kind_of(Integer)
   end
 
   it "provides some number for heap_free_slots" do
     GC.stat(:heap_free_slots).should be_kind_of(Integer)
+    GC.stat[:heap_free_slots].should be_kind_of(Integer)
   end
 
   it "provides some number for total_allocated_objects" do
     GC.stat(:total_allocated_objects).should be_kind_of(Integer)
+    GC.stat[:total_allocated_objects].should be_kind_of(Integer)
   end
 end
