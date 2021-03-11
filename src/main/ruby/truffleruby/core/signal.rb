@@ -117,7 +117,7 @@ module Signal
     end
 
     if number != Names['EXIT']
-      ret = Primitive.vm_watch_signal(signame, handler || 'IGNORE')
+      ret = Primitive.vm_watch_signal(signame, false, handler || 'IGNORE')
       if handler == 'DEFAULT' && !ret
         return +'SYSTEM_DEFAULT'
       end

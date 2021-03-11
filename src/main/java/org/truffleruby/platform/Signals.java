@@ -24,12 +24,18 @@ public class Signals {
     };
 
     // Use String and not Signal as key to work around SVM not allowing new Signal("PROF")
+    /** Default SignalHandlers for the JVM */
     private static final ConcurrentMap<String, SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
+    /** Default signal handlers for Ruby, only SIGINT and SIGALRM, see {@code core/main.rb} */
+    private static final ConcurrentMap<String, SignalHandler> RUBY_DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    public static void registerHandler(SignalHandler newHandler, String signalName) {
+    public static void registerHandler(SignalHandler newHandler, String signalName, boolean isRubyDefaultHandler) {
         final Signal signal = new Signal(signalName);
         final SignalHandler oldHandler = Signal.handle(signal, newHandler);
         DEFAULT_HANDLERS.putIfAbsent(signalName, oldHandler);
+        if (isRubyDefaultHandler) {
+            RUBY_DEFAULT_HANDLERS.putIfAbsent(signalName, newHandler);
+        }
     }
 
     public static void registerIgnoreHandler(String signalName) {
@@ -40,6 +46,22 @@ public class Signals {
 
     public static boolean restoreDefaultHandler(String signalName) {
         final SignalHandler defaultHandler = DEFAULT_HANDLERS.get(signalName);
+        if (defaultHandler == null) {
+            // it is already the default signal
+            return false;
+        } else {
+            final Signal signal = new Signal(signalName);
+            Signal.handle(signal, defaultHandler);
+            return true;
+        }
+    }
+
+    public static boolean restoreRubyDefaultHandler(String signalName) {
+        SignalHandler defaultHandler = RUBY_DEFAULT_HANDLERS.get(signalName);
+        if (defaultHandler == null) {
+            defaultHandler = DEFAULT_HANDLERS.get(signalName);
+        }
+
         if (defaultHandler == null) {
             // it is already the default signal
             return false;
