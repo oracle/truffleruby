@@ -1,0 +1,1 @@
+slow:Interrupt is raised on the main Thread by the default SIGINT handler
