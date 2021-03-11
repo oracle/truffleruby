@@ -75,7 +75,7 @@ module GC
     GC.start
   end
 
-  def self.stat(option = nil)
+  def self.stat(key = nil)
     time, count, minor_count, major_count, unknown_count, heap, memory_pool_names, memory_pool_info = Primitive.gc_stat
     used, committed, init, max = heap
 
@@ -96,34 +96,36 @@ module GC
     }
     stat.default = 0
 
-    memory_pool_names.each_with_index do |memory_pool_name, i|
-      # Populate memory pool specific stats
-      info = memory_pool_info[i]
-      if info
-        stat[memory_pool_name] = data = {
-          used: info[0],
-          committed: info[1],
-          init: info[2],
-          max: info[3],
-          peak_used: info[4],
-          peak_committed: info[5],
-          peak_init: info[6],
-          peak_max: info[7],
-          last_used: info[8],
-          last_committed: info[9],
-          last_init: info[10],
-          last_max: info[11],
-        }
+    unless Primitive.object_kind_of?(key, Symbol) # memory_pool_names are Strings
+      memory_pool_names.each_with_index do |memory_pool_name, i|
+        # Populate memory pool specific stats
+        info = memory_pool_info[i]
+        if info
+          stat[memory_pool_name] = data = {
+            used: info[0],
+            committed: info[1],
+            init: info[2],
+            max: info[3],
+            peak_used: info[4],
+            peak_committed: info[5],
+            peak_init: info[6],
+            peak_max: info[7],
+            last_used: info[8],
+            last_committed: info[9],
+            last_init: info[10],
+            last_max: info[11],
+          }
 
-        # Calculate stats across memory pools for peak_/last_ (we already know the values for current usage)
-        data.each_pair do |key, value|
-          stat[key] += value if key.start_with?('peak_', 'last_')
+          # Calculate stats across memory pools for peak_/last_ (we already know the values for current usage)
+          data.each_pair do |k,v|
+            stat[k] += v if k.start_with?('peak_', 'last_')
+          end
         end
       end
     end
 
-    if option
-      stat[option]
+    if key
+      stat[key]
     else
       stat
     end
