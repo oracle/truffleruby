@@ -228,7 +228,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })
-        protected boolean restoreDefault(Object signalString, Object action,
+        protected boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSignalString,
                 @CachedLibrary(limit = "2") RubyStringLibrary libAction) {
             final String actionString = libAction.getJavaString(action);
@@ -248,7 +248,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = "libSignalString.isRubyString(signalString)")
-        protected boolean watchSignalProc(Object signalString, RubyProc action,
+        protected boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc action,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
 
@@ -265,7 +265,7 @@ public abstract class VMPrimitiveNodes {
                         "Handling of signal " + signal,
                         SafepointPredicate.currentFiberOfThread(context, rootThread),
                         (rubyThread, currentNode) -> ProcOperations.rootCall(action, signal.getNumber()));
-            });
+            }, isRubyDefaultHandler);
         }
 
         @TruffleBoundary
@@ -277,7 +277,7 @@ public abstract class VMPrimitiveNodes {
             }
 
             try {
-                return Signals.restoreDefaultHandler(signalName);
+                return Signals.restoreRubyDefaultHandler(signalName);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -316,7 +316,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        private boolean registerHandler(String signalName, SignalHandler newHandler) {
+        private boolean registerHandler(String signalName, SignalHandler newHandler, boolean isRubyDefaultHandler) {
             if (getContext().getOptions().EMBEDDED) {
                 RubyLanguage.LOGGER.warning(
                         "trapping signal " + signalName +
@@ -324,7 +324,7 @@ public abstract class VMPrimitiveNodes {
             }
 
             try {
-                Signals.registerHandler(newHandler, signalName);
+                Signals.registerHandler(newHandler, signalName, isRubyDefaultHandler);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
