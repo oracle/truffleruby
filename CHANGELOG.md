@@ -25,6 +25,7 @@ Bug fixes:
 Compatibility:
 
 * Prepend the GraalVM LLVM Toolchain to `PATH` when installing gems (#1974, #1088, #1343, #1400, #1947, #1931, #1588).
+* Installing the `nokogiri` gem now defaults to use the vendored `libxml2` and `libxslt`, similar to CRuby, which means the corresponding system packages are no longer needed (#62).
 * Implemented `$LOAD_PATH.resolve_feature_path`.
 * Add `Pathname#/` alias to `Pathname#+` (#2178).
 * Fixed issue with large `Integer`s in `Math.log` (#2184).
