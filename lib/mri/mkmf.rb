@@ -48,13 +48,6 @@ if defined?(::TruffleRuby)
   end
 end
 
-if defined?(::TruffleRuby)
-  # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
-  # currently required as TruffleRuby cannot yet link to static libraries.
-  # See https://github.com/sparklemotion/nokogiri/pull/2085 when solving this.
-  ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'
-end
-
 if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-prepend-toolchain-to-path')
   ENV['PATH'] = "#{RbConfig::CONFIG['toolchain_path']}:#{ENV['PATH']}"
 end
