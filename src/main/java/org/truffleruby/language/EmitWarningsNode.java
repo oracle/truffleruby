@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 
 public class EmitWarningsNode extends RubyContextSourceNode {
 
-    private final RubyDeferredWarnings warnings;
+    public final RubyDeferredWarnings warnings;
 
     public EmitWarningsNode(RubyDeferredWarnings warnings) {
         this.warnings = warnings;
@@ -33,28 +33,38 @@ public class EmitWarningsNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final RubyContext context = getContext();
-        boolean isVerbose = context.getCoreLibrary().isVerbose();
-        boolean warningsEnabled = context.getCoreLibrary().warningsEnabled();
-        printWarnings(context, isVerbose, warningsEnabled);
+        printWarnings(context);
         return nil;
     }
 
+    public void printWarnings(RubyContext context) {
+        printWarnings(context, warnings);
+    }
+
     @TruffleBoundary
-    private void printWarnings(RubyContext context, boolean isVerbose, boolean warningsEnabled) {
-        for (RubyDeferredWarnings.WarningMessage warningMessage : warnings.warnings) {
-            if (warningMessage.verbosity == RubyDeferredWarnings.Verbosity.VERBOSE) {
-                if (isVerbose) {
-                    printWarning(context, warningMessage.message);
-                }
-            } else {
-                if (warningsEnabled) {
-                    printWarning(context, warningMessage.message);
+    public static void printWarnings(RubyContext context, RubyDeferredWarnings warnings) {
+        if (context == null) {
+            for (RubyDeferredWarnings.WarningMessage warningMessage : warnings.warnings) {
+                System.err.println(warningMessage.message);
+            }
+        } else {
+            boolean isVerbose = context.getCoreLibrary().isVerbose();
+            boolean warningsEnabled = context.getCoreLibrary().warningsEnabled();
+            for (RubyDeferredWarnings.WarningMessage warningMessage : warnings.warnings) {
+                if (warningMessage.verbosity == RubyDeferredWarnings.Verbosity.VERBOSE) {
+                    if (isVerbose) {
+                        printWarning(context, warningMessage.message);
+                    }
+                } else {
+                    if (warningsEnabled) {
+                        printWarning(context, warningMessage.message);
+                    }
                 }
             }
         }
     }
 
-    public static void printWarning(RubyContext context, String message) {
+    private static void printWarning(RubyContext context, String message) {
         if (context.getCoreLibrary().isLoaded()) {
             final Object warning = context.getCoreLibrary().warningModule;
             final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
@@ -63,7 +73,7 @@ public class EmitWarningsNode extends RubyContextSourceNode {
             RubyContext.send(warning, "warn", messageString);
         } else {
             try {
-                context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
+                context.getEnvErrStream().write(message.getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RaiseException(context, context.getCoreExceptions().ioError(e, null));
             }

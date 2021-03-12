@@ -37,4 +37,8 @@ public class CatchRetryAsErrorNode extends RubyContextSourceNode {
         }
     }
 
+    public RubyNode getBody() {
+        return body;
+    }
+
 }

@@ -26,6 +26,10 @@ public class CatchNextNode extends RubyContextSourceNode {
         this.body = body;
     }
 
+    public RubyNode getBody() {
+        return body;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         try {

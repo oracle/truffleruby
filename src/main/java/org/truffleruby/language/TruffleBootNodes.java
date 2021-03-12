@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -288,8 +289,14 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object innerCheckSyntax(RubySource source) {
-            getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
-
+            RubyContext context = getContext();
+            RubyRootNode rubyRootNode = context
+                    .getCodeLoader()
+                    .parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
+            EmitWarningsNode emitWarningsNode = NodeUtil.findFirstNodeInstance(rubyRootNode, EmitWarningsNode.class);
+            if (emitWarningsNode != null) {
+                emitWarningsNode.printWarnings(context);
+            }
             return nil;
         }
 

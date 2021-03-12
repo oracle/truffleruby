@@ -302,12 +302,6 @@ public class TranslatorDriver {
                     Arrays.asList(BodyTranslator.initFlipFlopStates(environment, sourceIndexLength), truffleNode));
         }
 
-        if (!rubyWarnings.warnings.isEmpty()) {
-            truffleNode = Translator.sequence(
-                    sourceIndexLength,
-                    Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
-        }
-
         if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {
             if (context.getOptions().PRINT_LOOP) {
                 truffleNode = Translator.sequence(
@@ -334,8 +328,15 @@ public class TranslatorDriver {
                     Arrays.asList(beginNode, truffleNode));
         }
 
+
         final RubyNode writeSelfNode = Translator.loadSelf(language, environment);
         truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
+
+        if (!rubyWarnings.warnings.isEmpty()) {
+            truffleNode = Translator.sequence(
+                    sourceIndexLength,
+                    Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
+        }
 
         // Catch next
 
@@ -416,11 +417,7 @@ public class TranslatorDriver {
             result = parser.parse(configuration);
         } catch (SyntaxException e) {
             if (!rubyWarnings.warnings.isEmpty()) {
-                if (context != null) {
-                    for (RubyDeferredWarnings.WarningMessage warningMessage : rubyWarnings.warnings) {
-                        EmitWarningsNode.printWarning(context, warningMessage.message);
-                    }
-                }
+                EmitWarningsNode.printWarnings(context, rubyWarnings);
             }
             switch (e.getPid()) {
                 case UNKNOWN_ENCODING:
