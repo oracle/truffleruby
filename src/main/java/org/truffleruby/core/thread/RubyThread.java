@@ -43,7 +43,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
     // Fields initialized here are initialized just after the super() call, and before the rest of the constructor
     public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
-    public volatile InterruptMode interruptMode = InterruptMode.IMMEDIATE;
+    public InterruptMode interruptMode = InterruptMode.IMMEDIATE; // only accessed by this Ruby Thread and its Fibers
     public volatile ThreadStatus status = ThreadStatus.RUN;
     public final List<Lock> ownedLocks = new ArrayList<>();
     public final FiberManager fiberManager;
