@@ -198,8 +198,8 @@ public final class SafepointManager {
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
                     // Possibly not in a context, so we cannot use TruffleLogger
-                    context.getEnvErrStream().println(String.format(
-                            "[ruby] SEVERE: waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking call - reason for the safepoint: %s",
+                    context.getLogger().severe(String.format(
+                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking call - reason for the safepoint: %s",
                             waits * WAIT_TIME_IN_SECONDS,
                             phaser.getUnarrivedParties(),
                             phaser.getRegisteredParties(),
@@ -209,8 +209,8 @@ public final class SafepointManager {
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
-                        context.getEnvErrStream().println(
-                                "[ruby] SEVERE: waited " + MAX_WAIT_TIME_IN_SECONDS +
+                        context.getLogger().severe(
+                                "waited " + MAX_WAIT_TIME_IN_SECONDS +
                                         " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
                         System.exit(1);
                     }
@@ -256,11 +256,11 @@ public final class SafepointManager {
 
     private void restoreDefaultInterruptHandler() {
         // Possibly not in a context, so we cannot use TruffleLogger
-        context.getEnvErrStream().println("[ruby] WARNING: restoring default interrupt handler");
+        context.getLogger().warning("restoring default interrupt handler");
         try {
             Signals.restoreDefaultHandler("INT");
         } catch (Throwable t) {
-            context.getEnvErrStream().println("[ruby] WARNING: failed to restore default interrupt handler\n" + t);
+            context.getLogger().warning("failed to restore default interrupt handler\n" + t);
         }
     }
 

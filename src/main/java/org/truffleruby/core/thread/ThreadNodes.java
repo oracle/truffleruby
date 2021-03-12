@@ -591,8 +591,8 @@ public abstract class ThreadNodes {
                         prev = truffleContext.enter(null);
                     } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
                         // Not in a context, so we cannot use TruffleLogger
-                        context.getEnvErrStream().println(
-                                "[ruby] SEVERE: could not unblock thread inside blocking call in C extension because " +
+                        context.getLogger().severe(
+                                "could not unblock thread inside blocking call in C extension because " +
                                         "the context does not allow multithreading (" + e.getMessage() + ")");
                         return;
                     }
