@@ -71,4 +71,20 @@ describe "ObjectSpace::WeakMap" do
     map.each_value { |v| a << v }
     a.should == ["X"]
   end
+
+  it "supports constant objects" do
+    map = ObjectSpace::WeakMap.new
+    map[1] = 2
+    Primitive.gc_force
+    map[1].should == 2
+  end
+
+  it "supports frozen objects" do
+    map = ObjectSpace::WeakMap.new
+    x = "x".freeze
+    y = "y".freeze
+    map[x] = y
+    Primitive.gc_force
+    map[x].should == y
+  end
 end

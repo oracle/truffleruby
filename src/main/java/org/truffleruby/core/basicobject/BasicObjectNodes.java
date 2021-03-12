@@ -117,11 +117,18 @@ public abstract class BasicObjectNodes {
     /** This node is not trivial because primitives must be compared by value and never by identity. Also, this node
      * must consider (byte) n and (short) n and (int) n and (long) n equal, as well as (float) n and (double) n. So even
      * if a and b have different classes they might still be equal if they are primitives. */
+    @GenerateUncached
+    @GenerateNodeFactory
     @CoreMethod(names = { "equal?", "==" }, required = 1)
-    public abstract static class ReferenceEqualNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    public abstract static class ReferenceEqualNode extends RubySourceNode {
 
         public static ReferenceEqualNode create() {
             return ReferenceEqualNodeFactory.create(null);
+        }
+
+        public static ReferenceEqualNode getUncached() {
+            return ReferenceEqualNodeFactory.getUncached();
         }
 
         public abstract boolean executeReferenceEqual(Object a, Object b);
