@@ -1,0 +1,5 @@
+#!/bin/bash
+
+function jt {
+  ruby tool/jt.rb "$@"
+}

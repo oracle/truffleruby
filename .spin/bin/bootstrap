@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -ex
+source .spin/bin/env
+
+sudo apt-get install -y cmake libssl-dev libz-dev python
+
+jt install jvmci
+jt install eclipse
+jt mx sforceimports
+jt build
+jt ruby --version
