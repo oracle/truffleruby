@@ -21,6 +21,8 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
+import com.oracle.truffle.api.interop.UnknownKeyException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -1996,6 +1998,198 @@ public abstract class InteropNodes {
             }
         }
     }
+    // endregion
+
+    // region Hash
+
+    @CoreMethod(names = "has_hash_entries?", onSingleton = true, required = 1)
+    public abstract static class HasHashEntriesNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hasHashEntriesNode(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.hasHashEntries(receiver);
+        }
+    }
+
+
+    @CoreMethod(names = "hash_entries_iterator", onSingleton = true, required = 1)
+    public abstract static class HashEntriesIteratorNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object hashEntriesIterator(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getHashEntriesIterator(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "hash_entry_existing?", onSingleton = true, required = 2)
+    public abstract static class HashEntryExistingNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hashEntryExisting(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isHashEntryExisting(receiver, key);
+        }
+    }
+
+    @CoreMethod(names = "hash_entry_insertable?", onSingleton = true, required = 2)
+    public abstract static class HashEntryInsertableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hashEntryInsertable(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isHashEntryInsertable(receiver, key);
+        }
+    }
+
+    @CoreMethod(names = "hash_entry_modifiable?", onSingleton = true, required = 2)
+    public abstract static class HashEntryModifiableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hashEntryModifiable(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isHashEntryModifiable(receiver, key);
+        }
+    }
+
+    @CoreMethod(names = "hash_entry_readable?", onSingleton = true, required = 2)
+    public abstract static class HashEntryReadableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hashEntryReadable(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isHashEntryReadable(receiver, key);
+        }
+    }
+
+    @CoreMethod(names = "hash_entry_removable?", onSingleton = true, required = 2)
+    public abstract static class HashEntryRemovableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hashEntryRemovable(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isHashEntryRemovable(receiver, key);
+        }
+    }
+
+
+    @CoreMethod(names = "hash_entry_writable?", onSingleton = true, required = 2)
+    public abstract static class HashEntryWritableNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected boolean hashEntryWritable(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop) {
+            return interop.isHashEntryWritable(receiver, key);
+        }
+    }
+
+    @CoreMethod(names = "hash_keys_iterator", onSingleton = true, required = 1)
+    public abstract static class HashKeysIteratorNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object hashKeysIterator(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getHashKeysIterator(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "hash_size", onSingleton = true, required = 1)
+    public abstract static class HashSizeNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected long hashSize(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getHashSize(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "hash_values_iterator", onSingleton = true, required = 1)
+    public abstract static class HashValuesIteratorNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object hashValuesIterator(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.getHashValuesIterator(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+
+    @CoreMethod(names = "read_hash_value", onSingleton = true, required = 2)
+    public abstract static class ReadHashValueNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object readHashValue(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readHashValue(receiver, key);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            } catch (UnknownKeyException e) {
+                return nil;
+            }
+        }
+    }
+
+    @CoreMethod(names = "read_hash_value_or_default", onSingleton = true, required = 3)
+    public abstract static class ReadHashValueOrDefaultNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object readHashValueOrDefault(Object receiver, Object key, Object defaultValue,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                return interop.readHashValueOrDefault(receiver, key, defaultValue);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "remove_hash_entry", onSingleton = true, required = 2)
+    public abstract static class RemoveHashEntryNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object removeHashEntry(Object receiver, Object key,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                interop.removeHashEntry(receiver, key);
+                return nil;
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            } catch (UnknownKeyException e) {
+                return nil;
+            }
+        }
+    }
+
+    @CoreMethod(names = "write_hash_entry", onSingleton = true, required = 3)
+    public abstract static class WriteHashEntryNode extends InteropCoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getCacheLimit()")
+        protected Object writeHashEntry(Object receiver, Object key, Object value,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                interop.writeHashEntry(receiver, key, value);
+                return nil;
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            } catch (UnknownKeyException e) {
+                return nil;
+            } catch (UnsupportedTypeException e) {
+                throw translateInteropException.execute(e);
+            }
+        }
+    }
+
     // endregion
 
     // region Identity
