@@ -24,7 +24,7 @@ describe "Kernel#sleep" do
 
   it "accepts any Object that reponds to divmod" do
     o = Object.new
-    def o.divmod(*); [1,0.2]; end
+    def o.divmod(*); [0, 0.001]; end
     sleep(o).should >= 0
   end
 
