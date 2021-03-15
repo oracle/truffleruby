@@ -192,6 +192,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY_GRAALVM_LICENSES',
     ],
     priority=5,
+    stability="experimental",
 ))
 
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
@@ -251,6 +252,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             ]
         )
     ],
+    stability="experimental",
     post_install_msg="""
 IMPORTANT NOTE:
 ---------------
