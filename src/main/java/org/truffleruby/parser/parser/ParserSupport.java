@@ -47,7 +47,7 @@ import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.regexp.ClassicRegexp;
@@ -176,19 +176,13 @@ public class ParserSupport {
     protected ParserConfiguration configuration;
     private RubyParserResult result;
 
-    private final RubyContext context;
     private final String file;
     private final RubyDeferredWarnings warnings;
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
-    public ParserSupport(RubyContext context, LexerSource source, RubyDeferredWarnings warnings) {
-        this.context = context;
+    public ParserSupport(LexerSource source, RubyDeferredWarnings warnings) {
         this.file = source.getSourcePath();
         this.warnings = warnings;
-    }
-
-    public RubyContext getContext() {
-        return context;
     }
 
     public void reset() {
@@ -408,7 +402,7 @@ public class ParserSupport {
             head = new BlockParseNode(head.getPosition()).add(head);
         }
 
-        if (isVerbose() && isBreakStatement(((ListParseNode) head).getLast())) {
+        if (isBreakStatement(((ListParseNode) head).getLast())) {
             warnings.warning(
                     file,
                     tail.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
@@ -418,14 +412,6 @@ public class ParserSupport {
         // Assumption: tail is never a list node
         ((ListParseNode) head).add(tail);
         return head;
-    }
-
-    private boolean isVerbose() {
-        return context != null && context.getCoreLibrary().isVerbose();
-    }
-
-    private boolean warningsEnabled() {
-        return context.getCoreLibrary().warningsEnabled();
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
@@ -640,7 +626,7 @@ public class ParserSupport {
     }
 
     private void handleUselessWarn(ParseNode node, String useless) {
-        warnings.warn(
+        warnings.warning(
                 file,
                 node.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
                 "Useless use of " + useless + " in void context.");
@@ -650,7 +636,7 @@ public class ParserSupport {
      *
      * @param node to be checked. */
     public void checkUselessStatement(ParseNode node) {
-        if (!isVerbose() || (!configuration.isInlineSource() && configuration.isEvalParse())) {
+        if (!configuration.isInlineSource() && configuration.isEvalParse()) {
             return;
         }
 
@@ -736,15 +722,13 @@ public class ParserSupport {
      *
      * @param blockNode to be checked. */
     public void checkUselessStatements(BlockParseNode blockNode) {
-        if (isVerbose()) {
-            ParseNode lastNode = blockNode.getLast();
+        ParseNode lastNode = blockNode.getLast();
 
-            for (int i = 0; i < blockNode.size(); i++) {
-                ParseNode currentNode = blockNode.get(i);
+        for (int i = 0; i < blockNode.size(); i++) {
+            ParseNode currentNode = blockNode.get(i);
 
-                if (lastNode != currentNode) {
-                    checkUselessStatement(currentNode);
-                }
+            if (lastNode != currentNode) {
+                checkUselessStatement(currentNode);
             }
         }
     }
@@ -1271,7 +1255,7 @@ public class ParserSupport {
     private void checkSymbolCodeRange(SymbolParseNode symbolParseNode) {
         if (symbolParseNode.getRope().getCodeRange() == CR_BROKEN) {
             throw new RaiseException(
-                    getContext(),
+                    RubyLanguage.getCurrentContext(),
                     getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
         }
     }
@@ -1703,7 +1687,7 @@ public class ParserSupport {
                 int slot = scope.isDefined(names[i]);
                 if (slot >= 0) {
                     // If verbose and the variable is not just another named capture, warn
-                    if (isVerbose() && !scope.isNamedCapture(slot)) {
+                    if (!scope.isNamedCapture(slot)) {
                         warn(getPosition(regexpNode), "named capture conflicts a local variable - " + names[i]);
                     }
                 } else {
@@ -1746,7 +1730,7 @@ public class ParserSupport {
         }
 
         throw new RaiseException(
-                getContext(),
+                RubyLanguage.getCurrentContext(),
                 getConfiguration().getContext().getCoreExceptions().syntaxError(
                         errorMessage + message,
                         null,

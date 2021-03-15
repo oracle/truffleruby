@@ -411,7 +411,7 @@ public class TranslatorDriver {
             configuration.parseAsBlock(blockScope);
         }
 
-        RubyParser parser = new RubyParser(context, lexerSource, rubyWarnings);
+        RubyParser parser = new RubyParser(lexerSource, rubyWarnings);
         RubyParserResult result;
         try {
             result = parser.parse(configuration);

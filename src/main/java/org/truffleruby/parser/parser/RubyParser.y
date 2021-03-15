@@ -3,7 +3,6 @@ package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -115,8 +114,8 @@ public class RubyParser {
     protected final ParserSupport support;
     protected final RubyLexer lexer;
 
-    public RubyParser(RubyContext context, LexerSource source, RubyDeferredWarnings warnings) {
-        this.support = new ParserSupport(context, source, warnings);
+    public RubyParser(LexerSource source, RubyDeferredWarnings warnings) {
+        this.support = new ParserSupport(source, warnings);
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }

@@ -403,7 +403,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     protected void setCompileOptionFlag(String name, Rope value) {
         if (tokenSeen) {
-            warnings.warn(
+            warnings.warning(
                     getFile(),
                     getPosition().toSourceSection(src.getSource()).getStartLine(),
                     "`" + name + "' is ignored after any tokens");
@@ -851,15 +851,10 @@ public class RubyLexer implements MagicCommentHandler {
                 case '#': { /* it's a comment */
                     this.tokenSeen = tokenSeen;
 
-                    // There are no magic comments that can affect any runtime options after a token has been seen, so there's
-                    // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
-                    // so we can report that it will be ignored.
-                    if (!tokenSeen || (parserSupport.getContext() != null &&
-                            parserSupport.getContext().getCoreLibrary().isVerbose())) {
-                        if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
-                            if (comment_at_top()) {
-                                set_file_encoding(lex_p, lex_pend);
-                            }
+                    // Always scan for magic comments, verbosity is not known at this time.
+                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
+                        if (comment_at_top()) {
+                            set_file_encoding(lex_p, lex_pend);
                         }
                     }
 
