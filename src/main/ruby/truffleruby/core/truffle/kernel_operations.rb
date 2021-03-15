@@ -26,7 +26,7 @@ module Truffle
       unless duration.respond_to?(:divmod)
         raise TypeError, "can't convert #{duration.class} into time interval"
       end
-      a,b = duration.divmod(1)
+      a, b = duration.divmod(1)
       ((a + b) * 1000)
     end
 

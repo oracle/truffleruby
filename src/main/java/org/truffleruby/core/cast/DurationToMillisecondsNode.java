@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -25,8 +24,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 @NodeChild(value = "duration", type = RubyNode.class)
 public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
-
-    @Child private DispatchNode durationToMilliseconds;
 
     private final ConditionProfile durationLessThanZeroProfile = ConditionProfile.create();
     private final boolean acceptsNil;
@@ -68,12 +65,8 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object duration(RubyDynamicObject duration,
+            @Cached DispatchNode durationToMilliseconds,
             @Cached ToLongNode toLongNode) {
-        if (durationToMilliseconds == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            durationToMilliseconds = insert(DispatchNode.create());
-        }
-
         return toLongNode.execute(durationToMilliseconds.call(
                 coreLibrary().truffleKernelOperationsModule,
                 "convert_duration_to_milliseconds",
