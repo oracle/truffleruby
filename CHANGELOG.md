@@ -70,6 +70,7 @@ Compatibility:
 * Improved compatibility of `Signal.trap` and `Kernel#trap` (#2287, @chrisseaton).
 * Implemented `GC.stat(:total_allocated_objects)` as `0` (#2292, @chrisseaton).
 * `ObjectSpace::WeakMap` now supports immediate and frozen values as both keys and values (#2267).
+* Call `divmod` when coercion to `Float` fails for `#sleep` (#2289, @LillianZ).
 
 Performance:
 

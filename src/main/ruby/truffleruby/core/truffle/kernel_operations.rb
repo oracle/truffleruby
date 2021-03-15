@@ -22,6 +22,14 @@ module Truffle
       enum.to_enum(method) { enum.send(size_method) }
     end
 
+    def self.convert_duration_to_milliseconds(duration)
+      unless duration.respond_to?(:divmod)
+        raise TypeError, "can't convert #{duration.class} into time interval"
+      end
+      a, b = duration.divmod(1)
+      ((a + b) * 1000)
+    end
+
     def self.define_hooked_variable(name, getter, setter, defined = proc { 'global-variable' })
       define_hooked_variable_with_is_defined(name, getter, setter, defined)
     end
