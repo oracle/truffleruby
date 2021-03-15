@@ -67,10 +67,11 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
     protected Object duration(RubyDynamicObject duration,
             @Cached DispatchNode durationToMilliseconds,
             @Cached ToLongNode toLongNode) {
-        return toLongNode.execute(durationToMilliseconds.call(
+        final Object milliseconds = durationToMilliseconds.call(
                 coreLibrary().truffleKernelOperationsModule,
                 "convert_duration_to_milliseconds",
-                duration));
+                duration);
+        return validate(toLongNode.execute(milliseconds));
     }
 
     private long validate(long durationInMillis) {
