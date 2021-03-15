@@ -47,12 +47,31 @@ public class RubyDeferredWarnings implements WarnCallback {
 
     public class WarningMessage {
         public final Verbosity verbosity;
-        public final String message;
+        private final String fileName;
+        private final Integer lineNumber;
+        private final String message;
 
-        public WarningMessage(Verbosity verbosity, String message) {
+        public WarningMessage(Verbosity verbosity, String fileName, Integer lineNumber, String message) {
             this.verbosity = verbosity;
+            this.fileName = fileName;
+            this.lineNumber = lineNumber;
             this.message = message;
         }
+
+        public String getWarningMessage() {
+            StringBuilder buffer = new StringBuilder(100);
+            if (fileName != null) {
+                buffer.append(fileName);
+                if (lineNumber != null) {
+                    buffer.append(':').append(lineNumber).append(": ");
+                } else {
+                    buffer.append(' ');
+                }
+            }
+            buffer.append("warning: ").append(message).append('\n');
+            return buffer.toString();
+        }
+
     }
 
     @Override
@@ -62,29 +81,22 @@ public class RubyDeferredWarnings implements WarnCallback {
 
     /** Prints a warning, unless $VERBOSE is nil. */
     public void warn(String fileName, int lineNumber, String message) {
-        warnings.add(new WarningMessage(Verbosity.NON_VERBOSE, makeWarningMessage(fileName, lineNumber, message)));
+        warnings.add(new WarningMessage(Verbosity.NON_VERBOSE, fileName, lineNumber, message));
     }
 
     /** Prints a warning, unless $VERBOSE is nil. */
     public void warn(String fileName, String message) {
-        StringBuilder buffer = new StringBuilder(100);
-        if (fileName != null) {
-            buffer.append(fileName).append(' ');
-        }
-        buffer.append("warning: ").append(message).append('\n');
-        warnings.add(new WarningMessage(Verbosity.NON_VERBOSE, buffer.toString()));
+        warnings.add(new WarningMessage(Verbosity.NON_VERBOSE, fileName, null, message));
     }
 
-    private String makeWarningMessage(String fileName, int lineNumber, String message) {
-        StringBuilder buffer = new StringBuilder(100);
-        buffer.append(fileName).append(':').append(lineNumber).append(": ");
-        buffer.append("warning: ").append(message).append('\n');
-        return buffer.toString();
-    }
-
-    /** Prints a warning, only in verbose mode. */
+    /** Prints a warning, only if $VERBOSE is true. */
     public void warning(String fileName, int lineNumber, String message) {
-        warnings.add(new WarningMessage(Verbosity.VERBOSE, makeWarningMessage(fileName, lineNumber, message)));
+        warnings.add(
+                new WarningMessage(
+                        Verbosity.VERBOSE,
+                        fileName,
+                        lineNumber,
+                        message));
     }
 
 }

@@ -45,7 +45,7 @@ public class EmitWarningsNode extends RubyContextSourceNode {
     public static void printWarnings(RubyContext context, RubyDeferredWarnings warnings) {
         if (context == null) {
             for (RubyDeferredWarnings.WarningMessage warningMessage : warnings.warnings) {
-                System.err.println(warningMessage.message);
+                System.err.println(warningMessage.getWarningMessage());
             }
         } else {
             boolean isVerbose = context.getCoreLibrary().isVerbose();
@@ -53,11 +53,11 @@ public class EmitWarningsNode extends RubyContextSourceNode {
             for (RubyDeferredWarnings.WarningMessage warningMessage : warnings.warnings) {
                 if (warningMessage.verbosity == RubyDeferredWarnings.Verbosity.VERBOSE) {
                     if (isVerbose) {
-                        printWarning(context, warningMessage.message);
+                        printWarning(context, warningMessage.getWarningMessage());
                     }
                 } else {
                     if (warningsEnabled) {
-                        printWarning(context, warningMessage.message);
+                        printWarning(context, warningMessage.getWarningMessage());
                     }
                 }
             }

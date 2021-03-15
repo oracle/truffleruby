@@ -67,7 +67,7 @@ public class ParserCache {
         if (!rubyWarnings.warnings.isEmpty()) {
             throw new RuntimeException("Core files should not emit warnings: " + String.join(
                     ", ",
-                    rubyWarnings.warnings.stream().map(w -> w.message).collect(Collectors.toList())));
+                    rubyWarnings.warnings.stream().map(w -> w.getWarningMessage()).collect(Collectors.toList())));
         }
         return rootParseNode;
     }

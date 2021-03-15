@@ -91,7 +91,7 @@ public class RubyWarnings implements WarnCallback {
         printWarning(buffer.toString());
     }
 
-    /** Prints a warning, only in verbose mode. */
+    /** Prints a warning, only if $VERBOSE is true. */
     public void warning(String fileName, int lineNumber, String message) {
         if (!isVerbose()) {
             return;
