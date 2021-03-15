@@ -2108,6 +2108,7 @@ public abstract class StringNodes {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
+        @TruffleBoundary
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
         protected RubyString dumpAsciiCompatible(Object string,
                 @Cached LogicalClassNode logicalClassNode,
@@ -3932,6 +3933,7 @@ public abstract class StringNodes {
                         "!isSingleByteOptimizable(strings.getRope(string), singleByteOptimizableNode)" })
         protected Object stringFindCharacter(Object string, int offset,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached RopeNodes.BytesNode getBytes,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
@@ -3942,7 +3944,7 @@ public abstract class StringNodes {
             final CodeRange cr = codeRangeNode.execute(rope);
 
             final int clen = calculateCharacterLengthNode
-                    .characterLength(enc, cr, rope.getBytes(), offset, offset + enc.maxLength());
+                    .characterLength(enc, cr, getBytes.execute(rope), offset, offset + enc.maxLength());
 
             return substringNode.executeSubstring(string, offset, clen);
         }

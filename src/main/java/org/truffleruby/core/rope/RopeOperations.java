@@ -290,7 +290,7 @@ public class RopeOperations {
     }
 
     /** This method should not be used directly, because it does not cache the result in the Rope. Use
-     * {@link Rope#getBytes()} instead.
+     * {@link RopeNodes.BytesNode} or {@link Rope#getBytes()} instead.
      *
      * Performs an iterative depth first search of the Rope tree to calculate its byte[] without needing to populate the
      * byte[] for each level beneath. Every LeafRope has its byte[] populated by definition. The goal is to determine

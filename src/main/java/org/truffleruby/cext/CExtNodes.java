@@ -942,12 +942,14 @@ public class CExtNodes {
 
         @Specialization(guards = "strings.isRubyString(string)")
         protected int size(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached RopeNodes.BytesNode getBytes) {
             final Rope rope = strings.getRope(string);
+            final byte[] bytes = getBytes.execute(rope);
             final int byteLength = rope.byteLength();
             int i = 0;
             for (; i < byteLength; i++) {
-                if (rope.get(i) == 0) {
+                if (bytes[i] == 0) {
                     return i;
                 }
             }
@@ -1209,8 +1211,9 @@ public class CExtNodes {
         protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, Object string, Object write_p, Object p,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @CachedLibrary("write_p") InteropLibrary receivers,
+                @Cached RopeNodes.BytesNode getBytes,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
-            final byte[] bytes = strings.getRope(string).getBytes();
+            final byte[] bytes = getBytes.execute(strings.getRope(string));
             final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
             intHolder.value = 0;
@@ -1277,6 +1280,7 @@ public class CExtNodes {
         @Specialization(guards = "strings.isRubyString(string)")
         protected Object rbEncMbLen(RubyEncoding enc, Object string, int p, int e,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached RopeNodes.BytesNode getBytes,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = enc.encoding;
@@ -1288,7 +1292,7 @@ public class CExtNodes {
                     sameEncodingProfile.profile(encoding == ropeEncoding)
                             ? codeRangeNode.execute(rope)
                             : CodeRange.CR_UNKNOWN,
-                    strings.getRope(string).getBytes(),
+                    getBytes.execute(strings.getRope(string)),
                     p,
                     e,
                     true);
@@ -1331,6 +1335,7 @@ public class CExtNodes {
         protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached RopeNodes.BytesNode getBytes,
                 @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = enc.encoding;
             final Rope rope = strings.getRope(string);
@@ -1341,7 +1346,8 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            final int length = calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
+            final int length = calculateCharacterLengthNode
+                    .characterLength(encoding, cr, getBytes.execute(rope), p, end);
             assert end - p >= length; // assert this condition not reached: https://github.com/ruby/ruby/blob/46a5d1b4a63f624f2c5c5b6f710cc1a176c88b02/encoding.c#L1046
             return length;
         }
