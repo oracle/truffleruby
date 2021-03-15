@@ -68,6 +68,7 @@ Compatibility:
 * Implemented `Kernel#raise` `cause` parameter.
 * Improved compatibility of `Signal.trap` and `Kernel#trap` (#2287, @chrisseaton).
 * Implemented `GC.stat(:total_allocated_objects)` as `0` (#2292, @chrisseaton).
+* Call `divmod` when coercion to `Float` fails for `#sleep` (#2289, @LillianZ).
 
 Performance:
 
