@@ -36,6 +36,7 @@ public abstract class ReadStringNode extends FormatNode {
     private final boolean inspectOnConversionFailure;
     private final Object valueOnNil;
     private final Integer precision;
+    private final boolean specialClassBehaviour;
 
     @Child private ToStringNode toStringNode;
     @Child private TruncateStringNode truncateStringNode;
@@ -46,11 +47,22 @@ public abstract class ReadStringNode extends FormatNode {
             boolean inspectOnConversionFailure,
             Object valueOnNil,
             Integer precision) {
+        this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, valueOnNil, precision, false);
+    }
+
+    public ReadStringNode(
+            boolean convertNumbersToStrings,
+            String conversionMethod,
+            boolean inspectOnConversionFailure,
+            Object valueOnNil,
+            Integer precision,
+            boolean specialClassBehaviour) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
         this.valueOnNil = valueOnNil;
         this.precision = precision;
+        this.specialClassBehaviour = specialClassBehaviour;
     }
 
     @Specialization(limit = "storageStrategyLimit()")
@@ -67,6 +79,7 @@ public abstract class ReadStringNode extends FormatNode {
                     conversionMethod,
                     inspectOnConversionFailure,
                     valueOnNil,
+                    specialClassBehaviour,
                     WriteByteNodeGen.create(new LiteralFormatNode((byte) 0))));
         }
 

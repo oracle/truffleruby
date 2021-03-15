@@ -16,6 +16,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.Nil;
@@ -38,6 +39,7 @@ public abstract class ToStringNode extends FormatNode {
     private final String conversionMethod;
     private final boolean inspectOnConversionFailure;
     private final Object valueOnNil;
+    protected final boolean specialClassBehaviour;
 
     @Child private DispatchNode toStrNode;
     @Child private DispatchNode toSNode;
@@ -48,10 +50,20 @@ public abstract class ToStringNode extends FormatNode {
             String conversionMethod,
             boolean inspectOnConversionFailure,
             Object valueOnNil) {
+        this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, valueOnNil, false);
+    }
+
+    public ToStringNode(
+            boolean convertNumbersToStrings,
+            String conversionMethod,
+            boolean inspectOnConversionFailure,
+            Object valueOnNil,
+            boolean specialClassBehaviour) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
         this.valueOnNil = valueOnNil;
+        this.specialClassBehaviour = specialClassBehaviour;
     }
 
     public abstract Object executeToString(VirtualFrame frame, Object object);
@@ -77,6 +89,22 @@ public abstract class ToStringNode extends FormatNode {
     @Specialization(guards = "convertNumbersToStrings")
     protected byte[] toString(double value) {
         return RopeOperations.encodeAsciiBytes(Double.toString(value));
+    }
+
+    @TruffleBoundary
+    @Specialization(guards = "specialClassBehaviour")
+    protected byte[] toStringSpecialClass(RubyClass rubyClass,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString,
+            @Cached RopeNodes.BytesNode bytesNode) {
+        if (rubyClass == getContext().getCoreLibrary().trueClass) {
+            return RopeOperations.encodeAsciiBytes("true");
+        } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
+            return RopeOperations.encodeAsciiBytes("false");
+        } else if (rubyClass == getContext().getCoreLibrary().nilClass) {
+            return RopeOperations.encodeAsciiBytes("nil");
+        } else {
+            return toString(rubyClass, libString, bytesNode);
+        }
     }
 
     @Specialization(guards = "libString.isRubyString(string)")

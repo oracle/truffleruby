@@ -10,6 +10,7 @@
 package org.truffleruby.cext;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -34,10 +35,17 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.format.BytesResult;
+import org.truffleruby.core.format.FormatExceptionTranslator;
+import org.truffleruby.core.format.exceptions.FormatException;
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.core.format.rbsprintf.RBSprintfCompiler;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -59,6 +67,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
@@ -84,6 +93,7 @@ import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -99,16 +109,21 @@ import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -1638,6 +1653,15 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_tr_force_native_function", onSingleton = true, required = 0)
+    public abstract static class ToNativeFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object wrapFunction() {
+            return new ValueWrapperManager.ToNativeObjectFunction();
+        }
+    }
+
     @CoreMethod(names = "rb_check_symbol_cstr", onSingleton = true, required = 1)
     public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
         @Specialization(guards = "strings.isRubyString(string)")
@@ -1657,6 +1681,128 @@ public class CExtNodes {
                 @Cached UnwrapCArrayNode unwrapCArrayNode) {
             final Object[] values = unwrapCArrayNode.execute(cArray);
             return createArray(values);
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_sprintf", onSingleton = true, required = 4)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @ReportPolymorphism
+    public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
+                .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
+
+        private final BranchProfile exceptionProfile = BranchProfile.create();
+        private final ConditionProfile resizeProfile = ConditionProfile.create();
+
+        @Specialization(
+                guards = {
+                        "libFormat.isRubyString(format)",
+                        "equalNode.execute(libFormat.getRope(format), cachedFormatRope)" },
+                limit = "2")
+        protected RubyString formatCached(
+                VirtualFrame frame, Object format, Object fetcher, Object stringReader, Object args,
+                @CachedLibrary("fetcher") InteropLibrary fetchers,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached WrapNode wrapNode,
+                @Cached UnwrapNode unwrapNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
+                @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
+                @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
+                @Cached("create(compileFormat(format, libFormat, stringReader))") DirectCallNode formatNode,
+                @Cached("compileArgTypes(format, libFormat)") Object typeList,
+                @Cached RopeNodes.EqualNode equalNode) {
+            final BytesResult result;
+            final Object argArray = unwrapNode.execute(InteropNodes.execute(
+                    fetcher,
+                    new Object[]{ args, wrapNode.execute(typeList) },
+                    fetchers,
+                    translateInteropExceptionNode));
+            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray((RubyArray) argArray);
+            try {
+                result = (BytesResult) formatNode
+                        .call(
+                                new Object[]{ arguments, arguments.length, null });
+            } catch (FormatException e) {
+                exceptionProfile.enter();
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
+            }
+
+            return finishFormat(cachedFormatLength, result);
+        }
+
+        @Specialization(
+                guards = "libFormat.isRubyString(format)",
+                replaces = "formatCached")
+        protected RubyString formatUncached(
+                VirtualFrame frame, Object format, Object fetcher, Object stringReader, Object args,
+                @CachedLibrary(limit = "1") InteropLibrary fetchers,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached WrapNode wrapNode,
+                @Cached UnwrapNode unwrapNode,
+                @Cached IndirectCallNode formatNode,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
+            final BytesResult result;
+            final Object typeList = compileArgTypes(format, libFormat);
+            final Object argArray = unwrapNode.execute(InteropNodes.execute(
+                    fetcher,
+                    new Object[]{ args, wrapNode.execute(typeList) },
+                    fetchers,
+                    translateInteropExceptionNode));
+            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray((RubyArray) argArray);
+            try {
+                result = (BytesResult) formatNode
+                        .call(
+                                compileFormat(format, libFormat, stringReader),
+                                new Object[]{ arguments, arguments.length, null });
+            } catch (FormatException e) {
+                exceptionProfile.enter();
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
+            }
+
+            return finishFormat(libFormat.getRope(format).byteLength(), result);
+        }
+
+        private RubyString finishFormat(int formatLength, BytesResult result) {
+            byte[] bytes = result.getOutput();
+
+            if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
+                bytes = Arrays.copyOf(bytes, result.getOutputLength());
+            }
+
+            if (makeStringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                makeStringNode = insert(StringNodes.MakeStringNode.create());
+            }
+
+            return makeStringNode
+                    .executeMake(
+                            bytes,
+                            result.getEncoding().getEncodingForLength(formatLength),
+                            result.getStringCodeRange());
+        }
+
+        @TruffleBoundary
+        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat) {
+            try {
+                return new RBSprintfCompiler(getLanguage(), this)
+                        .typeList(libFormat.getRope(format), getContext(), getLanguage());
+            } catch (InvalidFormatException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
+        }
+
+        @TruffleBoundary
+        protected RootCallTarget compileFormat(Object format, RubyStringLibrary libFormat, Object stringReader) {
+            try {
+                return new RBSprintfCompiler(getLanguage(), this)
+                        .compile(libFormat.getRope(format), stringReader);
+            } catch (InvalidFormatException e) {
+                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+            }
         }
     }
 }
