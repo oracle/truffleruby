@@ -443,7 +443,9 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException indexErrorInvalidBufferOffsetException(InvalidBufferOffsetException exception,
             Node currentNode) {
-        return indexError("invalid buffer offset " + exception.getByteOffset(), currentNode);
+        return indexError(
+                "invalid buffer offset " + exception.getByteOffset() + " for buffer of length " + exception.getLength(),
+                currentNode);
     }
 
     // KeyError
