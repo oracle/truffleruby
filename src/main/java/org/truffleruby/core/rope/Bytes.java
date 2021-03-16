@@ -38,6 +38,11 @@ public final class Bytes {
         return fromRange(array, start, Math.min(array.length, end));
     }
 
+    /** Returns the end offset, equal to {@link #offset} + {@link #length}. */
+    public int end() {
+        return offset + length;
+    }
+
     public boolean isEmpty() {
         return length == 0;
     }
