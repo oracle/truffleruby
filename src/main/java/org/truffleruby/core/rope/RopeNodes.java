@@ -318,7 +318,7 @@ public abstract class RopeNodes {
                 }
 
                 final int lengthOfCurrentCharacter = calculateCharacterLengthNode
-                        .characterLength(encoding, CR_UNKNOWN, bytes, p, end);
+                        .characterLength(encoding, CR_UNKNOWN, bytes.sliceRange(p, end));
 
                 if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
                     if (codeRange != CR_BROKEN) {
@@ -352,7 +352,7 @@ public abstract class RopeNodes {
 
             for (characters = 0; p < end; characters++) {
                 final int lengthOfCurrentCharacter = calculateCharacterLengthNode
-                        .characterLength(encoding, CR_UNKNOWN, bytes, p, end);
+                        .characterLength(encoding, CR_UNKNOWN, bytes.sliceRange(p, end));
 
                 if (validCharacterProfile.profile(lengthOfCurrentCharacter > 0)) {
                     p += lengthOfCurrentCharacter;
@@ -1490,26 +1490,13 @@ public abstract class RopeNodes {
         protected abstract int executeLength(Encoding encoding, CodeRange codeRange, Bytes bytes,
                 boolean recoverIfBroken);
 
+        /** This method returns the byte length for the first character encountered in `bytes`. The validity of a
+         * character is defined by the `encoding`. If the `codeRange` for the byte sequence is known for the supplied
+         * `encoding`, it should be passed to help short-circuit some validation checks. If the `codeRange` is not known
+         * for the supplied `encoding`, then `CodeRange.CR_UNKNOWN` should be passed. If the byte sequence is invalid, a
+         * negative value will be returned. See `Encoding#length` for details on how to interpret the return value. */
         public int characterLength(Encoding encoding, CodeRange codeRange, Bytes bytes) {
             return executeLength(encoding, codeRange, bytes, false);
-        }
-
-        // TODO callers should pass a Bytes object which they bound themselves
-        //      many of them should not use clipping, but some (in particular using Encoding#maxLength) must clip
-
-        /** This method returns the byte length for the first character encountered in `bytes`, starting at `byteOffset`
-         * and ending at `byteEnd`. The validity of a character is defined by the `encoding`. If the `codeRange` for the
-         * byte sequence is known for the supplied `encoding`, it should be passed to help short-circuit some validation
-         * checks. If the `codeRange` is not known for the supplied `encoding`, then `CodeRange.CR_UNKNOWN` should be
-         * passed. If the byte sequence is invalid, a negative value will be returned. See `Encoding#length` for details
-         * on how to interpret the return value. */
-        public int characterLength(Encoding encoding, CodeRange codeRange, Bytes bytes, int byteOffset, int byteEnd) {
-            return executeLength(encoding, codeRange, bytes.clampedRange(byteOffset, byteEnd), false);
-        }
-
-        public int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
-            // TODO switch callers over to Bytes version
-            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), false);
         }
 
         /** This method works very similarly to `characterLength` and maintains the same invariants on inputs. Where it
@@ -1519,9 +1506,16 @@ public abstract class RopeNodes {
          * `codeRange` might be `CodeRange.CR_BROKEN` and the caller must handle the case without raising an error.
          * E.g., if `String#each_char` is called on a String that is `CR_BROKEN`, you wouldn't want negative byte
          * lengths to be returned because it would break iterating through the bytes. */
-        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, Bytes bytes, int byteOffset,
-                int byteEnd) {
-            return executeLength(encoding, codeRange, bytes.clampedRange(byteOffset, byteEnd), true);
+        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, Bytes bytes) {
+            return executeLength(encoding, codeRange, bytes, true);
+        }
+
+        // TODO callers should pass a Bytes object which they bound themselves
+        //      many of them should not use clipping, but some (in particular using Encoding#maxLength) must clip
+
+        public int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
+            // TODO switch callers over to Bytes version
+            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), false);
         }
 
         public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
