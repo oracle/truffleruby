@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.EnumSet;
 
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
+import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -405,16 +406,16 @@ public class CoreExceptions {
     // IndexError
 
     @TruffleBoundary
-    public RubyException indexErrorOutOfString(int index, Node currentNode) {
-        return indexError(StringUtils.format("index %d out of string", index), currentNode);
-    }
-
-    @TruffleBoundary
     public RubyException indexError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().indexErrorClass;
         RubyString errorMessage = StringOperations
                 .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    @TruffleBoundary
+    public RubyException indexErrorOutOfString(int index, Node currentNode) {
+        return indexError(StringUtils.format("index %d out of string", index), currentNode);
     }
 
     @TruffleBoundary
@@ -443,6 +444,21 @@ public class CoreExceptions {
     public RubyException indexErrorInvalidBufferOffsetException(InvalidBufferOffsetException exception,
             Node currentNode) {
         return indexError("invalid buffer offset " + exception.getByteOffset(), currentNode);
+    }
+
+    // KeyError
+
+    @TruffleBoundary
+    public RubyException keyError(String message, Node currentNode) {
+        RubyClass exceptionClass = context.getCoreLibrary().keyErrorClass;
+        RubyString errorMessage = StringOperations
+                .createString(context, language, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    @TruffleBoundary
+    public RubyException keyError(UnknownKeyException exception, Node currentNode) {
+        return keyError(exception.getMessage(), currentNode);
     }
 
     // StopIteration

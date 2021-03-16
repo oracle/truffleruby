@@ -21,8 +21,6 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.NodeLibrary;
-import com.oracle.truffle.api.interop.UnknownKeyException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -2000,8 +1998,7 @@ public abstract class InteropNodes {
     }
     // endregion
 
-    // region Hash
-
+    // region Hash entries
     @CoreMethod(names = "has_hash_entries?", onSingleton = true, required = 1)
     public abstract static class HasHashEntriesNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
@@ -2132,10 +2129,8 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 return interop.readHashValue(receiver, key);
-            } catch (UnsupportedMessageException e) {
+            } catch (InteropException e) {
                 throw translateInteropException.execute(e);
-            } catch (UnknownKeyException e) {
-                return nil;
             }
         }
     }
@@ -2163,10 +2158,8 @@ public abstract class InteropNodes {
             try {
                 interop.removeHashEntry(receiver, key);
                 return nil;
-            } catch (UnsupportedMessageException e) {
+            } catch (InteropException e) {
                 throw translateInteropException.execute(e);
-            } catch (UnknownKeyException e) {
-                return nil;
             }
         }
     }
@@ -2179,17 +2172,12 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 interop.writeHashEntry(receiver, key, value);
-                return nil;
-            } catch (UnsupportedMessageException e) {
-                throw translateInteropException.execute(e);
-            } catch (UnknownKeyException e) {
-                return nil;
-            } catch (UnsupportedTypeException e) {
+                return value;
+            } catch (InteropException e) {
                 throw translateInteropException.execute(e);
             }
         }
     }
-
     // endregion
 
     // region Identity
