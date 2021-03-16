@@ -243,7 +243,7 @@ public abstract class RegexpNodes {
     }
 
     @CoreMethod(names = "fixed_encoding?")
-    public static abstract class RegexpIsFixedEncodingNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpIsFixedEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean fixedEncoding(RubyRegexp regexp) {
@@ -254,7 +254,7 @@ public abstract class RegexpNodes {
 
     @CoreMethod(names = "compile", required = 2, lowerFixnum = 2, visibility = Visibility.PRIVATE)
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpCompileNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpCompileNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRegexpLiteral(regexp)")
         protected RubyRegexp initializeRegexpLiteral(RubyRegexp regexp, Object pattern, int options) {
@@ -278,7 +278,7 @@ public abstract class RegexpNodes {
 
     @CoreMethod(names = "initialize_copy", required = 1, needsSelf = true)
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpInitializeCopyNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpInitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRegexpLiteral(regexp)")
         protected RubyRegexp initializeRegexpLiteral(RubyRegexp regexp, RubyRegexp other) {
@@ -303,7 +303,7 @@ public abstract class RegexpNodes {
 
     @CoreMethod(names = "options")
     @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpOptionsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpOptionsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isInitialized(regexp)")
         protected int options(RubyRegexp regexp) {

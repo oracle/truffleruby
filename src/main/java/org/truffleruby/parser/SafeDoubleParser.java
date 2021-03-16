@@ -29,7 +29,7 @@ package org.truffleruby.parser;
 /** A safer way to parse double values
  * <p>
  * Prevents brute force attacks using the famous Java bug. */
-final public class SafeDoubleParser extends SafeDecimalParser {
+public final class SafeDoubleParser extends SafeDecimalParser {
 
     /** Safe way of parsing a Double value from a String
      * 

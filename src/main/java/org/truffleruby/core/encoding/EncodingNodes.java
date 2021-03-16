@@ -102,7 +102,7 @@ public abstract class EncodingNodes {
 
     }
 
-    public static abstract class NegotiateCompatibleRopeEncodingNode extends RubyContextNode {
+    public abstract static class NegotiateCompatibleRopeEncodingNode extends RubyContextNode {
 
         public abstract Encoding executeNegotiate(Rope first, Rope second);
 
@@ -186,7 +186,7 @@ public abstract class EncodingNodes {
 
     }
 
-    public static abstract class NegotiateCompatibleEncodingNode extends RubyContextNode {
+    public abstract static class NegotiateCompatibleEncodingNode extends RubyContextNode {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
         @Child private ToEncodingNode getEncodingNode = ToEncodingNode.create();
@@ -618,7 +618,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_enc_find_index")
-    public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strings.isRubyString(nameObject)")
         protected int encodingFindIndex(Object nameObject,
@@ -631,7 +631,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_get_object_encoding")
-    public static abstract class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class EncodingGetObjectEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
 
@@ -675,7 +675,7 @@ public abstract class EncodingNodes {
 
     }
 
-    public static abstract class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
 
         public RubyArray setIndexOrRaiseError(String name, RubyEncoding newEncoding) {
             if (newEncoding == null) {
@@ -691,7 +691,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_replicate")
-    public static abstract class EncodingReplicateNode extends EncodingCreationNode {
+    public abstract static class EncodingReplicateNode extends EncodingCreationNode {
 
         @Specialization(guards = "strings.isRubyString(nameObject)")
         protected RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
@@ -711,7 +711,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_create_dummy")
-    public static abstract class DummyEncodingeNode extends EncodingCreationNode {
+    public abstract static class DummyEncodingeNode extends EncodingCreationNode {
 
         @Specialization(guards = "strings.isRubyString(nameObject)")
         protected RubyArray createDummyEncoding(Object nameObject,
@@ -730,7 +730,7 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_get_encoding_by_index", lowerFixnum = 0)
-    public static abstract class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected RubyEncoding getEncoding(int index) {
             return getContext().getEncodingManager().getRubyEncoding(index);
@@ -738,14 +738,14 @@ public abstract class EncodingNodes {
     }
 
     @Primitive(name = "encoding_get_encoding_index")
-    public static abstract class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected int getIndex(RubyEncoding encoding) {
             return encoding.encoding.getIndex();
         }
     }
 
-    public static abstract class CheckRopeEncodingNode extends RubyContextNode {
+    public abstract static class CheckRopeEncodingNode extends RubyContextNode {
 
         @Child private NegotiateCompatibleRopeEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleRopeEncodingNode
                 .create();
@@ -774,7 +774,7 @@ public abstract class EncodingNodes {
 
     }
 
-    public static abstract class CheckEncodingNode extends RubyContextNode {
+    public abstract static class CheckEncodingNode extends RubyContextNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode;
         @Child private ToEncodingNode toEncodingNode;

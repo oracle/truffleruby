@@ -60,7 +60,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         return values;
     }
 
-    public static abstract class RegexpBuilderNode extends RubyContextNode {
+    public abstract static class RegexpBuilderNode extends RubyContextNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
         @Child private DispatchNode copyNode = DispatchNode.create();

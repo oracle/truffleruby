@@ -140,7 +140,7 @@ import org.truffleruby.parser.ast.ZSuperParseNode;
  * method to visit children. */
 public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
-    abstract protected T defaultVisit(ParseNode node);
+    protected abstract T defaultVisit(ParseNode node);
 
     @Override
     public T visitAliasNode(AliasParseNode node) {

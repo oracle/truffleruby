@@ -82,7 +82,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public static abstract class Read {
+    public abstract static class Read {
 
         @Specialization
         protected static Object read(NativeArrayStorage storage, int index,
@@ -92,7 +92,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public static abstract class Write {
+    public abstract static class Write {
 
         @Specialization
         protected static void write(NativeArrayStorage storage, int index, Object value,
@@ -123,7 +123,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public static abstract class Expand {
+    public abstract static class Expand {
 
         @Specialization
         protected static NativeArrayStorage expand(NativeArrayStorage storage, int newCapacity) {
@@ -149,7 +149,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     @ImportStatic(ArrayGuards.class)
-    public static abstract class CopyContents {
+    public abstract static class CopyContents {
 
         @Specialization
         protected static void copyContents(

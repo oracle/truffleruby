@@ -35,7 +35,7 @@ public final class RubyArguments {
         BLOCK // 6
     }
 
-    private final static int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
+    private static final int RUNTIME_ARGUMENT_COUNT = ArgumentIndicies.values().length;
 
     /** In most cases the DeclarationContext is the one of the InternalMethod. */
     public static Object[] pack(

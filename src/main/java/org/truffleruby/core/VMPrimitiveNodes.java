@@ -115,7 +115,7 @@ public abstract class VMPrimitiveNodes {
 
     // The hard #exit!
     @Primitive(name = "vm_exit", lowerFixnum = 0)
-    public static abstract class VMExitNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMExitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmExit(int status) {
@@ -125,7 +125,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_extended_modules")
-    public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmExtendedModules(Object object, RubyProc block,
@@ -146,7 +146,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_method_is_basic")
-    public static abstract class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean vmMethodIsBasic(RubyMethod method) {
@@ -156,7 +156,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_method_lookup")
-    public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
@@ -180,7 +180,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_raise_exception")
-    public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object vmRaiseException(RubyException exception,
@@ -224,7 +224,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     @Primitive(name = "vm_watch_signal")
-    public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" })

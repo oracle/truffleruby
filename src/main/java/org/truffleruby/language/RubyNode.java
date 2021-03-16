@@ -66,7 +66,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
 
     // Fundamental execute methods
-    abstract public Object execute(VirtualFrame frame);
+    public abstract Object execute(VirtualFrame frame);
 
     /** This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of
      * this method which would increase the number of runtime compilable methods. */
@@ -75,7 +75,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     }
 
     // Declared abstract here so the instrumentation wrapper delegates it
-    abstract public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
+    public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
 
     protected static Object defaultIsDefined(RubyLanguage language, RubyContext context, Node currentNode) {
         assert !(currentNode instanceof WrapperNode);
@@ -84,13 +84,13 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     // Source
 
-    abstract protected int getSourceCharIndex();
+    protected abstract int getSourceCharIndex();
 
-    abstract protected void setSourceCharIndex(int sourceCharIndex);
+    protected abstract void setSourceCharIndex(int sourceCharIndex);
 
-    abstract protected int getSourceLength();
+    protected abstract int getSourceLength();
 
-    abstract protected void setSourceLength(int sourceLength);
+    protected abstract void setSourceLength(int sourceLength);
 
     public boolean hasSource() {
         return isAdoptable() && getSourceCharIndex() != NO_SOURCE;

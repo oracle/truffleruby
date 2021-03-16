@@ -62,7 +62,7 @@ public class FindDeclarationVariableNodes {
     @ReportPolymorphism
     @GenerateUncached
     @ImportStatic(FindDeclarationVariableNodes.class)
-    public static abstract class FindAndReadDeclarationVariableNode extends RubyBaseNode {
+    public abstract static class FindAndReadDeclarationVariableNode extends RubyBaseNode {
 
         public abstract Object execute(MaterializedFrame frame, String name, Object defaultValue);
 

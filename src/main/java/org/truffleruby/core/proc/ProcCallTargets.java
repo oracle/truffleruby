@@ -26,11 +26,11 @@ import java.util.function.Supplier;
 public final class ProcCallTargets {
 
     // At least one of those two call targets won't be null.
-    private @CompilationFinal RootCallTarget callTargetForProc;
-    private @CompilationFinal RootCallTarget callTargetForLambda;
+    @CompilationFinal private RootCallTarget callTargetForProc;
+    @CompilationFinal private RootCallTarget callTargetForLambda;
 
     // Non-null if one of the call targets is null.
-    private @CompilationFinal Supplier<RootCallTarget> altCallTargetCompiler;
+    @CompilationFinal private Supplier<RootCallTarget> altCallTargetCompiler;
 
     public ProcCallTargets(
             RootCallTarget callTargetForProc,

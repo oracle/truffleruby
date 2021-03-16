@@ -29,7 +29,7 @@ public abstract class WeakRefNodes {
     private static final HiddenKey FIELD_NAME = new HiddenKey("weak_ref");
 
     @Primitive(name = "weakref_set_object")
-    public static abstract class WeakRefSetObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class WeakRefSetObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNode.create(); // for synchronization
 
@@ -47,7 +47,7 @@ public abstract class WeakRefNodes {
     }
 
     @Primitive(name = "weakref_object")
-    public static abstract class WeakRefObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class WeakRefObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")
         protected Object weakRefObject(RubyDynamicObject weakRef,

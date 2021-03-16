@@ -47,13 +47,13 @@ public class DoubleConverter {
     // bit value in the same fashion we are using 30.  Based on wikipedia a note recommends
     //17 + 3 (or 20), but I don't know why that is recommended and we would rather be compatible
     //behaviorally with MRI.
-    private final static int SIGNIFICANT_DIGITS_LIMIT = 30;
+    private static final int SIGNIFICANT_DIGITS_LIMIT = 30;
     // Maximal exponent is +308, minimal -308, -324 with subnormal float
-    private final static int EXPONENT_DIGITS_LIMIT = 3;
-    private final static int MAX_EXPONENT = (int) (Math.pow(10, EXPONENT_DIGITS_LIMIT)) - 1;
+    private static final int EXPONENT_DIGITS_LIMIT = 3;
+    private static final int MAX_EXPONENT = (int) (Math.pow(10, EXPONENT_DIGITS_LIMIT)) - 1;
     // Max length is '-' + significant_digits + '.' + 'E' + '-' + exponent_digits
     // + 1 (first digit before point) + 1 (first decimal digit).
-    private final static int MAX_LENGTH = SIGNIFICANT_DIGITS_LIMIT + EXPONENT_DIGITS_LIMIT + 6;
+    private static final int MAX_LENGTH = SIGNIFICANT_DIGITS_LIMIT + EXPONENT_DIGITS_LIMIT + 6;
 
     public DoubleConverter() {
     }

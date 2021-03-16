@@ -54,7 +54,7 @@ public class StaticScope {
 
     // Next immediate scope.  Variable and constant scoping rules make use of this variable
     // in different ways.
-    final protected StaticScope enclosingScope;
+    protected final StaticScope enclosingScope;
 
     // Our name holder (offsets are assigned as variables are added)
     private String[] variableNames;

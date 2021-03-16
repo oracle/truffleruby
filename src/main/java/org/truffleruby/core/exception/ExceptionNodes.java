@@ -296,7 +296,7 @@ public abstract class ExceptionNodes {
     }
 
     @Primitive(name = "exception_errno_error", lowerFixnum = 1)
-    public static abstract class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
@@ -309,7 +309,7 @@ public abstract class ExceptionNodes {
 
     @Primitive(name = "java_breakpoint")
     @SuppressWarnings("unused")
-    public static abstract class Breakpoint extends PrimitiveNode {
+    public abstract static class Breakpoint extends PrimitiveNode {
 
         @SuppressFBWarnings("DLS")
         @TruffleBoundary

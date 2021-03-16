@@ -23,7 +23,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 
 public class RunModuleDefinitionNode extends RubyContextSourceNode {
 
-    final protected LexicalScope lexicalScope;
+    protected final LexicalScope lexicalScope;
 
     @Child private RubyNode definingModule;
     @Child private ModuleBodyDefinitionNode definitionMethod;

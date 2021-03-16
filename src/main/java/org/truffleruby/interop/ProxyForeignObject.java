@@ -30,9 +30,9 @@ public class ProxyForeignObject implements TruffleObject {
     protected final Object delegate;
     protected final Object logger;
 
-    private final static Message EXECUTABLE = Message.resolve(InteropLibrary.class, "execute");
-    private final static Message INVOKE = Message.resolve(InteropLibrary.class, "invokeMember");
-    private final static Message INSTANTIATE = Message.resolve(InteropLibrary.class, "instantiate");
+    private static final Message EXECUTABLE = Message.resolve(InteropLibrary.class, "execute");
+    private static final Message INVOKE = Message.resolve(InteropLibrary.class, "invokeMember");
+    private static final Message INSTANTIATE = Message.resolve(InteropLibrary.class, "instantiate");
 
     public ProxyForeignObject(Object delegate) {
         this(delegate, null);

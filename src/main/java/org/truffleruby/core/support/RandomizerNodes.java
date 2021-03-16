@@ -50,7 +50,7 @@ public abstract class RandomizerNodes {
 
     // Generate a random Float, in the range 0...1.0
     @CoreMethod(names = "random_float")
-    public static abstract class RandomFloatNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RandomFloatNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -66,7 +66,7 @@ public abstract class RandomizerNodes {
 
     // Generate a random Integer, in the range 0...limit
     @CoreMethod(names = "random_integer", required = 1)
-    public static abstract class RandomIntNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RandomIntNode extends CoreMethodArrayArgumentsNode {
 
         @Child GetRandomIntNode getRandomIntNode = GetRandomIntNode.create();
 
