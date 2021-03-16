@@ -851,10 +851,16 @@ public class RubyLexer implements MagicCommentHandler {
                 case '#': { /* it's a comment */
                     this.tokenSeen = tokenSeen;
 
-                    // Always scan for magic comments, verbosity is not known at this time.
-                    if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
-                        if (comment_at_top()) {
-                            set_file_encoding(lex_p, lex_pend);
+                    // There are no magic comments that can affect any runtime options after a token has been seen, so there's
+                    // no point in looking for them. However, if warnings are enabled, this should, but does not, scan for
+                    // the magic comment so we can report that it will be ignored. It does not warn for verbose because
+                    // verbose is not known at this point and we don't want to remove the tokenSeen check because it would
+                    // affect lexer performance.
+                    if (!tokenSeen) {
+                        if (!parser_magic_comment(lexb, lex_p, lex_pend - lex_p, parserRopeOperations, this)) {
+                            if (comment_at_top()) {
+                                set_file_encoding(lex_p, lex_pend);
+                            }
                         }
                     }
 

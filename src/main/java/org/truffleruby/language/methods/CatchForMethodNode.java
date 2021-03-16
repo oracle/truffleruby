@@ -55,10 +55,6 @@ public class CatchForMethodNode extends RubyContextSourceNode {
         }
     }
 
-    public RubyNode getBody() {
-        return body;
-    }
-
     @Override
     public RubyNode simplifyAsTailExpression() {
         return new CatchForMethodNode(returnID, body.simplifyAsTailExpression()).copySourceSection(this);

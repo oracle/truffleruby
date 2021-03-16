@@ -59,7 +59,7 @@ public class RubyDeferredWarnings implements WarnCallback {
         }
 
         public String getWarningMessage() {
-            StringBuilder buffer = new StringBuilder(100);
+            StringBuilder buffer = new StringBuilder();
             if (fileName != null) {
                 buffer.append(fileName);
                 if (lineNumber != null) {

@@ -40,10 +40,6 @@ public class ExceptionTranslatingNode extends RubyContextSourceNode {
         }
     }
 
-    public RubyNode getChild() {
-        return child;
-    }
-
     @Override
     public RubyNode simplifyAsTailExpression() {
         return new ExceptionTranslatingNode(child.simplifyAsTailExpression(), unsupportedOperationBehavior)

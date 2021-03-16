@@ -69,7 +69,7 @@ public class RubyWarnings implements WarnCallback {
             return;
         }
 
-        StringBuilder buffer = new StringBuilder(100);
+        StringBuilder buffer = new StringBuilder();
 
         buffer.append(fileName).append(':').append(lineNumber).append(": ");
         buffer.append("warning: ").append(message).append('\n');
@@ -82,7 +82,7 @@ public class RubyWarnings implements WarnCallback {
             return;
         }
 
-        StringBuilder buffer = new StringBuilder(100);
+        StringBuilder buffer = new StringBuilder();
 
         if (fileName != null) {
             buffer.append(fileName).append(' ');
