@@ -212,12 +212,11 @@ public final class StringSupport {
     }
 
     // MRI: search_nonascii
-    public static int searchNonAscii(Bytes bytes, int p, int end) {
-        while (p < end) {
+    public static int searchNonAscii(Bytes bytes) {
+        for (int p = 0; p < bytes.length; ++p) {
             if (!Encoding.isAscii(bytes.get(p))) {
                 return p;
             }
-            p++;
         }
         return -1;
     }

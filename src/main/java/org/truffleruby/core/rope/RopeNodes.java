@@ -307,13 +307,14 @@ public abstract class RopeNodes {
 
             while (p < end) {
                 if (Encoding.isAscii(bytes.get(p))) {
-                    final int multiByteCharacterPosition = StringSupport.searchNonAscii(bytes, p, end);
+                    final int multiByteCharacterPosition = StringSupport.searchNonAscii(bytes.sliceRange(p, end));
+
                     if (multiByteCharacterPosition == -1) {
                         return new StringAttributes(characters + (end - p), codeRange);
                     }
 
-                    characters += multiByteCharacterPosition - p;
-                    p = multiByteCharacterPosition;
+                    characters += multiByteCharacterPosition;
+                    p += multiByteCharacterPosition;
                 }
 
                 final int lengthOfCurrentCharacter = calculateCharacterLengthNode
@@ -1488,6 +1489,10 @@ public abstract class RopeNodes {
 
         protected abstract int executeLength(Encoding encoding, CodeRange codeRange, Bytes bytes,
                 boolean recoverIfBroken);
+
+        public int characterLength(Encoding encoding, CodeRange codeRange, Bytes bytes) {
+            return executeLength(encoding, codeRange, bytes, false);
+        }
 
         // TODO callers should pass a Bytes object which they bound themselves
         //      many of them should not use clipping, but some (in particular using Encoding#maxLength) must clip
