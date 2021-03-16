@@ -1778,6 +1778,18 @@ public abstract class RopeNodes {
 
         public abstract Bytes execute(Rope rope, int offset, int length);
 
+        public Bytes getClamped(Rope rope, int offset, int length) {
+            return execute(rope, offset, Math.min(length, rope.byteLength() - offset));
+        }
+
+        public Bytes getRange(Rope rope, int start, int end) {
+            return execute(rope, start, end - start);
+        }
+
+        public Bytes getClampedRange(Rope rope, int start, int end) {
+            return execute(rope, start, Math.min(rope.byteLength(), end) - start);
+        }
+
         @Specialization(guards = "rope.getRawBytes() != null")
         protected Bytes getBytesObjectFromRaw(Rope rope, int offset, int length) {
             return new Bytes(rope.getRawBytes(), offset, length);
