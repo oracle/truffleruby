@@ -164,7 +164,7 @@ public abstract class ArrayStoreLibrary extends Library {
     }
 
     /** Class for allocating array stores and querying properties related to that. */
-    public static abstract class ArrayAllocator {
+    public abstract static class ArrayAllocator {
 
         /** Return a new array store with {@code capacity} elements. */
         public abstract Object allocate(int capacity);

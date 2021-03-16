@@ -185,7 +185,7 @@ public class RubyLexer implements MagicCommentHandler {
         public final int id1;
         public final int state;
 
-        private static abstract class Maps {
+        private abstract static class Maps {
             private static final Map<String, Keyword> FROM_STRING;
             private static final Map<BytesKey, Keyword> FROM_BYTES;
 

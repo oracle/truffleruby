@@ -34,7 +34,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 public abstract class HashingNodes {
 
-    public static abstract class ToHash extends RubyContextNode {
+    public abstract static class ToHash extends RubyContextNode {
 
         public static ToHash create() {
             return HashingNodesFactory.ToHashNodeGen.create();

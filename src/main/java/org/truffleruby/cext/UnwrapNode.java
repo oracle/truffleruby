@@ -46,7 +46,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
-    public static abstract class UnwrapNativeNode extends RubyBaseNode {
+    public abstract static class UnwrapNativeNode extends RubyBaseNode {
 
         public abstract Object execute(long handle);
 
@@ -107,7 +107,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
-    public static abstract class NativeToWrapperNode extends RubyBaseNode {
+    public abstract static class NativeToWrapperNode extends RubyBaseNode {
 
         public abstract ValueWrapper execute(long handle);
 
@@ -155,7 +155,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
     }
 
     @ImportStatic({ ValueWrapperManager.class })
-    public static abstract class ToWrapperNode extends RubyContextNode {
+    public abstract static class ToWrapperNode extends RubyContextNode {
 
         public abstract ValueWrapper execute(Object value);
 

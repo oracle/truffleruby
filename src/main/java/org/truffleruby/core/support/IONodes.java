@@ -102,7 +102,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class IONodes {
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public static abstract class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
         protected RubyIO allocate(RubyClass rubyClass) {
@@ -114,7 +114,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_fd")
-    public static abstract class IOFDNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IOFDNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int fd(RubyIO io) {
@@ -123,7 +123,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_set_fd", lowerFixnum = 1)
-    public static abstract class IOSetFDNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IOSetFDNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyIO fd(RubyIO io, int fd) {
@@ -133,7 +133,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "file_fnmatch", lowerFixnum = 2)
-    public static abstract class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "stringsPattern.isRubyString(pattern)", "stringsPath.isRubyString(path)" })
@@ -154,14 +154,14 @@ public abstract class IONodes {
         }
 
 
-        private final static boolean DOSISH = Platform.IS_WINDOWS;
+        private static final boolean DOSISH = Platform.IS_WINDOWS;
 
-        private final static int FNM_NOESCAPE = 0x01;
-        private final static int FNM_PATHNAME = 0x02;
-        private final static int FNM_DOTMATCH = 0x04;
-        private final static int FNM_CASEFOLD = 0x08;
+        private static final int FNM_NOESCAPE = 0x01;
+        private static final int FNM_PATHNAME = 0x02;
+        private static final int FNM_DOTMATCH = 0x04;
+        private static final int FNM_CASEFOLD = 0x08;
 
-        public final static int FNM_NOMATCH = 1;
+        public static final int FNM_NOMATCH = 1;
 
         private static boolean isdirsep(char c) {
             return c == '/' || DOSISH && c == '\\';
@@ -412,7 +412,7 @@ public abstract class IONodes {
 
     @NonStandard
     @CoreMethod(names = "ensure_open", visibility = Visibility.PRIVATE)
-    public static abstract class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object ensureOpen(RubyIO io,
@@ -430,7 +430,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_read_polyglot", lowerFixnum = 0)
-    public static abstract class IOReadPolyglotNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IOReadPolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -463,7 +463,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_write_polyglot", lowerFixnum = 0)
-    public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(string)")
@@ -501,7 +501,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_thread_buffer_allocate")
-    public static abstract class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyPointer getThreadBuffer(long size,
@@ -526,7 +526,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_thread_buffer_free")
-    public static abstract class IOThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IOThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getThreadBuffer(RubyPointer pointer,

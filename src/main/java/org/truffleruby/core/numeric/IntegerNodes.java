@@ -61,7 +61,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
 
-    public static abstract class BignumCoreMethodNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class BignumCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private FixnumOrBignumNode fixnumOrBignum;
 
@@ -1469,7 +1469,7 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "integer_fits_into_int")
-    public static abstract class FixnumFitsIntoIntNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class FixnumFitsIntoIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean fitsIntoIntInt(int a) {
@@ -1489,7 +1489,7 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "integer_fits_into_uint")
-    public static abstract class IntegerFitsIntoUIntNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IntegerFitsIntoUIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean fitsIntoUIntInt(int a) {
@@ -1509,7 +1509,7 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "integer_fits_into_long")
-    public static abstract class IntegerFitsIntoLongNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IntegerFitsIntoLongNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean fitsIntoLongInt(int a) {
@@ -1529,7 +1529,7 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "integer_fits_into_ulong")
-    public static abstract class IntegerFitsIntoULongNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IntegerFitsIntoULongNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean fitsIntoULongInt(int a) {
@@ -1561,7 +1561,7 @@ public abstract class IntegerNodes {
             return IntegerNodesFactory.IntegerLowerNodeFactory.create(null);
         }
 
-        abstract public Object executeLower(Object value);
+        public abstract Object executeLower(Object value);
 
         @Specialization
         protected int lower(int value) {
@@ -1585,7 +1585,7 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "integer_ulong_from_bignum")
-    public static abstract class IntegerULongFromBigNumNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IntegerULongFromBigNumNode extends PrimitiveArrayArgumentsNode {
 
         private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
         private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);

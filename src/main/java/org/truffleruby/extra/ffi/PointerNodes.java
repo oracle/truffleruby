@@ -63,7 +63,7 @@ public abstract class PointerNodes {
         }
     }
 
-    private static abstract class PointerPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
+    private abstract static class PointerPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
 
         private final BranchProfile nullPointerProfile = BranchProfile.create();
 
@@ -74,7 +74,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public static abstract class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
         protected RubyPointer allocate(RubyClass pointerClass) {
@@ -87,7 +87,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_find_type_size")
-    public static abstract class PointerFindTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PointerFindTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -138,7 +138,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = "address=", required = 1)
-    public static abstract class PointerSetAddressNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerSetAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected long setAddress(RubyPointer pointer, long address) {
@@ -149,7 +149,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = { "address", "to_i" })
-    public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected long address(RubyPointer pointer) {
@@ -159,7 +159,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_size")
-    public static abstract class PointerSizeNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PointerSizeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long size(RubyPointer pointer) {
@@ -169,7 +169,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = "total=", required = 1)
-    public static abstract class PointerSetSizeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerSetSizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected long setSize(RubyPointer pointer, long size) {
@@ -181,7 +181,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = "autorelease?")
-    public static abstract class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean isAutorelease(RubyPointer pointer) {
@@ -191,7 +191,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = "autorelease=", required = 1)
-    public static abstract class PointerSetAutoreleaseNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerSetAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "autorelease")
         protected boolean enableAutorelease(RubyPointer pointer, boolean autorelease) {
@@ -208,7 +208,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_malloc")
-    public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyPointer malloc(RubyPointer pointer, long size) {
@@ -219,7 +219,7 @@ public abstract class PointerNodes {
     }
 
     @CoreMethod(names = "free")
-    public static abstract class PointerFreeNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class PointerFreeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyPointer free(RubyPointer pointer) {
@@ -241,7 +241,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_copy_memory")
-    public static abstract class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object copyMemory(long to, long from, long size) {
@@ -256,7 +256,7 @@ public abstract class PointerNodes {
     // Special reads and writes
 
     @Primitive(name = "pointer_read_string_to_null")
-    public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "limit == 0")
         protected RubyString readNullPointer(long address, long limit) {
@@ -308,7 +308,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_bytes", lowerFixnum = 1)
-    public static abstract class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyString readBytes(long address, int length,
@@ -343,7 +343,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
-    public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object writeBytes(long address, Object string, int index, int length,
@@ -366,7 +366,7 @@ public abstract class PointerNodes {
     // Reads and writes of number types
 
     @Primitive(name = "pointer_read_char")
-    public static abstract class PointerReadCharNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int readCharSigned(long address) {
@@ -378,7 +378,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_uchar")
-    public static abstract class PointerReadUCharNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int readCharUnsigned(long address) {
@@ -390,7 +390,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_short")
-    public static abstract class PointerReadShortNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int readShortSigned(long address) {
@@ -401,7 +401,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_ushort")
-    public static abstract class PointerReadUShortNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int readShortUnsigned(long address) {
@@ -413,7 +413,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_int")
-    public static abstract class PointerReadIntNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int readIntSigned(long address) {
@@ -425,7 +425,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_uint")
-    public static abstract class PointerReadUIntNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadUIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long readIntUnsigned(long address) {
@@ -437,7 +437,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_long")
-    public static abstract class PointerReadLongNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long readLongSigned(long address) {
@@ -449,7 +449,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_ulong")
-    public static abstract class PointerReadULongNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object readLongUnsigned(long address) {
@@ -466,7 +466,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_float")
-    public static abstract class PointerReadFloatNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected double readFloat(long address) {
@@ -478,7 +478,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_double")
-    public static abstract class PointerReadDoubleNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected double readDouble(long address) {
@@ -490,7 +490,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_read_pointer")
-    public static abstract class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyPointer readPointer(long address) {
@@ -509,7 +509,7 @@ public abstract class PointerNodes {
 
     @Primitive(name = "pointer_write_char", lowerFixnum = 1)
     @ImportStatic(Byte.class)
-    public static abstract class PointerWriteCharNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
         protected Object writeChar(long address, int value) {
@@ -524,7 +524,7 @@ public abstract class PointerNodes {
 
     @Primitive(name = "pointer_write_uchar", lowerFixnum = 1)
     @ImportStatic(Byte.class)
-    public static abstract class PointerWriteUCharNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
         protected Object writeChar(long address, int value) {
@@ -548,7 +548,7 @@ public abstract class PointerNodes {
 
     @Primitive(name = "pointer_write_short", lowerFixnum = 1)
     @ImportStatic(Short.class)
-    public static abstract class PointerWriteShortNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
         protected Object writeShort(long address, int value) {
@@ -563,7 +563,7 @@ public abstract class PointerNodes {
 
     @Primitive(name = "pointer_write_ushort", lowerFixnum = 1)
     @ImportStatic(Short.class)
-    public static abstract class PointerWriteUShortNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
         protected Object writeShort(long address, int value) {
@@ -586,7 +586,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_int", lowerFixnum = 1)
-    public static abstract class PointerWriteIntNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object writeInt(long address, int value) {
@@ -600,7 +600,7 @@ public abstract class PointerNodes {
 
     @Primitive(name = "pointer_write_uint", lowerFixnum = 1)
     @ImportStatic(Integer.class)
-    public static abstract class PointerWriteUIntNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteUIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         static final long MAX_UNSIGNED_INT_PLUS_ONE = 1L << Integer.SIZE;
 
@@ -624,7 +624,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_long")
-    public static abstract class PointerWriteLongNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object writeLong(long address, long value) {
@@ -637,7 +637,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_ulong")
-    public static abstract class PointerWriteULongNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "value >= 0")
         protected Object writeLong(long address, long value) {
@@ -667,7 +667,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_float")
-    public static abstract class PointerWriteFloatNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object writeFloat(long address, double value) {
@@ -680,7 +680,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_double")
-    public static abstract class PointerWriteDoubleNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWriteDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object writeDouble(long address, double value) {
@@ -693,7 +693,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_write_pointer", lowerFixnum = 2)
-    public static abstract class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
+    public abstract static class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object writePointer(long address, long value) {
@@ -706,7 +706,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_raw_malloc")
-    public static abstract class PointerRawMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PointerRawMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long realloc(long size) {
@@ -716,7 +716,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_raw_realloc")
-    public static abstract class PointerRawReallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PointerRawReallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long malloc(long address, long size) {
@@ -726,7 +726,7 @@ public abstract class PointerNodes {
     }
 
     @Primitive(name = "pointer_raw_free")
-    public static abstract class PointerRawFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PointerRawFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected long free(long address) {

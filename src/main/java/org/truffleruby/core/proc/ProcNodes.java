@@ -308,7 +308,7 @@ public abstract class ProcNodes {
     }
 
     @Primitive(name = "single_block_arg")
-    public static abstract class SingleBlockArgNode extends PrimitiveNode {
+    public abstract static class SingleBlockArgNode extends PrimitiveNode {
 
         @Specialization
         protected Object singleBlockArg(VirtualFrame frame,

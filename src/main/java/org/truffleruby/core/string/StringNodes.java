@@ -286,7 +286,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class SubstringNode extends RubyContextNode {
+    public abstract static class SubstringNode extends RubyContextNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
@@ -2365,7 +2365,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class CheckIndexNode extends RubyContextNode {
+    public abstract static class CheckIndexNode extends RubyContextNode {
 
         public abstract int executeCheck(int index, int length);
 
@@ -2395,7 +2395,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class NormalizeIndexNode extends RubyContextNode {
+    public abstract static class NormalizeIndexNode extends RubyContextNode {
 
         public abstract int executeNormalize(int index, int length);
 
@@ -3356,7 +3356,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "character_printable_p")
-    public static abstract class CharacterPrintablePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class CharacterPrintablePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean isCharacterPrintable(Object character,
@@ -3382,7 +3382,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_append")
-    public static abstract class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringAppendNode stringAppendNode = StringAppendNode.create();
 
@@ -3402,7 +3402,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_awk_split", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
         @Child private YieldNode yieldNode = YieldNode.create();
@@ -3566,7 +3566,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_substring", lowerFixnum = { 1, 2 })
-    public static abstract class StringByteSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringByteSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child private SubstringNode substringNode = SubstringNode.create();
@@ -3639,7 +3639,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_chr_at", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
                 guards = { "indexOutOfBounds(strings.getRope(string), byteIndex)" })
@@ -3703,7 +3703,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public static abstract class StringAreComparableNode extends RubyContextNode {
+    public abstract static class StringAreComparableNode extends RubyContextNode {
 
         @Child RopeNodes.AreComparableRopesNode areComparableRopesNode = RopeNodes.AreComparableRopesNode.create();
 
@@ -3718,7 +3718,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    public static abstract class StringEqualNode extends RubyContextNode {
+    public abstract static class StringEqualNode extends RubyContextNode {
 
         @Child private StringAreComparableNode areComparableNode;
 
@@ -3898,7 +3898,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_find_character", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SubstringNode substringNode = SubstringNode.create();
 
@@ -3957,7 +3957,7 @@ public abstract class StringNodes {
 
     @NonStandard
     @CoreMethod(names = "from_codepoint", onSingleton = true, required = 2, lowerFixnum = 1)
-    public static abstract class StringFromCodepointPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringFromCodepointPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -4029,7 +4029,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_f")
-    public static abstract class StringToFPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringToFPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -4079,7 +4079,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "find_string", lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
@@ -4304,7 +4304,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_byte_character_index", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringByteCharacterIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
@@ -4376,7 +4376,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_character_index", lowerFixnum = 2)
-    public static abstract class StringCharacterIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringCharacterIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -4441,7 +4441,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_index", lowerFixnum = 2)
-    public static abstract class StringByteIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringByteIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -4504,7 +4504,7 @@ public abstract class StringNodes {
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
      * @characterIndex - The character index into the rope, starting from the provided byte offset. */
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public static abstract class ByteIndexFromCharIndexNode extends RubyContextNode {
+    public abstract static class ByteIndexFromCharIndexNode extends RubyContextNode {
 
         public static ByteIndexFromCharIndexNode create() {
             return ByteIndexFromCharIndexNodeGen.create();
@@ -4577,7 +4577,7 @@ public abstract class StringNodes {
     // Named 'string_byte_index' in Rubinius.
     @Primitive(name = "string_byte_index_from_char_index", lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object singleByteOptimizable(Object string, int characterIndex,
@@ -4594,7 +4594,7 @@ public abstract class StringNodes {
     // the byte index marking the start of the previous character in the string.
     @Primitive(name = "string_previous_byte_index", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringPreviousByteIndexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringPreviousByteIndexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "index < 0")
         protected Object negativeIndex(Object string, int index) {
@@ -4662,7 +4662,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "find_string_reverse", lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
@@ -4851,7 +4851,7 @@ public abstract class StringNodes {
 
     @NonStandard
     @CoreMethod(names = "pattern", constructor = true, required = 2, lowerFixnum = { 1, 2 })
-    public static abstract class StringPatternPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringPatternPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
         @Child private RopeNodes.RepeatNode repeatNode = RopeNodes.RepeatNode.create();
@@ -4919,7 +4919,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_splice", lowerFixnum = { 2, 3 })
     @ImportStatic(StringGuards.class)
-    public static abstract class StringSplicePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringSplicePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "libOther.isRubyString(other)", "indexAtStartBound(spliceByteIndex)" })
         protected Object splicePrepend(
@@ -5006,7 +5006,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
-    public static abstract class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object stringToInum(Object string, int fixBase, boolean strict, boolean raiseOnError,
@@ -5036,7 +5036,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_append")
-    public static abstract class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
 
@@ -5056,7 +5056,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_substring", lowerFixnum = { 1, 2 })
     @ImportStatic(StringGuards.class)
-    public static abstract class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NormalizeIndexNode normalizeIndexNode = NormalizeIndexNode.create();
         @Child RopeNodes.CharacterLengthNode characterLengthNode = RopeNodes.CharacterLengthNode.create();
@@ -5288,7 +5288,7 @@ public abstract class StringNodes {
 
     @NonStandard
     @CoreMethod(names = "from_bytearray", onSingleton = true, required = 4, lowerFixnum = { 2, 3 })
-    public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyString stringFromByteArray(
@@ -5303,7 +5303,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class StringAppendNode extends RubyContextNode {
+    public abstract static class StringAppendNode extends RubyContextNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private RopeNodes.ConcatNode concatNode;
@@ -5345,7 +5345,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_to_null_terminated_byte_array")
-    public static abstract class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object stringToNullTerminatedByteArray(Object string,

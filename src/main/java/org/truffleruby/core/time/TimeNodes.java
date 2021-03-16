@@ -173,7 +173,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "now", constructor = true)
-    public static abstract class TimeNowNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
@@ -197,7 +197,7 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_at", lowerFixnum = 2)
-    public static abstract class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
@@ -228,7 +228,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "to_i", "tv_sec" })
-    public static abstract class TimeSecondsSinceEpochNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeSecondsSinceEpochNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -239,7 +239,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "usec", "tv_usec" })
-    public static abstract class TimeMicroSecondsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeMicroSecondsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -250,7 +250,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "nsec", "tv_nsec" })
-    public static abstract class TimeNanoSecondsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeNanoSecondsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -261,7 +261,7 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_set_nseconds", lowerFixnum = 1)
-    public static abstract class TimeSetNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TimeSetNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -274,7 +274,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "utc_offset", "gmt_offset", "gmtoff" })
-    public static abstract class TimeUTCOffsetNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeUTCOffsetNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -284,7 +284,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "sec")
-    public static abstract class TimeSecNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeSecNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -295,7 +295,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "min")
-    public static abstract class TimeMinNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeMinNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -306,7 +306,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "hour")
-    public static abstract class TimeHourNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeHourNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -317,7 +317,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "day", "mday" })
-    public static abstract class TimeDayNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeDayNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -328,7 +328,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "mon", "month" })
-    public static abstract class TimeMonthNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeMonthNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -339,7 +339,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "year")
-    public static abstract class TimeYearNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeYearNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -350,7 +350,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "wday")
-    public static abstract class TimeWeekDayNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeWeekDayNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -365,7 +365,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = "yday")
-    public static abstract class TimeYearDayNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeYearDayNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -376,7 +376,7 @@ public abstract class TimeNodes {
     }
 
     @CoreMethod(names = { "dst?", "isdst" })
-    public static abstract class TimeIsDSTNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class TimeIsDSTNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -398,7 +398,7 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_zone")
-    public static abstract class TimeZoneNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TimeZoneNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object timeZone(RubyTime time) {
@@ -409,7 +409,7 @@ public abstract class TimeNodes {
 
     @Primitive(name = "time_strftime")
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-    public static abstract class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
@@ -461,7 +461,7 @@ public abstract class TimeNodes {
                     6 /* year */,
                     7 /* nsec */,
                     8 /* isdst */ })
-    public static abstract class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private StringNodes.MakeStringNode makeStringNode;

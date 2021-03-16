@@ -625,7 +625,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_local_variables")
-    public static abstract class ThreadLocalVariablesPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadLocalVariablesPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyHash threadLocalVariables(RubyThread thread) {
@@ -635,7 +635,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_randomizer")
-    public static abstract class ThreadRandomizerPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadRandomizerPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyPRNGRandomizer randomizer(
@@ -646,7 +646,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_recursive_objects")
-    public static abstract class ThreadRecursiveObjectsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadRecursiveObjectsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyHash recursiveObjects(
@@ -657,7 +657,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_detect_recursion_single")
-    public static abstract class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
 
         @Child private YieldNode yieldNode = YieldNode.create();
         @Child private SetNode addNode = SetNode.create();
@@ -694,7 +694,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_get_report_on_exception")
-    public static abstract class ThreadGetReportOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadGetReportOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean getReportOnException(RubyThread thread) {
@@ -704,7 +704,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_report_on_exception")
-    public static abstract class ThreadSetReportOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadSetReportOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyThread setReportOnException(RubyThread thread, boolean value) {
@@ -715,7 +715,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_get_abort_on_exception")
-    public static abstract class ThreadGetAbortOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadGetAbortOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean getAbortOnException(RubyThread thread) {
@@ -725,7 +725,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_abort_on_exception")
-    public static abstract class ThreadSetAbortOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadSetAbortOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyThread setAbortOnException(RubyThread thread, boolean value) {
@@ -736,7 +736,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_raise")
-    public static abstract class ThreadRaisePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadRaisePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object raise(RubyThread thread, RubyException exception) {
@@ -766,7 +766,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_source_location")
-    public static abstract class ThreadSourceLocationNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadSourceLocationNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -778,7 +778,7 @@ public abstract class ThreadNodes {
     }
 
     @CoreMethod(names = "name")
-    public static abstract class ThreadNameNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ThreadNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object getName(RubyThread thread) {
@@ -787,7 +787,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_name")
-    public static abstract class ThreadSetNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadSetNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object setName(RubyThread thread, Object name) {
@@ -797,7 +797,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_get_priority")
-    public static abstract class ThreadGetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadGetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int getPriority(RubyThread thread) {
@@ -812,7 +812,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_priority", lowerFixnum = 1)
-    public static abstract class ThreadSetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadSetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected int getPriority(RubyThread thread, int javaPriority) {
@@ -827,7 +827,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_group")
-    public static abstract class ThreadSetGroupPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadSetGroupPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object setGroup(RubyThread thread, Object threadGroup) {
@@ -837,7 +837,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_get_exception")
-    public static abstract class ThreadGetExceptionNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadGetExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getException(
@@ -856,7 +856,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_get_return_code")
-    public static abstract class ThreadGetReturnCodeNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadGetReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getExitCode(
@@ -866,7 +866,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_exception")
-    public static abstract class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object setException(Object exception,
@@ -876,7 +876,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_set_return_code")
-    public static abstract class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getException(Object processStatus,
@@ -886,7 +886,7 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_get_fiber_locals")
-    public static abstract class ThreadGetFiberLocalsNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadGetFiberLocalsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyBasicObject getFiberLocals(RubyThread thread) {
@@ -899,7 +899,7 @@ public abstract class ThreadNodes {
      * native calls. If the {@link SafepointManager} needs to interrupt the thread, it will send a SIGVTALRM to abort
      * the blocking syscall and the syscall will return -1 with errno=EINTR, meaning it was interrupted. */
     @Primitive(name = "thread_run_blocking_nfi_system_call")
-    public static abstract class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object runBlockingSystemCall(Object executable, RubyArray argsArray,

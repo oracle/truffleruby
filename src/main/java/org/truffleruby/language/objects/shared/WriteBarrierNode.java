@@ -30,7 +30,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     protected static final int CACHE_LIMIT = 8;
     protected static final int MAX_DEPTH = 3;
 
-    abstract protected int getDepth();
+    protected abstract int getDepth();
 
     public static WriteBarrierNode create() {
         return WriteBarrierNodeGen.create(0);

@@ -35,7 +35,7 @@ public class RubyTimeOutputFormatter {
     final String flags;
     final int width;
 
-    public final static RubyTimeOutputFormatter DEFAULT_FORMATTER = new RubyTimeOutputFormatter("", 0);
+    public static final RubyTimeOutputFormatter DEFAULT_FORMATTER = new RubyTimeOutputFormatter("", 0);
 
     public RubyTimeOutputFormatter(String flags, int width) {
         this.flags = flags;

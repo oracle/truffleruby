@@ -885,7 +885,7 @@ public abstract class FloatNodes {
 
     @NonStandard
     @CoreMethod(names = "dtoa", visibility = Visibility.PRIVATE)
-    public static abstract class DToANode extends CoreMethodArrayArgumentsNode {
+    public abstract static class DToANode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 

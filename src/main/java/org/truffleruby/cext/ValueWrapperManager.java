@@ -271,7 +271,7 @@ public class ValueWrapperManager {
     }
 
     @GenerateUncached
-    public static abstract class GetHandleBlockHolderNode extends RubyBaseNode {
+    public abstract static class GetHandleBlockHolderNode extends RubyBaseNode {
 
         public abstract HandleThreadData execute(ValueWrapper wrapper);
 
@@ -289,7 +289,7 @@ public class ValueWrapperManager {
             return context.getValueWrapperManager().getBlockHolder();
         }
 
-        static protected Thread currentJavaThread(ValueWrapper wrapper) {
+        protected static Thread currentJavaThread(ValueWrapper wrapper) {
             return Thread.currentThread();
         }
 
@@ -303,7 +303,7 @@ public class ValueWrapperManager {
     }
 
     @GenerateUncached
-    public static abstract class AllocateHandleNode extends RubyBaseNode {
+    public abstract static class AllocateHandleNode extends RubyBaseNode {
 
         public abstract long execute(ValueWrapper wrapper);
 

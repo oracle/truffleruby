@@ -108,7 +108,7 @@ public class TruffleRegexpNodes {
     }
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
-    public static abstract class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
@@ -284,7 +284,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    public static abstract class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         protected <T> RubyArray fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
@@ -301,7 +301,7 @@ public class TruffleRegexpNodes {
     }
 
     @CoreMethod(names = "compilation_stats_array", onSingleton = true, required = 0)
-    public static abstract class CompilationStatsArrayNode extends RegexpStatsNode {
+    public abstract static class CompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
         protected Object buildStatsArray(
@@ -311,7 +311,7 @@ public class TruffleRegexpNodes {
     }
 
     @CoreMethod(names = "match_stats_array", onSingleton = true, required = 0)
-    public static abstract class MatchStatsArrayNode extends RegexpStatsNode {
+    public abstract static class MatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
         protected Object buildStatsArray(
@@ -331,7 +331,7 @@ public class TruffleRegexpNodes {
     }
 
     @Primitive(name = "regexp_initialized?")
-    public static abstract class InitializedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InitializedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean initialized(RubyRegexp regexp) {
@@ -340,7 +340,7 @@ public class TruffleRegexpNodes {
     }
 
     @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 6 })
-    public static abstract class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
 
         /** Matches a regular expression against a string over the specified range of characters.
          *
@@ -385,7 +385,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    public static abstract class MatchNode extends RubyContextNode {
+    public abstract static class MatchNode extends RubyContextNode {
 
         @Child private DispatchNode dupNode = DispatchNode.create();
 

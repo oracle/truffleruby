@@ -38,7 +38,7 @@ import org.truffleruby.language.control.RaiseException;
 public abstract class GCNodes {
 
     @Primitive(name = "gc_start")
-    public static abstract class GCStartPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class GCStartPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -60,7 +60,7 @@ public abstract class GCNodes {
      * Note that even when GC is triggered, there is not guarantee that the all the garbage has been cleared or all the
      * memory reclaimed. */
     @Primitive(name = "gc_force")
-    public static abstract class GCForce extends PrimitiveArrayArgumentsNode {
+    public abstract static class GCForce extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -136,7 +136,7 @@ public abstract class GCNodes {
     }
 
     @Primitive(name = "gc_stat")
-    public static abstract class GCStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class GCStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

@@ -100,7 +100,7 @@
     <!--</module>-->
     <module name="EmptyForInitializerPad"/>
     <module name="EmptyForIteratorPad"/>
-    <!--<module name="ModifierOrder"/>-->
+    <module name="ModifierOrder"/>
     <!--<module name="DefaultComesLast"/>-->
     <module name="InnerAssignment">
       <property name="severity" value="ignore"/>

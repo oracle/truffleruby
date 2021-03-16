@@ -160,7 +160,7 @@ public abstract class EncodingConverterNodes {
     }
 
     @Primitive(name = "encoding_transcoders_from_encoding")
-    public static abstract class TranscodersFromEncodingNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TranscodersFromEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -183,7 +183,7 @@ public abstract class EncodingConverterNodes {
     }
 
     @Primitive(name = "encoding_converter_primitive_convert", lowerFixnum = { 3, 4, 5 })
-    public static abstract class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
@@ -339,7 +339,7 @@ public abstract class EncodingConverterNodes {
     }
 
     @CoreMethod(names = "putback", optional = 1, lowerFixnum = 1)
-    public static abstract class EncodingConverterPutbackNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class EncodingConverterPutbackNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -378,7 +378,7 @@ public abstract class EncodingConverterNodes {
     }
 
     @Primitive(name = "encoding_converter_last_error")
-    public static abstract class EncodingConverterLastErrorNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class EncodingConverterLastErrorNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -439,7 +439,7 @@ public abstract class EncodingConverterNodes {
     }
 
     @CoreMethod(names = "primitive_errinfo")
-    public static abstract class EncodingConverterErrinfoNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class EncodingConverterErrinfoNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

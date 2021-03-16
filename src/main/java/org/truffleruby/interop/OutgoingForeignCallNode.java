@@ -44,29 +44,29 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
     public abstract Object executeCall(Object receiver, String name, Object[] args);
 
-    protected final static String INDEX_READ = "[]";
-    protected final static String INDEX_WRITE = "[]=";
-    protected final static String CALL = "call";
-    protected final static String NEW = "new";
-    protected final static String TO_A = "to_a";
-    protected final static String TO_ARY = "to_ary";
-    protected final static String TO_I = "to_i";
-    protected final static String TO_F = "to_f";
-    protected final static String RESPOND_TO = "respond_to?";
-    protected final static String SEND = "__send__";
-    protected final static String NIL = "nil?";
-    protected final static String EQUAL = "equal?";
-    protected final static String DELETE = "delete";
-    protected final static String SIZE = "size";
-    protected final static String KEYS = "keys";
-    protected final static String CLASS = "class";
-    protected final static String INSPECT = "inspect";
-    protected final static String TO_S = "to_s";
-    protected final static String TO_STR = "to_str";
-    protected final static String IS_A = "is_a?";
-    protected final static String KIND_OF = "kind_of?";
-    protected final static String OBJECT_ID = "object_id";
-    protected final static String ID = "__id__";
+    protected static final String INDEX_READ = "[]";
+    protected static final String INDEX_WRITE = "[]=";
+    protected static final String CALL = "call";
+    protected static final String NEW = "new";
+    protected static final String TO_A = "to_a";
+    protected static final String TO_ARY = "to_ary";
+    protected static final String TO_I = "to_i";
+    protected static final String TO_F = "to_f";
+    protected static final String RESPOND_TO = "respond_to?";
+    protected static final String SEND = "__send__";
+    protected static final String NIL = "nil?";
+    protected static final String EQUAL = "equal?";
+    protected static final String DELETE = "delete";
+    protected static final String SIZE = "size";
+    protected static final String KEYS = "keys";
+    protected static final String CLASS = "class";
+    protected static final String INSPECT = "inspect";
+    protected static final String TO_S = "to_s";
+    protected static final String TO_STR = "to_str";
+    protected static final String IS_A = "is_a?";
+    protected static final String KIND_OF = "kind_of?";
+    protected static final String OBJECT_ID = "object_id";
+    protected static final String ID = "__id__";
 
     @Specialization(
             guards = {

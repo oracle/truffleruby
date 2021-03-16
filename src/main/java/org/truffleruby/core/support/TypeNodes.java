@@ -64,7 +64,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public abstract class TypeNodes {
 
     @Primitive(name = "object_kind_of?")
-    public static abstract class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
 
         @Child private IsANode isANode = IsANode.create();
 
@@ -76,7 +76,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "object_respond_to?")
-    public static abstract class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
                 .create(null, null, null);
@@ -90,7 +90,7 @@ public abstract class TypeNodes {
     }
 
     @CoreMethod(names = "object_class", onSingleton = true, required = 1)
-    public static abstract class ObjectClassNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ObjectClassNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
@@ -113,7 +113,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "object_equal")
-    public static abstract class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean objectEqual(Object a, Object b,
@@ -124,7 +124,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "immediate_value?")
-    public static abstract class IsImmediateValueNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IsImmediateValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean doBoolean(boolean value) {
@@ -164,7 +164,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "nil?")
-    public static abstract class IsNilNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean isNil(Object value) {
@@ -286,7 +286,7 @@ public abstract class TypeNodes {
             return TypeNodesFactory.CanContainObjectNodeFactory.create(null);
         }
 
-        abstract public boolean execute(RubyArray array);
+        public abstract boolean execute(RubyArray array);
 
         @Specialization(
                 guards = {
@@ -325,7 +325,7 @@ public abstract class TypeNodes {
     }
 
     @CoreMethod(names = "module_name", onSingleton = true, required = 1)
-    public static abstract class ModuleNameNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ModuleNameNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -338,7 +338,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "rb_num2long")
-    public static abstract class RbNum2LongPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class RbNum2LongPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Child private ToLongNode toLongNode = ToLongNode.create();
 
         @Specialization
@@ -348,7 +348,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "rb_num2int")
-    public static abstract class RbNum2IntPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class RbNum2IntPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Child private ToIntNode toIntNode = ToIntNode.create();
 
         @Specialization
@@ -358,7 +358,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "rb_to_int")
-    public static abstract class RbToIntNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class RbToIntNode extends PrimitiveArrayArgumentsNode {
         @Child private ToRubyIntegerNode toRubyInteger = ToRubyIntegerNode.create();
 
         @Specialization
@@ -368,7 +368,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "double_to_float")
-    public static abstract class DoubleToFloatNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class DoubleToFloatNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected float doubleToFloat(double value) {
@@ -379,7 +379,7 @@ public abstract class TypeNodes {
 
     @Primitive(name = "check_frozen")
     @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class CheckFrozenNode extends PrimitiveNode {
+    public abstract static class CheckFrozenNode extends PrimitiveNode {
 
         public static CheckFrozenNode create() {
             return create(null);
@@ -407,7 +407,7 @@ public abstract class TypeNodes {
 
     @Primitive(name = "undefined?")
     @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class IsUndefinedNode extends PrimitiveNode {
+    public abstract static class IsUndefinedNode extends PrimitiveNode {
 
         @Specialization
         protected boolean isUndefined(Object value) {
@@ -417,7 +417,7 @@ public abstract class TypeNodes {
 
     @Primitive(name = "as_boolean")
     @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class AsBooleanNode extends PrimitiveNode {
+    public abstract static class AsBooleanNode extends PrimitiveNode {
 
         @Specialization
         protected boolean asBoolean(Object value,

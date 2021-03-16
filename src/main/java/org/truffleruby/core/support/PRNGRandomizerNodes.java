@@ -77,7 +77,7 @@ public abstract class PRNGRandomizerNodes {
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
-    public static abstract class AllocateNode extends UnaryCoreMethodNode {
+    public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
         protected RubyPRNGRandomizer randomizerAllocate(RubyClass randomizerClass) {
@@ -95,7 +95,7 @@ public abstract class PRNGRandomizerNodes {
     }
 
     @CoreMethod(names = "seed")
-    public static abstract class RandomizerSeedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RandomizerSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object seed(RubyPRNGRandomizer randomizer) {
@@ -105,7 +105,7 @@ public abstract class PRNGRandomizerNodes {
     }
 
     @CoreMethod(names = "seed=", required = 1)
-    public static abstract class RandomizerSetSeedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RandomizerSetSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyPRNGRandomizer setSeed(RubyPRNGRandomizer randomizer, long seed) {
@@ -183,7 +183,7 @@ public abstract class PRNGRandomizerNodes {
     }
 
     @CoreMethod(names = "generate_seed", needsSelf = false)
-    public static abstract class RandomizerGenSeedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class RandomizerGenSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected RubyBignum generateSeed() {
@@ -202,7 +202,7 @@ public abstract class PRNGRandomizerNodes {
     }
 
     @Primitive(name = "randomizer_bytes", lowerFixnum = 1)
-    public static abstract class RandomizerBytesPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class RandomizerBytesPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

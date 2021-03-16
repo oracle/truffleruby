@@ -79,7 +79,7 @@ public class FeatureLoader {
     private NativeFunction getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
 
-    private @CompilationFinal RubyArray loadedFeatures = null;
+    @CompilationFinal private RubyArray loadedFeatures = null;
 
     private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
 

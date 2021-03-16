@@ -55,7 +55,7 @@ class SafeDecimalParser {
      * 
      * @param s The non-null input String
      * @return <code>true</code> if the value is suspicious, <code>false</code> otherwise */
-    final protected static boolean isSuspicious(String s) {
+    protected static final boolean isSuspicious(String s) {
         return digits(s).contains(SUSPICIOUS_DIGITS);
     }
 
@@ -63,7 +63,7 @@ class SafeDecimalParser {
      * 
      * @param s The input String, can be null
      * @return The Double value */
-    final protected static Double decimalValueOf(String s) {
+    protected static final Double decimalValueOf(String s) {
         Double result = null;
         if (s != null) {
             if (isSuspicious(s)) {
@@ -81,7 +81,7 @@ class SafeDecimalParser {
      * 
      * @param number
      * @return the double value */
-    final protected static double decimalValue(Number number) {
+    protected static final double decimalValue(Number number) {
         double result = 0;
         if (number != null) {
             if (number instanceof BigDecimal) {
@@ -98,7 +98,7 @@ class SafeDecimalParser {
      * 
      * @param bigDecimal
      * @return the double value */
-    final protected static double decimalValue(BigDecimal bigDecimal) {
+    protected static final double decimalValue(BigDecimal bigDecimal) {
         double result = 0.0;
         if (bigDecimal != null) {
             if (isDangerous(bigDecimal)) {
@@ -116,7 +116,7 @@ class SafeDecimalParser {
      * 
      * @param s The non-null input String
      * @return the double value */
-    final private static Double parseSafely(String s) {
+    private static final Double parseSafely(String s) {
         Double result;
         BigDecimal bd = new BigDecimal(s);
         if (isDangerous(bd)) {
@@ -135,7 +135,7 @@ class SafeDecimalParser {
      * 
      * @param s The non-null String value
      * @return A String containing only the digits */
-    final private static String digits(String s) {
+    private static final String digits(String s) {
         char[] ca = s.toCharArray();
         int len = ca.length;
         StringBuilder b = new StringBuilder(len);
@@ -152,7 +152,7 @@ class SafeDecimalParser {
      * 
      * @param bd The big decimal value
      * @return <code>true</code> if the value is dangerous, <code>false</code> otherwise */
-    final private static boolean isDangerous(BigDecimal bd) {
+    private static final boolean isDangerous(BigDecimal bd) {
         return bd.compareTo(UPPER) < 0 && bd.compareTo(LOWER) > 0;
     }
 }

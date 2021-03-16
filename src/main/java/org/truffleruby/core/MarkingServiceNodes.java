@@ -25,7 +25,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public class MarkingServiceNodes {
 
     @GenerateUncached
-    public static abstract class KeepAliveNode extends RubyBaseNode {
+    public abstract static class KeepAliveNode extends RubyBaseNode {
 
         public abstract void execute(Object object);
 
@@ -47,7 +47,7 @@ public class MarkingServiceNodes {
     }
 
     @GenerateUncached
-    public static abstract class GetMarkerThreadLocalDataNode extends RubyBaseNode {
+    public abstract static class GetMarkerThreadLocalDataNode extends RubyBaseNode {
 
         public final MarkerThreadLocalData execute() {
             return executeInternal(Boolean.TRUE);
@@ -69,7 +69,7 @@ public class MarkingServiceNodes {
             return context.getMarkingService().getThreadLocalData();
         }
 
-        static protected Thread currentJavaThread(Object dynamicParameter) {
+        protected static Thread currentJavaThread(Object dynamicParameter) {
             return Thread.currentThread();
         }
 

@@ -761,9 +761,9 @@ public class ConvertBytes {
         return out;
     }
 
-    private final static byte[] conv_digit = new byte[128];
-    private final static boolean[] digit = new boolean[128];
-    private final static boolean[] space = new boolean[128];
+    private static final byte[] conv_digit = new byte[128];
+    private static final boolean[] digit = new boolean[128];
+    private static final boolean[] space = new boolean[128];
 
     static {
         Arrays.fill(conv_digit, (byte) -1);

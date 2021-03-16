@@ -57,7 +57,7 @@ public abstract class ConditionVariableNodes {
     }
 
     @Primitive(name = "condition_variable_wait")
-    public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
@@ -197,7 +197,7 @@ public abstract class ConditionVariableNodes {
     }
 
     @CoreMethod(names = "signal")
-    public static abstract class SignalNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class SignalNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -220,7 +220,7 @@ public abstract class ConditionVariableNodes {
     }
 
     @CoreMethod(names = "broadcast")
-    public static abstract class BroadCastNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class BroadCastNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

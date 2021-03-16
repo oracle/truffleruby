@@ -38,7 +38,7 @@ public final class WhileNode extends RubyContextSourceNode {
         return nil;
     }
 
-    private static abstract class WhileRepeatingBaseNode extends RubyContextNode implements RepeatingNode {
+    private abstract static class WhileRepeatingBaseNode extends RubyContextNode implements RepeatingNode {
 
         @Child protected BooleanCastNode condition;
         @Child protected RubyNode body;
