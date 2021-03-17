@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -40,7 +39,6 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Platform;
@@ -78,8 +76,6 @@ public class FeatureLoader {
     private String cwd = null;
     private NativeFunction getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
-
-    @CompilationFinal private RubyArray loadedFeatures = null;
 
     private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
 
@@ -490,14 +486,5 @@ public class FeatureLoader {
         } finally {
             Metrics.printTime("after-load-cext-" + feature);
         }
-    }
-
-    public Object getLoadedFeaturesLock() {
-        if (loadedFeatures == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            GlobalVariables globals = context.getCoreLibrary().globalVariables;
-            loadedFeatures = (RubyArray) globals.getStorage("$LOADED_FEATURES").getValue();
-        }
-        return loadedFeatures;
     }
 }

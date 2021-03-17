@@ -388,18 +388,13 @@ public abstract class RequireNode extends RubyContextNode {
     }
 
     public boolean isFeatureLoaded(Object feature) {
-        final Object included;
-        synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            included = isInLoadedFeatures
-                    .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
-        }
+        final Object included = isInLoadedFeatures
+                .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
         return booleanCastNode.executeToBoolean(included);
     }
 
     private void addToLoadedFeatures(Object feature) {
-        synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(coreLibrary().truffleFeatureLoaderModule, "provide_feature", feature);
-        }
+        addToLoadedFeatures.call(coreLibrary().truffleFeatureLoaderModule, "provide_feature", feature);
     }
 
     private void warnCircularRequire(String path) {
