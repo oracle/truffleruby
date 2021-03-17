@@ -66,7 +66,7 @@ public class ThreadBacktraceLocationNodes {
                     return makeStringNode.fromRope(cachedRope);
                 } else { // eval()
                     return makeStringNode
-                            .fromRope(getContext().getPathToRopeCache().getCachedPath(source));
+                            .fromRope(getLanguage().getPathToRopeCache().getCachedPath(source));
                 }
             }
         }
@@ -85,7 +85,7 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
-                final Rope path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                final Rope path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
                 return makeStringNode.fromRope(path);
             }
         }

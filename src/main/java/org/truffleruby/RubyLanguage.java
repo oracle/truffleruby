@@ -58,6 +58,7 @@ import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
@@ -170,6 +171,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal private AllocationReporter allocationReporter;
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
+    private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
 
     private static final RubyObjectType objectType = new RubyObjectType();
 
@@ -285,7 +287,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
             if (this.options == null) {
                 this.options = new LanguageOptions(env, env.getOptions());
-                this.coreLoadPath = buildCoreLoadPath();
+                this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
@@ -474,6 +476,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return id;
     }
 
+    public PathToRopeCache getPathToRopeCache() {
+        return pathToRopeCache;
+    }
+
     private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass) {
         return Shape
                 .newBuilder()
@@ -489,7 +495,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     /** {@link RubyLanguage#getSourcePath(Source)} should be used instead whenever possible (i.e., when we can access
-     * the context).
+     * the language).
      *
      * Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
      * that the path of {@code eval(code, nil, filename)} is just {@code filename} and might not be absolute. */
@@ -507,7 +513,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     /** {@link RubyLanguage#getPath(Source)} but also handles core library sources. Ideally this method would be static
      * but for now the core load path is an option and it also depends on the current working directory. Once we have
-     * Source metadata in Truffle we could use that to identify core library sources without needing the context. */
+     * Source metadata in Truffle we could use that to identify core library sources without needing the language. */
     public String getSourcePath(Source source) {
         final String path = getPath(source);
         if (path.startsWith(coreLoadPath)) {
@@ -517,19 +523,18 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    private String buildCoreLoadPath() {
-        String path = options.CORE_LOAD_PATH;
+    private static String buildCoreLoadPath(String coreLoadPath) {
 
-        while (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
+        while (coreLoadPath.endsWith("/")) {
+            coreLoadPath = coreLoadPath.substring(0, coreLoadPath.length() - 1);
         }
 
-        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            return path;
+        if (coreLoadPath.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
+            return coreLoadPath;
         }
 
         try {
-            return new File(path).getCanonicalPath();
+            return new File(coreLoadPath).getCanonicalPath();
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }

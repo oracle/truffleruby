@@ -56,7 +56,6 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.NativeRope;
-import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
@@ -121,7 +120,7 @@ public class RubyContext {
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager();
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
-    private final CallStackManager callStack = new CallStackManager(this);
+    private final CallStackManager callStack;
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
     private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
@@ -138,7 +137,6 @@ public class RubyContext {
     private final Hashing hashing;
     @CompilationFinal private BacktraceFormatter defaultBacktraceFormatter;
     private final BacktraceFormatter userBacktraceFormatter;
-    private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
     @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     @CompilationFinal private CoreMethods coreMethods;
@@ -163,6 +161,7 @@ public class RubyContext {
 
         this.logger = env.getLogger("");
         this.language = language;
+        this.callStack = new CallStackManager(language, this);
         setEnv(env);
         this.preInitialized = preInitializing;
 
@@ -631,10 +630,6 @@ public class RubyContext {
 
     public CoverageManager getCoverageManager() {
         return coverageManager;
-    }
-
-    public PathToRopeCache getPathToRopeCache() {
-        return pathToRopeCache;
     }
 
     public CodeLoader getCodeLoader() {

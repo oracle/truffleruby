@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayUtils;
@@ -37,9 +38,11 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class CallStackManager {
 
+    private final RubyLanguage language;
     private final RubyContext context;
 
-    public CallStackManager(RubyContext context) {
+    public CallStackManager(RubyLanguage language, RubyContext context) {
+        this.language = language;
         this.context = context;
     }
 
@@ -102,7 +105,7 @@ public class CallStackManager {
 
     @TruffleBoundary
     public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
-        if (BacktraceFormatter.isUserSourceSection(context.getLanguageSlow(), encapsulatingSourceSection)) {
+        if (BacktraceFormatter.isUserSourceSection(language, encapsulatingSourceSection)) {
             return encapsulatingSourceSection;
         } else {
             return getTopMostUserSourceSection();

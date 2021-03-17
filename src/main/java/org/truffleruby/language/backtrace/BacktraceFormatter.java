@@ -85,9 +85,9 @@ public class BacktraceFormatter {
     }
 
     /** For debug purposes. */
-    public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
-        return isUserSourceSection(context.getLanguageSlow(), sourceSection) &&
-                !context.getLanguageSlow().getSourcePath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
+    public static boolean isApplicationCode(RubyLanguage language, SourceSection sourceSection) {
+        return isUserSourceSection(language, sourceSection) &&
+                !language.getSourcePath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
     }
 
     public BacktraceFormatter(RubyContext context, RubyLanguage language, EnumSet<FormattingFlags> flags) {

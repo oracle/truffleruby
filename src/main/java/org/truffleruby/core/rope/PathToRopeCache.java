@@ -15,7 +15,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
 
@@ -26,17 +25,17 @@ import com.oracle.truffle.api.source.Source;
  * Source is reachable. */
 public class PathToRopeCache {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final WeakHashMap<String, Rope> javaStringToRope = new WeakHashMap<>();
 
-    public PathToRopeCache(RubyContext context) {
-        this.context = context;
+    public PathToRopeCache(RubyLanguage language) {
+        this.language = language;
     }
 
     @TruffleBoundary
     public Rope getCachedPath(Source source) {
-        final String path = context.getLanguageSlow().getSourcePath(source);
+        final String path = language.getSourcePath(source);
 
         final Lock readLock = lock.readLock();
         readLock.lock();
@@ -49,7 +48,7 @@ public class PathToRopeCache {
             readLock.unlock();
         }
 
-        final Rope cachedRope = context.getLanguageSlow().ropeCache.getRope(
+        final Rope cachedRope = language.ropeCache.getRope(
                 StringOperations.encodeRope(path, UTF8Encoding.INSTANCE));
 
         final Lock writeLock = lock.writeLock();

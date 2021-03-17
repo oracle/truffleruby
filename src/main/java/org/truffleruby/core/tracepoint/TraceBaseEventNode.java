@@ -43,7 +43,8 @@ public class TraceBaseEventNode extends ExecutionEventNode {
         if (file == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final Source source = eventContext.getInstrumentedSourceSection().getSource();
-            file = StringOperations.createString(context, language, context.getPathToRopeCache().getCachedPath(source));
+            file = StringOperations
+                    .createString(context, language, language.getPathToRopeCache().getCachedPath(source));
         }
         return file;
     }
