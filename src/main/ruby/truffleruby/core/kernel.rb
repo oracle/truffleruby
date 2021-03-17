@@ -688,7 +688,8 @@ module Kernel
   end
   module_function :warn
 
-  def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined)
+  def raise(*args)
+    exc, msg, ctx, cause = Truffle::KernelOperations.extract_raise_args(args)
     cause_given = !Primitive.undefined?(cause)
     cause = cause_given ? cause : $!
 

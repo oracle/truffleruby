@@ -21,6 +21,7 @@ Bug fixes:
 * Fix usage of `Thread.handle_interrupt` in `MonitorMixin#mon_synchronize`.
 * Fixed `TruffleRuby.synchronized` to handle guest safepoints (#2277).
 * Fix control flow bug when assigning constants using ||= (#1489).
+* Fix `Kernel#raise` argument handling for hashes (#2298).
 
 Compatibility:
 
