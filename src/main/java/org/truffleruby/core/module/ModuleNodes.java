@@ -1147,7 +1147,7 @@ public abstract class ModuleNodes {
                 return createEmptyArray();
             } else {
                 final RubyString file = makeStringNode.executeMake(
-                        getContext().getSourcePath(sourceSection.getSource()),
+                        getLanguage().getSourcePath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });

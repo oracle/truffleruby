@@ -92,7 +92,7 @@ public class MethodTranslator extends BodyTranslator {
 
         if (parserContext == ParserContext.EVAL || context.getCoverageManager().isEnabled()) {
             shouldLazyTranslate = false;
-        } else if (context.getSourcePath(source).startsWith(context.getCoreLibrary().coreLoadPath)) {
+        } else if (language.getSourcePath(source).startsWith(language.coreLoadPath)) {
             shouldLazyTranslate = language.options.LAZY_TRANSLATION_CORE;
         } else {
             shouldLazyTranslate = language.options.LAZY_TRANSLATION_USER;

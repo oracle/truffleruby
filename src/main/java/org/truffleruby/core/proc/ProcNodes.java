@@ -241,7 +241,7 @@ public abstract class ProcNodes {
         protected Object sourceLocation(RubyProc proc) {
             SourceSection sourceSection = proc.sharedMethodInfo.getSourceSection();
 
-            final String sourcePath = getContext().getSourcePath(sourceSection.getSource());
+            final String sourcePath = getLanguage().getSourcePath(sourceSection.getSource());
             if (!sourceSection.isAvailable() || sourcePath.endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {

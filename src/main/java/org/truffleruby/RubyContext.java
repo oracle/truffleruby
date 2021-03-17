@@ -351,11 +351,6 @@ public class RubyContext {
             return false;
         }
 
-        if (!newOptions.CORE_LOAD_PATH.equals(OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue())) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "--core-load-path is set: " + newOptions.CORE_LOAD_PATH);
-            return false; // Should load the specified core files
-        }
-
         if (hadHome != hasHome) {
             RubyLanguage.LOGGER.fine(notReusingContext + "Ruby home is " + (hasHome ? "set" : "unset"));
             return false;
@@ -807,34 +802,6 @@ public class RubyContext {
         return regexpCache;
     }
 
-    /** {@link #getSourcePath(Source)} should be used instead whenever possible (i.e., when we can access the context).
-     *
-     * Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
-     * that the path of {@code eval(code, nil, filename)} is just {@code filename} and might not be absolute. */
-    public static String getPath(Source source) {
-        final String path = source.getPath();
-        if (path != null) {
-            return path;
-        } else {
-            // non-file sources: eval(), main_boot_source, etc
-            final String name = source.getName();
-            assert name != null;
-            return name;
-        }
-    }
-
-    /** {@link RubyContext#getPath(Source)} but also handles core library sources. Ideally this method would be static
-     * but for now the core load path is an option and it also depends on the current working directory. Once we have
-     * Source metadata in Truffle we could use that to identify core library sources without needing the context. */
-    public String getSourcePath(Source source) {
-        final String path = RubyContext.getPath(source);
-        if (path.startsWith(coreLibrary.coreLoadPath)) {
-            return "<internal:core> " + path.substring(coreLibrary.coreLoadPath.length() + 1);
-        } else {
-            return RubyContext.getPath(source);
-        }
-    }
-
     public String getPathRelativeToHome(String path) {
         if (path.startsWith(rubyHome) && path.length() > rubyHome.length()) {
             return path.substring(rubyHome.length() + 1);
@@ -868,7 +835,7 @@ public class RubyContext {
         if (section == null) {
             return "no source section";
         } else {
-            final String path = getPath(section.getSource());
+            final String path = RubyLanguage.getPath(section.getSource());
 
             if (section.isAvailable()) {
                 return path + ":" + section.getStartLine();
@@ -883,7 +850,7 @@ public class RubyContext {
         if (section == null) {
             return "no source section";
         } else {
-            final String path = getPath(section.getSource());
+            final String path = RubyLanguage.getPath(section.getSource());
             final String filename = new File(path).getName();
 
             if (section.isAvailable()) {

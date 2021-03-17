@@ -11,7 +11,7 @@ package org.truffleruby.language.methods;
 
 import java.util.Arrays;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
@@ -185,7 +185,7 @@ public class SharedMethodInfo {
                 descriptiveNameAndSource = descriptiveName;
             } else {
                 descriptiveNameAndSource = descriptiveName + " " +
-                        RubyContext.getPath(sourceSection.getSource()) + ":" + sourceSection.getStartLine();
+                        RubyLanguage.getPath(sourceSection.getSource()) + ":" + sourceSection.getStartLine();
             }
         }
 

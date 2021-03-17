@@ -178,7 +178,7 @@ public class CoverageManager {
         final String noCodeString = new String(noCodeChars);
 
         for (Map.Entry<Source, AtomicLongArray> entry : counters.entrySet()) {
-            out.println(context.getSourcePath(entry.getKey()));
+            out.println(context.getLanguageSlow().getSourcePath(entry.getKey()));
 
             for (int n = 0; n < entry.getValue().length(); n++) {
                 // TODO CS 5-Sep-17 can we keep the line as a CharSequence rather than using toString?

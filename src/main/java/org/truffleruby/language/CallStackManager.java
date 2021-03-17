@@ -102,7 +102,7 @@ public class CallStackManager {
 
     @TruffleBoundary
     public SourceSection getTopMostUserSourceSection(SourceSection encapsulatingSourceSection) {
-        if (BacktraceFormatter.isUserSourceSection(context, encapsulatingSourceSection)) {
+        if (BacktraceFormatter.isUserSourceSection(context.getLanguageSlow(), encapsulatingSourceSection)) {
             return encapsulatingSourceSection;
         } else {
             return getTopMostUserSourceSection();
@@ -118,7 +118,7 @@ public class CallStackManager {
             }
 
             final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-            if (BacktraceFormatter.isUserSourceSection(context, sourceSection)) {
+            if (BacktraceFormatter.isUserSourceSection(context.getLanguageSlow(), sourceSection)) {
                 return sourceSection;
             } else {
                 return null; // Go to the next frame

@@ -16,12 +16,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
 
-/** A cache from {@link RubyContext#getPath(Source) the Source path} to a Rope. The Rope is kept alive as long as the
+/** A cache from {@link RubyLanguage#getPath(Source) the Source path} to a Rope. The Rope is kept alive as long as the
  * Source is reachable. */
 public class PathToRopeCache {
 
@@ -35,7 +36,7 @@ public class PathToRopeCache {
 
     @TruffleBoundary
     public Rope getCachedPath(Source source) {
-        final String path = context.getSourcePath(source);
+        final String path = context.getLanguageSlow().getSourcePath(source);
 
         final Lock readLock = lock.readLock();
         readLock.lock();

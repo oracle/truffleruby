@@ -153,7 +153,7 @@ public class FileLoader {
             return false;
         }
 
-        if (canonicalPath.startsWith(context.getCoreLibrary().coreLoadPath)) {
+        if (canonicalPath.startsWith(language.coreLoadPath)) {
             return language.options.CORE_AS_INTERNAL;
         }
 

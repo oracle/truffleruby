@@ -22,6 +22,8 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 // @formatter:off
 public class LanguageOptions {
 
+    /** --core-load-path="resource:/truffleruby" */
+    public final String CORE_LOAD_PATH;
     /** --frozen-string-literals=false */
     public final boolean FROZEN_STRING_LITERALS;
     /** --lazy-default=true */
@@ -110,6 +112,7 @@ public class LanguageOptions {
     public final boolean SHARED_OBJECTS_FORCE;
 
     public LanguageOptions(Env env, OptionValues options) {
+        CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
         LAZY_CALLTARGETS = options.hasBeenSet(OptionsCatalog.LAZY_CALLTARGETS_KEY) ? options.get(OptionsCatalog.LAZY_CALLTARGETS_KEY) : DEFAULT_LAZY;
@@ -157,6 +160,8 @@ public class LanguageOptions {
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
         switch (descriptor.getName()) {
+            case "ruby.core-load-path":
+                return CORE_LOAD_PATH;
             case "ruby.frozen-string-literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.lazy-default":
@@ -249,7 +254,8 @@ public class LanguageOptions {
     }
 
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
-        return one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
+        return one.get(OptionsCatalog.CORE_LOAD_PATH_KEY).equals(two.get(OptionsCatalog.CORE_LOAD_PATH_KEY)) &&
+               one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
                one.get(OptionsCatalog.LAZY_CALLTARGETS_KEY).equals(two.get(OptionsCatalog.LAZY_CALLTARGETS_KEY)) &&
                one.get(OptionsCatalog.CORE_AS_INTERNAL_KEY).equals(two.get(OptionsCatalog.CORE_AS_INTERNAL_KEY)) &&
@@ -297,6 +303,13 @@ public class LanguageOptions {
     public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
         Object oldValue;
         Object newValue;
+
+        oldValue = oldOptions.CORE_LOAD_PATH;
+        newValue = newOptions.CORE_LOAD_PATH;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --core-load-path differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
 
         oldValue = oldOptions.FROZEN_STRING_LITERALS;
         newValue = newOptions.FROZEN_STRING_LITERALS;

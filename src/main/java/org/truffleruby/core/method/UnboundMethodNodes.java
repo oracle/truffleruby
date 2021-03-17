@@ -184,7 +184,7 @@ public abstract class UnboundMethodNodes {
                 return nil;
             } else {
                 RubyString file = makeStringNode.executeMake(
-                        getContext().getSourcePath(sourceSection.getSource()),
+                        getLanguage().getSourcePath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
