@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextNode;
@@ -54,7 +54,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public String toString() {
-            return "while loop at " + RubyContext.filenameLine(getEncapsulatingSourceSection());
+            return "while loop at " + RubyLanguage.filenameLine(getEncapsulatingSourceSection());
         }
 
     }

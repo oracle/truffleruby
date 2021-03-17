@@ -83,7 +83,7 @@ public class SharedObjects {
     public static void shareDeclarationFrame(RubyLanguage language, RubyProc block) {
         if (language.options.SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
-            RubyLanguage.LOGGER.info("sharing decl frame of " + RubyContext.fileLine(sourceSection));
+            RubyLanguage.LOGGER.info("sharing decl frame of " + RubyLanguage.fileLine(sourceSection));
         }
 
         final Set<Object> objects = ObjectGraph.newObjectSet();

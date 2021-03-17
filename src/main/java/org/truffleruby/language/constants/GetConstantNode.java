@@ -102,7 +102,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             if (getContext().getOptions().LOG_AUTOLOAD) {
                 RubyLanguage.LOGGER.info(() -> String.format(
                         "%s: %s::%s is being treated as missing while loading %s",
-                        RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                        RubyLanguage.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                         module.fields.getName(),
                         name,
                         expandedPath));
@@ -113,7 +113,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         if (getContext().getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: autoloading %s with %s",
-                    RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                    RubyLanguage.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                     autoloadConstant,
                     autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }
@@ -157,7 +157,7 @@ public abstract class GetConstantNode extends RubyContextNode {
     public static void logAutoloadResult(RubyContext context, RubyConstant constant, boolean undefined) {
         if (context.getOptions().LOG_AUTOLOAD) {
             final SourceSection section = context.getCallStack().getTopMostUserSourceSection();
-            final String message = RubyContext.fileLine(section) + ": " + constant + " " +
+            final String message = RubyLanguage.fileLine(section) + ": " + constant + " " +
                     (undefined
                             ? "was marked as undefined as it was not assigned in "
                             : "was successfully autoloaded from ") +

@@ -93,7 +93,6 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyContext {
 
@@ -823,37 +822,6 @@ public class RubyContext {
 
     public PrintStream getEnvErrStream() {
         return errStream;
-    }
-
-    @TruffleBoundary
-    public static String fileLine(SourceSection section) {
-        if (section == null) {
-            return "no source section";
-        } else {
-            final String path = RubyLanguage.getPath(section.getSource());
-
-            if (section.isAvailable()) {
-                return path + ":" + section.getStartLine();
-            } else {
-                return path;
-            }
-        }
-    }
-
-    @TruffleBoundary
-    public static String filenameLine(SourceSection section) {
-        if (section == null) {
-            return "no source section";
-        } else {
-            final String path = RubyLanguage.getPath(section.getSource());
-            final String filename = new File(path).getName();
-
-            if (section.isAvailable()) {
-                return filename + ":" + section.getStartLine();
-            } else {
-                return filename;
-            }
-        }
     }
 
 }

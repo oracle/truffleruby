@@ -72,7 +72,7 @@ public class WarnNode extends RubyContextNode {
 
     @TruffleBoundary
     private static String buildWarningMessage(SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? RubyContext.fileLine(sourceSection) + ": " : "";
+        final String sourceLocation = sourceSection != null ? RubyLanguage.fileLine(sourceSection) + ": " : "";
         return sourceLocation + "warning: " + message;
     }
 

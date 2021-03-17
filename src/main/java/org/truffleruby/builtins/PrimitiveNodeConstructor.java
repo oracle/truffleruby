@@ -9,7 +9,7 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.support.TypeNodes;
@@ -39,7 +39,7 @@ public class PrimitiveNodeConstructor {
         if (arguments.length != getPrimitiveArity()) {
             throw new Error(
                     "Incorrect number of arguments (expected " + getPrimitiveArity() + ") at " +
-                            RubyContext.fileLine(sourceSection.toSourceSection(source)));
+                            RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
         }
 
         for (int n = 0; n < arguments.length; n++) {

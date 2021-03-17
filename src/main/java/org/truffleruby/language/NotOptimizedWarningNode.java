@@ -75,7 +75,7 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
 
         final String displayedWarning = String.format(
                 "%s: %s",
-                RubyContext.fileLine(userSourceSection),
+                RubyLanguage.fileLine(userSourceSection),
                 message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {

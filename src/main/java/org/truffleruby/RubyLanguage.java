@@ -21,6 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptors;
 import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -233,6 +234,37 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         ropeCache = new RopeCache(coreSymbols);
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
         frozenStringLiterals = new FrozenStringLiterals(ropeCache);
+    }
+
+    @TruffleBoundary
+    public static String fileLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + section.getStartLine();
+            } else {
+                return path;
+            }
+        }
+    }
+
+    @TruffleBoundary
+    public static String filenameLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+            final String filename = new File(path).getName();
+
+            if (section.isAvailable()) {
+                return filename + ":" + section.getStartLine();
+            } else {
+                return filename;
+            }
+        }
     }
 
     @TruffleBoundary
