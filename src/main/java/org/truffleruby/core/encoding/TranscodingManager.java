@@ -32,15 +32,14 @@
  */
 package org.truffleruby.core.encoding;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscoderDB;
+import org.jcodings.unicode.UnicodeCodeRange;
+import org.jcodings.unicode.UnicodeEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
 
@@ -48,9 +47,11 @@ import com.oracle.truffle.api.TruffleOptions;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringUtils;
 
+/** This class computes all direct transcoder paths for both JVM and Native Image as a convenient-to-access Map. On
+ * Native Image, it also loads eagerly everything that would need the tables/*.bin resources, so they are not needed at
+ * runtime */
 public class TranscodingManager {
 
-    private static final List<Transcoder> allTranscoders = new ArrayList<>();
     static final Map<String, Set<String>> allDirectTranscoderPaths = new HashMap<>();
 
     static {
@@ -63,13 +64,24 @@ public class TranscodingManager {
 
                 if (TruffleOptions.AOT) {
                     // Load the classes eagerly
-                    allTranscoders.add(e.getTranscoder());
+                    e.getTranscoder();
                 }
 
                 allDirectTranscoderPaths.putIfAbsent(sourceName, new HashSet<>());
                 final Set<String> fromSource = allDirectTranscoderPaths.get(sourceName);
                 fromSource.add(destinationName);
             }
+        }
+
+        if (TruffleOptions.AOT) {
+            loadTablesEagerly();
+        }
+    }
+
+    private static void loadTablesEagerly() {
+        for (UnicodeCodeRange unicodeCodeRange : UnicodeCodeRange.values()) {
+            // To call package-private org.jcodings.unicode.UnicodeCodeRange#getRange()
+            UnicodeEncoding.isInCodeRange(unicodeCodeRange, 0);
         }
     }
 
