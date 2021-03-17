@@ -195,20 +195,18 @@ module Utilities
     @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
-                    elsif File.executable?(@ruby_name) and File.file?(@ruby_name)
-                      @ruby_name
-                    elsif @ruby_name.start_with?('/') and File.directory?(@ruby_name)
-                      "#{@ruby_name}/bin/ruby"
+                    elsif @ruby_name.start_with?('/')
+                      File.directory?(@ruby_name) ? "#{@ruby_name}/bin/ruby" : @ruby_name
                     else
                       graalvm = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}"
                       "#{graalvm}/#{language_dir(graalvm)}/ruby/bin/ruby"
                     end
 
     raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
-    ruby_launcher = File.realpath(ruby_launcher)
-
     raise "The Ruby executable #{ruby_launcher} is not executable" unless File.executable?(ruby_launcher)
+
     @ruby_launcher = ruby_launcher
+    @ruby_launcher_realpath = File.realpath(ruby_launcher)
 
     unless @silent
       shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/(ruby|truffleruby)$], '')
@@ -222,13 +220,14 @@ module Utilities
 
     # use same ruby_launcher in subprocess jt instances
     # cannot be set while building
-    ENV['RUBY_BIN'] = ruby_launcher
+    ENV['RUBY_BIN'] = @ruby_launcher
     @ruby_launcher
   end
   alias_method :require_ruby_launcher!, :ruby_launcher
 
   def ruby_home
-    File.expand_path('../..', ruby_launcher)
+    require_ruby_launcher!
+    File.expand_path('../..', @ruby_launcher_realpath)
   end
 
   def graalvm_home
@@ -280,7 +279,8 @@ module Utilities
   end
 
   def truffleruby_launcher_path
-    @truffleruby_launcher_path ||= File.join File.dirname(ruby_launcher), 'truffleruby'
+    require_ruby_launcher!
+    @truffleruby_launcher_path ||= File.expand_path('../truffleruby', @ruby_launcher_realpath)
   end
 
   def truffleruby!
@@ -2170,11 +2170,11 @@ module Commands
     dest_ruby = "#{dest}/#{language_dir(build_dir)}/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
-    FileUtils.cp_r build_dir, dest
+    File.symlink(build_dir, dest)
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if darwin? && !truffleruby_native?
+    if darwin? && File.binread(truffleruby_launcher_path)[2] == '#!'
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
