@@ -31,31 +31,47 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.joni.WarnCallback;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.RaiseException;
 
-public class RubyWarnings implements WarnCallback {
+public class RubyDeferredWarnings implements WarnCallback {
 
-    private final RubyContext context;
+    public List<WarningMessage> warnings = new ArrayList<>();
 
-    public RubyWarnings(RubyContext context) {
-        this.context = context;
+    public enum Verbosity {
+        VERBOSE,   // -W2
+        NON_VERBOSE  // -W1
     }
 
-    public boolean warningsEnabled() {
-        return context.getCoreLibrary().warningsEnabled();
-    }
+    public class WarningMessage {
+        public final Verbosity verbosity;
+        private final String fileName;
+        private final Integer lineNumber;
+        private final String message;
 
-    public boolean isVerbose() {
-        return context != null && context.getCoreLibrary().isVerbose();
+        public WarningMessage(Verbosity verbosity, String fileName, Integer lineNumber, String message) {
+            this.verbosity = verbosity;
+            this.fileName = fileName;
+            this.lineNumber = lineNumber;
+            this.message = message;
+        }
+
+        public String getWarningMessage() {
+            StringBuilder buffer = new StringBuilder();
+            if (fileName != null) {
+                buffer.append(fileName);
+                if (lineNumber != null) {
+                    buffer.append(':').append(lineNumber).append(": ");
+                } else {
+                    buffer.append(' ');
+                }
+            }
+            buffer.append("warning: ").append(message).append('\n');
+            return buffer.toString();
+        }
+
     }
 
     @Override
@@ -65,55 +81,22 @@ public class RubyWarnings implements WarnCallback {
 
     /** Prints a warning, unless $VERBOSE is nil. */
     public void warn(String fileName, int lineNumber, String message) {
-        if (!warningsEnabled()) {
-            return;
-        }
-
-        StringBuilder buffer = new StringBuilder();
-
-        buffer.append(fileName).append(':').append(lineNumber).append(": ");
-        buffer.append("warning: ").append(message).append('\n');
-        printWarning(buffer.toString());
+        warnings.add(new WarningMessage(Verbosity.NON_VERBOSE, fileName, lineNumber, message));
     }
 
     /** Prints a warning, unless $VERBOSE is nil. */
     public void warn(String fileName, String message) {
-        if (!warningsEnabled()) {
-            return;
-        }
-
-        StringBuilder buffer = new StringBuilder();
-
-        if (fileName != null) {
-            buffer.append(fileName).append(' ');
-        }
-        buffer.append("warning: ").append(message).append('\n');
-        printWarning(buffer.toString());
+        warnings.add(new WarningMessage(Verbosity.NON_VERBOSE, fileName, null, message));
     }
 
     /** Prints a warning, only if $VERBOSE is true. */
     public void warning(String fileName, int lineNumber, String message) {
-        if (!isVerbose()) {
-            return;
-        }
-
-        warn(fileName, lineNumber, message);
-    }
-
-    private void printWarning(String message) {
-        if (context.getCoreLibrary().isLoaded()) {
-            final Object warning = context.getCoreLibrary().warningModule;
-            final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
-            final RubyString messageString = StringOperations
-                    .createString(context, context.getLanguageSlow(), messageRope);
-            RubyContext.send(warning, "warn", messageString);
-        } else {
-            try {
-                context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new RaiseException(context, context.getCoreExceptions().ioError(e, null));
-            }
-        }
+        warnings.add(
+                new WarningMessage(
+                        Verbosity.VERBOSE,
+                        fileName,
+                        lineNumber,
+                        message));
     }
 
 }

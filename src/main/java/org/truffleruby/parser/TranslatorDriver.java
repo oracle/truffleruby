@@ -52,6 +52,7 @@ import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.DataNode;
+import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -165,6 +166,7 @@ public class TranslatorDriver {
         // Parse to the JRuby AST
 
         final RootParseNode node;
+        final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
 
         // Only use the cache while loading top-level core library files, as eval() later could use
         // the same Source name but should not use the cache. For instance,
@@ -177,7 +179,7 @@ public class TranslatorDriver {
             node = context.getMetricsProfiler().callWithMetrics(
                     "parsing",
                     source.getName(),
-                    () -> parseToJRubyAST(context, rubySource, staticScope, parserConfiguration));
+                    () -> parseToJRubyAST(context, rubySource, staticScope, parserConfiguration, rubyWarnings));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -253,7 +255,8 @@ public class TranslatorDriver {
                 environment,
                 source,
                 parserContext,
-                currentNode);
+                currentNode,
+                rubyWarnings);
 
         final Memo<RubyNode> beginNodeMemo = new Memo<>(null);
         RubyNode truffleNode;
@@ -325,8 +328,15 @@ public class TranslatorDriver {
                     Arrays.asList(beginNode, truffleNode));
         }
 
+
         final RubyNode writeSelfNode = Translator.loadSelf(language, environment);
         truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
+
+        if (!rubyWarnings.warnings.isEmpty()) {
+            truffleNode = Translator.sequence(
+                    sourceIndexLength,
+                    Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
+        }
 
         // Catch next
 
@@ -392,7 +402,7 @@ public class TranslatorDriver {
     }
 
     public static RootParseNode parseToJRubyAST(RubyContext context, RubySource rubySource, StaticScope blockScope,
-            ParserConfiguration configuration) {
+            ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings) {
         LexerSource lexerSource = new LexerSource(rubySource, configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
@@ -401,11 +411,14 @@ public class TranslatorDriver {
             configuration.parseAsBlock(blockScope);
         }
 
-        RubyParser parser = new RubyParser(context, lexerSource, new RubyWarnings(configuration.getContext()));
+        RubyParser parser = new RubyParser(lexerSource, rubyWarnings);
         RubyParserResult result;
         try {
             result = parser.parse(configuration);
         } catch (SyntaxException e) {
+            if (!rubyWarnings.warnings.isEmpty()) {
+                EmitWarningsNode.printWarnings(context, rubyWarnings);
+            }
             switch (e.getPid()) {
                 case UNKNOWN_ENCODING:
                 case NOT_ASCII_COMPATIBLE:

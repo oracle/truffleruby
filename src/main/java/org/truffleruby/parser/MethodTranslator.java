@@ -84,8 +84,9 @@ public class MethodTranslator extends BodyTranslator {
             ParserContext parserContext,
             Node currentNode,
             ArgsParseNode argsNode,
-            String methodNameForBlock) {
-        super(context, parent, environment, source, parserContext, currentNode);
+            String methodNameForBlock,
+            RubyDeferredWarnings rubyWarnings) {
+        super(context, parent, environment, source, parserContext, currentNode, rubyWarnings);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
         this.methodNameForBlock = methodNameForBlock;

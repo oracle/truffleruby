@@ -49,7 +49,7 @@ import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.EncodingCache;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
-import org.truffleruby.core.regexp.RegexWarnCallback;
+import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -281,6 +281,7 @@ public class BodyTranslator extends Translator {
 
     protected final BodyTranslator parent;
     protected final TranslatorEnvironment environment;
+    private final RubyDeferredWarnings rubyWarnings;
 
     public boolean translatingForStatement = false;
     private boolean translatingNextExpression = false;
@@ -293,10 +294,12 @@ public class BodyTranslator extends Translator {
             TranslatorEnvironment environment,
             Source source,
             ParserContext parserContext,
-            Node currentNode) {
+            Node currentNode,
+            RubyDeferredWarnings rubyWarnings) {
         super(context, source, parserContext, currentNode);
         this.parent = parent;
         this.environment = environment;
+        this.rubyWarnings = rubyWarnings;
     }
 
     private static RubyNode[] createArray(int size) {
@@ -1033,7 +1036,8 @@ public class BodyTranslator extends Translator {
                     newEnvironment,
                     source,
                     parserContext,
-                    currentNode);
+                    currentNode,
+                    rubyWarnings);
 
             final ModuleBodyDefinitionNode definition = moduleTranslator
                     .compileClassNode(sourceSection, bodyNode, type);
@@ -1485,7 +1489,8 @@ public class BodyTranslator extends Translator {
                 parserContext,
                 currentNode,
                 argsNode,
-                null);
+                null,
+                rubyWarnings);
 
         return withSourceSection(sourceSection, new LiteralMethodDefinitionNode(
                 moduleNode,
@@ -1999,7 +2004,8 @@ public class BodyTranslator extends Translator {
                 parserContext,
                 currentNode,
                 argsNode,
-                currentCallMethodName);
+                currentCallMethodName,
+                rubyWarnings);
 
         if (isProc) {
             methodCompiler.translatingForStatement = translatingForStatement;
@@ -2117,7 +2123,7 @@ public class BodyTranslator extends Translator {
                     regexpNode.getOptions().toOptions(),
                     regexpNode.getEncoding(),
                     Syntax.RUBY,
-                    new RegexWarnCallback(context));
+                    new RegexWarnDeferredCallback(rubyWarnings));
             final int numberOfNames = regex.numberOfNames();
 
             if (numberOfNames > 0) {
