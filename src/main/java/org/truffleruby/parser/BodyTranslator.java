@@ -2653,7 +2653,7 @@ public class BodyTranslator extends Translator {
         final Rope rope = node.getValue();
         final RegexpOptions options = (RegexpOptions) node.getOptions().clone();
         options.setLiteral(true);
-        Regex regex = TruffleRegexpNodes.compile(context, rope, options, currentNode);
+        Regex regex = TruffleRegexpNodes.compile(language, rubyWarnings, rope, options, currentNode);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when

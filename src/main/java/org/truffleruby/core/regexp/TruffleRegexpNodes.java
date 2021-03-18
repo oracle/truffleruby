@@ -28,12 +28,14 @@ import org.joni.Option;
 import org.joni.Regex;
 import org.joni.Region;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
@@ -66,6 +68,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.parser.RubyDeferredWarnings;
 
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
@@ -102,9 +105,9 @@ public class TruffleRegexpNodes {
         final Encoding[] fixedEnc = new Encoding[]{ null };
         final Rope sourceRope = regexp.source;
         final RopeBuilder preprocessed = ClassicRegexp
-                .preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+                .preprocess(sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RegexpOptions options = regexp.options;
-        return ClassicRegexp.makeRegexp(context, preprocessed, options, enc, sourceRope, currentNode);
+        return ClassicRegexp.makeRegexp(context, null, preprocessed, options, enc, sourceRope, currentNode);
     }
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
@@ -170,7 +173,7 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         public RubyRegexp createRegexp(Rope pattern) {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
-            final Regex regex = compile(getContext(), pattern, regexpOptions, this);
+            final Regex regex = compile(getLanguage(), null, pattern, regexpOptions, this);
 
             return new RubyRegexp(
                     regex,
@@ -216,7 +219,6 @@ public class TruffleRegexpNodes {
                 Encoding[] fixedEnc = new Encoding[]{ null };
                 RopeBuilder ropeBuilder = ClassicRegexp
                         .preprocess(
-                                getContext(),
                                 re.source,
                                 enc,
                                 fixedEnc,
@@ -522,25 +524,27 @@ public class TruffleRegexpNodes {
 
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
-    public static Regex compile(RubyContext context, Rope bytes, RegexpOptions options, Node currentNode) {
+    public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings, Rope bytes,
+            RegexpOptions options, Node currentNode) {
         if (options.isEncodingNone()) {
             bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);
         }
         Encoding enc = bytes.getEncoding();
         Encoding[] fixedEnc = new Encoding[]{ null };
         RopeBuilder unescaped = ClassicRegexp
-                .preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc, context);
+                .preprocess(bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc);
 
-        Regex regexp = ClassicRegexp.makeRegexp(context, unescaped, options, enc, bytes, currentNode);
+        Regex regexp = ClassicRegexp
+                .makeRegexp(null, rubyDeferredWarnings, unescaped, options, enc, bytes, currentNode);
         regexp.setUserObject(RopeOperations.withEncoding(bytes, enc));
 
-        if (context.getOptions().REGEXP_INSTRUMENT_CREATION) {
+        if (language.options.REGEXP_INSTRUMENT_CREATION) {
             final RegexpCacheKey key = new RegexpCacheKey(
                     bytes,
                     enc,
                     options.toJoniOptions(),
-                    context.getHashing(REHASH_COMPILED_REGEXPS));
+                    Hashing.NO_SEED);
             ConcurrentOperations.getOrCompute(compiledRegexps, key, x -> new AtomicInteger()).incrementAndGet();
         }
 

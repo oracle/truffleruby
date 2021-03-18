@@ -17,7 +17,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -49,10 +49,10 @@ import org.truffleruby.language.objects.AllocationTracing;
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
 
-    public static void initialize(RubyContext context, RubyRegexp regexp, Rope setSource, int options,
+    public static void initialize(RubyLanguage language, RubyRegexp regexp, Rope setSource, int options,
             Node currentNode) {
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        final Regex regex = TruffleRegexpNodes.compile(context, setSource, regexpOptions, currentNode);
+        final Regex regex = TruffleRegexpNodes.compile(language, null, setSource, regexpOptions, currentNode);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -271,7 +271,7 @@ public abstract class RegexpNodes {
                 guards = { "libPattern.isRubyString(pattern)", "!isRegexpLiteral(regexp)", "!isInitialized(regexp)" })
         protected RubyRegexp initialize(RubyRegexp regexp, Object pattern, int options,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
-            RegexpNodes.initialize(getContext(), regexp, libPattern.getRope(pattern), options, this);
+            RegexpNodes.initialize(getLanguage(), regexp, libPattern.getRope(pattern), options, this);
             return regexp;
         }
     }

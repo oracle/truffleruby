@@ -56,6 +56,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.ast.AliasParseNode;
@@ -1664,7 +1665,9 @@ public class ParserSupport {
     public Rope regexpFragmentCheck(RegexpParseNode end, Rope value) {
         value = setRegexpEncoding(end, value);
         try {
-            ClassicRegexp.preprocessCheck(configuration.getContext(), value);
+            ClassicRegexp.preprocessCheck(value);
+        } catch (DeferredRaiseException dre) {
+            throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {
             throw compile_error(re.getMessage());
         }
@@ -1779,6 +1782,8 @@ public class ParserSupport {
         try {
             // This is only for syntax checking but this will as a side-effect create an entry in the regexp cache.
             return new ClassicRegexp(getConfiguration().getContext(), value, options);
+        } catch (DeferredRaiseException dre) {
+            throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {
             throw compile_error(re.getMessage());
         }

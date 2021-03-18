@@ -107,7 +107,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 
             final Regex regexp1 = TruffleRegexpNodes
-                    .compile(getContext(), RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
+                    .compile(getLanguage(), null, RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
 
             // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
