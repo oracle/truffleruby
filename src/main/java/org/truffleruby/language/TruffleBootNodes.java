@@ -278,7 +278,7 @@ public abstract class TruffleBootNodes {
             }
 
             return makeStringNode
-                    .executeMake(getContext().getSourcePath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                    .executeMake(getLanguage().getSourcePath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

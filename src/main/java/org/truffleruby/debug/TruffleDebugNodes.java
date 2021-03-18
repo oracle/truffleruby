@@ -123,7 +123,7 @@ public abstract class TruffleDebugNodes {
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
                     .mimeTypeIs(TruffleRuby.MIME_TYPE)
-                    .sourceIs(source -> source != null && getContext().getSourcePath(source).equals(fileString))
+                    .sourceIs(source -> source != null && getLanguage().getSourcePath(source).equals(fileString))
                     .lineIs(line)
                     .tagIs(StandardTags.StatementTag.class)
                     .build();

@@ -9,7 +9,7 @@
  */
 package org.truffleruby.parser;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
@@ -23,12 +23,8 @@ public class ParseEnvironment {
     public boolean allowTruffleRubyPrimitives = false;
     private final String corePath;
 
-    public ParseEnvironment(RubyContext context) {
-        if (context != null) {
-            corePath = context.getCoreLibrary().corePath;
-        } else {
-            corePath = null;
-        }
+    public ParseEnvironment(RubyLanguage language) {
+        corePath = language.corePath;
     }
 
     public String getCorePath() {

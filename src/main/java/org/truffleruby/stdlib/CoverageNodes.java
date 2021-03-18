@@ -79,7 +79,7 @@ public abstract class CoverageNodes {
                     }
                 }
 
-                final String path = getContext().getSourcePath(source.getKey());
+                final String path = getLanguage().getSourcePath(source.getKey());
                 assert !results.containsKey(path) : "path already exists in coverage results";
                 results.put(path, createArray(new Object[]{
                         makeStringNode.executeMake(

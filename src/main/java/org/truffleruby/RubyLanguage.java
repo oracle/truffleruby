@@ -9,6 +9,8 @@
  */
 package org.truffleruby;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,6 +20,8 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptors;
 import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -55,6 +59,7 @@ import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
@@ -153,6 +158,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             .getRuntime()
             .createAssumption("SafepointManager");
 
+    @CompilationFinal public String coreLoadPath;
+    @CompilationFinal public String corePath;
     public final CoreMethodAssumptions coreMethodAssumptions;
     public final CoreStrings coreStrings;
     public final CoreSymbols coreSymbols;
@@ -165,6 +172,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal private AllocationReporter allocationReporter;
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
+    private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
 
     private static final RubyObjectType objectType = new RubyObjectType();
 
@@ -229,6 +237,37 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @TruffleBoundary
+    public static String fileLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+
+            if (section.isAvailable()) {
+                return path + ":" + section.getStartLine();
+            } else {
+                return path;
+            }
+        }
+    }
+
+    @TruffleBoundary
+    public static String filenameLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+            final String filename = new File(path).getName();
+
+            if (section.isAvailable()) {
+                return filename + ":" + section.getStartLine();
+            } else {
+                return filename;
+            }
+        }
+    }
+
+    @TruffleBoundary
     public RubySymbol getSymbol(String string) {
         return symbolTable.getSymbol(string);
     }
@@ -280,6 +319,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
             if (this.options == null) {
                 this.options = new LanguageOptions(env, env.getOptions());
+                this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
+                this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
@@ -467,6 +508,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return id;
     }
 
+    public PathToRopeCache getPathToRopeCache() {
+        return pathToRopeCache;
+    }
+
     private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass) {
         return Shape
                 .newBuilder()
@@ -479,6 +524,52 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
         return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
+    }
+
+    /** {@link RubyLanguage#getSourcePath(Source)} should be used instead whenever possible (i.e., when we can access
+     * the language).
+     *
+     * Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
+     * that the path of {@code eval(code, nil, filename)} is just {@code filename} and might not be absolute. */
+    public static String getPath(Source source) {
+        final String path = source.getPath();
+        if (path != null) {
+            return path;
+        } else {
+            // non-file sources: eval(), main_boot_source, etc
+            final String name = source.getName();
+            assert name != null;
+            return name;
+        }
+    }
+
+    /** {@link RubyLanguage#getPath(Source)} but also handles core library sources. Ideally this method would be static
+     * but for now the core load path is an option and it also depends on the current working directory. Once we have
+     * Source metadata in Truffle we could use that to identify core library sources without needing the language. */
+    public String getSourcePath(Source source) {
+        final String path = getPath(source);
+        if (path.startsWith(coreLoadPath)) {
+            return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
+        } else {
+            return getPath(source);
+        }
+    }
+
+    private static String buildCoreLoadPath(String coreLoadPath) {
+
+        while (coreLoadPath.endsWith("/")) {
+            coreLoadPath = coreLoadPath.substring(0, coreLoadPath.length() - 1);
+        }
+
+        if (coreLoadPath.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
+            return coreLoadPath;
+        }
+
+        try {
+            return new File(coreLoadPath).getCanonicalPath();
+        } catch (IOException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
     }
 
 }

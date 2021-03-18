@@ -85,9 +85,9 @@ public class BacktraceFormatter {
     }
 
     /** For debug purposes. */
-    public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
-        return isUserSourceSection(context, sourceSection) &&
-                !context.getSourcePath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
+    public static boolean isApplicationCode(RubyLanguage language, SourceSection sourceSection) {
+        return isUserSourceSection(language, sourceSection) &&
+                !language.getSourcePath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
     }
 
     public BacktraceFormatter(RubyContext context, RubyLanguage language, EnumSet<FormattingFlags> flags) {
@@ -251,7 +251,7 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(context.getSourcePath(reportedSourceSection.getSource()));
+                builder.append(language.getSourcePath(reportedSourceSection.getSource()));
                 builder.append(":");
                 builder.append(RubySource.getStartLineAdjusted(context, reportedSourceSection));
             }
@@ -281,7 +281,7 @@ public class BacktraceFormatter {
 
         if (sourceSection != null) {
             final Source source = sourceSection.getSource();
-            final String path = context.getSourcePath(source);
+            final String path = language.getSourcePath(source);
 
             builder.append(path);
             if (sourceSection.isAvailable()) {
@@ -355,13 +355,13 @@ public class BacktraceFormatter {
         return sourceSection != null && sourceSection.isAvailable();
     }
 
-    public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
-        return isAvailable(sourceSection) && !isRubyCore(context, sourceSection.getSource());
+    public static boolean isUserSourceSection(RubyLanguage language, SourceSection sourceSection) {
+        return isAvailable(sourceSection) && !isRubyCore(language, sourceSection.getSource());
     }
 
-    public static boolean isRubyCore(RubyContext context, Source source) {
-        final String path = RubyContext.getPath(source);
-        return path.startsWith(context.getCoreLibrary().coreLoadPath);
+    public static boolean isRubyCore(RubyLanguage language, Source source) {
+        final String path = RubyLanguage.getPath(source);
+        return path.startsWith(language.coreLoadPath);
     }
 
     private Node getRootOrTopmostNode(Node node) {

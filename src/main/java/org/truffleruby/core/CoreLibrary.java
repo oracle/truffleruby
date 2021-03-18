@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -253,9 +252,6 @@ public class CoreLibrary {
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
-    public final String coreLoadPath;
-    public final String corePath;
-
     @TruffleBoundary
     private static SourceSection initCoreSourceSection() {
         final Source.SourceBuilder builder = Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
@@ -271,24 +267,6 @@ public class CoreLibrary {
         return source.createUnavailableSection();
     }
 
-    private String buildCoreLoadPath() {
-        String path = context.getOptions().CORE_LOAD_PATH;
-
-        while (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-
-        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            return path;
-        }
-
-        try {
-            return new File(path).getCanonicalPath();
-        } catch (IOException e) {
-            throw CompilerDirectives.shouldNotReachHere(e);
-        }
-    }
-
     private enum State {
         INITIALIZING,
         LOADING_RUBY_CORE,
@@ -302,8 +280,6 @@ public class CoreLibrary {
     public CoreLibrary(RubyContext context, RubyLanguage language) {
         this.context = context;
         this.language = language;
-        this.coreLoadPath = buildCoreLoadPath();
-        this.corePath = coreLoadPath + File.separator + "core" + File.separator;
         this.node = SingletonClassNode.getUncached();
 
         // Nothing in this constructor can use RubyContext.getCoreLibrary() as we are building it!
@@ -780,7 +756,7 @@ public class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                final RubySource source = loadCoreFile(coreLoadPath + file);
+                final RubySource source = loadCoreFile(language.coreLoadPath + file);
                 final RubyRootNode rootNode = context
                         .getCodeLoader()
                         .parse(source, ParserContext.TOP_LEVEL, null, null, true, node);

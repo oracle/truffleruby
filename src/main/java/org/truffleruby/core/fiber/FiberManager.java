@@ -145,7 +145,7 @@ public class FiberManager {
         final Thread thread = Thread.currentThread();
         final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
         final String oldName = thread.getName();
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyContext.fileLine(sourceSection));
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
 
         start(fiber, thread, false);
 

@@ -1219,7 +1219,7 @@ public class BodyTranslator extends Translator {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER
-                        .info(() -> kind + " at " + RubyContext.fileLine(sourceSection.toSourceSection(source)));
+                        .info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
             }
             return new DynamicLexicalScopeNode();
         } else {
@@ -1231,7 +1231,7 @@ public class BodyTranslator extends Translator {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER
-                        .info(() -> kind + " at " + RubyContext.fileLine(sourceSection.toSourceSection(source)));
+                        .info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
             }
             return new GetDynamicLexicalScopeNode();
         } else {
@@ -1240,7 +1240,7 @@ public class BodyTranslator extends Translator {
     }
 
     private boolean inCore() {
-        final String path = RubyContext.getPath(source);
+        final String path = RubyLanguage.getPath(source);
         return path.startsWith(environment.getParseEnvironment().getCorePath());
     }
 
@@ -1255,7 +1255,7 @@ public class BodyTranslator extends Translator {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER.info(
                         () -> "dynamic constant lookup at " +
-                                RubyContext.fileLine(sourceSection.toSourceSection(source)));
+                                RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
             }
             ret = new ReadConstantWithDynamicScopeNode(name);
         } else {
@@ -2816,7 +2816,7 @@ public class BodyTranslator extends Translator {
                 if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                     RubyLanguage.LOGGER.info(
                             () -> "start dynamic constant lookup at " +
-                                    RubyContext.fileLine(sourceSection.toSourceSection(source)));
+                                    RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
                 }
             }
         }

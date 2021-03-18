@@ -211,7 +211,7 @@ public abstract class MethodNodes {
                 return nil;
             } else {
                 RubyString file = makeStringNode.executeMake(
-                        getContext().getSourcePath(sourceSection.getSource()),
+                        getLanguage().getSourcePath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });

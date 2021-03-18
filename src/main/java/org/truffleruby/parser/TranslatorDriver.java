@@ -101,7 +101,7 @@ public class TranslatorDriver {
     public TranslatorDriver(RubyContext context) {
         this.context = context;
         this.language = context.getLanguageSlow();
-        parseEnvironment = new ParseEnvironment(context);
+        parseEnvironment = new ParseEnvironment(language);
     }
 
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
@@ -485,7 +485,7 @@ public class TranslatorDriver {
     public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
         if (Metrics.getMetricsTime()) {
             if (context.getOptions().METRICS_TIME_PARSING_FILE) {
-                String name = context.getSourcePath(source);
+                String name = context.getLanguageSlow().getSourcePath(source);
                 int lastSlash = name.lastIndexOf('/');
                 int lastDot = name.lastIndexOf('.');
                 if (lastSlash >= 0 && lastDot >= 0 && lastSlash + 1 < lastDot) {

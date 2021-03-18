@@ -130,6 +130,6 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
 
     @Override
     public String toString() {
-        return super.toString() + " at " + RubyContext.fileLine(getSourceSection());
+        return super.toString() + " at " + RubyLanguage.fileLine(getSourceSection());
     }
 }

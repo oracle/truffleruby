@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -133,7 +133,7 @@ public class TryNode extends RubyContextSourceNode {
 
     @TruffleBoundary
     private void printBacktraceOnRescue(RescueNode rescue, RaiseException exception) {
-        String info = "rescued at " + RubyContext.fileLine(
+        String info = "rescued at " + RubyLanguage.fileLine(
                 getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
                 ":\n";
         getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception.getException());

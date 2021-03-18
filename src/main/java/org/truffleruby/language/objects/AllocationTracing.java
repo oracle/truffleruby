@@ -143,7 +143,7 @@ public abstract class AllocationTracing {
                 object,
                 string(context, language, className),
                 language.getSymbol(allocatingMethod),
-                string(context, language, context.getSourcePath(allocatingSourceSection.getSource())),
+                string(context, language, language.getSourcePath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
                 ObjectSpaceManager.getCollectionCount());
     }

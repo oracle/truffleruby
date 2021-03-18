@@ -767,7 +767,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
-            final String file = getContext().getSourcePath(sourceSection.getSource());
+            final String file = getLanguage().getSourcePath(sourceSection.getSource());
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }

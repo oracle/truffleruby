@@ -43,8 +43,6 @@ public class Options {
     public final boolean NO_HOME_PROVIDED;
     /** --launcher="" */
     public final String LAUNCHER;
-    /** --core-load-path="resource:/truffleruby" */
-    public final String CORE_LOAD_PATH;
     /** --rubygems=true */
     public final boolean RUBYGEMS;
     /** --did-you-mean=true */
@@ -211,7 +209,6 @@ public class Options {
         EXTERNAL_ENCODING = options.get(OptionsCatalog.EXTERNAL_ENCODING_KEY);
         NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
-        CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
         LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : languageOptions.DEFAULT_LAZY);
@@ -313,8 +310,6 @@ public class Options {
                 return NO_HOME_PROVIDED;
             case "ruby.launcher":
                 return LAUNCHER;
-            case "ruby.core-load-path":
-                return CORE_LOAD_PATH;
             case "ruby.rubygems":
                 return RUBYGEMS;
             case "ruby.did-you-mean":

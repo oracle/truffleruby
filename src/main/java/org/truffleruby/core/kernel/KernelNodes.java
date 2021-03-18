@@ -308,7 +308,7 @@ public abstract class KernelNodes {
                             coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
 
-                String sourcePath = getContext().getSourcePath(sourceSection.getSource());
+                String sourcePath = getLanguage().getSourcePath(sourceSection.getSource());
 
                 sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
 

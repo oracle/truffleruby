@@ -56,17 +56,17 @@ public class ThreadBacktraceLocationNodes {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
                 final Source source = sourceSection.getSource();
-                if (BacktraceFormatter.isRubyCore(getContext(), source)) {
+                if (BacktraceFormatter.isRubyCore(getLanguage(), source)) {
                     return nil;
                 } else if (source.getPath() != null) { // A normal file
-                    final String path = getContext().getSourcePath(source);
+                    final String path = getLanguage().getSourcePath(source);
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                     final Rope cachedRope = getLanguage().ropeCache
                             .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
                     return makeStringNode.fromRope(cachedRope);
                 } else { // eval()
                     return makeStringNode
-                            .fromRope(getContext().getPathToRopeCache().getCachedPath(source));
+                            .fromRope(getLanguage().getPathToRopeCache().getCachedPath(source));
                 }
             }
         }
@@ -85,7 +85,7 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance(getContext());
             } else {
-                final Rope path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                final Rope path = getLanguage().getPathToRopeCache().getCachedPath(sourceSection.getSource());
                 return makeStringNode.fromRope(path);
             }
         }

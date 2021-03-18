@@ -362,7 +362,7 @@ public abstract class ThreadNodes {
         protected Object initialize(RubyThread thread, RubyArray arguments, RubyProc block,
                 @CachedLibrary("arguments.store") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
-            final String info = RubyContext.fileLine(sourceSection);
+            final String info = RubyLanguage.fileLine(sourceSection);
             final int argSize = arguments.size;
             final Object[] args = stores.boxedCopyOfRange(arguments.store, 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
