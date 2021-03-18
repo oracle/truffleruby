@@ -58,9 +58,9 @@ public class ThreadManager {
     private final RubyThread rootThread;
     @CompilationFinal private Thread rootJavaThread;
 
-    private final Map<Thread, RubyThread> foreignThreadMap = new ConcurrentHashMap<>();
+    private final Map<Thread, RubyThread> javaThreadToRubyThread = new ConcurrentHashMap<>();
     private final ThreadLocal<RubyThread> currentThread = ThreadLocal
-            .withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
+            .withInitial(() -> javaThreadToRubyThread.get(Thread.currentThread()));
 
     private final Set<RubyThread> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -285,6 +285,8 @@ public class ThreadManager {
 
         final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rootFiber);
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
+        rubyThread.thread = thread;
+        javaThreadToRubyThread.put(thread, rubyThread);
 
         thread.start();
 
@@ -292,10 +294,9 @@ public class ThreadManager {
         FiberManager.waitForInitialization(context, rootFiber, currentNode);
     }
 
+    /** {@link RubyLanguage#initializeThread(RubyContext, Thread)} runs before this, and
+     * {@link RubyLanguage#disposeThread(RubyContext, Thread)} runs after this. */
     private void threadMain(RubyThread thread, Node currentNode, Supplier<Object> task) {
-        assert task != null;
-
-        start(thread, Thread.currentThread());
         try {
             final Object result = task.get();
             setThreadValue(thread, result);
@@ -317,7 +318,7 @@ public class ThreadManager {
             setThreadValue(thread, Nil.INSTANCE);
         } finally {
             assert thread.value != null || thread.exception != null;
-            cleanup(thread, Thread.currentThread());
+            cleanupKillOtherFibers(thread);
         }
     }
 
@@ -393,7 +394,7 @@ public class ThreadManager {
         start(rubyThread, javaThread);
     }
 
-    private void start(RubyThread thread, Thread javaThread) {
+    public void start(RubyThread thread, Thread javaThread) {
         thread.thread = javaThread;
         registerThread(thread);
 
@@ -405,11 +406,19 @@ public class ThreadManager {
     }
 
     public void cleanup(RubyThread thread, Thread javaThread) {
-        // First mark as dead for Thread#status
-        thread.status = ThreadStatus.DEAD;
+        cleanupKillOtherFibers(thread);
+        cleanupThreadState(thread, javaThread);
+    }
 
+    /** We cannot call this from {@link RubyLanguage#disposeThread} because that's called under a context lock. */
+    private void cleanupKillOtherFibers(RubyThread thread) {
+        thread.status = ThreadStatus.DEAD;
+        thread.fiberManager.killOtherFibers();
+    }
+
+    public void cleanupThreadState(RubyThread thread, Thread javaThread) {
         final FiberManager fiberManager = thread.fiberManager;
-        fiberManager.shutdown(javaThread);
+        fiberManager.cleanup(fiberManager.getRootFiber(), javaThread, true);
 
         thread.ioBuffer.freeAll();
         thread.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
@@ -560,9 +569,7 @@ public class ThreadManager {
         if (Thread.currentThread() == thread) {
             currentThread.set(rubyThread);
         }
-        if (!isRubyManagedThread(thread)) {
-            foreignThreadMap.put(thread, rubyThread);
-        }
+        javaThreadToRubyThread.put(thread, rubyThread);
 
         if (nativeInterrupt && isRubyManagedThread(thread)) {
             final long threadID = LibRubySignal.threadID();
@@ -576,7 +583,7 @@ public class ThreadManager {
         if (Thread.currentThread() == thread) {
             currentThread.remove();
         }
-        foreignThreadMap.remove(thread);
+        javaThreadToRubyThread.remove(thread);
 
         if (nativeInterrupt) {
             blockingNativeCallUnblockingAction.remove();
@@ -606,8 +613,8 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public RubyThread getForeignRubyThread(Thread javaThread) {
-        return foreignThreadMap.get(javaThread);
+    public RubyThread getRubyThread(Thread javaThread) {
+        return javaThreadToRubyThread.get(javaThread);
     }
 
     public void registerThread(RubyThread thread) {
