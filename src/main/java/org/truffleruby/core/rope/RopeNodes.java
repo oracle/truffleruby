@@ -1764,11 +1764,18 @@ public abstract class RopeNodes {
         }
     }
 
+    /** Returns a {@link Bytes} object for the given rope and bounds. This will simply get the bytes for the rope and
+     * build the object, except in the case of {@link SubstringRope} which is optimized to use the bytes of the child
+     * rope instead - which is better for footprint. */
     @GenerateUncached
     public abstract static class GetBytesObjectNode extends RubyBaseNode {
 
         public static GetBytesObjectNode create() {
             return RopeNodesFactory.GetBytesObjectNodeGen.create();
+        }
+
+        public static GetBytesObjectNode getUncached() {
+            return RopeNodesFactory.GetBytesObjectNodeGen.getUncached();
         }
 
         public Bytes getBytes(Rope rope) {
@@ -1795,42 +1802,15 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        protected Bytes getBytesObject(RepeatingRope rope, int offset, int length) {
-            int offsetInChild = offset % rope.getChild().byteLength();
-            return offsetInChild + length < rope.getChild().byteLength()
-                    ? getChildBytesObject(rope.getChild(), offsetInChild, length)
-                    : new Bytes(rope.getBytes(), offset, length);
+        protected Bytes getBytesObject(SubstringRope rope, int offset, int length,
+                @Cached BytesNode bytes) {
+            return new Bytes(bytes.execute(rope.getChild()), rope.getByteOffset() + offset, length);
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected Bytes getBytesObject(SubstringRope rope, int offset, int length) {
-            return getChildBytesObject(rope.getChild(), rope.getByteOffset() + offset, length);
-        }
-
-        @Specialization(guards = "rope.getRawBytes() == null")
-        protected Bytes getBytesObject(ConcatRope rope, int offset, int length,
-                @Cached ConditionProfile bytesNotNull) {
-
-            final ConcatState state = rope.getState(bytesNotNull);
-            if (state.bytes != null) {
-                return new Bytes(state.bytes, offset, length);
-            }
-
-            final ManagedRope left = state.left;
-            final ManagedRope right = state.right;
-
-            if (offset + length <= left.byteLength()) {
-                return getChildBytesObject(left, offset, length);
-            } else if (offset > left.byteLength()) {
-                return getChildBytesObject(right, offset - left.byteLength(), length);
-            } else {
-                return new Bytes(rope.getBytes(), offset, length);
-            }
-        }
-
-        @Specialization(guards = { "rope.getRawBytes() == null", "!isSpecializedManagedRope(rope)" })
-        protected Bytes getBytesObject(ManagedRope rope, int offset, int length) {
-            return new Bytes(rope.getBytes(), offset, length);
+        @Specialization(guards = { "rope.getRawBytes() == null", "!isSubstringRope(rope)" })
+        protected Bytes getBytesObject(ManagedRope rope, int offset, int length,
+                @Cached BytesNode bytes) {
+            return new Bytes(bytes.execute(rope), offset, length);
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
@@ -1838,13 +1818,8 @@ public abstract class RopeNodes {
             return new Bytes(rope.getBytes(offset, length));
         }
 
-        @TruffleBoundary
-        protected Bytes getChildBytesObject(Rope child, int offset, int length) {
-            return execute(child, offset, length);
-        }
-
-        protected static boolean isSpecializedManagedRope(ManagedRope rope) {
-            return rope instanceof ConcatRope || rope instanceof RepeatingRope || rope instanceof SubstringRope;
+        protected static boolean isSubstringRope(ManagedRope rope) {
+            return rope instanceof SubstringRope;
         }
     }
 }
