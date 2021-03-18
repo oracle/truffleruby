@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -463,6 +463,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected void disposeThread(RubyContext context, Thread thread) {
         if (thread == context.getThreadManager().getRootJavaThread()) {
+            if (context.getEnv().isPreInitialization()) {
+                // Cannot save the root Java Thread instance in the image
+                context.getThreadManager().resetMainThread();
+            }
             // Let the context shutdown cleanup the main thread
             return;
         }
