@@ -731,6 +731,7 @@ module Commands
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
       jt idea                                       generates IntelliJ projects
       jt format                                     run eclipse code formatter
+      jt graalvm-home                               prints the GraalVM home of the RUBY_SELECTOR
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -757,6 +758,10 @@ module Commands
 
   def launcher
     puts ruby_launcher
+  end
+
+  define_method(:'graalvm-home') do
+    puts graalvm_home
   end
 
   def build(*options)
