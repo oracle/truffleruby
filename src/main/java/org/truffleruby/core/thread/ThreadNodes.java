@@ -94,7 +94,7 @@ import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -659,13 +659,9 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_detect_recursion_single")
     public abstract static class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child private SetNode addNode = SetNode.create();
         @Child private DeleteLastNode delNode = DeleteLastNode.create();
-
-        public Object yield(RubyProc block, Object... arguments) {
-            return yieldNode.executeDispatch(block, arguments);
-        }
 
         protected boolean add(RubyHash hash, Object key, Object value) {
             return addNode.executeSet(hash, key, value, true);
@@ -682,7 +678,7 @@ public abstract class ThreadNodes {
             RubyHash objects = getCurrentRubyThreadNode.execute().recursiveObjectsSingle;
             if (insertedProfile.profile(add(objects, obj, true))) {
                 try {
-                    yield(block);
+                    yieldNode.yield(block);
                 } finally {
                     removeLast(objects, obj);
                 }

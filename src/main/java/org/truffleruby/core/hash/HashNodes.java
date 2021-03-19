@@ -39,7 +39,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -339,7 +339,7 @@ public abstract class HashNodes {
         @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
         @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
-        @Child private YieldNode yieldNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization(guards = "isNullHash(hash)")
         protected Object deleteNull(RubyHash hash, Object key, Nil block) {
@@ -352,7 +352,7 @@ public abstract class HashNodes {
         protected Object deleteNull(RubyHash hash, Object key, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            return yieldNode.executeDispatch(block, key);
+            return yieldNode.yield(block, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
@@ -385,7 +385,7 @@ public abstract class HashNodes {
             if (maybeBlock == nil) {
                 return nil;
             } else {
-                return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
+                return yieldNode.yield((RubyProc) maybeBlock, key);
             }
         }
 
@@ -400,7 +400,7 @@ public abstract class HashNodes {
                 if (maybeBlock == nil) {
                     return nil;
                 } else {
-                    return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
+                    return yieldNode.yield((RubyProc) maybeBlock, key);
                 }
             }
 

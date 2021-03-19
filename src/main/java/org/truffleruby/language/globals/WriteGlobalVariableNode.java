@@ -15,7 +15,7 @@ import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -50,8 +50,8 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     protected Object writeHooks(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("setterArity(storage)") int arity,
-            @Cached YieldNode yieldNode) {
-        yieldNode.executeDispatch(storage.getSetter(), value);
+            @Cached CallBlockNode yieldNode) {
+        yieldNode.yield(storage.getSetter(), value);
         return value;
     }
 
@@ -59,9 +59,9 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     protected Object writeHooksWithStorage(VirtualFrame frame, Object value,
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("setterArity(storage)") int arity,
-            @Cached YieldNode yieldNode,
+            @Cached CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode) {
-        yieldNode.executeDispatch(
+        yieldNode.yield(
                 storage.getSetter(),
                 value,
                 storageNode.execute(frame));

@@ -14,7 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -31,7 +31,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     @CompilationFinal private RubyString file;
     @CompilationFinal private int line;
 
-    @Child private YieldNode yieldNode;
+    @Child private CallBlockNode yieldNode;
 
     public TraceBaseEventNode(RubyContext context, RubyLanguage language, EventContext eventContext) {
         this.context = context;
@@ -60,10 +60,10 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected Object yield(RubyProc block, Object... arguments) {
         if (yieldNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            yieldNode = insert(YieldNode.create());
+            yieldNode = insert(CallBlockNode.create());
         }
 
-        return yieldNode.executeDispatch(block, arguments);
+        return yieldNode.yield(block, arguments);
     }
 
 }

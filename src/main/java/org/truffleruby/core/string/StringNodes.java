@@ -174,7 +174,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -1864,7 +1864,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class ScrubNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -1922,9 +1922,8 @@ public abstract class StringNodes {
                             }
                         }
                     }
-                    RubyString repl = (RubyString) yield(
-                            block,
-                            makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
+                    RubyString repl = (RubyString) yieldNode
+                            .yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
                     buf = concatNode.executeConcat(buf, repl.rope, enc);
                     p += clen;
                     p1 = p;
@@ -1939,9 +1938,8 @@ public abstract class StringNodes {
                 buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                RubyString repl = (RubyString) yield(
-                        block,
-                        makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
+                RubyString repl = (RubyString) yieldNode
+                        .yield(block, makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
                 buf = concatNode.executeConcat(buf, repl.rope, enc);
             }
 
@@ -1996,7 +1994,7 @@ public abstract class StringNodes {
                         }
                     }
 
-                    RubyString repl = (RubyString) yield(
+                    RubyString repl = (RubyString) yieldNode.yield(
                             block,
                             makeStringNode.fromRope(substringNode.executeSubstring(rope, p, clen)));
                     buf = concatNode.executeConcat(buf, repl.rope, enc);
@@ -2008,17 +2006,13 @@ public abstract class StringNodes {
                 buf = concatNode.executeConcat(buf, substringNode.executeSubstring(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                RubyString repl = (RubyString) yield(
+                RubyString repl = (RubyString) yieldNode.yield(
                         block,
                         makeStringNode.fromRope(substringNode.executeSubstring(rope, p, e - p)));
                 buf = concatNode.executeConcat(buf, repl.rope, enc);
             }
 
             return makeStringNode.fromRope(buf);
-        }
-
-        public Object yield(RubyProc block, Object... arguments) {
-            return yieldNode.executeDispatch(block, arguments);
         }
 
     }
@@ -3405,7 +3399,7 @@ public abstract class StringNodes {
     public abstract static class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
-        @Child private YieldNode yieldNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
         @Child private SubstringNode substringNode = SubstringNode.create();
@@ -3547,7 +3541,7 @@ public abstract class StringNodes {
         private Object[] addSubstring(Object[] store, int index, RubyString substring,
                 Object block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
             if (executeBlockProfile.profile(block != nil)) {
-                yield((RubyProc) block, substring);
+                yieldNode.yield((RubyProc) block, substring);
             } else {
                 if (growArrayProfile.profile(index < store.length)) {
                     store[index] = substring;
@@ -3560,9 +3554,6 @@ public abstract class StringNodes {
             return store;
         }
 
-        private Object yield(RubyProc block, Object... arguments) {
-            return yieldNode.executeDispatch(block, arguments);
-        }
     }
 
     @Primitive(name = "string_byte_substring", lowerFixnum = { 1, 2 })

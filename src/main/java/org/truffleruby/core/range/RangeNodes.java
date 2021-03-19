@@ -33,7 +33,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -56,7 +56,7 @@ public abstract class RangeNodes {
         @Specialization
         protected RubyArray map(RubyIntRange range, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached YieldNode yieldNode,
+                @Cached CallBlockNode yieldNode,
                 @Cached ConditionProfile noopProfile) {
             final int begin = range.begin;
             final int end = range.end;
@@ -72,7 +72,7 @@ public abstract class RangeNodes {
             int n = 0;
             try {
                 for (; n < length; n++) {
-                    arrayBuilder.appendValue(state, n, yieldNode.executeDispatch(block, begin + n));
+                    arrayBuilder.appendValue(state, n, yieldNode.yield(block, begin + n));
                 }
             } finally {
                 LoopNode.reportLoopCount(this, n);

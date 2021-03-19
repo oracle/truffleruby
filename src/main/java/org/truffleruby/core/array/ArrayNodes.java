@@ -83,7 +83,7 @@ import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -805,7 +805,7 @@ public abstract class ArrayNodes {
     public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode
             implements ArrayElementConsumerNode {
 
-        @Child private YieldNode dispatchNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization
         protected Object eachOther(RubyArray array, RubyProc block,
@@ -815,7 +815,7 @@ public abstract class ArrayNodes {
 
         @Override
         public void accept(RubyArray array, RubyProc block, Object element, int index) {
-            dispatchNode.executeDispatch(block, element, index);
+            yieldNode.yield(block, element, index);
         }
 
     }
