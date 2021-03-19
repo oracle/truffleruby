@@ -12,9 +12,12 @@ package org.truffleruby.core.regexp;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.CachedContext;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.joni.Regex;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -24,6 +27,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -79,16 +83,18 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
         protected Object executeFast(Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
-                @Cached("createRegexp(cachedParts)") RubyRegexp regexp) {
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached("createRegexp(context, cachedParts)") RubyRegexp regexp) {
             final Object clone = copyNode.call(regexp, "clone");
             return clone;
         }
 
         @Specialization(replaces = "executeFast")
         protected Object executeSlow(Rope[] parts,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
             notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
-            return createRegexp(parts);
+            return createRegexp(context, parts);
         }
 
         @ExplodeLoop
@@ -102,12 +108,17 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         }
 
         @TruffleBoundary
-        protected RubyRegexp createRegexp(Rope[] strings) {
+        protected RubyRegexp createRegexp(RubyContext context, Rope[] strings) {
             final RegexpOptions options = (RegexpOptions) this.options.clone();
             final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 
-            final Regex regexp1 = TruffleRegexpNodes
-                    .compile(getLanguage(), null, RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
+            final Regex regexp1;
+            try {
+                regexp1 = TruffleRegexpNodes
+                        .compile(getLanguage(), null, RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(context);
+            }
 
             // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when

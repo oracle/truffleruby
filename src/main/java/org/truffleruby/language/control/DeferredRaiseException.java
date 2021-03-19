@@ -10,10 +10,9 @@
 package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
 
-public class DeferredRaiseException extends AbstractTruffleException {
+public class DeferredRaiseException extends RuntimeException {
 
     private static final long serialVersionUID = -9202513314613691124L;
 
@@ -31,4 +30,9 @@ public class DeferredRaiseException extends AbstractTruffleException {
     public interface ExceptionGetter {
         RaiseException getException(RubyContext context);
     }
+
+    public Throwable fillInStackTrace() {
+        return this;
+    }
+
 }

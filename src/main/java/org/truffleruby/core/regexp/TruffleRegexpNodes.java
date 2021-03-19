@@ -56,6 +56,7 @@ import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -81,7 +82,11 @@ public class TruffleRegexpNodes {
 
         if (encodingConversion && regex.getEncoding() != enc) {
             EncodingCache encodingCache = regexp.cachedEncodings;
-            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
+            try {
+                regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(context);
+            }
         }
 
         return regex.matcher(stringBytes, start, stringBytes.length);

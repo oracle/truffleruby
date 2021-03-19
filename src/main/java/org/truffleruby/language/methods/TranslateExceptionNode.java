@@ -27,7 +27,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.backtrace.BacktraceInterleaver;
-import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -94,9 +93,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         } catch (ArithmeticException exception) {
             arithmeticProfile.enter();
             return new RaiseException(context, translateArithmeticException(context, exception));
-        } catch (DeferredRaiseException exception) {
-            raiseProfile.enter();
-            return exception.getException(context);
         } catch (UnsupportedSpecializationException exception) {
             unsupportedProfile.enter();
             return new RaiseException(

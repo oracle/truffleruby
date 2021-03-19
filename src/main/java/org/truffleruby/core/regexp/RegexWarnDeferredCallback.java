@@ -22,7 +22,6 @@ public class RegexWarnDeferredCallback implements WarnCallback {
 
     @Override
     public void warn(String message) {
-        // RegexWarnCallback uses isVerbose check to limit to verbose only
         warnings.warning(message);
     }
 
