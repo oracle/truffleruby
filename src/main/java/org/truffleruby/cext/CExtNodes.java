@@ -1175,7 +1175,7 @@ public class CExtNodes {
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
-                yield(block);
+                callBlock(block);
                 noExceptionProfile.enter();
                 return nil;
             } catch (Throwable e) {

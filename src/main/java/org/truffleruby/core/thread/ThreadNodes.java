@@ -290,7 +290,7 @@ public abstract class ThreadNodes {
                     runPendingSafepointActions(self, "before");
                 }
 
-                return yield(block);
+                return callBlock(block);
             } finally {
                 self.interruptMode = oldInterruptMode;
 

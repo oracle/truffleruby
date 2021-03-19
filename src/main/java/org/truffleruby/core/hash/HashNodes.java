@@ -483,9 +483,9 @@ public abstract class HashNodes {
             // MRI behavior, see rb_hash_each_pair()
             // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
             if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
-                return yield(block, key, value);
+                return callBlock(block, key, value);
             } else {
-                return yield(block, createArray(new Object[]{ key, value }));
+                return callBlock(block, createArray(new Object[]{ key, value }));
             }
         }
 
@@ -705,9 +705,9 @@ public abstract class HashNodes {
             // MRI behavior, see rb_hash_each_pair()
             // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
             if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
-                return yield(block, key, value);
+                return callBlock(block, key, value);
             } else {
-                return yield(block, createArray(new Object[]{ key, value }));
+                return callBlock(block, createArray(new Object[]{ key, value }));
             }
         }
 

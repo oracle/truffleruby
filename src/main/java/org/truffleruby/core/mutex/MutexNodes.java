@@ -152,7 +152,7 @@ public abstract class MutexNodes {
 
             MutexOperations.lock(getContext(), lock, thread, this);
             try {
-                return yield(block);
+                return callBlock(block);
             } finally {
                 MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
                 MutexOperations.unlock(lock, thread);

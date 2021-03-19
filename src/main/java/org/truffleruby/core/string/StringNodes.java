@@ -857,7 +857,7 @@ public abstract class StringNodes {
             byte[] bytes = bytesNode.execute(rope);
 
             for (int i = 0; i < bytes.length; i++) {
-                yield(block, bytes[i] & 0xff);
+                callBlock(block, bytes[i] & 0xff);
             }
 
             return string;
@@ -1340,7 +1340,7 @@ public abstract class StringNodes {
             byte[] bytes = bytesNode.execute(rope);
 
             for (int i = 0; i < bytes.length; i++) {
-                yield(block, bytes[i] & 0xff);
+                callBlock(block, bytes[i] & 0xff);
 
                 Rope updatedRope = strings.getRope(string);
                 if (ropeChangedProfile.profile(rope != updatedRope)) {
@@ -1379,12 +1379,7 @@ public abstract class StringNodes {
             for (int i = 0; i < len; i += n) {
                 n = calculateCharacterLengthNode.characterLengthWithRecovery(enc, cr, ptrBytes, i, len);
 
-
-                yield(block, substr(
-                        rope,
-                        i,
-                        n,
-                        logicalClassNode.execute(string)));
+                callBlock(block, substr(rope, i, n, logicalClassNode.execute(string)));
             }
 
             return string;

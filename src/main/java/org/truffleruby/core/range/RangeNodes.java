@@ -105,7 +105,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; n < exclusiveEnd; n++) {
-                    yield(block, n);
+                    callBlock(block, n);
                 }
             } finally {
                 LoopNode.reportLoopCount(this, n - range.begin);
@@ -127,7 +127,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; n < exclusiveEnd; n++) {
-                    yield(block, n);
+                    callBlock(block, n);
                 }
             } finally {
                 reportLongLoopCount(n - range.begin);
@@ -261,7 +261,7 @@ public abstract class RangeNodes {
             int n = range.begin;
             try {
                 for (; n < result; n += step) {
-                    yield(block, n);
+                    callBlock(block, n);
                 }
             } finally {
                 LoopNode.reportLoopCount(this, n - range.begin);
@@ -282,7 +282,7 @@ public abstract class RangeNodes {
             long n = range.begin;
             try {
                 for (; n < result; n += step) {
-                    yield(block, n);
+                    callBlock(block, n);
                 }
             } finally {
                 reportLongLoopCount(n - range.begin);

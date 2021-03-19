@@ -16,7 +16,8 @@ public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNod
 
     @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
-    public Object yield(RubyProc block, Object... arguments) {
+    // Not called yield() because that warns in JDK16
+    public Object callBlock(RubyProc block, Object... arguments) {
         return yieldNode.yield(block, arguments);
     }
 

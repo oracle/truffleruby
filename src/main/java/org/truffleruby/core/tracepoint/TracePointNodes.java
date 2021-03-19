@@ -125,7 +125,7 @@ public abstract class TracePointNodes {
         protected Object enable(RubyTracePoint tracePoint, RubyProc block) {
             final boolean setupDone = createEventBindings(getContext(), getLanguage(), tracePoint);
             try {
-                return yield(block);
+                return callBlock(block);
             } finally {
                 if (setupDone) {
                     disposeEventBindings(tracePoint);
@@ -146,7 +146,7 @@ public abstract class TracePointNodes {
         protected Object disable(RubyTracePoint tracePoint, RubyProc block) {
             final boolean wasEnabled = disposeEventBindings(tracePoint);
             try {
-                return yield(block);
+                return callBlock(block);
             } finally {
                 if (wasEnabled) {
                     createEventBindings(getContext(), getLanguage(), tracePoint);

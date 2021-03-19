@@ -57,7 +57,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
         return line;
     }
 
-    protected Object yield(RubyProc block, Object... arguments) {
+    protected Object callBlock(RubyProc block, Object... arguments) {
         if (yieldNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             yieldNode = insert(CallBlockNode.create());

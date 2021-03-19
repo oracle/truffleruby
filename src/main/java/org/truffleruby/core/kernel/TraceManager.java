@@ -150,7 +150,7 @@ public class TraceManager {
 
             isInTraceFunc = true;
             try {
-                yield(
+                callBlock(
                         traceFunc,
                         event,
                         getFile(),
@@ -190,7 +190,7 @@ public class TraceManager {
 
             isInTraceFunc = true;
             try {
-                yield(
+                callBlock(
                         traceFunc,
                         event,
                         getFile(),
