@@ -24,6 +24,8 @@ public abstract class RubyBaseNode extends Node {
 
     public static final Nil nil = Nil.INSTANCE;
 
+    public static final int MAX_EXPLODE_SIZE = 16;
+
     public void reportLongLoopCount(long count) {
         assert count >= 0L;
         LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);

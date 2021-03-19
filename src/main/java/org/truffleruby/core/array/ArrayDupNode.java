@@ -30,7 +30,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
     @Specialization(
             guards = {
                     "from.size == cachedSize",
-                    "cachedSize <= ARRAY_MAX_EXPLODE_SIZE" },
+                    "cachedSize <= MAX_EXPLODE_SIZE" },
             limit = "getCacheLimit()")
     protected RubyArray dupProfiledSize(RubyArray from,
             @CachedLibrary("from.store") ArrayStoreLibrary fromStores,
