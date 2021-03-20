@@ -71,7 +71,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -133,11 +133,11 @@ public abstract class TruffleDebugNodes {
                     filter,
                     eventContext -> new ExecutionEventNode() {
 
-                        @Child private YieldNode yieldNode = YieldNode.create();
+                        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.executeDispatch(
+                            yieldNode.yield(
                                     block,
                                     BindingNodes.createBinding(
                                             getContext(),

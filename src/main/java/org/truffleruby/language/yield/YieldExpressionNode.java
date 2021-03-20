@@ -31,7 +31,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
     private final boolean warnInModuleBody;
 
     @Children private final RubyNode[] arguments;
-    @Child private YieldNode yieldNode;
+    @Child private CallBlockNode yieldNode;
     @Child private ArrayToObjectArrayNode unsplatNode;
     @Child private RubyNode readBlockNode;
     @Child private WarnNode warnNode;
@@ -80,7 +80,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             argumentsObjects = unsplat(argumentsObjects);
         }
 
-        return getYieldNode().executeDispatch((RubyProc) block, argumentsObjects);
+        return getYieldNode().yield((RubyProc) block, argumentsObjects);
     }
 
     private Object[] unsplat(Object[] argumentsObjects) {
@@ -100,10 +100,10 @@ public class YieldExpressionNode extends RubyContextSourceNode {
         }
     }
 
-    private YieldNode getYieldNode() {
+    private CallBlockNode getYieldNode() {
         if (yieldNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            yieldNode = insert(YieldNode.create());
+            yieldNode = insert(CallBlockNode.create());
         }
 
         return yieldNode;

@@ -23,7 +23,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
@@ -132,9 +132,9 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public Object execute(Object[] arguments,
-            @Cached YieldNode yieldNode,
+            @Cached CallBlockNode yieldNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return yieldNode.executeDispatch(this, foreignToRubyArgumentsNode.executeConvert(arguments));
+        return yieldNode.yield(this, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
     // endregion
 }

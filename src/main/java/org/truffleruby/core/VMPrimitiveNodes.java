@@ -75,7 +75,7 @@ import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.platform.Signals;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -99,9 +99,9 @@ public abstract class VMPrimitiveNodes {
                 @Cached BranchProfile catchProfile,
                 @Cached ConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode,
-                @Cached YieldNode dispatchNode) {
+                @Cached CallBlockNode yieldNode) {
             try {
-                return dispatchNode.executeDispatch(block, tag);
+                return yieldNode.yield(block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter();
                 if (matchProfile.profile(referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {
@@ -130,13 +130,13 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected Object vmExtendedModules(Object object, RubyProc block,
                 @Cached MetaClassNode metaClassNode,
-                @Cached YieldNode yieldNode,
+                @Cached CallBlockNode yieldNode,
                 @Cached ConditionProfile isSingletonProfile) {
             final RubyClass metaClass = metaClassNode.execute(object);
 
             if (isSingletonProfile.profile(metaClass.isSingleton)) {
                 for (RubyModule included : metaClass.fields.prependedAndIncludedModules()) {
-                    yieldNode.executeDispatch(block, included);
+                    yieldNode.yield(block, included);
                 }
             }
 
@@ -360,13 +360,13 @@ public abstract class VMPrimitiveNodes {
         protected Object getSection(Object section, RubyProc block,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSection,
                 @Cached MakeStringNode makeStringNode,
-                @Cached YieldNode yieldNode) {
+                @Cached CallBlockNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(libSection.getJavaString(section))) {
                 final RubyString key = makeStringNode
                         .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
-                yieldNode.executeDispatch(block, key, entry.getValue());
+                yieldNode.yield(block, key, entry.getValue());
             }
 
             return nil;

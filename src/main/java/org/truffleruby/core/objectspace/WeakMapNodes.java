@@ -113,7 +113,7 @@ public abstract class WeakMapNodes {
         @Specialization
         protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block) {
             for (Object key : keys(map.storage)) {
-                yield(block, key);
+                callBlock(block, key);
             }
             return map;
         }
@@ -130,7 +130,7 @@ public abstract class WeakMapNodes {
         @Specialization
         protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block) {
             for (Object value : values(map.storage)) {
-                yield(block, value);
+                callBlock(block, value);
             }
             return map;
         }
@@ -148,7 +148,7 @@ public abstract class WeakMapNodes {
         protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
 
             for (MapEntry entry : entries(map.storage)) {
-                yield(block, entry.key, entry.value);
+                callBlock(block, entry.key, entry.value);
             }
 
             return map;

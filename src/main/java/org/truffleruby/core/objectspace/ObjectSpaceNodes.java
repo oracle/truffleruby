@@ -129,7 +129,7 @@ public abstract class ObjectSpaceNodes {
 
             for (Object object : ObjectGraph.stopAndGetAllObjects("ObjectSpace.each_object", getContext(), this)) {
                 if (include(object)) {
-                    yield(block, object);
+                    callBlock(block, object);
                     count++;
                 }
             }
@@ -146,7 +146,7 @@ public abstract class ObjectSpaceNodes {
             final String reason = "ObjectSpace.each_object(" + ofClass + ")";
             for (Object object : ObjectGraph.stopAndGetAllObjects(reason, getContext(), this)) {
                 if (include(object) && isANode.executeIsA(object, ofClass)) {
-                    yield(block, object);
+                    callBlock(block, object);
                     count++;
                 }
             }

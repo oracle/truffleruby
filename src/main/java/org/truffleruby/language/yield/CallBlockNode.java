@@ -11,6 +11,7 @@ package org.truffleruby.language.yield;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyRootNode;
@@ -33,6 +34,14 @@ public abstract class CallBlockNode extends RubyBaseNode {
 
     public static CallBlockNode create() {
         return CallBlockNodeGen.create();
+    }
+
+    public static CallBlockNode getUncached() {
+        return CallBlockNodeGen.getUncached();
+    }
+
+    public final Object yield(RubyProc block, Object... args) {
+        return executeCallBlock(block.declarationContext, block, ProcOperations.getSelf(block), nil, args);
     }
 
     public abstract Object executeCallBlock(DeclarationContext declarationContext, RubyProc block, Object self,

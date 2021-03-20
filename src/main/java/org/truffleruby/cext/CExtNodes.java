@@ -91,7 +91,7 @@ import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.utils.Utils;
 
@@ -1175,7 +1175,7 @@ public class CExtNodes {
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
-                yield(block);
+                callBlock(block);
                 noExceptionProfile.enter();
                 return nil;
             } catch (Throwable e) {
@@ -1472,7 +1472,7 @@ public class CExtNodes {
              * called by the marking service. */
             getContext()
                     .getMarkingService()
-                    .addMarker(object, (o) -> YieldNode.getUncached().executeDispatch(marker, o));
+                    .addMarker(object, (o) -> CallBlockNode.getUncached().yield(marker, o));
             return nil;
         }
 
