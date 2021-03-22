@@ -22,9 +22,11 @@ public class ParseEnvironment {
     private boolean dynamicConstantLookup = false;
     public boolean allowTruffleRubyPrimitives = false;
     private final String corePath;
+    private final boolean coverageEnabled;
 
     public ParseEnvironment(RubyLanguage language) {
         corePath = language.corePath;
+        coverageEnabled = language.contextIfSingleContext.map(c -> c.getCoverageManager().isEnabled()).orElse(false);
     }
 
     public String getCorePath() {
@@ -38,6 +40,11 @@ public class ParseEnvironment {
     public LexicalScope getLexicalScope() {
         // TODO (eregon, 4 Dec. 2016): assert !dynamicConstantLookup;
         return lexicalScope;
+    }
+
+    /** Returns false if the AST is shared */
+    public boolean isCoverageEnabled() {
+        return coverageEnabled;
     }
 
     public LexicalScope pushLexicalScope() {
