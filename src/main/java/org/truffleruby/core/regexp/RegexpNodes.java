@@ -12,14 +12,12 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -274,14 +272,13 @@ public abstract class RegexpNodes {
         @Specialization(
                 guards = { "libPattern.isRubyString(pattern)", "!isRegexpLiteral(regexp)", "!isInitialized(regexp)" })
         protected RubyRegexp initialize(RubyRegexp regexp, Object pattern, int options,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             try {
                 RegexpNodes.initialize(getLanguage(), regexp, libPattern.getRope(pattern), options, this);
             } catch (DeferredRaiseException dre) {
                 errorProfile.enter();
-                throw dre.getException(context);
+                throw dre.getException(getContext());
             }
             return regexp;
         }

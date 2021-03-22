@@ -100,9 +100,7 @@ public class ClassicRegexp implements ReOptions {
         } catch (Exception e) {
             String errorMessage = BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" +
                     RopeOperations.decodeRope(source) + "/";
-            throw new DeferredRaiseException(c -> new RaiseException(
-                    c,
-                    c.getCoreExceptions().regexpError(errorMessage, currentNode)));
+            throw new DeferredRaiseException(c -> c.getCoreExceptions().regexpError(errorMessage, currentNode));
         }
     }
 
@@ -415,13 +413,11 @@ public class ClassicRegexp implements ReOptions {
     public static int raisePreprocessError(Rope str, String err, RegexpSupport.ErrorMode mode) {
         switch (mode) {
             case RAISE:
-                throw new DeferredRaiseException(context -> new RaiseException(
-                        context,
-                        context.getCoreExceptions().regexpError(err, null)));
+                throw new DeferredRaiseException(context -> context.getCoreExceptions().regexpError(err, null));
             case PREPROCESS:
-                throw new DeferredRaiseException(context -> new RaiseException(
-                        context,
-                        context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null)));
+                throw new DeferredRaiseException(context -> context
+                        .getCoreExceptions()
+                        .argumentError("regexp preprocess failed: " + err, null));
             case DESC:
                 // silent ?
         }
@@ -789,9 +785,9 @@ public class ClassicRegexp implements ReOptions {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                     (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                throw new DeferredRaiseException(context -> new RaiseException(
-                        context,
-                        context.getCoreExceptions().regexpError("incompatible character encoding", null)));
+                throw new DeferredRaiseException(context -> context
+                        .getCoreExceptions()
+                        .regexpError("incompatible character encoding", null));
             }
             if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                 options.setFixed(true);

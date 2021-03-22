@@ -11,6 +11,7 @@ package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.exception.RubyException;
 
 public class DeferredRaiseException extends RuntimeException {
 
@@ -24,11 +25,11 @@ public class DeferredRaiseException extends RuntimeException {
 
     @TruffleBoundary
     public RaiseException getException(RubyContext context) {
-        return exceptionGetter.getException(context);
+        return new RaiseException(context, exceptionGetter.getException(context));
     }
 
     public interface ExceptionGetter {
-        RaiseException getException(RubyContext context);
+        RubyException getException(RubyContext context);
     }
 
     public Throwable fillInStackTrace() {
