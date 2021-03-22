@@ -354,12 +354,6 @@ public class FiberManager {
         }
     }
 
-    @TruffleBoundary
-    public void shutdown(Thread javaThread) {
-        killOtherFibers();
-        cleanup(rootFiber, javaThread, true);
-    }
-
     public String getFiberDebugInfo() {
         final StringBuilder builder = new StringBuilder();
 

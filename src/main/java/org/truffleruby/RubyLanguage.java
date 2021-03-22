@@ -452,7 +452,16 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            // Already initialized by the Ruby-provided Runnable
+            final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+            if (rubyThread.thread == thread) { // new Ruby Thread
+                if (thread != Thread.currentThread()) {
+                    throw CompilerDirectives
+                            .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
+                }
+                context.getThreadManager().start(rubyThread, thread);
+            } else {
+                // Fiber
+            }
             return;
         }
 
@@ -472,11 +481,19 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            // Already disposed by the Ruby-provided Runnable
+            final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+            if (rubyThread.thread == thread) { // Thread
+                if (thread != Thread.currentThread()) {
+                    throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
+                }
+                context.getThreadManager().cleanupThreadState(rubyThread, thread);
+            } else {
+                // Fiber
+            }
             return;
         }
 
-        final RubyThread rubyThread = context.getThreadManager().getForeignRubyThread(thread);
+        final RubyThread rubyThread = context.getThreadManager().getRubyThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 
