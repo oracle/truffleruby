@@ -52,7 +52,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 public abstract class RegexpNodes {
 
     public static void initialize(RubyLanguage language, RubyRegexp regexp, Rope setSource, int options,
-            Node currentNode) {
+            Node currentNode) throws DeferredRaiseException {
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
         final Regex regex = TruffleRegexpNodes.compile(language, null, setSource, regexpOptions, currentNode);
 
@@ -189,10 +189,15 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         protected Rope createRope(RubyRegexp regexp) {
-            final ClassicRegexp classicRegexp = new ClassicRegexp(
-                    getContext(),
-                    regexp.source,
-                    RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
+            final ClassicRegexp classicRegexp;
+            try {
+                classicRegexp = new ClassicRegexp(
+                        getContext(),
+                        regexp.source,
+                        RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(getContext());
+            }
             return classicRegexp.toRopeBuilder().toRope();
         }
     }

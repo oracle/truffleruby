@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -76,17 +77,13 @@ public class TruffleRegexpNodes {
 
     @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
-            boolean encodingConversion, int start, Node currentNode) {
+            boolean encodingConversion, int start, Node currentNode) throws DeferredRaiseException {
         final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange());
         Regex regex = regexp.regex;
 
         if (encodingConversion && regex.getEncoding() != enc) {
             EncodingCache encodingCache = regexp.cachedEncodings;
-            try {
-                regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
-            } catch (DeferredRaiseException dre) {
-                throw dre.getException(context);
-            }
+            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
         }
 
         return regex.matcher(stringBytes, start, stringBytes.length);
@@ -109,10 +106,14 @@ public class TruffleRegexpNodes {
     private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, Encoding enc, Node currentNode) {
         final Encoding[] fixedEnc = new Encoding[]{ null };
         final Rope sourceRope = regexp.source;
-        final RopeBuilder preprocessed = ClassicRegexp
-                .preprocess(sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        final RegexpOptions options = regexp.options;
-        return ClassicRegexp.makeRegexp(context, null, preprocessed, options, enc, sourceRope, currentNode);
+        try {
+            final RopeBuilder preprocessed = ClassicRegexp
+                    .preprocess(sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+            final RegexpOptions options = regexp.options;
+            return ClassicRegexp.makeRegexp(context, null, preprocessed, options, enc, sourceRope, currentNode);
+        } catch (DeferredRaiseException dre) {
+            throw dre.getException(context);
+        }
     }
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
@@ -130,16 +131,18 @@ public class TruffleRegexpNodes {
                 limit = "getDefaultCacheLimit()")
         protected Object executeFastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
-                @Cached("buildUnion(str, sep, args)") RubyRegexp union) {
+                @Cached BranchProfile errorProfile,
+                @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
-        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args) {
-            return buildUnion(str, sep, args);
+        protected Object executeSlowUnion(RubyString str, Object sep, Object[] args,
+                @Cached BranchProfile errorProfile) {
+            return buildUnion(str, sep, args, errorProfile);
         }
 
-        public RubyRegexp buildUnion(RubyString str, Object sep, Object[] args) {
+        public RubyRegexp buildUnion(RubyString str, Object sep, Object[] args, BranchProfile errorProfile) {
             RubyString regexpString = null;
             for (int i = 0; i < args.length; i++) {
                 if (regexpString == null) {
@@ -149,7 +152,12 @@ public class TruffleRegexpNodes {
                     regexpString = appendNode.executeStringAppend(regexpString, string(args[i]));
                 }
             }
-            return createRegexp(regexpString.rope);
+            try {
+                return createRegexp(regexpString.rope);
+            } catch (DeferredRaiseException dre) {
+                errorProfile.enter();
+                throw dre.getException(getContext());
+            }
         }
 
         public Object string(Object obj) {
@@ -176,7 +184,7 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        public RubyRegexp createRegexp(Rope pattern) {
+        public RubyRegexp createRegexp(Rope pattern) throws DeferredRaiseException {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
             final Regex regex = compile(getLanguage(), null, pattern, regexpOptions, this);
 
@@ -222,12 +230,17 @@ public class TruffleRegexpNodes {
             return re.tregexCache.getOrCreate(atStart, encoding.encoding, (sticky, enc) -> {
                 String processedRegexpSource;
                 Encoding[] fixedEnc = new Encoding[]{ null };
-                RopeBuilder ropeBuilder = ClassicRegexp
-                        .preprocess(
-                                re.source,
-                                enc,
-                                fixedEnc,
-                                RegexpSupport.ErrorMode.RAISE);
+                RopeBuilder ropeBuilder = null;
+                try {
+                    ropeBuilder = ClassicRegexp
+                            .preprocess(
+                                    re.source,
+                                    enc,
+                                    fixedEnc,
+                                    RegexpSupport.ErrorMode.RAISE);
+                } catch (DeferredRaiseException dre) {
+                    throw dre.getException(getContext());
+                }
                 Rope rope = ropeBuilder.toRope();
                 try {
                     processedRegexpSource = RopeOperations.decodeRope(rope);
@@ -378,16 +391,23 @@ public class TruffleRegexpNodes {
                 int startPos,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
+                @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             Rope rope = libString.getRope(string);
-            Matcher matcher = createMatcher(
-                    getContext(),
-                    regexp,
-                    rope,
-                    bytesNode.execute(rope),
-                    encodingConversion,
-                    startPos,
-                    this);
+            Matcher matcher = null;
+            try {
+                matcher = createMatcher(
+                        getContext(),
+                        regexp,
+                        rope,
+                        bytesNode.execute(rope),
+                        encodingConversion,
+                        startPos,
+                        this);
+            } catch (DeferredRaiseException dre) {
+                errorProfile.enter();
+                throw dre.getException(getContext());
+            }
             return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
         }
     }
@@ -530,7 +550,7 @@ public class TruffleRegexpNodes {
     /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
     public static Regex compile(RubyLanguage language, RubyDeferredWarnings rubyDeferredWarnings, Rope bytes,
-            RegexpOptions options, Node currentNode) {
+            RegexpOptions options, Node currentNode) throws DeferredRaiseException {
         if (options.isEncodingNone()) {
             bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);
         }

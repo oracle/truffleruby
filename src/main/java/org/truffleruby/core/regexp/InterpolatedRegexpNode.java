@@ -105,10 +105,10 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         @TruffleBoundary
         protected RubyRegexp createRegexp(Rope[] strings) {
             final RegexpOptions options = (RegexpOptions) this.options.clone();
-            final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
-
+            final RopeBuilder preprocessed;
             final Regex regexp1;
             try {
+                preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
                 regexp1 = TruffleRegexpNodes
                         .compile(getLanguage(), null, RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
             } catch (DeferredRaiseException dre) {

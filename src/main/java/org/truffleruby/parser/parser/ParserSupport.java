@@ -1675,10 +1675,15 @@ public class ParserSupport {
     }
 
     private void allocateNamedLocals(RegexpParseNode regexpNode) {
-        ClassicRegexp pattern = new ClassicRegexp(
-                configuration.getContext(),
-                regexpNode.getValue(),
-                regexpNode.getOptions());
+        ClassicRegexp pattern = null;
+        try {
+            pattern = new ClassicRegexp(
+                    configuration.getContext(),
+                    regexpNode.getValue(),
+                    regexpNode.getOptions());
+        } catch (DeferredRaiseException dre) {
+            throw dre.getException(RubyLanguage.getCurrentContext());
+        }
         pattern.setLiteral();
         String[] names = pattern.getNames();
         int length = names.length;

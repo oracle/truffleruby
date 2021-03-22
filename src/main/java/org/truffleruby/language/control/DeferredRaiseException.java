@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
 
-public class DeferredRaiseException extends RuntimeException {
+public class DeferredRaiseException extends Exception {
 
     private static final long serialVersionUID = -9202513314613691124L;
 
