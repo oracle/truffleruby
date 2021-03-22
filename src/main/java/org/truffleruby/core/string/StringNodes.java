@@ -123,6 +123,7 @@ import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.regexp.RubyRegexp;
+import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
@@ -1377,8 +1378,8 @@ public abstract class StringNodes {
             int n;
 
             for (int i = 0; i < len; i += n) {
-                n = calculateCharacterLengthNode.characterLengthWithRecovery(enc, cr, ptrBytes, i, len);
-
+                n = calculateCharacterLengthNode
+                        .characterLengthWithRecovery(enc, cr, Bytes.fromRange(ptrBytes, i, len));
                 callBlock(block, substr(rope, i, n, logicalClassNode.execute(string)));
             }
 
@@ -1890,7 +1891,7 @@ public abstract class StringNodes {
                 p = e;
             }
             while (p < e) {
-                int ret = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, pBytes, p, e);
+                int ret = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, Bytes.fromRange(pBytes, p, e));
                 if (MBCLEN_NEEDMORE_P(ret)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(ret)) {
@@ -1961,7 +1962,7 @@ public abstract class StringNodes {
             final int mbminlen = enc.minLength();
 
             while (p < e) {
-                int ret = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, pBytes, p, e);
+                int ret = calculateCharacterLengthNode.characterLength(enc, CR_BROKEN, Bytes.fromRange(pBytes, p, e));
                 if (MBCLEN_NEEDMORE_P(ret)) {
                     break;
                 } else if (MBCLEN_CHARFOUND_P(ret)) {
@@ -1982,7 +1983,7 @@ public abstract class StringNodes {
                     } else {
                         clen -= mbminlen;
                         for (; clen > mbminlen; clen -= mbminlen) {
-                            ret = calculateCharacterLengthNode.characterLength(enc, cr, pBytes, q, q + clen);
+                            ret = calculateCharacterLengthNode.characterLength(enc, cr, new Bytes(pBytes, q, clen));
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
                             }
@@ -3664,9 +3665,7 @@ public abstract class StringNodes {
             final int c = calculateCharacterLengthNode.characterLength(
                     encoding,
                     codeRangeNode.execute(rope),
-                    bytes,
-                    byteIndex,
-                    end);
+                    Bytes.fromRange(bytes, byteIndex, end));
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                 return nil;
@@ -3919,7 +3918,7 @@ public abstract class StringNodes {
                         "!isSingleByteOptimizable(strings.getRope(string), singleByteOptimizableNode)" })
         protected Object stringFindCharacter(Object string, int offset,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached RopeNodes.BytesNode getBytes,
+                @Cached RopeNodes.GetBytesObjectNode getBytesObject,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
@@ -3930,7 +3929,7 @@ public abstract class StringNodes {
             final CodeRange cr = codeRangeNode.execute(rope);
 
             final int clen = calculateCharacterLengthNode
-                    .characterLength(enc, cr, getBytes.execute(rope), offset, offset + enc.maxLength());
+                    .characterLength(enc, cr, getBytesObject.getClamped(rope, offset, enc.maxLength()));
 
             return substringNode.executeSubstring(string, offset, clen);
         }
@@ -3993,7 +3992,8 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
-            if (calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytes, 0, length) != length) {
+            final Bytes bytesObject = new Bytes(bytes, 0, length);
+            if (calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytesObject) != length) {
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
@@ -4402,7 +4402,7 @@ public abstract class StringNodes {
             int c = 0;
 
             while (p < e && index < offset) {
-                c = calculateCharacterLengthNode.characterLength(enc, cr, stringBytes, p, e);
+                c = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.fromRange(stringBytes, p, e));
 
                 if (StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     p += c;
@@ -4413,7 +4413,7 @@ public abstract class StringNodes {
             }
 
             for (; p < l; p += c, ++index) {
-                c = calculateCharacterLengthNode.characterLength(enc, cr, stringBytes, p, e);
+                c = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.fromRange(stringBytes, p, e));
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil;
                 }
@@ -4468,7 +4468,7 @@ public abstract class StringNodes {
             int c = 0;
 
             for (; p < l; p += c) {
-                c = calculateCharacterLengthNode.characterLength(enc, cr, stringBytes, p, e);
+                c = calculateCharacterLengthNode.characterLength(enc, cr, Bytes.fromRange(stringBytes, p, e));
                 if (!StringSupport.MBCLEN_CHARFOUND_P(c)) {
                     return nil;
                 }
@@ -4535,7 +4535,7 @@ public abstract class StringNodes {
 
             for (i = 0; i < k && p < e; i++) {
                 final int c = calculateCharacterLengthNode
-                        .characterLength(enc, codeRangeNode.execute(rope), bytes, p, e);
+                        .characterLength(enc, codeRangeNode.execute(rope), Bytes.fromRange(bytes, p, e));
 
                 // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
                 // If it's an invalid byte, just treat it as a single byte

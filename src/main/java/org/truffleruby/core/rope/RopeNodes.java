@@ -557,7 +557,7 @@ public abstract class RopeNodes {
                 }
 
                 final int delta = calculateCharacterLengthNode
-                        .characterLengthWithRecovery(encoding, CR_VALID, bytes, p, e);
+                        .characterLengthWithRecovery(encoding, CR_VALID, Bytes.fromRange(bytes, p, e));
                 if (delta < 0) {
                     errorProfile.enter();
                     throw Utils.unsupportedOperation(
@@ -1089,7 +1089,7 @@ public abstract class RopeNodes {
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "rope.getEncoding().isUTF8()" })
         protected int getCodePointUTF8(Rope rope, int index,
                 @Cached GetByteNode getByteNode,
-                @Cached BytesNode bytesNode,
+                @Cached GetBytesObjectNode getBytes,
                 @Cached CodeRangeNode codeRangeNode,
                 @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
                 @Cached ConditionProfile singleByteCharProfile,
@@ -1099,21 +1099,21 @@ public abstract class RopeNodes {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(rope, index, errorProfile, bytesNode, codeRangeNode, getActualEncodingNode);
+            return getCodePointMultiByte(rope, index, errorProfile, getBytes, codeRangeNode, getActualEncodingNode);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
         protected int getCodePointMultiByte(Rope rope, int index,
                 @Cached BranchProfile errorProfile,
-                @Cached BytesNode bytesNode,
+                @Cached GetBytesObjectNode getBytesObject,
                 @Cached CodeRangeNode codeRangeNode,
                 @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
-            final byte[] bytes = bytesNode.execute(rope);
+            final Bytes bytes = getBytesObject.getRange(rope, index, rope.byteLength());
             final Encoding encoding = rope.getEncoding();
             final Encoding actualEncoding = getActualEncodingNode.execute(rope);
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
-            final int characterLength = characterLength(actualEncoding, codeRange, bytes, index, rope.byteLength());
+            final int characterLength = characterLength(actualEncoding, codeRange, bytes);
             if (characterLength <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1123,23 +1123,22 @@ public abstract class RopeNodes {
                                 null));
             }
 
-            return mbcToCode(actualEncoding, bytes, index, rope.byteLength());
+            return mbcToCode(actualEncoding, bytes);
         }
 
         @TruffleBoundary
-        private int mbcToCode(Encoding encoding, byte[] bytes, int start, int end) {
-            return encoding.mbcToCode(bytes, start, end);
+        private int mbcToCode(Encoding encoding, Bytes bytes) {
+            return encoding.mbcToCode(bytes.array, bytes.offset, bytes.end());
         }
 
-        private int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int start, int end) {
+        private int characterLength(Encoding encoding, CodeRange codeRange, Bytes bytes) {
             if (calculateCharacterLengthNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 calculateCharacterLengthNode = insert(CalculateCharacterLengthNode.create());
             }
 
-            return calculateCharacterLengthNode.characterLength(encoding, codeRange, bytes, start, end);
+            return calculateCharacterLengthNode.characterLength(encoding, codeRange, bytes);
         }
-
     }
 
     @ImportStatic(RopeGuards.class)
@@ -1508,20 +1507,6 @@ public abstract class RopeNodes {
          * lengths to be returned because it would break iterating through the bytes. */
         public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, Bytes bytes) {
             return executeLength(encoding, codeRange, bytes, true);
-        }
-
-        // TODO callers should pass a Bytes object which they bound themselves
-        //      many of them should not use clipping, but some (in particular using Encoding#maxLength) must clip
-
-        public int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd) {
-            // TODO switch callers over to Bytes version
-            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), false);
-        }
-
-        public int characterLengthWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
-                int byteEnd) {
-            // TODO switch callers over to Bytes version
-            return executeLength(encoding, codeRange, Bytes.fromRangeClamped(bytes, byteOffset, byteEnd), true);
         }
 
         @Specialization(guards = "codeRange == CR_7BIT")
