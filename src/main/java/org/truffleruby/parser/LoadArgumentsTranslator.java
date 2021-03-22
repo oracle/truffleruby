@@ -105,7 +105,6 @@ public class LoadArgumentsTranslator extends Translator {
     private int index;
     private int indexFromEnd = 1;
     private State state;
-    private boolean firstOpt = false;
 
     public LoadArgumentsTranslator(
             Node currentNode,
@@ -180,7 +179,6 @@ public class LoadArgumentsTranslator extends Translator {
             index = argsNode.getPreCount();
             final int optArgIndex = argsNode.getOptArgIndex();
             for (int i = 0; i < optArgCount; i++) {
-                firstOpt = i == 0;
                 sequence.add(args[optArgIndex + i].accept(this));
                 ++index;
             }
@@ -349,8 +347,7 @@ public class LoadArgumentsTranslator extends Translator {
         if (useArray()) {
             readNode = ArraySliceNodeGen.create(from, to, loadArray(sourceSection));
         } else {
-            boolean considerRejectedKWArgs = considerRejectedKWArgs();
-            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs, required);
+            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs(), required);
         }
 
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
@@ -440,11 +437,10 @@ public class LoadArgumentsTranslator extends Translator {
                         minimum += 1;
                     }
 
-                    final boolean considerRejectedKWArgs = firstOpt && considerRejectedKWArgs();
                     readNode = new ReadOptionalArgumentNode(
                             index,
                             minimum,
-                            considerRejectedKWArgs,
+                            considerRejectedKWArgs(),
                             argsNode.hasKwargs(),
                             required,
                             defaultValue);

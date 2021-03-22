@@ -22,6 +22,7 @@ Bug fixes:
 * Fixed `TruffleRuby.synchronized` to handle guest safepoints (#2277).
 * Fix control flow bug when assigning constants using ||= (#1489).
 * Fix `Kernel#raise` argument handling for hashes (#2298).
+* Fixed handling of multiple optional arguments and keywords when passed a positional `Hash` (#2302).
 
 Compatibility:
 
