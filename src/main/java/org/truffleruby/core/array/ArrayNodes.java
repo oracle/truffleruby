@@ -573,7 +573,7 @@ public abstract class ArrayNodes {
                         "wasProvided(first)",
                         "rest.length > 0",
                         "rest.length == cachedLength",
-                        "cachedLength <= 8" })
+                        "cachedLength <= MAX_EXPLODE_SIZE" })
         protected RubyArray concatMany(RubyArray array, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached("createInternal()") ToAryNode toAryNode,
