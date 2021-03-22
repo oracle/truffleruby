@@ -23,6 +23,7 @@ Bug fixes:
 * Fix control flow bug when assigning constants using ||= (#1489).
 * Fix `Kernel#raise` argument handling for hashes (#2298).
 * Set errinfo when `rb_protect` captures a Ruby exception (#2245).
+* Fixed handling of multiple optional arguments and keywords when passed a positional `Hash` (#2302).
 
 Compatibility:
 
