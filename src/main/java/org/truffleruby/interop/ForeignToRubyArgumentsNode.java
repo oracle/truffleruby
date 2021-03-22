@@ -27,7 +27,9 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
     public abstract Object[] executeConvert(Object[] args);
 
     @ExplodeLoop
-    @Specialization(guards = "args.length == cachedArgsLength", limit = "getLimit()")
+    @Specialization(
+            guards = { "args.length == cachedArgsLength", "cachedArgsLength <= MAX_EXPLODE_SIZE" },
+            limit = "getLimit()")
     protected Object[] convertCached(Object[] args,
             @Cached("args.length") int cachedArgsLength,
             @Cached("foreignToRubyNodes(cachedArgsLength)") ForeignToRubyNode[] foreignToRubyNodes) {

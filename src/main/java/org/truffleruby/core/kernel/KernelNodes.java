@@ -467,7 +467,9 @@ public abstract class KernelNodes {
         public abstract RubyDynamicObject executeCopy(Object self);
 
         @ExplodeLoop
-        @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
+        @Specialization(
+                guards = { "self.getShape() == cachedShape", "properties.length <= MAX_EXPLODE_SIZE" },
+                limit = "getCacheLimit()")
         protected RubyDynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
