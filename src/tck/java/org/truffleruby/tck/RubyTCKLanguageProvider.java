@@ -13,6 +13,7 @@ import static org.graalvm.polyglot.tck.TypeDescriptor.ANY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.ARRAY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.BOOLEAN;
 import static org.graalvm.polyglot.tck.TypeDescriptor.DATE;
+import static org.graalvm.polyglot.tck.TypeDescriptor.ITERABLE;
 import static org.graalvm.polyglot.tck.TypeDescriptor.NULL;
 import static org.graalvm.polyglot.tck.TypeDescriptor.NUMBER;
 import static org.graalvm.polyglot.tck.TypeDescriptor.OBJECT;
@@ -92,8 +93,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         vals.add(createValueConstructor(context, "[Object.new]", ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[true, false]", ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[Object.new, 65]", ARRAY_OBJECT));
-        vals.add(createValueConstructor(context, "{ name: 'test' }", OBJECT));
-        vals.add(createValueConstructor(context, "Struct.new(:foo, :bar).new(1, 'two')", OBJECT));
+        vals.add(createValueConstructor(context, "{ name: 'test' }", intersection(ITERABLE, OBJECT)));
+        vals.add(createValueConstructor(context, "Struct.new(:foo, :bar).new(1, 'two')", intersection(ITERABLE, OBJECT)));
         String objectWithIVar = "Object.new.tap { |obj| obj.instance_variable_set(:@name, 'test') }";
         vals.add(createValueConstructor(context, objectWithIVar, OBJECT));
         vals.add(createValueConstructor(context, "proc { }", intersection(OBJECT, executable(ANY, true))));
