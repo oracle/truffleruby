@@ -12,7 +12,7 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
@@ -46,12 +46,12 @@ public class ReloadArgumentsTranslator extends Translator {
     private int restParameterIndex = -1;
 
     public ReloadArgumentsTranslator(
-            RubyContext context,
+            RubyLanguage language,
             Source source,
             ParserContext parserContext,
             Node currentNode,
             BodyTranslator methodBodyTranslator) {
-        super(context, source, parserContext, currentNode);
+        super(language, source, parserContext, currentNode);
         this.methodBodyTranslator = methodBodyTranslator;
     }
 

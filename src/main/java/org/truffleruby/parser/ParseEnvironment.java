@@ -9,11 +9,14 @@
  */
 package org.truffleruby.parser;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
+
+import java.util.Optional;
 
 /** Translator environment, unique per parse/translation. */
 public class ParseEnvironment {
@@ -23,10 +26,12 @@ public class ParseEnvironment {
     public boolean allowTruffleRubyPrimitives = false;
     private final String corePath;
     private final boolean coverageEnabled;
+    public final Optional<RubyContext> contextIfSingleContext;
 
     public ParseEnvironment(RubyLanguage language) {
         corePath = language.corePath;
         coverageEnabled = language.contextIfSingleContext.map(c -> c.getCoverageManager().isEnabled()).orElse(false);
+        contextIfSingleContext = language.contextIfSingleContext;
     }
 
     public String getCorePath() {

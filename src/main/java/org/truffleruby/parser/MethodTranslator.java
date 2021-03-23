@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.IsNilNode;
@@ -76,7 +75,7 @@ public class MethodTranslator extends BodyTranslator {
     private final String methodNameForBlock;
 
     public MethodTranslator(
-            RubyContext context,
+            RubyLanguage language,
             BodyTranslator parent,
             TranslatorEnvironment environment,
             boolean isBlock,
@@ -86,7 +85,7 @@ public class MethodTranslator extends BodyTranslator {
             ArgsParseNode argsNode,
             String methodNameForBlock,
             RubyDeferredWarnings rubyWarnings) {
-        super(context, parent, environment, source, parserContext, currentNode, rubyWarnings);
+        super(language, parent, environment, source, parserContext, currentNode, rubyWarnings);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
         this.methodNameForBlock = methodNameForBlock;
@@ -121,7 +120,7 @@ public class MethodTranslator extends BodyTranslator {
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
                 argsNode,
-                context,
+                language,
                 source,
                 parserContext,
                 !isStabbyLambda,
@@ -217,7 +216,7 @@ public class MethodTranslator extends BodyTranslator {
             final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(
                     currentNode,
                     argsNode,
-                    context,
+                    language,
                     source,
                     parserContext,
                     !isStabbyLambda,
@@ -390,7 +389,7 @@ public class MethodTranslator extends BodyTranslator {
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
                 argsNode,
-                context,
+                language,
                 source,
                 parserContext,
                 false,
@@ -504,7 +503,7 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(
-                context,
+                language,
                 source,
                 parserContext,
                 currentNode,
