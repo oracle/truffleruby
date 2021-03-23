@@ -9,18 +9,14 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
-import org.truffleruby.core.hash.HashingNodesFactory.HashCastResultNodeGen;
-import org.truffleruby.core.hash.HashingNodesFactory.ToHashByIdentityNodeGen;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.RubyString;
@@ -29,15 +25,20 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 public abstract class HashingNodes {
 
-    public abstract static class ToHash extends RubyContextNode {
+    @GenerateUncached
+    public abstract static class ToHash extends RubyBaseNode {
 
         public static ToHash create() {
             return HashingNodesFactory.ToHashNodeGen.create();
+        }
+
+        public static ToHash getUncached() {
+            return HashingNodesFactory.ToHashNodeGen.getUncached();
         }
 
         public abstract int execute(Object key, boolean compareByIdentity);
@@ -54,14 +55,11 @@ public abstract class HashingNodes {
                 @Cached ToHashByIdentity toHashByIdentity) {
             return toHashByIdentity.execute(key);
         }
-
     }
 
     // MRI: any_hash
-    public abstract static class ToHashByHashCode extends RubyContextNode {
-
-        @Child private DispatchNode hashCallNode;
-        @Child private HashCastResultNode hashCastResultNode;
+    @GenerateUncached
+    public abstract static class ToHashByHashCode extends RubyBaseNode {
 
         public static ToHashByHashCode create() {
             return HashingNodesFactory.ToHashByHashCodeNodeGen.create();
@@ -101,55 +99,45 @@ public abstract class HashingNodes {
 
         @Specialization
         protected int hashString(RubyString value,
-                @Cached StringNodes.HashNode stringHashNode) {
+                @Cached StringNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
 
         @Specialization
         protected int hashImmutableString(ImmutableRubyString value,
-                @Cached StringNodes.HashNode stringHashNode) {
+                @Cached StringNodes.HashStringNode stringHashNode) {
             return (int) stringHashNode.execute(value);
         }
 
 
         @Specialization
         protected int hashSymbol(RubySymbol value,
-                @Cached SymbolNodes.HashNode symbolHashNode) {
+                @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
             return (int) symbolHashNode.execute(value);
         }
 
-        @Fallback
-        protected int hash(Object value) {
-            return castResult(callHash(value));
+        @Specialization(guards = "!isSpecialized(value)")
+        protected int hash(Object value,
+                @Cached DispatchNode callHash,
+                @Cached HashCastResultNode cast) {
+            return cast.execute(callHash.call(value, "hash"));
         }
 
-        private Object callHash(Object value) {
-            if (hashCallNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                hashCallNode = insert(DispatchNode.create());
-            }
-            return hashCallNode.call(value, "hash");
+        protected static boolean isSpecialized(Object value) {
+            return RubyGuards.isPrimitive(value) || value instanceof RubyBignum || value instanceof RubyString ||
+                    value instanceof ImmutableRubyString || value instanceof RubySymbol;
         }
-
-        private int castResult(Object value) {
-            if (hashCastResultNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                hashCastResultNode = insert(HashCastResultNode.create());
-            }
-            return hashCastResultNode.execute(value);
-        }
-
     }
 
     @GenerateUncached
     public abstract static class ToHashByIdentity extends RubyBaseNode {
 
         public static ToHashByIdentity create() {
-            return ToHashByIdentityNodeGen.create();
+            return HashingNodesFactory.ToHashByIdentityNodeGen.create();
         }
 
         public static ToHashByIdentity getUncached() {
-            return ToHashByIdentityNodeGen.getUncached();
+            return HashingNodesFactory.ToHashByIdentityNodeGen.getUncached();
         }
 
         public abstract int execute(Object key);
@@ -168,7 +156,7 @@ public abstract class HashingNodes {
         public abstract int execute(Object key);
 
         public static HashCastResultNode create() {
-            return HashCastResultNodeGen.create();
+            return HashingNodesFactory.HashCastResultNodeGen.create();
         }
 
         @Specialization
