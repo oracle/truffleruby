@@ -54,7 +54,6 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
@@ -894,7 +893,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqlNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private SameOrEqlNode eqlNode = SameOrEqlNodeFactory.create(null);
+        @Child private SameOrEqlNode eqlNode = SameOrEqlNode.create();
 
         @Specialization(
                 guards = { "stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
@@ -924,7 +923,7 @@ public abstract class ArrayNodes {
 
             loopProfile.profileCounted(aSize);
             for (int i = 0; loopProfile.inject(i < aSize); i++) {
-                if (!eqlNode.executeSameOrEql(stores.read(aStore, i), stores.read(bStore, i))) {
+                if (!eqlNode.execute(stores.read(aStore, i), stores.read(bStore, i))) {
                     falseProfile.enter();
                     return false;
                 }
