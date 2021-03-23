@@ -16,7 +16,7 @@ import java.util.Deque;
 import java.util.List;
 
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -109,13 +109,13 @@ public class LoadArgumentsTranslator extends Translator {
     public LoadArgumentsTranslator(
             Node currentNode,
             ArgsParseNode argsNode,
-            RubyContext context,
+            RubyLanguage language,
             Source source,
             ParserContext parserContext,
             boolean isProc,
             boolean isMethod,
             BodyTranslator methodBodyTranslator) {
-        super(context, source, parserContext, currentNode);
+        super(language, source, parserContext, currentNode);
         this.isProc = isProc;
         this.isMethod = isMethod;
         this.methodBodyTranslator = methodBodyTranslator;

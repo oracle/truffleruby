@@ -290,14 +290,14 @@ public class BodyTranslator extends Translator {
     protected String currentCallMethodName = null;
 
     public BodyTranslator(
-            RubyContext context,
+            RubyLanguage language,
             BodyTranslator parent,
             TranslatorEnvironment environment,
             Source source,
             ParserContext parserContext,
             Node currentNode,
             RubyDeferredWarnings rubyWarnings) {
-        super(context, source, parserContext, currentNode);
+        super(language, source, parserContext, currentNode);
         this.parent = parent;
         this.environment = environment;
         this.rubyWarnings = rubyWarnings;
@@ -1032,7 +1032,7 @@ public class BodyTranslator extends Translator {
                     modulePath);
 
             final BodyTranslator moduleTranslator = new BodyTranslator(
-                    context,
+                    language,
                     this,
                     newEnvironment,
                     source,
@@ -1482,7 +1482,7 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(
-                context,
+                language,
                 this,
                 newEnvironment,
                 false,
@@ -1997,7 +1997,7 @@ public class BodyTranslator extends Translator {
                 TranslatorEnvironment.newFrameDescriptor(),
                 environment.modulePath);
         final MethodTranslator methodCompiler = new MethodTranslator(
-                context,
+                language,
                 this,
                 newEnvironment,
                 true,
@@ -3097,7 +3097,10 @@ public class BodyTranslator extends Translator {
 
             if (environment.getParseEnvironment().isCoverageEnabled()) {
                 node.unsafeSetIsCoverageLine();
-                context.getCoverageManager().setLineHasCode(source, current.toSourceSection(source).getStartLine());
+                environment.getParseEnvironment().contextIfSingleContext
+                        .get()
+                        .getCoverageManager()
+                        .setLineHasCode(source, current.toSourceSection(source).getStartLine());
             }
             node.unsafeSetIsNewLine();
         }
