@@ -62,6 +62,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.SafepointPredicate;
@@ -151,6 +152,22 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected boolean vmMethodIsBasic(RubyMethod method) {
             return method.method.isBuiltIn();
+        }
+
+    }
+
+    @Primitive(name = "vm_object_method_is_basic")
+    public abstract static class VMObjectMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean vmObjectMethodIsBasic(VirtualFrame frame, Object receiver, RubySymbol name,
+                @Cached LookupMethodOnSelfNode lookupMethodNode) {
+            final InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, name.getString());
+            if (method == null) {
+                return false;
+            } else {
+                return method.isBuiltIn();
+            }
         }
 
     }
