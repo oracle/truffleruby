@@ -77,7 +77,7 @@ public class TruffleRegexpNodes {
 
     @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
-            boolean encodingConversion, int start, Node currentNode) throws DeferredRaiseException {
+            boolean encodingConversion, int start, Node currentNode) {
         final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange());
         Regex regex = regexp.regex;
 
@@ -391,23 +391,16 @@ public class TruffleRegexpNodes {
                 int startPos,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
-                @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             Rope rope = libString.getRope(string);
-            Matcher matcher = null;
-            try {
-                matcher = createMatcher(
-                        getContext(),
-                        regexp,
-                        rope,
-                        bytesNode.execute(rope),
-                        encodingConversion,
-                        startPos,
-                        this);
-            } catch (DeferredRaiseException dre) {
-                errorProfile.enter();
-                throw dre.getException(getContext());
-            }
+            Matcher matcher = createMatcher(
+                    getContext(),
+                    regexp,
+                    rope,
+                    bytesNode.execute(rope),
+                    encodingConversion,
+                    startPos,
+                    this);
             return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
         }
     }
