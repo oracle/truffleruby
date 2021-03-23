@@ -1489,6 +1489,26 @@ public abstract class StringNodes {
 
     }
 
+    @GenerateUncached
+    public abstract static class HashStringNode extends RubyBaseNode {
+
+        protected static final int CLASS_SALT = 54008340; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+
+        public static HashStringNode create() {
+            return StringNodesFactory.HashStringNodeGen.create();
+        }
+
+        public abstract long execute(Object string);
+
+        @Specialization
+        protected long hash(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached RopeNodes.HashNode hashNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+        }
+    }
+
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
@@ -1502,11 +1522,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected long hash(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached RopeNodes.HashNode hashNode) {
-            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+                @Cached HashStringNode hash) {
+            return hash.execute(string);
         }
-
     }
 
     @Primitive(name = "string_initialize")
