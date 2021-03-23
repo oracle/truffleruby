@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -148,9 +149,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
-    public final Assumption singleContextAssumption = Truffle
-            .getRuntime()
-            .createAssumption("single RubyContext per RubyLanguage instance");
+
+    @CompilationFinal public boolean singleContext = true;
+    @CompilationFinal public Optional<RubyContext> contextIfSingleContext;
+
     public final CyclicAssumption traceFuncUnusedAssumption = new CyclicAssumption("set_trace_func is not used");
 
     private final ReentrantLock safepointLock = new ReentrantLock();
@@ -305,7 +307,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected void initializeMultipleContexts() {
         // TODO Make Symbol.all_symbols per context, by having a SymbolTable per context and creating new symbols with
         //  the per-language SymbolTable.
-        singleContextAssumption.invalidate();
+
+        if (contextIfSingleContext == null) { // before first context created
+            this.singleContext = false;
+        } else {
+            throw CompilerDirectives.shouldNotReachHere("RubyLanguage#initializeMultipleContexts() called after" +
+                    " context created and areOptionsCompatible() returned false");
+        }
     }
 
     @Override
@@ -330,6 +338,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
         Metrics.printTime("after-create-context");
+        if (singleContext) {
+            contextIfSingleContext = Optional.of(context);
+        } else {
+            contextIfSingleContext = Optional.empty();
+        }
         return context;
     }
 
@@ -544,6 +557,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
+        if (singleContext) {
+            return false;
+        }
         return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
     }
 
