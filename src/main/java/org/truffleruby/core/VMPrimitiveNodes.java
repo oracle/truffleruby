@@ -156,11 +156,11 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_object_method_is_basic")
-    public abstract static class VMObjectMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "vm_builtin_method?")
+    public abstract static class IsBuiltinMethodNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean vmObjectMethodIsBasic(VirtualFrame frame, Object receiver, RubySymbol name,
+        protected boolean isBuiltinMethod(VirtualFrame frame, Object receiver, RubySymbol name,
                 @Cached LookupMethodOnSelfNode lookupMethodNode) {
             final InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, name.getString());
             if (method == null) {

@@ -17,7 +17,7 @@ module Truffle::Diggable
       idx = idxs[n]
 
       # We've inlined the logic for dig for three core classes - before we use that logic we need to check if the method has been monkey patched
-      unless Primitive.vm_object_method_is_basic(obj, :dig)
+      unless Primitive.vm_builtin_method?(obj, :dig)
         raise TypeError, "#{obj.class} does not have #dig method" unless obj.respond_to?(:dig)
         return obj.dig(*idxs[n...])
       end
