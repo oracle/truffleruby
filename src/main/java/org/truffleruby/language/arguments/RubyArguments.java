@@ -9,11 +9,13 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.FrameAndVariables;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -192,18 +194,30 @@ public final class RubyArguments {
         return getDeclarationFrame(RubyArguments.getDeclarationFrame(topFrame), level - 1);
     }
 
-    @ExplodeLoop
+
     public static MaterializedFrame getDeclarationFrame(MaterializedFrame frame, int level) {
         assert frame != null;
         assert level >= 0;
 
-        MaterializedFrame currentFrame = frame;
+        CompilerAsserts.partialEvaluationConstant(level);
+        return level <= RubyBaseNode.MAX_EXPLODE_SIZE
+                ? getDeclarationFrameExplode(frame, level)
+                : getDeclarationFrameLoop(frame, level);
+    }
 
+    @ExplodeLoop
+    private static MaterializedFrame getDeclarationFrameExplode(MaterializedFrame frame, int level) {
         for (int n = 0; n < level; n++) {
-            currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
+            frame = RubyArguments.getDeclarationFrame(frame);
         }
+        return frame;
+    }
 
-        return currentFrame;
+    private static MaterializedFrame getDeclarationFrameLoop(MaterializedFrame frame, int level) {
+        for (int n = 0; n < level; n++) {
+            frame = RubyArguments.getDeclarationFrame(frame);
+        }
+        return frame;
     }
 
     // Getters that fail safely for when you aren't even sure if this is a Ruby frame
