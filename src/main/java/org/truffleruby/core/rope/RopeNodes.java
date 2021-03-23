@@ -1403,7 +1403,8 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class HashNode extends RubyContextNode {
+    @GenerateUncached
+    public abstract static class HashNode extends RubyBaseNode {
 
         public static HashNode create() {
             return RopeNodesFactory.HashNodeGen.create();
