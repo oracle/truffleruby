@@ -90,6 +90,16 @@ public class RubyDeferredWarnings implements WarnCallback {
     }
 
     /** Prints a warning, only if $VERBOSE is true. */
+    public void warning(String message) {
+        warnings.add(
+                new WarningMessage(
+                        Verbosity.VERBOSE,
+                        null,
+                        null,
+                        message));
+    }
+
+    /** Prints a warning, only if $VERBOSE is true. */
     public void warning(String fileName, int lineNumber, String message) {
         warnings.add(
                 new WarningMessage(

@@ -61,11 +61,13 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.parser.RubyDeferredWarnings;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
@@ -81,8 +83,9 @@ public class ClassicRegexp implements ReOptions {
         return pattern.getEncoding();
     }
 
-    public static Regex makeRegexp(RubyContext context, RopeBuilder processedSource, RegexpOptions options,
-            Encoding enc, Rope source, Node currentNode) {
+    public static Regex makeRegexp(RubyContext context, RubyDeferredWarnings rubyDeferredWarnings,
+            RopeBuilder processedSource, RegexpOptions options,
+            Encoding enc, Rope source, Node currentNode) throws DeferredRaiseException {
         try {
             return new Regex(
                     processedSource.getUnsafeBytes(),
@@ -91,18 +94,20 @@ public class ClassicRegexp implements ReOptions {
                     options.toJoniOptions(),
                     enc,
                     Syntax.RUBY,
-                    new RegexWarnCallback(context));
+                    rubyDeferredWarnings == null
+                            ? new RegexWarnCallback(context)
+                            : new RegexWarnDeferredCallback(rubyDeferredWarnings));
         } catch (Exception e) {
             String errorMessage = BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" +
                     RopeOperations.decodeRope(source) + "/";
-            throw new RaiseException(context, context.getCoreExceptions().regexpError(errorMessage, currentNode));
+            throw new DeferredRaiseException(c -> c.getCoreExceptions().regexpError(errorMessage, currentNode));
         }
     }
 
     private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding,
-            RegexpOptions options, Rope source) {
+            RegexpOptions options, Rope source) throws DeferredRaiseException {
         if (context == null) {
-            final Regex regex = makeRegexp(null, bytes, options, encoding, source, null);
+            final Regex regex = makeRegexp(null, null, bytes, options, encoding, source, null);
             regex.setUserObject(bytes);
             return regex;
         }
@@ -119,13 +124,13 @@ public class ClassicRegexp implements ReOptions {
         if (regex != null) {
             return regex;
         } else {
-            final Regex newRegex = makeRegexp(context, bytes, options, encoding, source, null);
+            final Regex newRegex = makeRegexp(context, null, bytes, options, encoding, source, null);
             newRegex.setUserObject(bytes);
             return context.getRegexpCache().addInCacheIfAbsent(cacheKey, newRegex);
         }
     }
 
-    public ClassicRegexp(RubyContext context, Rope str, RegexpOptions originalOptions) {
+    public ClassicRegexp(RubyContext context, Rope str, RegexpOptions originalOptions) throws DeferredRaiseException {
         this.context = context;
         this.options = (RegexpOptions) originalOptions.clone();
 
@@ -135,8 +140,8 @@ public class ClassicRegexp implements ReOptions {
         }
 
         Encoding[] fixedEnc = new Encoding[]{ null };
-        RopeBuilder unescaped = preprocess(context, str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        enc = computeRegexpEncoding(options, enc, fixedEnc, context);
+        RopeBuilder unescaped = preprocess(str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        enc = computeRegexpEncoding(options, enc, fixedEnc);
 
         this.pattern = getRegexpFromCache(context, unescaped, enc, options, str);
         this.str = str;
@@ -144,8 +149,8 @@ public class ClassicRegexp implements ReOptions {
 
     @TruffleBoundary
     @SuppressWarnings("fallthrough")
-    private static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, Rope str, Encoding enc,
-            Encoding[] encp, RegexpSupport.ErrorMode mode) {
+    private static boolean unescapeNonAscii(RopeBuilder to, Rope str, Encoding enc,
+            Encoding[] encp, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         boolean hasProperty = false;
         byte[] buf = null;
 
@@ -157,7 +162,7 @@ public class ClassicRegexp implements ReOptions {
             final int cl = StringSupport
                     .characterLength(enc, enc == str.getEncoding() ? str.getCodeRange() : CR_UNKNOWN, bytes, p, end);
             if (cl <= 0) {
-                raisePreprocessError(context, str, "invalid multibyte character", mode);
+                raisePreprocessError(str, "invalid multibyte character", mode);
             }
             if (cl > 1 || (bytes[p] & 0x80) != 0) {
                 if (to != null) {
@@ -167,7 +172,7 @@ public class ClassicRegexp implements ReOptions {
                 if (encp[0] == null) {
                     encp[0] = enc;
                 } else if (encp[0] != enc) {
-                    raisePreprocessError(context, str, "non ASCII character in UTF-8 regexp", mode);
+                    raisePreprocessError(str, "non ASCII character in UTF-8 regexp", mode);
                 }
                 continue;
             }
@@ -175,7 +180,7 @@ public class ClassicRegexp implements ReOptions {
             switch (c = bytes[p++] & 0xff) {
                 case '\\':
                     if (p == end) {
-                        raisePreprocessError(context, str, "too short escape sequence", mode);
+                        raisePreprocessError(str, "too short escape sequence", mode);
                     }
 
                     switch (c = bytes[p++] & 0xff) {
@@ -205,7 +210,7 @@ public class ClassicRegexp implements ReOptions {
                                     buf = new byte[1];
                                 }
                                 int pbeg = p;
-                                p = readEscapedByte(context, buf, 0, bytes, p, end, str, mode);
+                                p = readEscapedByte(buf, 0, bytes, p, end, str, mode);
                                 c = buf[0];
                                 if (c == -1) {
                                     return false;
@@ -214,22 +219,22 @@ public class ClassicRegexp implements ReOptions {
                                     to.append(bytes, pbeg, p - pbeg);
                                 }
                             } else {
-                                p = unescapeEscapedNonAscii(context, to, bytes, p, end, enc, encp, str, mode);
+                                p = unescapeEscapedNonAscii(to, bytes, p, end, enc, encp, str, mode);
                             }
                             break;
 
                         case 'u':
                             if (p == end) {
-                                raisePreprocessError(context, str, "too short escape sequence", mode);
+                                raisePreprocessError(str, "too short escape sequence", mode);
                             }
                             if (bytes[p] == (byte) '{') { /* \\u{H HH HHH HHHH HHHHH HHHHHH ...} */
                                 p++;
-                                p = unescapeUnicodeList(context, to, bytes, p, end, encp, str, mode);
+                                p = unescapeUnicodeList(to, bytes, p, end, encp, str, mode);
                                 if (p == end || bytes[p++] != (byte) '}') {
-                                    raisePreprocessError(context, str, "invalid Unicode list", mode);
+                                    raisePreprocessError(str, "invalid Unicode list", mode);
                                 }
                             } else { /* \\uHHHH */
-                                p = unescapeUnicodeBmp(context, to, bytes, p, end, encp, str, mode);
+                                p = unescapeUnicodeBmp(to, bytes, p, end, encp, str, mode);
                             }
                             break;
                         case 'p': /* \p{Hiragana} */
@@ -260,22 +265,22 @@ public class ClassicRegexp implements ReOptions {
         return hasProperty;
     }
 
-    private static int unescapeUnicodeBmp(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end,
-            Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeBmp(RopeBuilder to, byte[] bytes, int p, int end,
+            Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         if (p + 4 > end) {
-            raisePreprocessError(context, str, "invalid Unicode escape", mode);
+            raisePreprocessError(str, "invalid Unicode escape", mode);
         }
         int code = StringSupport.scanHex(bytes, p, 4);
         int len = StringSupport.hexLength(bytes, p, 4);
         if (len != 4) {
-            raisePreprocessError(context, str, "invalid Unicode escape", mode);
+            raisePreprocessError(str, "invalid Unicode escape", mode);
         }
-        appendUtf8(context, to, code, encp, str, mode);
+        appendUtf8(to, code, encp, str, mode);
         return p + 4;
     }
 
-    private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end,
-            Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeList(RopeBuilder to, byte[] bytes, int p, int end,
+            Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
             p++;
         }
@@ -288,11 +293,11 @@ public class ClassicRegexp implements ReOptions {
                 break;
             }
             if (len > 6) {
-                raisePreprocessError(context, str, "invalid Unicode range", mode);
+                raisePreprocessError(str, "invalid Unicode range", mode);
             }
             p += len;
             if (to != null) {
-                appendUtf8(context, to, code, encp, str, mode);
+                appendUtf8(to, code, encp, str, mode);
             }
             hasUnicode = true;
             while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) {
@@ -301,14 +306,14 @@ public class ClassicRegexp implements ReOptions {
         }
 
         if (!hasUnicode) {
-            raisePreprocessError(context, str, "invalid Unicode list", mode);
+            raisePreprocessError(str, "invalid Unicode list", mode);
         }
         return p;
     }
 
-    private static void appendUtf8(RubyContext context, RopeBuilder to, int code, Encoding[] enc, Rope str,
-            RegexpSupport.ErrorMode mode) {
-        checkUnicodeRange(context, code, str, mode);
+    private static void appendUtf8(RopeBuilder to, int code, Encoding[] enc, Rope str,
+            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
+        checkUnicodeRange(code, str, mode);
 
         if (code < 0x80) {
             if (to != null) {
@@ -322,7 +327,7 @@ public class ClassicRegexp implements ReOptions {
             if (enc[0] == null) {
                 enc[0] = UTF8Encoding.INSTANCE;
             } else if (!(enc[0].isUTF8())) {
-                raisePreprocessError(context, str, "UTF-8 character in non UTF-8 regexp", mode);
+                raisePreprocessError(str, "UTF-8 character in non UTF-8 regexp", mode);
             }
         }
     }
@@ -364,27 +369,28 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private static void checkUnicodeRange(RubyContext context, int code, Rope str, RegexpSupport.ErrorMode mode) {
+    private static void checkUnicodeRange(int code, Rope str, RegexpSupport.ErrorMode mode)
+            throws DeferredRaiseException {
         // Unicode is can be only 21 bits long, int is enough
         if ((0xd800 <= code && code <= 0xdfff) /* Surrogates */ || 0x10ffff < code) {
-            raisePreprocessError(context, str, "invalid Unicode range", mode);
+            raisePreprocessError(str, "invalid Unicode range", mode);
         }
     }
 
-    private static int unescapeEscapedNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end,
-            Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeEscapedNonAscii(RopeBuilder to, byte[] bytes, int p, int end,
+            Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         byte[] chBuf = new byte[enc.maxLength()];
         int chLen = 0;
 
-        p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
+        p = readEscapedByte(chBuf, chLen++, bytes, p, end, str, mode);
         while (chLen < enc.maxLength() &&
                 StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen))) {
-            p = readEscapedByte(context, chBuf, chLen++, bytes, p, end, str, mode);
+            p = readEscapedByte(chBuf, chLen++, bytes, p, end, str, mode);
         }
 
         int cl = StringSupport.characterLength(enc, CR_UNKNOWN, chBuf, 0, chLen);
         if (cl == -1) {
-            raisePreprocessError(context, str, "invalid multibyte escape", mode); // MBCLEN_INVALID_P
+            raisePreprocessError(str, "invalid multibyte escape", mode); // MBCLEN_INVALID_P
         }
 
         if (chLen > 1 || (chBuf[0] & 0x80) != 0) {
@@ -395,7 +401,7 @@ public class ClassicRegexp implements ReOptions {
             if (encp[0] == null) {
                 encp[0] = enc;
             } else if (encp[0] != enc) {
-                raisePreprocessError(context, str, "escaped non ASCII character in UTF-8 regexp", mode);
+                raisePreprocessError(str, "escaped non ASCII character in UTF-8 regexp", mode);
             }
         } else {
             if (to != null) {
@@ -405,14 +411,15 @@ public class ClassicRegexp implements ReOptions {
         return p;
     }
 
-    public static int raisePreprocessError(RubyContext context, Rope str, String err, RegexpSupport.ErrorMode mode) {
+    public static int raisePreprocessError(Rope str, String err, RegexpSupport.ErrorMode mode)
+            throws DeferredRaiseException {
         switch (mode) {
             case RAISE:
-                throw new RaiseException(context, context.getCoreExceptions().regexpError(err, null));
+                throw new DeferredRaiseException(context -> context.getCoreExceptions().regexpError(err, null));
             case PREPROCESS:
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
+                throw new DeferredRaiseException(context -> context
+                        .getCoreExceptions()
+                        .argumentError("regexp preprocess failed: " + err, null));
             case DESC:
                 // silent ?
         }
@@ -421,17 +428,17 @@ public class ClassicRegexp implements ReOptions {
 
     @SuppressWarnings("fallthrough")
     @SuppressFBWarnings("SF")
-    public static int readEscapedByte(RubyContext context, byte[] to, int toP, byte[] bytes, int p, int end, Rope str,
-            RegexpSupport.ErrorMode mode) {
+    public static int readEscapedByte(byte[] to, int toP, byte[] bytes, int p, int end, Rope str,
+            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         if (p == end || bytes[p++] != (byte) '\\') {
-            raisePreprocessError(context, str, "too short escaped multibyte character", mode);
+            raisePreprocessError(str, "too short escaped multibyte character", mode);
         }
 
         boolean metaPrefix = false, ctrlPrefix = false;
         int code = 0;
         while (true) {
             if (p == end) {
-                raisePreprocessError(context, str, "too short escape sequence", mode);
+                raisePreprocessError(str, "too short escape sequence", mode);
             }
 
             switch (bytes[p++]) {
@@ -480,14 +487,14 @@ public class ClassicRegexp implements ReOptions {
                     code = StringSupport.scanHex(bytes, p, hlen);
                     int len = StringSupport.hexLength(bytes, p, hlen);
                     if (len < 1) {
-                        raisePreprocessError(context, str, "invalid hex escape", mode);
+                        raisePreprocessError(str, "invalid hex escape", mode);
                     }
                     p += len;
                     break;
 
                 case 'M': /* \M-X, \M-\C-X, \M-\cX */
                     if (metaPrefix) {
-                        raisePreprocessError(context, str, "duplicate meta escape", mode);
+                        raisePreprocessError(str, "duplicate meta escape", mode);
                     }
                     metaPrefix = true;
                     if (p + 1 < end && bytes[p++] == (byte) '-' && (bytes[p] & 0x80) == 0) {
@@ -499,16 +506,16 @@ public class ClassicRegexp implements ReOptions {
                             break;
                         }
                     }
-                    raisePreprocessError(context, str, "too short meta escape", mode);
+                    raisePreprocessError(str, "too short meta escape", mode);
 
                 case 'C': /* \C-X, \C-\M-X */
                     if (p == end || bytes[p++] != (byte) '-') {
-                        raisePreprocessError(context, str, "too short control escape", mode);
+                        raisePreprocessError(str, "too short control escape", mode);
                     }
 
                 case 'c': /* \cX, \c\M-X */
                     if (ctrlPrefix) {
-                        raisePreprocessError(context, str, "duplicate control escape", mode);
+                        raisePreprocessError(str, "duplicate control escape", mode);
                     }
                     ctrlPrefix = true;
                     if (p < end && (bytes[p] & 0x80) == 0) {
@@ -520,13 +527,13 @@ public class ClassicRegexp implements ReOptions {
                             break;
                         }
                     }
-                    raisePreprocessError(context, str, "too short control escape", mode);
+                    raisePreprocessError(str, "too short control escape", mode);
                 default:
-                    raisePreprocessError(context, str, "unexpected escape sequence", mode);
+                    raisePreprocessError(str, "unexpected escape sequence", mode);
             } // switch
 
             if (code < 0 || code > 0xff) {
-                raisePreprocessError(context, str, "invalid escape code", mode);
+                raisePreprocessError(str, "invalid escape code", mode);
             }
 
             if (ctrlPrefix) {
@@ -541,12 +548,12 @@ public class ClassicRegexp implements ReOptions {
         } // while
     }
 
-    public static void preprocessCheck(RubyContext runtime, Rope bytes) {
-        preprocess(runtime, bytes, bytes.getEncoding(), new Encoding[]{ null }, RegexpSupport.ErrorMode.RAISE);
+    public static void preprocessCheck(Rope bytes) throws DeferredRaiseException {
+        preprocess(bytes, bytes.getEncoding(), new Encoding[]{ null }, RegexpSupport.ErrorMode.RAISE);
     }
 
-    public static RopeBuilder preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc,
-            RegexpSupport.ErrorMode mode) {
+    public static RopeBuilder preprocess(Rope str, Encoding enc, Encoding[] fixedEnc,
+            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         RopeBuilder to = RopeBuilder.createRopeBuilder(str.byteLength());
 
         if (enc.isAsciiCompatible()) {
@@ -556,7 +563,7 @@ public class ClassicRegexp implements ReOptions {
             to.setEncoding(enc);
         }
 
-        boolean hasProperty = unescapeNonAscii(runtime, to, str, enc, fixedEnc, mode);
+        boolean hasProperty = unescapeNonAscii(to, str, enc, fixedEnc, mode);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
@@ -567,20 +574,21 @@ public class ClassicRegexp implements ReOptions {
     }
 
     private static void preprocessLight(RubyContext context, Rope str, Encoding enc, Encoding[] fixedEnc,
-            RegexpSupport.ErrorMode mode) {
+            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         if (enc.isAsciiCompatible()) {
             fixedEnc[0] = null;
         } else {
             fixedEnc[0] = enc;
         }
 
-        boolean hasProperty = unescapeNonAscii(context, null, str, enc, fixedEnc, mode);
+        boolean hasProperty = unescapeNonAscii(null, str, enc, fixedEnc, mode);
         if (hasProperty && fixedEnc[0] == null) {
             fixedEnc[0] = enc;
         }
     }
 
-    public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
+    public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options)
+            throws DeferredRaiseException {
         assert strings.length > 0;
 
         RopeBuilder string = RopeOperations.toRopeBuilderCopy(strings[0]);
@@ -602,7 +610,7 @@ public class ClassicRegexp implements ReOptions {
 
     @TruffleBoundary
     private static Encoding processDRegexpElement(RubyContext context, RegexpOptions options, Encoding regexpEnc,
-            Rope str) {
+            Rope str) throws DeferredRaiseException {
         Encoding strEnc = str.getEncoding();
 
         if (options.isEncodingNone() && strEnc != ASCIIEncoding.INSTANCE) {
@@ -776,14 +784,14 @@ public class ClassicRegexp implements ReOptions {
     }
 
     /** WARNING: This mutates options, so the caller should make sure it's a copy */
-    static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc,
-            RubyContext context) {
+    static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc)
+            throws DeferredRaiseException {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                     (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().regexpError("incompatible character encoding", null));
+                throw new DeferredRaiseException(context -> context
+                        .getCoreExceptions()
+                        .regexpError("incompatible character encoding", null));
             }
             if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                 options.setFixed(true);

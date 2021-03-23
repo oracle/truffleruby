@@ -104,6 +104,8 @@ public class LanguageOptions {
     public final int ARRAY_STRATEGY_CACHE;
     /** --hash-packed-array-max=3 */
     public final int HASH_PACKED_ARRAY_MAX;
+    /** --regexp-instrument-creation=false */
+    public final boolean REGEXP_INSTRUMENT_CREATION;
     /** --shared-objects=true */
     public final boolean SHARED_OBJECTS_ENABLED;
     /** --shared-objects-debug=false */
@@ -153,6 +155,7 @@ public class LanguageOptions {
         ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);
         ARRAY_STRATEGY_CACHE = options.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
+        REGEXP_INSTRUMENT_CREATION = options.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY);
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
@@ -242,6 +245,8 @@ public class LanguageOptions {
                 return ARRAY_STRATEGY_CACHE;
             case "ruby.hash-packed-array-max":
                 return HASH_PACKED_ARRAY_MAX;
+            case "ruby.regexp-instrument-creation":
+                return REGEXP_INSTRUMENT_CREATION;
             case "ruby.shared-objects":
                 return SHARED_OBJECTS_ENABLED;
             case "ruby.shared-objects-debug":
@@ -295,6 +300,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY).equals(two.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY)) &&
                one.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY).equals(two.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY)) &&
                one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY)) &&
+               one.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY).equals(two.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY));
@@ -588,6 +594,13 @@ public class LanguageOptions {
         newValue = newOptions.HASH_PACKED_ARRAY_MAX;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --hash-packed-array-max differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.REGEXP_INSTRUMENT_CREATION;
+        newValue = newOptions.REGEXP_INSTRUMENT_CREATION;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --regexp-instrument-creation differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 
