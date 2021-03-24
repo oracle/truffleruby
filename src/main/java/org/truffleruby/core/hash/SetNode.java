@@ -161,7 +161,7 @@ public abstract class SetNode extends RubyContextNode {
     private HashLookupResult lookup(RubyHash hash, Object key) {
         if (lookupEntryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupEntryNode = insert(new LookupEntryNode());
+            lookupEntryNode = insert(LookupEntryNode.create());
         }
         return lookupEntryNode.lookup(hash, key);
     }

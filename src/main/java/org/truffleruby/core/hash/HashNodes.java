@@ -192,7 +192,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isBucketHash(hash)")
         protected Object getBuckets(VirtualFrame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
-                @Cached("new()") LookupEntryNode lookupEntryNode,
+                @Cached LookupEntryNode lookupEntryNode,
                 @Cached BranchProfile notInHashProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
 
@@ -338,7 +338,7 @@ public abstract class HashNodes {
 
         @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-        @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
+        @Child private LookupEntryNode lookupEntryNode = LookupEntryNode.create();
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization(guards = "isNullHash(hash)")
