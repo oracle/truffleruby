@@ -1,3 +1,21 @@
+# 21.2.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+* Make `#dig` iterative to make it faster and compile better for calls with 3+ arguments (#2301, @chrisseaton, @jantnovi).
+
+Changes:
+
+
 # 21.1.0
 
 New features:
