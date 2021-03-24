@@ -28,7 +28,7 @@ public abstract class SetNode extends RubyContextNode {
 
     @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
     @Child private LookupEntryNode lookupEntryNode;
-    @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+    @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
     @Child private PropagateSharingNode propagateSharingKeyNode = PropagateSharingNode.create();
     @Child private PropagateSharingNode propagateSharingValueNode = PropagateSharingNode.create();

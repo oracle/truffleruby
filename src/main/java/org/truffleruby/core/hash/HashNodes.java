@@ -336,7 +336,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+        @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
         @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
@@ -839,7 +839,7 @@ public abstract class HashNodes {
     public abstract static class InternalRehashNode extends RubyContextNode {
 
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+        @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
 
         public static InternalRehashNode create() {
             return InternalRehashNodeGen.create();
@@ -867,7 +867,7 @@ public abstract class HashNodes {
                 PackedArrayStrategy.setHashed(store, n, newHash);
 
                 for (int m = n - 1; m >= 0; m--) {
-                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.equalKeys(
+                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.execute(
                             compareByIdentity,
                             key,
                             newHash,
@@ -910,7 +910,7 @@ public abstract class HashNodes {
                     Entry previousEntry = entry;
 
                     do {
-                        if (compareHashKeysNode.equalKeys(
+                        if (compareHashKeysNode.execute(
                                 compareByIdentity,
                                 entry.getKey(),
                                 newHash,

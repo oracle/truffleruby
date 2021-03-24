@@ -24,7 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ImportStatic(HashGuards.class)
 public abstract class LookupPackedEntryNode extends RubyContextNode {
 
-    @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+    @Child CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
 
     public static LookupPackedEntryNode create() {
         return LookupPackedEntryNodeGen.create();
