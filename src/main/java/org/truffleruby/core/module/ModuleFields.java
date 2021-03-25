@@ -267,11 +267,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         // We need to include the module ancestors in reverse order for a given inclusionPoint
         ModuleChain inclusionPoint = this;
         Deque<RubyModule> modulesToInclude = new ArrayDeque<>();
+        Set<String> methodsToInvalidate = new HashSet<>();
         for (RubyModule ancestor : module.fields.ancestors()) {
             if (ModuleOperations.includesModule(rubyModule, ancestor)) {
                 if (isIncludedModuleBeforeSuperClass(ancestor)) {
                     // Include the modules at the appropriate inclusionPoint
-                    performIncludes(inclusionPoint, modulesToInclude);
+                    performIncludes(inclusionPoint, modulesToInclude, methodsToInvalidate);
                     assert modulesToInclude.isEmpty();
 
                     // We need to include the others after that module
@@ -287,14 +288,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        performIncludes(inclusionPoint, modulesToInclude);
+        performIncludes(inclusionPoint, modulesToInclude, methodsToInvalidate);
 
-        newHierarchyVersion();
+        newHierarchyVersion(methodsToInvalidate);
     }
 
-    public void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
+    public void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors,
+            Set<String> methodsToInvalidate) {
         while (!moduleAncestors.isEmpty()) {
             RubyModule mod = moduleAncestors.pop();
+            mod.fields.getMethodNames().iterator().forEachRemaining(methodsToInvalidate::add);
             inclusionPoint.insertAfter(mod);
         }
     }
@@ -326,11 +329,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         ModuleChain mod = module.fields.start;
         final ModuleChain topPrependedModule = start.getParentModule();
         ModuleChain cur = start;
+        Set<String> methodsToInvalidate = new HashSet<>();
         while (mod != null &&
                 !(mod instanceof ModuleFields && ((ModuleFields) mod).rubyModule instanceof RubyClass)) {
             if (!(mod instanceof PrependMarker)) {
-                if (!ModuleOperations.includesModule(rubyModule, mod.getActualModule())) {
-                    cur.insertAfter(mod.getActualModule());
+                final RubyModule actualModule = mod.getActualModule();
+                if (!ModuleOperations.includesModule(rubyModule, actualModule)) {
+                    actualModule.fields.getMethodNames().iterator().forEachRemaining(methodsToInvalidate::add);
+                    cur.insertAfter(actualModule);
                     cur = cur.getParentModule();
                 }
             }
@@ -339,9 +345,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         // If there were already prepended modules, invalidate the first of them
         if (topPrependedModule != this) {
-            topPrependedModule.getActualModule().fields.newHierarchyVersion();
+            topPrependedModule.getActualModule().fields.newHierarchyVersion(methodsToInvalidate);
         } else {
-            this.newHierarchyVersion();
+            this.newHierarchyVersion(methodsToInvalidate);
         }
 
         invalidateBuiltinsAssumptions();
@@ -720,19 +726,22 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         constantsUnmodifiedAssumption.invalidate(givenBaseName);
     }
 
-    public void newHierarchyVersion() {
+    public void newHierarchyVersion(Set<String> methodsToInvalidate) {
         newConstantsVersion();
-        newMethodsVersion();
+        newMethodsVersion(methodsToInvalidate);
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
         }
     }
 
-    public void newMethodsVersion() {
-        for (Entry<String, MethodEntry> entry : methods.entrySet()) {
-            entry.getValue().invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entry.getKey()));
-            entry.setValue(entry.getValue().withNewAssumption());
+    public void newMethodsVersion(Set<String> methodsToInvalidate) {
+        for (String entryToInvalidate : methodsToInvalidate) {
+            MethodEntry methodEntry = methods.get(entryToInvalidate);
+            if (methodEntry != null) {
+                methodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entryToInvalidate));
+                methods.put(entryToInvalidate, methodEntry.withNewAssumption());
+            }
         }
     }
 
@@ -759,6 +768,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         for (MethodEntry methodEntry : methods.values()) {
             if (methodEntry.getMethod() != null) {
                 results.add(methodEntry.getMethod());
+            }
+        }
+        return results;
+    }
+
+    public List<String> getMethodNames() {
+        List<String> results = new ArrayList<>();
+        for (Entry<String, MethodEntry> entry : methods.entrySet()) {
+            if (entry.getValue().getMethod() != null) {
+                results.add(entry.getKey());
             }
         }
         return results;
@@ -804,7 +823,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void setSuperClass(RubyClass superclass) {
         assert rubyModule instanceof RubyClass;
         this.parentModule = superclass.fields.start;
-        newHierarchyVersion();
+        newHierarchyVersion(methods.keySet());
     }
 
     @Override
