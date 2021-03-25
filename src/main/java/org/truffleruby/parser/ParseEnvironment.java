@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import org.truffleruby.RubyContext;
+import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.LexicalScope;
@@ -24,18 +25,24 @@ public class ParseEnvironment {
     private LexicalScope lexicalScope = null;
     private boolean dynamicConstantLookup = false;
     public boolean allowTruffleRubyPrimitives = false;
-    private final String corePath;
+    public final Source source;
+    private final boolean inCore;
     private final boolean coverageEnabled;
     public final Optional<RubyContext> contextIfSingleContext;
 
-    public ParseEnvironment(RubyLanguage language) {
-        corePath = language.corePath;
+    public ParseEnvironment(RubyLanguage language, RubySource rubySource) {
+        this.source = rubySource.getSource();
+        this.inCore = RubyLanguage.getPath(source).startsWith(language.corePath);
         coverageEnabled = language.contextIfSingleContext.map(c -> c.getCoverageManager().isEnabled()).orElse(false);
         contextIfSingleContext = language.contextIfSingleContext;
     }
 
-    public String getCorePath() {
-        return corePath;
+    public boolean inCore() {
+        return inCore;
+    }
+
+    public boolean canUsePrimitives() {
+        return inCore() || allowTruffleRubyPrimitives;
     }
 
     public void resetLexicalScope(LexicalScope lexicalScope) {

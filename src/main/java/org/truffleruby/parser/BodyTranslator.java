@@ -519,8 +519,9 @@ public class BodyTranslator extends Translator {
                     new FrozenStringLiteralNode(frozenString, language.coreStrings.METHOD)));
         }
 
-        if (receiver instanceof ConstParseNode &&
-                ((ConstParseNode) receiver).getName().equals("Primitive") && canUsePrimitives()) {
+        if (environment.getParseEnvironment().canUsePrimitives() &&
+                receiver instanceof ConstParseNode &&
+                ((ConstParseNode) receiver).getName().equals("Primitive")) {
             final RubyNode ret = translateInvokePrimitive(sourceSection, node);
             return addNewlineIfNeeded(node, ret);
         }
@@ -537,10 +538,6 @@ public class BodyTranslator extends Translator {
         }
 
         return addNewlineIfNeeded(node, translated);
-    }
-
-    private boolean canUsePrimitives() {
-        return inCore() || environment.getParseEnvironment().allowTruffleRubyPrimitives;
     }
 
     private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
@@ -1240,11 +1237,6 @@ public class BodyTranslator extends Translator {
         }
     }
 
-    private boolean inCore() {
-        final String path = RubyLanguage.getPath(source);
-        return path.startsWith(environment.getParseEnvironment().getCorePath());
-    }
-
     @Override
     public RubyNode visitConstNode(ConstParseNode node) {
         // Unqualified constant access, as in CONST
@@ -1309,7 +1301,7 @@ public class BodyTranslator extends Translator {
                 node.getPosition(),
                 node.getEncoding(),
                 node.children(),
-                node.isFrozen() && !inCore());
+                node.isFrozen() && !environment.getParseEnvironment().inCore());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2933,7 +2925,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitVCallNode(VCallParseNode node) {
         // TODO (pitr-ch 02-Dec-2019): replace with a primitive
-        if (node.getName().equals("undefined") && inCore()) { // translate undefined
+        if (environment.getParseEnvironment().inCore() && node.getName().equals("undefined")) { // translate undefined
             final RubyNode ret = new ObjectLiteralNode(NotProvided.INSTANCE);
             ret.unsafeSetSourceSection(node.getPosition());
             return addNewlineIfNeeded(node, ret);

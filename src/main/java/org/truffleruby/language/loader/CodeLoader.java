@@ -45,7 +45,7 @@ public class CodeLoader {
             RubyModule wrap,
             boolean ownScopeForAssignments,
             Node currentNode) {
-        final TranslatorDriver translator = new TranslatorDriver(context);
+        final TranslatorDriver translator = new TranslatorDriver(context, source);
         return translator.parse(source, parserContext, null, parentFrame, wrap, ownScopeForAssignments, currentNode);
     }
 
