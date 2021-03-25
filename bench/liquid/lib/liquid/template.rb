@@ -64,23 +64,6 @@ module Liquid
       attr_accessor :error_mode
       Template.error_mode = :lax
 
-      attr_reader :taint_mode
-
-      # Sets how strict the taint checker should be.
-      # :lax is the default, and ignores the taint flag completely
-      # :warn adds a warning, but does not interrupt the rendering
-      # :error raises an error when tainted output is used
-      # @deprecated Since it is being deprecated in ruby itself.
-      def taint_mode=(mode)
-        taint_supported = Object.new.taint.tainted?
-        if mode != :lax && !taint_supported
-          raise NotImplementedError, "#{RUBY_ENGINE} #{RUBY_VERSION} doesn't support taint checking"
-        end
-        @taint_mode = mode
-      end
-
-      Template.taint_mode = :lax
-
       attr_accessor :default_exception_renderer
       Template.default_exception_renderer = lambda do |exception|
         exception
@@ -95,14 +78,6 @@ module Liquid
 
       def register_tag(name, klass)
         tags[name.to_s] = klass
-      end
-
-      attr_accessor :registers
-      Template.registers = {}
-      private :registers=
-
-      def add_register(name, klass)
-        registers[name.to_sym] = klass
       end
 
       # Pass a module with filter methods which should be available
@@ -131,12 +106,8 @@ module Liquid
     # Parse source code.
     # Returns self for easy chaining
     def parse(source, options = {})
-      @options      = options
-      @profiling    = options[:profile]
-      @line_numbers = options[:line_numbers] || @profiling
-      parse_context = options.is_a?(ParseContext) ? options : ParseContext.new(options)
+      parse_context = configure_options(options)
       @root         = Document.parse(tokenize(source), parse_context)
-      @warnings     = parse_context.warnings
       self
     end
 
@@ -178,7 +149,7 @@ module Liquid
         c = args.shift
 
         if @rethrow_errors
-          c.exception_renderer = ->(_e) { raise }
+          c.exception_renderer = Liquid::RAISE_EXCEPTION_LAMBDA
         end
 
         c
@@ -211,19 +182,16 @@ module Liquid
         context.add_filters(args.pop)
       end
 
-      Template.registers.each do |key, register|
-        context_register[key] = register
-      end
-
       # Retrying a render resets resource usage
       context.resource_limits.reset
 
+      if @profiling && context.profiler.nil?
+        @profiler = context.profiler = Liquid::Profiler.new
+      end
+
       begin
         # render the nodelist.
-        # for performance reasons we get an array back here. join will make a string out of it.
-        with_profiling(context) do
-          @root.render_to_output_buffer(context, output || +'')
-        end
+        @root.render_to_output_buffer(context, output || +'')
       rescue Liquid::MemoryError => e
         context.handle_error(e)
       ensure
@@ -242,25 +210,21 @@ module Liquid
 
     private
 
-    def tokenize(source)
-      Tokenizer.new(source, @line_numbers)
+    def configure_options(options)
+      if (profiling = options[:profile])
+        raise "Profiler not loaded, require 'liquid/profiler' first" unless defined?(Liquid::Profiler)
+      end
+
+      @options      = options
+      @profiling    = profiling
+      @line_numbers = options[:line_numbers] || @profiling
+      parse_context = options.is_a?(ParseContext) ? options : ParseContext.new(options)
+      @warnings     = parse_context.warnings
+      parse_context
     end
 
-    def with_profiling(context)
-      if @profiling && !context.partial
-        raise "Profiler not loaded, require 'liquid/profiler' first" unless defined?(Liquid::Profiler)
-
-        @profiler = Profiler.new(context.template_name)
-        @profiler.start
-
-        begin
-          yield
-        ensure
-          @profiler.stop
-        end
-      else
-        yield
-      end
+    def tokenize(source)
+      Tokenizer.new(source, @line_numbers)
     end
 
     def apply_options_to_context(context, options)

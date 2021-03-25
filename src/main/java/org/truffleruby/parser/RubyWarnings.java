@@ -91,13 +91,17 @@ public class RubyWarnings implements WarnCallback {
         printWarning(buffer.toString());
     }
 
+    public void warning(String message) {
+        if (isVerbose()) {
+            warn(null, message);
+        }
+    }
+
     /** Prints a warning, only if $VERBOSE is true. */
     public void warning(String fileName, int lineNumber, String message) {
-        if (!isVerbose()) {
-            return;
+        if (isVerbose()) {
+            warn(fileName, lineNumber, message);
         }
-
-        warn(fileName, lineNumber, message);
     }
 
     private void printWarning(String message) {

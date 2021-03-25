@@ -10,6 +10,7 @@
 package org.truffleruby;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -117,6 +118,40 @@ public class MiscTest {
             });
             thread.start();
             thread.join();
+        }
+    }
+
+    @Test
+    public void testForeignThread() throws Throwable {
+        // Tests thread initialization and finalization for a foreign thread and an embedder thread
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
+            context.eval("ruby", "$queue = Queue.new");
+            assertEquals(context.eval("ruby", "Thread.main"), context.eval("ruby", "Thread.current"));
+            assertTrue(context.eval("ruby", "Thread.current").toString().contains("@main"));
+            assertFalse(context.eval("ruby", "Thread.current").toString().contains("<foreign thread>"));
+
+            Runnable polyglotThreadBody = () -> {
+                context.eval("ruby", "$queue.pop");
+                assertTrue(context.eval("ruby", "Thread.current").toString().contains("<foreign thread>"));
+            };
+            Thread polyglotThread = context
+                    .eval("ruby", "Truffle::Debug")
+                    .invokeMember("create_polyglot_thread", polyglotThreadBody)
+                    .asHostObject();
+
+            TestingThread embedderThread = new TestingThread(() -> {
+                context.eval("ruby", "$queue.pop");
+                assertTrue(context.eval("ruby", "Thread.current").toString().contains("<foreign thread>"));
+            });
+
+            polyglotThread.start();
+            embedderThread.start();
+
+            context.eval("ruby", "$queue << 1");
+            context.eval("ruby", "$queue << 2");
+
+            polyglotThread.join(); // causes disposeThread(polyglotThread) to run on polyglotThread
+            embedderThread.join();
         }
     }
 

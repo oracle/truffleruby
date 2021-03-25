@@ -16,7 +16,7 @@ import java.util.Deque;
 import java.util.List;
 
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -105,18 +105,17 @@ public class LoadArgumentsTranslator extends Translator {
     private int index;
     private int indexFromEnd = 1;
     private State state;
-    private boolean firstOpt = false;
 
     public LoadArgumentsTranslator(
             Node currentNode,
             ArgsParseNode argsNode,
-            RubyContext context,
+            RubyLanguage language,
             Source source,
             ParserContext parserContext,
             boolean isProc,
             boolean isMethod,
             BodyTranslator methodBodyTranslator) {
-        super(context, source, parserContext, currentNode);
+        super(language, source, parserContext, currentNode);
         this.isProc = isProc;
         this.isMethod = isMethod;
         this.methodBodyTranslator = methodBodyTranslator;
@@ -180,7 +179,6 @@ public class LoadArgumentsTranslator extends Translator {
             index = argsNode.getPreCount();
             final int optArgIndex = argsNode.getOptArgIndex();
             for (int i = 0; i < optArgCount; i++) {
-                firstOpt = i == 0;
                 sequence.add(args[optArgIndex + i].accept(this));
                 ++index;
             }
@@ -349,8 +347,7 @@ public class LoadArgumentsTranslator extends Translator {
         if (useArray()) {
             readNode = ArraySliceNodeGen.create(from, to, loadArray(sourceSection));
         } else {
-            boolean considerRejectedKWArgs = considerRejectedKWArgs();
-            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs, required);
+            readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments, considerRejectedKWArgs(), required);
         }
 
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
@@ -440,11 +437,10 @@ public class LoadArgumentsTranslator extends Translator {
                         minimum += 1;
                     }
 
-                    final boolean considerRejectedKWArgs = firstOpt && considerRejectedKWArgs();
                     readNode = new ReadOptionalArgumentNode(
                             index,
                             minimum,
-                            considerRejectedKWArgs,
+                            considerRejectedKWArgs(),
                             argsNode.hasKwargs(),
                             required,
                             defaultValue);

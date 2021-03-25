@@ -9,11 +9,14 @@
  */
 package org.truffleruby.parser;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
+
+import java.util.Optional;
 
 /** Translator environment, unique per parse/translation. */
 public class ParseEnvironment {
@@ -22,9 +25,13 @@ public class ParseEnvironment {
     private boolean dynamicConstantLookup = false;
     public boolean allowTruffleRubyPrimitives = false;
     private final String corePath;
+    private final boolean coverageEnabled;
+    public final Optional<RubyContext> contextIfSingleContext;
 
     public ParseEnvironment(RubyLanguage language) {
         corePath = language.corePath;
+        coverageEnabled = language.contextIfSingleContext.map(c -> c.getCoverageManager().isEnabled()).orElse(false);
+        contextIfSingleContext = language.contextIfSingleContext;
     }
 
     public String getCorePath() {
@@ -38,6 +45,11 @@ public class ParseEnvironment {
     public LexicalScope getLexicalScope() {
         // TODO (eregon, 4 Dec. 2016): assert !dynamicConstantLookup;
         return lexicalScope;
+    }
+
+    /** Returns false if the AST is shared */
+    public boolean isCoverageEnabled() {
+        return coverageEnabled;
     }
 
     public LexicalScope pushLexicalScope() {

@@ -75,6 +75,7 @@ import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
@@ -289,14 +290,14 @@ public class BodyTranslator extends Translator {
     protected String currentCallMethodName = null;
 
     public BodyTranslator(
-            RubyContext context,
+            RubyLanguage language,
             BodyTranslator parent,
             TranslatorEnvironment environment,
             Source source,
             ParserContext parserContext,
             Node currentNode,
             RubyDeferredWarnings rubyWarnings) {
-        super(context, source, parserContext, currentNode);
+        super(language, source, parserContext, currentNode);
         this.parent = parent;
         this.environment = environment;
         this.rubyWarnings = rubyWarnings;
@@ -1031,7 +1032,7 @@ public class BodyTranslator extends Translator {
                     modulePath);
 
             final BodyTranslator moduleTranslator = new BodyTranslator(
-                    context,
+                    language,
                     this,
                     newEnvironment,
                     source,
@@ -1489,7 +1490,7 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(
-                context,
+                language,
                 this,
                 newEnvironment,
                 false,
@@ -2004,7 +2005,7 @@ public class BodyTranslator extends Translator {
                 TranslatorEnvironment.newFrameDescriptor(),
                 environment.modulePath);
         final MethodTranslator methodCompiler = new MethodTranslator(
-                context,
+                language,
                 this,
                 newEnvironment,
                 true,
@@ -2661,7 +2662,12 @@ public class BodyTranslator extends Translator {
         final Rope rope = node.getValue();
         final RegexpOptions options = (RegexpOptions) node.getOptions().clone();
         options.setLiteral(true);
-        Regex regex = TruffleRegexpNodes.compile(context, rope, options, currentNode);
+        Regex regex = null;
+        try {
+            regex = TruffleRegexpNodes.compile(language, rubyWarnings, rope, options, currentNode);
+        } catch (DeferredRaiseException dre) {
+            throw dre.getException(RubyLanguage.getCurrentContext());
+        }
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -3097,9 +3103,12 @@ public class BodyTranslator extends Translator {
                 return node;
             }
 
-            if (language.singleContextAssumption.isValid() && context.getCoverageManager().isEnabled()) {
+            if (environment.getParseEnvironment().isCoverageEnabled()) {
                 node.unsafeSetIsCoverageLine();
-                context.getCoverageManager().setLineHasCode(source, current.toSourceSection(source).getStartLine());
+                environment.getParseEnvironment().contextIfSingleContext
+                        .get()
+                        .getCoverageManager()
+                        .setLineHasCode(source, current.toSourceSection(source).getStartLine());
             }
             node.unsafeSetIsNewLine();
         }

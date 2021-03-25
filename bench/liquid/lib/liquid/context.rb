@@ -18,8 +18,8 @@ module Liquid
     attr_accessor :exception_renderer, :template_name, :partial, :global_filter, :strict_variables, :strict_filters
 
     # rubocop:disable Metrics/ParameterLists
-    def self.build(environments: {}, outer_scope: {}, registers: {}, rethrow_errors: false, resource_limits: nil, static_environments: {})
-      new(environments, outer_scope, registers, rethrow_errors, resource_limits, static_environments)
+    def self.build(environments: {}, outer_scope: {}, registers: {}, rethrow_errors: false, resource_limits: nil, static_environments: {}, &block)
+      new(environments, outer_scope, registers, rethrow_errors, resource_limits, static_environments, &block)
     end
 
     def initialize(environments = {}, outer_scope = {}, registers = {}, rethrow_errors = false, resource_limits = nil, static_environments = {})
@@ -34,16 +34,20 @@ module Liquid
       @strict_variables    = false
       @resource_limits     = resource_limits || ResourceLimits.new(Template.default_resource_limits)
       @base_scope_depth    = 0
-      squash_instance_assigns_with_environments
+      @interrupts          = []
+      @filters             = []
+      @global_filter       = nil
+      @disabled_tags       = {}
 
       self.exception_renderer = Template.default_exception_renderer
       if rethrow_errors
-        self.exception_renderer = ->(_e) { raise }
+        self.exception_renderer = Liquid::RAISE_EXCEPTION_LAMBDA
       end
 
-      @interrupts    = []
-      @filters       = []
-      @global_filter = nil
+      yield self if block_given?
+
+      # Do this last, since it could result in this object being passed to a Proc in the environment
+      squash_instance_assigns_with_environments
     end
     # rubocop:enable Metrics/ParameterLists
 
@@ -133,7 +137,7 @@ module Liquid
     def new_isolated_subcontext
       check_overflow
 
-      Context.build(
+      self.class.build(
         resource_limits: resource_limits,
         static_environments: static_environments,
         registers: StaticRegisters.new(registers)
@@ -144,6 +148,7 @@ module Liquid
         subcontext.strainer = nil
         subcontext.errors   = errors
         subcontext.warnings = warnings
+        subcontext.disabled_tags = @disabled_tags
       end
     end
 
@@ -208,9 +213,24 @@ module Liquid
       end
     end
 
+    def with_disabled_tags(tag_names)
+      tag_names.each do |name|
+        @disabled_tags[name] = @disabled_tags.fetch(name, 0) + 1
+      end
+      yield
+    ensure
+      tag_names.each do |name|
+        @disabled_tags[name] -= 1
+      end
+    end
+
+    def tag_disabled?(tag_name)
+      @disabled_tags.fetch(tag_name, 0) > 0
+    end
+
     protected
 
-    attr_writer :base_scope_depth, :warnings, :errors, :strainer, :filters
+    attr_writer :base_scope_depth, :warnings, :errors, :strainer, :filters, :disabled_tags
 
     private
 

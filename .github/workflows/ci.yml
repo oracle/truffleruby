@@ -60,12 +60,14 @@ jobs:
       run: jt build
 
     - name: Create archive
-      run: tar cf truffleruby-jvm.tar truffleruby-jvm
-      working-directory: build/mxbuild
+      run: |
+        cd $(dirname $(jt graalvm-home))
+        mv $(basename $(jt graalvm-home)) truffleruby-jvm
+        tar cf ${{ github.workspace }}/truffleruby-jvm.tar truffleruby-jvm
     - uses: actions/upload-artifact@v2
       with:
         name: truffleruby-jvm
-        path: build/mxbuild/truffleruby-jvm.tar
+        path: ${{ github.workspace }}/truffleruby-jvm.tar
 
   build_native:
     name: build native
@@ -104,12 +106,14 @@ jobs:
         run: jt build --env native
 
       - name: Create archive
-        run: tar cf truffleruby-native.tar truffleruby-native
-        working-directory: build/mxbuild
+        run: |
+          cd $(dirname $(jt -u native graalvm-home))
+          mv $(basename $(jt -u native graalvm-home)) truffleruby-native
+          tar cf ${{ github.workspace }}/truffleruby-native.tar truffleruby-native
       - uses: actions/upload-artifact@v2
         with:
           name: truffleruby-native
-          path: build/mxbuild/truffleruby-native.tar
+          path: ${{ github.workspace }}/truffleruby-native.tar
 
   fast_specs:
     name: fast specs

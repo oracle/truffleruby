@@ -10,14 +10,15 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-    @Child private YieldNode dispatchNode = YieldNode.create();
+    @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
-    public Object yield(RubyProc block, Object... arguments) {
-        return dispatchNode.executeDispatch(block, arguments);
+    // Not called yield() because that warns in JDK16
+    public Object callBlock(RubyProc block, Object... arguments) {
+        return yieldNode.yield(block, arguments);
     }
 
 }

@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.interop.InvalidBufferOffsetException;
 import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -75,6 +76,13 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                 context,
                 context.getCoreExceptions().indexErrorInvalidBufferOffsetException(exception, this),
                 exception);
+    }
+
+    @Specialization
+    protected RuntimeException handle(
+            UnknownKeyException exception, boolean inInvokeMember, Object receiver, Object[] args,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return new RaiseException(context, context.getCoreExceptions().keyError(exception, this), exception);
     }
 
     @Specialization

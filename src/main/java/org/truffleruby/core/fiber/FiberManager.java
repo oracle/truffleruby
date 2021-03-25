@@ -331,7 +331,7 @@ public class FiberManager {
         context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
             doKillOtherFibers();
             return BlockingAction.SUCCESS;
-        }, true);
+        }, context.getThreadManager().isRubyManagedThread(Thread.currentThread()));
     }
 
     private void doKillOtherFibers() {
@@ -352,12 +352,6 @@ public class FiberManager {
                 }
             }
         }
-    }
-
-    @TruffleBoundary
-    public void shutdown(Thread javaThread) {
-        killOtherFibers();
-        cleanup(rootFiber, javaThread, true);
     }
 
     public String getFiberDebugInfo() {

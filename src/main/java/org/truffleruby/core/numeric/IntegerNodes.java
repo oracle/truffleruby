@@ -1850,7 +1850,7 @@ public abstract class IntegerNodes {
             int i = from;
             try {
                 for (; i >= to; i--) {
-                    yield(block, i);
+                    callBlock(block, i);
                 }
             } finally {
                 LoopNode.reportLoopCount(this, from - i + 1);
@@ -1869,7 +1869,7 @@ public abstract class IntegerNodes {
             long i = from;
             try {
                 for (; i >= to; i--) {
-                    yield(block, i);
+                    callBlock(block, i);
                 }
             } finally {
                 reportLongLoopCount(from - i + 1);
@@ -1930,7 +1930,7 @@ public abstract class IntegerNodes {
             int i = from;
             try {
                 for (; i <= to; i++) {
-                    yield(block, i);
+                    callBlock(block, i);
                 }
             } finally {
                 LoopNode.reportLoopCount(this, i - from + 1);
@@ -1949,7 +1949,7 @@ public abstract class IntegerNodes {
             long i = from;
             try {
                 for (; i <= to; i++) {
-                    yield(block, i);
+                    callBlock(block, i);
                 }
             } finally {
                 reportLongLoopCount(i - from + 1);

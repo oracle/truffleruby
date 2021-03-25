@@ -116,7 +116,7 @@ public abstract class TruffleRubyNodes {
         protected Object synchronize(RubyDynamicObject object, RubyProc block) {
             final ReentrantLock lock = getLockAndLock(object);
             try {
-                return yield(block);
+                return callBlock(block);
             } finally {
                 MutexOperations.unlockInternal(lock);
             }

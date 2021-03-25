@@ -35,6 +35,8 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
 public final class Hashing {
 
+    public static final Hashing NO_SEED = new Hashing(0);
+
     @CompilationFinal private long seed;
 
     public Hashing(long seed) {

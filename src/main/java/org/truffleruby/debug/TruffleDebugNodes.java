@@ -55,6 +55,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -70,7 +71,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -132,11 +133,11 @@ public abstract class TruffleDebugNodes {
                     filter,
                     eventContext -> new ExecutionEventNode() {
 
-                        @Child private YieldNode yieldNode = YieldNode.create();
+                        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.executeDispatch(
+                            yieldNode.yield(
                                     block,
                                     BindingNodes.createBinding(
                                             getContext(),
@@ -1000,6 +1001,17 @@ public abstract class TruffleDebugNodes {
             return makeStringNode.executeMake(parseName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
+    }
+
+    /** Creates a Truffle thread that is no {@link ThreadManager#isRubyManagedThread(java.lang.Thread)}}. */
+    @CoreMethod(names = "create_polyglot_thread", onSingleton = true, required = 1)
+    public abstract static class CreatePolyglotThread extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected Object parseName(Object hostRunnable) {
+            Runnable runnable = (Runnable) getContext().getEnv().asHostObject(hostRunnable);
+            final Thread thread = getContext().getEnv().createThread(runnable);
+            return getContext().getEnv().asGuestValue(thread);
+        }
     }
 
 }

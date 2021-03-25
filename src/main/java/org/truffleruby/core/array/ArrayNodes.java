@@ -83,7 +83,7 @@ import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -701,7 +701,7 @@ public abstract class ArrayNodes {
                 if (maybeBlock == nil) {
                     return nil;
                 } else {
-                    return yield((RubyProc) maybeBlock, value);
+                    return callBlock((RubyProc) maybeBlock, value);
                 }
             }
         }
@@ -794,7 +794,7 @@ public abstract class ArrayNodes {
 
         @Override
         public void accept(RubyArray array, RubyProc block, Object element, int index) {
-            yield(block, element);
+            callBlock(block, element);
         }
 
     }
@@ -805,7 +805,7 @@ public abstract class ArrayNodes {
     public abstract static class EachWithIndexNode extends PrimitiveArrayArgumentsNode
             implements ArrayElementConsumerNode {
 
-        @Child private YieldNode dispatchNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization
         protected Object eachOther(RubyArray array, RubyProc block,
@@ -815,7 +815,7 @@ public abstract class ArrayNodes {
 
         @Override
         public void accept(RubyArray array, RubyProc block, Object element, int index) {
-            dispatchNode.executeDispatch(block, element, index);
+            yieldNode.yield(block, element, index);
         }
 
     }
@@ -1153,7 +1153,7 @@ public abstract class ArrayNodes {
             try {
                 loopProfile.profileCounted(size);
                 for (; loopProfile.inject(n < size); n++) {
-                    final Object value = yield(block, n);
+                    final Object value = callBlock(block, n);
                     propagateSharingNode.executePropagate(array, value);
                     arrayBuilder.appendValue(state, n, value);
                 }
@@ -1295,7 +1295,7 @@ public abstract class ArrayNodes {
             try {
                 loopProfile.profileCounted(array.size - n);
                 for (; loopProfile.inject(n < array.size); n++) {
-                    accumulator = yield(block, accumulator, stores.read(store, n));
+                    accumulator = callBlock(block, accumulator, stores.read(store, n));
                 }
             } finally {
                 LoopNode.reportLoopCount(this, n);
@@ -1399,7 +1399,7 @@ public abstract class ArrayNodes {
             try {
                 loopProfile.profileCounted(array.size);
                 for (; loopProfile.inject(n < array.size); n++) {
-                    final Object mappedValue = yield(block, stores.read(store, n));
+                    final Object mappedValue = callBlock(block, stores.read(store, n));
                     arrayBuilder.appendValue(state, n, mappedValue);
                 }
             } finally {
@@ -1425,7 +1425,7 @@ public abstract class ArrayNodes {
 
         @Override
         public void accept(RubyArray array, RubyProc block, Object element, int index) {
-            writeNode.executeWrite(array, index, yield(block, element));
+            writeNode.executeWrite(array, index, callBlock(block, element));
         }
 
     }
@@ -1682,7 +1682,7 @@ public abstract class ArrayNodes {
                 for (; loopProfile.inject(n < size); n++) {
                     final Object value = stores.read(store, n);
 
-                    if (!booleanCastNode.executeToBoolean(yield(block, value))) {
+                    if (!booleanCastNode.executeToBoolean(callBlock(block, value))) {
                         arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }
@@ -1741,7 +1741,7 @@ public abstract class ArrayNodes {
                 loop1Profile.profileCounted(array.size);
                 for (; loop1Profile.inject(n < array.size); n++) {
                     final Object value = stores.read(store, n);
-                    if (booleanCastNode.executeToBoolean(yield(block, value))) {
+                    if (booleanCastNode.executeToBoolean(callBlock(block, value))) {
                         continue;
                     }
 
@@ -1962,7 +1962,7 @@ public abstract class ArrayNodes {
                 for (; loopProfile.inject(n < array.size); n++) {
                     final Object value = stores.read(store, n);
 
-                    if (booleanCastNode.executeToBoolean(yield(block, value))) {
+                    if (booleanCastNode.executeToBoolean(callBlock(block, value))) {
                         arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }

@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
@@ -37,15 +36,13 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
 
-    protected final RubyContext context;
     protected final Source source;
     protected final ParserContext parserContext;
     protected final Node currentNode;
     protected final RubyLanguage language;
 
-    public Translator(RubyContext context, Source source, ParserContext parserContext, Node currentNode) {
-        this.context = context;
-        this.language = context.getLanguageSlow();
+    public Translator(RubyLanguage language, Source source, ParserContext parserContext, Node currentNode) {
+        this.language = language;
         this.source = source;
         this.parserContext = parserContext;
         this.currentNode = currentNode;

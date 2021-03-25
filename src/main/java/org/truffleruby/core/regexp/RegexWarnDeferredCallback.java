@@ -22,7 +22,7 @@ public class RegexWarnDeferredCallback implements WarnCallback {
 
     @Override
     public void warn(String message) {
-        warnings.warn(message);
+        warnings.warning(message);
     }
 
 }

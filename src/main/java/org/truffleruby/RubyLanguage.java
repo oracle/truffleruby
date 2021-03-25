@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -148,9 +149,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
-    public final Assumption singleContextAssumption = Truffle
-            .getRuntime()
-            .createAssumption("single RubyContext per RubyLanguage instance");
+
+    @CompilationFinal public boolean singleContext = true;
+    @CompilationFinal public Optional<RubyContext> contextIfSingleContext;
+
     public final CyclicAssumption traceFuncUnusedAssumption = new CyclicAssumption("set_trace_func is not used");
 
     private final ReentrantLock safepointLock = new ReentrantLock();
@@ -305,7 +307,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected void initializeMultipleContexts() {
         // TODO Make Symbol.all_symbols per context, by having a SymbolTable per context and creating new symbols with
         //  the per-language SymbolTable.
-        singleContextAssumption.invalidate();
+
+        if (contextIfSingleContext == null) { // before first context created
+            this.singleContext = false;
+        } else {
+            throw CompilerDirectives.shouldNotReachHere("RubyLanguage#initializeMultipleContexts() called after" +
+                    " context created and areOptionsCompatible() returned false");
+        }
     }
 
     @Override
@@ -330,6 +338,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
         final RubyContext context = new RubyContext(this, env);
         Metrics.printTime("after-create-context");
+        if (singleContext) {
+            contextIfSingleContext = Optional.of(context);
+        } else {
+            contextIfSingleContext = Optional.empty();
+        }
         return context;
     }
 
@@ -452,7 +465,16 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            // Already initialized by the Ruby-provided Runnable
+            final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+            if (rubyThread.thread == thread) { // new Ruby Thread
+                if (thread != Thread.currentThread()) {
+                    throw CompilerDirectives
+                            .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
+                }
+                context.getThreadManager().start(rubyThread, thread);
+            } else {
+                // Fiber
+            }
             return;
         }
 
@@ -463,16 +485,28 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected void disposeThread(RubyContext context, Thread thread) {
         if (thread == context.getThreadManager().getRootJavaThread()) {
+            if (context.getEnv().isPreInitialization()) {
+                // Cannot save the root Java Thread instance in the image
+                context.getThreadManager().resetMainThread();
+            }
             // Let the context shutdown cleanup the main thread
             return;
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            // Already disposed by the Ruby-provided Runnable
+            final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+            if (rubyThread.thread == thread) { // Thread
+                if (thread != Thread.currentThread()) {
+                    throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
+                }
+                context.getThreadManager().cleanupThreadState(rubyThread, thread);
+            } else {
+                // Fiber
+            }
             return;
         }
 
-        final RubyThread rubyThread = context.getThreadManager().getForeignRubyThread(thread);
+        final RubyThread rubyThread = context.getThreadManager().getRubyThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 
@@ -523,6 +557,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
+        if (singleContext) {
+            return false;
+        }
         return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
     }
 

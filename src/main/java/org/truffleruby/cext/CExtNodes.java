@@ -91,7 +91,7 @@ import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.utils.Utils;
 
@@ -1175,12 +1175,27 @@ public class CExtNodes {
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
-                yield(block);
+                callBlock(block);
                 noExceptionProfile.enter();
                 return nil;
             } catch (Throwable e) {
                 exceptionProfile.enter();
                 return new CapturedException(e);
+            }
+        }
+    }
+
+    @CoreMethod(names = "extract_ruby_exception", onSingleton = true, required = 1)
+    public abstract static class ExtractRubyException extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object executeThrow(CapturedException captured,
+                @Cached ConditionProfile rubyExceptionProfile) {
+            final Throwable e = captured.getException();
+            if (rubyExceptionProfile.profile(e instanceof RaiseException)) {
+                return ((RaiseException) e).getException();
+            } else {
+                return nil;
             }
         }
     }
@@ -1472,7 +1487,7 @@ public class CExtNodes {
              * called by the marking service. */
             getContext()
                     .getMarkingService()
-                    .addMarker(object, (o) -> YieldNode.getUncached().executeDispatch(marker, o));
+                    .addMarker(object, (o) -> CallBlockNode.getUncached().yield(marker, o));
             return nil;
         }
 

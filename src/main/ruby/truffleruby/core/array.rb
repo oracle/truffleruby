@@ -296,8 +296,7 @@ class Array
     if Primitive.nil?(result) || more.empty?
       result
     else
-      raise TypeError, "#{result.class} does not have #dig method" unless result.respond_to?(:dig)
-      result.dig(*more)
+      Truffle::Diggable.dig(result, more)
     end
   end
 

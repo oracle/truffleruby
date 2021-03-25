@@ -177,7 +177,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object yield(Object[] args,
+        protected Object fiberYield(Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
 

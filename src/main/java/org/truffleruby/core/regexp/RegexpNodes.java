@@ -13,11 +13,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -34,6 +35,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -49,10 +51,10 @@ import org.truffleruby.language.objects.AllocationTracing;
 @CoreModule(value = "Regexp", isClass = true)
 public abstract class RegexpNodes {
 
-    public static void initialize(RubyContext context, RubyRegexp regexp, Rope setSource, int options,
-            Node currentNode) {
+    public static void initialize(RubyLanguage language, RubyRegexp regexp, Rope setSource, int options,
+            Node currentNode) throws DeferredRaiseException {
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        final Regex regex = TruffleRegexpNodes.compile(context, setSource, regexpOptions, currentNode);
+        final Regex regex = TruffleRegexpNodes.compile(language, null, setSource, regexpOptions, currentNode);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -187,10 +189,15 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         protected Rope createRope(RubyRegexp regexp) {
-            final ClassicRegexp classicRegexp = new ClassicRegexp(
-                    getContext(),
-                    regexp.source,
-                    RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
+            final ClassicRegexp classicRegexp;
+            try {
+                classicRegexp = new ClassicRegexp(
+                        getContext(),
+                        regexp.source,
+                        RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(getContext());
+            }
             return classicRegexp.toRopeBuilder().toRope();
         }
     }
@@ -270,8 +277,14 @@ public abstract class RegexpNodes {
         @Specialization(
                 guards = { "libPattern.isRubyString(pattern)", "!isRegexpLiteral(regexp)", "!isInitialized(regexp)" })
         protected RubyRegexp initialize(RubyRegexp regexp, Object pattern, int options,
+                @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
-            RegexpNodes.initialize(getContext(), regexp, libPattern.getRope(pattern), options, this);
+            try {
+                RegexpNodes.initialize(getLanguage(), regexp, libPattern.getRope(pattern), options, this);
+            } catch (DeferredRaiseException dre) {
+                errorProfile.enter();
+                throw dre.getException(getContext());
+            }
             return regexp;
         }
     }

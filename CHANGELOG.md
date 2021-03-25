@@ -1,3 +1,21 @@
+# 21.2.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+* Make `#dig` iterative to make it faster and compile better for calls with 3+ arguments (#2301, @chrisseaton, @jantnovi).
+
+Changes:
+
+
 # 21.1.0
 
 New features:
@@ -22,6 +40,8 @@ Bug fixes:
 * Fixed `TruffleRuby.synchronized` to handle guest safepoints (#2277).
 * Fix control flow bug when assigning constants using ||= (#1489).
 * Fix `Kernel#raise` argument handling for hashes (#2298).
+* Set errinfo when `rb_protect` captures a Ruby exception (#2245).
+* Fixed handling of multiple optional arguments and keywords when passed a positional `Hash` (#2302).
 
 Compatibility:
 

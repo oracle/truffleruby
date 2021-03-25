@@ -62,7 +62,7 @@ class TracePointEventNode extends TraceBaseEventNode {
 
         state.insideProc = true;
         try {
-            yield(proc, tracePoint);
+            callBlock(proc, tracePoint);
         } finally {
             state.insideProc = false;
             // Reset the binding so it can be escaped analyzed. This is also semantically correct

@@ -168,7 +168,7 @@ public abstract class ReadlineHistoryNodes {
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
                 final RubyString line = makeStringNode
                         .executeMake(historyEntryToString(e), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-                yield(block, line);
+                callBlock(block, line);
             }
 
             return history;

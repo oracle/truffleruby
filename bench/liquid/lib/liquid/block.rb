@@ -10,9 +10,10 @@ module Liquid
     end
 
     def parse(tokens)
-      @body = BlockBody.new
+      @body = new_body
       while parse_body(@body, tokens)
       end
+      @body.freeze
     end
 
     # For backwards compatibility
@@ -28,7 +29,12 @@ module Liquid
       @body.nodelist
     end
 
-    def unknown_tag(tag, _params, _tokens)
+    def unknown_tag(tag_name, _markup, _tokenizer)
+      Block.raise_unknown_tag(tag_name, block_name, block_delimiter, parse_context)
+    end
+
+    # @api private
+    def self.raise_unknown_tag(tag, block_name, block_delimiter, parse_context)
       if tag == 'else'
         raise SyntaxError, parse_context.locale.t("errors.syntax.unexpected_else",
           block_name: block_name)
@@ -42,6 +48,10 @@ module Liquid
       end
     end
 
+    def raise_tag_never_closed(block_name)
+      raise SyntaxError, parse_context.locale.t("errors.syntax.tag_never_closed", block_name: block_name)
+    end
+
     def block_name
       @tag_name
     end
@@ -50,8 +60,14 @@ module Liquid
       @block_delimiter ||= "end#{block_name}"
     end
 
-    protected
+    private
 
+    # @api public
+    def new_body
+      parse_context.new_block_body
+    end
+
+    # @api public
     def parse_body(body, tokens)
       if parse_context.depth >= MAX_DEPTH
         raise StackLevelError, "Nesting too deep"
@@ -62,9 +78,7 @@ module Liquid
           @blank &&= body.blank?
 
           return false if end_tag_name == block_delimiter
-          unless end_tag_name
-            raise SyntaxError, parse_context.locale.t("errors.syntax.tag_never_closed", block_name: block_name)
-          end
+          raise_tag_never_closed(block_name) unless end_tag_name
 
           # this tag is not registered with the system
           # pass it to the current block for special handling or error reporting

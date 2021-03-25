@@ -52,7 +52,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -448,7 +448,7 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_each_alias")
     public abstract static class EachAliasNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode = YieldNode.create();
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
@@ -460,7 +460,7 @@ public abstract class EncodingNodes {
                         ArrayUtils.extractRange(e.bytes, e.p, e.end),
                         USASCIIEncoding.INSTANCE,
                         CodeRange.CR_7BIT);
-                yieldNode.executeDispatch(block, aliasName, entry.value.getEncoding().getIndex());
+                yieldNode.yield(block, aliasName, entry.value.getEncoding().getIndex());
             }
             return nil;
         }

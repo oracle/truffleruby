@@ -23,9 +23,7 @@ public class RegexWarnCallback implements WarnCallback {
 
     @Override
     public void warn(String message) {
-        if (warnings.isVerbose()) {
-            warnings.warn(message);
-        }
+        warnings.warning(message);
     }
 
 }
