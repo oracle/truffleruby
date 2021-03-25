@@ -3119,7 +3119,7 @@ states[477] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[479] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((ParseNode)yyVals[0+yyTop]) instanceof EvStrParseNode ? new DStrParseNode(((ParseNode)yyVals[0+yyTop]).getPosition(), lexer.getEncoding()).add(((ParseNode)yyVals[0+yyTop])) : ((ParseNode)yyVals[0+yyTop]);
+    yyVal = ((ParseNode)yyVals[0+yyTop]) instanceof EvStrParseNode ? new DStrParseNode(((ParseNode)yyVals[0+yyTop]).getPosition(), lexer.getEncoding(), support.getConfiguration().isFrozenStringLiteral()).add(((ParseNode)yyVals[0+yyTop])) : ((ParseNode)yyVals[0+yyTop]);
     /*
     NODE *node = $1;
     if (!node) {
@@ -3181,7 +3181,7 @@ states[487] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[488] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[-1+yyTop]) instanceof EvStrParseNode ? new DStrParseNode(((ListParseNode)yyVals[-2+yyTop]).getPosition(), lexer.getEncoding()).add(((ParseNode)yyVals[-1+yyTop])) : ((ParseNode)yyVals[-1+yyTop]));
+    yyVal = ((ListParseNode)yyVals[-2+yyTop]).add(((ParseNode)yyVals[-1+yyTop]) instanceof EvStrParseNode ? new DStrParseNode(((ListParseNode)yyVals[-2+yyTop]).getPosition(), lexer.getEncoding(), false).add(((ParseNode)yyVals[-1+yyTop])) : ((ParseNode)yyVals[-1+yyTop]));
     return yyVal;
 };
 states[489] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3856,7 +3856,7 @@ states[636] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[637] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (((ParseNode)yyVals[-2+yyTop]) instanceof StrParseNode) {
-        DStrParseNode dnode = new DStrParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), lexer.getEncoding());
+        DStrParseNode dnode = new DStrParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), lexer.getEncoding(), false);
         dnode.add(((ParseNode)yyVals[-2+yyTop]));
         yyVal = support.createKeyValue(new DSymbolParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), dnode), ((ParseNode)yyVals[0+yyTop]));
     } else if (((ParseNode)yyVals[-2+yyTop]) instanceof DStrParseNode) {

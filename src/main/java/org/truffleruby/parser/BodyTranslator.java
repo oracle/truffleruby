@@ -1304,7 +1304,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDStrNode(DStrParseNode node) {
-        final RubyNode ret = translateInterpolatedString(node.getPosition(), node.getEncoding(), node.children());
+        final RubyNode ret = translateInterpolatedString(
+                node.getPosition(),
+                node.getEncoding(),
+                node.children(),
+                node.isFrozen() && !inCore());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1312,7 +1316,11 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDSymbolNode(DSymbolParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode stringNode = translateInterpolatedString(sourceSection, node.getEncoding(), node.children());
+        final RubyNode stringNode = translateInterpolatedString(
+                sourceSection,
+                node.getEncoding(),
+                node.children(),
+                false);
 
         final RubyNode ret = StringToSymbolNodeGen.create(stringNode);
         ret.unsafeSetSourceSection(sourceSection);
@@ -1320,14 +1328,14 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateInterpolatedString(SourceIndexLength sourceSection,
-            Encoding encoding, ParseNode[] childNodes) {
+            Encoding encoding, ParseNode[] childNodes, boolean frozen) {
         final ToSNode[] children = new ToSNode[childNodes.length];
 
         for (int i = 0; i < childNodes.length; i++) {
             children[i] = ToSNodeGen.create(childNodes[i].accept(this));
         }
 
-        final RubyNode ret = new InterpolatedStringNode(children, encoding);
+        final RubyNode ret = new InterpolatedStringNode(children, encoding, frozen);
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
     }
@@ -1362,7 +1370,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDXStrNode(DXStrParseNode node) {
-        final DStrParseNode string = new DStrParseNode(node.getPosition(), node.getEncoding());
+        final DStrParseNode string = new DStrParseNode(node.getPosition(), node.getEncoding(), false);
         string.addAll(node);
         final ParseNode argsNode = buildArrayNode(node.getPosition(), string);
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
