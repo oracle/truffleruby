@@ -41,18 +41,16 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
                     "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)" },
             limit = "1")
     protected Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, BiFunctionNode defaultValueNode,
-            @Cached("index(hash, key, hashed)") int cachedIndex,
-            @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
+            @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
+            @Cached("index(hash, key, hashed, cachedByIdentity)") int cachedIndex) {
         final Object[] store = (Object[]) hash.store;
         return PackedArrayStrategy.getValue(store, cachedIndex);
     }
 
-    protected int index(RubyHash hash, Object key, int hashed) {
+    protected int index(RubyHash hash, Object key, int hashed, boolean compareByIdentity) {
         if (!HashGuards.isPackedHash(hash)) {
             return -1;
         }
-
-        boolean compareByIdentity = hash.compareByIdentity;
 
         final Object[] store = (Object[]) hash.store;
         final int size = hash.size;
