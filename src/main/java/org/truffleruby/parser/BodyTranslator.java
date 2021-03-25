@@ -519,8 +519,9 @@ public class BodyTranslator extends Translator {
                     new FrozenStringLiteralNode(frozenString, language.coreStrings.METHOD)));
         }
 
-        if (receiver instanceof ConstParseNode &&
-                ((ConstParseNode) receiver).getName().equals("Primitive") && canUsePrimitives()) {
+        if (environment.getParseEnvironment().canUsePrimitives() &&
+                receiver instanceof ConstParseNode &&
+                ((ConstParseNode) receiver).getName().equals("Primitive")) {
             final RubyNode ret = translateInvokePrimitive(sourceSection, node);
             return addNewlineIfNeeded(node, ret);
         }
@@ -537,10 +538,6 @@ public class BodyTranslator extends Translator {
         }
 
         return addNewlineIfNeeded(node, translated);
-    }
-
-    private boolean canUsePrimitives() {
-        return inCore() || environment.getParseEnvironment().allowTruffleRubyPrimitives;
     }
 
     private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
@@ -1240,11 +1237,6 @@ public class BodyTranslator extends Translator {
         }
     }
 
-    private boolean inCore() {
-        final String path = RubyLanguage.getPath(source);
-        return path.startsWith(environment.getParseEnvironment().getCorePath());
-    }
-
     @Override
     public RubyNode visitConstNode(ConstParseNode node) {
         // Unqualified constant access, as in CONST
@@ -1305,7 +1297,11 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDStrNode(DStrParseNode node) {
-        final RubyNode ret = translateInterpolatedString(node.getPosition(), node.getEncoding(), node.children());
+        final RubyNode ret = translateInterpolatedString(
+                node.getPosition(),
+                node.getEncoding(),
+                node.children(),
+                node.isFrozen() && !environment.getParseEnvironment().inCore());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1313,7 +1309,11 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDSymbolNode(DSymbolParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode stringNode = translateInterpolatedString(sourceSection, node.getEncoding(), node.children());
+        final RubyNode stringNode = translateInterpolatedString(
+                sourceSection,
+                node.getEncoding(),
+                node.children(),
+                false);
 
         final RubyNode ret = StringToSymbolNodeGen.create(stringNode);
         ret.unsafeSetSourceSection(sourceSection);
@@ -1321,14 +1321,14 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateInterpolatedString(SourceIndexLength sourceSection,
-            Encoding encoding, ParseNode[] childNodes) {
+            Encoding encoding, ParseNode[] childNodes, boolean frozen) {
         final ToSNode[] children = new ToSNode[childNodes.length];
 
         for (int i = 0; i < childNodes.length; i++) {
             children[i] = ToSNodeGen.create(childNodes[i].accept(this));
         }
 
-        final RubyNode ret = new InterpolatedStringNode(children, encoding);
+        final RubyNode ret = new InterpolatedStringNode(children, encoding, frozen);
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
     }
@@ -1363,7 +1363,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDXStrNode(DXStrParseNode node) {
-        final DStrParseNode string = new DStrParseNode(node.getPosition(), node.getEncoding());
+        final DStrParseNode string = new DStrParseNode(node.getPosition(), node.getEncoding(), false);
         string.addAll(node);
         final ParseNode argsNode = buildArrayNode(node.getPosition(), string);
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
@@ -2925,7 +2925,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitVCallNode(VCallParseNode node) {
         // TODO (pitr-ch 02-Dec-2019): replace with a primitive
-        if (node.getName().equals("undefined") && inCore()) { // translate undefined
+        if (environment.getParseEnvironment().inCore() && node.getName().equals("undefined")) { // translate undefined
             final RubyNode ret = new ObjectLiteralNode(NotProvided.INSTANCE);
             ret.unsafeSetSourceSection(node.getPosition());
             return addNewlineIfNeeded(node, ret);

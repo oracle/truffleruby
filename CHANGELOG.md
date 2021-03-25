@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Make interpolated strings frozen for compatibility with Ruby 2.7 (#2304, @kirs).
 
 Performance:
 

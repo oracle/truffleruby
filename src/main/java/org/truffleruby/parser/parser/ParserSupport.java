@@ -1213,8 +1213,8 @@ public class ParserSupport {
         this.lexer = lexer;
     }
 
-    public DStrParseNode createDStrNode(SourceIndexLength position) {
-        return new DStrParseNode(position, lexer.getEncoding());
+    public DStrParseNode createDStrNode(SourceIndexLength position, boolean frozen) {
+        return new DStrParseNode(position, lexer.getEncoding(), frozen);
     }
 
     public ParseNodeTuple createKeyValue(ParseNode key, ParseNode value) {
@@ -1270,12 +1270,12 @@ public class ParserSupport {
         }
 
         if (head instanceof EvStrParseNode) {
-            head = createDStrNode(head.getPosition()).add(head);
+            head = createDStrNode(head.getPosition(), false).add(head);
         }
 
         if (lexer.getHeredocIndent() > 0) {
             if (head instanceof StrParseNode) {
-                head = createDStrNode(head.getPosition()).add(head);
+                head = createDStrNode(head.getPosition(), false).add(head);
                 return list_append(head, tail);
             } else if (head instanceof DStrParseNode) {
                 return list_append(head, tail);
@@ -1298,7 +1298,10 @@ public class ParserSupport {
 
         } else if (tail instanceof DStrParseNode) {
             if (head instanceof StrParseNode) { // Str + oDStr -> Dstr(Str, oDStr.contents)
-                DStrParseNode newDStr = new DStrParseNode(head.getPosition(), ((DStrParseNode) tail).getEncoding());
+                DStrParseNode newDStr = new DStrParseNode(
+                        head.getPosition(),
+                        ((DStrParseNode) tail).getEncoding(),
+                        false);
                 newDStr.add(head);
                 newDStr.add(tail);
                 return newDStr;
@@ -1309,12 +1312,15 @@ public class ParserSupport {
 
         // tail must be EvStrParseNode at this point
         if (head instanceof StrParseNode) {
-
+            StrParseNode front = (StrParseNode) head;
             //Do not add an empty string node
-            if (((StrParseNode) head).getValue().byteLength() == 0) {
-                head = createDStrNode(head.getPosition());
+            if (front.getValue().byteLength() == 0) {
+                head = createDStrNode(
+                        head.getPosition(),
+                        front.isFrozen());
             } else {
-                head = createDStrNode(head.getPosition()).add(head);
+                head = createDStrNode(head.getPosition(), front.isFrozen())
+                        .add(head);
             }
         }
         return ((DStrParseNode) head).add(tail);

@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -98,17 +99,22 @@ public class TranslatorDriver {
     private final RubyLanguage language;
     private final ParseEnvironment parseEnvironment;
 
-    public TranslatorDriver(RubyContext context) {
+    public TranslatorDriver(RubyContext context, RubySource rubySource) {
         this.context = context;
         this.language = context.getLanguageSlow();
-        parseEnvironment = new ParseEnvironment(language);
+        this.parseEnvironment = new ParseEnvironment(language, rubySource);
     }
 
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, RubyModule wrap, boolean ownScopeForAssignments, Node currentNode) {
-        assert parserContext
-                .isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " +
-                        parserContext + " " + parentFrame;
+        if (rubySource.getSource() != parseEnvironment.source) {
+            throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
+        }
+
+        if (parserContext.isTopLevel() != (parentFrame == null)) {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame);
+        }
 
         final Source source = rubySource.getSource();
 

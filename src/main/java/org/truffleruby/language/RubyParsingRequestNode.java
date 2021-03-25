@@ -41,10 +41,11 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         super(language, null, null);
         this.contextReference = lookupContextReference(RubyLanguage.class);
 
-        final TranslatorDriver translator = new TranslatorDriver(context);
+        final RubySource rubySource = new RubySource(source, language.getSourcePath(source));
 
+        final TranslatorDriver translator = new TranslatorDriver(context, rubySource);
         final RubyRootNode rootNode = translator.parse(
-                new RubySource(source, language.getSourcePath(source)),
+                rubySource,
                 ParserContext.TOP_LEVEL,
                 argumentNames,
                 null,
