@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 
 public abstract class ArrayUtils {
 
@@ -138,15 +138,15 @@ public abstract class ArrayUtils {
         return false;
     }
 
-    public static int capacity(RubyContext context, int current, int needed) {
+    public static int capacity(RubyLanguage language, int current, int needed) {
         if (needed == 0) {
             return 0;
         }
 
         assert current < needed;
 
-        if (needed < context.getOptions().ARRAY_UNINITIALIZED_SIZE) {
-            return context.getOptions().ARRAY_UNINITIALIZED_SIZE;
+        if (needed < language.options.ARRAY_UNINITIALIZED_SIZE) {
+            return language.options.ARRAY_UNINITIALIZED_SIZE;
         } else {
             final int newCapacity = current << 1;
             if (newCapacity >= needed) {
@@ -157,17 +157,17 @@ public abstract class ArrayUtils {
         }
     }
 
-    public static int capacityForOneMore(RubyContext context, int current) {
-        if (current < context.getOptions().ARRAY_UNINITIALIZED_SIZE) {
-            return context.getOptions().ARRAY_UNINITIALIZED_SIZE;
+    public static int capacityForOneMore(RubyLanguage language, int current) {
+        if (current < language.options.ARRAY_UNINITIALIZED_SIZE) {
+            return language.options.ARRAY_UNINITIALIZED_SIZE;
         } else {
             return current << 1;
         }
     }
 
-    public static long capacityForOneMore(RubyContext context, long current) {
-        if (current < context.getOptions().ARRAY_UNINITIALIZED_SIZE) {
-            return context.getOptions().ARRAY_UNINITIALIZED_SIZE;
+    public static long capacityForOneMore(RubyLanguage language, long current) {
+        if (current < language.options.ARRAY_UNINITIALIZED_SIZE) {
+            return language.options.ARRAY_UNINITIALIZED_SIZE;
         } else {
             return current << 1;
         }

@@ -36,7 +36,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
         final int currentCapacity = stores.capacity(store);
         final int capacity;
         if (extendProfile.profile(currentCapacity < requiredCapacity)) {
-            capacity = ArrayUtils.capacity(getContext(), currentCapacity, requiredCapacity);
+            capacity = ArrayUtils.capacity(getLanguage(), currentCapacity, requiredCapacity);
         } else {
             capacity = currentCapacity;
         }
@@ -55,7 +55,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
 
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
-            final int capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
+            final int capacity = ArrayUtils.capacity(getLanguage(), length, requiredCapacity);
             array.store = stores.expand(store, capacity);
             return true;
         } else {

@@ -177,7 +177,7 @@ public abstract class FormatNode extends RubyContextNode {
             // If we ran out of output byte[], deoptimize and next time we'll allocate more
 
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            output = Arrays.copyOf(output, ArrayUtils.capacity(getContext(), output.length, outputPosition + length));
+            output = Arrays.copyOf(output, ArrayUtils.capacity(getLanguage(), output.length, outputPosition + length));
             setOutput(frame, output);
         }
 
