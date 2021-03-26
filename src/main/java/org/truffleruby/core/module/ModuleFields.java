@@ -335,7 +335,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (!(mod instanceof PrependMarker)) {
                 final RubyModule actualModule = mod.getActualModule();
                 if (!ModuleOperations.includesModule(rubyModule, actualModule)) {
-                    actualModule.fields.getMethodNames().iterator().forEachRemaining(methodsToInvalidate::add);
+                    actualModule.fields.getMethodNames().forEach(methodsToInvalidate::add);
                     cur.insertAfter(actualModule);
                     cur = cur.getParentModule();
                 }
