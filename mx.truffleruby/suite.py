@@ -293,13 +293,13 @@ suite = {
                 "TRUFFLERUBY-BOOTSTRAP-LAUNCHER",
             ],
             "buildEnv": {
-              "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
-              "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
-              "GRAALVM_TOOLCHAIN_CC": "<toolchainGetToolPath:native,CC>",
+                "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
+                "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
+                "GRAALVM_TOOLCHAIN_CC": "<toolchainGetToolPath:native,CC>",
             },
-            "os_arch" : {
-                "linux-musl" : {
-                    "<others>" : {
+            "os_arch": {
+                "linux-musl": {
+                    "<others>": {
                         "buildDependencies": [
                             "truffle:LIBFFI_DIST",
                         ],
@@ -308,7 +308,12 @@ suite = {
                             "NFI_LIB_ARGS": "-L<path:truffle:TRUFFLE_NFI_NATIVE>/bin -ltrufflenfi",
                         }
                     }
-                }
+                },
+                "<others>": {
+                    "<others>": {
+                        "buildEnv": {},
+                    },
+                },
             },
             "output": ".",
             "results": [
