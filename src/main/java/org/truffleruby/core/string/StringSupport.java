@@ -46,6 +46,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.collections.IntHashMap;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -206,6 +207,16 @@ public final class StringSupport {
                 return p;
             }
             p++;
+        }
+        return -1;
+    }
+
+    // MRI: search_nonascii
+    public static int searchNonAscii(Bytes bytes) {
+        for (int p = 0; p < bytes.length; ++p) {
+            if (!Encoding.isAscii(bytes.get(p))) {
+                return p;
+            }
         }
         return -1;
     }

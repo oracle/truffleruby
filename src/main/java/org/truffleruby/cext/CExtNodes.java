@@ -49,6 +49,7 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.rope.Bytes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
@@ -517,7 +518,7 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            final int r = calculateCharacterLengthNode.characterLength(enc, cr, bytes, 0, bytes.length);
+            final int r = calculateCharacterLengthNode.characterLength(enc, cr, new Bytes(bytes));
 
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
                 errorProfile.enter();
@@ -1350,7 +1351,7 @@ public class CExtNodes {
         protected int rbEncPreciseMbclen(RubyEncoding enc, Object string, int p, int end,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached RopeNodes.BytesNode getBytes,
+                @Cached RopeNodes.GetBytesObjectNode getBytesObject,
                 @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = enc.encoding;
             final Rope rope = strings.getRope(string);
@@ -1362,7 +1363,7 @@ public class CExtNodes {
             }
 
             final int length = calculateCharacterLengthNode
-                    .characterLength(encoding, cr, getBytes.execute(rope), p, end);
+                    .characterLength(encoding, cr, getBytesObject.getRange(rope, p, end));
             assert end - p >= length; // assert this condition not reached: https://github.com/ruby/ruby/blob/46a5d1b4a63f624f2c5c5b6f710cc1a176c88b02/encoding.c#L1046
             return length;
         }
