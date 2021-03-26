@@ -68,6 +68,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final String launcher = ProcessProperties.getExecutableName();
             polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
         }
+        polyglotOptions.put("engine.WarnInterpreterOnly", "false");
 
         config = new CommandLineOptions();
 
