@@ -35,7 +35,7 @@ describe "Signal.trap" do
     it "accepts a proc" do
       done = false
 
-      handler = ->(signo) {
+      handler = -> signo {
         signo.should == @hup_number
         ScratchPad.record :proc_trap
         done = true
