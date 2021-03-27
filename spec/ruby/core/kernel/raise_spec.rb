@@ -37,7 +37,7 @@ describe "Kernel#raise" do
     it "accepts a cause keyword argument that overrides the last exception" do
       begin
         raise "first raise"
-      rescue => e
+      rescue => ignored
         cause = StandardError.new
         -> { raise("error", cause: cause) }.should raise_error(RuntimeError) { |e| e.cause.should == cause }
       end
