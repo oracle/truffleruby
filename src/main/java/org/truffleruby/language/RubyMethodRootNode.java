@@ -10,12 +10,9 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
@@ -37,7 +34,6 @@ public class RubyMethodRootNode extends RubyRootNode {
         return (RubyMethodRootNode) callTarget.getRootNode();
     }
 
-    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
     @Child private TranslateExceptionNode translateExceptionNode;
 
     private final BranchProfile localReturnProfile = BranchProfile.create();
@@ -80,19 +76,6 @@ public class RubyMethodRootNode extends RubyRootNode {
             }
             throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
         }
-    }
-
-    public TruffleLanguage.ContextReference<RubyContext> getContextReference() {
-        if (contextReference == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            contextReference = lookupContextReference(RubyLanguage.class);
-        }
-
-        return contextReference;
-    }
-
-    public RubyContext getContext() {
-        return getContextReference().get();
     }
 
 }

@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.RootCallTarget;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
@@ -27,8 +26,6 @@ import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -42,7 +39,6 @@ public class RubyLambdaRootNode extends RubyRootNode {
     }
 
     public final BreakID breakID;
-    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
     @Child private TranslateExceptionNode translateExceptionNode;
 
     private final BranchProfile localReturnProfile = BranchProfile.create();
@@ -107,19 +103,6 @@ public class RubyLambdaRootNode extends RubyRootNode {
             }
             throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
         }
-    }
-
-    public TruffleLanguage.ContextReference<RubyContext> getContextReference() {
-        if (contextReference == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            contextReference = lookupContextReference(RubyLanguage.class);
-        }
-
-        return contextReference;
-    }
-
-    public RubyContext getContext() {
-        return getContextReference().get();
     }
 
 }
