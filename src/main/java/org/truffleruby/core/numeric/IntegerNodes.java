@@ -1835,12 +1835,7 @@ public abstract class IntegerNodes {
         }
     }
 
-    @CoreMethod(
-            names = "downto",
-            needsBlock = true,
-            required = 1,
-            returnsEnumeratorIfNoBlock = true,
-            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = "downto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true)
     public abstract static class DownToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode downtoInternalCall;
@@ -1883,7 +1878,7 @@ public abstract class IntegerNodes {
             return downto(from, (long) Math.ceil(to), block);
         }
 
-        @Specialization(guards = "isRubyDynamicObject(from) || isRubyDynamicObject(to)")
+        @Specialization(guards = "isRubyBignum(from) || !isImplicitLongOrDouble(to)")
         protected Object downto(Object from, Object to, RubyProc block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -1915,12 +1910,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(
-            names = "upto",
-            needsBlock = true,
-            required = 1,
-            returnsEnumeratorIfNoBlock = true,
-            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = "upto", needsBlock = true, required = 1, returnsEnumeratorIfNoBlock = true)
     public abstract static class UpToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode uptoInternalCall;
@@ -1963,7 +1953,7 @@ public abstract class IntegerNodes {
             return upto(from, (long) Math.ceil(to), block);
         }
 
-        @Specialization(guards = "isRubyDynamicObject(from) || isRubyDynamicObject(to)")
+        @Specialization(guards = "isRubyBignum(from) || !isImplicitLongOrDouble(to)")
         protected Object upto(Object from, Object to, RubyProc block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
