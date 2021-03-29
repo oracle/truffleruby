@@ -42,7 +42,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -634,7 +633,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = "<", required = 1, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = "<", required = 1)
     public abstract static class LessNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -679,7 +678,7 @@ public abstract class IntegerNodes {
         }
     }
 
-    @CoreMethod(names = "<=", required = 1, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = "<=", required = 1)
     public abstract static class LessEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -849,7 +848,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = ">=", required = 1, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = ">=", required = 1)
     public abstract static class GreaterEqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -895,7 +894,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = ">", required = 1, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = ">", required = 1)
     public abstract static class GreaterNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
