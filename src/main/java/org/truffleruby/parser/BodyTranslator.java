@@ -1077,7 +1077,8 @@ public class BodyTranslator extends Translator {
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 body,
-                Split.NEVER);
+                Split.NEVER,
+                environment.getReturnID());
 
         final ModuleBodyDefinitionNode definitionNode = new ModuleBodyDefinitionNode(
                 environment.getSharedMethodInfo().getBacktraceName(),

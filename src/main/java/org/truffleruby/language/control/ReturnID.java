@@ -15,4 +15,6 @@ public final class ReturnID {
      * into a lambda, in which case it becomes valid and returns from the lambda. */
     public static final ReturnID MODULE_BODY = new ReturnID();
 
+    public static final ReturnID INVALID = new ReturnID();
+
 }

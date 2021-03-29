@@ -275,7 +275,8 @@ public class MethodTranslator extends BodyTranslator {
                     environment.getFrameDescriptor(),
                     environment.getSharedMethodInfo(),
                     bodyProc,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    environment.getReturnID());
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
 
@@ -329,7 +330,7 @@ public class MethodTranslator extends BodyTranslator {
 
             final RubyNode bodyLambda = composeBody(environment, sourceSection, preludeLambda, bodyForLambda);
 
-            final RubyRootNode newRootNodeForLambdas = new RubyLambdaRootNode(
+            final RubyLambdaRootNode newRootNodeForLambdas = new RubyLambdaRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
                     environment.getFrameDescriptor(),

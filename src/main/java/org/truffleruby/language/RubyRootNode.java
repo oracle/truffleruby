@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -27,6 +28,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     protected final RubyLanguage language;
     private final SharedMethodInfo sharedMethodInfo;
     private Split split;
+    public final ReturnID returnID;
 
     @Child protected RubyNode body;
 
@@ -36,7 +38,8 @@ public class RubyRootNode extends RubyBaseRootNode {
             FrameDescriptor frameDescriptor,
             SharedMethodInfo sharedMethodInfo,
             RubyNode body,
-            Split split) {
+            Split split,
+            ReturnID returnID) {
         super(language, frameDescriptor, sourceSection);
         assert sourceSection != null;
         assert body != null;
@@ -45,6 +48,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         this.sharedMethodInfo = sharedMethodInfo;
         this.body = body;
         this.split = split;
+        this.returnID = returnID;
 
         // Ensure the body node is instrument-able, which requires a non-null SourceSection
         if (!body.hasSource()) {

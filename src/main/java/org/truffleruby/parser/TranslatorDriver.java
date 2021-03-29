@@ -400,7 +400,8 @@ public class TranslatorDriver {
                     environment.getFrameDescriptor(),
                     sharedMethodInfo,
                     truffleNode,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    environment.getReturnID());
         }
     }
 

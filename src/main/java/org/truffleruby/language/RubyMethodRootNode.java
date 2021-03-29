@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -32,7 +33,10 @@ import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 public class RubyMethodRootNode extends RubyRootNode {
 
-    private final ReturnID returnID;
+    public static RubyMethodRootNode of(RootCallTarget callTarget) {
+        return (RubyMethodRootNode) callTarget.getRootNode();
+    }
+
     @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
     @Child private TranslateExceptionNode translateExceptionNode;
 
@@ -48,8 +52,7 @@ public class RubyMethodRootNode extends RubyRootNode {
             RubyNode body,
             Split split,
             ReturnID returnID) {
-        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split);
-        this.returnID = returnID;
+        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
     }
 
     @Override

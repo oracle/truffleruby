@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.BreakException;
@@ -36,8 +37,11 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyLambdaRootNode extends RubyRootNode {
 
-    private final ReturnID returnID;
-    private final BreakID breakID;
+    public static RubyLambdaRootNode of(RootCallTarget callTarget) {
+        return (RubyLambdaRootNode) callTarget.getRootNode();
+    }
+
+    public final BreakID breakID;
     @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
     @Child private TranslateExceptionNode translateExceptionNode;
 
@@ -57,8 +61,7 @@ public class RubyLambdaRootNode extends RubyRootNode {
             Split split,
             ReturnID returnID,
             BreakID breakID) {
-        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split);
-        this.returnID = returnID;
+        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
         this.breakID = breakID;
     }
 
