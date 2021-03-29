@@ -1952,14 +1952,14 @@ public class BodyTranslator extends Translator {
         return translateBlockLikeNode(node, true);
     }
 
-    private RubyNode translateBlockLikeNode(IterParseNode node, boolean isLambda) {
+    private RubyNode translateBlockLikeNode(IterParseNode node, boolean isStabbyLambda) {
         final SourceIndexLength sourceSection = node.getPosition();
         final ArgsParseNode argsNode = node.getArgsNode();
 
         // Unset this flag for any for any blocks within the for statement's body
-        final boolean hasOwnScope = isLambda || !translatingForStatement;
+        final boolean hasOwnScope = isStabbyLambda || !translatingForStatement;
 
-        final boolean isProc = !isLambda;
+        final boolean isProc = !isStabbyLambda;
 
         TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
         final String methodName = methodParent.getMethodName();
@@ -1981,7 +1981,7 @@ public class BodyTranslator extends Translator {
                 Helpers.argsNodeToArgumentDescriptors(argsNode));
 
         final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
-        final ReturnID returnID = isLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
+        final ReturnID returnID = isStabbyLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 environment,
@@ -2014,7 +2014,7 @@ public class BodyTranslator extends Translator {
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
 
-        if (isLambda) {
+        if (isStabbyLambda) {
             frameOnStackMarkerSlotStack.push(BAD_FRAME_SLOT);
         }
 
@@ -2022,9 +2022,13 @@ public class BodyTranslator extends Translator {
 
         try {
             definitionNode = methodCompiler
-                    .compileBlockNode(sourceSection, node.getBodyNode(), isLambda, node.getScope().getVariables());
+                    .compileBlockNode(
+                            sourceSection,
+                            node.getBodyNode(),
+                            isStabbyLambda,
+                            node.getScope().getVariables());
         } finally {
-            if (isLambda) {
+            if (isStabbyLambda) {
                 frameOnStackMarkerSlotStack.pop();
             }
         }
