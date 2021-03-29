@@ -23,7 +23,6 @@ import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.TranslateExceptionNode;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -101,7 +100,7 @@ public class RubyLambdaRootNode extends RubyRootNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 translateExceptionNode = insert(TranslateExceptionNode.create());
             }
-            throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
+            throw translateExceptionNode.executeTranslation(t);
         }
     }
 

@@ -74,7 +74,6 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.threadlocal.MakeSpecialVariableStorageNode;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.lexer.LexerSource;
@@ -376,7 +375,7 @@ public class TranslatorDriver {
         }
 
         if (!parserContext.isTopLevel()) { // Already done by RubyMethodRootNode
-            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
+            truffleNode = new ExceptionTranslatingNode(truffleNode);
         }
 
         if (parserContext.isTopLevel()) {

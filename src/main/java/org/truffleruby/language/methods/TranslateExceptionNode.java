@@ -48,8 +48,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         return TranslateExceptionNodeGen.create();
     }
 
-    public abstract RuntimeException executeTranslation(Throwable throwable,
-            UnsupportedOperationBehavior unsupportedOperationBehavior);
+    public abstract RuntimeException executeTranslation(Throwable throwable);
 
     public static void logJavaException(RubyContext context, Node currentNode, Throwable exception) {
         if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
@@ -73,7 +72,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
     @SuppressWarnings("deprecation")
     @Specialization
-    protected RuntimeException translate(Throwable throwable, UnsupportedOperationBehavior unsupportedOperationBehavior,
+    protected RuntimeException translate(Throwable throwable,
             @Cached BranchProfile controlProfile,
             @Cached BranchProfile raiseProfile,
             @Cached BranchProfile arithmeticProfile,
@@ -97,7 +96,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             unsupportedProfile.enter();
             return new RaiseException(
                     context,
-                    translateUnsupportedSpecialization(context, exception, unsupportedOperationBehavior));
+                    translateUnsupportedSpecialization(context, exception));
         } catch (StackOverflowError error) {
             errorProfile.enter();
             return new RaiseException(context, translateStackOverflow(context, error));
@@ -177,10 +176,8 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private RubyException translateUnsupportedSpecialization(
-            RubyContext context,
-            UnsupportedSpecializationException exception,
-            UnsupportedOperationBehavior unsupportedOperationBehavior) {
+    private RubyException translateUnsupportedSpecialization(RubyContext context,
+            UnsupportedSpecializationException exception) {
 
         logJavaException(context, this, exception);
 
@@ -239,15 +236,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         builder.append('\n');
         appendJavaStackTrace(exception, builder);
         String message = builder.toString().trim();
-
-        switch (unsupportedOperationBehavior) {
-            case TYPE_ERROR:
-                return context.getCoreExceptions().typeError(message, this, exception);
-            case ARGUMENT_ERROR:
-                return context.getCoreExceptions().argumentError(message, this, exception);
-            default:
-                throw CompilerDirectives.shouldNotReachHere();
-        }
+        return context.getCoreExceptions().typeError(message, this, exception);
     }
 
     @TruffleBoundary

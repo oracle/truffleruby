@@ -16,7 +16,6 @@ import java.lang.annotation.Target;
 
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -61,8 +60,6 @@ public @interface CoreMethod {
 
     /** Raise an error if self is frozen. */
     boolean raiseIfFrozenSelf() default false;
-
-    UnsupportedOperationBehavior unsupportedOperationBehavior() default UnsupportedOperationBehavior.TYPE_ERROR;
 
     boolean returnsEnumeratorIfNoBlock() default false;
 

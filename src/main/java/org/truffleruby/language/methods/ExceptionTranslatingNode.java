@@ -17,14 +17,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ExceptionTranslatingNode extends RubyContextSourceNode {
 
-    private final UnsupportedOperationBehavior unsupportedOperationBehavior;
-
     @Child private RubyNode child;
     @Child private TranslateExceptionNode translateExceptionNode;
 
-    public ExceptionTranslatingNode(RubyNode child, UnsupportedOperationBehavior unsupportedOperationBehavior) {
+    public ExceptionTranslatingNode(RubyNode child) {
         this.child = child;
-        this.unsupportedOperationBehavior = unsupportedOperationBehavior;
     }
 
     @Override
@@ -36,13 +33,12 @@ public class ExceptionTranslatingNode extends RubyContextSourceNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 translateExceptionNode = insert(TranslateExceptionNode.create());
             }
-            throw translateExceptionNode.executeTranslation(t, unsupportedOperationBehavior);
+            throw translateExceptionNode.executeTranslation(t);
         }
     }
 
     @Override
     public RubyNode simplifyAsTailExpression() {
-        return new ExceptionTranslatingNode(child.simplifyAsTailExpression(), unsupportedOperationBehavior)
-                .copySourceSection(this);
+        return new ExceptionTranslatingNode(child.simplifyAsTailExpression()).copySourceSection(this);
     }
 }

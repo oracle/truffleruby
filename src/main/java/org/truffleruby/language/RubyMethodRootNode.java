@@ -26,7 +26,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.TranslateExceptionNode;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 public class RubyMethodRootNode extends RubyRootNode {
 
@@ -74,7 +73,7 @@ public class RubyMethodRootNode extends RubyRootNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 translateExceptionNode = insert(TranslateExceptionNode.create());
             }
-            throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
+            throw translateExceptionNode.executeTranslation(t);
         }
     }
 
