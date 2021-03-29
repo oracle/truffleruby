@@ -69,41 +69,43 @@ public class RubyLambdaRootNode extends RubyRootNode {
     public Object execute(VirtualFrame frame) {
         SafepointManager.poll(language, this);
 
-        while (true) {
-            try {
-                return body.execute(frame);
-            } catch (LocalReturnException e) {
-                localReturnProfile.enter();
-                return e.getValue();
-            } catch (DynamicReturnException e) {
-                if (matchingReturnProfile.profile(e.getReturnID() == returnID)) {
-                    return e.getValue();
-                } else {
-                    throw e;
+        try {
+            while (true) {
+                try {
+                    return body.execute(frame);
+                } catch (RedoException e) {
+                    redoProfile.enter();
+                    SafepointManager.poll(language, this);
+                    continue;
                 }
-            } catch (RetryException e) {
-                retryProfile.enter();
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().syntaxErrorInvalidRetry(this));
-            } catch (RedoException e) {
-                redoProfile.enter();
-                SafepointManager.poll(language, this);
-                continue;
-            } catch (NextException e) {
-                nextProfile.enter();
-                return e.getResult();
-            } catch (BreakException e) {
-                if (matchingBreakProfile.profile(e.getBreakID() == breakID)) {
-                    return e.getResult();
-                } else {
-                    throw e;
-                }
-            } catch (Throwable t) {
-                if (translateExceptionNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    translateExceptionNode = insert(TranslateExceptionNode.create());
-                }
-                throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
             }
+        } catch (LocalReturnException e) {
+            localReturnProfile.enter();
+            return e.getValue();
+        } catch (DynamicReturnException e) {
+            if (matchingReturnProfile.profile(e.getReturnID() == returnID)) {
+                return e.getValue();
+            } else {
+                throw e;
+            }
+        } catch (RetryException e) {
+            retryProfile.enter();
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().syntaxErrorInvalidRetry(this));
+        } catch (NextException e) {
+            nextProfile.enter();
+            return e.getResult();
+        } catch (BreakException e) {
+            if (matchingBreakProfile.profile(e.getBreakID() == breakID)) {
+                return e.getResult();
+            } else {
+                throw e;
+            }
+        } catch (Throwable t) {
+            if (translateExceptionNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                translateExceptionNode = insert(TranslateExceptionNode.create());
+            }
+            throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
         }
     }
 
