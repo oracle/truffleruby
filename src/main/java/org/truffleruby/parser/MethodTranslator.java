@@ -19,6 +19,7 @@ import org.truffleruby.core.cast.ArrayCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
@@ -39,7 +40,6 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchForLambdaNode;
-import org.truffleruby.language.methods.CatchForMethodNode;
 import org.truffleruby.language.methods.CatchForProcNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.Split;
@@ -404,18 +404,11 @@ public class MethodTranslator extends BodyTranslator {
                 language,
                 arity,
                 sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body)));
-
         body.unsafeSetSourceSection(sourceSection);
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
-
-        body = new CatchForMethodNode(environment.getReturnID(), body);
-
-        body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
-
-        body.unsafeSetSourceSection(sourceSection);
 
         return body;
     }
@@ -424,13 +417,14 @@ public class MethodTranslator extends BodyTranslator {
             ParseNode bodyNode) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
-        return new RubyRootNode(
+        return new RubyMethodRootNode(
                 language,
                 fullMethodSourceSection,
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 compileMethodBody(sourceSection, bodyNode),
-                Split.HEURISTIC);
+                Split.HEURISTIC,
+                environment.getReturnID());
     }
 
     public CachedSupplier<RootCallTarget> buildMethodNodeCompiler(SourceIndexLength sourceSection,

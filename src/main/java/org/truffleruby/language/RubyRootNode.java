@@ -18,17 +18,17 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.methods.Split;
 
-public final class RubyRootNode extends RubyBaseRootNode {
+public class RubyRootNode extends RubyBaseRootNode {
 
     public static RubyRootNode of(RootCallTarget callTarget) {
         return (RubyRootNode) callTarget.getRootNode();
     }
 
-    private final RubyLanguage language;
+    protected final RubyLanguage language;
     private final SharedMethodInfo sharedMethodInfo;
     private Split split;
 
-    @Child private RubyNode body;
+    @Child protected RubyNode body;
 
     public RubyRootNode(
             RubyLanguage language,
@@ -92,7 +92,7 @@ public final class RubyRootNode extends RubyBaseRootNode {
         return sharedMethodInfo;
     }
 
-    public RubyNode getBody() {
+    public final RubyNode getBody() {
         return body;
     }
 
