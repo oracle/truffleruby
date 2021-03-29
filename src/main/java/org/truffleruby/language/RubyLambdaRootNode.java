@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -7,11 +7,10 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language.methods;
+package org.truffleruby.language;
 
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SafepointManager;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.DynamicReturnException;
@@ -21,17 +20,26 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.Split;
+import org.truffleruby.language.methods.TranslateExceptionNode;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
-public class CatchForLambdaNode extends RubyContextSourceNode {
+public class RubyLambdaRootNode extends RubyRootNode {
 
     private final ReturnID returnID;
     private final BreakID breakID;
-
-    @Child private RubyNode body;
+    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
+    @Child private TranslateExceptionNode translateExceptionNode;
 
     private final BranchProfile localReturnProfile = BranchProfile.create();
     private final ConditionProfile matchingReturnProfile = ConditionProfile.create();
@@ -40,14 +48,24 @@ public class CatchForLambdaNode extends RubyContextSourceNode {
     private final BranchProfile redoProfile = BranchProfile.create();
     private final BranchProfile nextProfile = BranchProfile.create();
 
-    public CatchForLambdaNode(ReturnID returnID, BreakID breakID, RubyNode body) {
+    public RubyLambdaRootNode(
+            RubyLanguage language,
+            SourceSection sourceSection,
+            FrameDescriptor frameDescriptor,
+            SharedMethodInfo sharedMethodInfo,
+            RubyNode body,
+            Split split,
+            ReturnID returnID,
+            BreakID breakID) {
+        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split);
         this.returnID = returnID;
         this.breakID = breakID;
-        this.body = body;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
+        SafepointManager.poll(language, this);
+
         while (true) {
             try {
                 return body.execute(frame);
@@ -62,10 +80,10 @@ public class CatchForLambdaNode extends RubyContextSourceNode {
                 }
             } catch (RetryException e) {
                 retryProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().syntaxErrorInvalidRetry(this));
+                throw new RaiseException(getContext(), getContext().getCoreExceptions().syntaxErrorInvalidRetry(this));
             } catch (RedoException e) {
                 redoProfile.enter();
-                SafepointManager.poll(getLanguage(), this);
+                SafepointManager.poll(language, this);
                 continue;
             } catch (NextException e) {
                 nextProfile.enter();
@@ -76,8 +94,27 @@ public class CatchForLambdaNode extends RubyContextSourceNode {
                 } else {
                     throw e;
                 }
+            } catch (Throwable t) {
+                if (translateExceptionNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    translateExceptionNode = insert(TranslateExceptionNode.create());
+                }
+                throw translateExceptionNode.executeTranslation(t, UnsupportedOperationBehavior.TYPE_ERROR);
             }
         }
+    }
+
+    public TruffleLanguage.ContextReference<RubyContext> getContextReference() {
+        if (contextReference == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            contextReference = lookupContextReference(RubyLanguage.class);
+        }
+
+        return contextReference;
+    }
+
+    public RubyContext getContext() {
+        return getContextReference().get();
     }
 
 }

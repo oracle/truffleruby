@@ -19,6 +19,7 @@ import org.truffleruby.core.cast.ArrayCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -39,7 +40,6 @@ import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.language.methods.CatchForLambdaNode;
 import org.truffleruby.language.methods.CatchForProcNode;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.Split;
@@ -138,9 +138,10 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        final RubyNode body = new ExceptionTranslatingNode(
-                translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression(),
-                UnsupportedOperationBehavior.TYPE_ERROR);
+        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
+        if (!isStabbyLambda) {
+            body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
+        }
 
         final boolean methodCalledLambda = !isStabbyLambda && methodNameForBlock.equals("lambda");
         final boolean emitLambda = isStabbyLambda || methodCalledLambda;
@@ -284,7 +285,7 @@ public class MethodTranslator extends BodyTranslator {
                 // the surrounding function instead of returning from the lambda).
                 //
                 // Note that the compilation to lambda does not alter the original returnID (instead it's "hijacked"
-                // and used in CatchForLambdaNode).
+                // and used in RubyLambdaRootNode).
                 //
                 // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
                 for (DynamicReturnNode returnNode : NodeUtil
@@ -326,18 +327,17 @@ public class MethodTranslator extends BodyTranslator {
                     arityForCheck,
                     NodeUtil.cloneNode(loadArguments));
 
-            final RubyNode bodyLambda = new CatchForLambdaNode(
-                    environment.getReturnID(), // "hijack" return ID
-                    environment.getBreakID(),
-                    composeBody(environment, sourceSection, preludeLambda, bodyForLambda));
+            final RubyNode bodyLambda = composeBody(environment, sourceSection, preludeLambda, bodyForLambda);
 
-            final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
+            final RubyRootNode newRootNodeForLambdas = new RubyLambdaRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
                     environment.getFrameDescriptor(),
                     environment.getSharedMethodInfo(),
                     bodyLambda,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    environment.getReturnID(), // "hijack" return ID
+                    environment.getBreakID());
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
