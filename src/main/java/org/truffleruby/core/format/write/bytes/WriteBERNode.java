@@ -50,7 +50,6 @@ import java.math.BigInteger;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
-import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -88,7 +87,7 @@ public abstract class WriteBERNode extends FormatNode {
 
     @Specialization
     protected Object doWrite(VirtualFrame frame, RubyBignum value) {
-        if (cantCompressProfile.profile(BigIntegerOps.signum(value.value) < 0)) {
+        if (cantCompressProfile.profile(value.value.signum() < 0)) {
             throw new CantCompressNegativeException();
         }
 

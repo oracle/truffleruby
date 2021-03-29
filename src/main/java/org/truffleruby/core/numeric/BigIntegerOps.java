@@ -220,19 +220,14 @@ public final class BigIntegerOps {
         return -compare(b.value, a);
     }
 
-    @TruffleBoundary
-    public static int signum(BigInteger value) {
-        return value.signum();
-    }
-
     public static boolean isPositive(RubyBignum value) {
         // The distinction between x > 0 and x >= 0 is moot because bignums are never long-valued.
-        return signum(value.value) > 0;
+        return value.value.signum() > 0;
     }
 
     public static boolean isNegative(RubyBignum value) {
         // The distinction between x < 0 and x <= 0 is moot because bignums are never long-valued.
-        return signum(value.value) < 0;
+        return value.value.signum() < 0;
     }
 
     @TruffleBoundary

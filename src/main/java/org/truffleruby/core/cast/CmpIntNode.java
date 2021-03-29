@@ -20,7 +20,6 @@
 
 package org.truffleruby.core.cast;
 
-import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
@@ -62,7 +61,7 @@ public abstract class CmpIntNode extends RubyContextNode {
 
     @Specialization
     protected int cmpBignum(RubyBignum value, Object receiver, Object other) {
-        return BigIntegerOps.signum(value.value);
+        return value.value.signum();
     }
 
     @Specialization
