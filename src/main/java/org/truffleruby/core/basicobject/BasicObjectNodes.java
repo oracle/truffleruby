@@ -43,6 +43,7 @@ import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -59,7 +60,6 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -310,12 +310,7 @@ public abstract class BasicObjectNodes {
         }
     }
 
-    @CoreMethod(
-            names = "instance_eval",
-            needsBlock = true,
-            optional = 3,
-            lowerFixnum = 3,
-            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3)
     public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
@@ -378,6 +373,19 @@ public abstract class BasicObjectNodes {
                 Object receiver, NotProvided string, NotProvided fileName, NotProvided line, RubyProc block,
                 @Cached InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
+        }
+
+        @Specialization
+        protected Object noArgsNoBlock(
+                Object receiver, NotProvided string, NotProvided fileName, NotProvided line, Nil block) {
+            throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
+        }
+
+        @Specialization(guards = "wasProvided(string)")
+        protected Object argsAndBlock(
+                Object receiver, Object string, Object maybeFileName, Object maybeLine, RubyProc block) {
+            final int passed = RubyGuards.wasProvided(maybeLine) ? 3 : RubyGuards.wasProvided(maybeFileName) ? 2 : 1;
+            throw new RaiseException(getContext(), coreExceptions().argumentError(passed, 0, this));
         }
 
         @TruffleBoundary
