@@ -252,13 +252,22 @@ class Struct
     _attrs[var]
   end
 
-  def dig(key, *more)
-    result = nil
-    begin
-      result = self[key]
-    rescue IndexError, NameError
-      nil # nothing found with key
+  private def read_or_nil(var)
+    case var
+    when Symbol, String
+      return unless _attrs.include?(var.to_sym)
+    else
+      var = Integer(var)
+      a_len = _attrs.length
+      return if (var > a_len - 1) || (var < -a_len)
+      var = _attrs[var]
     end
+
+    Primitive.object_hidden_var_get(self, var)
+  end
+
+  def dig(key, *more)
+    result = read_or_nil(key)
     if Primitive.nil?(result) || more.empty?
       result
     else

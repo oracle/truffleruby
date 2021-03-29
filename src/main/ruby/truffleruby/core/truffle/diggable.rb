@@ -29,11 +29,7 @@ module Truffle::Diggable
       when Array
         obj = obj.at(idx)
       when Struct
-        begin
-          obj = obj[idx]
-        rescue IndexError, NameError
-          obj = nil
-        end
+        obj = obj.__send__(:read_or_nil, idx)
       end
 
       return nil if Primitive.nil?(obj)
