@@ -94,7 +94,7 @@ module Truffle::POSIX
   def self.attach_function(native_name, argument_types, return_type,
                            library = LIBC, blocking = false, method_name = native_name, on = self)
 
-    on.define_singleton_method(method_name) do |*args|
+    on.define_singleton_method method_name, -> *args do
       Truffle::POSIX.attach_function_eagerly native_name, argument_types, return_type,
                                              library, blocking, method_name, on
       __send__ method_name, *args
@@ -131,7 +131,7 @@ module Truffle::POSIX
 
       bound_func = func.bind("(#{nfi_args_types.join(',')}):#{nfi_return_type}")
 
-      on.define_singleton_method(method_name) do |*args|
+      on.define_singleton_method method_name, -> *args do
         string_args.each do |i|
           str = args.fetch(i)
           # TODO CS 14-Nov-17 this involves copying to a Java byte[], and then NFI will copy it again!
@@ -168,7 +168,7 @@ module Truffle::POSIX
         result
       end
     else
-      on.define_singleton_method(method_name) do |*|
+      on.define_singleton_method method_name, -> * do
         raise NotImplementedError, "#{native_name} is not available"
       end
       Primitive.method_unimplement method(method_name)
