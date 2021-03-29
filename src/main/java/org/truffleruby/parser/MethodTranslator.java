@@ -22,7 +22,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
@@ -40,10 +40,7 @@ import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.language.methods.CatchForProcNode;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
@@ -138,10 +135,7 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
-        if (!isStabbyLambda) {
-            body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
-        }
+        final RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
         final boolean methodCalledLambda = !isStabbyLambda && methodNameForBlock.equals("lambda");
         final boolean emitLambda = isStabbyLambda || methodCalledLambda;
@@ -265,11 +259,9 @@ public class MethodTranslator extends BodyTranslator {
                     ? NodeUtil.cloneNode(body) // previously compiled as lambda, must copy
                     : body;
 
-            final RubyNode bodyProc = new CatchForProcNode(
-                    composeBody(environment, sourceSection, preludeProc, bodyForProc));
-            bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyForProc));
+            final RubyNode bodyProc = composeBody(environment, sourceSection, preludeProc, bodyForProc);
 
-            final RubyRootNode newRootNodeForProcs = new RubyRootNode(
+            final RubyProcRootNode newRootNodeForProcs = new RubyProcRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
                     environment.getFrameDescriptor(),
@@ -414,7 +406,7 @@ public class MethodTranslator extends BodyTranslator {
         return body;
     }
 
-    private RubyRootNode translateMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
+    private RubyMethodRootNode translateMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
             ParseNode bodyNode) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
@@ -438,7 +430,7 @@ public class MethodTranslator extends BodyTranslator {
                 return Truffle.getRuntime().createCallTarget(translateMethodNode(sourceSection, defNode, bodyNode));
             });
         } else {
-            final RubyRootNode root = translateMethodNode(sourceSection, defNode, bodyNode);
+            final RubyMethodRootNode root = translateMethodNode(sourceSection, defNode, bodyNode);
             return new CachedSupplier<>(() -> Truffle.getRuntime().createCallTarget(root));
         }
     }
