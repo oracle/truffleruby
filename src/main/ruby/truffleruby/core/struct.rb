@@ -207,11 +207,12 @@ class Struct
   private def read_or_nil(var)
     case var
     when Symbol, String
-      return unless _attrs.include?(var.to_sym)
+      var = var.to_sym
+      return nil unless _attrs.include?(var)
     else
       var = Integer(var)
       a_len = _attrs.length
-      return if (var > a_len - 1) || (var < -a_len)
+      return nil if var >= a_len or var < -a_len
       var = _attrs[var]
     end
 
@@ -257,10 +258,9 @@ class Struct
   private def check_index_var(var)
     var = Integer(var)
     a_len = _attrs.length
-    if var > a_len - 1
+    if var >= a_len
       raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
-    end
-    if var < -a_len
+    elsif var < -a_len
       raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
     end
     _attrs[var]
