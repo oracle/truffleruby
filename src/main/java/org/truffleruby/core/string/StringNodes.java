@@ -2977,7 +2977,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         protected RootCallTarget compileFormat(Rope rope) {
-            return new UnpackCompiler(getContext(), this).compile(RopeOperations.decodeRope(rope));
+            return new UnpackCompiler(getLanguage(), this).compile(getContext(), RopeOperations.decodeRope(rope));
         }
 
         protected int getCacheLimit() {

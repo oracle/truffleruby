@@ -1531,7 +1531,7 @@ public abstract class ArrayNodes {
         @TruffleBoundary
         protected RootCallTarget compileFormat(Rope rope) {
             final String javaString = RopeOperations.decodeRope(rope);
-            return new PackCompiler(getContext(), this).compile(javaString);
+            return new PackCompiler(getLanguage(), this).compile(getContext(), javaString);
         }
 
         protected int getCacheLimit() {

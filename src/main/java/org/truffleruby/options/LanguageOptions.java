@@ -106,6 +106,10 @@ public class LanguageOptions {
     public final int ARRAY_UNINITIALIZED_SIZE;
     /** --hash-packed-array-max=3 */
     public final int HASH_PACKED_ARRAY_MAX;
+    /** --pack-unroll=4 */
+    public final int PACK_UNROLL_LIMIT;
+    /** --pack-recover=32 */
+    public final int PACK_RECOVER_LOOP_MIN;
     /** --regexp-instrument-creation=false */
     public final boolean REGEXP_INSTRUMENT_CREATION;
     /** --shared-objects=true */
@@ -158,6 +162,8 @@ public class LanguageOptions {
         ARRAY_STRATEGY_CACHE = options.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY);
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
+        PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
+        PACK_RECOVER_LOOP_MIN = options.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY);
         REGEXP_INSTRUMENT_CREATION = options.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY);
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
@@ -250,6 +256,10 @@ public class LanguageOptions {
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.hash-packed-array-max":
                 return HASH_PACKED_ARRAY_MAX;
+            case "ruby.pack-unroll":
+                return PACK_UNROLL_LIMIT;
+            case "ruby.pack-recover":
+                return PACK_RECOVER_LOOP_MIN;
             case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.shared-objects":
@@ -306,6 +316,8 @@ public class LanguageOptions {
                one.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY).equals(two.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY)) &&
                one.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY).equals(two.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY)) &&
                one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY)) &&
+               one.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY).equals(two.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY)) &&
+               one.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY).equals(two.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY)) &&
                one.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY).equals(two.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
@@ -607,6 +619,20 @@ public class LanguageOptions {
         newValue = newOptions.HASH_PACKED_ARRAY_MAX;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --hash-packed-array-max differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.PACK_UNROLL_LIMIT;
+        newValue = newOptions.PACK_UNROLL_LIMIT;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --pack-unroll differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.PACK_RECOVER_LOOP_MIN;
+        newValue = newOptions.PACK_RECOVER_LOOP_MIN;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --pack-recover differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

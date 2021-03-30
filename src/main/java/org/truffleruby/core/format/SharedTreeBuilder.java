@@ -12,7 +12,7 @@ package org.truffleruby.core.format;
 import java.util.Deque;
 import java.util.List;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.control.RepeatExplodedNode;
 import org.truffleruby.core.format.control.RepeatLoopNode;
 import org.truffleruby.core.format.control.SequenceNode;
@@ -21,10 +21,10 @@ import org.truffleruby.core.format.pack.SimplePackParser;
 
 public class SharedTreeBuilder {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
 
-    public SharedTreeBuilder(RubyContext context) {
-        this.context = context;
+    public SharedTreeBuilder(RubyLanguage language) {
+        this.language = language;
     }
 
     public FormatNode finishSubSequence(Deque<List<FormatNode>> sequenceStack, int count) {
@@ -64,7 +64,7 @@ public class SharedTreeBuilder {
             return node;
         }
 
-        if (count > context.getOptions().PACK_UNROLL_LIMIT) {
+        if (count > language.options.PACK_UNROLL_LIMIT) {
             return new RepeatLoopNode(count, node);
         } else {
             return new RepeatExplodedNode(count, node);

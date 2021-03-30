@@ -63,7 +63,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     public SimpleUnpackTreeBuilder(RubyContext context, Node currentNode) {
         this.context = context;
         this.currentNode = currentNode;
-        sharedTreeBuilder = new SharedTreeBuilder(context);
+        sharedTreeBuilder = new SharedTreeBuilder(context.getLanguageSlow());
         pushSequence();
     }
 

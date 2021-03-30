@@ -153,10 +153,6 @@ public class Options {
     public final boolean PREINITIALIZATION;
     /** --array-small=3 */
     public final int ARRAY_SMALL;
-    /** --pack-unroll=4 */
-    public final int PACK_UNROLL_LIMIT;
-    /** --pack-recover=32 */
-    public final int PACK_RECOVER_LOOP_MIN;
     /** --cexts-marking-cache=100 */
     public final int CEXTS_MARKING_CACHE;
     /** --cexts-tonative-stats=false */
@@ -260,8 +256,6 @@ public class Options {
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
-        PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
-        PACK_RECOVER_LOOP_MIN = options.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
         CEXTS_TONATIVE_STATS = options.get(OptionsCatalog.CEXTS_TONATIVE_STATS_KEY);
         GLOBAL_VARIABLE_MAX_INVALIDATIONS = options.get(OptionsCatalog.GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY);
@@ -414,10 +408,6 @@ public class Options {
                 return PREINITIALIZATION;
             case "ruby.array-small":
                 return ARRAY_SMALL;
-            case "ruby.pack-unroll":
-                return PACK_UNROLL_LIMIT;
-            case "ruby.pack-recover":
-                return PACK_RECOVER_LOOP_MIN;
             case "ruby.cexts-marking-cache":
                 return CEXTS_MARKING_CACHE;
             case "ruby.cexts-tonative-stats":

@@ -11,6 +11,7 @@ package org.truffleruby.core.format.unpack;
 
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.LoopRecovery;
 import org.truffleruby.core.format.pack.SimplePackParser;
 
@@ -20,16 +21,16 @@ import org.truffleruby.core.rope.RopeOperations;
 
 public class UnpackCompiler {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final Node currentNode;
 
-    public UnpackCompiler(RubyContext context, Node currentNode) {
-        this.context = context;
+    public UnpackCompiler(RubyLanguage language, Node currentNode) {
+        this.language = language;
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(String format) {
-        if (format.length() > context.getOptions().PACK_RECOVER_LOOP_MIN) {
+    public RootCallTarget compile(RubyContext context, String format) {
+        if (format.length() > language.options.PACK_RECOVER_LOOP_MIN) {
             format = LoopRecovery.recoverLoop(format);
         }
 
@@ -44,7 +45,7 @@ public class UnpackCompiler {
 
         return Truffle.getRuntime().createCallTarget(
                 new UnpackRootNode(
-                        context.getLanguageSlow(),
+                        language,
                         currentNode.getEncapsulatingSourceSection(),
                         builder.getNode()));
     }
