@@ -38,6 +38,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
@@ -125,7 +126,8 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
                 new FrameDescriptor(nil),
                 info,
                 newBody,
-                Split.HEURISTIC);
+                Split.HEURISTIC,
+                ReturnID.INVALID);
         final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
         final RubyClass module = MetaClassNode.getUncached().execute(self);

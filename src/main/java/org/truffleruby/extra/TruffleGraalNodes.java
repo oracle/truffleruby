@@ -18,8 +18,8 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.ToCallTargetNode;
 import org.truffleruby.core.proc.ProcCallTargets;
-import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -82,11 +82,9 @@ public abstract class TruffleGraalNodes {
     public abstract static class CopyCapturedLocalsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
+        @Specialization(guards = "proc.isLambda()")
         protected RubyProc copyCapturedLocals(RubyProc proc) {
-            assert proc.type == ProcType.LAMBDA;
-
-            final RubyRootNode rootNode = (RubyRootNode) proc.callTarget.getRootNode();
+            final RubyLambdaRootNode rootNode = RubyLambdaRootNode.of(proc.callTarget);
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
 
             assert NodeUtil.findAllNodeInstances(newBody, WriteDeclarationVariableNode.class).isEmpty();
@@ -98,13 +96,15 @@ public abstract class TruffleGraalNodes {
                 Object value = frame.getValue(readNode.getFrameSlot());
                 readNode.replace(new ObjectLiteralNode(value));
             }
-            final RubyRootNode newRootNode = new RubyRootNode(
+            final RubyLambdaRootNode newRootNode = new RubyLambdaRootNode(
                     getLanguage(),
                     rootNode.getSourceSection(),
                     rootNode.getFrameDescriptor(),
                     rootNode.getSharedMethodInfo(),
                     newBody,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    rootNode.returnID,
+                    rootNode.breakID);
 
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 

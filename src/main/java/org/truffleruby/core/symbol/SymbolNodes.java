@@ -33,6 +33,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -205,7 +206,8 @@ public abstract class SymbolNodes {
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
                     new SymbolProcNode(symbol.getString()),
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    ReturnID.INVALID);
 
             return Truffle.getRuntime().createCallTarget(rootNode);
         }

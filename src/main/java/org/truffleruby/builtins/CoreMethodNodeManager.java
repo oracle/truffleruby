@@ -30,6 +30,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
@@ -334,7 +335,8 @@ public class CoreMethodNodeManager {
                 null,
                 sharedMethodInfo,
                 methodNode,
-                split);
+                split,
+                ReturnID.INVALID);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 

@@ -13,4 +13,6 @@ public class BreakID {
 
     public static final BreakID ANY_BLOCK = new BreakID();
 
+    public static final BreakID INVALID = new BreakID();
+
 }

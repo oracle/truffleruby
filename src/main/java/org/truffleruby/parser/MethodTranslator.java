@@ -19,8 +19,10 @@ import org.truffleruby.core.cast.ArrayCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyLambdaRootNode;
+import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
@@ -38,12 +40,7 @@ import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.language.methods.CatchForLambdaNode;
-import org.truffleruby.language.methods.CatchForMethodNode;
-import org.truffleruby.language.methods.CatchForProcNode;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
@@ -138,9 +135,7 @@ public class MethodTranslator extends BodyTranslator {
             }
         }
 
-        final RubyNode body = new ExceptionTranslatingNode(
-                translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression(),
-                UnsupportedOperationBehavior.TYPE_ERROR);
+        final RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
         final boolean methodCalledLambda = !isStabbyLambda && methodNameForBlock.equals("lambda");
         final boolean emitLambda = isStabbyLambda || methodCalledLambda;
@@ -264,17 +259,16 @@ public class MethodTranslator extends BodyTranslator {
                     ? NodeUtil.cloneNode(body) // previously compiled as lambda, must copy
                     : body;
 
-            final RubyNode bodyProc = new CatchForProcNode(
-                    composeBody(environment, sourceSection, preludeProc, bodyForProc));
-            bodyProc.unsafeSetSourceSection(enclosing(sourceSection, bodyForProc));
+            final RubyNode bodyProc = composeBody(environment, sourceSection, preludeProc, bodyForProc);
 
-            final RubyRootNode newRootNodeForProcs = new RubyRootNode(
+            final RubyProcRootNode newRootNodeForProcs = new RubyProcRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
                     environment.getFrameDescriptor(),
                     environment.getSharedMethodInfo(),
                     bodyProc,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    environment.getReturnID());
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForProcs);
 
@@ -284,7 +278,7 @@ public class MethodTranslator extends BodyTranslator {
                 // the surrounding function instead of returning from the lambda).
                 //
                 // Note that the compilation to lambda does not alter the original returnID (instead it's "hijacked"
-                // and used in CatchForLambdaNode).
+                // and used in RubyLambdaRootNode).
                 //
                 // This needs to run after nodes are adopted for replace() to work and nodes to know their parent.
                 for (DynamicReturnNode returnNode : NodeUtil
@@ -326,18 +320,17 @@ public class MethodTranslator extends BodyTranslator {
                     arityForCheck,
                     NodeUtil.cloneNode(loadArguments));
 
-            final RubyNode bodyLambda = new CatchForLambdaNode(
-                    environment.getReturnID(), // "hijack" return ID
-                    environment.getBreakID(),
-                    composeBody(environment, sourceSection, preludeLambda, bodyForLambda));
+            final RubyNode bodyLambda = composeBody(environment, sourceSection, preludeLambda, bodyForLambda);
 
-            final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
+            final RubyLambdaRootNode newRootNodeForLambdas = new RubyLambdaRootNode(
                     language,
                     translateSourceSection(source, sourceSection),
                     environment.getFrameDescriptor(),
                     environment.getSharedMethodInfo(),
                     bodyLambda,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    environment.getReturnID(), // "hijack" return ID
+                    environment.getBreakID());
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
@@ -404,33 +397,27 @@ public class MethodTranslator extends BodyTranslator {
                 language,
                 arity,
                 sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body)));
-
         body.unsafeSetSourceSection(sourceSection);
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
-        body = new CatchForMethodNode(environment.getReturnID(), body);
-
-        body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
-
-        body.unsafeSetSourceSection(sourceSection);
-
         return body;
     }
 
-    private RubyRootNode translateMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
+    private RubyMethodRootNode translateMethodNode(SourceIndexLength sourceSection, MethodDefParseNode defNode,
             ParseNode bodyNode) {
         final SourceIndexLength sourceIndexLength = defNode.getPosition();
         final SourceSection fullMethodSourceSection = sourceIndexLength.toSourceSection(source);
-        return new RubyRootNode(
+        return new RubyMethodRootNode(
                 language,
                 fullMethodSourceSection,
                 environment.getFrameDescriptor(),
                 environment.getSharedMethodInfo(),
                 compileMethodBody(sourceSection, bodyNode),
-                Split.HEURISTIC);
+                Split.HEURISTIC,
+                environment.getReturnID());
     }
 
     public CachedSupplier<RootCallTarget> buildMethodNodeCompiler(SourceIndexLength sourceSection,
@@ -443,7 +430,7 @@ public class MethodTranslator extends BodyTranslator {
                 return Truffle.getRuntime().createCallTarget(translateMethodNode(sourceSection, defNode, bodyNode));
             });
         } else {
-            final RubyRootNode root = translateMethodNode(sourceSection, defNode, bodyNode);
+            final RubyMethodRootNode root = translateMethodNode(sourceSection, defNode, bodyNode);
             return new CachedSupplier<>(() -> Truffle.getRuntime().createCallTarget(root));
         }
     }

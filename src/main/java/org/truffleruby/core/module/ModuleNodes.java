@@ -80,6 +80,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -91,6 +92,7 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -509,7 +511,8 @@ public abstract class ModuleNodes {
                     null,
                     sharedMethodInfo,
                     new ReRaiseInlinedExceptionNode(alwaysInlinedNodeFactory),
-                    Split.NEVER);
+                    Split.NEVER,
+                    ReturnID.INVALID);
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             final InternalMethod method = new InternalMethod(
@@ -1326,13 +1329,14 @@ public abstract class ModuleNodes {
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
             final RubyNode newBody = new CallMethodWithProcBody(proc.declarationFrame, body);
-            final RubyRootNode newRootNode = new RubyRootNode(
+            final RubyMethodRootNode newRootNode = new RubyMethodRootNode(
                     getLanguage(),
                     info.getSourceSection(),
                     rootNode.getFrameDescriptor(),
                     info,
                     newBody,
-                    Split.HEURISTIC);
+                    Split.HEURISTIC,
+                    rootNode.returnID);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final InternalMethod method = InternalMethod.fromProc(

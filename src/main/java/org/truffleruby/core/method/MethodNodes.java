@@ -32,10 +32,12 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -52,7 +54,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Method", isClass = true)
@@ -326,13 +327,15 @@ public abstract class MethodNodes {
             final RubyRootNode methodRootNode = RubyRootNode.of(method.getCallTarget());
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(method);
-            final RootNode wrapRootNode = new RubyRootNode(
+            final RubyLambdaRootNode wrapRootNode = new RubyLambdaRootNode(
                     getLanguage(),
                     sourceSection,
                     methodRootNode.getFrameDescriptor(),
                     method.getSharedMethodInfo(),
                     setReceiverNode,
-                    methodRootNode.getSplit());
+                    methodRootNode.getSplit(),
+                    methodRootNode.returnID,
+                    BreakID.INVALID);
             return Truffle.getRuntime().createCallTarget(wrapRootNode);
         }
 

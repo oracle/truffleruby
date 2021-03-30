@@ -55,6 +55,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SetTopLevelBindingNode;
@@ -66,7 +67,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
-import org.truffleruby.language.methods.CatchForMethodNode;
 import org.truffleruby.language.methods.CatchNextNode;
 import org.truffleruby.language.methods.CatchRetryAsErrorNode;
 import org.truffleruby.language.methods.CatchReturnAsErrorNode;
@@ -350,15 +350,15 @@ public class TranslatorDriver {
 
         // Catch return
 
-        if (parserContext.isTopLevel()) {
-            truffleNode = new CatchForMethodNode(environment.getReturnID(), truffleNode);
-        } else if (parserContext != ParserContext.INLINE) {
+        if (!parserContext.isTopLevel() && parserContext != ParserContext.INLINE) {
             truffleNode = new CatchReturnAsErrorNode(truffleNode);
         }
 
         // Catch retry
 
-        truffleNode = new CatchRetryAsErrorNode(truffleNode);
+        if (!parserContext.isTopLevel()) { // Already done by RubyMethodRootNode
+            truffleNode = new CatchRetryAsErrorNode(truffleNode);
+        }
 
         // Top-level exception handling
 
@@ -375,20 +375,34 @@ public class TranslatorDriver {
             }
         }
 
-        truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
+        if (!parserContext.isTopLevel()) { // Already done by RubyMethodRootNode
+            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
+        }
 
         if (parserContext.isTopLevel()) {
             truffleNode = Translator
                     .sequence(sourceIndexLength, Arrays.asList(new MakeSpecialVariableStorageNode(), truffleNode));
         }
 
-        return new RubyRootNode(
-                language,
-                sourceIndexLength.toSourceSection(source),
-                environment.getFrameDescriptor(),
-                sharedMethodInfo,
-                truffleNode,
-                Split.HEURISTIC);
+        if (parserContext.isTopLevel()) {
+            return new RubyMethodRootNode(
+                    language,
+                    sourceIndexLength.toSourceSection(source),
+                    environment.getFrameDescriptor(),
+                    sharedMethodInfo,
+                    truffleNode,
+                    Split.HEURISTIC,
+                    environment.getReturnID());
+        } else {
+            return new RubyRootNode(
+                    language,
+                    sourceIndexLength.toSourceSection(source),
+                    environment.getFrameDescriptor(),
+                    sharedMethodInfo,
+                    truffleNode,
+                    Split.HEURISTIC,
+                    environment.getReturnID());
+        }
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {
