@@ -9,15 +9,17 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
@@ -27,37 +29,24 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CheckKeywordArityNode extends RubyContextSourceNode {
-
-    private final Arity arity;
-    @Child private RubyNode body;
+public class CheckKeywordArityNode extends RubyBaseNode {
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
     @Child private EachKeyValueNode eachKeyNode;
 
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
-    private final BranchProfile basicArityCheckFailedProfile = BranchProfile.create();
 
-    public CheckKeywordArityNode(RubyLanguage language, Arity arity, RubyNode body) {
-        this.arity = arity;
-        this.body = body;
+    public CheckKeywordArityNode(Arity arity) {
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
     }
 
-    @Override
-    public void doExecuteVoid(VirtualFrame frame) {
-        checkArity(frame);
-        body.doExecuteVoid(frame);
-    }
+    public void checkArity(VirtualFrame frame, Arity arity,
+            BranchProfile basicArityCheckFailedProfile,
+            RubyLanguage language,
+            ContextReference<RubyContext> contextRef) {
+        CompilerAsserts.partialEvaluationConstant(arity);
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        checkArity(frame);
-        return body.execute(frame);
-    }
-
-    private void checkArity(VirtualFrame frame) {
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
 
         int given = RubyArguments.getArgumentsCount(frame);
@@ -69,22 +58,24 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
 
         if (!arity.basicCheck(given)) {
             basicArityCheckFailedProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().argumentError(given, arity.getRequired(), this));
+            throw new RaiseException(
+                    contextRef.get(),
+                    contextRef.get().getCoreExceptions().argumentError(given, arity.getRequired(), this));
         }
 
         if (!arity.hasKeywordsRest() && keywordArguments != null) {
-            checkKeywordArguments(frame, keywordArguments);
+            checkKeywordArguments(frame, keywordArguments, arity, language);
         }
     }
 
-    void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments) {
+    void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
         if (eachKeyNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             eachKeyNode = insert(EachKeyValueNode.create());
         }
         if (checkKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(getLanguage(), arity));
+            checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
         }
         eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
     }

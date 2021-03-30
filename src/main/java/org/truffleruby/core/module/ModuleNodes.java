@@ -80,6 +80,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -505,7 +506,7 @@ public abstract class ModuleNodes {
                     ? GeneratedReaderNodeFactory.getInstance()
                     : GeneratedWriterNodeFactory.getInstance();
 
-            final RubyRootNode rootNode = new RubyRootNode(
+            final RubyRootNode reRaiseRootNode = new RubyRootNode(
                     language,
                     sourceSection,
                     null,
@@ -513,7 +514,7 @@ public abstract class ModuleNodes {
                     new ReRaiseInlinedExceptionNode(alwaysInlinedNodeFactory),
                     Split.NEVER,
                     ReturnID.INVALID);
-            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(reRaiseRootNode);
 
             final InternalMethod method = new InternalMethod(
                     context,
@@ -1326,6 +1327,9 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             final RubyRootNode rootNode = RubyRootNode.of(proc.callTargets.getCallTargetForLambda());
             final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
+            final Arity arityForCheck = rootNode instanceof RubyLambdaRootNode
+                    ? ((RubyLambdaRootNode) rootNode).arityForCheck
+                    : info.getArity();
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
             final RubyNode newBody = new CallMethodWithProcBody(proc.declarationFrame, body);
@@ -1336,7 +1340,8 @@ public abstract class ModuleNodes {
                     info,
                     newBody,
                     Split.HEURISTIC,
-                    rootNode.returnID);
+                    rootNode.returnID,
+                    arityForCheck);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
             final InternalMethod method = InternalMethod.fromProc(

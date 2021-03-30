@@ -335,7 +335,8 @@ public abstract class MethodNodes {
                     setReceiverNode,
                     methodRootNode.getSplit(),
                     methodRootNode.returnID,
-                    BreakID.INVALID);
+                    BreakID.INVALID,
+                    method.getSharedMethodInfo().getArity());
             return Truffle.getRuntime().createCallTarget(wrapRootNode);
         }
 

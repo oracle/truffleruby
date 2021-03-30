@@ -104,7 +104,8 @@ public abstract class TruffleGraalNodes {
                     newBody,
                     Split.HEURISTIC,
                     rootNode.returnID,
-                    rootNode.breakID);
+                    rootNode.breakID,
+                    rootNode.arityForCheck);
 
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 

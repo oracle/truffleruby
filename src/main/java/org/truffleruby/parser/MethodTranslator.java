@@ -308,16 +308,13 @@ public class MethodTranslator extends BodyTranslator {
 
         return () -> {
             final RubyNode bodyForLambda = emitLambda
-                    // Stabby lambda: the proc compiler will never be called, safe to copy.
+                    // Stabby lambda: the proc compiler will never be called, safe to not copy.
                     // Method named lambda: if conversion to proc needed, will copy in the proc compiler & reverse the
                     //   return transformation.
                     ? body
                     : NodeUtil.cloneNode(body);
 
-            final RubyNode preludeLambda = Translator.createCheckArityNode(
-                    language,
-                    arityForCheck,
-                    NodeUtil.cloneNode(loadArguments));
+            final RubyNode preludeLambda = isStabbyLambda ? loadArguments : NodeUtil.cloneNode(loadArguments);
 
             final RubyNode bodyLambda = composeBody(environment, sourceSection, preludeLambda, bodyForLambda);
 
@@ -329,7 +326,8 @@ public class MethodTranslator extends BodyTranslator {
                     bodyLambda,
                     Split.HEURISTIC,
                     environment.getReturnID(), // "hijack" return ID
-                    environment.getBreakID());
+                    environment.getBreakID(),
+                    arityForCheck);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
@@ -376,7 +374,6 @@ public class MethodTranslator extends BodyTranslator {
 
     public RubyNode compileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
         declareArguments();
-        final Arity arity = argsNode.getArity();
 
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
@@ -390,16 +387,10 @@ public class MethodTranslator extends BodyTranslator {
 
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
-        final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
-
-        body = createCheckArityNode(
-                language,
-                arity,
-                sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body)));
-        body.unsafeSetSourceSection(sourceSection);
+        body = sequence(sourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body));
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
+            body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
         return body;
@@ -416,7 +407,8 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getSharedMethodInfo(),
                 compileMethodBody(sourceSection, bodyNode),
                 Split.HEURISTIC,
-                environment.getReturnID());
+                environment.getReturnID(),
+                argsNode.getArity());
     }
 
     public CachedSupplier<RootCallTarget> buildMethodNodeCompiler(SourceIndexLength sourceSection,

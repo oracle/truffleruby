@@ -28,6 +28,7 @@ import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyCoreMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.ReturnID;
@@ -42,7 +43,6 @@ import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -145,8 +145,7 @@ public class CoreMethodNodeManager {
         final Split split = context.getOptions().CORE_ALWAYS_CLONE ? Split.ALWAYS : annotation.split();
 
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
-            final RubyNode methodNode = createCoreMethodNode(nodeFactory, annotation, sharedMethodInfo);
-            return createCallTarget(language, sharedMethodInfo, methodNode, split);
+            return createCoreMethodRootNode(nodeFactory, language, sharedMethodInfo, split, annotation);
         };
 
         addMethods(
@@ -188,8 +187,7 @@ public class CoreMethodNodeManager {
         final Function<SharedMethodInfo, RootCallTarget> callTargetFactory = sharedMethodInfo -> {
             final NodeFactory<? extends RubyBaseNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod annotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
-            final RubyNode methodNode = createCoreMethodNode(nodeFactory, annotation, sharedMethodInfo);
-            return createCallTarget(language, sharedMethodInfo, methodNode, finalSplit);
+            return createCoreMethodRootNode(nodeFactory, language, sharedMethodInfo, finalSplit, annotation);
         };
 
         addMethods(
@@ -327,23 +325,19 @@ public class CoreMethodNodeManager {
                 : new Arity(required, optional, rest, 0, new String[]{ keywordAsOptional }, true, false);
     }
 
-    private static RootCallTarget createCallTarget(RubyLanguage language, SharedMethodInfo sharedMethodInfo,
-            RubyNode methodNode, Split split) {
-        final RubyRootNode rootNode = new RubyRootNode(
-                language,
-                sharedMethodInfo.getSourceSection(),
-                null,
-                sharedMethodInfo,
-                methodNode,
-                split,
-                ReturnID.INVALID);
-        return Truffle.getRuntime().createCallTarget(rootNode);
-    }
+    public RootCallTarget createCoreMethodRootNode(NodeFactory<? extends RubyBaseNode> nodeFactory,
+            RubyLanguage language, SharedMethodInfo sharedMethodInfo, Split split, CoreMethod method) {
 
-    public RubyNode createCoreMethodNode(NodeFactory<? extends RubyBaseNode> nodeFactory, CoreMethod method,
-            SharedMethodInfo sharedMethodInfo) {
         if (method.alwaysInlined()) {
-            return new ReRaiseInlinedExceptionNode(nodeFactory);
+            RubyRootNode reRaiseRootNode = new RubyRootNode(
+                    language,
+                    sharedMethodInfo.getSourceSection(),
+                    null,
+                    sharedMethodInfo,
+                    new ReRaiseInlinedExceptionNode(nodeFactory),
+                    split,
+                    ReturnID.INVALID);
+            return Truffle.getRuntime().createCallTarget(reRaiseRootNode);
         }
 
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
@@ -387,11 +381,18 @@ public class CoreMethodNodeManager {
         }
 
         RubyNode node = (RubyNode) createNodeFromFactory(nodeFactory, argumentsNodes);
-        node = transformResult(method, node);
+        RubyNode methodNode = transformResult(method, node);
 
-        node = Translator.createCheckArityNode(language, sharedMethodInfo.getArity(), node);
-
-        return new ExceptionTranslatingNode(node);
+        final RubyCoreMethodRootNode rootNode = new RubyCoreMethodRootNode(
+                language,
+                sharedMethodInfo.getSourceSection(),
+                null,
+                sharedMethodInfo,
+                methodNode,
+                split,
+                ReturnID.INVALID,
+                sharedMethodInfo.getArity());
+        return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
     public static RubyBaseNode createNodeFromFactory(NodeFactory<? extends RubyBaseNode> nodeFactory,

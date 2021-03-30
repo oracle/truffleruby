@@ -391,7 +391,8 @@ public class TranslatorDriver {
                     sharedMethodInfo,
                     truffleNode,
                     Split.HEURISTIC,
-                    environment.getReturnID());
+                    environment.getReturnID(),
+                    Arity.ANY_ARGUMENTS);
         } else {
             return new RubyRootNode(
                     language,
