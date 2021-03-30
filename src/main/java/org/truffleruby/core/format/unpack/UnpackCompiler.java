@@ -43,7 +43,10 @@ public class UnpackCompiler {
         builder.exitSequence();
 
         return Truffle.getRuntime().createCallTarget(
-                new UnpackRootNode(context, currentNode.getEncapsulatingSourceSection(), builder.getNode()));
+                new UnpackRootNode(
+                        context.getLanguageSlow(),
+                        currentNode.getEncapsulatingSourceSection(),
+                        builder.getNode()));
     }
 
 }

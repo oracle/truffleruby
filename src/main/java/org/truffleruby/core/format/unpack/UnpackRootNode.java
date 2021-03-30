@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.format.unpack;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -24,17 +24,17 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
 
     @Child private FormatNode child;
 
     @CompilationFinal private int expectedLength;
 
-    public UnpackRootNode(RubyContext context, SourceSection sourceSection, FormatNode child) {
-        super(context.getLanguageSlow(), FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
-        this.context = context;
+    public UnpackRootNode(RubyLanguage language, SourceSection sourceSection, FormatNode child) {
+        super(language, FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
+        this.language = language;
         this.child = child;
-        expectedLength = context.getOptions().ARRAY_UNINITIALIZED_SIZE;
+        expectedLength = language.options.ARRAY_UNINITIALIZED_SIZE;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode
 
         if (outputLength > expectedLength) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            expectedLength = ArrayUtils.capacity(context, expectedLength, outputLength);
+            expectedLength = ArrayUtils.capacity(language, expectedLength, outputLength);
         }
 
         final Object[] output;

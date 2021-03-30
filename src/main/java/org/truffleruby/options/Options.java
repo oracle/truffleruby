@@ -151,8 +151,6 @@ public class Options {
     public final boolean ROPE_PRINT_INTERN_STATS;
     /** --preinit=true */
     public final boolean PREINITIALIZATION;
-    /** --array-uninitialized-size=16 */
-    public final int ARRAY_UNINITIALIZED_SIZE;
     /** --array-small=3 */
     public final int ARRAY_SMALL;
     /** --pack-unroll=4 */
@@ -261,7 +259,6 @@ public class Options {
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
-        ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
         PACK_RECOVER_LOOP_MIN = options.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY);
@@ -415,8 +412,6 @@ public class Options {
                 return ROPE_PRINT_INTERN_STATS;
             case "ruby.preinit":
                 return PREINITIALIZATION;
-            case "ruby.array-uninitialized-size":
-                return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array-small":
                 return ARRAY_SMALL;
             case "ruby.pack-unroll":

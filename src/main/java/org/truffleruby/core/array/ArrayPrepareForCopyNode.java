@@ -52,7 +52,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
 
         final int oldSize = dst.size;
         final Object oldStore = dst.store;
-        final Object[] newStore = new Object[ArrayUtils.capacity(getContext(), oldSize, start + length)];
+        final Object[] newStore = new Object[ArrayUtils.capacity(getLanguage(), oldSize, start + length)];
         dstStores.copyContents(oldStore, 0, newStore, 0, oldSize); // copy the original store
         Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
         dst.store = newStore;

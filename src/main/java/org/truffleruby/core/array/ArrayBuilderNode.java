@@ -198,7 +198,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             final int length = arrays.capacity(state.store);
             if (index >= length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
+                final int capacity = ArrayUtils.capacityForOneMore(getLanguage(), length);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
                 replaceNodes(arrays.allocator(state.store), capacity);
@@ -220,7 +220,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             final int currentCapacity = state.capacity;
             final int neededCapacity;
             if (index >= currentCapacity) {
-                neededCapacity = ArrayUtils.capacityForOneMore(getContext(), currentCapacity);
+                neededCapacity = ArrayUtils.capacityForOneMore(getLanguage(), currentCapacity);
             } else {
                 neededCapacity = currentCapacity;
             }
@@ -261,7 +261,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             if (neededSize > length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(arrays.allocator(state.store), neededSize);
-                final int capacity = ArrayUtils.capacity(getContext(), length, neededSize);
+                final int capacity = ArrayUtils.capacity(getLanguage(), length, neededSize);
                 state.store = arrays.expand(state.store, capacity);
                 state.capacity = capacity;
             }
@@ -288,7 +288,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 final int currentCapacity = state.capacity;
                 final int neededCapacity;
                 if (neededSize > currentCapacity) {
-                    neededCapacity = ArrayUtils.capacity(getContext(), currentCapacity, neededSize);
+                    neededCapacity = ArrayUtils.capacity(getLanguage(), currentCapacity, neededSize);
                 } else {
                     neededCapacity = currentCapacity;
                 }

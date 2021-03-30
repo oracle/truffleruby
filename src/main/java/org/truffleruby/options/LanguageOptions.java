@@ -102,6 +102,8 @@ public class LanguageOptions {
     public final int ARRAY_DUP_CACHE;
     /** --array-strategy-cache=4 */
     public final int ARRAY_STRATEGY_CACHE;
+    /** --array-uninitialized-size=16 */
+    public final int ARRAY_UNINITIALIZED_SIZE;
     /** --hash-packed-array-max=3 */
     public final int HASH_PACKED_ARRAY_MAX;
     /** --regexp-instrument-creation=false */
@@ -154,6 +156,7 @@ public class LanguageOptions {
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
         ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);
         ARRAY_STRATEGY_CACHE = options.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY);
+        ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
         REGEXP_INSTRUMENT_CREATION = options.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY);
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
@@ -243,6 +246,8 @@ public class LanguageOptions {
                 return ARRAY_DUP_CACHE;
             case "ruby.array-strategy-cache":
                 return ARRAY_STRATEGY_CACHE;
+            case "ruby.array-uninitialized-size":
+                return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.hash-packed-array-max":
                 return HASH_PACKED_ARRAY_MAX;
             case "ruby.regexp-instrument-creation":
@@ -299,6 +304,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.CLASS_CACHE_KEY).equals(two.get(OptionsCatalog.CLASS_CACHE_KEY)) &&
                one.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY).equals(two.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY)) &&
                one.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY).equals(two.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY)) &&
+               one.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY).equals(two.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY)) &&
                one.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY).equals(two.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY)) &&
                one.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY).equals(two.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
@@ -587,6 +593,13 @@ public class LanguageOptions {
         newValue = newOptions.ARRAY_STRATEGY_CACHE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --array-strategy-cache differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.ARRAY_UNINITIALIZED_SIZE;
+        newValue = newOptions.ARRAY_UNINITIALIZED_SIZE;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --array-uninitialized-size differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

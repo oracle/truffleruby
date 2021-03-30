@@ -54,7 +54,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
         propagateSharingNode.executePropagate(array, other);
         if (extendProfile.profile(newSize > length)) {
-            final int capacity = ArrayUtils.capacity(getContext(), length, newSize);
+            final int capacity = ArrayUtils.capacity(getLanguage(), length, newSize);
             Object newStore = stores.expand(store, capacity);
             otherStores.copyContents(otherStore, 0, newStore, oldSize, otherSize);
             setStoreAndSize(array, newStore, newSize);
