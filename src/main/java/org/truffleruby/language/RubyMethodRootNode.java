@@ -60,7 +60,7 @@ public class RubyMethodRootNode extends RubyRootNode {
             localReturnProfile.enter();
             return e.getValue();
         } catch (DynamicReturnException e) {
-            if (matchingReturnProfile.profile(e.getReturnID() == returnID)) {
+            if (matchingReturnProfile.profile(returnID != ReturnID.INVALID && e.getReturnID() == returnID)) {
                 return e.getValue();
             } else {
                 throw e;
