@@ -522,8 +522,12 @@ public abstract class StringNodes {
         }
 
         @ExplodeLoop
-        @Specialization(guards = { "wasProvided(first)", "rest.length > 0", "rest.length == " +
-                "cachedLength", "cachedLength <= 8" })
+        @Specialization(
+                guards = {
+                        "wasProvided(first)",
+                        "rest.length > 0",
+                        "rest.length == cachedLength",
+                        "cachedLength <= MAX_EXPLODE_SIZE" })
         protected Object concatMany(RubyString string, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached ConcatNode argConcatNode,

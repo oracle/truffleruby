@@ -42,16 +42,17 @@ public abstract class ShareObjectNode extends RubyContextNode {
 
     public abstract void executeShare(RubyDynamicObject object);
 
+    @ExplodeLoop
     @Specialization(
-            guards = "object.getShape() == cachedShape",
+            guards = { "object.getShape() == cachedShape", "properties.size() <= MAX_EXPLODE_SIZE" },
             assumptions = { "cachedShape.getValidAssumption()", "sharedShape.getValidAssumption()" },
             limit = "CACHE_LIMIT")
-    @ExplodeLoop
     protected void shareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
-            @Cached("createReadAndShareFieldNodes(getObjectProperties(cachedShape))") ReadAndShareFieldNode[] readAndShareFieldNodes,
+            @Cached("getObjectProperties(cachedShape)") List<Property> properties,
+            @Cached("createReadAndShareFieldNodes(properties)") ReadAndShareFieldNode[] readAndShareFieldNodes,
             @Cached("createSharedShape(cachedShape)") Shape sharedShape) {
         // Mark the object as shared first to avoid recursion
         assert object.getShape() == cachedShape;

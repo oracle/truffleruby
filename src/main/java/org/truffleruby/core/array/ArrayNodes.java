@@ -73,6 +73,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -572,7 +573,7 @@ public abstract class ArrayNodes {
                         "wasProvided(first)",
                         "rest.length > 0",
                         "rest.length == cachedLength",
-                        "cachedLength <= 8" })
+                        "cachedLength <= MAX_EXPLODE_SIZE" })
         protected RubyArray concatMany(RubyArray array, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached("createInternal()") ToAryNode toAryNode,
@@ -1859,7 +1860,7 @@ public abstract class ArrayNodes {
 
             if (CompilerDirectives.isPartialEvaluationConstant(size) &&
                     CompilerDirectives.isPartialEvaluationConstant(rotation) &&
-                    size <= ArrayGuards.ARRAY_MAX_EXPLODE_SIZE) {
+                    size <= RubyBaseNode.MAX_EXPLODE_SIZE) {
                 rotateSmallExplode(arrays, rotation, size, store);
             } else {
                 rotateReverse(
