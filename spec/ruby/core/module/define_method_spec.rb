@@ -491,7 +491,36 @@ describe "Module#define_method" do
     it "receives the value passed as the argument when passed one argument" do
       @klass.new.m(1).should == 1
     end
+  end
 
+  describe "passed { |a,|  } creates a method that" do
+    before :each do
+      @klass = Class.new do
+        define_method(:m) { |a,| a }
+      end
+    end
+
+    it "raises an ArgumentError when passed zero arguments" do
+      -> { @klass.new.m }.should raise_error(ArgumentError)
+    end
+
+    it "raises an ArgumentError when passed zero arguments and a block" do
+      -> { @klass.new.m { :computed } }.should raise_error(ArgumentError)
+    end
+
+    it "raises an ArgumentError when passed two arguments" do
+      -> { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
+    end
+
+    it "receives the value passed as the argument when passed one argument" do
+      @klass.new.m(1).should == 1
+    end
+
+    it "does not destructure the passed argument" do
+      @klass.new.m([1, 2]).should == [1, 2]
+      # for comparison:
+      proc { |a,| a }.call([1, 2]).should == 1
+    end
   end
 
   describe "passed { |*a|  } creates a method that" do
