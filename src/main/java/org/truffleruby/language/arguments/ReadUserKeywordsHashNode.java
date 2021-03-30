@@ -10,7 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 
-public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
+public final class ReadUserKeywordsHashNode extends RubyBaseNode {
 
     private final int minArgumentCount;
 
@@ -35,7 +35,6 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
         this.minArgumentCount = minArgumentCount;
     }
 
-    @Override
     public RubyHash execute(VirtualFrame frame) {
         final int argumentCount = RubyArguments.getArgumentsCount(frame);
 
