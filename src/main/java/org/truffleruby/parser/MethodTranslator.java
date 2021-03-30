@@ -102,11 +102,10 @@ public class MethodTranslator extends BodyTranslator {
         final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
 
-        /* If you have a block with parameters |a,| Ruby checks the arity as if was minimum 1, maximum 1. That's
-         * counter-intuitive - as you'd expect the anonymous rest argument to cause it to have no maximum. Indeed,
-         * that's how JRuby reports it, and by the look of their failing spec they consider this to be correct. We'll
-         * follow the specs for now until we see a reason to do something else. */
-
+        /* If you have a block with parameters |a,| Ruby checks the arity as if was minimum 1, maximum 1 like |a|.
+         * That's counter-intuitive - as you'd expect the anonymous rest argument to cause it to have no maximum. It
+         * differs from |a| for non-lambda Procs where it causes destructuring. See
+         * https://github.com/jruby/jruby/blob/324cd78c/core/src/main/java/org/jruby/runtime/Signature.java#L117-L120 */
         if (argsNode.getRestArgNode() instanceof UnnamedRestArgParseNode &&
                 !((UnnamedRestArgParseNode) argsNode.getRestArgNode()).isStar()) {
             arityForCheck = arity.withRest(false);
