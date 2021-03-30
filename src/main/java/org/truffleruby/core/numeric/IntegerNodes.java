@@ -395,7 +395,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = { "isLongMinValue(a)" })
         protected int divBignumEdgeCase(long a, RubyBignum b) {
-            return -BigIntegerOps.signum(b.value);
+            return -b.value.signum();
         }
 
         // Bignum
@@ -1174,7 +1174,7 @@ public abstract class IntegerNodes {
         protected Object leftShift(RubyBignum a, RubyBignum b,
                 @Cached ToIntNode toIntNode) {
             final BigInteger bBigInt = b.value;
-            if (BigIntegerOps.signum(bBigInt) == -1) {
+            if (bBigInt.signum() == -1) {
                 return 0;
             } else {
                 // We raise a RangeError.
@@ -1304,7 +1304,7 @@ public abstract class IntegerNodes {
         }
 
         protected static boolean isPositive(RubyBignum b) {
-            return BigIntegerOps.signum(b.value) >= 0;
+            return b.value.signum() >= 0;
         }
 
     }
