@@ -10,6 +10,10 @@ describe "Struct#dig" do
     @instance.dig(:a, :a).should == { b: [1, 2, 3] }
   end
 
+  it "accepts String keys" do
+    @instance.dig('a', 'a').should == { b: [1, 2, 3] }
+  end
+
   it "returns the value by the index" do
     instance = Struct.new(:a, :b).new(:one, :two)
     instance.dig(0).should == :one
