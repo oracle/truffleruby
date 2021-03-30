@@ -136,7 +136,6 @@ import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.DefineClassNode;
 import org.truffleruby.language.objects.DefineModuleNode;
 import org.truffleruby.language.objects.DefineModuleNodeGen;
@@ -2746,7 +2745,7 @@ public class BodyTranslator extends Translator {
         }
 
         final RubyNode ret = new TryNode(
-                new ExceptionTranslatingNode(tryPart, UnsupportedOperationBehavior.TYPE_ERROR),
+                new ExceptionTranslatingNode(tryPart),
                 rescueNodes.toArray(EMPTY_RESCUE_NODE_ARRAY),
                 elsePart,
                 canOmitBacktrace);

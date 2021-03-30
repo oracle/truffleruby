@@ -24,9 +24,9 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -94,10 +94,7 @@ public abstract class FiberNodes {
         }
     }
 
-    @CoreMethod(
-            names = "initialize",
-            needsBlock = true,
-            unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
+    @CoreMethod(names = "initialize", needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -106,6 +103,11 @@ public abstract class FiberNodes {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             thread.fiberManager.initialize(fiber, block, this);
             return nil;
+        }
+
+        @Specialization
+        protected Object noBlock(RubyFiber fiber, Nil block) {
+            throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
         }
 
     }
