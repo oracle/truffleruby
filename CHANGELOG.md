@@ -13,6 +13,7 @@ Compatibility:
 Performance:
 
 * Make `#dig` iterative to make it faster and compile better for calls with 3+ arguments (#2301, @chrisseaton, @jantnovi).
+* Reduce the number of AST nodes created for methods and blocks (#2261).
 
 Changes:
 
