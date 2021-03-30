@@ -12,7 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.ReturnID;
@@ -30,7 +30,7 @@ public class RubyRootNode extends RubyBaseRootNode {
     }
 
     protected final RubyLanguage language;
-    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
+    @CompilationFinal private ContextReference<RubyContext> contextReference;
 
     private final SharedMethodInfo sharedMethodInfo;
     private Split split;
@@ -106,7 +106,7 @@ public class RubyRootNode extends RubyBaseRootNode {
         return body;
     }
 
-    public final TruffleLanguage.ContextReference<RubyContext> getContextReference() {
+    public final ContextReference<RubyContext> getContextReference() {
         if (contextReference == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             contextReference = lookupContextReference(RubyLanguage.class);
