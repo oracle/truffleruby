@@ -1122,20 +1122,16 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected boolean isInstanceVariableDefinedNil(Nil object, String name) {
+        protected boolean immutable(ImmutableRubyObject object, String name) {
             return false;
         }
 
         @Specialization
-        protected boolean isInstanceVariableDefinedSymbolOrNil(RubySymbol object, String name) {
-            return false;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        protected boolean isInstanceVariableDefined(RubyDynamicObject object, String name) {
-            final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            return object.getShape().hasProperty(ivar);
+        protected boolean isInstanceVariableDefined(RubyDynamicObject object, String name,
+                @Cached CheckIVarNameNode checkIVarNameNode,
+                @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
+            checkIVarNameNode.execute(object, name);
+            return objectLibrary.containsKey(object, name);
         }
 
     }
