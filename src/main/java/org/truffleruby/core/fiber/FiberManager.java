@@ -42,18 +42,22 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 /** Manages Ruby {@code Fiber} objects for a given Ruby thread. */
-public class FiberManager {
+public class FiberManager implements ObjectGraphNode {
 
     public static final String NAME_PREFIX = "Ruby Fiber";
 
+    private final RubyLanguage language;
     private final RubyContext context;
     private final RubyFiber rootFiber;
     private RubyFiber currentFiber;
     private final Set<RubyFiber> runningFibers = newFiberSet();
 
     public FiberManager(RubyLanguage language, RubyContext context, RubyThread rubyThread) {
+        this.language = language;
         this.context = context;
         this.rootFiber = createRootFiber(language, context, rubyThread);
         this.currentFiber = rootFiber;
@@ -288,6 +292,8 @@ public class FiberManager {
         final RubyThread rubyThread = fiber.rubyThread;
         threadManager.initializeValuesForJavaThread(rubyThread, javaThread);
 
+        // share RubyFiber as its fiberLocals might be accessed by other threads with Thread#[]
+        SharedObjects.propagate(language, rubyThread, fiber);
         runningFibers.add(fiber);
 
         if (threadManager.isRubyManagedThread(javaThread) && Thread.currentThread() == javaThread && entered) {
@@ -352,6 +358,12 @@ public class FiberManager {
                 }
             }
         }
+    }
+
+    @Override
+    public void getAdjacentObjects(Set<Object> reachable) {
+        // share fibers of a thread as its fiberLocals might be accessed by other threads with Thread#[]
+        reachable.addAll(runningFibers);
     }
 
     public String getFiberDebugInfo() {

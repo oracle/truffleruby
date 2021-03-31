@@ -231,12 +231,11 @@ class Thread
     warn 'block supersedes default value argument' if !Primitive.undefined?(default) && block_given?
 
     key = convert_to_local_name(name)
-    TruffleRuby.synchronized(self) do
-      locals = Primitive.thread_get_fiber_locals self
-      if Primitive.object_ivar_defined? locals, key
-        return Primitive.object_ivar_get locals, key
-      end
+    locals = Primitive.thread_get_fiber_locals self
+    if Primitive.object_ivar_defined? locals, key
+      return Primitive.object_ivar_get locals, key
     end
+
     if block_given?
       yield key
     elsif Primitive.undefined?(default)
@@ -248,34 +247,26 @@ class Thread
 
   def [](name)
     var = convert_to_local_name(name)
-    TruffleRuby.synchronized(self) do
-      locals = Primitive.thread_get_fiber_locals self
-      Primitive.object_ivar_get locals, var
-    end
+    locals = Primitive.thread_get_fiber_locals self
+    Primitive.object_ivar_get locals, var
   end
 
   def []=(name, value)
     var = convert_to_local_name(name)
-    TruffleRuby.synchronized(self) do
-      Primitive.check_frozen self
-      locals = Primitive.thread_get_fiber_locals self
-      Primitive.object_ivar_set locals, var, value
-    end
+    Primitive.check_frozen self
+    locals = Primitive.thread_get_fiber_locals self
+    Primitive.object_ivar_set locals, var, value
   end
 
   def key?(name)
     var = convert_to_local_name(name)
-    TruffleRuby.synchronized(self) do
-      locals = Primitive.thread_get_fiber_locals self
-      Primitive.object_ivar_defined? locals, var
-    end
+    locals = Primitive.thread_get_fiber_locals self
+    Primitive.object_ivar_defined? locals, var
   end
 
   def keys
-    TruffleRuby.synchronized(self) do
-      locals = Primitive.thread_get_fiber_locals self
-      locals.instance_variables
-    end
+    locals = Primitive.thread_get_fiber_locals self
+    locals.instance_variables
   end
 
   # Thread-local variables
