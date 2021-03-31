@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
@@ -49,13 +49,12 @@ import org.truffleruby.core.format.write.bytes.WriteMIMEStringNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteUTF8CharacterNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteUUStringNodeGen;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.DeferredRaiseException;
 
 import com.oracle.truffle.api.nodes.Node;
 
 public class SimplePackTreeBuilder implements SimplePackListener {
 
-    private final RubyContext context;
     private final Node currentNode;
 
     private final SharedTreeBuilder sharedTreeBuilder;
@@ -63,10 +62,9 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     private FormatEncoding encoding = FormatEncoding.DEFAULT;
     private final Deque<List<FormatNode>> sequenceStack = new ArrayDeque<>();
 
-    public SimplePackTreeBuilder(RubyContext context, Node currentNode) {
-        this.context = context;
+    public SimplePackTreeBuilder(RubyLanguage language, Node currentNode) {
         this.currentNode = currentNode;
-        sharedTreeBuilder = new SharedTreeBuilder(context.getLanguageSlow());
+        sharedTreeBuilder = new SharedTreeBuilder(language);
         pushSequence();
     }
 
@@ -254,9 +252,9 @@ public class SimplePackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void error(String message) {
+    public void error(String message) throws DeferredRaiseException {
         // TODO CS 29-Oct-16 make this a node so that side effects from previous directives happen
-        throw new RaiseException(context, context.getCoreExceptions().argumentError(message, currentNode));
+        throw new DeferredRaiseException(c -> c.getCoreExceptions().argumentError(message, currentNode));
     }
 
     public FormatNode getNode() {

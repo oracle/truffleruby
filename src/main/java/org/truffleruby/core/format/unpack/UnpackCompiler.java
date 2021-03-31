@@ -10,7 +10,6 @@
 package org.truffleruby.core.format.unpack;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.LoopRecovery;
 import org.truffleruby.core.format.pack.SimplePackParser;
@@ -18,6 +17,7 @@ import org.truffleruby.core.format.pack.SimplePackParser;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.control.DeferredRaiseException;
 
 public class UnpackCompiler {
 
@@ -29,12 +29,12 @@ public class UnpackCompiler {
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(RubyContext context, String format) {
+    public RootCallTarget compile(String format) throws DeferredRaiseException {
         if (format.length() > language.options.PACK_RECOVER_LOOP_MIN) {
             format = LoopRecovery.recoverLoop(format);
         }
 
-        final SimpleUnpackTreeBuilder builder = new SimpleUnpackTreeBuilder(context, currentNode);
+        final SimpleUnpackTreeBuilder builder = new SimpleUnpackTreeBuilder(language, currentNode);
 
         builder.enterSequence();
 
