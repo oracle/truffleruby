@@ -13,22 +13,22 @@ import org.truffleruby.RubyContext;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
 
 import java.util.Optional;
 
-/** Translator environment, unique per parse/translation. */
+/** Translator environment, unique per parse/translation. This must be immutable to be correct for lazy translation, as
+ * then multiple threads might lazy translate methods of the same file in parallel. */
 public class ParseEnvironment {
 
-    private LexicalScope lexicalScope = null;
-    private boolean dynamicConstantLookup = false;
-    public boolean allowTruffleRubyPrimitives = false;
     public final Source source;
     private final boolean inCore;
     private final boolean coverageEnabled;
     public final Optional<RubyContext> contextIfSingleContext;
+
+    // Set once after parsing and before translating
+    public Boolean allowTruffleRubyPrimitives = null;
 
     public ParseEnvironment(RubyLanguage language, RubySource rubySource) {
         this.source = rubySource.getSource();
@@ -42,37 +42,13 @@ public class ParseEnvironment {
     }
 
     public boolean canUsePrimitives() {
+        assert allowTruffleRubyPrimitives != null;
         return inCore() || allowTruffleRubyPrimitives;
-    }
-
-    public void resetLexicalScope(LexicalScope lexicalScope) {
-        this.lexicalScope = lexicalScope;
-    }
-
-    public LexicalScope getLexicalScope() {
-        // TODO (eregon, 4 Dec. 2016): assert !dynamicConstantLookup;
-        return lexicalScope;
     }
 
     /** Returns false if the AST is shared */
     public boolean isCoverageEnabled() {
         return coverageEnabled;
-    }
-
-    public LexicalScope pushLexicalScope() {
-        return lexicalScope = new LexicalScope(getLexicalScope());
-    }
-
-    public void popLexicalScope() {
-        lexicalScope = getLexicalScope().getParent();
-    }
-
-    public boolean isDynamicConstantLookup() {
-        return dynamicConstantLookup;
-    }
-
-    public void setDynamicConstantLookup(boolean dynamicConstantLookup) {
-        this.dynamicConstantLookup = dynamicConstantLookup;
     }
 
     @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")

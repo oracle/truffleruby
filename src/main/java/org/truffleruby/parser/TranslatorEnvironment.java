@@ -56,6 +56,8 @@ public class TranslatorEnvironment {
     public final String modulePath;
     public final String methodName;
 
+    private final boolean dynamicConstantLookup;
+
     // TODO(CS): overflow? and it should be per-context, or even more local
     private static final AtomicInteger tempIndex = new AtomicInteger();
 
@@ -71,7 +73,8 @@ public class TranslatorEnvironment {
             int blockDepth,
             BreakID breakID,
             FrameDescriptor frameDescriptor,
-            String modulePath) {
+            String modulePath,
+            boolean dynamicConstantLookup) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;
@@ -84,6 +87,7 @@ public class TranslatorEnvironment {
         this.blockDepth = blockDepth;
         this.breakID = breakID;
         this.modulePath = modulePath;
+        this.dynamicConstantLookup = dynamicConstantLookup;
     }
 
     public static FrameDescriptor newFrameDescriptor() {
@@ -95,29 +99,21 @@ public class TranslatorEnvironment {
     }
 
     public boolean isDynamicConstantLookup() {
-        return parseEnvironment.isDynamicConstantLookup();
+        return dynamicConstantLookup;
     }
 
     public LexicalScope getLexicalScope() {
         assert !isDynamicConstantLookup();
-        return parseEnvironment.getLexicalScope();
+        return sharedMethodInfo.getLexicalScope();
     }
 
     public LexicalScope getLexicalScopeOrNull() {
         if (isDynamicConstantLookup()) {
             // TODO (eregon, 4 Dec. 2016): we should return null here.
-            return parseEnvironment.getLexicalScope();
+            return sharedMethodInfo.getLexicalScope();
         } else {
-            return parseEnvironment.getLexicalScope();
+            return sharedMethodInfo.getLexicalScope();
         }
-    }
-
-    public LexicalScope pushLexicalScope() {
-        return parseEnvironment.pushLexicalScope();
-    }
-
-    public void popLexicalScope() {
-        parseEnvironment.popLexicalScope();
     }
 
     public TranslatorEnvironment getParent() {
@@ -247,10 +243,6 @@ public class TranslatorEnvironment {
 
     public void setBreakIDForWhile(BreakID breakID) {
         this.breakID = breakID;
-    }
-
-    public LexicalScope unsafeGetLexicalScope() {
-        return parseEnvironment.getLexicalScope();
     }
 
     public TranslatorEnvironment getSurroundingMethodEnvironment() {

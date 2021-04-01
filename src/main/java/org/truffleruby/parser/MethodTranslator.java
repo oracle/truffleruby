@@ -18,7 +18,6 @@ import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.ArrayCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
-import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
@@ -424,9 +423,7 @@ public class MethodTranslator extends BodyTranslator {
             MethodDefParseNode defNode, ParseNode bodyNode) {
 
         if (shouldLazyTranslate) {
-            final TranslatorState state = getCurrentState();
             return new CachedSupplier<>(() -> {
-                restoreState(state);
                 return Truffle.getRuntime().createCallTarget(translateMethodNode(sourceSection, defNode, bodyNode));
             });
         } else {
@@ -524,30 +521,6 @@ public class MethodTranslator extends BodyTranslator {
             return parent.createFlipFlopState(sourceSection, depth + 1);
         } else {
             return super.createFlipFlopState(sourceSection, depth);
-        }
-    }
-
-    /* The following methods allow us to save and restore enough of the current state of the Translator to allow lazy
-     * parsing. When the lazy parsing is actually performed, the state is restored to what it would have been if the
-     * method had been parsed eagerly. */
-    public TranslatorState getCurrentState() {
-        return new TranslatorState(
-                getEnvironment().unsafeGetLexicalScope(),
-                getEnvironment().isDynamicConstantLookup());
-    }
-
-    public void restoreState(TranslatorState state) {
-        getEnvironment().getParseEnvironment().setDynamicConstantLookup(state.dynamicConstantLookup);
-        getEnvironment().getParseEnvironment().resetLexicalScope(state.scope);
-    }
-
-    public static class TranslatorState {
-        private final LexicalScope scope;
-        private final boolean dynamicConstantLookup;
-
-        private TranslatorState(LexicalScope scope, boolean dynamicConstantLookup) {
-            this.scope = scope;
-            this.dynamicConstantLookup = dynamicConstantLookup;
         }
     }
 

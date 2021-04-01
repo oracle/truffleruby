@@ -991,60 +991,58 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode openModule(SourceIndexLength sourceSection, RubyNode defineOrGetNode, String moduleName,
-            ParseNode bodyNode, OpenModule type) {
+            ParseNode bodyNode, OpenModule type, boolean dynamicConstantLookup) {
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
         final String methodName = type.format(moduleName);
 
-        final LexicalScope newLexicalScope = environment.pushLexicalScope();
-        try {
-            final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
-                    fullSourceSection,
-                    newLexicalScope,
-                    Arity.NO_ARGUMENTS,
-                    methodName,
-                    0,
-                    methodName,
-                    null,
-                    null);
+        final LexicalScope newLexicalScope = new LexicalScope(environment.getLexicalScope());
 
-            final String modulePath;
-            if (type == OpenModule.SINGLETON_CLASS) {
-                modulePath = moduleName;
-            } else {
-                modulePath = TranslatorEnvironment.composeModulePath(environment.modulePath, moduleName);
-            }
-            final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
-                    environment,
-                    environment.getParseEnvironment(),
-                    ReturnID.MODULE_BODY,
-                    true,
-                    true,
-                    true,
-                    sharedMethodInfo,
-                    methodName,
-                    0,
-                    null,
-                    TranslatorEnvironment.newFrameDescriptor(),
-                    modulePath);
+        final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
+                fullSourceSection,
+                newLexicalScope,
+                Arity.NO_ARGUMENTS,
+                methodName,
+                0,
+                methodName,
+                null,
+                null);
 
-            final BodyTranslator moduleTranslator = new BodyTranslator(
-                    language,
-                    this,
-                    newEnvironment,
-                    source,
-                    parserContext,
-                    currentNode,
-                    rubyWarnings);
-
-            final ModuleBodyDefinitionNode definition = moduleTranslator
-                    .compileClassNode(sourceSection, bodyNode, type);
-
-            return Translator.withSourceSection(
-                    sourceSection,
-                    new RunModuleDefinitionNode(newLexicalScope, definition, defineOrGetNode));
-        } finally {
-            environment.popLexicalScope();
+        final String modulePath;
+        if (type == OpenModule.SINGLETON_CLASS) {
+            modulePath = moduleName;
+        } else {
+            modulePath = TranslatorEnvironment.composeModulePath(environment.modulePath, moduleName);
         }
+        final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
+                environment,
+                environment.getParseEnvironment(),
+                ReturnID.MODULE_BODY,
+                true,
+                true,
+                true,
+                sharedMethodInfo,
+                methodName,
+                0,
+                null,
+                TranslatorEnvironment.newFrameDescriptor(),
+                modulePath,
+                dynamicConstantLookup);
+
+        final BodyTranslator moduleTranslator = new BodyTranslator(
+                language,
+                this,
+                newEnvironment,
+                source,
+                parserContext,
+                currentNode,
+                rubyWarnings);
+
+        final ModuleBodyDefinitionNode definition = moduleTranslator
+                .compileClassNode(sourceSection, bodyNode, type);
+
+        return Translator.withSourceSection(
+                sourceSection,
+                new RunModuleDefinitionNode(newLexicalScope, definition, defineOrGetNode));
     }
 
     /** Translates module and class nodes.
@@ -1100,7 +1098,13 @@ public class BodyTranslator extends Translator {
         final RubyNode superClass = node.getSuperNode() != null ? node.getSuperNode().accept(this) : null;
         final DefineClassNode defineOrGetClass = new DefineClassNode(name, lexicalParent, superClass);
 
-        final RubyNode ret = openModule(sourceSection, defineOrGetClass, name, node.getBodyNode(), OpenModule.CLASS);
+        final RubyNode ret = openModule(
+                sourceSection,
+                defineOrGetClass,
+                name,
+                node.getBodyNode(),
+                OpenModule.CLASS,
+                getEnvironment().isDynamicConstantLookup());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1477,7 +1481,8 @@ public class BodyTranslator extends Translator {
                 0,
                 null,
                 TranslatorEnvironment.newFrameDescriptor(),
-                environment.modulePath);
+                environment.modulePath,
+                environment.isDynamicConstantLookup());
 
         // ownScopeForAssignments is the same for the defined method as the current one.
 
@@ -1995,7 +2000,8 @@ public class BodyTranslator extends Translator {
                 blockDepth,
                 parseEnvironment.allocateBreakID(),
                 TranslatorEnvironment.newFrameDescriptor(),
-                environment.modulePath);
+                environment.modulePath,
+                environment.isDynamicConstantLookup());
         final MethodTranslator methodCompiler = new MethodTranslator(
                 language,
                 this,
@@ -2195,7 +2201,13 @@ public class BodyTranslator extends Translator {
 
         final DefineModuleNode defineModuleNode = DefineModuleNodeGen.create(name, lexicalParent);
 
-        final RubyNode ret = openModule(sourceSection, defineModuleNode, name, node.getBodyNode(), OpenModule.MODULE);
+        final RubyNode ret = openModule(
+                sourceSection,
+                defineModuleNode,
+                name,
+                node.getBodyNode(),
+                OpenModule.MODULE,
+                getEnvironment().isDynamicConstantLookup());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2807,7 +2819,8 @@ public class BodyTranslator extends Translator {
         final RubyNode receiverNode = node.getReceiverNode().accept(this);
         final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(receiverNode);
 
-        final boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
+        boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
+
         String modulePath = "<singleton class>";
         if (!dynamicConstantLookup) {
             if (environment.isModuleBody() && node.getReceiverNode() instanceof SelfParseNode) {
@@ -2822,7 +2835,7 @@ public class BodyTranslator extends Translator {
                 // At the top-level of a file, opening the singleton class of an expression executed only once
             } else {
                 // Switch to dynamic constant lookup
-                environment.getParseEnvironment().setDynamicConstantLookup(true);
+                dynamicConstantLookup = true;
                 if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                     RubyLanguage.LOGGER.info(
                             () -> "start dynamic constant lookup at " +
@@ -2831,17 +2844,13 @@ public class BodyTranslator extends Translator {
             }
         }
 
-        final RubyNode ret;
-        try {
-            ret = openModule(
-                    sourceSection,
-                    singletonClassNode,
-                    modulePath,
-                    node.getBodyNode(),
-                    OpenModule.SINGLETON_CLASS);
-        } finally {
-            environment.getParseEnvironment().setDynamicConstantLookup(dynamicConstantLookup);
-        }
+        final RubyNode ret = openModule(
+                sourceSection,
+                singletonClassNode,
+                modulePath,
+                node.getBodyNode(),
+                OpenModule.SINGLETON_CLASS,
+                dynamicConstantLookup);
         return addNewlineIfNeeded(node, ret);
     }
 

@@ -188,6 +188,9 @@ public class TranslatorDriver {
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
+        // Needs the magic comment to be parsed
+        parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
+
         final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
         final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
 
@@ -206,8 +209,6 @@ public class TranslatorDriver {
             Object module = RubyArguments.getSelf(context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY));
             lexicalScope = new LexicalScope(lexicalScope, (RubyModule) module);
         }
-        parseEnvironment.resetLexicalScope(lexicalScope);
-        parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
 
         final String modulePath = lexicalScope == context.getRootLexicalScope()
                 ? null
@@ -237,7 +238,8 @@ public class TranslatorDriver {
                 0,
                 null,
                 TranslatorEnvironment.newFrameDescriptor(),
-                modulePath);
+                modulePath,
+                false);
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
 
@@ -497,7 +499,8 @@ public class TranslatorDriver {
                     0,
                     null,
                     frame.getFrameDescriptor(),
-                    "<unused>");
+                    "<unused>",
+                    false);
         }
     }
 
