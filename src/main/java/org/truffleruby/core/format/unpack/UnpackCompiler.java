@@ -10,30 +10,31 @@
 package org.truffleruby.core.format.unpack;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.LoopRecovery;
 import org.truffleruby.core.format.pack.SimplePackParser;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.control.DeferredRaiseException;
 
 public class UnpackCompiler {
 
-    private final RubyContext context;
+    private final RubyLanguage language;
     private final Node currentNode;
 
-    public UnpackCompiler(RubyContext context, Node currentNode) {
-        this.context = context;
+    public UnpackCompiler(RubyLanguage language, Node currentNode) {
+        this.language = language;
         this.currentNode = currentNode;
     }
 
-    public RootCallTarget compile(String format) {
-        if (format.length() > context.getOptions().PACK_RECOVER_LOOP_MIN) {
+    public RootCallTarget compile(String format) throws DeferredRaiseException {
+        if (format.length() > language.options.PACK_RECOVER_LOOP_MIN) {
             format = LoopRecovery.recoverLoop(format);
         }
 
-        final SimpleUnpackTreeBuilder builder = new SimpleUnpackTreeBuilder(context, currentNode);
+        final SimpleUnpackTreeBuilder builder = new SimpleUnpackTreeBuilder(language, currentNode);
 
         builder.enterSequence();
 
@@ -44,7 +45,7 @@ public class UnpackCompiler {
 
         return Truffle.getRuntime().createCallTarget(
                 new UnpackRootNode(
-                        context.getLanguageSlow(),
+                        language,
                         currentNode.getEncapsulatingSourceSection(),
                         builder.getNode()));
     }

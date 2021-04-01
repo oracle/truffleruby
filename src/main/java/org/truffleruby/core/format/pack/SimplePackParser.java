@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format.pack;
 
+import org.truffleruby.language.control.DeferredRaiseException;
+
 import java.nio.ByteOrder;
 
 public class SimplePackParser {
@@ -26,7 +28,7 @@ public class SimplePackParser {
         this.bytes = bytes;
     }
 
-    public void parse() {
+    public void parse() throws DeferredRaiseException {
         while (n < bytes.length) {
             final byte b = bytes[n];
 
@@ -467,7 +469,7 @@ public class SimplePackParser {
         return count;
     }
 
-    private void disallowNative(byte b) {
+    private void disallowNative(byte b) throws DeferredRaiseException {
         if (n < bytes.length) {
             final byte m = bytes[n];
 

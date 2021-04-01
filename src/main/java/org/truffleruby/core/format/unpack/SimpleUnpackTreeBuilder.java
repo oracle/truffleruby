@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.control.AdvanceSourcePositionNode;
@@ -47,23 +47,21 @@ import org.truffleruby.core.format.read.bytes.ReadUTF8CharacterNodeGen;
 import org.truffleruby.core.format.read.bytes.ReadUUStringNodeGen;
 import org.truffleruby.core.format.write.OutputNode;
 import org.truffleruby.core.format.write.array.WriteValueNodeGen;
-import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.DeferredRaiseException;
 
 import com.oracle.truffle.api.nodes.Node;
 
 public class SimpleUnpackTreeBuilder implements SimplePackListener {
 
-    private final RubyContext context;
     private final Node currentNode;
 
     private final SharedTreeBuilder sharedTreeBuilder;
 
     private final Deque<List<FormatNode>> sequenceStack = new ArrayDeque<>();
 
-    public SimpleUnpackTreeBuilder(RubyContext context, Node currentNode) {
-        this.context = context;
+    public SimpleUnpackTreeBuilder(RubyLanguage language, Node currentNode) {
         this.currentNode = currentNode;
-        sharedTreeBuilder = new SharedTreeBuilder(context);
+        sharedTreeBuilder = new SharedTreeBuilder(language);
         pushSequence();
     }
 
@@ -269,9 +267,9 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
     }
 
     @Override
-    public void error(String message) {
+    public void error(String message) throws DeferredRaiseException {
         // TODO CS 29-Oct-16 make this a node so that side effects from previous directives happen
-        throw new RaiseException(context, context.getCoreExceptions().argumentError(message, currentNode));
+        throw new DeferredRaiseException(c -> c.getCoreExceptions().argumentError(message, currentNode));
     }
 
     public FormatNode getNode() {

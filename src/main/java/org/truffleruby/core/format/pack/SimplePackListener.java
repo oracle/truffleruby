@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format.pack;
 
+import org.truffleruby.language.control.DeferredRaiseException;
+
 import java.nio.ByteOrder;
 
 public interface SimplePackListener {
@@ -53,6 +55,6 @@ public interface SimplePackListener {
 
     void finishSubSequence(int count);
 
-    void error(String message);
+    void error(String message) throws DeferredRaiseException;
 
 }

@@ -77,6 +77,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -1531,7 +1532,11 @@ public abstract class ArrayNodes {
         @TruffleBoundary
         protected RootCallTarget compileFormat(Rope rope) {
             final String javaString = RopeOperations.decodeRope(rope);
-            return new PackCompiler(getContext(), this).compile(javaString);
+            try {
+                return new PackCompiler(getLanguage(), this).compile(javaString);
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(getContext());
+            }
         }
 
         protected int getCacheLimit() {

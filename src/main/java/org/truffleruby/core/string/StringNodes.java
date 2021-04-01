@@ -167,6 +167,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
@@ -2977,7 +2978,11 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         protected RootCallTarget compileFormat(Rope rope) {
-            return new UnpackCompiler(getContext(), this).compile(RopeOperations.decodeRope(rope));
+            try {
+                return new UnpackCompiler(getLanguage(), this).compile(RopeOperations.decodeRope(rope));
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(getContext());
+            }
         }
 
         protected int getCacheLimit() {
