@@ -186,6 +186,13 @@ class Struct
     end
   end
 
+  def initialize_copy(other)
+    other.__send__(:_attrs).each do |a|
+      Primitive.object_hidden_var_set self, a, Primitive.object_hidden_var_get(other, a)
+    end
+    self
+  end
+
   def ==(other)
     return false if self.class != other.class
 
@@ -195,6 +202,21 @@ class Struct
 
     # Subtle: if we are here, we are recursing and haven't found any difference, so:
     true
+  end
+
+  private def read_or_nil(var)
+    case var
+    when Symbol, String
+      var = var.to_sym
+      return nil unless _attrs.include?(var)
+    else
+      var = Integer(var)
+      a_len = _attrs.length
+      return nil if var >= a_len or var < -a_len
+      var = _attrs[var]
+    end
+
+    Primitive.object_hidden_var_get(self, var)
   end
 
   def [](var)
@@ -233,32 +255,19 @@ class Struct
     Primitive.object_hidden_var_set(self, var, obj)
   end
 
-  def initialize_copy(other)
-    other.__send__(:_attrs).each do |a|
-      Primitive.object_hidden_var_set self, a, Primitive.object_hidden_var_get(other, a)
-    end
-    self
-  end
-
   private def check_index_var(var)
     var = Integer(var)
     a_len = _attrs.length
-    if var > a_len - 1
+    if var >= a_len
       raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
-    end
-    if var < -a_len
+    elsif var < -a_len
       raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
     end
     _attrs[var]
   end
 
   def dig(key, *more)
-    result = nil
-    begin
-      result = self[key]
-    rescue IndexError, NameError
-      nil # nothing found with key
-    end
+    result = read_or_nil(key)
     if Primitive.nil?(result) || more.empty?
       result
     else

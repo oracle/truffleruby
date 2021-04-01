@@ -13,6 +13,7 @@ Compatibility:
 Performance:
 
 * Make `#dig` iterative to make it faster and compile better for calls with 3+ arguments (#2301, @chrisseaton, @jantnovi).
+* Make `Struct#dig` faster in interpreter by avoiding exceptions (#2306, @kirs).
 
 Changes:
 
