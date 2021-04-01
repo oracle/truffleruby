@@ -63,7 +63,7 @@ import com.oracle.truffle.api.source.SourceSection;
 public class MethodTranslator extends BodyTranslator {
 
     private final ArgsParseNode argsNode;
-    private boolean isBlock;
+    private final boolean isBlock;
     private final boolean shouldLazyTranslate;
 
     /** If this translates a literal block (but not a stabby lambda), this holds the name of the method to which the
