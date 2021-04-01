@@ -62,7 +62,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         method = new InternalMethod(
                 context,
                 sharedMethodInfo,
-                sharedMethodInfo.getLexicalScope(),
+                sharedMethodInfo.getStaticLexicalScope(),
                 DeclarationContext.topLevel(context),
                 sharedMethodInfo.getMethodNameForNotBlock(),
                 context.getCoreLibrary().objectClass,

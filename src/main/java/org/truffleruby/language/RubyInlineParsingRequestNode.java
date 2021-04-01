@@ -64,7 +64,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
         this.method = new InternalMethod(
                 context,
                 sharedMethodInfo,
-                sharedMethodInfo.getLexicalScope(),
+                sharedMethodInfo.getStaticLexicalScope(),
                 DeclarationContext.topLevel(context),
                 sharedMethodInfo.getMethodNameForNotBlock(),
                 context.getCoreLibrary().objectClass,

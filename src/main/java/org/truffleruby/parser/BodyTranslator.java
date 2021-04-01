@@ -997,7 +997,7 @@ public class BodyTranslator extends Translator {
 
         final LexicalScope newLexicalScope = dynamicConstantLookup
                 ? null
-                : new LexicalScope(environment.getLexicalScope());
+                : new LexicalScope(environment.getStaticLexicalScope());
 
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 fullSourceSection,
@@ -1027,8 +1027,7 @@ public class BodyTranslator extends Translator {
                 0,
                 null,
                 TranslatorEnvironment.newFrameDescriptor(),
-                modulePath,
-                dynamicConstantLookup);
+                modulePath);
 
         final BodyTranslator moduleTranslator = new BodyTranslator(
                 language,
@@ -1081,8 +1080,7 @@ public class BodyTranslator extends Translator {
                 environment.getSharedMethodInfo(),
                 Truffle.getRuntime().createCallTarget(rootNode),
                 type == OpenModule.SINGLETON_CLASS,
-                environment.getLexicalScopeOrNull(),
-                environment.isDynamicConstantLookup());
+                environment.getStaticLexicalScopeOrNull());
     }
 
     @Override
@@ -1102,7 +1100,7 @@ public class BodyTranslator extends Translator {
                 name,
                 node.getBodyNode(),
                 OpenModule.CLASS,
-                getEnvironment().isDynamicConstantLookup());
+                environment.isDynamicConstantLookup());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1223,7 +1221,7 @@ public class BodyTranslator extends Translator {
             }
             return new DynamicLexicalScopeNode();
         } else {
-            return new LexicalScopeNode(environment.getLexicalScope());
+            return new LexicalScopeNode(environment.getStaticLexicalScope());
         }
     }
 
@@ -1235,7 +1233,7 @@ public class BodyTranslator extends Translator {
             }
             return new GetDynamicLexicalScopeNode();
         } else {
-            return new ObjectLiteralNode(environment.getLexicalScope());
+            return new ObjectLiteralNode(environment.getStaticLexicalScope());
         }
     }
 
@@ -1254,7 +1252,7 @@ public class BodyTranslator extends Translator {
             }
             ret = new ReadConstantWithDynamicScopeNode(name);
         } else {
-            final LexicalScope lexicalScope = environment.getLexicalScope();
+            final LexicalScope lexicalScope = environment.getStaticLexicalScope();
             ret = new ReadConstantWithLexicalScopeNode(lexicalScope, name);
         }
         ret.unsafeSetSourceSection(sourceSection);
@@ -1459,7 +1457,7 @@ public class BodyTranslator extends Translator {
 
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
-                environment.getLexicalScopeOrNull(),
+                environment.getStaticLexicalScopeOrNull(),
                 arity,
                 methodName,
                 0,
@@ -1479,8 +1477,7 @@ public class BodyTranslator extends Translator {
                 0,
                 null,
                 TranslatorEnvironment.newFrameDescriptor(),
-                environment.modulePath,
-                environment.isDynamicConstantLookup());
+                environment.modulePath);
 
         // ownScopeForAssignments is the same for the defined method as the current one.
 
@@ -1975,7 +1972,7 @@ public class BodyTranslator extends Translator {
         String parseName = SharedMethodInfo.getBlockName(blockDepth, methodParent.getSharedMethodInfo().getParseName());
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
-                environment.getLexicalScopeOrNull(),
+                environment.getStaticLexicalScopeOrNull(),
                 argsNode.getArity(),
                 backtraceName,
                 blockDepth,
@@ -1998,8 +1995,7 @@ public class BodyTranslator extends Translator {
                 blockDepth,
                 parseEnvironment.allocateBreakID(),
                 TranslatorEnvironment.newFrameDescriptor(),
-                environment.modulePath,
-                environment.isDynamicConstantLookup());
+                environment.modulePath);
         final MethodTranslator methodCompiler = new MethodTranslator(
                 language,
                 this,
@@ -2205,7 +2201,7 @@ public class BodyTranslator extends Translator {
                 name,
                 node.getBodyNode(),
                 OpenModule.MODULE,
-                getEnvironment().isDynamicConstantLookup());
+                environment.isDynamicConstantLookup());
         return addNewlineIfNeeded(node, ret);
     }
 

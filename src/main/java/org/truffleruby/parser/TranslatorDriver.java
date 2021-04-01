@@ -238,8 +238,7 @@ public class TranslatorDriver {
                 0,
                 null,
                 TranslatorEnvironment.newFrameDescriptor(),
-                modulePath,
-                false);
+                modulePath);
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
 
@@ -499,8 +498,7 @@ public class TranslatorDriver {
                     0,
                     null,
                     frame.getFrameDescriptor(),
-                    "<unused>",
-                    false);
+                    "<unused>");
         }
     }
 

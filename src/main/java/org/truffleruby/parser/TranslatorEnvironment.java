@@ -56,8 +56,6 @@ public class TranslatorEnvironment {
     public final String modulePath;
     public final String methodName;
 
-    private final boolean dynamicConstantLookup;
-
     // TODO(CS): overflow? and it should be per-context, or even more local
     private static final AtomicInteger tempIndex = new AtomicInteger();
 
@@ -73,10 +71,7 @@ public class TranslatorEnvironment {
             int blockDepth,
             BreakID breakID,
             FrameDescriptor frameDescriptor,
-            String modulePath,
-            boolean dynamicConstantLookup) {
-        assert dynamicConstantLookup == (sharedMethodInfo.getLexicalScopeOrNull() == null);
-
+            String modulePath) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;
@@ -89,7 +84,6 @@ public class TranslatorEnvironment {
         this.blockDepth = blockDepth;
         this.breakID = breakID;
         this.modulePath = modulePath;
-        this.dynamicConstantLookup = dynamicConstantLookup;
     }
 
     public static FrameDescriptor newFrameDescriptor() {
@@ -101,20 +95,15 @@ public class TranslatorEnvironment {
     }
 
     public boolean isDynamicConstantLookup() {
-        return dynamicConstantLookup;
+        return sharedMethodInfo.getStaticLexicalScopeOrNull() == null;
     }
 
-    public LexicalScope getLexicalScope() {
-        assert !isDynamicConstantLookup();
-        return sharedMethodInfo.getLexicalScope();
+    public LexicalScope getStaticLexicalScope() {
+        return sharedMethodInfo.getStaticLexicalScope();
     }
 
-    public LexicalScope getLexicalScopeOrNull() {
-        if (isDynamicConstantLookup()) {
-            return null;
-        } else {
-            return sharedMethodInfo.getLexicalScope();
-        }
+    public LexicalScope getStaticLexicalScopeOrNull() {
+        return sharedMethodInfo.getStaticLexicalScopeOrNull();
     }
 
     public TranslatorEnvironment getParent() {

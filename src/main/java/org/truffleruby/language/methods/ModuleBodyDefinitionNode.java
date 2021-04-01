@@ -32,25 +32,20 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
     private final boolean captureBlock;
 
     private final LexicalScope staticLexicalScope;
-    private final boolean dynamicLexicalScope;
-    private final Map<RubyModule, LexicalScope> lexicalScopes;
+    private final Map<RubyModule, LexicalScope> dynamicLexicalScopes;
 
     public ModuleBodyDefinitionNode(
             String name,
             SharedMethodInfo sharedMethodInfo,
             RootCallTarget callTarget,
             boolean captureBlock,
-            LexicalScope staticLexicalScope,
-            boolean dynamicLexicalScope) {
-        assert (staticLexicalScope == null) == dynamicLexicalScope;
-
+            LexicalScope staticLexicalScope) {
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;
         this.captureBlock = captureBlock;
         this.staticLexicalScope = staticLexicalScope;
-        this.dynamicLexicalScope = dynamicLexicalScope;
-        this.lexicalScopes = dynamicLexicalScope ? new ConcurrentHashMap<>() : null;
+        this.dynamicLexicalScopes = staticLexicalScope != null ? null : new ConcurrentHashMap<>();
     }
 
     public InternalMethod createMethod(VirtualFrame frame, RubyModule module) {
@@ -87,14 +82,14 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
     @TruffleBoundary
     private LexicalScope prepareLexicalScope(LexicalScope staticLexicalScope, LexicalScope parentLexicalScope,
             RubyModule module) {
-        if (!dynamicLexicalScope) {
+        if (staticLexicalScope != null) {
             staticLexicalScope.unsafeSetLiveModule(module);
             return staticLexicalScope;
         } else {
             // Cache the scope per module in case the module body is run multiple times.
             // This allows dynamic constant lookup to cache better.
             return ConcurrentOperations.getOrCompute(
-                    lexicalScopes,
+                    dynamicLexicalScopes,
                     module,
                     k -> new LexicalScope(parentLexicalScope, module));
         }
