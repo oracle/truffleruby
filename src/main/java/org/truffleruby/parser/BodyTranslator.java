@@ -995,7 +995,9 @@ public class BodyTranslator extends Translator {
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
         final String methodName = type.format(moduleName);
 
-        final LexicalScope newLexicalScope = new LexicalScope(environment.getLexicalScope());
+        final LexicalScope newLexicalScope = dynamicConstantLookup
+                ? null
+                : new LexicalScope(environment.getLexicalScope());
 
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 fullSourceSection,
@@ -1037,12 +1039,9 @@ public class BodyTranslator extends Translator {
                 currentNode,
                 rubyWarnings);
 
-        final ModuleBodyDefinitionNode definition = moduleTranslator
-                .compileClassNode(sourceSection, bodyNode, type);
+        final ModuleBodyDefinitionNode definition = moduleTranslator.compileClassNode(sourceSection, bodyNode, type);
 
-        return Translator.withSourceSection(
-                sourceSection,
-                new RunModuleDefinitionNode(newLexicalScope, definition, defineOrGetNode));
+        return Translator.withSourceSection(sourceSection, new RunModuleDefinitionNode(definition, defineOrGetNode));
     }
 
     /** Translates module and class nodes.
@@ -1077,14 +1076,13 @@ public class BodyTranslator extends Translator {
                 Split.NEVER,
                 environment.getReturnID());
 
-        final ModuleBodyDefinitionNode definitionNode = new ModuleBodyDefinitionNode(
+        return new ModuleBodyDefinitionNode(
                 environment.getSharedMethodInfo().getBacktraceName(),
                 environment.getSharedMethodInfo(),
                 Truffle.getRuntime().createCallTarget(rootNode),
                 type == OpenModule.SINGLETON_CLASS,
+                environment.getLexicalScopeOrNull(),
                 environment.isDynamicConstantLookup());
-
-        return definitionNode;
     }
 
     @Override

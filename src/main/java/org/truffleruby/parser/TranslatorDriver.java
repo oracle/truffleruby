@@ -196,7 +196,7 @@ public class TranslatorDriver {
 
         final InternalMethod parentMethod = parentFrame == null ? null : RubyArguments.getMethod(parentFrame);
         LexicalScope lexicalScope;
-        if (parentMethod != null && parentMethod.getSharedMethodInfo().getLexicalScope() != null) {
+        if (parentMethod != null && parentMethod.getSharedMethodInfo().getLexicalScopeOrNull() != null) {
             lexicalScope = parentMethod.getSharedMethodInfo().getLexicalScope();
         } else {
             if (wrap == null) {

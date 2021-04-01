@@ -30,6 +30,8 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
     private final SharedMethodInfo sharedMethodInfo;
     private final RootCallTarget callTarget;
     private final boolean captureBlock;
+
+    private final LexicalScope staticLexicalScope;
     private final boolean dynamicLexicalScope;
     private final Map<RubyModule, LexicalScope> lexicalScopes;
 
@@ -38,16 +40,20 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
             SharedMethodInfo sharedMethodInfo,
             RootCallTarget callTarget,
             boolean captureBlock,
+            LexicalScope staticLexicalScope,
             boolean dynamicLexicalScope) {
+        assert (staticLexicalScope == null) == dynamicLexicalScope;
+
         this.name = name;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTarget = callTarget;
         this.captureBlock = captureBlock;
+        this.staticLexicalScope = staticLexicalScope;
         this.dynamicLexicalScope = dynamicLexicalScope;
         this.lexicalScopes = dynamicLexicalScope ? new ConcurrentHashMap<>() : null;
     }
 
-    public InternalMethod createMethod(VirtualFrame frame, LexicalScope staticLexicalScope, RubyModule module) {
+    public InternalMethod createMethod(VirtualFrame frame, RubyModule module) {
         final Object capturedBlock;
 
         if (captureBlock) {
@@ -81,8 +87,8 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
     @TruffleBoundary
     private LexicalScope prepareLexicalScope(LexicalScope staticLexicalScope, LexicalScope parentLexicalScope,
             RubyModule module) {
-        staticLexicalScope.unsafeSetLiveModule(module);
         if (!dynamicLexicalScope) {
+            staticLexicalScope.unsafeSetLiveModule(module);
             return staticLexicalScope;
         } else {
             // Cache the scope per module in case the module body is run multiple times.

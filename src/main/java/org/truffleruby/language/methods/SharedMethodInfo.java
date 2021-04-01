@@ -51,7 +51,6 @@ public class SharedMethodInfo {
             String parseName,
             String notes,
             ArgumentDescriptor[] argumentDescriptors) {
-        assert lexicalScope != null;
         assert blockDepth == 0 || backtraceName.startsWith("block ") : backtraceName;
         this.sourceSection = sourceSection;
         this.lexicalScope = lexicalScope;
@@ -108,6 +107,11 @@ public class SharedMethodInfo {
     }
 
     public LexicalScope getLexicalScope() {
+        assert lexicalScope != null;
+        return lexicalScope;
+    }
+
+    public LexicalScope getLexicalScopeOrNull() {
         return lexicalScope;
     }
 

@@ -10,7 +10,6 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -23,25 +22,19 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 
 public class RunModuleDefinitionNode extends RubyContextSourceNode {
 
-    protected final LexicalScope lexicalScope;
-
     @Child private RubyNode definingModule;
     @Child private ModuleBodyDefinitionNode definitionMethod;
     @Child private IndirectCallNode callModuleDefinitionNode = Truffle.getRuntime().createIndirectCallNode();
 
-    public RunModuleDefinitionNode(
-            LexicalScope lexicalScope,
-            ModuleBodyDefinitionNode definition,
-            RubyNode definingModule) {
+    public RunModuleDefinitionNode(ModuleBodyDefinitionNode definition, RubyNode definingModule) {
         this.definingModule = definingModule;
         this.definitionMethod = definition;
-        this.lexicalScope = lexicalScope;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final RubyModule module = (RubyModule) definingModule.execute(frame);
-        final InternalMethod definition = definitionMethod.createMethod(frame, lexicalScope, module);
+        final InternalMethod definition = definitionMethod.createMethod(frame, module);
 
         return callModuleDefinitionNode.call(definition.getCallTarget(), RubyArguments.pack(
                 null,

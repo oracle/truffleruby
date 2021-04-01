@@ -31,7 +31,7 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
     @Child GetConstantNode getConstantNode = GetConstantNode.create(false);
 
     public Object lookupForExistingModule(VirtualFrame frame, String name, RubyModule lexicalParent) {
-        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getSharedMethodInfo().getLexicalScope();
+        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
         return getConstantNode.lookupAndResolveConstant(lexicalScope, lexicalParent, name, this);
     }
 

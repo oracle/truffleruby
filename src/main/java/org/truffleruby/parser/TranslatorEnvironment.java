@@ -75,6 +75,8 @@ public class TranslatorEnvironment {
             FrameDescriptor frameDescriptor,
             String modulePath,
             boolean dynamicConstantLookup) {
+        assert dynamicConstantLookup == (sharedMethodInfo.getLexicalScopeOrNull() == null);
+
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;
@@ -109,8 +111,7 @@ public class TranslatorEnvironment {
 
     public LexicalScope getLexicalScopeOrNull() {
         if (isDynamicConstantLookup()) {
-            // TODO (eregon, 4 Dec. 2016): we should return null here.
-            return sharedMethodInfo.getLexicalScope();
+            return null;
         } else {
             return sharedMethodInfo.getLexicalScope();
         }
