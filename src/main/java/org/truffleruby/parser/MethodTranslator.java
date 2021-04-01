@@ -102,11 +102,10 @@ public class MethodTranslator extends BodyTranslator {
         final Arity arity = argsNode.getArity();
         final Arity arityForCheck;
 
-        /* If you have a block with parameters |a,| Ruby checks the arity as if was minimum 1, maximum 1. That's
-         * counter-intuitive - as you'd expect the anonymous rest argument to cause it to have no maximum. Indeed,
-         * that's how JRuby reports it, and by the look of their failing spec they consider this to be correct. We'll
-         * follow the specs for now until we see a reason to do something else. */
-
+        /* If you have a block with parameters |a,| Ruby checks the arity as if was minimum 1, maximum 1 like |a|.
+         * That's counter-intuitive - as you'd expect the anonymous rest argument to cause it to have no maximum. It
+         * differs from |a| for non-lambda Procs where it causes destructuring. See
+         * https://github.com/jruby/jruby/blob/324cd78c/core/src/main/java/org/jruby/runtime/Signature.java#L117-L120 */
         if (argsNode.getRestArgNode() instanceof UnnamedRestArgParseNode &&
                 !((UnnamedRestArgParseNode) argsNode.getRestArgNode()).isStar()) {
             arityForCheck = arity.withRest(false);
@@ -309,16 +308,13 @@ public class MethodTranslator extends BodyTranslator {
 
         return () -> {
             final RubyNode bodyForLambda = emitLambda
-                    // Stabby lambda: the proc compiler will never be called, safe to copy.
+                    // Stabby lambda: the proc compiler will never be called, safe to not copy.
                     // Method named lambda: if conversion to proc needed, will copy in the proc compiler & reverse the
                     //   return transformation.
                     ? body
                     : NodeUtil.cloneNode(body);
 
-            final RubyNode preludeLambda = Translator.createCheckArityNode(
-                    language,
-                    arityForCheck,
-                    NodeUtil.cloneNode(loadArguments));
+            final RubyNode preludeLambda = isStabbyLambda ? loadArguments : NodeUtil.cloneNode(loadArguments);
 
             final RubyNode bodyLambda = composeBody(environment, sourceSection, preludeLambda, bodyForLambda);
 
@@ -330,7 +326,8 @@ public class MethodTranslator extends BodyTranslator {
                     bodyLambda,
                     Split.HEURISTIC,
                     environment.getReturnID(), // "hijack" return ID
-                    environment.getBreakID());
+                    environment.getBreakID(),
+                    arityForCheck);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(newRootNodeForLambdas);
 
@@ -377,7 +374,6 @@ public class MethodTranslator extends BodyTranslator {
 
     public RubyNode compileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
         declareArguments();
-        final Arity arity = argsNode.getArity();
 
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
@@ -391,16 +387,10 @@ public class MethodTranslator extends BodyTranslator {
 
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode).simplifyAsTailExpression();
 
-        final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
-
-        body = createCheckArityNode(
-                language,
-                arity,
-                sequence(bodySourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body)));
-        body.unsafeSetSourceSection(sourceSection);
+        body = sequence(sourceSection, Arrays.asList(new MakeSpecialVariableStorageNode(), loadArguments, body));
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
+            body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
         return body;
@@ -417,7 +407,8 @@ public class MethodTranslator extends BodyTranslator {
                 environment.getSharedMethodInfo(),
                 compileMethodBody(sourceSection, bodyNode),
                 Split.HEURISTIC,
-                environment.getReturnID());
+                environment.getReturnID(),
+                argsNode.getArity());
     }
 
     public CachedSupplier<RootCallTarget> buildMethodNodeCompiler(SourceIndexLength sourceSection,

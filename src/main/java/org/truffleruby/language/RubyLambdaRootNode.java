@@ -20,6 +20,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
 import org.truffleruby.language.methods.TranslateExceptionNode;
@@ -31,13 +32,14 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyLambdaRootNode extends RubyRootNode {
+public class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
     public static RubyLambdaRootNode of(RootCallTarget callTarget) {
         return (RubyLambdaRootNode) callTarget.getRootNode();
     }
 
     public final BreakID breakID;
+
     @Child private TranslateExceptionNode translateExceptionNode;
 
     private final BranchProfile localReturnProfile = BranchProfile.create();
@@ -55,14 +57,17 @@ public class RubyLambdaRootNode extends RubyRootNode {
             RubyNode body,
             Split split,
             ReturnID returnID,
-            BreakID breakID) {
-        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID);
+            BreakID breakID,
+            Arity arityForCheck) {
+        super(language, sourceSection, frameDescriptor, sharedMethodInfo, body, split, returnID, arityForCheck);
         this.breakID = breakID;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         SafepointManager.poll(language, this);
+
+        checkArity(frame);
 
         try {
             while (true) {
@@ -78,7 +83,7 @@ public class RubyLambdaRootNode extends RubyRootNode {
             localReturnProfile.enter();
             return e.getValue();
         } catch (DynamicReturnException e) {
-            if (matchingReturnProfile.profile(e.getReturnID() == returnID)) {
+            if (matchingReturnProfile.profile(returnID != ReturnID.INVALID && e.getReturnID() == returnID)) {
                 return e.getValue();
             } else {
                 throw e;

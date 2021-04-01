@@ -16,14 +16,11 @@ import java.util.List;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.language.arguments.CheckArityNode;
-import org.truffleruby.language.arguments.CheckKeywordArityNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
-import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.ParseNode;
@@ -128,14 +125,6 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
             rubyNode = node.accept(this);
         }
         return rubyNode;
-    }
-
-    public static RubyNode createCheckArityNode(RubyLanguage language, Arity arity, RubyNode body) {
-        if (!arity.acceptsKeywords()) {
-            return new CheckArityNode(arity, body);
-        } else {
-            return new CheckKeywordArityNode(language, arity, body);
-        }
     }
 
     public static SourceSection translateSourceSection(Source source, SourceIndexLength sourceSection) {

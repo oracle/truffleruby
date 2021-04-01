@@ -187,6 +187,10 @@
       <property name="message" value='Use @TruffleBoundary instead.'/>
     </module>
     <module name="RegexpSinglelineJava">
+      <property name="format" value='TruffleLanguage\.ContextReference&lt;'/>
+      <property name="message" value='Use ContextReference instead.'/>
+    </module>
+    <module name="RegexpSinglelineJava">
       <property name="format" value='\.getBytes\(StandardCharsets\.US_ASCII\)'/>
       <property name="message" value='Use RopeOperations.encodeAsciiBytes() instead.'/>
     </module>

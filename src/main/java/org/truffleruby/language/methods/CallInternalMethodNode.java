@@ -29,8 +29,8 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import org.truffleruby.language.RubyCheckArityRootNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.CheckArityNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -79,7 +79,8 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         assert RubyArguments.assertValues(callerData, method, method.getDeclarationContext(), self, block, args);
 
         try {
-            CheckArityNode.checkArity(cachedArity, args.length, checkArityProfile, contextRef, alwaysInlinedNode);
+            RubyCheckArityRootNode
+                    .checkArity(cachedArity, args.length, checkArityProfile, contextRef, alwaysInlinedNode);
 
             return alwaysInlinedNode.execute(frame, self, args, block, cachedCallTarget);
         } catch (RaiseException e) {

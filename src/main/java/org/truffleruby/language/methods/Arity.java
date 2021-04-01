@@ -23,6 +23,7 @@ public final class Arity {
     public static final String[] NO_KEYWORDS = StringUtils.EMPTY_STRING_ARRAY;
     public static final Arity NO_ARGUMENTS = new Arity(0, 0, false);
     public static final Arity ONE_REQUIRED = new Arity(1, 0, false);
+    public static final Arity ANY_ARGUMENTS = new Arity(0, 0, true);
 
     private final int preRequired;
     private final int optional;
