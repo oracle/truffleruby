@@ -210,11 +210,10 @@ public abstract class TypeNodes {
     @Primitive(name = "object_ivar_defined?")
     public abstract static class ObjectIVarIsDefinedNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization
-        protected boolean ivarIsDefined(RubyDynamicObject object, RubySymbol name) {
-            final String ivar = name.getString();
-            return object.getShape().hasProperty(ivar);
+        @Specialization(limit = "getDynamicObjectCacheLimit()")
+        protected boolean ivarIsDefined(RubyDynamicObject object, RubySymbol name,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
+            return objectLibrary.containsKey(object, name.getString());
         }
 
     }

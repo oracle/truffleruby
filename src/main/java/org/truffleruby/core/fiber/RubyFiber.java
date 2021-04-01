@@ -58,7 +58,6 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         reachable.add(fiberLocals);
-        reachable.add(catchTags);
         reachable.add(rubyThread);
     }
 

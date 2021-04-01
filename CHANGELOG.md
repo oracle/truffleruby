@@ -15,6 +15,7 @@ Performance:
 * Make `#dig` iterative to make it faster and compile better for calls with 3+ arguments (#2301, @chrisseaton, @jantnovi).
 * Make `Struct#dig` faster in interpreter by avoiding exceptions (#2306, @kirs).
 * Reduce the number of AST nodes created for methods and blocks (#2261).
+* Fiber-local variables are much faster now by using less synchronization.
 
 Changes:
 

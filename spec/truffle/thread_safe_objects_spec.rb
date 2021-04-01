@@ -257,20 +257,19 @@ describe "Sharing is correctly propagated for" do
     shared?(new_hash).should == true
   end
 
-  it "Fiber local variables which do not share the value" do
+  it "Fiber local variables which share the value (since they can be accessed from other threads)" do
     require 'fiber'
-    # This spec relies on the Fiber not being shared,
-    # so create a new Thread to ensure the root Fiber is not shared.
+    # Create a new Thread to make sure the root Fiber is shared as expected
     Thread.new do
       thread = Thread.current
       shared?(thread).should == true
 
-      shared?(Fiber.current).should == false
+      shared?(Fiber.current).should == true
 
       obj = Object.new
       thread[:sharing_spec] = obj
       begin
-        shared?(obj).should == false
+        shared?(obj).should == true
       ensure
         thread[:sharing_spec] = nil
       end
