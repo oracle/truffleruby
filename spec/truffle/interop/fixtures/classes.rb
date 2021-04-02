@@ -164,6 +164,87 @@ module TruffleInteropSpecs
     end
   end
 
+  class PolyglotHash
+    attr_reader :log
+
+    def initialize
+      @log = []
+      @storage = {}
+    end
+
+    def polyglot_has_hash_entries?
+      @log << [__callee__]
+      true
+    end
+
+    def polyglot_hash_size
+      @log << [__callee__]
+      @storage.size
+    end
+
+    def polyglot_hash_entry_existing?(key)
+      @log << [__callee__, key]
+      @storage.key? key
+    end
+
+    def polyglot_hash_entry_insertable?(key)
+      @log << [__callee__, key]
+      !@storage.key?(key)
+    end
+
+    def polyglot_hash_entry_modifiable?(key)
+      @log << [__callee__, key]
+      @storage.key? key
+    end
+
+    def polyglot_hash_entry_readable?(key)
+      @log << [__callee__, key]
+      @storage.key? key
+    end
+
+    def polyglot_hash_entry_removable?(key)
+      @log << [__callee__, key]
+      @storage.key? key
+    end
+
+    def polyglot_hash_entry_writable?(key)
+      @log << [__callee__, key]
+      !@storage.key?(key)
+    end
+
+    def polyglot_read_hash_entry(key)
+      @log << [__callee__, key]
+      raise Truffle::Interop::UnknownKeyException unless @storage.key?(key)
+      @storage[key]
+    end
+
+    def polyglot_write_hash_entry(key, value)
+      @log << [__callee__, key, value]
+      @storage[key] = value
+    end
+
+    def polyglot_remove_hash_entry(key)
+      @log << [__callee__, key]
+      raise Truffle::Interop::UnknownKeyException unless @storage.key?(key)
+      @storage.delete(key)
+    end
+
+    def polyglot_hash_entries_iterator
+      @log << [__callee__]
+      @storage.each_pair
+    end
+
+    def polyglot_hash_keys_iterator
+      @log << [__callee__]
+      @storage.each_key
+    end
+
+    def polyglot_hash_values_iterator
+      @log << [__callee__]
+      @storage.each_value
+    end
+  end
+
   class PolyglotMember
     attr_reader :log
 
