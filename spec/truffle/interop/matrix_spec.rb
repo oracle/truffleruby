@@ -6,6 +6,49 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+# == Description
+# The purpose of this file is to test the methods in the `Truffle::Interop` module, which are used to send interop
+# messages to foreign object from Ruby code.
+#
+# This is called "matrix specs" because it tests all messages against all possible types that may receive that message.
+#
+# == Calling interop methods from Ruby
+# Interop messages can be sent from ruby by using the methods in the `Interop` module. These methods will
+# throw Ruby errors (on the left in the list below) which match the corresponding Java exception types (on the right)
+# thrown by the message implementation. The translation is performed by a `TranslateInteropExceptionNode`.
+#
+# Polyglot::UnsupportedMessageError     <- UnsupportedMessageException
+#   inherits from StandardError
+# IndexError                            <- InvalidArrayIndexException
+# NameError                             <- UnknownIdentifierException
+#   NoMethodError if the message was invokeMember, NoMethodError inherits from NameError so it is fine
+# ArgumentError                         <- ArityException
+# TypeError                             <- UnsupportedTypeException
+# KeyError                              <- UnknownKeyException
+#
+# The same rules will also apply when using some Ruby special forms on a foreign object (instead of going through
+# the methods in the `Interop` module). For instance:
+# - `foreign[-1] = :v` => IndexError if index is invalid
+# - `foreign.call()`   => Polyglot::UnsupportedMessageError if not executable
+# - `foreign.a_method` => NoMethodError if the member is not invocable
+#
+# See /doc/contributor/interop_implicit_api.md for more information about these special forms.
+#
+# == Dynamic Ruby Interop API
+# Any Ruby object can implement (some of) the interop messages by implementing `polyglot_*` methods.
+# See /doc/contributor/interop.md and /doc/contributor/interop_details.md.
+#
+# These methods will be implemented by the user, in Ruby. As the messages specify Java exceptions to be thrown,
+# the user should instead throw the exceptions of the same name under the `Interop` module (e.g.
+# `Interop::UnsupportedMessageException` for the Java `UnsupportedMesasageException`).
+#
+# These `Interop` exceptions inherit from `Interop::InteropException` (itself inheriting from `Exception`).
+# This means they aren't caught by the default `rescue` statement, which only catches inheritors of `StandardError`.
+# Note that `StandardError` is a `TruffleException`, and so it will bubble up to the Java level if raised.
+#
+# Note that Interop.invoke_member should check arity explicitly and raise `Interop::ArityException` if it is not
+# what is expected.
+
 require 'bigdecimal'
 
 require_relative '../../ruby/spec_helper'
@@ -39,45 +82,6 @@ module MSpecMatchers
 end
 
 describe 'Interop:' do
-
-  # TODO (pitr-ch 18-Mar-2020): move the notes
-
-  # == Dynamic Ruby API   ->
-  # * Use custom exceptions to never confuse implementation bug with
-  #   what is suppose to be thrown on the Java side.
-  # * Low level internal API, fine to be explicit and more complicated.
-  # * no polyglot dynamic API raising it arity exception, therefore omitted
-  #
-  # Interop::UnsupportedMessageException -> UnsupportedMessageException
-  # Interop::InvalidArrayIndexException  -> InvalidArrayIndexException
-  # Interop::UnknownIdentifierException  -> UnknownIdentifierException
-  # Interop::UnsupportedTypeException    -> UnsupportedTypeException
-  # e.is_a?(StandardError)               -> is alllowed to bubble up, it is a TruffleException
-  #
-  # * All Interop::* exceptions above inherit from Interop::InteropException < Exception
-  #   Stands apart from normal Ruby exceptions so it cannot be rescued accidentally.
-  # * Interop.invoke_member should check arity explicitly and raise ArgumentError (<- ArityException).
-  #   Other exceptions are allowed to bubble up, they are TruffleExceptions
-  #
-  # == Exception raised by Interop methods <-
-  # Polyglot::UnsupportedMessageError     <- UnsupportedMessageException
-  #   inherits from StandardError
-  # IndexError                            <- InvalidArrayIndexException
-  # NameError                             <- UnknownIdentifierException
-  #   NoMethodError if the message was invokeMember, NoMethodError inherits from NameError so it is fine
-  # ArgumentError                         <- ArityException
-  # TypeError                             <- UnsupportedTypeException
-  #
-  # # TODO (pitr-ch 02-Mar-2020): following
-  # * same translation will be also applied in the any special forms applied to foreign objects like
-  #   `foreign[-1] = :v` => IndexError if index is invalid
-  #   `foreign.call()`   => Polyglot::UnsupportedMessageError if not executable
-  #   `foreign.a_method` => NoMethodError if the member is not invocable
-  #                         UnknownIdentifierException translated to NoMethodError on invokeMember message
-
-  # Other notes: marking modules and Interop::* exceptions belong under TruffleRuby namespace
-  # and explicit API belongs under Polyglot namespace. Since the first one is for internal
-  # TruffleRuby implementation of polyglot behaviour the other one is outward, to talk to other languages.
 
   INSPECTION  = -> v { code v.inspect }
   AN_INSTANCE = -> v do
@@ -192,9 +196,24 @@ describe 'Interop:' do
       polyglot_as_pointer
       polyglot_to_native]
 
+  hash_polyglot_methods = %w[
+      polyglot_has_hash_entries?
+      polyglot_hash_size
+      polyglot_hash_entry_existing?
+      polyglot_hash_entry_insertable?
+      polyglot_hash_entry_modifiable?
+      polyglot_hash_entry_readable?
+      polyglot_hash_entry_removable?
+      polyglot_hash_entry_writable?
+      polyglot_read_hash_entry
+      polyglot_write_hash_entry
+      polyglot_remove_hash_entry
+      polyglot_hash_entries_iterator
+      polyglot_hash_keys_iterator
+      polyglot_hash_values_iterator]
+
   interop_library_reference = "  The methods correspond to messages defined in\n" +
       "  [InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html)."
-
 
   # TODO (pitr-ch 20-Feb-2020): test objects from CExt ?
   # TODO (pitr-ch 13-Feb-2020): add number corner cases
@@ -234,6 +253,7 @@ describe 'Interop:' do
           name:        AN_INSTANCE,
           doc:         true,
           explanation: "an object implementing the polyglot pointer API.") { Truffle::FFI::Pointer.new(0) },
+
       polyglot_pointer: Subject.new(
           name:        "polyglot pointer",
           doc:         true,
@@ -247,12 +267,20 @@ describe 'Interop:' do
           explanation: "an object which implements the `polyglot_*` methods for members, which are:\n  " +
                            member_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
                            interop_library_reference) { TruffleInteropSpecs::PolyglotMember.new },
+
       polyglot_array:   Subject.new(
           doc:         true,
           name:        "polyglot array",
           explanation: "an object which implements the `polyglot_*` methods for array elements, which are:\n  " +
                            array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
-                           interop_library_reference) { TruffleInteropSpecs::PolyglotArray.new }
+                           interop_library_reference) { TruffleInteropSpecs::PolyglotArray.new },
+
+      polyglot_hash:    Subject.new(
+        doc:         true,
+        name:        "polyglot hash",
+        explanation: "an object which implements the `polyglot_*` methods for hash elements, which are:\n  " +
+          hash_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+          interop_library_reference) { TruffleInteropSpecs::PolyglotHash.new }
   }.each { |key, subject| subject.key = key }
 
   immediate_subjects     = [:false, :true, :zero, :small_integer, :zero_float, :small_float]
@@ -415,6 +443,142 @@ describe 'Interop:' do
       array_element_predicate(:isArrayElementModifiable, :array_element_modifiable?, true),
       array_element_predicate(:isArrayElementInsertable, :array_element_insertable?, false),
       array_element_predicate(:isArrayElementRemovable, :array_element_removable?, true),
+
+      Delimiter["Hash related messages"],
+      Message[:hasHashEntries,
+              Test.new("returns true", :hash, :polyglot_hash, &predicate(:has_hash_entries?, true)),
+              Test.new("returns false", &predicate(:has_hash_entries?, false))],
+      Message[:getHashSize,
+              Test.new("returns size of the hash", :hash, :polyglot_hash) do |subject|
+                Truffle::Interop.hash_size(subject).should == 0
+                key = Object.new
+                value = Object.new
+                Truffle::Interop.write_hash_entry(subject, key, value)
+                Truffle::Interop.hash_size(subject).should == 1
+                Truffle::Interop.remove_hash_entry(subject, key)
+                Truffle::Interop.hash_size(subject).should == 0
+              end,
+              unsupported_test { |subject| Truffle::Interop.hash_size(subject) }],
+      Message[:isHashEntryExisting,
+              Test.new("returns true if there is an entry for the key", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.hash_entry_existing?(subject, key).should == false
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.hash_entry_existing?(subject, key).should == true
+              end,
+              Test.new("returns false") { |subject| Truffle::Interop.hash_entry_existing?(subject, 0).should == false }],
+      Message[:isHashEntryReadable,
+              Test.new("returns true if there is a readable entry for the key", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.hash_entry_readable?(subject, key).should == false
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.hash_entry_readable?(subject, key).should == true
+              end,
+              Test.new("returns false") { |subject| Truffle::Interop.hash_entry_readable?(subject, 0).should == false }],
+      Message[:isHashEntryInsertable,
+              Test.new("returns true if the key can be inserted", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.hash_entry_insertable?(subject, key).should == true
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.hash_entry_insertable?(subject, key).should == false
+              end,
+              Test.new("returns false") { |subject| Truffle::Interop.hash_entry_insertable?(subject, 0).should == false }],
+      Message[:isHashEntryRemovable,
+              Test.new("returns true if there is a removable entry for the key", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.hash_entry_removable?(subject, key).should == false
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.hash_entry_removable?(subject, key).should == true
+              end,
+              Test.new("returns false") { |subject| Truffle::Interop.hash_entry_removable?(subject, 0).should == false }],
+      Message[:isHashEntryModifiable,
+              Test.new("returns true if there is a modifiable entry for the key", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.hash_entry_modifiable?(subject, key).should == false
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.hash_entry_modifiable?(subject, key).should == true
+              end,
+              Test.new("returns false") { |subject| Truffle::Interop.hash_entry_modifiable?(subject, 0).should == false }],
+      Message[:isHashEntryWritable,
+              Test.new("returns true if the key can be inserted or there is a modifiable entry for it", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.hash_entry_writable?(subject, key).should == true
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.hash_entry_writable?(subject, key).should == true
+              end,
+              Test.new("returns false") { |subject| Truffle::Interop.hash_entry_writable?(subject, 0).should == false }],
+      Message[:readHashValue,
+              Test.new("reads an entry that exists", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.read_hash_value(subject, key).should polyglot_match key
+              end,
+              Test.new("fails with KeyError if the entry does not exist", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                -> { Truffle::Interop.read_hash_value(subject, key) }.should raise_error(KeyError)
+              end,
+              unsupported_test { |subject| Truffle::Interop.read_hash_value(subject, 0) }],
+      Message[:writeHashEntry,
+              Test.new("writes entries, new and existing", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.read_hash_value(subject, key).should polyglot_match key
+                Truffle::Interop.write_hash_entry(subject, key, key.to_s)
+                Truffle::Interop.read_hash_value(subject, key).should polyglot_match key.to_s
+              end,
+              unsupported_test { |subject| Truffle::Interop.write_hash_entry(subject, 0, 0) }],
+      Message[:removeHashEntry,
+              Test.new("removes existing entries", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.write_hash_entry(subject, key, key)
+                Truffle::Interop.remove_hash_entry(subject, key)
+                Truffle::Interop.hash_entry_existing?(subject, key).should == false
+              end,
+              Test.new("fails with KeyError if the entry does not exist", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                -> { Truffle::Interop.read_hash_value(subject, key) }.should raise_error(KeyError)
+              end,
+              unsupported_test { |subject| Truffle::Interop.remove_hash_entry(subject, 0) }],
+      Message[:getHashEntriesIterator,
+              Test.new("retrieves an entry iterator", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.write_hash_entry(subject, 0, key)
+                Truffle::Interop.write_hash_entry(subject, 1, key)
+                iterator = Truffle::Interop.hash_entries_iterator(subject)
+                Truffle::Interop.has_iterator_next_element?(iterator).should == true
+                Truffle::Interop.iterator_next_element(iterator).should polyglot_match [0, key]
+                Truffle::Interop.has_iterator_next_element?(iterator).should == true
+                Truffle::Interop.iterator_next_element(iterator).should polyglot_match [1, key]
+                Truffle::Interop.has_iterator_next_element?(iterator).should == false
+              end,
+              Test.new("fails with StopIterationException if the hash is empty", :hash, :polyglot_hash) do |subject|
+                iterator = Truffle::Interop.hash_entries_iterator(subject)
+                # TODO introduce StopIterationException in Ruby
+                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(Exception)
+              end,
+              unsupported_test { |subject| Truffle::Interop.hash_entries_iterator(subject) }],
+      Message[:getHashKeysIterator,
+              Test.new("retrieves a key iterator", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.write_hash_entry(subject, key, 0)
+                Truffle::Interop.write_hash_entry(subject, 42, 43)
+                iterator = Truffle::Interop.hash_keys_iterator(subject)
+                Truffle::Interop.has_iterator_next_element?(iterator).should == true
+                Truffle::Interop.iterator_next_element(iterator).should polyglot_match key
+                Truffle::Interop.has_iterator_next_element?(iterator).should == true
+                Truffle::Interop.iterator_next_element(iterator).should == 42
+                Truffle::Interop.has_iterator_next_element?(iterator).should == false
+              end,
+              Test.new("fails with StopIterationException if the hash is empty", :hash, :polyglot_hash) do |subject|
+                iterator = Truffle::Interop.hash_keys_iterator(subject)
+                # TODO introduce StopIterationException in Ruby
+                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(Exception)
+              end,
+              unsupported_test { |subject| Truffle::Interop.hash_entries_iterator(subject) }],
+      Message[:getHashValuesIterator,
+              Test.new("retrieves a value iterator", :hash, :polyglot_hash, mode: :values) do |subject, key|
+                Truffle::Interop.write_hash_entry(subject, 0, key)
+                Truffle::Interop.write_hash_entry(subject, 42, 43)
+                iterator = Truffle::Interop.hash_values_iterator(subject)
+                Truffle::Interop.has_iterator_next_element?(iterator).should == true
+                Truffle::Interop.iterator_next_element(iterator).should polyglot_match key
+                Truffle::Interop.has_iterator_next_element?(iterator).should == true
+                Truffle::Interop.iterator_next_element(iterator).should == 43
+                Truffle::Interop.has_iterator_next_element?(iterator).should == false
+              end,
+              Test.new("fails with StopIterationException if the hash is empty", :hash, :polyglot_hash) do |subject|
+                iterator = Truffle::Interop.hash_values_iterator(subject)
+                # TODO introduce StopIterationException in Ruby
+                -> { Truffle::Interop.iterator_next_element(iterator) }.should raise_error(Exception)
+              end,
+              unsupported_test { |subject| Truffle::Interop.hash_entries_iterator(subject) }],
 
       Delimiter["Members related messages (incomplete)"],
       Message[:readMember,
