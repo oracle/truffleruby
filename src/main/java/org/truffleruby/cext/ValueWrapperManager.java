@@ -87,6 +87,11 @@ public class ValueWrapperManager {
         return threadBlocks.get();
     }
 
+    @TruffleBoundary
+    public void cleanupBlockHolder() {
+        threadBlocks.remove();
+    }
+
     /* We keep a map of long wrappers that have been generated because various C extensions assume that any given fixnum
      * will translate to a given VALUE. */
     public ValueWrapper longWrapper(long value) {

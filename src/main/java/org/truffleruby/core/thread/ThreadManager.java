@@ -582,6 +582,8 @@ public class ThreadManager {
     public void cleanupValuesForJavaThread(Thread thread) {
         if (Thread.currentThread() == thread) {
             currentThread.remove();
+            context.getMarkingService().cleanupThreadLocalData();
+            context.getValueWrapperManager().cleanupBlockHolder();
         }
         javaThreadToRubyThread.remove(thread);
 

@@ -166,6 +166,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         return threadLocalData.get();
     }
 
+    @TruffleBoundary
+    public void cleanupThreadLocalData() {
+        threadLocalData.remove();
+    }
+
     public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
         super(context, referenceProcessor);
         threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
