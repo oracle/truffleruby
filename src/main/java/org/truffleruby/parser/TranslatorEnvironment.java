@@ -95,29 +95,15 @@ public class TranslatorEnvironment {
     }
 
     public boolean isDynamicConstantLookup() {
-        return parseEnvironment.isDynamicConstantLookup();
+        return sharedMethodInfo.getStaticLexicalScopeOrNull() == null;
     }
 
-    public LexicalScope getLexicalScope() {
-        assert !isDynamicConstantLookup();
-        return parseEnvironment.getLexicalScope();
+    public LexicalScope getStaticLexicalScope() {
+        return sharedMethodInfo.getStaticLexicalScope();
     }
 
-    public LexicalScope getLexicalScopeOrNull() {
-        if (isDynamicConstantLookup()) {
-            // TODO (eregon, 4 Dec. 2016): we should return null here.
-            return parseEnvironment.getLexicalScope();
-        } else {
-            return parseEnvironment.getLexicalScope();
-        }
-    }
-
-    public LexicalScope pushLexicalScope() {
-        return parseEnvironment.pushLexicalScope();
-    }
-
-    public void popLexicalScope() {
-        parseEnvironment.popLexicalScope();
+    public LexicalScope getStaticLexicalScopeOrNull() {
+        return sharedMethodInfo.getStaticLexicalScopeOrNull();
     }
 
     public TranslatorEnvironment getParent() {
@@ -247,10 +233,6 @@ public class TranslatorEnvironment {
 
     public void setBreakIDForWhile(BreakID breakID) {
         this.breakID = breakID;
-    }
-
-    public LexicalScope unsafeGetLexicalScope() {
-        return parseEnvironment.getLexicalScope();
     }
 
     public TranslatorEnvironment getSurroundingMethodEnvironment() {

@@ -28,7 +28,8 @@ import com.oracle.truffle.api.source.SourceSection;
 public class SharedMethodInfo {
 
     private final SourceSection sourceSection;
-    private final LexicalScope lexicalScope;
+    /** LexicalScope if it can be determined statically at parse time, otherwise null */
+    private final LexicalScope staticLexicalScope;
     private final Arity arity;
     /** The original name of the method. Does not change when aliased. Looks like "block in foo" or
      * "block (2 levels) in foo" for blocks. This is the name shown in backtraces: "from FILE:LINE:in `NAME'". */
@@ -44,17 +45,16 @@ public class SharedMethodInfo {
 
     public SharedMethodInfo(
             SourceSection sourceSection,
-            LexicalScope lexicalScope,
+            LexicalScope staticLexicalScope,
             Arity arity,
             String backtraceName,
             int blockDepth,
             String parseName,
             String notes,
             ArgumentDescriptor[] argumentDescriptors) {
-        assert lexicalScope != null;
         assert blockDepth == 0 || backtraceName.startsWith("block ") : backtraceName;
         this.sourceSection = sourceSection;
-        this.lexicalScope = lexicalScope;
+        this.staticLexicalScope = staticLexicalScope;
         this.arity = arity;
         this.backtraceName = backtraceName;
         this.blockDepth = blockDepth;
@@ -66,7 +66,7 @@ public class SharedMethodInfo {
     public SharedMethodInfo forDefineMethod(RubyModule declaringModule, String methodName) {
         return new SharedMethodInfo(
                 sourceSection,
-                lexicalScope,
+                staticLexicalScope,
                 arity,
                 methodName,
                 0, // no longer a block
@@ -82,7 +82,7 @@ public class SharedMethodInfo {
 
         return new SharedMethodInfo(
                 sourceSection,
-                lexicalScope,
+                staticLexicalScope,
                 arity.consumingFirstRequired(),
                 methodName,
                 blockDepth,
@@ -94,7 +94,7 @@ public class SharedMethodInfo {
     public SharedMethodInfo withArity(Arity newArity) {
         return new SharedMethodInfo(
                 sourceSection,
-                lexicalScope,
+                staticLexicalScope,
                 newArity,
                 backtraceName,
                 blockDepth,
@@ -107,8 +107,13 @@ public class SharedMethodInfo {
         return sourceSection;
     }
 
-    public LexicalScope getLexicalScope() {
-        return lexicalScope;
+    public LexicalScope getStaticLexicalScope() {
+        assert staticLexicalScope != null;
+        return staticLexicalScope;
+    }
+
+    public LexicalScope getStaticLexicalScopeOrNull() {
+        return staticLexicalScope;
     }
 
     public Arity getArity() {

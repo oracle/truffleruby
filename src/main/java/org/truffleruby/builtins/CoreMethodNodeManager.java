@@ -285,7 +285,7 @@ public class CoreMethodNodeManager {
             module.fields.addMethod(context, null, new InternalMethod(
                     context,
                     sharedMethodInfo,
-                    sharedMethodInfo.getLexicalScope(),
+                    sharedMethodInfo.getStaticLexicalScope(),
                     DeclarationContext.NONE,
                     name,
                     module,

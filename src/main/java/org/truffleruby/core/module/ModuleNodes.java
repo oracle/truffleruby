@@ -1594,7 +1594,7 @@ public abstract class ModuleNodes {
             final List<RubyModule> modules = new ArrayList<>();
 
             InternalMethod method = getContext().getCallStack().getCallingMethod();
-            LexicalScope lexicalScope = method == null ? null : method.getSharedMethodInfo().getLexicalScope();
+            LexicalScope lexicalScope = method == null ? null : method.getLexicalScope();
             RubyClass objectClass = coreLibrary().objectClass;
 
             while (lexicalScope != null) {
