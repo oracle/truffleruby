@@ -11,7 +11,7 @@ themselves are explained in the
 [Truffle JavaDoc](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html).
 
 There is a separate document aimed at people using interop to write
-[polyglot programs](../user/polyglot.md). This document gives more internal
+[polyglot programs](../user/polyglot.md). The current document gives more internal
 details.
 
 * [How Ruby responds to messages](#how-ruby-responds-to-messages)
@@ -30,24 +30,27 @@ details.
 ## How Ruby responds to messages
 
 All interop message implementations of different Ruby object types are defined
-in package `org.truffleruby.interop.messages`, with the exception of `nil`. Its
-messages are defined directly on the singleton object
-`org.truffleruby.language.Nil`.
- 
-`RubyObjectMessages` defines the common behavior for all Ruby objects. Other
-Ruby core classes like `StringMessages`, `ArrayMessages`, etc. then inherit from
-it and modify the behavior.
+in the Java class that represents the object (this is indicated by the `@ExportLibrary(InteropLibrary.class)`
+annotation):
+
+- `org.truffleruby.language.RubyDynamicObject`: Common behaviour for all, overriden by the other classes in this list.
+- `org.truffleruby.core.array.RubyArray`
+- `org.truffleruby.core.hash.RubyHash`
+- `org.truffleruby.core.string.RubyString`
+- `org.truffleruby.language.Nil`
+- and many more (search for `@ExportLibrary(InteropLibrary.class)` for a full list)
 
 As expected:
 - `BasicObject` has polyglot members
 - `Array` has polyglot array elements
 - `Proc` and `Method` are polyglot executable
 - `String` and `Symbol` are polyglot strings
+- `Hash` has polyglot hash entries
 
 Any Ruby object can implement the polyglot array, pointer or member behavior by
 implementing the appropriate `polyglot_*` methods. It is called the **dynamic
 polyglot API**. The list of the methods which have to be implemented can be
-found in the [details](interop_details.md), see polyglot pointer, polyglot array
+found in the [details](interop_details.md), see polyglot pointer, polyglot array, polyglot hash,
 and polyglot members. If the `polyglot_*` method need to raise an
 [InteropException](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropException.html)
 exception like
@@ -55,7 +58,7 @@ exception like
 it raises corresponding Ruby exception available in `Truffle::Interop` module.
 The names are the same, e.g. `Truffle::Interop::UnsupportedMessageException`.
 These exceptions inherit from `Exception`, therefore they are not caught by
-default in `rescue`. Only `Truffle::Interop::ArityException` takes an
+default in `rescue` (which catches descendants of `StandardError`). Only `Truffle::Interop::ArityException`takes an
 argument, an `Integer` to describe the number of expected arguments.
 
 The detailed definitions of the behavior can be found in
@@ -85,6 +88,7 @@ to a Ruby exception as follows:
 - `UnknownIdentifierException`  → `NameError` or `NoMethodError` if the message is `invokeMember`
 - `ArityException`              → `ArgumentError`
 - `UnsupportedTypeException`    → `TypeError`
+- `UnknownKeyException`         → `KeyError`
 
 ## What messages are sent for Ruby syntax on foreign objects - Implicit polyglot API
 
