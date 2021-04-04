@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Make interpolated strings frozen for compatibility with Ruby 2.7 (#2304, @kirs).
+* Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp)
 
 Performance:
 
@@ -44,7 +45,6 @@ Bug fixes:
 * Set errinfo when `rb_protect` captures a Ruby exception (#2245).
 * Fixed handling of multiple optional arguments and keywords when passed a positional `Hash` (#2302).
 
-* Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp)
 Compatibility:
 
 * Prepend the GraalVM LLVM Toolchain to `PATH` when installing gems (#1974, #1088, #1343, #1400, #1947, #1931, #1588).
