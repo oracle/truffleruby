@@ -863,15 +863,31 @@ public abstract class HashNodes {
                 @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             final Object[] store = (Object[]) hash.store;
-            final int size = hash.size;
+            int size = hash.size;
+            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
 
-            PackedArrayStrategy.promoteToBuckets(getContext(), hash, store, size);
-            rehashBuckets(hash, byIdentityProfile);
+            for (int n = 0; n < size; n++) {
+                final Object key = PackedArrayStrategy.getKey(store, n);
+                final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity);
+                PackedArrayStrategy.setHashed(store, n, newHash);
 
-            assert HashOperations.verifyStore(getContext(), hash);
+                for (int m = n - 1; m >= 0; m--) {
+                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.equalKeys(
+                            compareByIdentity,
+                            key,
+                            newHash,
+                            PackedArrayStrategy.getKey(store, m),
+                            PackedArrayStrategy.getHashed(store, m))) {
+                        PackedArrayStrategy.removeEntry(getLanguage(), store, n);
+                        size--;
+                        n--;
+                        break;
+                    }
+                }
+            }
 
+            hash.size = size;
             return hash;
         }
 
@@ -881,51 +897,43 @@ public abstract class HashNodes {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+
             final Entry[] entries = (Entry[]) hash.store;
             Arrays.fill(entries, null);
 
             Entry entry = hash.firstInSequence;
-            Entry previousEntry = null;
-
             while (entry != null) {
                 final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
                 entry.setHashed(newHash);
                 entry.setNextInLookup(null);
+
                 final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
                 Entry bucketEntry = entries[index];
 
                 if (bucketEntry == null) {
                     entries[index] = entry;
-                    previousEntry = entry;
                 } else {
-                    boolean encounteredDuplicateKey = false;
-                    while (bucketEntry.getNextInLookup() != null) {
+                    Entry previousEntry = entry;
+
+                    do {
                         if (compareHashKeysNode.equalKeys(
                                 compareByIdentity,
                                 entry.getKey(),
-                                entry.getHashed(),
+                                newHash,
                                 bucketEntry.getKey(),
                                 bucketEntry.getHashed())) {
-                            encounteredDuplicateKey = true;
+                            BucketsStrategy.removeFromSequenceChain(hash, entry);
+                            if (hash.lastInSequence == entry) {
+                                hash.lastInSequence = entry.getPreviousInSequence();
+                            }
+                            hash.size--;
                             break;
                         }
+                        previousEntry = bucketEntry;
                         bucketEntry = bucketEntry.getNextInLookup();
-                    }
-                    if (encounteredDuplicateKey || compareHashKeysNode.equalKeys(
-                            compareByIdentity,
-                            entry.getKey(),
-                            entry.getHashed(),
-                            bucketEntry.getKey(),
-                            bucketEntry.getHashed())) { // If the bucket contains a single entry, we never set the flag
-                        if (previousEntry != null) {
-                            previousEntry.setNextInSequence(entry.getNextInSequence());
-                        }
-                        hash.size--;
-                    } else {
-                        bucketEntry.setNextInLookup(entry);
-                        previousEntry = entry;
-                    }
+                    } while (bucketEntry != null);
 
+                    previousEntry.setNextInLookup(entry);
                 }
                 entry = entry.getNextInSequence();
             }
