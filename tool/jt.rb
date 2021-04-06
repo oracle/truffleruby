@@ -563,7 +563,14 @@ module Utilities
     mx_args = args.dup
 
     env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
-    mx_args.unshift '--java-home', java_home unless java_home == :use_env_java_home or java_home == :none
+    if java_home == :use_env_java_home
+      # mx reads $JAVA_HOME
+    elsif java_home == :none
+      # Make sure $JAVA_HOME is not set, as a wrong value causes mx to abort
+      env['JAVA_HOME'] = nil
+    else
+      mx_args.unshift '--java-home', java_home
+    end
 
     raw_sh(env, find_mx, *mx_args, **options)
   end
@@ -579,8 +586,8 @@ module Utilities
   end
 
   def git_clone(url, path)
-    # Don't check $JAVA_HOME, mx sclone doesn't use it
-    mx('sclone', '--kind', 'git', url, path, java_home: :use_env_java_home)
+    # Unset $JAVA_HOME, mx sclone should not use it, and $JAVA_HOME might be set to the standalone home in graalvm tests
+    mx('sclone', '--kind', 'git', url, path, java_home: :none)
   end
 
   def run_mspec(env_vars, command = 'run', *args)
