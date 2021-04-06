@@ -55,8 +55,17 @@ public class CodeLoader {
             RubyRootNode rootNode,
             MaterializedFrame parentFrame,
             Object self) {
-        final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+        RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+        return prepareExecute(parserContext, declarationContext, rootNode, parentFrame, self, callTarget);
+    }
 
+    @TruffleBoundary
+    public DeferredCall prepareExecute(ParserContext parserContext,
+            DeclarationContext declarationContext,
+            RubyRootNode rootNode,
+            MaterializedFrame parentFrame,
+            Object self,
+            RootCallTarget callTarget) {
         final RubyModule declaringModule;
 
         if (parserContext == ParserContext.EVAL && parentFrame != null) {

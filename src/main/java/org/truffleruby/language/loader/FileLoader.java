@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 import com.oracle.truffle.api.nodes.Node;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -58,7 +59,8 @@ public class FileLoader {
         }
     }
 
-    public RubySource loadFile(Env env, String path) throws IOException {
+
+    public Pair<Source, Rope> loadFileSource(Env env, String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
         }
@@ -72,10 +74,13 @@ public class FileLoader {
 
         final byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
         final Source source = buildSource(file, path, sourceRope, isInternal(path));
+        return Pair.create(source, sourceRope);
+    }
 
-        return new RubySource(source, path, sourceRope);
+    public RubySource loadFile(Env env, String path) throws IOException {
+        final Pair<Source, Rope> sourceRopePair = loadFileSource(env, path);
+        return new RubySource(sourceRopePair.getLeft(), path, sourceRopePair.getRight());
     }
 
     static TruffleFile getSafeTruffleFile(RubyContext context, String path) {

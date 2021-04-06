@@ -31,7 +31,7 @@ import com.oracle.truffle.api.source.Source;
  */
 public class ResourceLoader {
 
-    public RubySource loadResource(String path, boolean internal) throws IOException {
+    public Source loadResourceSource(String path, boolean internal) throws IOException {
         assert path.startsWith(RubyLanguage.RESOURCE_SCHEME);
 
         if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
@@ -54,6 +54,11 @@ public class ResourceLoader {
             source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, reader, path).internal(internal).build();
         }
 
+        return source;
+    }
+
+    public RubySource loadResource(String path, boolean internal) throws IOException {
+        final Source source = loadResourceSource(path, internal);
         return new RubySource(source, path);
     }
 

@@ -90,9 +90,13 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.options.LanguageOptions;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.ParsingParameters;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
@@ -237,6 +241,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             .allowImplicitCastIntToLong(true)
             .layout(ClassVariableStorage.class)
             .build();
+
+    public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<ParsingParameters>();
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
@@ -422,6 +428,22 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
+        final ParsingParameters parsingParameters = parsingRequestParams.get();
+        if (parsingParameters != null) {
+            final RubySource rubySource = new RubySource(
+                    request.getSource(),
+                    parsingParameters.getPath(),
+                    parsingParameters.getRope());
+            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+                    rubySource,
+                    ParserContext.TOP_LEVEL,
+                    null,
+                    null,
+                    true,
+                    parsingParameters.getCurrentNode());
+            return Truffle.getRuntime().createCallTarget(rootNode);
+        }
+
         if (request.getSource().isInteractive()) {
             return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, request.getSource()));
         } else {
