@@ -73,6 +73,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -718,13 +719,13 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
     @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
         @CreateCast("index")
-        protected RubyNode coerceOtherToInt(RubyNode index) {
+        protected ToIntNode coerceOtherToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 

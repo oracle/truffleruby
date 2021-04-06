@@ -162,6 +162,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -2341,8 +2342,8 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfFrozenSelf = true, lowerFixnum = { 1, 2 })
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class SetByteNode extends CoreMethodNode {
 
@@ -2350,12 +2351,12 @@ public abstract class StringNodes {
         @Child private RopeNodes.SetByteNode setByteNode = RopeNodes.SetByteNode.create();
 
         @CreateCast("index")
-        protected RubyNode coerceIndexToInt(RubyNode index) {
+        protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 
         @CreateCast("value")
-        protected RubyNode coerceValueToInt(RubyNode value) {
+        protected ToIntNode coerceValueToInt(RubyBaseNodeWithExecute value) {
             return ToIntNode.create(value);
         }
 
