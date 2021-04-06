@@ -53,7 +53,7 @@ import static org.truffleruby.debug.RubyScope.RECEIVER_MEMBER;
  * described by {@link WithContext}. There is also {@link RubyContextNode} if context is needed but source is not. */
 @GenerateWrapper
 @ExportLibrary(NodeLibrary.class)
-public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
+public abstract class RubyNode extends RubyBaseNodeWithExecute implements InstrumentableNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
 
@@ -63,10 +63,6 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     private static final byte FLAG_ROOT = 3;
 
     protected static final int NO_SOURCE = -1;
-
-
-    // Fundamental execute methods
-    public abstract Object execute(VirtualFrame frame);
 
     /** This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of
      * this method which would increase the number of runtime compilable methods. */
