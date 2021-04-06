@@ -2,7 +2,8 @@
 
 source test/truffle/common.sh.inc
 
-gem_test_pack=$(jt gem-test-pack | tail -n 1)
+jt gem-test-pack
+gem_test_pack=$(jt gem-test-pack)
 
 mkdir -p temp-gem-home
 
