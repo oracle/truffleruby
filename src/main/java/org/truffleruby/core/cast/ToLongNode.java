@@ -10,26 +10,31 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToLongNode extends RubyContextSourceNode {
+@GenerateUncached
+@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+public abstract class ToLongNode extends RubyBaseNodeWithExecute {
 
     public static ToLongNode create() {
         return ToLongNodeGen.create(null);
     }
 
-    public static ToLongNode create(RubyNode child) {
+    public static ToLongNode create(RubyBaseNodeWithExecute child) {
         return ToLongNodeGen.create(child);
     }
 
@@ -46,15 +51,17 @@ public abstract class ToLongNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected long coerceRubyBignum(RubyBignum value) {
+    protected long coerceRubyBignum(RubyBignum value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
-                getContext(),
-                coreExceptions().rangeError("bignum too big to convert into `long'", this));
+                context,
+                context.getCoreExceptions().rangeError("bignum too big to convert into `long'", this));
     }
 
     @Specialization
     protected long coerceDouble(double value,
-            @Cached BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         // emulate MRI logic
         // We check for `value < MAX_VALUE` because casting Long.MAX_VALUE to double yields a double value of 2^63 which is >
         // Long.MAX_VALUE.
@@ -62,27 +69,30 @@ public abstract class ToLongNode extends RubyContextSourceNode {
             return (long) value;
         } else {
             errorProfile.enter();
+            final CoreExceptions coreExceptions = context.getCoreExceptions();
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().rangeError(Utils.concat("float ", value, " out of range of integer"), this));
+                    context,
+                    coreExceptions.rangeError(Utils.concat("float ", value, " out of range of integer"), this));
         }
     }
 
     @Specialization
-    protected long coerceNil(Nil nil) {
+    protected long coerceNil(Nil nil,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
         throw new RaiseException(
-                getContext(),
-                coreExceptions().typeError("no implicit conversion from nil to integer", this));
+                context,
+                context.getCoreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
     @Specialization(guards = { "!isRubyInteger(object)", "!isImplicitDouble(object)", "!isNil(object)" })
     protected long coerceObject(Object object,
             @Cached DispatchNode toIntNode,
-            @Cached ToLongNode fitNode) {
+            @Cached ToLongNode fitNode,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
         final Object coerced = toIntNode
-                .call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
+                .call(context.getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
 }

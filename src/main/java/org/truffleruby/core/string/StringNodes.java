@@ -353,12 +353,12 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "*", required = 1)
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "times", type = RubyNode.class)
+    @NodeChild(value = "times", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class MulNode extends CoreMethodNode {
 
         @CreateCast("times")
-        protected RubyNode coerceToInteger(RubyNode times) {
+        protected RubyBaseNodeWithExecute coerceToInteger(RubyBaseNodeWithExecute times) {
             // Not ToIntNode, because this works with empty strings, and must throw a different error
             // for long values that don't fit in an int.
             return FixnumLowerNode.create(ToLongNode.create(times));
