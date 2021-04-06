@@ -201,39 +201,33 @@ public abstract class TruffleGraalNodes {
     @Primitive(name = "blackhole")
     public abstract static class BlackholeNode extends PrimitiveNode {
 
-        boolean booleanField;
-        int intField;
-        long longField;
-        double doubleField;
-        Object objectField;
-
         @Specialization
         protected Object blackhole(boolean value) {
-            this.booleanField = value;
+            CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
         protected Object blackhole(int value) {
-            this.intField = value;
+            CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
         protected Object blackhole(long value) {
-            this.longField = value;
+            CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
         protected Object blackhole(double value) {
-            this.doubleField = value;
+            CompilerDirectives.blackhole(value);
             return nil;
         }
 
         @Specialization
         protected Object blackhole(Object value) {
-            this.objectField = value;
+            CompilerDirectives.blackhole(value);
             return nil;
         }
 
