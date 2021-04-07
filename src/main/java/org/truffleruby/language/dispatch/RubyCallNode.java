@@ -133,11 +133,12 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
             dispatch = insert(DispatchNode.create(dispatchConfig));
         }
 
-        final Object returnValue = dispatch
-                .dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
+        final Object returnValue = dispatch.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         if (isAttrAssign) {
+            assert argumentsObjects[argumentsObjects.length - 1] != null;
             return argumentsObjects[argumentsObjects.length - 1];
         } else {
+            assert returnValue != null;
             return returnValue;
         }
     }
