@@ -30,10 +30,6 @@ public abstract class CompareHashKeysNode extends RubyBaseNode {
     public abstract boolean execute(boolean compareByIdentity, Object key, int hashed,
             Object otherKey, int otherHashed);
 
-    public boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return execute(compareByIdentity, key, hashed, otherKey, otherHashed);
-    }
-
     /** Checks if the two keys are the same object, which is used by both modes (by identity or not) of lookup. Enables
      * to check if the two keys are the same without a method call. */
     public static boolean referenceEqualKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,

@@ -64,7 +64,7 @@ public class LookupEntryNode extends RubyBaseNode {
     }
 
     protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
+        return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }

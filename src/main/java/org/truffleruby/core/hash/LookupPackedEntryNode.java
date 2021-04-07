@@ -120,7 +120,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
     protected boolean equalKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key, int hashed,
             Object otherKey, int otherHashed) {
-        return compareHashKeys.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
+        return compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }
