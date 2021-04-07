@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -41,17 +42,17 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
                     "isCompareByIdentity(hash) == cachedByIdentity",
                     "cachedIndex >= 0",
                     "cachedIndex < getSize(hash)",
-                    "sameKeysAtIndex(compareHashKeys, hash, key, hashed, cachedIndex, cachedByIdentity)" },
+                    "sameKeysAtIndex(refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
             limit = "1")
     protected Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, BiFunctionNode defaultValueNode,
-            @Cached CompareHashKeysNode compareHashKeys,
+            @Cached ReferenceEqualNode refEqual,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
-            @Cached("index(compareHashKeys, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
+            @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
         final Object[] store = (Object[]) hash.store;
         return PackedArrayStrategy.getValue(store, cachedIndex);
     }
 
-    protected int index(CompareHashKeysNode compareHashKeys, RubyHash hash, Object key, int hashed,
+    protected int index(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
             boolean compareByIdentity) {
 
         if (!HashGuards.isPackedHash(hash)) {
@@ -64,7 +65,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
         for (int n = 0; n < size; n++) {
             final int otherHashed = PackedArrayStrategy.getHashed(store, n);
             final Object otherKey = PackedArrayStrategy.getKey(store, n);
-            if (sameKeys(compareHashKeys, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+            if (sameKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed)) {
                 return n;
             }
         }
@@ -72,18 +73,18 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
         return -1;
     }
 
-    protected boolean sameKeysAtIndex(CompareHashKeysNode compareHashKeys, RubyHash hash, Object key, int hashed,
+    protected boolean sameKeysAtIndex(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
             int cachedIndex, boolean cachedByIdentity) {
         final Object[] store = (Object[]) hash.store;
         final Object otherKey = PackedArrayStrategy.getKey(store, cachedIndex);
         final int otherHashed = PackedArrayStrategy.getHashed(store, cachedIndex);
 
-        return sameKeys(compareHashKeys, cachedByIdentity, key, hashed, otherKey, otherHashed);
+        return sameKeys(refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
     }
 
-    private boolean sameKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key, int hashed,
+    private boolean sameKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key, int hashed,
             Object otherKey, int otherHashed) {
-        return compareHashKeys.referenceEqualKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
+        return CompareHashKeysNode.referenceEqualKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
     protected int getSize(RubyHash hash) {

@@ -27,39 +27,30 @@ public abstract class CompareHashKeysNode extends RubyBaseNode {
         return CompareHashKeysNodeGen.getUncached();
     }
 
-    // TODO use enum?
-    public abstract boolean execute(boolean compareByIdentity, boolean alwaysIdentity, Object key, int hashed,
-            Object otherKey,
-            int otherHashed);
+    public abstract boolean execute(boolean compareByIdentity, Object key, int hashed,
+            Object otherKey, int otherHashed);
 
     public boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return execute(compareByIdentity, false, key, hashed, otherKey, otherHashed);
+        return execute(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
     /** Checks if the two keys are the same object, which is used by both modes (by identity or not) of lookup. Enables
      * to check if the two keys are the same without a method call. */
-    public boolean referenceEqualKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
-            int otherHashed) {
-        return execute(compareByIdentity, true, key, hashed, otherKey, otherHashed);
+    public static boolean referenceEqualKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
+            int hashed, Object otherKey, int otherHashed) {
+        return compareByIdentity
+                ? refEqual.executeReferenceEqual(key, otherKey)
+                : hashed == otherHashed && refEqual.executeReferenceEqual(key, otherKey);
     }
 
     @Specialization(guards = "compareByIdentity")
-    protected boolean refEquals(
-            boolean compareByIdentity, boolean alwaysIdentity, Object key, int hashed, Object otherKey, int otherHashed,
+    protected boolean refEquals(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached ReferenceEqualNode refEqual) {
         return refEqual.executeReferenceEqual(key, otherKey);
     }
 
-    @Specialization(guards = { "!compareByIdentity", "alwaysIdentity" })
-    protected boolean refHashEquals(
-            boolean compareByIdentity, boolean alwaysIdentity, Object key, int hashed, Object otherKey, int otherHashed,
-            @Cached ReferenceEqualNode refEqual) {
-        return hashed == otherHashed && refEqual.executeReferenceEqual(key, otherKey);
-    }
-
-    @Specialization(guards = { "!compareByIdentity", "!alwaysIdentity" })
-    protected boolean same(
-            boolean compareByIdentity, boolean alwaysIdentity, Object key, int hashed, Object otherKey, int otherHashed,
+    @Specialization(guards = "!compareByIdentity")
+    protected boolean same(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
             @Cached SameOrEqlNode same) {
         return hashed == otherHashed && same.execute(key, otherKey);
     }
