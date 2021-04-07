@@ -6,9 +6,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-module LessAllocations
-  EMPTY_HASH = {}.freeze
-end
+EMPTY_HASH = {}.freeze
 
 env = {}
 
@@ -21,7 +19,7 @@ benchmark 'core-fiber-locals-write' do
 end
 
 benchmark 'core-fiber-locals-swap' do
-  prev = Thread.current[:fiber_local] || LessAllocations::EMPTY_HASH
+  prev = Thread.current[:fiber_local] || EMPTY_HASH
   Thread.current[:fiber_local] = env
   begin
     # nothing
