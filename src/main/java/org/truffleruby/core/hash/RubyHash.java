@@ -15,12 +15,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.StopIterationException;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownKeyException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -30,15 +26,10 @@ import com.oracle.truffle.api.object.Shape;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -199,82 +190,20 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public Object getHashEntriesIterator(
-            @Cached @Shared("enumerator") DispatchNode toEnum) {
-        return new RubyHashIterator(toEnum.call(this, "to_enum"), RubyHashIterator.Type.ENTRIES);
+            @Cached @Shared("enumerator") DispatchNode eachPair) {
+        return eachPair.call(this, "each_pair");
     }
 
     @ExportMessage
     public Object getHashKeysIterator(
-            @Cached @Shared("enumerator") DispatchNode toEnum) {
-        return new RubyHashIterator(toEnum.call(this, "to_enum"), RubyHashIterator.Type.KEYS);
+            @Cached @Shared("enumerator") DispatchNode eachKey) {
+        return eachKey.call(this, "each_key");
     }
 
     @ExportMessage
     public Object getHashValuesIterator(
-            @Cached @Shared("enumerator") DispatchNode toEnum) {
-        return new RubyHashIterator(toEnum.call(this, "to_enum"), RubyHashIterator.Type.VALUES);
-    }
-
-    @ImportStatic(ArrayGuards.class)
-    @ExportLibrary(InteropLibrary.class)
-    public static class RubyHashIterator implements TruffleObject {
-        enum Type {
-            ENTRIES,
-            KEYS,
-            VALUES
-        }
-
-        private final Object enumerator;
-        private final Type type;
-
-        RubyHashIterator(Object enumerator, Type type) {
-            this.enumerator = enumerator;
-            this.type = type;
-        }
-
-        @ExportMessage
-        public boolean isIterator() {
-            return true;
-        }
-
-        @ExportMessage
-        public boolean hasIteratorNextElement(
-                @Cached @Exclusive DispatchNode peek,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            try {
-                peek.call(enumerator, "peek");
-                return true;
-            } catch (RaiseException e) {
-                if (e.getException().getLogicalClass() == context.getCoreLibrary().stopIterationClass) {
-                    return false;
-                }
-                throw e;
-            }
-        }
-
-        @ExportMessage
-        public Object getIteratorNextElement(
-                @Cached @Exclusive DispatchNode next,
-                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary arrays,
-                @CachedContext(RubyLanguage.class) RubyContext context) throws StopIterationException {
-            try {
-                final RubyArray array = (RubyArray) next.call(enumerator, "next");
-                switch (type) {
-                    case ENTRIES:
-                        return array;
-                    case KEYS:
-                        return arrays.read(array.store, 0);
-                    case VALUES:
-                        return arrays.read(array.store, 1);
-                }
-                throw new Error("unreachable");
-            } catch (RaiseException e) {
-                if (e.getException().getLogicalClass() == context.getCoreLibrary().stopIterationClass) {
-                    throw StopIterationException.create();
-                }
-                throw e;
-            }
-        }
+            @Cached @Shared("enumerator") DispatchNode eachValue) {
+        return eachValue.call(this, "each_value");
     }
 
     // endregion
