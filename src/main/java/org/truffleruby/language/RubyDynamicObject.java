@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -18,6 +19,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
@@ -285,6 +287,153 @@ public abstract class RubyDynamicObject extends DynamicObject {
         Object value = dispatchNode.call(this, "polyglot_array_element_removable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
+    // endregion
+
+    // region Hash entries
+    @ExportMessage
+    public boolean hasHashEntries(
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        final Object value = dispatchNode.call(this, "polyglot_has_hash_entries?");
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public long getHashSize(
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached ToLongNode toInt) throws UnsupportedMessageException {
+        final Object value = dispatchNode.call(this, "polyglot_hash_size");
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return toInt.execute(value);
+    }
+
+    @ExportMessage
+    public boolean isHashEntryReadable(Object key,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        final Object value = dispatchNode.call(this, "polyglot_hash_entry_readable?", key);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public boolean isHashEntryModifiable(Object key,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        final Object value = dispatchNode.call(this, "polyglot_hash_entry_modifiable?", key);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public boolean isHashEntryInsertable(Object key,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        final Object value = dispatchNode.call(this, "polyglot_hash_entry_insertable?", key);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public boolean isHashEntryRemovable(Object key,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        final Object value = dispatchNode.call(this, "polyglot_hash_entry_removable?", key);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public Object readHashValue(Object key,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnsupportedMessageException, UnknownKeyException {
+        final Object value;
+        try {
+            value = dispatchNode.call(this, "polyglot_read_hash_entry", key);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, key);
+        }
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return value;
+    }
+
+    @ExportMessage
+    public void writeHashEntry(Object key, Object value,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnsupportedMessageException, UnknownKeyException {
+        final Object result;
+        try {
+            result = dispatchNode.call(this, "polyglot_write_hash_entry", key, value);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, key);
+        }
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    public void removeHashEntry(Object key,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnsupportedMessageException, UnknownKeyException {
+        final Object result;
+        try {
+            result = dispatchNode.call(this, "polyglot_remove_hash_entry", key);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, key);
+        }
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    public Object getHashEntriesIterator(
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
+        final Object result = dispatchNode.call(this, "polyglot_hash_entries_iterator");
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return result;
+    }
+
+    @ExportMessage
+    public Object getHashKeysIterator(
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
+        final Object result = dispatchNode.call(this, "polyglot_hash_keys_iterator");
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return result;
+    }
+
+    @ExportMessage
+    public Object getHashValuesIterator(
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode dispatchNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
+        final Object result = dispatchNode.call(this, "polyglot_hash_values_iterator");
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return result;
+    }
+
     // endregion
 
     // region Iterable Messages
