@@ -17,30 +17,6 @@ def recurse(n)
   end
 end
 
-benchmark 'exception-not-captured-small-stack' do
-  begin
-    raise MyException, 'message'
-  rescue MyException
-    nil
-  end
-end
-
-benchmark 'exception-not-captured-stack-100' do
-  begin
-    recurse(100)
-  rescue MyException
-    nil
-  end
-end
-
-benchmark 'exception-not-captured-stack-1000' do
-  begin
-    recurse(1000)
-  rescue MyException
-    nil
-  end
-end
-
 exc = nil
 
 benchmark 'exception-stored-small-stack' do
