@@ -11,6 +11,14 @@ describe "String#rpartition with String" do
     "hello".rpartition("hello").should == ["", "hello", ""]
   end
 
+  it "returns original string if regexp doesn't match" do
+    "hello".rpartition("/x/").should == ["", "", "hello"]
+  end
+
+  it "returns new object if doesn't match" do
+    "hello".rpartition("/no_match/").last.object_id.should_not eql("hello".object_id)
+  end
+
   it "accepts regexp" do
     "hello!".rpartition(/l./).should == ["hel", "lo", "!"]
   end
