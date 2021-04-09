@@ -252,13 +252,11 @@ public class CoreMethodNodeManager {
             String[] names,
             Arity arity,
             Visibility visibility) {
-        final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         for (String name : names) {
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(
                     moduleName,
                     onSingleton,
-                    lexicalScope,
                     name,
                     arity);
 
@@ -285,7 +283,7 @@ public class CoreMethodNodeManager {
             module.fields.addMethod(context, null, new InternalMethod(
                     context,
                     sharedMethodInfo,
-                    sharedMethodInfo.getStaticLexicalScope(),
+                    LexicalScope.IGNORE,
                     DeclarationContext.NONE,
                     name,
                     module,
@@ -299,8 +297,8 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static SharedMethodInfo makeSharedMethodInfo(String moduleName, boolean onSingleton,
-            LexicalScope lexicalScope, String name, Arity arity) {
+    private static SharedMethodInfo makeSharedMethodInfo(String moduleName, boolean onSingleton, String name,
+            Arity arity) {
         final String parseName;
         if (onSingleton || moduleName.equals("main")) {
             parseName = moduleName + "." + name;
@@ -310,7 +308,7 @@ public class CoreMethodNodeManager {
 
         return new SharedMethodInfo(
                 CoreLibrary.SOURCE_SECTION,
-                lexicalScope,
+                LexicalScope.IGNORE,
                 arity,
                 name,
                 0,

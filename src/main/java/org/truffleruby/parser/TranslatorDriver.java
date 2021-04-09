@@ -216,7 +216,7 @@ public class TranslatorDriver {
         final String methodName = getMethodName(parserContext, parentFrame);
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection,
-                lexicalScope,
+                language.singleContext ? lexicalScope : null,
                 Arity.NO_ARGUMENTS,
                 methodName,
                 0,
@@ -478,7 +478,7 @@ public class TranslatorDriver {
         } else {
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     CoreLibrary.SOURCE_SECTION,
-                    context.getRootLexicalScope(),
+                    language.singleContext ? context.getRootLexicalScope() : null,
                     Arity.NO_ARGUMENTS,
                     "<unused>",
                     0,
