@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -86,6 +87,12 @@ public abstract class MetaClassNode extends RubyBaseNode {
     protected RubyClass metaClassSymbol(RubySymbol value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().symbolClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassEncoding(RubyEncoding value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().encodingClass;
     }
 
     @Specialization

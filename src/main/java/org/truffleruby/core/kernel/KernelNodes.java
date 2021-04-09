@@ -47,6 +47,7 @@ import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.cast.ToSymbolNode;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -509,6 +510,12 @@ public abstract class KernelNodes {
         protected RubyRegexp copyRubyRegexp(RubyRegexp regexp,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return (RubyRegexp) allocateNode().call(context.getCoreLibrary().regexpClass, "__allocate__");
+        }
+
+        @Specialization
+        protected RubyEncoding copyRubyEncoding(RubyEncoding encoding,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return (RubyEncoding) allocateNode().call(context.getCoreLibrary().encodingClass, "__allocate__");
         }
 
         protected Property[] getCopiedProperties(Shape shape) {
@@ -986,16 +993,18 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected int hash(Nil self) {
-            // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
-            // own @CoreMethod hash
+            return System.identityHashCode(self);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected int hashEncoding(RubyEncoding self) {
             return System.identityHashCode(self);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
         protected int hash(RubyDynamicObject self) {
-            // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
-            // own @CoreMethod hash
             return System.identityHashCode(self);
         }
     }
