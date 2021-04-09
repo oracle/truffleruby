@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Make interpolated strings frozen for compatibility with Ruby 2.7 (#2304, @kirs).
+* Make rpartition compatible with Ruby 2.7 (#2320, @gogainda).
 
 Performance:
 

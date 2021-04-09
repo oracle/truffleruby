@@ -19,6 +19,10 @@ describe "String#rpartition with String" do
     "hello".rpartition("/no_match/").last.object_id.should_not eql("hello".object_id)
   end
 
+  it "handles multibyte string correctly" do
+    "ユーザ@ドメイン".rpartition(/@/).should == ["ユーザ", "@", "ドメイン"]
+  end
+
   it "accepts regexp" do
     "hello!".rpartition(/l./).should == ["hel", "lo", "!"]
   end

@@ -203,7 +203,7 @@ class String
 
   def rpartition(pattern)
     if pattern.kind_of? Regexp
-      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, size, false)
+      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m[0], m.post_match]
       end
