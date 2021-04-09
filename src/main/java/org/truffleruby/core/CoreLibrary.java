@@ -974,6 +974,7 @@ public class CoreLibrary {
             "/core/kernel.rb",
             "/core/lazy_rubygems.rb",
             "/core/truffle/boot.rb",
+            "/core/truffle/concurrent_hash_map.rb",
             "/core/truffle/debug.rb",
             "/core/truffle/diggable.rb",
             "/core/truffle/encoding_operations.rb",
