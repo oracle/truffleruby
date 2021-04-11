@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix of different values of self in different scopes.
 
 Compatibility:
 

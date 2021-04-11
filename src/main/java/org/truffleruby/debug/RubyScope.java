@@ -140,8 +140,7 @@ public class RubyScope implements TruffleObject {
     @ExportMessage
     @TruffleBoundary
     protected Object getMembers(boolean includeInternal) {
-        List<String> members = BindingNodes.LocalVariablesNode.listLocalVariablesWithDuplicates(frame);
-        members.add(RECEIVER_MEMBER);
+        List<String> members = BindingNodes.LocalVariablesNode.listLocalVariablesWithDuplicates(frame, RECEIVER_MEMBER);
         return new VariableNamesObject(members.toArray(StringUtils.EMPTY_STRING_ARRAY));
     }
 

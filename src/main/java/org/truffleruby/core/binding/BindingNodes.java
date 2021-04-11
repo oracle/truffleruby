@@ -425,7 +425,7 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        public static List<String> listLocalVariablesWithDuplicates(MaterializedFrame frame) {
+        public static List<String> listLocalVariablesWithDuplicates(MaterializedFrame frame, String receiverName) {
             List<String> members = new ArrayList<>();
             Frame currentFrame = frame;
             while (currentFrame != null) {
@@ -434,6 +434,9 @@ public abstract class BindingNodes {
                     if (!isHiddenVariable(slot.getIdentifier())) {
                         members.add(slot.getIdentifier().toString());
                     }
+                }
+                if (receiverName != null) {
+                    members.add(receiverName);
                 }
                 currentFrame = RubyArguments.getDeclarationFrame(currentFrame);
             }
