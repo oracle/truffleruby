@@ -16,6 +16,7 @@ Performance:
 * Make `Struct#dig` faster in interpreter by avoiding exceptions (#2306, @kirs).
 * Reduce the number of AST nodes created for methods and blocks (#2261).
 * Fiber-local variables are much faster now by using less synchronization.
+* Improved the performance of the exceptional case of `String#chr` (#2318, @chrisseaton).
 
 Changes:
 
