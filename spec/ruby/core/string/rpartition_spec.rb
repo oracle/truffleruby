@@ -16,7 +16,8 @@ describe "String#rpartition with String" do
   end
 
   it "returns new object if doesn't match" do
-    "hello".rpartition("/no_match/").last.object_id.should_not eql("hello".object_id)
+    str = "hello"
+    str.rpartition("/no_match/").last.should_not.equal?(str)
   end
 
   it "handles multibyte string correctly" do
