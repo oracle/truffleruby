@@ -54,6 +54,38 @@ module Truffle::CExt
 
   T_MASK     = 0x1f
 
+  BUILTIN_TYPES = [
+    '',
+    'Object',
+    'Class',
+    'Module',
+    'Float',
+    'String',
+    'Regexp',
+    'Array',
+    'Hash',
+    'Struct',
+    'Integer',
+    'File',
+    'Data',
+    'MatchData',
+    'Complex',
+    'Rational',
+    '',
+    'nil',
+    'true',
+    'false',
+    'Symbol',
+    'Integer',
+    'undef',
+    '',
+    '',
+    '',
+    'Memo',
+    'Node',
+    'iClass'
+  ]
+
   RUBY_ENC_CODERANGE_UNKNOWN = 0
   RUBY_ENC_CODERANGE_7BIT = 1
   RUBY_ENC_CODERANGE_VALID = 2
@@ -206,7 +238,7 @@ module Truffle::CExt
   def rb_check_type(value, type)
     # TODO CS 23-Jul-16 there's more to this method than this...
     if rb_type(value) != type
-      raise TypeError, "wrong argument type #{value.class.name} (expected #{type})"
+      raise TypeError, "wrong argument type #{value.class.name} (expected #{BUILTIN_TYPES[type]})"
     end
   end
 

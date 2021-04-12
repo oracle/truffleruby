@@ -499,8 +499,34 @@ describe "CApiObject" do
       @o.rb_is_type_array([]).should == true
       @o.rb_is_type_array(DescArray.new).should == true
       @o.rb_is_type_module(ObjectTest).should == false
+      @o.rb_is_type_module(Module.new { }).should == true
       @o.rb_is_type_class(ObjectTest).should == true
       @o.rb_is_type_data(Time.now).should == true
+    end
+  end
+
+  describe "rb_check_type" do
+    it "checks if the object is of the given type and throws an error if not" do
+      class DescArray < Array
+      end
+      @o.rb_check_type(nil, nil).should == true
+      -> { begin
+             @o.rb_check_type([], Object.new)
+           rescue => e
+             e.message.should include('Object')
+             raise
+           end}.should raise_error(TypeError)
+      @o.rb_check_type(ObjectTest.new, Object.new).should == true
+      @o.rb_check_type([], []).should == true
+      @o.rb_check_type(DescArray.new, []).should == true
+      -> { begin
+             @o.rb_check_type(ObjectTest, Module.new { })
+           rescue => e
+             e.message.should include('Module')
+             raise
+           end}.should raise_error(TypeError)
+      @o.rb_check_type(ObjectTest, Object).should == true
+      @o.rb_check_type(Time.now, Time.new).should == true
     end
   end
 
