@@ -6,6 +6,11 @@ module TruffleRuby
       @hash = {}
     end
 
+    def initialize_copy(other)
+      @hash = @hash.dup
+      self
+    end
+
     def [](key)
       TruffleRuby.synchronized(self) do
         @hash[key]

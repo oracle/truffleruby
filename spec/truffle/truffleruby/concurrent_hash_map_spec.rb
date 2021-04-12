@@ -150,4 +150,8 @@ describe "TruffleRuby::ConcurrentHashMap" do
   it "#each_pair returns self" do
     @h.each_pair { }.should equal(@h)
   end
+
+  it "#initialize_copy creates a new instance" do
+    @h.should_not equal @h.dup
+  end
 end
