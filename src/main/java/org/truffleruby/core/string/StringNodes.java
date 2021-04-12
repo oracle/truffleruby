@@ -3979,22 +3979,26 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
         protected RubyString stringFromCodepoint(long code, RubyEncoding rubyEncoding,
-                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
+                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached BranchProfile errorProfile) {
             final Encoding encoding = rubyEncoding.encoding;
 
             final int length = codeToMbcLength(encoding, (int) code);
             if (length <= 0) {
+                errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
             final byte[] bytes = new byte[length];
-            final int codeToMbc = codeToMbc(encoding, (int) code, bytes, 0);
+            final int codeToMbc = StringSupport.codeToMbc(encoding, (int) code, bytes, 0);
             if (codeToMbc < 0) {
+                errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
             final Bytes bytesObject = new Bytes(bytes, 0, length);
             if (calculateCharacterLengthNode.characterLength(encoding, CR_UNKNOWN, bytesObject) != length) {
+                errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
@@ -4004,15 +4008,10 @@ public abstract class StringNodes {
         @TruffleBoundary
         private int codeToMbcLength(Encoding encoding, int code) {
             try {
-                return encoding.codeToMbcLength(code);
+                return StringSupport.codeLength(encoding, code);
             } catch (EncodingException e) {
                 return -1;
             }
-        }
-
-        @TruffleBoundary
-        private int codeToMbc(Encoding encoding, int code, byte[] bytes, int p) {
-            return encoding.codeToMbc(code, bytes, p);
         }
 
         protected boolean isCodepoint(long code) {

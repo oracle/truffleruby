@@ -335,6 +335,11 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
+    public static int codeToMbc(Encoding encoding, int code, byte[] bytes, int p) {
+        return encoding.codeToMbc(code, bytes, p);
+    }
+
+    @TruffleBoundary
     public static int preciseCodePoint(Encoding enc, CodeRange codeRange, byte[] bytes, int p, int end) {
         int l = characterLength(enc, codeRange, bytes, p, end);
         if (l > 0) {
