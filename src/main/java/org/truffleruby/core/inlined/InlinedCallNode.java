@@ -10,20 +10,16 @@
 package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public class InlinedCallNode extends InlinedReplaceableNode {
     private final String methodName;
-    @CompilationFinal private InternalMethod coreMethod;
 
     @Child private RubyNode receiver;
     @Child private RubyNode block;
@@ -61,7 +57,7 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
 
-        if ((lookupNode.lookupProtected(frame, receiverObject, methodName) != coreMethod()) ||
+        if ((lookupNode.lookupProtected(frame, receiverObject, methodName) != inlinedMethod.getMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiverObject, blockObject, executedArguments);
         } else {
@@ -95,14 +91,6 @@ public class InlinedCallNode extends InlinedReplaceableNode {
 
     protected Object rewriteAndCallWithBlock(VirtualFrame frame, Object receiver, Object block, Object... arguments) {
         return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, block, arguments);
-    }
-
-    protected InternalMethod coreMethod() {
-        if (coreMethod == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            coreMethod = inlinedMethod.getMethod();
-        }
-        return coreMethod;
     }
 
     @Override

@@ -19,12 +19,9 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 public class InlinedDispatchNode extends RubyContextNode implements DispatchingNode {
-
-    @CompilationFinal private InternalMethod coreMethod = null;
 
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
@@ -57,7 +54,7 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
     }
 
     public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-        if ((lookupNode.lookupIgnoringVisibility(frame, receiver, methodName) != coreMethod()) ||
+        if ((lookupNode.lookupIgnoringVisibility(frame, receiver, methodName) != inlinedMethod.getMethod()) ||
                 !Assumption.isValidAssumption(assumptions)) {
             return rewriteAndCallWithBlock(frame, receiver, methodName, block, arguments);
         } else {
@@ -87,11 +84,4 @@ public class InlinedDispatchNode extends RubyContextNode implements DispatchingN
         return rewriteToDispatchNode().dispatch(frame, receiver, methodName, block, arguments);
     }
 
-    protected InternalMethod coreMethod() {
-        if (coreMethod == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            coreMethod = inlinedMethod.getMethod();
-        }
-        return coreMethod;
-    }
 }
