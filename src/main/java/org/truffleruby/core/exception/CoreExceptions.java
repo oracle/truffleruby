@@ -1031,6 +1031,7 @@ public class CoreExceptions {
 
     // RangeError
 
+    @TruffleBoundary
     public RubyException rangeError(long code, RubyEncoding encoding, Node currentNode) {
         return rangeError(
                 StringUtils.format("invalid codepoint %x in %s", code, encoding.encoding),
@@ -1061,6 +1062,7 @@ public class CoreExceptions {
         return rangeError(StringUtils.format("integer %d too %s to convert to `int'", value, direction), currentNode);
     }
 
+    @TruffleBoundary
     public RubyException rangeError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().rangeErrorClass;
         RubyString errorMessage = StringOperations
