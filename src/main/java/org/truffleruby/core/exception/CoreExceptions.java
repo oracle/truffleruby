@@ -1033,13 +1033,8 @@ public class CoreExceptions {
 
     public RubyException rangeError(long code, RubyEncoding encoding, Node currentNode) {
         return rangeError(
-                rangeErrorMessage(code, encoding.encoding),
+                StringUtils.format("invalid codepoint %x in %s", code, encoding.encoding),
                 currentNode);
-    }
-
-    @TruffleBoundary
-    private String rangeErrorMessage(long code, Encoding encoding) {
-        return StringUtils.format("invalid codepoint %x in %s", code, encoding);
     }
 
     @TruffleBoundary
