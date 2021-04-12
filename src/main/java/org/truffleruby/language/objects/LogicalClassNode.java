@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -83,6 +84,12 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     protected RubyClass logicalClassSymbol(RubySymbol value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().symbolClass;
+    }
+
+    @Specialization
+    protected RubyClass logicalClassEncoding(RubyEncoding value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().encodingClass;
     }
 
     @Specialization
