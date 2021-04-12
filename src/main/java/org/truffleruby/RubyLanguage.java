@@ -358,6 +358,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
             throw e;
         }
+
+        applicationStarts();
+    }
+
+    private void applicationStarts() {
+        // Set breakpoints on this line to break when user code is about to be loaded
+        return;
     }
 
     @Override

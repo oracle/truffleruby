@@ -68,9 +68,8 @@ public class BacktraceFormatter {
 
     // For debugging:
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(this)
-    // When outside a Ruby node:
-    // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(null)
-    public static String printableRubyBacktrace(Node node) {
+    public static String printableRubyBacktrace(Object maybeNode) {
+        final Node node = maybeNode instanceof Node ? (Node) maybeNode : null;
         final RubyContext context = RubyLanguage.getCurrentContext();
         final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(
                 context,
@@ -79,6 +78,9 @@ public class BacktraceFormatter {
         final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
         if (backtrace.isEmpty()) {
             return "<empty backtrace>";
+        } else if (node == null) {
+            return "# the first entry line is imprecise because 'this' is not a Node, select caller Java frames in the debugger until 'this' is a Node to fix this\n" +
+                    backtrace;
         } else {
             return backtrace;
         }
