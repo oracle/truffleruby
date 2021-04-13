@@ -435,8 +435,9 @@ local part_definitions = {
     chunky: { benchmarks+:: ["chunky"] },
     psd: { benchmarks+:: ["psd"] },
     asciidoctor: { benchmarks+:: ["asciidoctor"] },
+    micro: { benchmarks+:: ["micro"] },
     other_extra: { benchmarks+:: ["savina"] },
-    other: { benchmarks+:: ["micro", "image-demo", "optcarrot", "synthetic", "rubykon", "liquid"] },
+    other: { benchmarks+:: ["image-demo", "optcarrot", "synthetic", "rubykon", "liquid"] },
     warmup: {
       benchmarks+:: [
         ["--fork-count-file", "mx.truffleruby/warmup-fork-counts.json", "ruby-warmup:*"],
@@ -629,6 +630,18 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-warmup-svm-graal-enterprise-3threads": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier + $.use.three_threads,
       "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
       "ruby-benchmarks-warmup-svm-graal-enterprise-multi-tier-3threads": shared + warmup + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier + $.use.three_threads,
+
+      local micro = $.benchmark.runner + $.benchmark.micro + { timelimit: "00:40:00" },
+      "ruby-benchmarks-micro-mri": shared + micro + other_rubies.mri,
+      "ruby-benchmarks-micro-jruby": shared + micro + other_rubies.jruby,
+      "ruby-benchmarks-micro-graal-core": shared + micro + graal_configurations["graal-core"] + $.use.no_multi_tier,
+      "ruby-benchmarks-micro-graal-core-multi-tier": shared + micro + graal_configurations["graal-core"] + $.use.multi_tier,
+      "ruby-benchmarks-micro-graal-enterprise": shared + micro + graal_configurations["graal-enterprise"] + $.use.no_multi_tier,
+      "ruby-benchmarks-micro-graal-enterprise-multi-tier": shared + micro + graal_configurations["graal-enterprise"] + $.use.multi_tier,
+      "ruby-benchmarks-micro-svm-graal-core": shared + micro + svm_configurations["svm-graal-core"] + $.use.no_multi_tier,
+      "ruby-benchmarks-micro-svm-graal-core-multi-tier": shared + micro + svm_configurations["svm-graal-core"] + $.use.multi_tier,
+      "ruby-benchmarks-micro-svm-graal-enterprise": shared + micro + svm_configurations["svm-graal-enterprise"] + $.use.no_multi_tier,
+      "ruby-benchmarks-micro-svm-graal-enterprise-multi-tier": shared + micro + svm_configurations["svm-graal-enterprise"] + $.use.multi_tier,
 
       local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "00:40:00" },
       local svm_other = $.benchmark.runner + $.benchmark.other + { timelimit: "01:00:00" },
