@@ -515,12 +515,17 @@ describe "CApiObject" do
     end
 
     it "raises an exception if the object is not of the expected type" do
-      -> { @o.rb_check_type([], Object.new { }) }.should raise_error { |e|
-        e.class.should == TypeError
-        e.message.should == 'wrong argument type Array (expected Object)' }
-      -> { @o.rb_check_type(ObjectTest, Module.new { }) }.should raise_error { |e|
-        e.class.should == TypeError
-        e.message.should == 'wrong argument type Class (expected Module)' }
+      -> {
+        @o.rb_check_type([], Object.new)
+      }.should raise_error(TypeError, 'wrong argument type Array (expected Object)')
+
+      -> {
+        @o.rb_check_type(ObjectTest, Module.new)
+      }.should raise_error(TypeError, 'wrong argument type Class (expected Module)')
+
+      -> {
+        @o.rb_check_type(nil, "string")
+      }.should raise_error(TypeError, 'wrong argument type nil (expected String)')
     end
   end
 
