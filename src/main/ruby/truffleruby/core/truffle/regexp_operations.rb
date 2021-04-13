@@ -58,6 +58,14 @@ module Truffle
       USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
     end
 
+    if Truffle::Boot.get_option('regexp-instrument-creation') || Truffle::Boot.get_option('regexp-instrument-match')
+      Truffle::Boot.delay do
+        at_exit do
+          Truffle::RegexpOperations.print_stats
+        end
+      end
+    end
+
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if COMPARE_ENGINES
         match_in_region_compare_engines(re, str, from, to, at_start, encoding_conversion, start)
@@ -166,6 +174,26 @@ module Truffle
 
     def self.match_stats
       Hash[*match_stats_array]
+    end
+
+    def self.print_stats
+      puts '--------------------'
+      puts 'Regular expression statistics'
+      puts '--------------------'
+      puts '  Compilation'
+      print_stats_table compilation_stats
+      puts '  --------------------'
+      puts '  Matches'
+      print_stats_table match_stats
+      puts '--------------------'
+    end
+
+    def self.print_stats_table(table)
+      sorted = table.to_a.sort_by(&:last).reverse
+      width = sorted.first.last.to_s.size
+      sorted.each do |regexp, count|
+        printf "    %#{width}d    %s\n", count, regexp
+      end
     end
 
     def self.option_to_string(option)
