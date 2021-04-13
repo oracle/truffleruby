@@ -1,0 +1,10 @@
+accept
+accept_nonblock
+bind
+connect
+connect_nonblock
+ipv6only!
+listen
+recvfrom
+recvfrom_nonblock
+sysaccept

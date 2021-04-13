@@ -1,0 +1,4 @@
+inspect
+local_address
+remote_address
+reply

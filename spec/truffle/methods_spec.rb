@@ -16,6 +16,9 @@ require_relative '../ruby/spec_helper'
 # but instead of jt untag, jt purge must be used to remove tags:
 # $ jt purge spec/truffle/methods_spec.rb
 
+# socket modules are found with:
+# m1=ObjectSpace.each_object(Module).to_a; require "socket"; m2=ObjectSpace.each_object(Module).to_a; p m2-m1
+
 modules = %w[
   Array BasicObject Binding Class Complex Complex Data Digest
   Digest.singleton_class Digest::Class Digest::Class.singleton_class
@@ -28,9 +31,12 @@ modules = %w[
   Random::Formatter Random.singleton_class Range Rational Regexp Signal
   SizedQueue String Struct Symbol SystemExit Thread TracePoint TrueClass
   UnboundMethod Warning
+
+  Addrinfo BasicSocket Socket IPSocket TCPSocket TCPServer UDPSocket UNIXSocket UNIXServer
+  Socket::AncillaryData Socket::Constants Socket::Ifaddr Socket::Option Socket::UDPSource SocketError
 ]
 
-requires = %w[digest]
+requires = %w[digest socket]
 requires_code = requires.map { |lib| "require #{lib.inspect}" }.join("\n")
 
 guard -> { !defined?(SlowSpecsTagger) } do
