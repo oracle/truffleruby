@@ -521,7 +521,7 @@ module Utilities
       mx_env = File.expand_path('~/.mx/env')
       if File.readable?(mx_env)
         if line = File.readlines(mx_env).grep(/^JAVA_HOME=/).first
-          java_home = line.split('=', 2).last
+          java_home = line.strip.split('=', 2).last
         end
       end
       java_home ||= ENV['JAVA_HOME']
