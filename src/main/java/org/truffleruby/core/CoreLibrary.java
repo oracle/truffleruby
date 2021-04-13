@@ -453,6 +453,7 @@ public class CoreLibrary {
                 "Converter");
         final RubyModule truffleRubyModule = defineModule("TruffleRuby");
         defineClass(truffleRubyModule, objectClass, "AtomicReference");
+        defineClass(truffleRubyModule, objectClass, "ConcurrentHashMap");
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
