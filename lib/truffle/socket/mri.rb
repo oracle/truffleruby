@@ -507,7 +507,7 @@ class BasicSocket < IO
   # Linux-specific optimizations to avoid fcntl for IO#read_nonblock
   # and IO#write_nonblock using MSG_DONTWAIT
   # Do other platforms support MSG_DONTWAIT reliably?
-  if RUBY_PLATFORM =~ /linux/ && Socket.const_defined?(:MSG_DONTWAIT)
+  if RUBY_PLATFORM =~ /linux/ && Socket.const_defined?(:MSG_DONTWAIT) && !defined?(::TruffleRuby)
     def read_nonblock(len, str = nil, exception: true) # :nodoc:
       __read_nonblock(len, str, exception)
     end
