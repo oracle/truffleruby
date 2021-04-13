@@ -49,6 +49,9 @@ options_data.each do |category, stabilities|
       when 'integer'
         type       = 'int'
         boxed_type = 'Integer'
+        if default.is_a?(Array)
+          env_condition, default = default
+        end
         default    = default.to_s
       when /^enum\/(\w*)/
         type       = camelize $1
@@ -142,7 +145,7 @@ public class <%= class_prefix %>Options {
     /** --<%= o.name %>=<%= o.env_condition %><%= o.default %> */
     public final <%= o.type %> <%= o.constant %>;<% end %>
 
-    public <%= class_prefix %>Options(Env env, OptionValues options<%= class_prefix == "" ? ", LanguageOptions languageOptions" : "" %>) {
+    public <%= class_prefix %>Options(Env env, OptionValues options<%= class_prefix == "" ? ", LanguageOptions languageOptions" : ", boolean singleContext" %>) {
     <% options.each do |o| %>    <%= o.constant %> = <%= o.env_condition %><%=
       key = "OptionsCatalog.#{o.constant}_KEY"
       value = if o.reference_default

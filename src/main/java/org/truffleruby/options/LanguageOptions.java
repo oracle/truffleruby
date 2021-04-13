@@ -28,7 +28,7 @@ public class LanguageOptions {
     public final boolean FROZEN_STRING_LITERALS;
     /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
-    /** --lazy-calltargets=DEFAULT_LAZY */
+    /** --lazy-calltargets=singleContext && DEFAULT_LAZY */
     public final boolean LAZY_CALLTARGETS;
     /** --core-as-internal=false */
     public final boolean CORE_AS_INTERNAL;
@@ -90,7 +90,7 @@ public class LanguageOptions {
     public final int POW_CACHE;
     /** --ruby-library-cache=DEFAULT_CACHE */
     public final int RUBY_LIBRARY_CACHE;
-    /** --thread-cache=1 */
+    /** --thread-cache=!singleContext ? 0 : 1 */
     public final int THREAD_CACHE;
     /** --context-identity-cache=1 */
     public final int CONTEXT_SPECIFIC_IDENTITY_CACHE;
@@ -119,11 +119,11 @@ public class LanguageOptions {
     /** --shared-objects-force=false */
     public final boolean SHARED_OBJECTS_FORCE;
 
-    public LanguageOptions(Env env, OptionValues options) {
+    public LanguageOptions(Env env, OptionValues options, boolean singleContext) {
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
-        LAZY_CALLTARGETS = options.hasBeenSet(OptionsCatalog.LAZY_CALLTARGETS_KEY) ? options.get(OptionsCatalog.LAZY_CALLTARGETS_KEY) : DEFAULT_LAZY;
+        LAZY_CALLTARGETS = singleContext && (options.hasBeenSet(OptionsCatalog.LAZY_CALLTARGETS_KEY) ? options.get(OptionsCatalog.LAZY_CALLTARGETS_KEY) : DEFAULT_LAZY);
         CORE_AS_INTERNAL = options.get(OptionsCatalog.CORE_AS_INTERNAL_KEY);
         STDLIB_AS_INTERNAL = options.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY);
         LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : LAZY_CALLTARGETS;
@@ -154,7 +154,7 @@ public class LanguageOptions {
         TIME_FORMAT_CACHE = options.hasBeenSet(OptionsCatalog.TIME_FORMAT_CACHE_KEY) ? options.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY) : DEFAULT_CACHE;
         POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
         RUBY_LIBRARY_CACHE = options.hasBeenSet(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) ? options.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) : DEFAULT_CACHE;
-        THREAD_CACHE = options.get(OptionsCatalog.THREAD_CACHE_KEY);
+        THREAD_CACHE = !singleContext ? 0 : (options.get(OptionsCatalog.THREAD_CACHE_KEY));
         CONTEXT_SPECIFIC_IDENTITY_CACHE = options.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY);
         IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
