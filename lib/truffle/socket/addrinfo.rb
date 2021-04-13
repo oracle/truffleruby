@@ -30,7 +30,8 @@ class Addrinfo
   attr_reader :canonname
 
   def self.getaddrinfo(nodename, service, family = nil, socktype = nil,
-                       protocol = nil, flags = nil)
+                       protocol = nil, flags = nil, timeout: nil)
+    # NOTE: timeout is ignored currently. On MRI it's ignored but only for platforms without getaddrinfo_a().
 
     raw = Socket
       .getaddrinfo(nodename, service, family, socktype, protocol, flags)

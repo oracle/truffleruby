@@ -36,6 +36,7 @@ isatty
 lineno
 lineno=
 lines
+nread
 pid
 pos
 pos=
@@ -52,6 +53,7 @@ readchar
 readline
 readlines
 readpartial
+ready?
 reopen
 rewind
 seek
@@ -69,5 +71,8 @@ to_io
 tty?
 ungetbyte
 ungetc
+wait
+wait_readable
+wait_writable
 write
 write_nonblock

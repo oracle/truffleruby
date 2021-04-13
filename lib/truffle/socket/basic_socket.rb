@@ -174,7 +174,7 @@ class BasicSocket < IO
     internal_recv(bytes_to_read, flags, buf, true)
   end
 
-  def recv_nonblock(bytes_to_read, flags = 0, buf = nil, exception: true)
+  private def __recv_nonblock(bytes_to_read, flags, buf, exception)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     Truffle::Socket::Error.wrap_read_nonblock do
@@ -241,11 +241,11 @@ class BasicSocket < IO
     nil
   end
 
-  def recvmsg(max_msg_len = nil, flags = 0, max_control_len = nil, scm_rights: false)
+  private def __recvmsg(max_msg_len, flags, max_control_len, scm_rights)
     internal_recvmsg(max_msg_len, flags, max_control_len, scm_rights, true)
   end
 
-  def recvmsg_nonblock(max_msg_len = nil, flags = 0, max_control_len = nil, exception: true, scm_rights: false)
+  private def __recvmsg_nonblock(max_msg_len, flags, max_control_len, scm_rights, exception)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     internal_recvmsg(max_msg_len, flags | Socket::MSG_DONTWAIT, max_control_len, scm_rights, exception)
@@ -293,11 +293,11 @@ class BasicSocket < IO
     end
   end
 
-  def sendmsg(message, flags = 0, dest_sockaddr = nil, *controls)
+  private def __sendmsg(message, flags, dest_sockaddr, controls)
     internal_sendmsg(message, flags, dest_sockaddr, true)
   end
 
-  def sendmsg_nonblock(message, flags = 0, dest_sockaddr = nil, *controls, exception: true)
+  private def __sendmsg_nonblock(message, flags, dest_sockaddr, controls, exception)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     internal_sendmsg(message, flags | Socket::MSG_DONTWAIT, dest_sockaddr, exception)

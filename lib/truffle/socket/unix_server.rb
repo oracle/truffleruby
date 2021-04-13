@@ -56,7 +56,7 @@ class UNIXServer < UNIXSocket
     socket
   end
 
-  def accept_nonblock(exception: true)
+  private def __accept_nonblock(exception)
     socket, _ = Truffle::Socket.accept_nonblock(self, UNIXSocket, exception)
 
     socket

@@ -61,3 +61,21 @@ fails:Public methods on Enumerator::Lazy should include filter_map
 fails:Public methods on Enumerator::Lazy should include with_index
 fails:Public methods on Fiber should include raise
 fails:Public methods on IO should include set_encoding_by_bom
+fails:Public methods on BasicSocket should include read_nonblock
+fails:Public methods on BasicSocket should include write_nonblock
+fails:Public methods on Socket should not include local_address
+fails:Public methods on Socket should not include remote_address
+fails:Public methods on IPSocket should include inspect
+fails:Public methods on TCPSocket should not include local_address
+fails:Public methods on TCPSocket should not include remote_address
+fails:Public methods on UDPSocket should not include inspect
+fails:Public methods on UDPSocket should not include local_address
+fails:Public methods on UDPSocket should not include remote_address
+fails:Public methods on UNIXSocket should not include local_address
+fails:Public methods on UNIXSocket should not include remote_address
+fails:Public methods on UNIXServer should not include inspect
+fails:Public methods on Socket::AncillaryData should include inspect
+fails:Public methods on Socket::AncillaryData should include timestamp
+fails:Public methods on Socket::Option should include byte
+fails:Public methods on Socket::Option should include ipv4_multicast_loop
+fails:Public methods on Socket::Option should include ipv4_multicast_ttl

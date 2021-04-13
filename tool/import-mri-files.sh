@@ -54,6 +54,7 @@ cp ../ruby/ext/psych/lib/psych.rb lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
 cp ../ruby/ext/ripper/lib/ripper.rb lib/mri
 cp -r ../ruby/ext/ripper/lib/ripper lib/mri
+cp ../ruby/ext/socket/lib/socket.rb lib/truffle/socket/mri.rb
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
