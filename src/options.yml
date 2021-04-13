@@ -75,7 +75,7 @@ EXPERT:
 
     # Control lazy behavior
     DEFAULT_LAZY: [lazy-default, boolean, true, Enable default lazy options]
-    LAZY_CALLTARGETS: [lazy-calltargets, boolean, DEFAULT_LAZY, Create CallTargets lazily when possible]
+    LAZY_CALLTARGETS: [lazy-calltargets, boolean, ['singleContext && ', DEFAULT_LAZY], Create CallTargets lazily when possible]
     LAZY_RUBYGEMS: [lazy-rubygems, boolean, ['RUBYGEMS && ', DEFAULT_LAZY], Load RubyGems lazily on first failing require]
 
     # Embedding options
@@ -192,7 +192,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     RUBY_LIBRARY_CACHE: [ruby-library-cache, integer, DEFAULT_CACHE, Ruby Library cache size]
 
     # Inline caches with a non-default size
-    THREAD_CACHE: [thread-cache, integer, 1, Cache size of operations that depend on a particular thread]
+    THREAD_CACHE: [thread-cache, integer, ['!singleContext ? 0 : ', 1], Cache size of operations that depend on a particular thread]
     CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-specific objects]
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]

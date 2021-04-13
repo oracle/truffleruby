@@ -324,7 +324,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 allocationReporter = env.lookup(AllocationReporter.class);
             }
             if (this.options == null) {
-                this.options = new LanguageOptions(env, env.getOptions());
+                this.options = new LanguageOptions(env, env.getOptions(), singleContext);
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 primitiveManager.loadCoreMethodNodes(this.options);
@@ -375,7 +375,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         LOGGER.fine("patchContext()");
         Metrics.printTime("before-patch-context");
         final LanguageOptions oldOptions = Objects.requireNonNull(this.options);
-        final LanguageOptions newOptions = new LanguageOptions(newEnv, newEnv.getOptions());
+        final LanguageOptions newOptions = new LanguageOptions(newEnv, newEnv.getOptions(), singleContext);
         if (!LanguageOptions.areOptionsCompatibleOrLog(LOGGER, oldOptions, newOptions)) {
             return false;
         }
