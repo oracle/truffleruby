@@ -61,7 +61,6 @@ require 'socket/truffle/linux' if Truffle::Socket.linux_support?
 require 'socket/socket'
 require 'socket/option'
 require 'socket/ancillary_data'
-require 'socket/mri'
 require 'socket/unix_socket'
 require 'socket/unix_server'
 require 'socket/ip_socket'
@@ -70,3 +69,5 @@ require 'socket/tcp_socket'
 require 'socket/tcp_server'
 require 'socket/addrinfo'
 require 'socket/ifaddr'
+
+require 'socket/mri'

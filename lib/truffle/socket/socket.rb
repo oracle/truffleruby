@@ -345,7 +345,7 @@ class Socket < BasicSocket
     0
   end
 
-  def connect_nonblock(sockaddr, exception: true)
+  private def __connect_nonblock(sockaddr, exception)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     if sockaddr.is_a?(Addrinfo)
@@ -390,12 +390,13 @@ class Socket < BasicSocket
     [message, addr]
   end
 
-  def recvfrom_nonblock(bytes, flags = 0, exception: true)
+  private def __recvfrom_nonblock(bytes, flags, buffer, exception)
     message, addr = recvmsg_nonblock(bytes, flags, exception: exception)
 
     if message == :wait_readable
       message
     else
+      message = buffer.replace(message) if buffer
       [message, addr]
     end
   end
@@ -408,7 +409,7 @@ class Socket < BasicSocket
     Truffle::Socket.accept(self, Socket)
   end
 
-  def accept_nonblock(exception: true)
+  private def __accept_nonblock(exception)
     Truffle::Socket.accept_nonblock(self, Socket, exception)
   end
 
