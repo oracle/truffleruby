@@ -33,7 +33,7 @@ import com.oracle.truffle.api.source.Source;
 public class RubyParsingRequestNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final ContextReference<RubyContext> contextReference;
-    private final InternalMethod method;
+    private final RootCallTarget callTarget;
 
     @Child private DirectCallNode callNode;
 
@@ -52,28 +52,27 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 null,
                 true,
                 null);
-
-        final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+        callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
         callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
         callNode.forceInlining();
-
-        final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
-        method = new InternalMethod(
-                context,
-                sharedMethodInfo,
-                sharedMethodInfo.getStaticLexicalScope(),
-                DeclarationContext.topLevel(context),
-                sharedMethodInfo.getMethodNameForNotBlock(),
-                context.getCoreLibrary().objectClass,
-                Visibility.PUBLIC,
-                callTarget);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         final RubyLanguage language = getLanguage(RubyLanguage.class);
         final RubyContext context = contextReference.get();
+
+        final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
+        final InternalMethod method = new InternalMethod(
+                context,
+                sharedMethodInfo,
+                sharedMethodInfo.getStaticLexicalScopeOrNull(),
+                DeclarationContext.topLevel(context),
+                sharedMethodInfo.getMethodNameForNotBlock(),
+                context.getCoreLibrary().objectClass,
+                Visibility.PUBLIC,
+                callTarget);
 
         printTimeMetric("before-script");
         try {
