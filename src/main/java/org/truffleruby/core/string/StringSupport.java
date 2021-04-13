@@ -329,6 +329,8 @@ public final class StringSupport {
         return enc.mbcToCode(bytes, p, end);
     }
 
+    /** Returns a negative value for invalid code points, callers should check for that unless they can guarantee the
+     * code point is valid. */
     @TruffleBoundary
     public static int codeLength(Encoding enc, int c) {
         return enc.codeToMbcLength(c);
@@ -495,8 +497,8 @@ public final class StringSupport {
 
     private static final Object DUMMY_VALUE = "";
 
-    public static TrTables trSetupTable(final Rope str,
-            final boolean[] stable, TrTables tables, final boolean first, final Encoding enc) {
+    @TruffleBoundary
+    public static TrTables trSetupTable(Rope str, boolean[] stable, TrTables tables, boolean first, Encoding enc) {
         int i, l[] = { 0 };
         final boolean cflag;
 
@@ -600,7 +602,8 @@ public final class StringSupport {
         return table[TRANS_SIZE];
     }
 
-    public static int trNext(final TR tr, Encoding enc, CodeRange codeRange) {
+    @TruffleBoundary
+    public static int trNext(TR tr, Encoding enc, CodeRange codeRange) {
         for (;;) {
             if (!tr.gen) {
                 return trNext_nextpart(tr, enc, codeRange);
@@ -621,7 +624,7 @@ public final class StringSupport {
         }
     }
 
-    private static int trNext_nextpart(final TR tr, Encoding enc, CodeRange codeRange) {
+    private static int trNext_nextpart(TR tr, Encoding enc, CodeRange codeRange) {
         final int[] n = { 0 };
 
         if (tr.p == tr.pend) {

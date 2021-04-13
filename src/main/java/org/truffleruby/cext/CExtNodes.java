@@ -490,7 +490,7 @@ public class CExtNodes {
 
         @Specialization
         protected int codeToMbcLen(int code, RubyEncoding encoding) {
-            return encoding.encoding.codeToMbcLength(code);
+            return StringSupport.codeLength(encoding.encoding, code);
         }
 
     }
