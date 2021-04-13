@@ -26,7 +26,7 @@ VALUE rb_struct_define(const char *name, ...) {
   char *arg = NULL;
   va_list args;
   va_start(args, name);
-  while ((arg = (char *)polyglot_get_array_element(args, i)) != NULL) {
+  while ((arg = (char *)polyglot_get_array_element(&args, i)) != NULL) {
     rb_ary_push(ary, rb_str_new_cstr(arg));
     i++;
   }
@@ -41,7 +41,7 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
   char *arg = NULL;
   va_list args;
   va_start(args, name);
-  while ((arg = (char *)polyglot_get_array_element(args, i)) != NULL) {
+  while ((arg = (char *)polyglot_get_array_element(&args, i)) != NULL) {
     rb_ary_push(ary, rb_str_new_cstr(arg));
     i++;
   }
@@ -56,7 +56,7 @@ VALUE rb_struct_new(VALUE klass, ...) {
   va_list args;
   va_start(args, klass);
   while (i < members) {
-    VALUE arg = polyglot_get_array_element(args, i);
+    VALUE arg = polyglot_get_array_element(&args, i);
     rb_ary_push(ary, arg);
     i++;
   }

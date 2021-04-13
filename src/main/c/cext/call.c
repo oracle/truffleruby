@@ -99,7 +99,7 @@ VALUE rb_yield_values(int n, ...) {
   va_list args;
   va_start(args, n);
   for (int i = 0; i < n; i++) {
-    rb_ary_store(values, i, (VALUE) polyglot_get_array_element(args, i));
+    rb_ary_store(values, i, (VALUE) polyglot_get_array_element(&args, i));
   }
   va_end(args);
   return rb_yield_splat(values);
