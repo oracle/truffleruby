@@ -12,9 +12,7 @@ module TruffleRuby
     end
 
     def [](key)
-      TruffleRuby.synchronized(self) do
-        @hash[key]
-      end
+      @hash[key]
     end
 
     def []=(key, value)
@@ -86,9 +84,7 @@ module TruffleRuby
     end
 
     def key?(key)
-      TruffleRuby.synchronized(self) do
-        @hash.key?(key)
-      end
+      @hash.key?(key)
     end
 
     def delete(key)
@@ -115,24 +111,18 @@ module TruffleRuby
     end
 
     def size
-      TruffleRuby.synchronized(self) do
-        @hash.size
-      end
+      @hash.size
     end
 
     def get_or_default(key, default_value)
-      TruffleRuby.synchronized(self) do
-        @hash.fetch(key, default_value)
-      end
+      @hash.fetch(key, default_value)
     end
 
     def each_pair
-      TruffleRuby.synchronized(self) do
-        @hash.each_pair do |key, value|
-          yield(key, value)
-        end
-        self
+      @hash.each_pair do |key, value|
+        yield(key, value)
       end
+      self
     end
 
     private
