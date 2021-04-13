@@ -38,7 +38,7 @@ It is often useful to get a Ruby backtrace to find where the interpreter is in t
 This can be done conveniently by right-clicking the `Variables` pane of the debugger, then
 `New Watch...` and paste `org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(this)`.
 You can then click `View` to see the Ruby backtrace at any time, and also copy/paste that output to
-`Anaylyse` => `Stack Trace or Thread Dump...` to be able to simply click on backtrace entries
+`Analyze` => `Stack Trace or Thread Dump...` to be able to simply click on backtrace entries
 and make IntelliJ open the file in the IDE.
 
 A common problem is that the first thing TruffleRuby does when it starts
