@@ -507,12 +507,10 @@ describe "CApiObject" do
 
   describe "rb_check_type" do
     it "checks if the object is of the given type" do
-      class DescArray < Array
-      end
       @o.rb_check_type(nil, nil).should == true
       @o.rb_check_type(ObjectTest.new, Object.new).should == true
       @o.rb_check_type([], []).should == true
-      @o.rb_check_type(DescArray.new, []).should == true
+      @o.rb_check_type(Class.new(Array).new, []).should == true
       @o.rb_check_type(ObjectTest, Object).should == true
     end
 
@@ -528,13 +526,11 @@ describe "CApiObject" do
 
   describe "rb_type_p" do
     it "returns whether object is of the given type" do
-      class DescArray < Array
-      end
       @o.rb_is_rb_type_p_nil(nil).should == true
       @o.rb_is_rb_type_p_object([]).should == false
       @o.rb_is_rb_type_p_object(ObjectTest.new).should == true
       @o.rb_is_rb_type_p_array([]).should == true
-      @o.rb_is_rb_type_p_array(DescArray.new).should == true
+      @o.rb_is_rb_type_p_array(Class.new(Array).new).should == true
       @o.rb_is_rb_type_p_module(ObjectTest).should == false
       @o.rb_is_rb_type_p_class(ObjectTest).should == true
       @o.rb_is_rb_type_p_data(Time.now).should == true
@@ -543,12 +539,10 @@ describe "CApiObject" do
 
   describe "BUILTIN_TYPE" do
     it "returns the type constant for the object" do
-      class DescArray < Array
-      end
       @o.rb_is_builtin_type_object([]).should == false
       @o.rb_is_builtin_type_object(ObjectTest.new).should == true
       @o.rb_is_builtin_type_array([]).should == true
-      @o.rb_is_builtin_type_array(DescArray.new).should == true
+      @o.rb_is_builtin_type_array(Class.new(Array).new).should == true
       @o.rb_is_builtin_type_module(ObjectTest).should == false
       @o.rb_is_builtin_type_class(ObjectTest).should == true
       @o.rb_is_builtin_type_data(Time.now).should == true
