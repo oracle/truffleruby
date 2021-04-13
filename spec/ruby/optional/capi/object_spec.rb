@@ -506,27 +506,23 @@ describe "CApiObject" do
   end
 
   describe "rb_check_type" do
-    it "checks if the object is of the given type and throws an error if not" do
+    it "checks if the object is of the given type" do
       class DescArray < Array
       end
       @o.rb_check_type(nil, nil).should == true
-      -> { begin
-             @o.rb_check_type([], Object.new)
-           rescue => e
-             e.message.should include('Object')
-             raise
-           end}.should raise_error(TypeError)
       @o.rb_check_type(ObjectTest.new, Object.new).should == true
       @o.rb_check_type([], []).should == true
       @o.rb_check_type(DescArray.new, []).should == true
-      -> { begin
-             @o.rb_check_type(ObjectTest, Module.new { })
-           rescue => e
-             e.message.should include('Module')
-             raise
-           end}.should raise_error(TypeError)
       @o.rb_check_type(ObjectTest, Object).should == true
-      @o.rb_check_type(Time.now, Time.new).should == true
+    end
+
+    it "raises an exception if the object is not of the expected type" do
+      -> { @o.rb_check_type([], Object.new { }) }.should raise_error { |e|
+        e.class.should == TypeError
+        e.message.should == 'wrong argument type Array (expected Object)' }
+      -> { @o.rb_check_type(ObjectTest, Module.new { }) }.should raise_error { |e|
+        e.class.should == TypeError
+        e.message.should == 'wrong argument type Class (expected Module)' }
     end
   end
 
