@@ -96,9 +96,12 @@ VALUE rb_yield_splat(VALUE values) {
 
 VALUE rb_yield_values(int n, ...) {
   VALUE values = rb_ary_new_capa(n);
+  va_list args;
+  va_start(args, n);
   for (int i = 0; i < n; i++) {
-    rb_ary_store(values, i, (VALUE) polyglot_get_arg(1+i));
+    rb_ary_store(values, i, (VALUE) polyglot_get_array_element(args, i));
   }
+  va_end(args);
   return rb_yield_splat(values);
 }
 

@@ -24,10 +24,13 @@ VALUE rb_struct_define(const char *name, ...) {
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
-  while ((arg = (char *)polyglot_get_arg(1+i)) != NULL) {
+  va_list args;
+  va_start(args, name);
+  while ((arg = (char *)polyglot_get_array_element(args, i)) != NULL) {
     rb_ary_push(ary, rb_str_new_cstr(arg));
     i++;
   }
+  va_end(args);
   return RUBY_CEXT_INVOKE("rb_struct_define_no_splat", rb_name, ary);
 }
 
@@ -36,10 +39,13 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
-  while ((arg = (char *)polyglot_get_arg(2+i)) != NULL) {
+  va_list args;
+  va_start(args, name);
+  while ((arg = (char *)polyglot_get_array_element(args, i)) != NULL) {
     rb_ary_push(ary, rb_str_new_cstr(arg));
     i++;
   }
+  va_end(args);
   return RUBY_CEXT_INVOKE("rb_struct_define_under_no_splat", outer, rb_name, ary);
 }
 
@@ -47,11 +53,14 @@ VALUE rb_struct_new(VALUE klass, ...) {
   int members = polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_struct_size", klass));
   VALUE ary = rb_ary_new();
   int i = 0;
+  va_list args;
+  va_start(args, klass);
   while (i < members) {
-    VALUE arg = polyglot_get_arg(1+i);
+    VALUE arg = polyglot_get_array_element(args, i);
     rb_ary_push(ary, arg);
     i++;
   }
+  va_end(args);
   return RUBY_CEXT_INVOKE("rb_struct_new_no_splat", klass, ary);
 }
 

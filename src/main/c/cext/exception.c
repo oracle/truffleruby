@@ -107,19 +107,19 @@ VALUE (*cext_rb_rescue2)(VALUE (*b_proc)(VALUE data), void* data1, VALUE (*r_pro
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
   VALUE rescued = rb_ary_new();
-  int total = polyglot_get_arg_count();
-  int n = 4;
-  // Callers _should_ have terminated the var args with a VALUE sized 0, but
-  // some code uses a zero instead, and this can break. So we read the
-  // arguments using the polyglot api.
+  va_list args;
+  va_start(args, data2);
+  int total = polyglot_get_array_size(args);
+  int n = 0;
   for (;n < total; n++) {
-    VALUE arg = polyglot_get_arg(n);
-    if (arg == (VALUE)0) {
+    VALUE arg = polyglot_get_array_element(args, n);
+    if (arg == (VALUE)0) { /* A 0 marks the end of the arguments so we break here rather than adding it to the array.*/
       break;
     }
 
     rb_ary_push(rescued, arg);
   }
+  va_end(args);
   return cext_rb_rescue2(b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
 }
 
