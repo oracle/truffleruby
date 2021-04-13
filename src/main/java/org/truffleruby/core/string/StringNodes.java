@@ -78,7 +78,6 @@ import java.nio.charset.StandardCharsets;
 import com.oracle.truffle.api.dsl.Bind;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
-import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -3983,7 +3982,7 @@ public abstract class StringNodes {
                 @Cached BranchProfile errorProfile) {
             final Encoding encoding = rubyEncoding.encoding;
 
-            final int length = codeToMbcLength(encoding, (int) code);
+            final int length = StringSupport.codeLength(encoding, (int) code);
             if (length <= 0) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
@@ -4003,15 +4002,6 @@ public abstract class StringNodes {
             }
 
             return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_VALID);
-        }
-
-        @TruffleBoundary
-        private int codeToMbcLength(Encoding encoding, int code) {
-            try {
-                return StringSupport.codeLength(encoding, code);
-            } catch (EncodingException e) {
-                return -1;
-            }
         }
 
         protected boolean isCodepoint(long code) {
