@@ -499,7 +499,7 @@ describe "CApiObject" do
       @o.rb_is_type_array([]).should == true
       @o.rb_is_type_array(DescArray.new).should == true
       @o.rb_is_type_module(ObjectTest).should == false
-      @o.rb_is_type_module(Module.new { }).should == true
+      @o.rb_is_type_module(Module.new).should == true
       @o.rb_is_type_class(ObjectTest).should == true
       @o.rb_is_type_data(Time.now).should == true
     end

@@ -54,6 +54,7 @@ module Truffle::CExt
 
   T_MASK     = 0x1f
 
+  # This list of types is derived form MRI's error.c builtin_types array.
   BUILTIN_TYPES = [
     '',
     'Object',
