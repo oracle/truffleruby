@@ -48,7 +48,7 @@ public class BindingLocalVariablesObject implements TruffleObject {
     protected Object getMembers(boolean includeInternal) {
         String[] variables = BindingNodes.LocalVariablesNode
                 // There should be no duplicates since there is no scope above
-                .listLocalVariablesWithDuplicates(binding.getFrame())
+                .listLocalVariablesWithDuplicates(binding.getFrame(), null)
                 .toArray(StringUtils.EMPTY_STRING_ARRAY);
         return new VariableNamesObject(variables);
     }
