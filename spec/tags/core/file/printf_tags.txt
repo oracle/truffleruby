@@ -12,4 +12,3 @@ fails:File#printf flags * left-justifies the result if specified with $ argument
 fails:File#printf precision string formats determines the maximum number of characters to be copied from the string
 fails:File#printf reference by name %{name} style supports flags, width and precision
 fails:File#printf other formats % alone raises an ArgumentError
-fails:File#printf other formats s formats a partial substring without including omitted characters

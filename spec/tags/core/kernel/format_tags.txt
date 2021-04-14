@@ -1,2 +1,0 @@
-fails:Kernel.format on multibyte strings formats string with precision
-fails:Kernel.format on multibyte strings preserves encoding

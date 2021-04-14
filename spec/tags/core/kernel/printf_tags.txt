@@ -27,5 +27,3 @@ fails:Kernel.printf formatting io is not specified precision string formats dete
 fails:Kernel.printf formatting io is not specified reference by name %{name} style supports flags, width and precision
 fails:Kernel.printf formatting io is specified other formats % alone raises an ArgumentError
 fails:Kernel.printf formatting io is not specified other formats % alone raises an ArgumentError
-fails:Kernel.printf formatting io is specified other formats s formats a partial substring without including omitted characters
-fails:Kernel.printf formatting io is not specified other formats s formats a partial substring without including omitted characters
