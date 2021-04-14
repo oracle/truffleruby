@@ -183,7 +183,13 @@ public class PrintfSimpleTreeBuilder {
 
                                 if (config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
                                     conversionNode = ReadStringNodeGen
-                                            .create(true, conversionMethodName, false, EMPTY_BYTES, new SourceNode());
+                                            .create(
+                                                    true,
+                                                    conversionMethodName,
+                                                    false,
+                                                    EMPTY_BYTES,
+                                                    config.getPrecision(),
+                                                    new SourceNode());
                                 } else {
                                     conversionNode = ToStringNodeGen
                                             .create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);

@@ -10,6 +10,8 @@
 package org.truffleruby.core.format.read.array;
 
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.format.TruncateStringNode;
+import org.truffleruby.core.format.TruncateStringNodeGen;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
@@ -33,18 +35,22 @@ public abstract class ReadStringNode extends FormatNode {
     private final String conversionMethod;
     private final boolean inspectOnConversionFailure;
     private final Object valueOnNil;
+    private final Integer precision;
 
     @Child private ToStringNode toStringNode;
+    @Child private TruncateStringNode truncateStringNode;
 
     public ReadStringNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
-            Object valueOnNil) {
+            Object valueOnNil,
+            Integer precision) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
         this.valueOnNil = valueOnNil;
+        this.precision = precision;
     }
 
     @Specialization(limit = "storageStrategyLimit()")
@@ -62,6 +68,14 @@ public abstract class ReadStringNode extends FormatNode {
                     inspectOnConversionFailure,
                     valueOnNil,
                     WriteByteNodeGen.create(new LiteralFormatNode((byte) 0))));
+        }
+
+        if (this.precision != null) {
+            if (truncateStringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                this.truncateStringNode = insert(TruncateStringNodeGen.create(precision, null));
+            }
+            value = truncateStringNode.execute(value);
         }
 
         return toStringNode.executeToString(frame, value);

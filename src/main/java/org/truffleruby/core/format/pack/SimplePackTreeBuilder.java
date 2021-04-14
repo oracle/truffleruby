@@ -156,6 +156,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         "to_str",
                         false,
                         Nil.INSTANCE,
+                        null,
                         new SourceNode())));
     }
 
@@ -182,6 +183,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         "to_s",
                         true,
                         Nil.INSTANCE,
+                        null,
                         new SourceNode())));
     }
 
@@ -199,6 +201,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         "to_str",
                         false,
                         Nil.INSTANCE,
+                        null,
                         new SourceNode())));
     }
 
@@ -383,6 +386,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         "to_str",
                         false,
                         Nil.INSTANCE,
+                        null,
                         new SourceNode())));
 
     }
@@ -399,6 +403,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         "to_str",
                         false,
                         Nil.INSTANCE,
+                        null,
                         new SourceNode())));
     }
 
@@ -421,6 +426,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         "to_str",
                         false,
                         Nil.INSTANCE,
+                        null,
                         new SourceNode())));
 
     }

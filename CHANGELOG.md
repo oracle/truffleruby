@@ -11,6 +11,7 @@ Compatibility:
 
 * Make interpolated strings frozen for compatibility with Ruby 2.7 (#2304, @kirs).
 * `require 'socket'` now also requires `'io/wait'` like CRuby (#2326).
+* Support precision when formatting strings (#2281, @kirs).
 
 Performance:
 

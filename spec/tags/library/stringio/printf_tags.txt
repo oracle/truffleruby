@@ -13,4 +13,3 @@ fails:StringIO#printf formatting flags * left-justifies the result if specified 
 fails:StringIO#printf formatting precision string formats determines the maximum number of characters to be copied from the string
 fails:StringIO#printf formatting reference by name %{name} style supports flags, width and precision
 fails:StringIO#printf formatting other formats % alone raises an ArgumentError
-fails:StringIO#printf formatting other formats s formats a partial substring without including omitted characters

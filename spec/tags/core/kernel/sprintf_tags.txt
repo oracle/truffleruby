@@ -32,5 +32,3 @@ fails:Kernel.sprintf precision string formats determines the maximum number of c
 fails:Kernel.sprintf reference by name %{name} style supports flags, width and precision
 fails:Kernel#sprintf other formats % alone raises an ArgumentError
 fails:Kernel.sprintf other formats % alone raises an ArgumentError
-fails:Kernel#sprintf other formats s formats a partial substring without including omitted characters
-fails:Kernel.sprintf other formats s formats a partial substring without including omitted characters
