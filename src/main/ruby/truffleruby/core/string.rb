@@ -526,6 +526,10 @@ class String
     result.force_encoding(result_encoding)
   end
 
+  # https://github.com/ruby/ruby/blob/12f7ba5ed4a07855d6a9429aa627211db3655ca7/string.c#L6049-L6050
+  MAX_PRINTABLE_UNICODE_CHAR = 0x7F
+  private_constant :MAX_PRINTABLE_UNICODE_CHAR
+
   private def inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
     consumed = char.bytesize
 
@@ -576,7 +580,9 @@ class String
       end
     end
 
-    if Primitive.character_printable_p(char) && (enc == result_encoding || (ascii && char.ascii_only?))
+    if Primitive.character_printable_p(char) && unicode && char.ord < MAX_PRINTABLE_UNICODE_CHAR
+      result << char.encode(result_encoding)
+    elsif Primitive.character_printable_p(char) && (enc == result_encoding || (ascii && char.ascii_only?))
       result << char
     else
       code = char.ord
