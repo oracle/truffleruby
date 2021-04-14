@@ -201,7 +201,8 @@ public class CallStackManager {
     }
 
     public static boolean isJavaCore(InternalMethod method) {
-        return method != null && method.getSharedMethodInfo().getSourceSection() == CoreLibrary.SOURCE_SECTION;
+        return method != null &&
+                method.getSharedMethodInfo().getSourceSection() == CoreLibrary.JAVA_CORE_SOURCE_SECTION;
     }
 
     // Backtraces

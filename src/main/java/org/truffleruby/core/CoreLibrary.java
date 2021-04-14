@@ -113,7 +113,8 @@ public class CoreLibrary {
     private final RubyContext context;
     private final RubyLanguage language;
 
-    public static final SourceSection SOURCE_SECTION = initCoreSourceSection();
+    /** Source section for core methods implemented in Java (marked by {@link org.truffleruby.builtins.CoreMethod}). */
+    public static final SourceSection JAVA_CORE_SOURCE_SECTION = initCoreSourceSection();
 
     public final RubyClass argumentErrorClass;
     public final RubyClass arrayClass;
@@ -254,7 +255,7 @@ public class CoreLibrary {
     @TruffleBoundary
     private static SourceSection initCoreSourceSection() {
         final Source.SourceBuilder builder = Source.newBuilder(TruffleRuby.LANGUAGE_ID, "", "(core)");
-        builder.internal(true);
+        builder.internal(false);
 
         final Source source;
         try {

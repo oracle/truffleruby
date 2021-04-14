@@ -13,6 +13,7 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.core.CoreLibrary;
 
 public abstract class RubyBaseRootNode extends RootNode {
 
@@ -42,4 +43,9 @@ public abstract class RubyBaseRootNode extends RootNode {
         return false;
     }
 
+    @Override
+    public boolean countsTowardsStackTraceLimit() {
+        // Entries with a java source section should not count towards the limit, even though they're not internal.
+        return !isInternal() && sourceSection != CoreLibrary.JAVA_CORE_SOURCE_SECTION;
+    }
 }

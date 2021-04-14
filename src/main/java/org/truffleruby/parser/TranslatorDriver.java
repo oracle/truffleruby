@@ -477,7 +477,7 @@ public class TranslatorDriver {
             return null;
         } else {
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
-                    CoreLibrary.SOURCE_SECTION,
+                    CoreLibrary.JAVA_CORE_SOURCE_SECTION,
                     language.singleContext ? context.getRootLexicalScope() : null,
                     Arity.NO_ARGUMENTS,
                     "<unused>",
