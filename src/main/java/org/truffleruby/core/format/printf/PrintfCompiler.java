@@ -39,7 +39,7 @@ public class PrintfCompiler {
                 new FormatRootNode(
                         language,
                         currentNode.getEncapsulatingSourceSection(),
-                        FormatEncoding.find(format.getEncoding()),
+                        FormatEncoding.find(format.getEncoding(), currentNode),
                         builder.getNode()));
     }
 

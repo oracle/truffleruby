@@ -9,12 +9,16 @@
  */
 package org.truffleruby.core.format;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.control.RaiseException;
 
 public enum FormatEncoding {
 
@@ -41,7 +45,7 @@ public enum FormatEncoding {
         }
     }
 
-    public static FormatEncoding find(Encoding encoding) {
+    public static FormatEncoding find(Encoding encoding, Node currentNode) {
         if (encoding == ASCIIEncoding.INSTANCE) {
             return ASCII_8BIT;
         }
@@ -55,7 +59,10 @@ public enum FormatEncoding {
         }
 
         // TODO (kjmenard 17-Oct-18): This entire enum needs to be rethought since a format string can take on any encoding, not just the 3 codified here.
-        throw new UnsupportedOperationException("Can't find format encoding for " + encoding);
+        RubyContext context = RubyLanguage.getCurrentContext();
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().runtimeError("Can't find format encoding for " + encoding, currentNode));
     }
 
     /** Given the current encoding for a pack string, and something that requires another encoding, give us the encoding
