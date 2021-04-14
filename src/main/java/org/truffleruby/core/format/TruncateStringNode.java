@@ -12,18 +12,19 @@ package org.truffleruby.core.format;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.StringSubstringPrimitiveNode;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 
 @NodeChild(value = "string", type = FormatNode.class)
 public abstract class TruncateStringNode extends FormatNode {
-    @Child private StringNodes.StringSubstringPrimitiveNode substringNode = StringSubstringPrimitiveNodeFactory
-            .create(null);
+
+    @Child private StringSubstringPrimitiveNode substringNode = StringSubstringPrimitiveNodeFactory.create(null);
+
     private final int size;
 
     public abstract Object execute(Object string);
 
-    public TruncateStringNode(Integer size) {
+    public TruncateStringNode(int size) {
         this.size = size;
     }
 
