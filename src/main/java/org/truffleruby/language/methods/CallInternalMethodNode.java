@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethodNodeManager;
@@ -131,7 +132,9 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     }
 
     protected Assumption getModuleAssumption(InternalMethod method) {
-        return method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption();
+        return RubyLanguage.getCurrentLanguage().singleContext
+                ? method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption()
+                : AlwaysValidAssumption.INSTANCE;
     }
 
     protected int getCacheLimit() {
