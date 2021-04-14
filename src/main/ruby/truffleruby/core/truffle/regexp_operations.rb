@@ -56,10 +56,8 @@ module Truffle
     Truffle::Boot.delay do
       COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
       USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
-    end
 
-    if Truffle::Boot.get_option('regexp-instrument-creation') || Truffle::Boot.get_option('regexp-instrument-match')
-      Truffle::Boot.delay do
+      if Truffle::Boot.get_option('regexp-instrument-creation') or Truffle::Boot.get_option('regexp-instrument-match')
         at_exit do
           Truffle::RegexpOperations.print_stats
         end
@@ -189,6 +187,7 @@ module Truffle
     end
 
     def self.print_stats_table(table)
+      return if table.empty?
       sorted = table.to_a.sort_by(&:last).reverse
       width = sorted.first.last.to_s.size
       sorted.each do |regexp, count|
