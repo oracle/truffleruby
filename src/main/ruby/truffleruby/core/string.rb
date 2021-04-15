@@ -203,9 +203,9 @@ class String
 
   def rpartition(pattern)
     if pattern.kind_of? Regexp
-      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, size, false)
+      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
-        [m.pre_match, m[0], m.post_match]
+        return [m.pre_match, m[0], m.post_match]
       end
     else
       pattern = StringValue(pattern)
@@ -217,11 +217,11 @@ class String
                 pattern.dup,
                 Primitive.string_substring(self, post_start, post_len)]
       end
-
-      # Nothing worked out, this is the default.
-      empty = String.new(encoding: encoding)
-      [empty, empty.dup, self]
     end
+
+    # Nothing worked out, this is the default.
+    empty = String.new(encoding: encoding)
+    [empty, empty.dup, self.dup]
   end
 
   def rstrip
