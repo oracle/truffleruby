@@ -194,7 +194,6 @@ public abstract class BucketsStrategy {
         assert HashOperations.verifyStore(context, to);
     }
 
-
     public static void removeFromSequenceChain(RubyHash hash, Entry entry) {
         if (entry.getPreviousInSequence() == null) {
             assert hash.firstInSequence == entry;
@@ -202,6 +201,10 @@ public abstract class BucketsStrategy {
         } else {
             assert hash.firstInSequence != entry;
             entry.getPreviousInSequence().setNextInSequence(entry.getNextInSequence());
+            final Entry nextInSequence = entry.getNextInSequence();
+            if (nextInSequence != null) {
+                nextInSequence.setPreviousInSequence(entry.getPreviousInSequence());
+            }
         }
     }
 
