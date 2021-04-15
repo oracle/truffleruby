@@ -32,11 +32,3 @@ benchmark 'exception-not-captured-stack-100' do
     nil
   end
 end
-
-benchmark 'exception-not-captured-stack-1000' do
-  begin
-    recurse(1000)
-  rescue MyException
-    nil
-  end
-end
