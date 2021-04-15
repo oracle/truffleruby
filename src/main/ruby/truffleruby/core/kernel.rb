@@ -372,7 +372,7 @@ module Kernel
   module_function :gets
 
   def inspect
-    prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
+    prefix = "#<#{Truffle::Type.object_class(self)}:0x#{self.__id__.to_s(16)}"
 
     ivars = Primitive.object_ivars self
 
