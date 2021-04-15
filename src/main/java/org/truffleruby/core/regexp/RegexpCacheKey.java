@@ -13,8 +13,9 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.parser.ReOptions;
 
-public class RegexpCacheKey {
+public final class RegexpCacheKey {
 
     private final Rope rope;
     private final Encoding encoding;
@@ -46,6 +47,17 @@ public class RegexpCacheKey {
 
     @Override
     public String toString() {
-        return rope.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append('/').append(rope.toString()).append('/');
+        if ((options & ReOptions.RE_OPTION_MULTILINE) != 0) {
+            builder.append('m');
+        }
+        if ((options & ReOptions.RE_OPTION_IGNORECASE) != 0) {
+            builder.append('i');
+        }
+        if ((options & ReOptions.RE_OPTION_EXTENDED) != 0) {
+            builder.append('x');
+        }
+        return builder.toString();
     }
 }
