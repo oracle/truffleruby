@@ -54,6 +54,39 @@ module Truffle::CExt
 
   T_MASK     = 0x1f
 
+  # This list of types is derived from MRI's error.c builtin_types array.
+  BUILTIN_TYPES = [
+    '',
+    'Object',
+    'Class',
+    'Module',
+    'Float',
+    'String',
+    'Regexp',
+    'Array',
+    'Hash',
+    'Struct',
+    'Integer',
+    'File',
+    'Data',
+    'MatchData',
+    'Complex',
+    'Rational',
+    '',
+    'nil',
+    'true',
+    'false',
+    'Symbol',
+    'Integer',
+    'undef',
+    '',
+    '',
+    '',
+    'Memo',
+    'Node',
+    'iClass'
+  ]
+
   RUBY_ENC_CODERANGE_UNKNOWN = 0
   RUBY_ENC_CODERANGE_7BIT = 1
   RUBY_ENC_CODERANGE_VALID = 2
@@ -204,9 +237,9 @@ module Truffle::CExt
   end
 
   def rb_check_type(value, type)
-    # TODO CS 23-Jul-16 there's more to this method than this...
-    if rb_type(value) != type
-      raise TypeError, "wrong argument type #{value.class.name} (expected #{type})"
+    value_type = rb_type(value)
+    if value_type != type || (value_type == T_DATA && Primitive.object_hidden_var_get(value, DATA_HOLDER))
+      raise TypeError, "wrong argument type #{Truffle::ExceptionOperations.to_class_name(value)} (expected #{BUILTIN_TYPES[type]})"
     end
   end
 

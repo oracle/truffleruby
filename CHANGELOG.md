@@ -13,6 +13,7 @@ Compatibility:
 * `require 'socket'` now also requires `'io/wait'` like CRuby (#2326).
 * Support precision when formatting strings (#2281, @kirs).
 * Make rpartition compatible with Ruby 2.7 (#2320, @gogainda).
+* Include the type name in exception messages from `rb_check_type` (#2307).
 
 Performance:
 
