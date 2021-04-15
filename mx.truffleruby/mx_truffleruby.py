@@ -11,6 +11,7 @@ from __future__ import print_function
 import os
 import pipes
 from os.path import join, exists, basename
+import shutil
 
 import mx
 import mx_gate
@@ -122,6 +123,40 @@ def jt(*args):
 def build_truffleruby(args):
     mx.command_function('sversions')([])
     jt('build')
+
+def ruby_check_heap_dump(input_args, out=None):
+    print("mx ruby_check_heap_dump " + " ".join(input_args))
+    args = input_args
+    args.insert(0, "--experimental-options")
+    dists = ['TRUFFLERUBY', 'TRUFFLE_NFI', 'SULONG_NATIVE', 'TRUFFLERUBY-TEST']
+    vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
+    vm_args += mx.get_runtime_jvm_args(dists)
+    jdk = mx.get_jdk()
+    # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
+    vm_args.append("org.truffleruby.LeakTest")
+    out = mx.OutputCapture() if out is None else out
+    retval = mx.run_java(vm_args + truffleruby_args, jdk=jdk, nonZeroIsFatal=False, out=out)
+    if retval == 0:
+        print("PASSED")
+        print(out.data)
+    elif os.environ.get("CI") and "--keep-dump" not in input_args:
+        # rerun once with heap dumping enabled
+        out = mx.OutputCapture()
+        ruby_check_heap_dump(["--keep-dump"] + input_args, out=out)
+        path = out.data.strip().partition("Dump file:")[2].strip()
+        if path:
+            save_path = os.path.join(root, "dumps", "leak_test")
+            try:
+                os.makedirs(save_path)
+            except OSError:
+                pass
+            dest = shutil.copy(path, save_path) # pylint: disable=assignment-from-no-return
+            print("Heapdump file kept in " + dest)
+            raise Exception("heap dump check failed")
+    else:
+        print("FAILED")
+        print(out.data)
+        raise Exception("heap dump check failed")
 
 def ruby_run_ruby(args):
     """run TruffleRuby (through tool/jt.rb)"""
@@ -266,6 +301,7 @@ Then run the following command:
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
     'build_truffleruby': [build_truffleruby, ''],
+    'ruby_check_heap_dump': [ruby_check_heap_dump, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],

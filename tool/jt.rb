@@ -2325,6 +2325,14 @@ module Commands
     end
   end
 
+  def check_heap_dump(*args)
+    common_args = ['--lang', 'ruby',
+                   '--forbidden-class', 'org.truffleruby.language.RubyDynamicObject',
+                   '--forbidden-class', 'org.truffleruby.RubyContext']
+    args.unshift(*common_args)
+    mx 'ruby_check_heap_dump', '--shared-engine', *args, '--code', "p 42; p require 'set'" # "; p require 'openssl'"
+  end
+
   private def check_parser
     build('parser')
     diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', capture: :out
@@ -2692,6 +2700,7 @@ module Commands
       check_license
 
       check_source_files if ci?
+      check_heap_dump if ci?
     end
   end
 

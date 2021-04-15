@@ -77,6 +77,17 @@ suite = {
             "sourceSha1": "071891163f601416a5426d8f05b7d46139217ff1",
             "license": ["MIT"],
         },
+
+        "NETBEANS-LIB-PROFILER" : {
+            "moduleName" : "org.netbeans.modules.org-netbeans-lib-profiler",
+            "sha1" : "2bcd32411df5d9c5348c98cf7024ac8b76137868",
+            "sourceSha1" : "9943534904689dcf93d3bcaca8293583e9d56266",
+            "maven" : {
+              "groupId" : "org.netbeans.modules",
+              "artifactId" : "org-netbeans-lib-profiler",
+              "version" : "RELEASE120-1",
+            },
+        },
     },
 
     "externalProjects": {
@@ -256,6 +267,8 @@ suite = {
                 "org.truffleruby",
                 "org.truffleruby.services",
                 "mx:JUNIT",
+                "NETBEANS-LIB-PROFILER",
+                "sdk:LAUNCHER_COMMON"
             ],
             "javaCompliance": "8+",
             "checkstyle": "org.truffleruby",
@@ -541,6 +554,8 @@ suite = {
                 "mx:JUNIT"
             ],
             "distDependencies": [
+                "NETBEANS-LIB-PROFILER",
+                "sdk:LAUNCHER_COMMON",
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-SERVICES",
                 "TRUFFLERUBY_GRAALVM_SUPPORT",
