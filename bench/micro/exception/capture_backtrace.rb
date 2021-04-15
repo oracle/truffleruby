@@ -34,11 +34,3 @@ benchmark 'exception-stored-100-stack' do
     exc = e # captures the exception and the backtrace
   end
 end
-
-benchmark 'exception-stored-1000-stack' do
-  begin
-    recurse(1000)
-  rescue MyException => e
-    exc = e # captures the exception and the backtrace
-  end
-end
