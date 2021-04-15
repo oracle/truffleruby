@@ -18,5 +18,8 @@ gem_test_pack_path="$(jt gem-test-pack)"
 
 cd "$gem_test_pack_path/gem-testing/discourse-2.3.4" || exit 2
 
-truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
-truffleruby bundle install --local --no-cache
+# Only works on x86_64-linux, as it needs a precompiled gem, gem-cache/libv8-*-x86_64-linux.gem
+if jt ruby -e 'abort unless RUBY_PLATFORM.include?("x86_64-linux")'; then
+  truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
+  truffleruby bundle install --local --no-cache
+fi
