@@ -17,16 +17,19 @@ public abstract class ConcurrentOperations {
 
     /** Replaces {@link ConcurrentHashMap#computeIfAbsent(Object, Function)} as it does not scale. The JDK method takes
      * a monitor for every access if the key is present. See https://bugs.openjdk.java.net/browse/JDK-8161372 which only
-     * fixes it in Java 9 if there are no collisions in the bucket. This method might execute the function multiple
-     * times, in contrast to computeIfAbsent(). */
+     * fixes it in Java 9 if there are no collisions in the bucket.
+     * <p>
+     * #computeIfAbsent() is used if the key cannot be found with {@link Map#get(Object)}, and therefore this method has
+     * the same semantics as the passed map's #computeIfAbsent(). Notably, for ConcurrentHashMap, the lambda is
+     * guaranteed to be only executed once per missing key. */
     public static <K, V> V getOrCompute(Map<K, V> map, K key, Function<? super K, ? extends V> compute) {
         V value = map.get(key);
         if (value != null) {
             return value;
         } else {
-            final V newValue = compute.apply(key);
-            final V oldValue = map.putIfAbsent(key, newValue);
-            return oldValue != null ? oldValue : newValue;
+            // Checkstyle: stop
+            return map.computeIfAbsent(key, compute);
+            // Checkstyle: resume
         }
     }
 
