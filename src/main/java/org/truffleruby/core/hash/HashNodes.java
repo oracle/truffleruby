@@ -406,12 +406,6 @@ public abstract class HashNodes {
 
             BucketsStrategy.removeFromSequenceChain(hash, entry);
 
-            if (entry.getNextInSequence() == null) {
-                hash.lastInSequence = entry.getPreviousInSequence();
-            } else {
-                entry.getNextInSequence().setPreviousInSequence(entry.getPreviousInSequence());
-            }
-
             BucketsStrategy
                     .removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
 
@@ -923,9 +917,6 @@ public abstract class HashNodes {
                                 bucketEntry.getKey(),
                                 bucketEntry.getHashed())) {
                             BucketsStrategy.removeFromSequenceChain(hash, entry);
-                            if (hash.lastInSequence == entry) {
-                                hash.lastInSequence = entry.getPreviousInSequence();
-                            }
                             hash.size--;
                             break;
                         }

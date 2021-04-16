@@ -82,10 +82,11 @@ public abstract class DeleteLastNode extends RubyContextNode {
         assert entry.getNextInSequence() == null;
 
         if (hash.firstInSequence == entry) {
+            assert entry.getPreviousInSequence() == null;
             hash.firstInSequence = null;
             hash.lastInSequence = null;
         } else {
-            assert hash.firstInSequence != entry;
+            assert entry.getPreviousInSequence() != null;
             final Entry previousInSequence = entry.getPreviousInSequence();
             previousInSequence.setNextInSequence(null);
             hash.lastInSequence = previousInSequence;
