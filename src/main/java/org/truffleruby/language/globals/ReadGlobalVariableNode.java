@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.Bind;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
@@ -22,44 +23,45 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
 
-    protected final String name;
+    public final String name;
+    @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;
     @Child private IsDefinedGlobalVariableNode definedNode;
 
     public ReadGlobalVariableNode(String name) {
         this.name = name;
+        lookupGlobalVariableStorageNode = LookupGlobalVariableStorageNode.create(name);
     }
 
-    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
-    protected Object read(
-            @Cached("getStorage()") GlobalVariableStorage storage,
+    @Specialization(guards = "storage.isSimple()")
+    protected Object read(VirtualFrame frame,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("create(name)") ReadSimpleGlobalVariableNode simpleNode) {
         return simpleNode.execute();
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 0" }, assumptions = "storage.getValidAssumption()")
+    @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
     protected Object readHooks(VirtualFrame frame,
-            @Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("getterArity(storage)") int arity,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
+            @Bind("getterArity(storage)") int arity,
             @Cached CallBlockNode yieldNode) {
         return yieldNode.yield(storage.getGetter());
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 1" }, assumptions = "storage.getValidAssumption()")
+    @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
     protected Object readHooksWithStorage(VirtualFrame frame,
-            @Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("getterArity(storage)") int arity,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
+            @Bind("getterArity(storage)") int arity,
             @Cached CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode) {
-        return yieldNode
-                .yield(storage.getGetter(), storageNode.execute(frame));
+        return yieldNode.yield(storage.getGetter(), storageNode.execute(frame));
     }
 
     protected int getterArity(GlobalVariableStorage storage) {
         return storage.getGetter().getArityNumber();
     }
 
-    protected GlobalVariableStorage getStorage() {
-        return getContext().getCoreLibrary().globalVariables.getStorage(name);
+    protected GlobalVariableStorage getStorage(VirtualFrame dynamicArgument) {
+        return lookupGlobalVariableStorageNode.execute(dynamicArgument);
     }
 
     @Override

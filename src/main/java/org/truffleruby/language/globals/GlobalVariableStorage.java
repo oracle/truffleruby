@@ -17,14 +17,12 @@ import org.truffleruby.language.NotProvided;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
-public class GlobalVariableStorage {
+public final class GlobalVariableStorage {
 
     private static final Object UNSET_VALUE = NotProvided.INSTANCE;
 
-    private final Assumption validAssumption = Truffle.getRuntime().createAssumption("global variable not aliased");
     private final CyclicAssumption unchangedAssumption = new CyclicAssumption("global variable unchanged");
     private int changes = 0;
 
@@ -37,7 +35,7 @@ public class GlobalVariableStorage {
     private final RubyProc setter;
     private final RubyProc isDefined;
 
-    GlobalVariableStorage(RubyProc getter, RubyProc setter, RubyProc isDefined) {
+    public GlobalVariableStorage(RubyProc getter, RubyProc setter, RubyProc isDefined) {
         this(UNSET_VALUE, getter, setter, isDefined);
     }
 
@@ -64,7 +62,7 @@ public class GlobalVariableStorage {
     }
 
     public boolean hasHooks() {
-        return (getter != null) && (setter != null) && (isDefined != null);
+        return getter != null;
     }
 
     public RubyProc getGetter() {
@@ -77,10 +75,6 @@ public class GlobalVariableStorage {
 
     public RubyProc getIsDefined() {
         return isDefined;
-    }
-
-    public Assumption getValidAssumption() {
-        return validAssumption;
     }
 
     public Assumption getUnchangedAssumption() {
@@ -108,9 +102,17 @@ public class GlobalVariableStorage {
                 changes++;
                 unchangedAssumption.invalidate();
             } else {
-                unchangedAssumption.getAssumption().invalidate();
                 assumeConstant = false;
+                unchangedAssumption.getAssumption().invalidate();
             }
+        }
+    }
+
+    @TruffleBoundary
+    public void noLongerAssumeConstant() {
+        synchronized (this) {
+            assumeConstant = false;
+            unchangedAssumption.getAssumption().invalidate();
         }
     }
 

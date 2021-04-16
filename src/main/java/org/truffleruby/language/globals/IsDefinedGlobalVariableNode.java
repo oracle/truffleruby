@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.Bind;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -23,17 +24,17 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
         return IsDefinedGlobalVariableNodeGen.create(name);
     }
 
-    private final String name;
+    @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;
 
     public IsDefinedGlobalVariableNode(String name) {
-        this.name = name;
+        lookupGlobalVariableStorageNode = LookupGlobalVariableStorageNode.create(name);
     }
 
     public abstract Object executeIsDefined(VirtualFrame frame);
 
-    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
-    protected Object executeDefined(
-            @Cached("getStorage()") GlobalVariableStorage storage) {
+    @Specialization(guards = "storage.isSimple()")
+    protected Object executeDefined(VirtualFrame frame,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage) {
         if (storage.isDefined()) {
             return coreStrings().GLOBAL_VARIABLE.createInstance(getContext());
         } else {
@@ -41,17 +42,18 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
         }
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 0" }, assumptions = "storage.getValidAssumption()")
-    protected Object executeDefinedHooks(
-            @Cached("getStorage()") GlobalVariableStorage storage,
+    @Specialization(guards = { "storage.hasHooks()", "arity == 0" })
+    protected Object executeDefinedHooks(VirtualFrame frame,
+            @Cached("getLanguage().getGlobalVariableIndex(lookupGlobalVariableStorageNode.name)") int index,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
             @Cached CallBlockNode yieldNode) {
         return yieldNode.yield(storage.getIsDefined());
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 1" }, assumptions = "storage.getValidAssumption()")
+    @Specialization(guards = { "storage.hasHooks()", "arity == 1" })
     protected Object executeDefinedHooksWithBinding(VirtualFrame frame,
-            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("isDefinedArity(storage)") int arity,
             @Cached CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage readStorage) {
@@ -62,8 +64,8 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
         return storage.getIsDefined().getArityNumber();
     }
 
-    protected GlobalVariableStorage getStorage() {
-        return getContext().getCoreLibrary().globalVariables.getStorage(name);
+    protected GlobalVariableStorage getStorage(VirtualFrame dynamicArgument) {
+        return lookupGlobalVariableStorageNode.execute(dynamicArgument);
     }
 
 }

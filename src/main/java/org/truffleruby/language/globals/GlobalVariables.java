@@ -11,10 +11,9 @@ package org.truffleruby.language.globals;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -23,26 +22,22 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class GlobalVariables {
 
-    private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
+    private final RubyContext context;
+    private final RubyLanguage language;
+
+    public GlobalVariables(RubyContext context) {
+        this.context = context;
+        this.language = context.getLanguageSlow();
+    }
 
     @TruffleBoundary
     public boolean contains(String name) {
-        return variables.containsKey(name);
-    }
-
-    /** The returned storage must be checked if it is still valid with
-     * {@link GlobalVariableStorage#getValidAssumption()} . A storage becomes invalid when it is aliased and therefore
-     * the storage instance needs to change. */
-    @TruffleBoundary
-    public GlobalVariableStorage getStorage(String name) {
-        return ConcurrentOperations.getOrCompute(
-                variables,
-                name,
-                k -> new GlobalVariableStorage(null, null, null));
+        int index = language.getGlobalVariableIndex(name);
+        return context.globalVariablesArray.contains(index);
     }
 
     public GlobalVariableReader getReader(String name) {
-        return new GlobalVariableReader(this, name);
+        return new GlobalVariableReader(language, name, context.globalVariablesArray);
     }
 
     public GlobalVariableStorage define(String name, Object value) {
@@ -54,8 +49,10 @@ public class GlobalVariables {
     }
 
     private GlobalVariableStorage define(String name, GlobalVariableStorage storage) {
-        final GlobalVariableStorage previous = variables.putIfAbsent(name, storage);
-        if (previous != null) {
+        int index = language.getGlobalVariableIndex(name);
+        GlobalVariableStorage previous = context.globalVariablesArray.addIfAbsent(index, storage);
+
+        if (previous != storage) {
             throw new IllegalArgumentException("Global variable $" + name + " is already defined");
         }
         return storage;
@@ -63,24 +60,30 @@ public class GlobalVariables {
 
     @TruffleBoundary
     public void alias(String oldName, String newName) {
-        final GlobalVariableStorage storage = getStorage(oldName);
+        int oldIndex = language.getGlobalVariableIndex(oldName);
+        final GlobalVariableStorage storage = context.getGlobalVariableStorage(oldIndex);
 
-        final GlobalVariableStorage previousStorage = variables.put(newName, storage);
+        int newIndex = language.getGlobalVariableIndex(newName);
+        final GlobalVariableStorage previousStorage = context.globalVariablesArray.set(newIndex, storage);
+
         // If previousStorage == storage, we already have that alias and should not invalidate
         if (previousStorage != null && previousStorage != storage) {
-            previousStorage.getValidAssumption().invalidate();
+            previousStorage.noLongerAssumeConstant();
+            language.getGlobalVariableNeverAliasedAssumption(newIndex).invalidate(
+                    newName + " storage was overridden with " + oldName);
         }
     }
 
     @TruffleBoundary
     public String[] keys() {
-        return variables.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
+        return context.globalVariablesArray.keys().toArray(StringUtils.EMPTY_STRING_ARRAY);
     }
 
     @TruffleBoundary
     public Collection<Object> objectGraphValues() {
-        final Collection<GlobalVariableStorage> storages = variables.values();
-        final ArrayList<Object> values = new ArrayList<>(storages.size());
+        final Collection<GlobalVariableStorage> storages = context.globalVariablesArray.values();
+        final ArrayList<Object> values = new ArrayList<>();
+
         for (GlobalVariableStorage storage : storages) {
             // TODO CS 11-Mar-17 handle hooked global variable storage?
             if (!storage.hasHooks()) {

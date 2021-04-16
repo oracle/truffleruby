@@ -9,27 +9,35 @@
  */
 package org.truffleruby.language.globals;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.SharedIndicesMap.ContextArray;
 
 /** A helper class to read global variables on the slow path, supporting the GlobalVariableStorage to be replaced. */
 public class GlobalVariableReader {
 
-    private final String name;
-    @CompilationFinal private GlobalVariableStorage storage;
+    private final int index;
+    private final ContextArray<GlobalVariableStorage> globalVariablesArray;
 
-    GlobalVariableReader(GlobalVariables globalVariables, String name) {
-        this.name = name;
-        this.storage = globalVariables.getStorage(name);
+    private final Assumption globalVariableAliasedAssumption;
+    private GlobalVariableStorage unaliasedStorage;
+
+    GlobalVariableReader(RubyLanguage language, String name, ContextArray<GlobalVariableStorage> globalVariablesArray) {
+        this.index = language.getGlobalVariableIndex(name);
+        this.globalVariablesArray = globalVariablesArray;
+
+        this.globalVariableAliasedAssumption = language.getGlobalVariableNeverAliasedAssumption(index);
+        this.unaliasedStorage = globalVariablesArray.get(index);
     }
 
-    public Object getValue(GlobalVariables globalVariables) {
-        if (!storage.getValidAssumption().isValid()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            storage = globalVariables.getStorage(name);
+    @TruffleBoundary
+    public Object getValue() {
+        if (globalVariableAliasedAssumption.isValid()) {
+            return unaliasedStorage.getValue();
+        } else {
+            return globalVariablesArray.getNonConstant(index);
         }
-
-        return storage.getValue();
     }
 
 }
