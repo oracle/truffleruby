@@ -93,9 +93,9 @@ class Complex < Numeric
   private_class_method :convert
 
   def Complex.generic?(other) # :nodoc:
-    other.kind_of?(Integer) or
-    other.kind_of?(Float) or
-    (defined?(Rational) and other.kind_of?(Rational))
+    other.kind_of?(Integer) ||
+    other.kind_of?(Float) ||
+    (defined?(Rational) && other.kind_of?(Rational))
   end
 
   def Complex.rect(real, imag=0)
@@ -246,10 +246,10 @@ class Complex < Numeric
   end
 
   def eql?(other)
-    other.kind_of?(Complex) and
-    imag.class == other.imag.class and
-    real.class == other.real.class and
-    self == other
+    other.kind_of?(Complex) &&
+    (imag.class == other.imag.class) &&
+    (real.class == other.real.class) &&
+    (self == other)
   end
 
   def coerce(other)
@@ -277,7 +277,7 @@ class Complex < Numeric
   end
 
   def finite?
-    @real.finite? and @imag.finite?
+    @real.finite? && @imag.finite?
   end
 
   def infinite?

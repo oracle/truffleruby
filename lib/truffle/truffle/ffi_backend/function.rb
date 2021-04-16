@@ -40,7 +40,7 @@ module FFI
     def initialize(return_type, param_types, function = nil, options = {}, &block)
       function ||= block
 
-      if FunctionType === return_type and nil == param_types
+      if (FunctionType === return_type) && (nil == param_types)
         @function_info = return_type
       else
         @function_info = FunctionType.new(return_type, param_types, options)
@@ -84,7 +84,7 @@ module FFI
       if blocking
         begin
           result = Primitive.thread_run_blocking_nfi_system_call(@function, args)
-        end while Integer === result and result == -1 and Errno.errno == Errno::EINTR::Errno
+        end while (Integer === result) && (result == -1) && (Errno.errno == Errno::EINTR::Errno)
       else
         result = @function.call(*args)
       end
@@ -140,9 +140,9 @@ module FFI
     private def convert_ruby_to_native(type, value, enums)
       if FFI::Type::Mapped === type
         type.to_native(value, nil)
-      elsif enums and Symbol === value
+      elsif enums && (Symbol === value)
         enums.__map_symbol(value)
-      elsif FFI::Type::UINT64 == type or FFI::Type::ULONG == type
+      elsif (FFI::Type::UINT64 == type) || (FFI::Type::ULONG == type)
         Truffle::Type.rb_num2ulong(value)
       elsif FFI::Type::FLOAT32 == type
         Primitive.double_to_float(Truffle::Type.rb_num2dbl(value))
@@ -151,7 +151,7 @@ module FFI
       elsif FFI::Type::STRING == type
         Truffle::Type.check_null_safe(value) unless nil.equal?(value)
         get_pointer_value(value)
-      elsif FFI::FunctionType === type and Proc === value
+      elsif (FFI::FunctionType === type) && (Proc === value)
         callback(value, type)
       else
         value
@@ -175,7 +175,7 @@ module FFI
         else
           FFI::Pointer.new(Truffle::Interop.as_pointer(value)).read_string_to_null
         end
-      elsif FFI::Type::Builtin === type and type.unsigned?
+      elsif (FFI::Type::Builtin === type) && type.unsigned?
         # TODO: NFI workaround
         type.signed2unsigned(value)
       elsif FFI::FunctionType === type

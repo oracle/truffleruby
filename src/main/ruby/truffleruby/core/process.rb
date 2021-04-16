@@ -289,7 +289,7 @@ module Process
     end
 
     rlim_t = Truffle::Config['platform.typedef.rlim_t']
-    raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
+    raise rlim_t unless (rlim_t == 'ulong') || (rlim_t == 'ulong_long')
 
     Truffle::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
       ptr[0].write_ulong cur_limit
@@ -304,7 +304,7 @@ module Process
     resource = coerce_rlimit_resource(resource)
 
     rlim_t = Truffle::Config['platform.typedef.rlim_t']
-    raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
+    raise rlim_t unless (rlim_t == 'ulong') || (rlim_t == 'ulong_long')
 
     Truffle::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
       ret = Truffle::POSIX.getrlimit(resource, ptr)

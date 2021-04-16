@@ -93,7 +93,7 @@ class Truffle::CExt::RData
   end
 
   def polyglot_member_readable?(name)
-    name == 'basic' or name == 'data' or name == 'type' or name == 'typed_flag'
+    (name == 'basic') || (name == 'data') || (name == 'type') || (name == 'typed_flag')
   end
 
   def polyglot_member_modifiable?(name)

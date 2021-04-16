@@ -47,7 +47,7 @@ module Truffle
     end
 
     def self.validate_step_size(first, last, step_size)
-      if step_size.kind_of? Float or first.kind_of? Float or last.kind_of? Float
+      if step_size.kind_of?(Float) || first.kind_of?(Float) || last.kind_of?(Float)
         # if any are floats they all must be
         begin
           step_size = Float(from = step_size)

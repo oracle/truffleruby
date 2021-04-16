@@ -14,7 +14,7 @@
 module Gem
   # The path to the gems shipped with TruffleRuby
   def self.default_dir
-    @default_dir ||= "#{Truffle::Boot.ruby_home or raise 'TruffleRuby home not found'}/lib/gems"
+    @default_dir ||= "#{Truffle::Boot.ruby_home || raise('TruffleRuby home not found')}/lib/gems"
   end
 
   # Only report the RUBY platform as supported to make sure gems precompiled for MRI are not used.

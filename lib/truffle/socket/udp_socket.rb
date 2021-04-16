@@ -62,7 +62,7 @@ class UDPSocket < IPSocket
   end
 
   def send(message, flags, host = nil, port = nil)
-    if host and port
+    if host && port
       addr = Socket.sockaddr_in(port.to_i, host)
     elsif host
       addr = host

@@ -9,9 +9,9 @@
 # Set OPENSSL_PREFIX in ENV to find the OpenSSL headers
 
 search_homebrew = -> homebrew {
-  if prefix = "#{homebrew}/opt/openssl@1.1" and Dir.exist?(prefix)
+  if (prefix = "#{homebrew}/opt/openssl@1.1") && Dir.exist?(prefix)
     prefix
-  elsif prefix = "#{homebrew}/opt/openssl" and Dir.exist?(prefix)
+  elsif (prefix = "#{homebrew}/opt/openssl") && Dir.exist?(prefix)
     prefix
   end
 }
@@ -23,9 +23,9 @@ if macOS && !ENV['OPENSSL_PREFIX']
     # found
   else
     homebrew = `brew --prefix 2>/dev/null`.strip
-    homebrew = nil unless $?.success? and !homebrew.empty? and Dir.exist?(homebrew)
+    homebrew = nil unless $?.success? && !homebrew.empty? && Dir.exist?(homebrew)
 
-    if homebrew and prefix = search_homebrew.call(homebrew)
+    if homebrew && (prefix = search_homebrew.call(homebrew))
       # found
     elsif Dir.exist?('/opt/local/include/openssl') # MacPorts
       prefix = '/opt/local'

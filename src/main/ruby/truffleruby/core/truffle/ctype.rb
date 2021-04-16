@@ -41,6 +41,6 @@
 
 module Truffle::CType
   def self.isdigit(num)
-    num >= 48 and num <= 57
+    (num >= 48) && (num <= 57)
   end
 end

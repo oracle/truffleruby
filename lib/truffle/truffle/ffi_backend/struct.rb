@@ -118,7 +118,7 @@ module FFI
         unless FFI::StructLayout === layout
           raise RuntimeError, "invalid Struct layout for #{self.class}"
         end
-        unless defined?(@pointer) and @pointer
+        unless defined?(@pointer) && @pointer
           @pointer = MemoryPointer.new(layout.size, 1, true)
         end
         @layout = layout
@@ -164,7 +164,7 @@ module FFI
       end
 
       def [](index)
-        if @length > 0 and (index < 0 or index >= @length)
+        if (@length > 0) && ((index < 0) || (index >= @length))
           raise IndexError, "index #{index} out of bounds"
         end
 
@@ -172,7 +172,7 @@ module FFI
       end
 
       def []=(index, value)
-        if @length > 0 and (index < 0 or index >= @length)
+        if (@length > 0) && ((index < 0) || (index >= @length))
           raise IndexError, "index #{index} out of bounds"
         end
 

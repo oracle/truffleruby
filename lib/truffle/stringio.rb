@@ -62,7 +62,7 @@ Truffle::CExt.rb_define_module_under(IO, 'generic_readable').module_eval do
   def read_nonblock(length, buffer = nil, exception: true)
     str = read(length, buffer)
 
-    if exception and str.nil?
+    if exception && str.nil?
       raise EOFError, 'end of file reached'
     end
 
@@ -486,7 +486,7 @@ class StringIO
   end
 
   def reopen(string=nil, mode=Undefined)
-    if string and not string.kind_of? String and mode.equal? Undefined
+    if string && (not string.kind_of? String) && mode.equal?(Undefined)
       stringio = Truffle::Type.coerce_to(string, StringIO, :to_strio)
 
       initialize_copy stringio
@@ -667,7 +667,7 @@ class StringIO
     @readable = @writable = @append = false
     d = @__data__
 
-    if mode == 0 or mode & IO::RDWR != 0
+    if (mode == 0) || (mode & IO::RDWR != 0)
       @readable = true
     end
 
@@ -687,14 +687,14 @@ class StringIO
     else
       limit = nil
 
-      unless sep == $/ or sep.nil?
+      unless (sep == $/) || sep.nil?
         osep = sep
         sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
         limit = Primitive.rb_to_int osep unless sep
       end
     end
 
-    raise ArgumentError if arg_error and limit == 0
+    raise ArgumentError if arg_error && (limit == 0)
 
     return nil if eof?
 

@@ -280,7 +280,7 @@ module Truffle
         hints[:ai_socktype] = type
         hints[:ai_flags]    = flags
 
-        if host and host.empty?
+        if host && host.empty?
           host = '0.0.0.0'
         end
 

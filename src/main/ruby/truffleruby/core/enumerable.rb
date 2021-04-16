@@ -463,7 +463,7 @@ module Enumerable
       return Primitive.array_inject(self, initial, sym, block)
     end
 
-    if !block_given? or !Primitive.undefined?(sym)
+    if !block_given? || !Primitive.undefined?(sym)
       if Primitive.undefined?(sym)
         sym = initial
         initial = undefined
@@ -757,8 +757,8 @@ module Enumerable
       object = Primitive.single_block_arg
       result = yield object
 
-      if Primitive.undefined?(max_result) or \
-           Truffle::Type.coerce_to_comparison(max_result, result) < 0
+      if Primitive.undefined?(max_result) || \
+           (Truffle::Type.coerce_to_comparison(max_result, result) < 0)
         max_object = object
         max_result = result
       end
@@ -785,8 +785,8 @@ module Enumerable
       object = Primitive.single_block_arg
       result = yield object
 
-      if Primitive.undefined?(min_result) or \
-           Truffle::Type.coerce_to_comparison(min_result, result) > 0
+      if Primitive.undefined?(min_result) || \
+           (Truffle::Type.coerce_to_comparison(min_result, result) > 0)
         min_object = object
         min_result = result
       end
@@ -843,14 +843,14 @@ module Enumerable
       object = Primitive.single_block_arg
       result = yield object
 
-      if Primitive.undefined?(min_result) or \
-           Truffle::Type.coerce_to_comparison(min_result, result) > 0
+      if Primitive.undefined?(min_result) || \
+           (Truffle::Type.coerce_to_comparison(min_result, result) > 0)
         min_object = object
         min_result = result
       end
 
-      if Primitive.undefined?(max_result) or \
-           Truffle::Type.coerce_to_comparison(max_result, result) < 0
+      if Primitive.undefined?(max_result) || \
+           (Truffle::Type.coerce_to_comparison(max_result, result) < 0)
         max_object = object
         max_result = result
       end

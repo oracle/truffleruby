@@ -50,19 +50,19 @@ class Range
   def ==(other)
     return true if equal? other
 
-    other.kind_of?(Range) and
-      self.begin == other.begin and
-      self.end == other.end and
-      self.exclude_end? == other.exclude_end?
+    other.kind_of?(Range) &&
+      (self.begin == other.begin) &&
+      (self.end == other.end) &&
+      (self.exclude_end? == other.exclude_end?)
   end
 
   def eql?(other)
     return true if equal? other
 
-    other.kind_of?(Range) and
-        self.begin.eql?(other.begin) and
-        self.end.eql?(other.end) and
-        self.exclude_end? == other.exclude_end?
+    other.kind_of?(Range) &&
+        self.begin.eql?(other.begin) &&
+        self.end.eql?(other.end) &&
+        (self.exclude_end? == other.exclude_end?)
   end
 
   def bsearch(&block)
@@ -229,7 +229,7 @@ class Range
   private def bsearch_integer(&block)
     min = self.begin
     max = self.end
-    max -= 1 if max.kind_of? Integer and exclude_end?
+    max -= 1 if max.kind_of?(Integer) && exclude_end?
     return nil if max < min
     last_admissible = nil
     stop = false
@@ -548,7 +548,7 @@ class Range
   alias_method :collect, :map
 
   private def to_a_internal # MODIFIED called from java to_a
-    return to_a_from_enumerable unless self.begin.kind_of? Integer and self.end.kind_of? Integer
+    return to_a_from_enumerable unless self.begin.kind_of?(Integer) && self.end.kind_of?(Integer)
 
     fin = self.end
     fin += 1 unless exclude_end?

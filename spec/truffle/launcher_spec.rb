@@ -429,7 +429,7 @@ describe "The launcher" do
 
   guard -> {
     # GraalVM with both --jvm and --native
-    TruffleRuby.graalvm_home and TruffleRuby.native?
+    TruffleRuby.graalvm_home && TruffleRuby.native?
   } do
     describe "runtime configuration flags" do
       before :each do

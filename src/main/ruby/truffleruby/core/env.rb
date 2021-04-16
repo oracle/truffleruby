@@ -142,7 +142,7 @@ class << ENV
   alias_method :member?, :include?
 
   def fetch(key, absent=undefined)
-    if block_given? and !Primitive.undefined?(absent)
+    if block_given? && !Primitive.undefined?(absent)
       warn 'block supersedes default value argument', uplevel: 1
     end
 

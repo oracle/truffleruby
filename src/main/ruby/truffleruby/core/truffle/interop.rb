@@ -302,7 +302,7 @@ module Truffle
           array_or_map = true
           string << " {#{pairs_from_java_map(object).map { |k, v| "#{basic_inspect_for k}=>#{basic_inspect_for v}" }.join(', ')}}"
         end
-        if Truffle::Interop.has_members?(object) and !array_or_map
+        if Truffle::Interop.has_members?(object) && !array_or_map
           pairs = pairs_from_object(object)
           unless pairs.empty?
             string << " #{pairs.map { |k, v| "#{k}=#{basic_inspect_for v}" }.join(', ')}"

@@ -128,7 +128,7 @@ module Truffle
 
       unless other.kind_of? String
         if other.kind_of? Integer
-          if string.encoding == Encoding::US_ASCII and other >= 128 and other < 256
+          if (string.encoding == Encoding::US_ASCII) && (other >= 128) && (other < 256)
             string.force_encoding(Encoding::ASCII_8BIT)
           end
 
@@ -272,7 +272,7 @@ module Truffle
 
     def self.byte_index(src, str, start=0)
       start += src.bytesize if start < 0
-      if start < 0 or start > src.bytesize
+      if (start < 0) || (start > src.bytesize)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if str.kind_of? Regexp
         return nil
       end

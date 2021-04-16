@@ -100,7 +100,7 @@ class Socket < BasicSocket
     end
 
     def unix_rights
-      if @level != Socket::SOL_SOCKET or @type != Socket::SCM_RIGHTS
+      if (@level != Socket::SOL_SOCKET) || (@type != Socket::SCM_RIGHTS)
         raise TypeError, 'SCM_RIGHTS ancillary data expected'
       end
 
@@ -108,7 +108,7 @@ class Socket < BasicSocket
     end
 
     def data
-      if @ip_pktinfo or @ipv6_pktinfo
+      if @ip_pktinfo || @ipv6_pktinfo
         raise NotImplementedError,
           'AncillaryData#data is not supported as its output depends on ' \
           'MRI specific internals, use #ip_pktinfo or #ipv6_pktinfo instead'

@@ -71,14 +71,14 @@ module Truffle::GemUtil
 
     if DEFAULT_GEMS.include?(first_component)
       # No need to check for 'io/nonblock' and 'io/wait', just for 'io/console'
-      return false if first_component == 'io' and !feature.start_with?('io/console')
+      return false if (first_component == 'io') && !feature.start_with?('io/console')
 
       matcher = "#{first_component}-"
       gem_paths.each do |gem_dir|
         spec_dir = "#{gem_dir}/specifications"
         if File.directory?(spec_dir)
           Dir.each_child(spec_dir) do |spec|
-            if spec.start_with?(matcher) and digit = spec[matcher.size] and '0' <= digit && digit <= '9'
+            if spec.start_with?(matcher) && (digit = spec[matcher.size]) && '0' <= digit && digit <= '9'
               return true
             end
           end

@@ -130,7 +130,7 @@ class IO
 
     # Returns +true+ if the buffer is empty and cannot be filled further.
     def exhausted?
-      @eof and empty?
+      @eof && empty?
     end
 
     # Resets the buffer state so the buffer can be filled again.
@@ -215,7 +215,7 @@ class IO
     def shift(count=nil, encoding=Encoding::ASCII_8BIT)
       TruffleRuby.synchronized(self) do
         total = size
-        total = count if count and count < total
+        total = count if count && (count < total)
 
         str = String.from_bytearray @storage, @start, total, encoding
         @start += total
@@ -231,7 +231,7 @@ class IO
       return IO.read_encode(io, str) if str.valid_encoding?
 
       peek_ahead = 0
-      while size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
+      while (size > 0) && (peek_ahead < PEEK_AHEAD_LIMIT)
         str.force_encoding Encoding::ASCII_8BIT
         str << @storage[@start]
         @start += 1
@@ -248,7 +248,7 @@ class IO
 
     # Returns one Integer as the start byte.
     def getbyte(io)
-      return if size == 0 and fill_from(io) == 0
+      return if (size == 0) && (fill_from(io) == 0)
 
       TruffleRuby.synchronized(self) do
         byte = @storage[@start]
@@ -259,7 +259,7 @@ class IO
 
     # TODO: fix this when IO buffering is re-written.
     def getchar(io)
-      return if size == 0 and fill_from(io) == 0
+      return if (size == 0) && (fill_from(io) == 0)
 
       TruffleRuby.synchronized(self) do
         char = +''
@@ -421,7 +421,7 @@ class IO
         @from.close if @from.kind_of? IO
       end
 
-      @to.close if !@to_io and @to.kind_of?(IO)
+      @to.close if !@to_io && @to.kind_of?(IO)
     end
   end
 
@@ -512,7 +512,7 @@ class IO
 
     if external.equal? Encoding::ASCII_8BIT
       str.force_encoding external
-    elsif internal and external
+    elsif internal && external
       ec = Encoding::Converter.new external, internal
       ec.convert str
     else
@@ -618,13 +618,13 @@ class IO
     end
 
     if mode
-      mode = (Truffle::Type.try_convert(mode, Integer, :to_int) or
+      mode = (Truffle::Type.try_convert(mode, Integer, :to_int) ||
               Truffle::Type.coerce_to(mode, String, :to_str))
     end
 
     if options
       if optmode = options[:mode]
-        optmode = (Truffle::Type.try_convert(optmode, Integer, :to_int) or
+        optmode = (Truffle::Type.try_convert(optmode, Integer, :to_int) ||
                    Truffle::Type.coerce_to(optmode, String, :to_str))
       end
 
@@ -658,24 +658,24 @@ class IO
     end
 
     if options
-      if options[:textmode] and options[:binmode]
+      if options[:textmode] && options[:binmode]
         raise ArgumentError, 'both textmode and binmode specified'
       end
 
       if Primitive.nil? binary
         binary = options[:binmode]
-      elsif options.key?(:textmode) or options.key?(:binmode)
+      elsif options.key?(:textmode) || options.key?(:binmode)
         raise ArgumentError, 'text/binary mode specified twice'
       end
 
-      if !external and !internal
+      if !external && !internal
         external = options[:external_encoding]
         internal = options[:internal_encoding]
-      elsif options[:external_encoding] or options[:internal_encoding] or options[:encoding]
+      elsif options[:external_encoding] || options[:internal_encoding] || options[:encoding]
         raise ArgumentError, 'encoding specified twice'
       end
 
-      if !external and !internal
+      if !external && !internal
         encoding = options[:encoding]
 
         if encoding.kind_of? Encoding
@@ -770,7 +770,7 @@ class IO
     pa_read, ch_write = Truffle::IOOperations.create_pipe(read_class, self) if readable
     ch_read, pa_write = pipe if writable
 
-    if readable and writable
+    if readable && writable
       pipe = pa_read
       pipe.instance_variable_set(:@write, pa_write)
     elsif readable
@@ -938,11 +938,11 @@ class IO
       mode = Truffle::IOOperations.parse_mode(mode)
       mode &= ACCMODE
 
-      if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
+      if cur_mode && ((cur_mode == RDONLY) || (cur_mode == WRONLY)) && (mode != cur_mode)
         raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
       end
     else
-      mode = cur_mode or raise 'No mode given for IO'
+      (mode = cur_mode) || raise('No mode given for IO')
     end
 
     # Close old descriptor if there was already one associated
@@ -957,12 +957,12 @@ class IO
     io.instance_variable_set :@lineno, 0
 
     # Truffle: STDOUT isn't defined by the time this call is made during bootstrap, so we need to guard it.
-    if defined? STDOUT and STDOUT.respond_to?(:fileno) and not STDOUT.closed?
+    if defined? STDOUT && STDOUT.respond_to?(:fileno) && (not STDOUT.closed?)
       io.sync ||= STDOUT.fileno == fd
     end
 
     # Truffle: STDERR isn't defined by the time this call is made during bootstrap, so we need to guard it.
-    if defined? STDERR and STDERR.respond_to?(:fileno) and not STDERR.closed?
+    if defined? STDERR && STDERR.respond_to?(:fileno) && (not STDERR.closed?)
       io.sync ||= STDERR.fileno == fd
     end
   end
@@ -993,8 +993,8 @@ class IO
     end
 
     if @internal
-      if Encoding.default_external == Encoding.default_internal or
-         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
+      if (Encoding.default_external == Encoding.default_internal) ||
+         ((@external || Encoding.default_external) == Encoding::ASCII_8BIT)
         @internal = nil
       end
     elsif !mode_read_only?
@@ -1006,7 +1006,7 @@ class IO
     unless @external
       if @binmode
         @external = Encoding::ASCII_8BIT
-      elsif @internal or Encoding.default_internal
+      elsif @internal || Encoding.default_internal
         @external = Encoding.default_external
       end
     end
@@ -1074,7 +1074,7 @@ class IO
 
   # Used to find out if there is buffered data available.
   private def buffer_empty?
-    @ibuffer.nil? or @ibuffer.empty?
+    @ibuffer.nil? || @ibuffer.empty?
   end
 
   def close_on_exec=(value)
@@ -1771,7 +1771,7 @@ class IO
 
     str = +''
     needed = length
-    while needed > 0 and not @ibuffer.exhausted?
+    while (needed > 0) && (not @ibuffer.exhausted?)
       count = @ibuffer.fill_from(self, nil, needed)
       str << @ibuffer.shift(count)
       str = nil if str.empty?
@@ -2133,7 +2133,7 @@ class IO
 
     unless Primitive.undefined? options
       # TODO: set the encoding options on the IO instance
-      if options and not options.kind_of? Hash
+      if options && (not options.kind_of? Hash)
         _options = Truffle::Type.coerce_to options, Hash, :to_hash
       end
     end
@@ -2420,7 +2420,7 @@ class IO
       end
     end
 
-    if defined?(@pid) and @pid and @pid != 0
+    if defined?(@pid) && @pid && (@pid != 0)
       begin
         Process.wait @pid
       rescue Errno::ECHILD
@@ -2454,7 +2454,7 @@ class IO::BidirectionalPipe < IO
   end
 
   def closed?
-    super and @write.closed?
+    super && @write.closed?
   end
 
   def close_read

@@ -2213,7 +2213,7 @@ module Commands
       end
 
       link_path = "#{rubies_dir}/#{name}"
-      File.delete link_path if File.symlink? link_path or File.exist? link_path
+      File.delete link_path if File.symlink?(link_path) || File.exist?(link_path)
       File.symlink dest_ruby, link_path
     end
   end
@@ -2262,7 +2262,7 @@ module Commands
   alias :'native-launcher' :native_launcher
 
   def rubocop(*args)
-    if args.empty? or args.all? { |arg| arg.start_with?('-') }
+    if args.empty? || args.all? { |arg| arg.start_with?('-') }
       args += RUBOCOP_INCLUDE_LIST
     end
 
@@ -2369,7 +2369,7 @@ module Commands
   def check_documentation
     status = true
     allowed = -> str {
-      str.ascii_only? or str.chars.all? { |c| c.ascii_only? or %w[± – → ⌥ ⌘ ⇧].include?(c) }
+      str.ascii_only? || str.chars.all? { |c| c.ascii_only? || %w[± – → ⌥ ⌘ ⇧].include?(c) }
     }
 
     `git -C #{TRUFFLERUBY_DIR} ls-files '**/*.md'`.lines.map(&:chomp).each do |file|
@@ -2410,7 +2410,7 @@ module Commands
     hardcoded_urls.each_line do |line|
       abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)[ "'\n]/ =~ line
       file, line, url = $1, $2, $3
-      if !%w[tool/jt.rb tool/generate-user-doc.rb].include?(file) and !known_hardcoded_urls.include?(url)
+      if !%w[tool/jt.rb tool/generate-user-doc.rb].include?(file) && !known_hardcoded_urls.include?(url)
         puts "Found unknown hardcoded url #{url} in #{file}:#{line}, add it in tool/jt.rb"
         status = false
       end
@@ -2445,7 +2445,7 @@ module Commands
     status = $?
 
     unused_import = /: Unused import -/
-    if !status.success? and output =~ unused_import
+    if !status.success? && output =~(unused_import)
       puts 'Automatically removing unused imports'
       output.lines.reverse.grep(unused_import) do |line|
         path, lineno, _ = line.split(':', 3)
@@ -2473,7 +2473,7 @@ module Commands
 
     def format_specializations_visibility
       iterate do |type, (first, *rest)|
-        if type == :ExportMessage and first !~ /\bstatic\b/
+        if (type == :ExportMessage) && first !~(/\bstatic\b/)
           # Keep non-static @ExportMessage public
           [first, *rest]
         else
@@ -2658,7 +2658,7 @@ module Commands
     fast = args.first == 'fast'
     args.shift if fast
 
-    if fast and compare_to = args.shift
+    if fast && (compare_to = args.shift)
       changed_files = `git diff --cached --name-only #{compare_to}`.lines.map(&:chomp)
       changed = {}
       changed_files.each do |file|
@@ -2677,7 +2677,7 @@ module Commands
     sh 'tool/lint.sh' if changed['.c']
     checkstyle(changed['.java']) if changed['.java']
     command_format(changed['.java']) if changed['.java']
-    shellcheck if changed['.sh'] or changed['.inc']
+    shellcheck if changed['.sh'] || changed['.inc']
 
     mx 'verify-ci' if changed['.py']
 

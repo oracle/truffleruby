@@ -147,7 +147,7 @@ class Array
 
   def assoc(obj)
     each do |x|
-      if x.kind_of? Array and x.first == obj
+      if x.kind_of?(Array) && (x.first == obj)
         return x
       end
     end
@@ -174,7 +174,7 @@ class Array
     last_true = nil
     i = size / 2
 
-    while max >= min and i >= 0 and i < total
+    while (max >= min) && (i >= 0) && (i < total)
       x = yield at(i)
 
       return i if x == 0
@@ -349,7 +349,7 @@ class Array
 
     idx += size if idx < 0
 
-    if idx < 0 or idx >= size
+    if (idx < 0) || (idx >= size)
       if block_given?
         warn 'block supersedes default value argument', uplevel: 1 unless Primitive.undefined?(default)
 
@@ -398,7 +398,7 @@ class Array
       left += size if left < 0
       left = 0 if left < 0
 
-      if !Primitive.undefined?(length) and length
+      if !Primitive.undefined?(length) && length
         begin
           right = Primitive.rb_num2int length
         rescue TypeError
@@ -797,7 +797,7 @@ class Array
 
   def rassoc(obj)
     each do |elem|
-      if elem.kind_of? Array and elem.at(1) == obj
+      if elem.kind_of?(Array) && (elem.at(1) == obj)
         return elem
       end
     end
@@ -983,12 +983,12 @@ class Array
       options = Truffle::Type.coerce_to options, Hash, :to_hash
     end
 
-    if count and count < 0
+    if count && (count < 0)
       raise ArgumentError, 'count must be >= 0'
     end
 
     rng = options[:random] if options
-    if rng and rng.respond_to? :rand
+    if rng && rng.respond_to?(:rand)
       rng = SampleRandom.new rng
     else
       rng = Kernel
@@ -1258,7 +1258,7 @@ class Array
   end
 
   def zip(*others)
-    if !block_given? and others.size == 1 and Array === others[0]
+    if !block_given? && (others.size == 1) && (Array === others[0])
       return Primitive.array_zip self, others[0]
     end
 
@@ -1545,7 +1545,7 @@ class Array
         # This is to match the MRI behaviour of not extending the array
         # with nil when specifying an index greater than the length
         # of the array.
-        return out unless start >= 0 and start < size
+        return out unless (start >= 0) && (start < size)
 
         out = at start
 

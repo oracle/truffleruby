@@ -53,6 +53,6 @@ describe "IO#read(n)" do
       [], [],
       [], [],
       timeout_us, timeout_us)
-    result and result[0]
+    result && result[0]
   end
 end

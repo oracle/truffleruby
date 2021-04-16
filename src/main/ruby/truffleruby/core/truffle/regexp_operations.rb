@@ -57,7 +57,7 @@ module Truffle
       COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
       USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
 
-      if Truffle::Boot.get_option('regexp-instrument-creation') or Truffle::Boot.get_option('regexp-instrument-match')
+      if Truffle::Boot.get_option('regexp-instrument-creation') || Truffle::Boot.get_option('regexp-instrument-match')
         at_exit do
           Truffle::RegexpOperations.print_stats
         end

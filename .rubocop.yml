@@ -385,3 +385,6 @@ Layout/SpaceInsideBlockBraces:
   Enabled: true
   EnforcedStyle: space
   EnforcedStyleForEmptyBraces: space
+
+Style/AndOr:
+  Enabled: true

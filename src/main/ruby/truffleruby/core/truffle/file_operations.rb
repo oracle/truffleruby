@@ -67,7 +67,7 @@ module Truffle
       start = 0
       bytesize = path.bytesize
 
-      while index = Primitive.find_string(path, '/', start) or (start < bytesize and index = bytesize)
+      while (index = Primitive.find_string(path, '/', start)) || ((start < bytesize) && (index = bytesize))
         length = index - start
 
         if length > 0

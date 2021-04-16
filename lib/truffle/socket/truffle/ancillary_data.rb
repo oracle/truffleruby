@@ -41,7 +41,7 @@ module Truffle
         else
           level = Socket.coerce_to_string(raw_level)
 
-          if level == 'SOL_SOCKET' or level == 'SOCKET'
+          if (level == 'SOL_SOCKET') || (level == 'SOCKET')
             ::Socket::SOL_SOCKET
 
           # Translates "TCP" into "IPPROTO_TCP", "UDP" into "IPPROTO_UDP", etc.
@@ -59,7 +59,7 @@ module Truffle
         else
           type = Socket.coerce_to_string(raw_type)
 
-          if family == ::Socket::AF_INET or family == ::Socket::AF_INET6
+          if (family == ::Socket::AF_INET) || (family == ::Socket::AF_INET6)
             prefix, label = LEVEL_PREFIXES[level]
           else
             prefix, label = LEVEL_PREFIXES[::Socket::SOL_SOCKET]
@@ -67,7 +67,7 @@ module Truffle
 
           # Translates "RIGHTS" into "SCM_RIGHTS", "CORK" into "TCP_CORK" (when
           # the level is IPPROTO_TCP), etc.
-          if prefix and label
+          if prefix && label
             Socket.prefixed_socket_constant(type, prefix) do
               "Unknown #{label} control message: #{type}"
             end

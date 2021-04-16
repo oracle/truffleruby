@@ -89,7 +89,7 @@ class Proc
     suffix = ''.b
     if sym = Primitive.proc_symbol_to_proc_symbol(self)
       suffix << "(&#{sym.inspect})"
-    elsif file and line
+    elsif file && line
       suffix << " #{file}:#{line}"
     end
     suffix << ' (lambda)' if lambda?

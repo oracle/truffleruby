@@ -90,7 +90,7 @@ module TruffleInteropSpecs
     end
 
     def polyglot_as_pointer
-      @address or raise Truffle::Interop::UnsupportedMessageException
+      @address || raise(Truffle::Interop::UnsupportedMessageException)
     end
 
     def polyglot_to_native
@@ -125,7 +125,7 @@ module TruffleInteropSpecs
 
     def polyglot_write_array_element(index, value)
       @log << [__callee__, index, value]
-      @value_validator.call(value) or raise Truffle::Interop::UnsupportedTypeException
+      @value_validator.call(value) || raise(Truffle::Interop::UnsupportedTypeException)
       @storage[index] = value
       nil
     end

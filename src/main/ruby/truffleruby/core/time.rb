@@ -137,7 +137,7 @@ class Time
   end
 
   def eql?(other)
-    other.kind_of?(Time) and tv_sec == other.tv_sec and tv_nsec == other.tv_nsec
+    other.kind_of?(Time) && (tv_sec == other.tv_sec) && (tv_nsec == other.tv_nsec)
   end
 
   def <=>(other)
@@ -311,7 +311,7 @@ class Time
                    copy
                  elsif Primitive.object_kind_of?(sec, Integer)
                    Primitive.time_at self, sec, 0
-                 elsif Primitive.object_kind_of?(sec, Float) and sec >= 0.0
+                 elsif Primitive.object_kind_of?(sec, Float) && (sec >= 0.0)
                    ns = (sec % 1.0 * 1e9).round
                    Primitive.time_at self, sec.to_i, ns
                  end
@@ -406,7 +406,7 @@ class Time
         is_dst = is_dst ? 1 : 0
       end
 
-      if m.kind_of?(String) or m.respond_to?(:to_str)
+      if m.kind_of?(String) || m.respond_to?(:to_str)
         m = StringValue(m)
         m = MonthValue[m.upcase] || m.to_i
 

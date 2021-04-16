@@ -212,7 +212,7 @@ class Struct
     else
       var = Integer(var)
       a_len = _attrs.length
-      return nil if var >= a_len or var < -a_len
+      return nil if (var >= a_len) || (var < -a_len)
       var = _attrs[var]
     end
 

@@ -215,7 +215,7 @@ class BasicSocket < IO
           end
         end
 
-        if grow_msg and header.message_truncated?
+        if grow_msg && header.message_truncated?
           need_more = true
           msg_len *= 2
         end

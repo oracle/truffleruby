@@ -53,7 +53,7 @@ class Module
   alias_method :freeze, :freeze
 
   def include?(mod)
-    if !mod.kind_of?(Module) or mod.kind_of?(Class)
+    if !mod.kind_of?(Module) || mod.kind_of?(Class)
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
     end
 
@@ -76,7 +76,7 @@ class Module
   def include(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
     modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      if !mod.kind_of?(Module) || mod.kind_of?(Class)
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
@@ -89,7 +89,7 @@ class Module
   def prepend(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
     modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      if !mod.kind_of?(Module) || mod.kind_of?(Class)
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 

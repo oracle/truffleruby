@@ -47,7 +47,7 @@ module FFI
         unless type
           raise RuntimeError, "type of field #{i} not supported"
         end
-        if type.size == 0 and i < fields.size-1
+        if (type.size == 0) && (i < fields.size-1)
           raise TypeError, "type of field #{i} has zero size"
         end
         @field_map[field.name] = field
@@ -139,7 +139,7 @@ module FFI
       end
 
       def put(struct_pointer, value)
-        if nil == value or FFI::Function === value
+        if (nil == value) || (FFI::Function === value)
           function = value
         elsif ::Proc === value || value.respond_to?(:call)
           function = FFI::Function.new(@type, nil, value)

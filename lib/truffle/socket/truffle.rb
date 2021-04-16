@@ -78,8 +78,8 @@ module Truffle
       end
 
       # Socket created using for example Socket.unix('foo')
-      if socket.is_a?(::Socket) and
-        socket.instance_variable_get(:@family) == ::Socket::AF_UNIX
+      if socket.is_a?(::Socket) &&
+        (socket.instance_variable_get(:@family) == ::Socket::AF_UNIX)
         return Foreign::SockaddrUn
       end
 
@@ -169,7 +169,7 @@ module Truffle
     end
 
     def self.coerce_to_string(object)
-      if object.is_a?(String) or object.is_a?(Symbol)
+      if object.is_a?(String) || object.is_a?(Symbol)
         object.to_s
       elsif object.respond_to?(:to_str)
         Truffle::Type.coerce_to(object, String, :to_str)
@@ -343,7 +343,7 @@ module Truffle
       elsif reverse_lookup == :numeric
         reverse_lookup = false
 
-      elsif reverse_lookup != true and reverse_lookup != false
+      elsif (reverse_lookup != true) && (reverse_lookup != false)
         raise ArgumentError,
           "invalid reverse_lookup flag: #{reverse_lookup.inspect}"
       end
@@ -372,9 +372,9 @@ module Truffle
           "unknown shutdown argument: #{how}"
         end
       when Integer
-        if how == ::Socket::SHUT_RD or
-          how == ::Socket::SHUT_WR or
-          how == ::Socket::SHUT_RDWR
+        if (how == ::Socket::SHUT_RD) ||
+          (how == ::Socket::SHUT_WR) ||
+          (how == ::Socket::SHUT_RDWR)
           how
         else
           raise ArgumentError,

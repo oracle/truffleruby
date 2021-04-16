@@ -18,7 +18,7 @@ module Math
   module_function
 
   def hypot(a, b)
-    if Truffle::Type.fits_into_long?(a) and Truffle::Type.fits_into_long?(b)
+    if Truffle::Type.fits_into_long?(a) && Truffle::Type.fits_into_long?(b)
       # Much faster (~10x) than calling the Math.hypot() / hypot(3)
       Math.sqrt(a*a + b*b)
     else
@@ -39,7 +39,7 @@ module Math
     result = Primitive.math_ldexp(fraction, exponent)
     if !Primitive.undefined?(result)
       result
-    elsif Float === exponent and exponent.nan?
+    elsif (Float === exponent) && exponent.nan?
       raise RangeError, 'float NaN out of range of integer'
     else
       ldexp(

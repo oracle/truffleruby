@@ -30,11 +30,11 @@ module Truffle
   module Socket
     module SocketOptions
       def self.socket_level(level, family = nil)
-        if level.is_a?(Symbol) or level.is_a?(String)
+        if level.is_a?(Symbol) || level.is_a?(String)
           if ::Socket.const_defined?(level, false) # Truffle: added inherit false
             ::Socket.const_get(level, false) # Truffle: added inherit false
           else
-            if family and is_ip_family?(family)
+            if family && is_ip_family?(family)
               ip_level_to_int(level)
             elsif level.to_s == 'SOCKET'
               ::Socket::SOL_SOCKET

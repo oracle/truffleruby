@@ -208,7 +208,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if kind_of? Integer and f.kind_of? Integer
+      if kind_of?(Integer) && f.kind_of?(Integer)
         x = self < 0 ? -self : self
         case half
         when :up, nil
@@ -270,7 +270,7 @@ class Integer < Numeric
 
   def lcm(other)
     raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
-    if self.zero? or other.zero?
+    if self.zero? || other.zero?
       0
     else
       (self.div(self.gcd(other)) * other).abs
@@ -279,7 +279,7 @@ class Integer < Numeric
 
   def gcdlcm(other)
     gcd = self.gcd(other)
-    if self.zero? or other.zero?
+    if self.zero? || other.zero?
       [gcd, 0]
     else
       [gcd, (self.div(gcd) * other).abs]

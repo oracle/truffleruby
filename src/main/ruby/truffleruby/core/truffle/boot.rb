@@ -38,9 +38,9 @@ module Truffle::Boot
     # Standard lookups
 
     if ENV['RUBYPATH']
-      path = find_in_environment_paths(name, ENV['RUBYPATH']) and return path
+      (path = find_in_environment_paths(name, ENV['RUBYPATH'])) && (return path)
     end
-    path = find_in_environment_paths(name, ENV['PATH']) and return path
+    (path = find_in_environment_paths(name, ENV['PATH'])) && (return path)
     return name if File.exist?(name)
 
     # Not found, let the RubyLauncher print the error

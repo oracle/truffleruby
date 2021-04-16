@@ -125,7 +125,7 @@ module Truffle
           command = env_or_cmd
         end
 
-        if args.empty? and cmd = Truffle::Type.try_convert(command, String, :to_str)
+        if args.empty? && (cmd = Truffle::Type.try_convert(command, String, :to_str))
           @command = cmd
           @argv = []
         else
@@ -168,7 +168,7 @@ module Truffle
 
         parse_options(options)
 
-        if env and !env.empty?
+        if env && !env.empty?
           array = (@options[:env] ||= [])
 
           env.each_pair do |key, value|
@@ -303,7 +303,7 @@ module Truffle
       end
 
       def default_mode(target)
-        if target == 1 or target == 2
+        if (target == 1) || (target == 2)
           OFLAGS['w']
         else
           OFLAGS['r']

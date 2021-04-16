@@ -187,7 +187,7 @@ class File < IO
 
         # Now that we've trimmed the /'s at the end, search again
         pos = Primitive.find_string_reverse(path, slash, path.bytesize)
-        if ext_not_present and !pos
+        if ext_not_present && !pos
           # No /'s found and ext not present, return path.
           return path
         end
@@ -563,7 +563,7 @@ class File < IO
           break
         end
 
-        if char == '\\' and escape
+        if (char == '\\') && escape
           i += 1
         end
 
@@ -573,7 +573,7 @@ class File < IO
 
     # There was a full {} expression detected, expand each part of it
     # recursively.
-    if lbrace and rbrace
+    if lbrace && rbrace
       pos = lbrace
       front = pattern[0...lbrace]
       back = pattern[(rbrace + 1)..-1]
@@ -583,11 +583,11 @@ class File < IO
         pos += 1
         last = pos
 
-        while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
+        while (pos < rbrace) && (not ((pattern[pos] == ',') && (nest == 0)))
           nest += 1 if pattern[pos] == '{'
           nest -= 1 if pattern[pos] == '}'
 
-          if pattern[pos] == '\\' and escape
+          if (pattern[pos] == '\\') && escape
             pos += 1
             break if pos == rbrace
           end
@@ -885,7 +885,7 @@ class File < IO
 
     buffer = Primitive.io_thread_buffer_allocate(Truffle::Platform::PATH_MAX)
     begin
-      if ptr = Truffle::POSIX.realpath(path, buffer) and !ptr.null?
+      if (ptr = Truffle::POSIX.realpath(path, buffer)) && !ptr.null?
         real = ptr.read_string
       else
         Errno.handle(path)
@@ -1208,7 +1208,7 @@ class File < IO
         mode = nil
       end
 
-      if Primitive.undefined?(options) and !Primitive.undefined?(perm)
+      if Primitive.undefined?(options) && !Primitive.undefined?(perm)
         options = Truffle::Type.try_convert(perm, Hash, :to_hash)
         perm = undefined if options
       end

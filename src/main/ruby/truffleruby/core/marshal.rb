@@ -75,7 +75,7 @@ class Float
     else
       s, decimal, sign, digits = dtoa
 
-      if decimal < -3 or decimal > digits
+      if (decimal < -3) || (decimal > digits)
         str = s.insert(1, '.') << "e#{decimal - 1}"
       elsif decimal > 0
         str = s[0, decimal]
@@ -411,7 +411,7 @@ class Time
     obj = _load(data)
     ms.store_unique_object obj
 
-    if ivar_index and has_ivar[ivar_index]
+    if ivar_index && has_ivar[ivar_index]
       ms.set_instance_variables obj
       has_ivar[ivar_index] = false
     end
@@ -534,7 +534,7 @@ module Marshal
               end
       end
 
-      if type and not mod.instance_of? type
+      if type && (not mod.instance_of? type)
         raise ArgumentError, "#{name} does not refer to a #{type}"
       end
 
@@ -648,7 +648,7 @@ module Marshal
               raise ArgumentError, "load error, unknown type #{type}"
             end
 
-      @proc.call(obj) if call_proc and @proc and @call
+      @proc.call(obj) if call_proc && @proc && @call
 
       obj
     end
@@ -795,10 +795,10 @@ module Marshal
       # We've read c as unsigned char in a way, but we need to honor
       # the sign bit. We do that by simply comparing with the +128 values
       return 0 if c == 0
-      return c - 5 if 4 < c and c < 128
+      return c - 5 if (4 < c) && (c < 128)
 
       # negative, but checked known it's instead in 2's complement
-      return c - 251 if 252 > c and c > 127
+      return c - 251 if (252 > c) && (c > 127)
 
       # otherwise c (now in the 1 to 4 range) indicates how many
       # bytes to read to construct the value.
@@ -874,7 +874,7 @@ module Marshal
 
       # A Symbol has no instance variables (it's frozen),
       # but we need to know the encoding before building the Symbol
-      if ivar_index and @has_ivar[ivar_index]
+      if ivar_index && @has_ivar[ivar_index]
         # This sets the encoding of the String
         set_instance_variables data
         @has_ivar[ivar_index] = false
@@ -896,7 +896,7 @@ module Marshal
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
-      if ivar_index and @has_ivar[ivar_index]
+      if ivar_index && @has_ivar[ivar_index]
         set_instance_variables data
         @has_ivar[ivar_index] = false
       end
@@ -1014,7 +1014,7 @@ module Marshal
     def serialize_instance_variables_suffix(obj, force = false)
       ivars = Primitive.object_ivars(obj)
 
-      unless force or !ivars.empty? or serialize_encoding?(obj)
+      unless force || !ivars.empty? || serialize_encoding?(obj)
         return ''.b
       end
 
@@ -1055,9 +1055,9 @@ module Marshal
     def serialize_fixnum(n)
       if n == 0
         s = n.chr
-      elsif n > 0 and n < 123
+      elsif (n > 0) && (n < 123)
         s = (n + 5).chr
-      elsif n < 0 and n > -124
+      elsif (n < 0) && (n > -124)
         s = (256 + (n - 5)).chr
       else
         s = +"\0"
@@ -1066,7 +1066,7 @@ module Marshal
           s << (n & 0xff).chr
           n >>= 8
           cnt += 1
-          break if n == 0 or n == -1
+          break if (n == 0) || (n == -1)
         end
         s[0] = (n < 0 ? 256 - cnt : cnt).chr
       end
@@ -1094,7 +1094,7 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      mf = 'I' unless str.ascii_only? or str.encoding == Encoding::BINARY
+      mf = 'I' unless str.ascii_only? || (str.encoding == Encoding::BINARY)
       if mf
         me = serialize_integer(1) + serialize_encoding(obj.encoding)
       end
@@ -1308,8 +1308,8 @@ module Marshal
 
       ms = StringState.new data, nil, prc
 
-    elsif Primitive.object_respond_to? obj, :read, false and
-          Primitive.object_respond_to? obj, :getc, false
+    elsif Primitive.object_respond_to?(obj, :read, false) &&
+          Primitive.object_respond_to?(obj, :getc, false)
       ms = IOState.new obj, nil, prc
 
       major = ms.consume_byte
@@ -1318,7 +1318,7 @@ module Marshal
       raise TypeError, 'instance of IO needed'
     end
 
-    if major != MAJOR_VERSION or minor > MINOR_VERSION
+    if (major != MAJOR_VERSION) || (minor > MINOR_VERSION)
       raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major.inspect}.#{minor.inspect} given"
     end
 

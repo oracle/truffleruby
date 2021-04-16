@@ -187,8 +187,8 @@ module Truffle
       desc = step < 0
       default_limit = desc ? -Float::INFINITY : Float::INFINITY
 
-      if Primitive.object_kind_of?(value, Float) or
-          Primitive.object_kind_of?(limit, Float) or
+      if Primitive.object_kind_of?(value, Float) ||
+          Primitive.object_kind_of?(limit, Float) ||
           Primitive.object_kind_of?(step, Float)
         [Truffle::Type.rb_num2dbl(value), Truffle::Type.rb_num2dbl(limit || default_limit),
          Truffle::Type.rb_num2dbl(step), desc, true]

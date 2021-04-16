@@ -64,7 +64,7 @@ class StringScanner
 
     n += @string.bytesize if n < 0
 
-    if n < 0 or n > @string.bytesize
+    if (n < 0) || (n > @string.bytesize)
       raise RangeError, "index out of range (#{n})"
     end
 
@@ -83,7 +83,7 @@ class StringScanner
   end
 
   def bol?
-    @pos == 0 or @string.getbyte(pos-1) == 10
+    (@pos == 0) || (@string.getbyte(pos-1) == 10)
   end
 
   alias_method :beginning_of_line?, :bol?

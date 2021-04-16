@@ -151,7 +151,7 @@ class Numeric
   def remainder(other)
     mod = self % other
 
-    if mod != 0 and ((self < 0 and other > 0) or (self > 0 and other < 0))
+    if (mod != 0) && (((self < 0) && (other > 0)) || ((self > 0) && (other < 0)))
       mod - other
     else
       mod

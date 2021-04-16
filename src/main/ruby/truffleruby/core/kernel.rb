@@ -121,7 +121,7 @@ module Kernel
         obj
       when Float
         bad_base_check.call
-        if obj.nan? or obj.infinite?
+        if obj.nan? || obj.infinite?
           return nil unless raise_exception
         end
         # TODO BJF 14-Jan-2020 Add fixable conversion logic
@@ -349,7 +349,7 @@ module Kernel
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if modules.empty?
 
     modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      if !mod.kind_of?(Module) || mod.kind_of?(Class)
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
@@ -455,7 +455,7 @@ module Kernel
 
     path = Truffle::Type.coerce_to_path obj
 
-    if path.kind_of? String and path.start_with? '|'
+    if path.kind_of?(String) && path.start_with?('|')
       return IO.popen(path[1..-1], *rest, &block)
     end
 
@@ -658,7 +658,7 @@ module Kernel
                  caller = initial
                  # MRI would reuse the file:line of the user code caller for methods defined in C.
                  # Similarly, we skip <internal:* calls, notably to skip Kernel#require calls.
-                 while caller and caller.path.start_with?('<internal:')
+                 while caller && caller.path.start_with?('<internal:')
                    uplevel += 1
                    caller, = Kernel.caller_locations(uplevel, 1)
                  end
@@ -693,7 +693,7 @@ module Kernel
     cause_given = !Primitive.undefined?(cause)
     cause = cause_given ? cause : $!
 
-    if Primitive.undefined?(exc) and cause
+    if Primitive.undefined?(exc) && cause
       raise ArgumentError, 'only cause is given with no arguments' if cause_given
       exc = cause
     else
@@ -738,7 +738,7 @@ module Kernel
 
   def caller(start = 1, limit = nil)
     args =  if start.is_a? Range
-              if Primitive.nil?(start.begin) and Primitive.nil?(start.end)
+              if Primitive.nil?(start.begin) && Primitive.nil?(start.end)
                 [1]
               elsif Primitive.nil? start.begin
                 size = start.end + 1

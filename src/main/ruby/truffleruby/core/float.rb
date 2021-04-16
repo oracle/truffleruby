@@ -223,7 +223,7 @@ class Float < Numeric
         round(half: half)
       elsif ndigits < 0
         to_i.round(ndigits, :half => half)
-      elsif infinite? or nan?
+      elsif infinite? || nan?
         self
       else
         _, exp = Math.frexp(self)
@@ -258,7 +258,7 @@ class Float < Numeric
   alias_method :modulo, :%
 
   def finite?
-    not (nan? or infinite?)
+    not (nan? || infinite?)
   end
 
   class << self

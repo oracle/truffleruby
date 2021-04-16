@@ -88,7 +88,7 @@ module Comparable
     end
 
     comp = min <=> max
-    raise ArgumentError, 'min argument must be smaller than max argument' if Primitive.nil?(comp) or comp > 0
+    raise ArgumentError, 'min argument must be smaller than max argument' if Primitive.nil?(comp) || (comp > 0)
     return min if self < min
     return max if self > max
     self

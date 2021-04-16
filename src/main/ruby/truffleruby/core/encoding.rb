@@ -167,7 +167,7 @@ class Encoding
   def self.name_list
     EncodingMap.map do |_n, r|
       index = r.last
-      r.first or (index and Primitive.encoding_get_encoding_by_index(index).name)
+      r.first || (index && Primitive.encoding_get_encoding_by_index(index).name)
     end
   end
 
@@ -184,7 +184,7 @@ class Encoding
     names = [name]
     EncodingMap.each do |_k, r|
       aname = r.first
-      names << aname if aname and r.last == entry.last
+      names << aname if aname && (r.last == entry.last)
     end
     names
   end

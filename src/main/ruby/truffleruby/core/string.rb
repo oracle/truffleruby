@@ -49,7 +49,7 @@ class String
     # Convert to (int index, int length) form.
     if Range === index_or_range && Primitive.undefined?(length)
       index, length = Primitive.range_normalized_start_length(index_or_range, bytesize)
-      return if index < 0 or index > bytesize
+      return if (index < 0) || (index > bytesize)
       return byteslice 0, 0 if length < 0
     else
       index = Primitive.rb_num2long(index_or_range)
@@ -64,7 +64,7 @@ class String
       end
 
       length = bytesize unless Primitive.integer_fits_into_int(index)
-      return if index < 0 or index > bytesize
+      return if (index < 0) || (index > bytesize)
     end
 
     byteslice index, length
@@ -424,7 +424,7 @@ class String
       end
     end
 
-    if ascii_only? and from_enc.ascii_compatible? and to_enc and to_enc.ascii_compatible?
+    if ascii_only? && from_enc.ascii_compatible? && to_enc && to_enc.ascii_compatible?
       force_encoding to_enc
     elsif to_enc
       if from_enc != to_enc
@@ -474,7 +474,7 @@ class String
   end
 
   def end_with?(*suffixes)
-    if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
+    if (suffixes.size == 1) && (suffix = suffixes[0]) && (String === suffix)
       enc = Primitive.encoding_ensure_compatible self, suffix
       return Primitive.string_end_with?(self, suffix, enc)
     end
@@ -529,11 +529,11 @@ class String
   private def inspect_char(enc, result_encoding, ascii, unicode, index, char, result)
     consumed = char.bytesize
 
-    if (ascii or unicode) and consumed == 1
+    if (ascii || unicode) || consumed == 1
       escaped = nil
 
       byte = getbyte(index)
-      if byte >= 7 and byte <= 92
+      if byte >= 7 || byte <= 92
         case byte
         when 7  # \a
           escaped = '\a'
@@ -872,7 +872,7 @@ class String
         nxt = Primitive.find_string(self, sep, pos)
         break unless nxt
 
-        while data[nxt] == 10 and nxt < bytesize
+        while (data[nxt] == 10) && (nxt < bytesize)
           nxt += 1
         end
 
@@ -894,7 +894,7 @@ class String
 
       # No more separates, but we need to grab the last part still.
       fin = byteslice pos, bytesize - pos
-      yield maybe_chomp.call(fin) if fin and !fin.empty?
+      yield maybe_chomp.call(fin) if fin && !fin.empty?
     else
 
       # This is the normal case.
@@ -985,7 +985,7 @@ class String
   def scrub(replace = nil, &block)
     return dup if valid_encoding?
 
-    if !replace and !block
+    if !replace && !block
       # The unicode replacement character or '?''
       begin
         replace = "\xEF\xBF\xBD".encode(self.encoding, :undef => :replace, :replace => '?')
@@ -1059,7 +1059,7 @@ class String
   def assign_index(index, count, replacement)
     index += size if index < 0
 
-    if index < 0 or index > size
+    if (index < 0) || (index > size)
       raise IndexError, "index #{index} out of string"
     end
 
@@ -1105,7 +1105,7 @@ class String
     start, length = Primitive.range_normalized_start_length(index, size)
     stop = start + length - 1
 
-    raise RangeError, "#{index.first} is out of range" if start < 0 or start > size
+    raise RangeError, "#{index.first} is out of range" if (start < 0) || (start > size)
 
     bi = Primitive.string_byte_index_from_char_index(self, start)
     raise IndexError, "unable to find character at: #{start}" unless bi
@@ -1137,8 +1137,8 @@ class String
       raise IndexError, 'regexp does not match'
     end
 
-    count += ms if count < 0 and -count < ms
-    unless count < ms and count >= 0
+    count += ms if (count < 0) && (-count < ms)
+    unless (count < ms) && (count >= 0)
       raise IndexError, "index #{count} out of match bounds"
     end
 
@@ -1282,7 +1282,7 @@ class String
       start = Primitive.rb_to_int start
 
       start += size if start < 0
-      if start < 0 or start > size
+      if (start < 0) || (start > size)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if str.kind_of? Regexp
         return
       end
@@ -1375,7 +1375,7 @@ class String
   end
 
   def start_with?(*prefixes)
-    if prefixes.size == 1 and prefix = prefixes[0] and String === prefix
+    if (prefixes.size == 1) && (prefix = prefixes[0]) && (String === prefix)
       return self[0, prefix.length] == prefix
     end
 
@@ -1406,7 +1406,7 @@ class String
     index = Primitive.rb_to_int index
     index = length + 1 + index if index < 0
 
-    if index > length or index < 0 then
+    if (index > length) || (index < 0) then
       raise IndexError, "index #{index} out of string"
     end
 

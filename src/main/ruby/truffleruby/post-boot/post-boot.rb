@@ -73,7 +73,7 @@ end
 
 if Truffle::Boot.ruby_home
   Truffle::Boot.delay do
-    if Truffle::Boot.get_option('rubygems') and !Truffle::Boot.get_option('lazy-rubygems')
+    if Truffle::Boot.get_option('rubygems') && !Truffle::Boot.get_option('lazy-rubygems')
       begin
         Truffle::Boot.print_time_metric :'before-rubygems'
         begin

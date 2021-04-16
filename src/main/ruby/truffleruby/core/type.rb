@@ -328,7 +328,7 @@ module Truffle
     def self.check_funcall_missing(recv, meth, args, respond, priv = false)
       ret = basic_obj_respond_to_missing(recv, meth, priv)
       respond_to_missing = !Primitive.undefined?(ret)
-      if respond_to_missing and !ret
+      if respond_to_missing && !ret
         undefined
       elsif object_respond_to_no_built_in?(recv, :method_missing, true)
         begin

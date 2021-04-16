@@ -58,7 +58,7 @@ class TCPSocket < IPSocket
 
     # When a local address and/or service/port are given we should bind the
     # socket to said address (besides also connecting to the remote address).
-    if local_host or local_service
+    if local_host || local_service
       if local_host
         local_host = Truffle::Socket.coerce_to_string(local_host)
       end

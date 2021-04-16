@@ -138,7 +138,7 @@ class Regexp
     if pattern.kind_of?(Regexp)
       opts = pattern.options
       pattern = pattern.source
-    elsif pattern.kind_of?(Integer) or pattern.kind_of?(Float)
+    elsif pattern.kind_of?(Integer) || pattern.kind_of?(Float)
       raise TypeError, "can't convert #{pattern.class} into String"
     elsif opts.kind_of?(Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
@@ -149,7 +149,7 @@ class Regexp
     end
 
     code = lang[0] if lang
-    opts |= NOENCODING if code == ?n or code == ?N
+    opts |= NOENCODING if (code == ?n) || (code == ?N)
 
     compile pattern, opts # may be overridden by subclasses
   end

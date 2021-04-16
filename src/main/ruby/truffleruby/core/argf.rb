@@ -201,7 +201,7 @@ module Truffle
     # status.
     #
     def eof?
-      @stream and @stream.eof?
+      @stream && @stream.eof?
     end
     alias_method :eof, :eof?
 

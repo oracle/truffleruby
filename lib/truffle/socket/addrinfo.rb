@@ -42,7 +42,7 @@ class Addrinfo
       sockaddr = Socket.pack_sockaddr_in(lport, laddress)
       addr     = Addrinfo.new(sockaddr, lfamily, lsocktype, lprotocol)
 
-      if flags and flags | Socket::AI_CANONNAME
+      if flags && flags |(Socket::AI_CANONNAME)
         addr.instance_variable_set(:@canonname, lhost)
       end
 
@@ -103,7 +103,7 @@ class Addrinfo
       @ip_address = sockaddr[3]
 
       # When using AF_INET6 the protocol family can only be PF_INET6
-      if @afamily == Socket::AF_INET6 and !pfamily
+      if (@afamily == Socket::AF_INET6) && !pfamily
         pfamily = Socket::PF_INET6
       end
     else
@@ -126,9 +126,9 @@ class Addrinfo
     # Per MRI behaviour setting the protocol family should also set the address
     # family, but only if the address and protocol families are compatible.
     if @pfamily && @pfamily != 0
-      if @afamily == Socket::AF_INET6 and
-      @pfamily != Socket::PF_INET and
-      @pfamily != Socket::PF_INET6
+      if (@afamily == Socket::AF_INET6) &&
+      (@pfamily != Socket::PF_INET) &&
+      (@pfamily != Socket::PF_INET6)
         raise SocketError, 'The given protocol and address families are incompatible'
       end
 
@@ -145,10 +145,10 @@ class Addrinfo
     end
 
     # Based on MRI's (re-)implementation of getaddrinfo()
-    if @afamily != Socket::AF_UNIX and
-    @afamily != Socket::AF_UNSPEC and
-    @afamily != Socket::AF_INET and
-    @afamily != Socket::AF_INET6
+    if (@afamily != Socket::AF_UNIX) &&
+    (@afamily != Socket::AF_UNSPEC) &&
+    (@afamily != Socket::AF_INET) &&
+    (@afamily != Socket::AF_INET6)
       raise(
         SocketError,
         'Address family must be AF_UNIX, AF_INET, AF_INET6, PF_INET or PF_INET6'
@@ -159,17 +159,17 @@ class Addrinfo
     if sockaddr.is_a?(Array)
       case @socktype
       when 0, nil
-        if @protocol != 0 and @protocol != nil and @protocol != Socket::IPPROTO_UDP
+        if (@protocol != 0) && (@protocol != nil) && (@protocol != Socket::IPPROTO_UDP)
           raise SocketError, 'Socket protocol must be IPPROTO_UDP or left unset'
         end
       when Socket::SOCK_RAW
         # nothing to do
       when Socket::SOCK_DGRAM
-        if @protocol != Socket::IPPROTO_UDP and @protocol != 0
+        if (@protocol != Socket::IPPROTO_UDP) && (@protocol != 0)
           raise SocketError, 'Socket protocol must be IPPROTO_UDP or left unset'
         end
       when Socket::SOCK_STREAM
-        if @protocol != Socket::IPPROTO_TCP and @protocol != 0
+        if (@protocol != Socket::IPPROTO_TCP) && (@protocol != 0)
           raise SocketError, 'Socket protocol must be IPPROTO_TCP or left unset'
         end
       # Based on MRI behaviour, though MRI itself doesn't seem to explicitly
@@ -236,7 +236,7 @@ class Addrinfo
 
   def inspect_sockaddr
     if ipv4?
-      if ip_port and ip_port != 0
+      if ip_port && (ip_port != 0)
         "#{ip_address}:#{ip_port}"
       elsif ip_address
         ip_address.dup
@@ -244,7 +244,7 @@ class Addrinfo
         'UNKNOWN'
       end
     elsif ipv6?
-      if ip_port and ip_port != 0
+      if ip_port && (ip_port != 0)
         "[#{ip_address}]:#{ip_port}"
       else
         ip_address.dup
@@ -261,7 +261,7 @@ class Addrinfo
   end
 
   def inspect
-    if socktype and socktype != 0
+    if socktype && (socktype != 0)
       if ip?
         case socktype
         when Socket::SOCK_STREAM
@@ -424,7 +424,7 @@ class Addrinfo
     @pfamily  = Truffle::Socket.protocol_family(pfamily)
     @socktype = Truffle::Socket.socket_type(socktype)
 
-    if protocol and protocol != 0
+    if protocol && (protocol != 0)
       @protocol = ::Socket.const_get(protocol)
     else
       @protocol = protocol

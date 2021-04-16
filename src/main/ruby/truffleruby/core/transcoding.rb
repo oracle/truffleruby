@@ -97,7 +97,7 @@ class Encoding
       name = encoding.name.upcase.to_sym
       transcoders = Primitive.encoding_transcoders_from_encoding name
 
-      return unless transcoders and transcoders.size == 1
+      return unless transcoders && (transcoders.size == 1)
 
       enc = Encoding.find transcoders[0].to_s
       enc if enc.ascii_compatible?
@@ -121,15 +121,15 @@ class Encoding
           @options |= INVALID_REPLACE if options[:invalid] == :replace
           @options |= UNDEF_REPLACE if options[:undef] == :replace
 
-          if options[:newline] == :universal or options[:universal_newline]
+          if (options[:newline] == :universal) || options[:universal_newline]
             @options |= UNIVERSAL_NEWLINE_DECORATOR
           end
 
-          if options[:newline] == :crlf or options[:crlf_newline]
+          if (options[:newline] == :crlf) || options[:crlf_newline]
             @options |= CRLF_NEWLINE_DECORATOR
           end
 
-          if options[:newline] == :cr or options[:cr_newline]
+          if (options[:newline] == :cr) || options[:cr_newline]
             @options |= CR_NEWLINE_DECORATOR
           end
 
@@ -165,9 +165,9 @@ class Encoding
       dest = +''
       status = primitive_convert str.dup, dest, nil, nil, @options | PARTIAL_INPUT
 
-      if status == :invalid_byte_sequence or
-         status == :undefined_conversion or
-         status == :incomplete_input
+      if (status == :invalid_byte_sequence) ||
+         (status == :undefined_conversion) ||
+         (status == :incomplete_input)
         raise last_error
       end
 
@@ -230,9 +230,9 @@ class Encoding
       dest = +''
       status = primitive_convert nil, dest
 
-      if status == :invalid_byte_sequence or
-         status == :undefined_conversion or
-         status == :incomplete_input
+      if (status == :invalid_byte_sequence) ||
+         (status == :undefined_conversion) ||
+         (status == :incomplete_input)
         raise last_error
       end
 
@@ -271,8 +271,8 @@ class Encoding
           error_bytes_msg = 'U+%04X' % codepoint
         end
 
-        if source_encoding_name.to_sym == @source_encoding.name and
-           destination_encoding_name.to_sym == @destination_encoding.name
+        if (source_encoding_name.to_sym == @source_encoding.name) &&
+           (destination_encoding_name.to_sym == @destination_encoding.name)
           msg = "#{error_bytes_msg} from #{source_encoding_name} to #{destination_encoding_name}"
         else
           convpath = @convpath.map { |upcase_name| Encoding.find(upcase_name.to_s).name }
@@ -295,7 +295,7 @@ class Encoding
         exc.__send__ :error_char=, error_char
       end
 
-      if result == :invalid_byte_sequence or result == :incomplete_input
+      if (result == :invalid_byte_sequence) || (result == :incomplete_input)
         exc.__send__ :error_bytes=, error_bytes.force_encoding(Encoding::ASCII_8BIT)
 
         if bytes = read_again_bytes

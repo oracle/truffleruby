@@ -50,7 +50,7 @@ class Module
       kinds = method.parameters.map(&:first)
       if !kinds.include?(:rest)
         warn "Skipping set of ruby2_keywords flag for #{name} (method does not accept argument splat)", uplevel: 1
-      elsif kinds.include?(:key) or kinds.include?(:keyreq) or kinds.include?(:keyrest)
+      elsif kinds.include?(:key) || kinds.include?(:keyreq) || kinds.include?(:keyrest)
         warn "Skipping set of ruby2_keywords flag for #{name} (method accepts keywords)", uplevel: 1
       end
     end
@@ -64,7 +64,7 @@ class Proc
     kinds = parameters.map(&:first)
     if !kinds.include?(:rest)
       warn 'Skipping set of ruby2_keywords flag for proc (proc does not accept argument splat)', uplevel: 1
-    elsif kinds.include?(:key) or kinds.include?(:keyreq) or kinds.include?(:keyrest)
+    elsif kinds.include?(:key) || kinds.include?(:keyreq) || kinds.include?(:keyrest)
       warn 'Skipping set of ruby2_keywords flag for proc (proc accepts keywords)', uplevel: 1
     end
     warn 'Proc#ruby2_keywords was ignored', uplevel: 1 if $DEBUG

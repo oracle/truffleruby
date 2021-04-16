@@ -150,7 +150,7 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Primitive.object_equal(value, other_value) or value.send(op, other_value)
+        unless Primitive.object_equal(value, other_value) || value.send(op, other_value)
           return false
         end
       end
@@ -185,7 +185,7 @@ class Hash
   end
 
   def default(key=undefined)
-    if default_proc and !Primitive.undefined?(key)
+    if default_proc && !Primitive.undefined?(key)
       default_proc.call(self, key)
     else
       Primitive.hash_default_value self
@@ -197,7 +197,7 @@ class Hash
     unless Primitive.nil? proc
       proc = Truffle::Type.coerce_to proc, Proc, :to_proc
 
-      if proc.lambda? and proc.arity != 2
+      if proc.lambda? && (proc.arity != 2)
         raise TypeError, 'default proc must have arity 2'
       end
     end

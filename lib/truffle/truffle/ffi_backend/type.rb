@@ -43,7 +43,7 @@ module FFI
     end
 
     def nfi_type
-      @nfi_type or raise "Unknown nfi_type for #{inspect}"
+      @nfi_type || raise("Unknown nfi_type for #{inspect}")
     end
 
     def get_at(pointer, offset)
@@ -162,7 +162,7 @@ module FFI
       end
 
       def char_array?
-        FFI::Type::INT8 == @elem_type or FFI::Type::UINT8 == @elem_type
+        (FFI::Type::INT8 == @elem_type) || (FFI::Type::UINT8 == @elem_type)
       end
 
       def get_element_at(pointer, offset, index)

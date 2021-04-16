@@ -117,7 +117,7 @@ class Dir
             full = path_join(path, ent)
             mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
 
-            if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
+            if Truffle::StatOperations.directory?(mode) && (allow_dots || (ent.getbyte(0) != 46)) # ?.
               stack << full
               @next.call matches, full, glob_base_dir
             end
@@ -151,7 +151,7 @@ class Dir
           next if ent == '.' || ent == '..'
           mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, ent))
 
-          if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
+          if Truffle::StatOperations.directory?(mode) && (allow_dots || (ent.getbyte(0) != 46)) # ?.
             stack << ent
             @next.call matches, ent, glob_base_dir
           end
@@ -166,7 +166,7 @@ class Dir
             full = path_join(path, ent)
             mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
 
-            if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
+            if Truffle::StatOperations.directory?(mode) && (allow_dots || (ent.getbyte(0) != 46)) # ?.
               stack << full
               @next.call matches, full, glob_base_dir
             end
@@ -195,7 +195,7 @@ class Dir
       end
 
       def call(matches, path, glob_base_dir)
-        return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
+        return if path && !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
         dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
         while ent = dir.read
@@ -213,7 +213,7 @@ class Dir
 
     class EntryMatch < Match
       def call(matches, path, glob_base_dir)
-        return if path and !Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
+        return if path && !Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
 
         dir_path = path_join(glob_base_dir, path ? path : '.')
         dir = Dir.allocate.send(:initialize_internal, dir_path)
@@ -233,7 +233,7 @@ class Dir
 
     class DirectoriesOnly < Node
       def call(matches, path, glob_base_dir)
-        if path and Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
+        if path && Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
           matches << "#{path}/"
         end
       end
@@ -264,7 +264,7 @@ class Dir
 
       # Trim from end
       if !ret.empty?
-        while s = ret.last and s.empty?
+        while (s = ret.last) && s.empty?
           ret.pop
         end
       end
@@ -348,7 +348,7 @@ class Dir
       # Rubygems uses Dir[] as a glorified File.exist? to check for multiple
       # extensions. So we went ahead and sped up that specific case.
 
-      if flags == 0 and m = TRAILING_BRACES.match(pattern)
+      if (flags == 0) && (m = TRAILING_BRACES.match(pattern))
         # no meta characters, so this is a glorified
         # File.exist? check. We allow for a brace expansion
         # only as a suffix.
@@ -412,7 +412,7 @@ class Dir
               rbrace = i
               break
             end
-          elsif char == '\\' and escape
+          elsif (char == '\\') && escape
             i += 1
           end
 
@@ -422,7 +422,7 @@ class Dir
 
       # There was a full {} expression detected, expand each part of it
       # recursively.
-      if lbrace and rbrace
+      if lbrace && rbrace
         pos = lbrace
         front = pattern[0...lbrace]
         back = pattern[(rbrace + 1)..-1]
@@ -432,14 +432,14 @@ class Dir
           pos += 1
           last = pos
 
-          while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
+          while (pos < rbrace) && (not ((pattern[pos] == ',') && (nest == 0)))
             char = pattern[pos]
 
             if char == '{'
               nest += 1
             elsif char == '}'
               nest -= 1
-            elsif char == '\\' and escape
+            elsif (char == '\\') && escape
               pos += 1
               break if pos == rbrace
             end

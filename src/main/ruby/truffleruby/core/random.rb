@@ -123,7 +123,7 @@ module Random::Formatter
                  end
 
     # Weird case, spec'd for SecureRandom.random_number
-    if Primitive.object_kind_of?(limit, Numeric) and limit <= 0
+    if Primitive.object_kind_of?(limit, Numeric) && (limit <= 0)
       return randomizer.random_float
     end
 

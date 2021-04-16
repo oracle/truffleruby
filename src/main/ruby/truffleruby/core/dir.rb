@@ -138,7 +138,7 @@ class Dir
   def children
     ret = []
     while s = read
-      ret << s if s != '.' and s != '..'
+      ret << s if (s != '.') && (s != '..')
     end
     ret
   end
@@ -147,7 +147,7 @@ class Dir
     return to_enum(:each_child) unless block_given?
 
     while s = read
-      yield s unless s == '.' or s == '..'
+      yield s unless (s == '.') || (s == '..')
     end
     self
   end
@@ -184,7 +184,7 @@ class Dir
 
       open(path, options) do |dir|
         while s = dir.read
-          yield s unless s == '.' or s == '..'
+          yield s unless (s == '.') || (s == '..')
         end
       end
     end
@@ -203,13 +203,13 @@ class Dir
 
     def empty?(path)
       path = Truffle::Type.coerce_to_path(path)
-      if Truffle::FileOperations.exist?(path) and !PrivateFile.directory?(path)
+      if Truffle::FileOperations.exist?(path) && !PrivateFile.directory?(path)
         return false
       end
 
       open(path) do |dir|
         while s = dir.read
-          return false if s != '.' and s != '..'
+          return false if (s != '.') && (s != '..')
         end
       end
       true

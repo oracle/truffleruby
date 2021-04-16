@@ -156,7 +156,7 @@ class Socket < BasicSocket
   end
 
   def self.gethostbyaddr(addr, family = nil)
-    if !family and addr.bytesize == 16
+    if !family && (addr.bytesize == 16)
       family = Socket::AF_INET6
     elsif !family
       family = Socket::AF_INET
