@@ -30,6 +30,7 @@ import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubyFrozenError;
@@ -168,6 +169,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
     public final FrozenStringLiterals frozenStringLiterals;
+    public final Encodings encodings;
     @CompilationFinal public LanguageOptions options;
 
     @CompilationFinal private AllocationReporter allocationReporter;
@@ -234,6 +236,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         ropeCache = new RopeCache(coreSymbols);
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
         frozenStringLiterals = new FrozenStringLiterals(ropeCache);
+        encodings = new Encodings(this);
     }
 
     @TruffleBoundary

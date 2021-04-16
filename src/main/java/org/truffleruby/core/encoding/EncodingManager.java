@@ -23,7 +23,6 @@ import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
-import org.jcodings.EncodingDB.Entry;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
@@ -31,12 +30,10 @@ import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
@@ -44,24 +41,20 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+import static org.truffleruby.core.encoding.Encodings.INITIAL_NUMBER_OF_ENCODINGS;
+
 /** Always use {@link Encoding#getIndex()} for encoding indices. Never use
  * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
 public class EncodingManager {
 
-    private static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
-
     private final List<RubyEncoding> ENCODING_LIST_BY_ENCODING_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
-    @CompilationFinal(dimensions = 1) private final RubyEncoding[] BUILT_IN_ENCODINGS = //
-            new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
     private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();
-
     private final RubyContext context;
     private final RubyLanguage language;
 
     @CompilationFinal private Encoding localeEncoding;
     private Encoding defaultExternalEncoding;
     private Encoding defaultInternalEncoding;
-
 
     public EncodingManager(RubyContext context, RubyLanguage language) {
         this.context = context;
@@ -81,9 +74,7 @@ public class EncodingManager {
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            final EncodingDB.Entry encodingEntry = e.value;
-            final RubyEncoding rubyEncoding = defineEncoding(encodingEntry, e.bytes, e.p, e.end);
-            BUILT_IN_ENCODINGS[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
+            final RubyEncoding rubyEncoding = defineEncoding(e.value, e.bytes, e.p, e.end);
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
@@ -174,19 +165,6 @@ public class EncodingManager {
         localeEncoding = rubyEncoding.encoding;
     }
 
-    @TruffleBoundary
-    private RubyEncoding newRubyEncoding(Encoding encoding, byte[] name, int p, int end) {
-        assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
-        assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
-                "; name.length = " + name.length + ")";
-
-        final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-        final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
-
-        final RubyEncoding instance = new RubyEncoding(encoding, string);
-        // TODO BJF Jul-29-2020 Add allocation tracing
-        return instance;
-    }
 
     public static Encoding getEncoding(String name) {
         return getEncoding(RopeOperations.encodeAscii(name, USASCIIEncoding.INSTANCE));
@@ -247,7 +225,9 @@ public class EncodingManager {
     public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
         final Encoding encoding = encodingEntry.getEncoding();
         final int encodingIndex = encoding.getIndex();
-        final RubyEncoding rubyEncoding = newRubyEncoding(encoding, name, p, end);
+        final RubyEncoding rubyEncoding = encodingIndex < language.encodings.BUILT_IN_ENCODINGS.length
+                ? language.encodings.getBuiltInEncoding(encodingIndex)
+                : language.encodings.newRubyEncoding(encoding, name, p, end);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() ||
                 ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
@@ -259,7 +239,9 @@ public class EncodingManager {
 
         LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
+
     }
+
 
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
@@ -276,7 +258,7 @@ public class EncodingManager {
 
         byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
         EncodingDB.dummy(nameBytes);
-        final Entry entry = EncodingDB.getEncodings().get(nameBytes);
+        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
     }
 
@@ -288,7 +270,7 @@ public class EncodingManager {
 
         EncodingDB.replicate(name, encoding.toString());
         byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        final Entry entry = EncodingDB.getEncodings().get(nameBytes);
+        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
     }
 
@@ -318,10 +300,6 @@ public class EncodingManager {
 
     public Encoding getDefaultInternalEncoding() {
         return defaultInternalEncoding;
-    }
-
-    public RubyEncoding getBuiltInEncoding(int index) {
-        return BUILT_IN_ENCODINGS[index];
     }
 
 }
