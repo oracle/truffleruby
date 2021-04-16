@@ -26,6 +26,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -442,6 +443,29 @@ public abstract class TruffleBootNodes {
                     context.getCoreExceptions().runtimeError("Could not find the LLVM Toolchain", currentNode));
         }
         return toolchain;
+    }
+
+    @CoreMethod(names = "basic_abi_version", onSingleton = true)
+    public abstract static class BasicABIVersionNode extends CoreMethodNode {
+
+        private static final String ABI_VERSION_FILE = "lib/cext/ABI_version.txt";
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyString basicABIVersion(
+                @Cached MakeStringNode makeStringNode) {
+            TruffleFile file = getContext().getRubyHomeTruffleFile().resolve(ABI_VERSION_FILE);
+            byte[] bytes;
+            try {
+                bytes = file.readAllBytes();
+            } catch (IOException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+
+            String basicVersion = RopeOperations.decodeAscii(bytes).trim();
+            return makeStringNode.executeMake(basicVersion, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
+        }
+
     }
 
 }

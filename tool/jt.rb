@@ -2659,7 +2659,7 @@ module Commands
     args.shift if fast
 
     if fast and compare_to = args.shift
-      changed_files = `git diff --cached --name-only #{compare_to}`.lines.map(&:chomp)
+      changed_files = changed_files(compare_to)
       changed = {}
       changed_files.each do |file|
         changed.fetch(File.extname(file)) { |k| changed[k] = [] } << file
@@ -2690,9 +2690,52 @@ module Commands
       check_documentation
       check_documentation_urls
       check_license
+      check_abi
 
       check_source_files if ci?
     end
+  end
+
+  ABI_VERSION_FILE = 'lib/cext/ABI_version.txt'
+  ABI_CHECK_FILE = 'lib/cext/ABI_check.txt'
+
+  def check_abi
+    # Check since the last commit at which ABI_CHECK_FILE or ABI_VERSION_FILE were modified
+    base_commit = `git log --format=%H #{ABI_VERSION_FILE} #{ABI_CHECK_FILE}`.chomp
+
+    changed_files = changed_files(base_commit)
+    # All files which can affect the ABI of libtruffleruby.so
+    abi_files = %w[
+      lib/truffle/rbconfig.rb
+      lib/mri/mkmf.rb
+      lib/cext/include/**/*.{h,hpp}
+      src/main/c/cext/extconf.rb
+      src/main/c/cext/*.{c,h}
+    ].flat_map { |pattern| Dir[pattern].sort }
+
+    changed_abi_files = changed_files & abi_files
+    unless changed_abi_files.empty?
+      puts 'These files have changed and might have affected the ABI:'
+      puts changed_abi_files
+      puts
+      if changed_files.include?(ABI_VERSION_FILE)
+        puts "#{ABI_VERSION_FILE} was updated to use a new ABI version"
+      elsif changed_files.include?(ABI_CHECK_FILE)
+        puts "#{ABI_CHECK_FILE} was updated, so ABI was marked as compatible"
+      else
+        puts 'Check the diff of this PR, and:'
+        puts "* if ABI has changed, then increment #{ABI_VERSION_FILE}"
+        puts "* if ABI has not changed, then increment #{ABI_CHECK_FILE}"
+        puts
+        puts 'Changing a macro, changing compilation flags, removing or adding a non-static function'
+        puts '(because e.g. mkmf have_func can depend on that) should all be considered ABI changes.'
+        abort
+      end
+    end
+  end
+
+  private def changed_files(base_commit)
+    `git diff --cached --name-only #{base_commit}`.lines.map(&:chomp)
   end
 
   # Separate from lint as it needs to build

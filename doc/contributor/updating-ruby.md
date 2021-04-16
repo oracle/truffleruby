@@ -161,6 +161,7 @@ In a separate commit, update all of these:
 * Grep for the old version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
 * Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
+* Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
 
 ## Last step
 

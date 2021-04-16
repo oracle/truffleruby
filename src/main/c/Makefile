@@ -65,7 +65,7 @@ $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 	$(Q) cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-$(LIBTRUFFLERUBY): cext/Makefile cext/*.c
+$(LIBTRUFFLERUBY): cext/Makefile cext/*.c cext/*.h
 	$(Q) cd cext && $(MAKE)
 
 # openssl
