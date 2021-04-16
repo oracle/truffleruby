@@ -2,9 +2,10 @@
 
 module TruffleRuby
   class ConcurrentHashMap
-    def initialize(options = nil)
-      @hash = {}
-    end
+    # To test Java init implementation
+    # def initialize(options = nil)
+    #   @hash = {}
+    # end
 
     def initialize_copy(other)
       @hash = @hash.dup

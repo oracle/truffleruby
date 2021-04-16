@@ -51,4 +51,12 @@ public class ConcurrentHashMapNodes {
             return self;
         }
     }
+
+    @CoreMethod(names = "get_internal_hash")
+    public abstract static class GetInternalHashNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyHash getInternalHash(RubyConcurrentHashMap self) {
+            return self.hash;
+        }
+    }
 }
