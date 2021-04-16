@@ -4,62 +4,62 @@ module TruffleRuby
   class ConcurrentHashMap
     # To test Java init implementation
     # def initialize(options = nil)
-    #   @hash = {}
+    #   get_internal_hash = {}
     # end
 
     def initialize_copy(other)
-      @hash = @hash.dup
+      get_internal_hash.replace other.get_internal_hash
       self
     end
 
     def [](key)
-      @hash[key]
+      get_internal_hash[key]
     end
 
     def []=(key, value)
       TruffleRuby.synchronized(self) do
-        @hash[key] = value
+        get_internal_hash[key] = value
       end
     end
 
     def compute_if_absent(key)
       TruffleRuby.synchronized(self) do
-        if @hash.key?(key)
-          @hash[key]
+        if get_internal_hash.key?(key)
+          get_internal_hash[key]
         else
-          @hash[key] = yield
+          get_internal_hash[key] = yield
         end
       end
     end
 
     def compute_if_present(key)
       TruffleRuby.synchronized(self) do
-        if @hash.key?(key)
-          store_computed_value(key, yield(@hash[key]))
+        if get_internal_hash.key?(key)
+          store_computed_value(key, yield(get_internal_hash[key]))
         end
       end
     end
 
     def compute(key)
       TruffleRuby.synchronized(self) do
-        store_computed_value(key, yield(@hash[key]))
+        store_computed_value(key, yield(get_internal_hash[key]))
       end
     end
 
     def merge_pair(key, value)
       TruffleRuby.synchronized(self) do
-        if @hash.key?(key)
-          store_computed_value(key, yield(@hash[key]))
+        if get_internal_hash.key?(key)
+          store_computed_value(key, yield(get_internal_hash[key]))
         else
-          @hash[key] = value
+          get_internal_hash[key] = value
         end
       end
     end
 
     def replace_pair(key, old_value, new_value)
       TruffleRuby.synchronized(self) do
-        if @hash.key?(key) && @hash[key] == old_value
-          @hash[key] = new_value
+        if get_internal_hash.key?(key) && get_internal_hash[key] == old_value
+          get_internal_hash[key] = new_value
           return true
         end
         false
@@ -68,9 +68,9 @@ module TruffleRuby
 
     def replace_if_exists(key, new_value)
       TruffleRuby.synchronized(self) do
-        if @hash.key?(key)
-          old_value = @hash[key]
-          @hash[key] = new_value
+        if get_internal_hash.key?(key)
+          old_value = get_internal_hash[key]
+          get_internal_hash[key] = new_value
           old_value
         end
       end
@@ -78,26 +78,26 @@ module TruffleRuby
 
     def get_and_set(key, value)
       TruffleRuby.synchronized(self) do
-        old_value = @hash[key]
-        @hash[key] = value
+        old_value = get_internal_hash[key]
+        get_internal_hash[key] = value
         old_value
       end
     end
 
     def key?(key)
-      @hash.key?(key)
+      get_internal_hash.key?(key)
     end
 
     def delete(key)
       TruffleRuby.synchronized(self) do
-        @hash.delete(key)
+        get_internal_hash.delete(key)
       end
     end
 
     def delete_pair(key, value)
       TruffleRuby.synchronized(self) do
-        if @hash.key?(key) && @hash[key] == value
-          @hash.delete(key)
+        if get_internal_hash.key?(key) && get_internal_hash[key] == value
+          get_internal_hash.delete(key)
           return true
         end
         false
@@ -106,21 +106,21 @@ module TruffleRuby
 
     def clear
       TruffleRuby.synchronized(self) do
-        @hash.clear
+        get_internal_hash.clear
         self
       end
     end
 
     def size
-      @hash.size
+      get_internal_hash.size
     end
 
     def get_or_default(key, default_value)
-      @hash.fetch(key, default_value)
+      get_internal_hash.fetch(key, default_value)
     end
 
     def each_pair
-      @hash.each_pair do |key, value|
+      get_internal_hash.each_pair do |key, value|
         yield(key, value)
       end
       self
@@ -130,10 +130,10 @@ module TruffleRuby
 
     def store_computed_value(key, new_value)
       if new_value.nil?
-        @hash.delete(key)
+        get_internal_hash.delete(key)
         nil
       else
-        @hash[key] = new_value
+        get_internal_hash[key] = new_value
       end
     end
   end
