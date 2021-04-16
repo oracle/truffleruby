@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.dsl.Bind;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
@@ -26,9 +27,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class WriteGlobalVariableNode extends RubyContextSourceNode implements AssignableNode {
 
     protected final String name;
+    @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;
 
     public WriteGlobalVariableNode(String name) {
         this.name = name;
+        lookupGlobalVariableStorageNode = LookupGlobalVariableStorageNode.create(name);
     }
 
     public abstract Object execute(VirtualFrame frame, Object value);
@@ -38,27 +41,27 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
         execute(frame, value);
     }
 
-    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getValidAssumption()")
+    @Specialization(guards = "storage.isSimple()")
     protected Object write(VirtualFrame frame, Object value,
-            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Cached("create(name)") WriteSimpleGlobalVariableNode simpleNode) {
         simpleNode.execute(value);
         return value;
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity != 2" }, assumptions = "storage.getValidAssumption()")
+    @Specialization(guards = { "storage.hasHooks()", "arity != 2" })
     protected Object writeHooks(VirtualFrame frame, Object value,
-            @Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("setterArity(storage)") int arity,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
+            @Bind("setterArity(storage)") int arity,
             @Cached CallBlockNode yieldNode) {
         yieldNode.yield(storage.getSetter(), value);
         return value;
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 2" }, assumptions = "storage.getValidAssumption()")
+    @Specialization(guards = { "storage.hasHooks()", "arity == 2" })
     protected Object writeHooksWithStorage(VirtualFrame frame, Object value,
-            @Cached("getStorage()") GlobalVariableStorage storage,
-            @Cached("setterArity(storage)") int arity,
+            @Bind("getStorage(frame)") GlobalVariableStorage storage,
+            @Bind("setterArity(storage)") int arity,
             @Cached CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode) {
         yieldNode.yield(
@@ -72,8 +75,8 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
         return storage.getSetter().getArityNumber();
     }
 
-    protected GlobalVariableStorage getStorage() {
-        return getContext().getCoreLibrary().globalVariables.getStorage(name);
+    protected GlobalVariableStorage getStorage(VirtualFrame dynamicArgument) {
+        return lookupGlobalVariableStorageNode.execute(dynamicArgument);
     }
 
     @Override

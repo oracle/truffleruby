@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,7 +17,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class ReadSimpleGlobalVariableNode extends RubyContextNode {
 
-    protected final String name;
+    public final String name;
+    @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;
 
     public static ReadSimpleGlobalVariableNode create(String name) {
         return ReadSimpleGlobalVariableNodeGen.create(name);
@@ -28,21 +30,27 @@ public abstract class ReadSimpleGlobalVariableNode extends RubyContextNode {
 
     public abstract Object execute();
 
-    @Specialization(assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
+    @Specialization(
+            guards = "getLanguage().singleContext",
+            assumptions = {
+                    "storage.getUnchangedAssumption()",
+                    "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object readConstant(
-            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
+            @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object value) {
         return value;
     }
 
-    @Specialization(assumptions = "storage.getValidAssumption()")
-    protected Object read(
-            @Cached("getStorage()") GlobalVariableStorage storage) {
-        return storage.getValue();
-    }
+    @Specialization
+    protected Object read() {
+        if (lookupGlobalVariableStorageNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            lookupGlobalVariableStorageNode = insert(LookupGlobalVariableStorageNode.create(name));
+        }
+        final GlobalVariableStorage storage = lookupGlobalVariableStorageNode.execute(null);
 
-    protected GlobalVariableStorage getStorage() {
-        return coreLibrary().globalVariables.getStorage(name);
+        return storage.getValue();
     }
 
 }

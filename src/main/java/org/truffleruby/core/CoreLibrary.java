@@ -240,7 +240,6 @@ public class CoreLibrary {
 
     @CompilationFinal private SharedMethodInfo truffleBootMainInfo;
 
-    @CompilationFinal private GlobalVariableReader loadPathReader;
     @CompilationFinal private GlobalVariableReader debugReader;
     @CompilationFinal private GlobalVariableReader verboseReader;
     @CompilationFinal private GlobalVariableReader stdinReader;
@@ -540,7 +539,7 @@ public class CoreLibrary {
                 .addFrameSlot(Layouts.SPECIAL_VARIABLES_STORAGE);
         argv = new RubyArray(arrayClass, language.arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
-        globalVariables = new GlobalVariables();
+        globalVariables = new GlobalVariables(context);
         interactiveBindingLocalVariablesObject = new BindingLocalVariablesObject();
         topScopeObject = new TopScopeObject(
                 new Object[]{
@@ -625,7 +624,6 @@ public class CoreLibrary {
     }
 
     private void findGlobalVariableStorage() {
-        loadPathReader = globalVariables.getReader("$LOAD_PATH");
         debugReader = globalVariables.getReader("$DEBUG");
         verboseReader = globalVariables.getReader("$VERBOSE");
         stdinReader = globalVariables.getReader("$stdin");
@@ -816,7 +814,8 @@ public class CoreLibrary {
                 context,
                 language,
                 StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
-        globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
+        int index = language.getGlobalVariableIndex("$0");
+        context.getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
 
         topLevelBinding = (RubyBinding) objectClass.fields
                 .getConstant("TOPLEVEL_BINDING")
@@ -864,13 +863,9 @@ public class CoreLibrary {
         return value == (value & 0xffffffffL) || value < 0 && value >= Integer.MIN_VALUE;
     }
 
-    public RubyArray getLoadPath() {
-        return (RubyArray) loadPathReader.getValue(globalVariables);
-    }
-
     public Object getDebug() {
         if (debugReader != null) {
-            return debugReader.getValue(globalVariables);
+            return debugReader.getValue();
         } else {
             return context.getOptions().DEBUG;
         }
@@ -878,7 +873,7 @@ public class CoreLibrary {
 
     private Object verbosity() {
         if (verboseReader != null) {
-            return verboseReader.getValue(globalVariables);
+            return verboseReader.getValue();
         } else {
             return verbosityOption();
         }
@@ -895,11 +890,11 @@ public class CoreLibrary {
     }
 
     public Object getStdin() {
-        return stdinReader.getValue(globalVariables);
+        return stdinReader.getValue();
     }
 
     public Object getStderr() {
-        return stderrReader.getValue(globalVariables);
+        return stderrReader.getValue();
     }
 
     public RubyBasicObject getENV() {

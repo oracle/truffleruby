@@ -26,6 +26,8 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptors;
 import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
+import org.truffleruby.collections.SharedIndicesMap;
+import org.truffleruby.collections.SharedIndicesMap.LanguageArray;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -174,6 +176,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
+
+    public final SharedIndicesMap globalVariablesMap = new SharedIndicesMap();
+    private final LanguageArray<Assumption> globalVariableNeverAliasedAssumptions = new LanguageArray<>(
+            globalVariablesMap,
+            Assumption[]::new,
+            () -> Truffle.getRuntime().createAssumption("global variable was never aliased: "));
 
     private static final RubyObjectType objectType = new RubyObjectType();
 
@@ -597,8 +605,16 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    private static String buildCoreLoadPath(String coreLoadPath) {
+    public int getGlobalVariableIndex(String name) {
+        return globalVariablesMap.lookup(name);
+    }
 
+    @TruffleBoundary
+    public Assumption getGlobalVariableNeverAliasedAssumption(int index) {
+        return globalVariableNeverAliasedAssumptions.get(index);
+    }
+
+    private static String buildCoreLoadPath(String coreLoadPath) {
         while (coreLoadPath.endsWith("/")) {
             coreLoadPath = coreLoadPath.substring(0, coreLoadPath.length() - 1);
         }

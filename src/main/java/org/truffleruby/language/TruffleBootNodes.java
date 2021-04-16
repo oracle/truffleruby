@@ -201,7 +201,8 @@ public abstract class TruffleBootNodes {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
-            getContext().getCoreLibrary().globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
+            int index = getLanguage().getGlobalVariableIndex("$0");
+            getContext().getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
             return source;
         }
 

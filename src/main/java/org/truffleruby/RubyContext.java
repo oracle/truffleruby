@@ -35,6 +35,7 @@ import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.joni.Regex;
 import org.truffleruby.cext.ValueWrapperManager;
+import org.truffleruby.collections.SharedIndicesMap.ContextArray;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.FinalizationService;
@@ -69,6 +70,7 @@ import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.globals.GlobalVariableStorage;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -144,6 +146,8 @@ public class RubyContext {
     private final CoverageManager coverageManager;
     private volatile ConsoleHolder consoleHolder;
 
+    public final ContextArray<GlobalVariableStorage> globalVariablesArray;
+
     private final Object classVariableDefinitionLock = new Object();
     private final ReentrantLock cExtensionsLock = new ReentrantLock();
 
@@ -194,6 +198,10 @@ public class RubyContext {
         // Load the core library classes
 
         Metrics.printTime("before-create-core-library");
+        globalVariablesArray = new ContextArray<>(
+                language.globalVariablesMap,
+                GlobalVariableStorage[]::new,
+                () -> new GlobalVariableStorage(null, null, null));
         coreLibrary = new CoreLibrary(this, language);
         nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
@@ -822,4 +830,7 @@ public class RubyContext {
         return errStream;
     }
 
+    public GlobalVariableStorage getGlobalVariableStorage(int index) {
+        return globalVariablesArray.get(index);
+    }
 }

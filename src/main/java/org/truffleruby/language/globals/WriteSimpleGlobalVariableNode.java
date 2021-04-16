@@ -33,10 +33,15 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyContextNode {
     public abstract Object execute(Object value);
 
     @Specialization(
-            guards = "referenceEqualNode.executeReferenceEqual(value, previousValue)",
-            assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
+            guards = {
+                    "getLanguage().singleContext",
+                    "referenceEqualNode.executeReferenceEqual(value, previousValue)" },
+            assumptions = {
+                    "storage.getUnchangedAssumption()",
+                    "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object writeTryToKeepConstant(Object value,
-            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
+            @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object previousValue) {
         // NOTE: we still do the volatile write to get the proper memory barrier,
         // as the global variable could be used as a publication mechanism.
@@ -45,10 +50,13 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = "storage.isAssumeConstant()",
-            assumptions = { "storage.getUnchangedAssumption()", "storage.getValidAssumption()" })
+            guards = { "getLanguage().singleContext", "storage.isAssumeConstant()" },
+            assumptions = {
+                    "storage.getUnchangedAssumption()",
+                    "getLanguage().getGlobalVariableNeverAliasedAssumption(index)" })
     protected Object writeAssumeConstant(Object value,
-            @Cached("getStorage()") GlobalVariableStorage storage) {
+            @Cached("getLanguage().getGlobalVariableIndex(name)") int index,
+            @Cached("getContext().getGlobalVariableStorage(index)") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);
         }
@@ -57,21 +65,20 @@ public abstract class WriteSimpleGlobalVariableNode extends RubyContextNode {
         return value;
     }
 
-    @Specialization(
-            guards = "!storage.isAssumeConstant()",
-            assumptions = "storage.getValidAssumption()",
-            replaces = "writeAssumeConstant")
-    protected Object write(Object value,
-            @Cached("getStorage()") GlobalVariableStorage storage) {
+    @Specialization(replaces = "writeAssumeConstant")
+    protected Object writeAliasedOrMultiContext(Object value,
+            @Cached("create(name)") LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);
         }
-        storage.setValueInternal(value);
-        return value;
-    }
 
-    protected GlobalVariableStorage getStorage() {
-        return coreLibrary().globalVariables.getStorage(name);
+        final GlobalVariableStorage storage = lookupGlobalVariableStorageNode.execute(null);
+
+        storage.setValueInternal(value);
+        if (storage.isAssumeConstant()) {
+            storage.updateAssumeConstant(getContext());
+        }
+        return value;
     }
 
 }
