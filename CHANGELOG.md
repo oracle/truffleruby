@@ -14,6 +14,7 @@ Compatibility:
 * Support precision when formatting strings (#2281, @kirs).
 * Make rpartition compatible with Ruby 2.7 (#2320, @gogainda).
 * Include the type name in exception messages from `rb_check_type` (#2307).
+* Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp)
 
 Performance:
 

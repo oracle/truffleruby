@@ -194,14 +194,24 @@ public abstract class BucketsStrategy {
         assert HashOperations.verifyStore(context, to);
     }
 
-
     public static void removeFromSequenceChain(RubyHash hash, Entry entry) {
-        if (entry.getPreviousInSequence() == null) {
+        final Entry previousInSequence = entry.getPreviousInSequence();
+        final Entry nextInSequence = entry.getNextInSequence();
+
+        if (previousInSequence == null) {
             assert hash.firstInSequence == entry;
-            hash.firstInSequence = entry.getNextInSequence();
+            hash.firstInSequence = nextInSequence;
         } else {
             assert hash.firstInSequence != entry;
-            entry.getPreviousInSequence().setNextInSequence(entry.getNextInSequence());
+            previousInSequence.setNextInSequence(nextInSequence);
+        }
+
+        if (nextInSequence == null) {
+            assert hash.lastInSequence == entry;
+            hash.lastInSequence = previousInSequence;
+        } else {
+            assert hash.lastInSequence != entry;
+            nextInSequence.setPreviousInSequence(previousInSequence);
         }
     }
 

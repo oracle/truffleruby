@@ -406,12 +406,6 @@ public abstract class HashNodes {
 
             BucketsStrategy.removeFromSequenceChain(hash, entry);
 
-            if (entry.getNextInSequence() == null) {
-                hash.lastInSequence = entry.getPreviousInSequence();
-            } else {
-                entry.getNextInSequence().setPreviousInSequence(entry.getPreviousInSequence());
-            }
-
             BucketsStrategy
                     .removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
 
@@ -845,6 +839,7 @@ public abstract class HashNodes {
     public abstract static class InternalRehashNode extends RubyContextNode {
 
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
+        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
 
         public static InternalRehashNode create() {
             return InternalRehashNodeGen.create();
@@ -862,21 +857,31 @@ public abstract class HashNodes {
                 @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             final Object[] store = (Object[]) hash.store;
-            final int size = hash.size;
+            int size = hash.size;
+            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
 
-            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    PackedArrayStrategy.setHashed(
-                            store,
-                            n,
-                            hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity));
+            for (int n = 0; n < size; n++) {
+                final Object key = PackedArrayStrategy.getKey(store, n);
+                final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity);
+                PackedArrayStrategy.setHashed(store, n, newHash);
+
+                for (int m = n - 1; m >= 0; m--) {
+                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.equalKeys(
+                            compareByIdentity,
+                            key,
+                            newHash,
+                            PackedArrayStrategy.getKey(store, m),
+                            PackedArrayStrategy.getHashed(store, m))) {
+                        PackedArrayStrategy.removeEntry(getLanguage(), store, n);
+                        size--;
+                        n--;
+                        break;
+                    }
                 }
             }
 
-            assert HashOperations.verifyStore(getContext(), hash);
-
+            hash.size = size;
             return hash;
         }
 
@@ -886,28 +891,41 @@ public abstract class HashNodes {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+
             final Entry[] entries = (Entry[]) hash.store;
             Arrays.fill(entries, null);
 
             Entry entry = hash.firstInSequence;
-
             while (entry != null) {
                 final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
                 entry.setHashed(newHash);
                 entry.setNextInLookup(null);
+
                 final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
                 Entry bucketEntry = entries[index];
 
                 if (bucketEntry == null) {
                     entries[index] = entry;
                 } else {
-                    while (bucketEntry.getNextInLookup() != null) {
+                    Entry previousEntry = entry;
+
+                    do {
+                        if (compareHashKeysNode.equalKeys(
+                                compareByIdentity,
+                                entry.getKey(),
+                                newHash,
+                                bucketEntry.getKey(),
+                                bucketEntry.getHashed())) {
+                            BucketsStrategy.removeFromSequenceChain(hash, entry);
+                            hash.size--;
+                            break;
+                        }
+                        previousEntry = bucketEntry;
                         bucketEntry = bucketEntry.getNextInLookup();
-                    }
+                    } while (bucketEntry != null);
 
-                    bucketEntry.setNextInLookup(entry);
+                    previousEntry.setNextInLookup(entry);
                 }
-
                 entry = entry.getNextInSequence();
             }
 

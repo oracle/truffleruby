@@ -65,10 +65,7 @@ public abstract class PackedArrayStrategy {
     }
 
     public static void removeEntry(RubyLanguage language, Object[] store, int n) {
-        for (int i = 0; i < language.options.HASH_PACKED_ARRAY_MAX *
-                ELEMENTS_PER_ENTRY; i += ELEMENTS_PER_ENTRY) {
-            assert store[i] == null || store[i] instanceof Integer;
-        }
+        assert verifyIntegerHashes(language, store);
 
         final int index = n * ELEMENTS_PER_ENTRY;
         System.arraycopy(
@@ -78,10 +75,15 @@ public abstract class PackedArrayStrategy {
                 index,
                 language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY - ELEMENTS_PER_ENTRY - index);
 
+        assert verifyIntegerHashes(language, store);
+    }
+
+    private static boolean verifyIntegerHashes(RubyLanguage language, Object[] store) {
         for (int i = 0; i < language.options.HASH_PACKED_ARRAY_MAX *
                 ELEMENTS_PER_ENTRY; i += ELEMENTS_PER_ENTRY) {
             assert store[i] == null || store[i] instanceof Integer;
         }
+        return true;
     }
 
     @TruffleBoundary
