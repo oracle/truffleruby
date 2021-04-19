@@ -38,37 +38,32 @@ class Encoding
   class << self
     private def build_encoding_map
       map = {}
-      Encoding.list.each_with_index do |encoding, index|
+      Encoding.list.each do |encoding|
         key = encoding.name.upcase.to_sym
-        map[key] = [nil, index]
+        map[key] = [nil, encoding]
       end
 
-      Primitive.encoding_each_alias -> alias_name, index do
+      Primitive.encoding_each_alias -> alias_name, encoding do
         key = alias_name.upcase.to_sym
-        map[key] = [alias_name, index]
+        map[key] = [alias_name, encoding]
       end
       map
     end
 
     private def setup_default_encoding(name, key)
       enc = Primitive.encoding_get_default_encoding name
-      index = if enc
-                # UTF-8 is the default value for those, so optimize for that
-                enc_name = enc == Encoding::UTF_8 ? :'UTF-8' : enc.name.upcase.to_sym
-                EncodingMap[enc_name].last
-              else
-                nil
-              end
-      EncodingMap[key] = [name, index]
+      EncodingMap[key] = [name, enc]
       enc
     end
   end
 
-  # A map with two kinds of entries:
+  # A map with three kinds of entries:
   # * An original encoding:
-  #   name.upcase.to_sym => [nil, encoding_index]
+  #   name.upcase.to_sym => [nil, encoding]
   # * An alias of an original encoding:
-  #   alias_name.upcase.to_sym => [alias_name, original_encoding_index]
+  #   alias_name.upcase.to_sym => [alias_name, original_encoding]
+  # * An unset default encoding:
+  #   name.upcase.to_sym => [name, nil]
   EncodingMap = build_encoding_map
 
   Truffle::Boot.redo do
@@ -84,37 +79,21 @@ class Encoding
 
   def self.aliases
     aliases = {}
-    EncodingMap.each do |_n, r|
-      index = r.last
-      next unless index
-
-      aname = r.first
-      aliases[aname] = Primitive.encoding_get_encoding_by_index(index).name if aname
+    EncodingMap.each do |_name, pair|
+      alias_name, enc = pair
+      if alias_name and enc
+        aliases[alias_name] = enc.name if alias_name
+      end
     end
-
     aliases
   end
 
-  def self.set_alias_index(name, obj)
+  def self.change_default_encoding(name, obj)
+    raise unless Encoding === obj || Primitive.nil?(obj)
     key = name.upcase.to_sym
-
-    case obj
-    when Encoding
-      source_name = obj.name
-    when nil
-      EncodingMap[key][1] = nil
-      return
-    else
-      source_name = StringValue(obj)
-    end
-
-    entry = EncodingMap[source_name.upcase.to_sym]
-    raise ArgumentError, "unknown encoding name - #{source_name}" unless entry
-    index = entry.last
-
-    EncodingMap[key][1] = index
+    EncodingMap[key][1] = obj
   end
-  private_class_method :set_alias_index
+  private_class_method :change_default_encoding
 
   class << self
     attr_reader :default_external, :default_internal
@@ -128,15 +107,15 @@ class Encoding
     raise ArgumentError, 'default external encoding cannot be nil' if Primitive.nil? enc
 
     enc = find(enc)
-    set_alias_index 'external', enc
-    set_alias_index 'filesystem', enc
+    change_default_encoding 'external', enc
+    change_default_encoding 'filesystem', enc
     @default_external = enc
     Primitive.encoding_set_default_external enc
   end
 
   def self.default_internal=(enc)
     enc = find(enc) unless Primitive.nil? enc
-    set_alias_index 'internal', enc
+    change_default_encoding 'internal', enc
     @default_internal = enc
     Primitive.encoding_set_default_internal enc
   end
@@ -155,8 +134,7 @@ class Encoding
 
     pair = EncodingMap[key]
     if pair
-      index = pair.last
-      return index && Primitive.encoding_get_encoding_by_index(index)
+      return pair.last
     end
 
     false
@@ -170,9 +148,9 @@ class Encoding
   end
 
   def self.name_list
-    EncodingMap.map do |_n, r|
-      index = r.last
-      r.first or (index and Primitive.encoding_get_encoding_by_index(index).name)
+    EncodingMap.map do |_name, pair|
+      alias_name, enc = pair
+      alias_name || (enc&.name)
     end
   end
 
@@ -187,17 +165,17 @@ class Encoding
   def names
     entry = EncodingMap[name.upcase.to_sym]
     names = [name]
-    EncodingMap.each do |_k, r|
-      aname = r.first
-      names << aname if aname and r.last == entry.last
+    EncodingMap.each do |_name, pair|
+      alias_name, enc = pair
+      names << alias_name if alias_name and enc == entry.last
     end
     names
   end
 
   def replicate(name)
     name = StringValue(name)
-    new_encoding, index = Primitive.encoding_replicate self, name
-    EncodingMap[name.upcase.to_sym] = [nil, index]
+    new_encoding, _index = Primitive.encoding_replicate self, name
+    EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
     new_encoding
   end
 

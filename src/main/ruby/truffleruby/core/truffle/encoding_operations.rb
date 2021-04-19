@@ -12,7 +12,7 @@ module Truffle
   module EncodingOperations
     def self.dummy_encoding(name)
       new_encoding, index = Primitive.encoding_create_dummy name
-      ::Encoding::EncodingMap[name.upcase.to_sym] = [nil, index]
+      ::Encoding::EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
       [new_encoding, index]
     end
   end

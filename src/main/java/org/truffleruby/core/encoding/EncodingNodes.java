@@ -460,7 +460,10 @@ public abstract class EncodingNodes {
                         ArrayUtils.extractRange(e.bytes, e.p, e.end),
                         USASCIIEncoding.INSTANCE,
                         CodeRange.CR_7BIT);
-                yieldNode.yield(block, aliasName, entry.value.getEncoding().getIndex());
+                yieldNode.yield(
+                        block,
+                        aliasName,
+                        getContext().getEncodingManager().getRubyEncoding(entry.value.getEncoding()));
             }
             return nil;
         }
