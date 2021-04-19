@@ -49,6 +49,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     @Specialization(
             guards = {
+                    "isSingleContext()",
                     "module == cachedModule",
                     "checkName == cachedCheckName",
                     "guardName(name, cachedName, sameNameProfile)" },

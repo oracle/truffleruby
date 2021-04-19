@@ -193,7 +193,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Inline caches with a non-default size
     THREAD_CACHE: [thread-cache, integer, ['!singleContext ? 0 : ', 1], Cache size of operations that depend on a particular thread]
-    CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-specific objects]
+    CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, ['!singleContext ? 0 : ', 1], Cache size for inline caches comparing by identity for context-specific objects]
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
     ARRAY_DUP_CACHE: [array-dup-cache, integer, 3, Cache size for copying small arrays]

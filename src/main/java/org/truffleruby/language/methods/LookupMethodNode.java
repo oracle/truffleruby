@@ -45,7 +45,11 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
     @Specialization(
             // no need to guard on the context, the metaClass is context-specific
-            guards = { "metaClass == cachedMetaClass", "name == cachedName", "config == cachedConfig" },
+            guards = {
+                    "isSingleContext()",
+                    "metaClass == cachedMetaClass",
+                    "name == cachedName",
+                    "config == cachedConfig" },
             assumptions = "methodLookupResult.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(

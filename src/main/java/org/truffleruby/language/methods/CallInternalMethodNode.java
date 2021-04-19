@@ -48,7 +48,10 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
             Object[] args);
 
     @Specialization(
-            guards = { "method.getCallTarget() == cachedCallTarget", "!cachedMethod.alwaysInlined()" },
+            guards = {
+                    "isSingleContext()",
+                    "method.getCallTarget() == cachedCallTarget",
+                    "!cachedMethod.alwaysInlined()" },
             assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
     protected Object callCached(Object callerData, InternalMethod method, Object self, Object block, Object[] args,
@@ -65,7 +68,10 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "method.getCallTarget() == cachedCallTarget", "cachedMethod.alwaysInlined()" },
+            guards = {
+                    "isSingleContext()",
+                    "method.getCallTarget() == cachedCallTarget",
+                    "cachedMethod.alwaysInlined()" },
             assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
     protected Object alwaysInlinedCached(
