@@ -64,6 +64,11 @@ class Encoding
     end
   end
 
+  # A map with two kinds of entries:
+  # * An original encoding:
+  #   name.upcase.to_sym => [nil, encoding_index]
+  # * An alias of an original encoding:
+  #   alias_name.upcase.to_sym => [alias_name, original_encoding_index]
   EncodingMap = build_encoding_map
 
   Truffle::Boot.redo do
