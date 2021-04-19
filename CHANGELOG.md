@@ -15,6 +15,7 @@ Compatibility:
 * Make rpartition compatible with Ruby 2.7 (#2320, @gogainda).
 * Include the type name in exception messages from `rb_check_type` (#2307).
 * Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp)
+* Only fail `rb_check_type` for typed data, not wrapped untyped structs (#2331).
 
 Performance:
 
