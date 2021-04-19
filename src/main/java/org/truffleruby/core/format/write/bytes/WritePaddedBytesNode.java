@@ -10,7 +10,11 @@
 package org.truffleruby.core.format.write.bytes;
 
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.StringNodes;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -18,10 +22,13 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Simply write bytes. */
 @NodeChild("width")
+@NodeChild("precision")
 @NodeChild("value")
 public abstract class WritePaddedBytesNode extends FormatNode {
 
     private final ConditionProfile leftJustifiedProfile = ConditionProfile.create();
+    private final ConditionProfile paddingProfile = ConditionProfile.create();
+    private final ConditionProfile precisionProfile = ConditionProfile.create();
     private final boolean leftJustified;
 
     public WritePaddedBytesNode(boolean leftJustified) {
@@ -29,31 +36,55 @@ public abstract class WritePaddedBytesNode extends FormatNode {
     }
 
     @Specialization
-    protected Object write(VirtualFrame frame, int padding, byte[] bytes) {
+    protected Object write(VirtualFrame frame, int padding, int precision, Rope rope,
+            @Cached RopeNodes.BytesNode bytesNode,
+            @Cached RopeNodes.CharacterLengthNode charLengthNode,
+            @Cached StringNodes.ByteIndexFromCharIndexNode indexNode) {
+        final byte[] bytes = bytesNode.execute(rope);
         if (leftJustifiedProfile.profile(leftJustified)) {
-            return writeLeftJustified(frame, padding, bytes);
+            writeStringBytes(frame, precision, rope, bytesNode, indexNode);
+            writePaddingBytes(frame, padding, precision, rope, charLengthNode);
         } else {
-            return writeRightJustified(frame, padding, bytes);
+            writePaddingBytes(frame, padding, precision, rope, charLengthNode);
+            writeStringBytes(frame, precision, rope, bytesNode, indexNode);
         }
-    }
-
-    private Object writeLeftJustified(VirtualFrame frame, int padding, byte[] bytes) {
-        writeBytes(frame, bytes);
-
-        for (int n = 0; n < padding - bytes.length; n++) {
-            writeByte(frame, (byte) ' ');
-        }
-
         return null;
     }
 
-    private Object writeRightJustified(VirtualFrame frame, int padding, byte[] bytes) {
-        for (int n = 0; n < padding - bytes.length; n++) {
-            writeByte(frame, (byte) ' ');
+    private void writeStringBytes(VirtualFrame frame, int precision, Rope rope,
+            RopeNodes.BytesNode bytesNode,
+            StringNodes.ByteIndexFromCharIndexNode indexNode) {
+        byte[] bytes = bytesNode.execute(rope);
+        int length;
+        if (precisionProfile.profile(precision >= 0 && bytes.length > precision)) {
+            int index = indexNode.execute(rope, 0, precision);
+            if (index >= 0) {
+                length = index;
+            } else {
+                length = bytes.length;
+            }
+        } else {
+            length = bytes.length;
         }
-
-        writeBytes(frame, bytes);
-        return null;
+        writeBytes(frame, bytes, length);
     }
 
+    private void writePaddingBytes(VirtualFrame frame, int padding, int precision, Rope rope,
+            RopeNodes.CharacterLengthNode lengthNode) {
+        if (paddingProfile.profile(padding > 0)) {
+            int ropeLength = lengthNode.execute(rope);
+            int padBytes;
+            if (precision > 0 && ropeLength > precision) {
+                padBytes = padding - precision;
+            } else if (padding > 0 && padding > ropeLength) {
+                padBytes = padding - ropeLength;
+            } else {
+                padBytes = 0;
+            }
+
+            for (int n = 0; n < padBytes; n++) {
+                writeByte(frame, (byte) ' ');
+            }
+        }
+    }
 }

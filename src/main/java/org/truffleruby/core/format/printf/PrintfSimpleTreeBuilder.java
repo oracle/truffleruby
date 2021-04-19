@@ -189,15 +189,16 @@ public class PrintfSimpleTreeBuilder {
                                                     conversionMethodName,
                                                     false,
                                                     EMPTY_BYTES,
-                                                    config.getPrecision(),
                                                     new SourceNode());
                                 } else {
                                     conversionNode = ToStringNodeGen
                                             .create(true, conversionMethodName, false, EMPTY_BYTES, valueNode);
                                 }
 
-                                if (config.getWidth() != null || config.isWidthStar()) {
-                                    node = WritePaddedBytesNodeGen.create(config.isMinus(), widthNode, conversionNode);
+                                if (config.getWidth() != null || config.isWidthStar() ||
+                                        config.getPrecision() != null || config.isPrecisionStar()) {
+                                    node = WritePaddedBytesNodeGen
+                                            .create(config.isMinus(), widthNode, precisionNode, conversionNode);
                                 } else {
                                     node = WriteBytesNodeGen.create(conversionNode);
                                 }

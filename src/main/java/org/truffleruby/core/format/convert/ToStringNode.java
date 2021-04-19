@@ -12,19 +12,21 @@ package org.truffleruby.core.format.convert;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -75,59 +77,56 @@ public abstract class ToStringNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    protected byte[] toString(int value) {
-        return RopeOperations.encodeAsciiBytes(Integer.toString(value));
+    protected Rope toString(int value) {
+        return RopeOperations.encodeAscii(Integer.toString(value), USASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    protected byte[] toString(long value) {
-        return RopeOperations.encodeAsciiBytes(Long.toString(value));
+    protected Rope toString(long value) {
+        return RopeOperations.encodeAscii(Long.toString(value), USASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
-    protected byte[] toString(double value) {
-        return RopeOperations.encodeAsciiBytes(Double.toString(value));
+    protected Rope toString(double value) {
+        return RopeOperations.encodeAscii(Double.toString(value), USASCIIEncoding.INSTANCE);
     }
 
     @TruffleBoundary
     @Specialization(guards = "specialClassBehaviour")
-    protected byte[] toStringSpecialClass(RubyClass rubyClass,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
-            @Cached RopeNodes.BytesNode bytesNode) {
+    protected Rope toStringSpecialClass(RubyClass rubyClass,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
-            return RopeOperations.encodeAsciiBytes("true");
+            return RopeOperations.encodeAscii("true", USASCIIEncoding.INSTANCE);
         } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
-            return RopeOperations.encodeAsciiBytes("false");
+            return RopeOperations.encodeAscii("false", USASCIIEncoding.INSTANCE);
         } else if (rubyClass == getContext().getCoreLibrary().nilClass) {
-            return RopeOperations.encodeAsciiBytes("nil");
+            return RopeOperations.encodeAscii("nil", USASCIIEncoding.INSTANCE);
         } else {
-            return toString(rubyClass, libString, bytesNode);
+            return toString(rubyClass, libString);
         }
     }
 
     @Specialization(guards = "libString.isRubyString(string)")
-    protected byte[] toStringString(Object string,
+    protected Rope toStringString(Object string,
             @CachedLibrary(limit = "2") RubyStringLibrary libValue,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
-            @Cached RopeNodes.BytesNode bytesNode) {
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
             if (libValue.isRubyString(value)) {
-                return bytesNode.execute(libValue.getRope(value));
+                return libValue.getRope(value);
             } else {
                 throw new NoImplicitConversionException(string, "String");
             }
         }
-        return bytesNode.execute(libString.getRope(string));
+        return libString.getRope(string);
     }
 
     @Specialization
-    protected byte[] toString(RubyArray array,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
-            @Cached RopeNodes.BytesNode bytesNode) {
+    protected Rope toString(RubyArray array,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(DispatchNode.create(PRIVATE_RETURN_MISSING));
@@ -136,7 +135,7 @@ public abstract class ToStringNode extends FormatNode {
         final Object value = toSNode.call(array, "to_s");
 
         if (libString.isRubyString(value)) {
-            return bytesNode.execute(libString.getRope(value));
+            return libString.getRope(value);
         } else {
             throw new NoImplicitConversionException(array, "String");
         }
@@ -144,13 +143,12 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(
             guards = { "isNotRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
-    protected byte[] toString(Object object,
-            @CachedLibrary(limit = "2") RubyStringLibrary libString,
-            @Cached RopeNodes.BytesNode bytesNode) {
+    protected Rope toString(Object object,
+            @CachedLibrary(limit = "2") RubyStringLibrary libString) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
         if (libString.isRubyString(value)) {
-            return bytesNode.execute(libString.getRope(value));
+            return libString.getRope(value);
         }
 
         if (inspectOnConversionFailure) {
@@ -159,7 +157,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
-            return bytesNode.execute(inspectNode.executeToS(object).rope);
+            return inspectNode.executeToS(object).rope;
         } else {
             throw new NoImplicitConversionException(object, "String");
         }
@@ -167,8 +165,11 @@ public abstract class ToStringNode extends FormatNode {
 
     @TruffleBoundary
     @Specialization(guards = "isForeignObject(object)")
-    protected byte[] toStringForeign(Object object) {
-        return object.toString().getBytes(StandardCharsets.UTF_8);
+    protected Rope toStringForeign(Object object) {
+        return RopeOperations.create(
+                object.toString().getBytes(StandardCharsets.UTF_8),
+                UTF8Encoding.INSTANCE,
+                CodeRange.CR_UNKNOWN);
     }
 
     private DispatchNode getToStrNode() {

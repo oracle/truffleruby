@@ -188,8 +188,10 @@ public class RBSprintfSimpleTreeBuilder {
                                             .create(stringReader, new SourceNode());
                                 }
 
-                                if (config.getWidth() != null || config.isWidthStar()) {
-                                    node = WritePaddedBytesNodeGen.create(config.isMinus(), widthNode, conversionNode);
+                                if (config.getWidth() != null || config.isWidthStar() ||
+                                        config.getPrecision() != null || config.isPrecisionStar()) {
+                                    node = WritePaddedBytesNodeGen
+                                            .create(config.isMinus(), widthNode, precisionNode, conversionNode);
                                 } else {
                                     node = WriteBytesNodeGen.create(conversionNode);
                                 }
@@ -222,8 +224,10 @@ public class RBSprintfSimpleTreeBuilder {
                                             ReadCValueNodeGen.create(valueNode));
                         }
 
-                        if (config.getWidth() != null || config.isWidthStar()) {
-                            node = WritePaddedBytesNodeGen.create(config.isMinus(), widthNode, conversionNode);
+                        if (config.getWidth() != null || config.isWidthStar() || config.getPrecision() != null ||
+                                config.isPrecisionStar()) {
+                            node = WritePaddedBytesNodeGen
+                                    .create(config.isMinus(), widthNode, precisionNode, conversionNode);
                         } else {
                             node = WriteBytesNodeGen.create(conversionNode);
                         }

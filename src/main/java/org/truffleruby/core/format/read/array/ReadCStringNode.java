@@ -14,7 +14,6 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -43,15 +42,14 @@ public abstract class ReadCStringNode extends FormatNode {
             @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
             @CachedLibrary(limit = "2") RubyStringLibrary libString,
             @CachedLibrary("stringReader") InteropLibrary stringReaders,
-            @CachedLibrary("source") ArrayStoreLibrary sources,
-            @Cached RopeNodes.BytesNode bytesNode) {
+            @CachedLibrary("source") ArrayStoreLibrary sources) {
         Object pointer = sources.read(source, advanceSourcePosition(frame));
         Object string = unwrapNode.execute(InteropNodes.execute(
                 stringReader,
                 new Object[]{ pointer },
                 stringReaders,
                 translateInteropExceptionNode));
-        return bytesNode.execute(libString.getRope(string));
+        return libString.getRope(string);
     }
 
 }
