@@ -35,42 +35,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Encoding
-  class << self
-    private def build_encoding_map
-      map = {}
-      Encoding.list.each do |encoding|
-        key = encoding.name.upcase.to_sym
-        map[key] = [nil, encoding]
-      end
-
-      Primitive.encoding_each_alias -> alias_name, encoding do
-        key = alias_name.upcase.to_sym
-        map[key] = [alias_name, encoding]
-      end
-      map
-    end
-
-    private def setup_default_encoding(name, key)
-      enc = Primitive.encoding_get_default_encoding name
-      EncodingMap[key] = [name, enc]
-      enc
-    end
-  end
-
-  # A map with three kinds of entries:
-  # * An original encoding:
-  #   name.upcase.to_sym => [nil, encoding]
-  # * An alias of an original encoding:
-  #   alias_name.upcase.to_sym => [alias_name, original_encoding]
-  # * An unset default encoding:
-  #   name.upcase.to_sym => [name, nil]
-  EncodingMap = build_encoding_map
+  Truffle::EncodingOperations.build_encoding_map
+  EncodingMap = Truffle::EncodingOperations::EncodingMap
 
   Truffle::Boot.redo do
-    @default_internal = setup_default_encoding('internal', :INTERNAL)
-    @default_external = setup_default_encoding('external', :EXTERNAL)
-    setup_default_encoding('locale', :LOCALE)
-    setup_default_encoding('filesystem', :FILESYSTEM)
+    @default_internal = Truffle::EncodingOperations.setup_default_encoding('internal', :INTERNAL)
+    @default_external = Truffle::EncodingOperations.setup_default_encoding('external', :EXTERNAL)
+    Truffle::EncodingOperations.setup_default_encoding('locale', :LOCALE)
+    Truffle::EncodingOperations.setup_default_encoding('filesystem', :FILESYSTEM)
   end
 
   Truffle::Boot.delay do
@@ -88,13 +60,6 @@ class Encoding
     aliases
   end
 
-  def self.change_default_encoding(name, obj)
-    raise unless Encoding === obj || Primitive.nil?(obj)
-    key = name.upcase.to_sym
-    EncodingMap[key][1] = obj
-  end
-  private_class_method :change_default_encoding
-
   class << self
     attr_reader :default_external, :default_internal
 
@@ -107,19 +72,20 @@ class Encoding
     raise ArgumentError, 'default external encoding cannot be nil' if Primitive.nil? enc
 
     enc = find(enc)
-    change_default_encoding 'external', enc
-    change_default_encoding 'filesystem', enc
+    Truffle::EncodingOperations.change_default_encoding 'external', enc
+    Truffle::EncodingOperations.change_default_encoding 'filesystem', enc
     @default_external = enc
     Primitive.encoding_set_default_external enc
   end
 
   def self.default_internal=(enc)
     enc = find(enc) unless Primitive.nil? enc
-    change_default_encoding 'internal', enc
+    Truffle::EncodingOperations.change_default_encoding 'internal', enc
     @default_internal = enc
     Primitive.encoding_set_default_internal enc
   end
 
+  # Does not exist on CRuby
   def self.try_convert(obj)
     case obj
     when Encoding
@@ -173,10 +139,7 @@ class Encoding
   end
 
   def replicate(name)
-    name = StringValue(name)
-    new_encoding, _index = Primitive.encoding_replicate self, name
-    EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
-    new_encoding
+    Truffle::EncodingOperations.replicate_encoding(self, name)
   end
 
   def _dump(depth)

@@ -604,8 +604,7 @@ module Truffle::CExt
   end
 
   def rb_enc_find_index(name)
-    key = name.upcase.to_sym
-    _, enc = Encoding::EncodingMap[key]
+    enc = Encoding.try_convert name
     if enc
       Primitive.encoding_get_encoding_index(enc)
     else
