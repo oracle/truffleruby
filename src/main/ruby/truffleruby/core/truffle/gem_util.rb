@@ -116,15 +116,15 @@ module Truffle::GemUtil
   # Gem.path, without needing to load RubyGems
   def self.gem_paths
     @gem_paths ||= begin
-      home = ENV['GEM_HOME'] || "#{Truffle::Boot.ruby_home}/lib/gems"
-      paths = [home]
-
       if gem_path = ENV['GEM_PATH']
-        paths.concat gem_path.split(File::PATH_SEPARATOR)
+        paths = gem_path.split(File::PATH_SEPARATOR)
       else
         user_dir = "#{Dir.home}/.gem/truffleruby/#{RUBY_ENGINE_VERSION}"
-        paths << user_dir
+        paths = [user_dir]
       end
+
+      home = ENV['GEM_HOME'] || "#{Truffle::Boot.ruby_home}/lib/gems"
+      paths << home
 
       paths.map { |path| expand(path) }.uniq
     end
