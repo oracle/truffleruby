@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fix of different values of self in different scopes.
+* `Truffle::POSIX.select` was being redefined repeatedly (#2332).
 
 Compatibility:
 
