@@ -92,7 +92,7 @@ public class LanguageOptions {
     public final int RUBY_LIBRARY_CACHE;
     /** --thread-cache=!singleContext ? 0 : 1 */
     public final int THREAD_CACHE;
-    /** --context-identity-cache=1 */
+    /** --context-identity-cache=!singleContext ? 0 : 1 */
     public final int CONTEXT_SPECIFIC_IDENTITY_CACHE;
     /** --identity-cache=1 */
     public final int IDENTITY_CACHE;
@@ -155,7 +155,7 @@ public class LanguageOptions {
         POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
         RUBY_LIBRARY_CACHE = options.hasBeenSet(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) ? options.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) : DEFAULT_CACHE;
         THREAD_CACHE = !singleContext ? 0 : (options.get(OptionsCatalog.THREAD_CACHE_KEY));
-        CONTEXT_SPECIFIC_IDENTITY_CACHE = options.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY);
+        CONTEXT_SPECIFIC_IDENTITY_CACHE = !singleContext ? 0 : (options.get(OptionsCatalog.CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY));
         IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
         ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);

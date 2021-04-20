@@ -37,6 +37,7 @@ public abstract class IsANode extends RubyBaseNode {
 
     @Specialization(
             guards = {
+                    "isSingleContext()",
                     "metaClassNode.execute(self) == cachedMetaClass",
                     "module == cachedModule" },
             assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)",
@@ -54,7 +55,7 @@ public abstract class IsANode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = "klass == cachedClass",
+            guards = { "isSingleContext()", "klass == cachedClass" },
             replaces = "isAMetaClassCached",
             limit = "getCacheLimit()")
     protected boolean isAClassCached(Object self, RubyClass klass,

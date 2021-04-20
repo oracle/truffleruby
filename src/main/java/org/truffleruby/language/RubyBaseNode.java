@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 
 /** Base of all Ruby nodes */
@@ -29,6 +30,10 @@ public abstract class RubyBaseNode extends Node {
     public void reportLongLoopCount(long count) {
         assert count >= 0L;
         LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
+    }
+
+    public static boolean isSingleContext() {
+        return RubyLanguage.getCurrentLanguage().singleContext;
     }
 
 }
