@@ -51,9 +51,7 @@ module RbConfig
   ruby_install_name = 'truffleruby'
   ruby_base_name = 'ruby'
 
-  # The full TruffleRuby version, so C extensions from one TruffleRuby version
-  # are not reused with another TruffleRuby version.
-  ruby_abi_version = RUBY_ENGINE_VERSION
+  ruby_abi_version = Truffle::GemUtil.abi_version
 
   arch = "#{host_cpu}-#{host_os}"
   libs = ''

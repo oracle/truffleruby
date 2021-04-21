@@ -486,6 +486,7 @@ suite = {
                 ],
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
+                    "file:lib/cext/ABI_version.txt",
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                     "dependency:org.truffleruby.rubysignal",
