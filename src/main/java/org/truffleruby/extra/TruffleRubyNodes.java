@@ -10,6 +10,7 @@
 package org.truffleruby.extra;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.memory.MemoryFence;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -24,7 +25,6 @@ import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.extra.ffi.Pointer;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -96,14 +96,11 @@ public abstract class TruffleRubyNodes {
 
     @CoreMethod(names = "full_memory_barrier", onSingleton = true)
     public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
-
         @Specialization
         protected Object fullMemoryBarrier() {
-            Pointer.UNSAFE.fullFence();
-
+            MemoryFence.full();
             return nil;
         }
-
     }
 
     @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)

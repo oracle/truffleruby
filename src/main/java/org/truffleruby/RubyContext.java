@@ -350,11 +350,6 @@ public class RubyContext {
     private boolean compatibleOptions(Options oldOptions, Options newOptions, boolean hadHome, boolean hasHome) {
         final String notReusingContext = "not reusing pre-initialized context: ";
 
-        if (!newOptions.PREINITIALIZATION) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "--preinit is false");
-            return false;
-        }
-
         if (hadHome != hasHome) {
             RubyLanguage.LOGGER.fine(notReusingContext + "Ruby home is " + (hasHome ? "set" : "unset"));
             return false;

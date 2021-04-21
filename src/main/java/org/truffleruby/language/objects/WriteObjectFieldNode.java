@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.memory.MemoryFence;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
@@ -52,7 +52,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
          * published below by writing the value to a field of the object. Otherwise, the compiler could theoretically
          * move the write barrier inside the synchronized block, and then the compiler or hardware could potentially
          * reorder the writes so that publication would happen before sharing. */
-        Pointer.UNSAFE.storeFence();
+        MemoryFence.storeStore();
 
         synchronized (object) {
             // Re-check the shape under the monitor as another thread might have changed it

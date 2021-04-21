@@ -93,7 +93,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> PREINITIALIZATION_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
@@ -663,13 +662,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor PREINITIALIZATION = OptionDescriptor
-            .newBuilder(PREINITIALIZATION_KEY, "ruby.preinit")
-            .help("Use the pre-initialized context when available")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor LAZY_BUILTINS = OptionDescriptor
             .newBuilder(LAZY_BUILTINS_KEY, "ruby.lazy-builtins")
             .help("Load builtin classes (core methods & primitives) lazily on first use")
@@ -1217,8 +1209,6 @@ public class OptionsCatalog {
                 return LOG_PENDING_INTERRUPTS;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
-            case "ruby.preinit":
-                return PREINITIALIZATION;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
@@ -1413,7 +1403,6 @@ public class OptionsCatalog {
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             LOG_PENDING_INTERRUPTS,
             ROPE_PRINT_INTERN_STATS,
-            PREINITIALIZATION,
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             BASICOPS_INLINE,
