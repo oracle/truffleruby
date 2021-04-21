@@ -14,7 +14,6 @@ import java.util.Map;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -115,18 +114,13 @@ public class DeclarationContext {
         throw new UnsupportedOperationException("No declaration frame with visibility found");
     }
 
-    @TruffleBoundary
-    public static Visibility getVisibilityFromNameAndFrame(String name, MaterializedFrame frame) {
-        if (ModuleOperations.isMethodPrivateFromName(name)) {
-            return Visibility.PRIVATE;
-        } else {
-            return findVisibility(frame);
-        }
-    }
-
     public static Visibility findVisibility(Frame frame) {
         final Frame visibilityFrame = lookupVisibility(frame);
         return RubyArguments.getDeclarationContext(visibilityFrame).visibility;
+    }
+
+    public static Frame findVisibilityFrame(Frame frame) {
+        return lookupVisibility(frame);
     }
 
     private static void changeVisibility(Frame frame, Visibility newVisibility) {

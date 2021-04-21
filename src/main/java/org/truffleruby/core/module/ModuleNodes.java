@@ -1378,7 +1378,16 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
-            final Visibility visibility = DeclarationContext.getVisibilityFromNameAndFrame(name, callerFrame);
+            final Frame visibilityFrame = DeclarationContext.findVisibilityFrame(callerFrame);
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
+            final Visibility visibility; // See rb_vm_cref_in_context() in CRuby
+            if (RubyArguments.getSelf(callerFrame) != module) {
+                visibility = Visibility.PUBLIC;
+            } else if (declarationContext.getModuleToDefineMethods() != module) {
+                visibility = Visibility.PUBLIC;
+            } else {
+                visibility = declarationContext.visibility;
+            }
             module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
         }
