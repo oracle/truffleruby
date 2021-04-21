@@ -119,8 +119,17 @@ public class DeclarationContext {
         return RubyArguments.getDeclarationContext(visibilityFrame).visibility;
     }
 
-    public static Frame findVisibilityFrame(Frame frame) {
-        return lookupVisibility(frame);
+    /** See rb_vm_cref_in_context() in CRuby */
+    public static Visibility findVisibilityCheckSelfAndDefaultDefinee(RubyModule module, Frame callerFrame) {
+        final Frame visibilityFrame = lookupVisibility(callerFrame);
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
+        if (RubyArguments.getSelf(callerFrame) != module) {
+            return Visibility.PUBLIC;
+        } else if (declarationContext.getModuleToDefineMethods() != module) {
+            return Visibility.PUBLIC;
+        } else {
+            return declarationContext.visibility;
+        }
     }
 
     private static void changeVisibility(Frame frame, Visibility newVisibility) {

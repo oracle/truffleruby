@@ -453,7 +453,8 @@ public abstract class ModuleNodes {
 
         protected void generateAccessor(Frame callerFrame, RubyModule module, Object[] names, Accessor accessor,
                 Node currentNode) {
-            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
+            final Visibility visibility = DeclarationContext
+                    .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
             createAccessors(module, names, accessor, visibility, currentNode);
         }
 
@@ -1378,16 +1379,8 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
-            final Frame visibilityFrame = DeclarationContext.findVisibilityFrame(callerFrame);
-            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
-            final Visibility visibility; // See rb_vm_cref_in_context() in CRuby
-            if (RubyArguments.getSelf(callerFrame) != module) {
-                visibility = Visibility.PUBLIC;
-            } else if (declarationContext.getModuleToDefineMethods() != module) {
-                visibility = Visibility.PUBLIC;
-            } else {
-                visibility = declarationContext.visibility;
-            }
+            final Visibility visibility = DeclarationContext
+                    .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
             module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
         }
