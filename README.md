@@ -5,7 +5,7 @@ of the [Ruby programming language](https://www.ruby-lang.org/en/).
 
 ## Getting Started
 
-There are three ways to install TruffleRuby releases and nightly builds:
+There are four ways to install TruffleRuby releases and nightly builds:
 
 * Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
   other languages such as JavaScript, R, and Python, and supports both the
@@ -19,6 +19,9 @@ There are three ways to install TruffleRuby releases and nightly builds:
   [Native configuration](#truffleruby-runtime-configurations), making it a smaller
   download. It is meant for users who only want a Ruby implementation and are already
   using a Ruby manager.
+
+* Via Docker: [Oracle Linux-based images](https://github.com/orgs/graalvm/packages/container/package/truffleruby)
+  and [Debian-based images](https://hub.docker.com/r/flavorjones/truffleruby).
 
 * Via the [standalone distribution](doc/user/standalone-distribution.md)
   as a simple binary tarball.
