@@ -37,15 +37,7 @@ chruby: $ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
 See the [Ruby installers](doc/user/ruby-managers.md) documentation for more details.
 
 Testing TruffleRuby in CI is easy.
-On [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can use:
-
-```yaml
-language: ruby
-rvm:
-  - truffleruby # or truffleruby-head
-```
-
-And on GitHub Actions:
+On GitHub Actions, you can use:
 
 ```yaml
 - uses: ruby/setup-ruby@v1
