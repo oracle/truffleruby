@@ -88,6 +88,23 @@ describe "Module#define_method when given an UnboundMethod" do
   end
 end
 
+describe "Module#define_method" do
+  describe "when the default definee is not the same as the module" do
+    it "sets the visibility of the method to public" do
+      klass = Class.new
+      class << klass
+        private
+        define_method(:meta) do
+          define_method(:foo) { :foo }
+        end
+      end
+
+      klass.send :meta
+      klass.new.foo.should == :foo
+    end
+  end
+end
+
 describe "Module#define_method when name is not a special private name" do
   describe "given an UnboundMethod" do
     describe "and called from the target module" do
