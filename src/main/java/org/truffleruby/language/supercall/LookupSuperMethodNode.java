@@ -37,7 +37,10 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     // if the current method's module is an (included) module and not a class.
 
     @Specialization(
-            guards = { "getCurrentMethod(frame) == currentMethod", "metaClass(self) == selfMetaClass" },
+            guards = {
+                    "isSingleContext()",
+                    "getCurrentMethod(frame) == currentMethod",
+                    "metaClass(self) == selfMetaClass" },
             assumptions = "superMethod.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
