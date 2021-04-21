@@ -103,7 +103,6 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
-import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
@@ -1379,7 +1378,7 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
-            final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, callerFrame);
+            final Visibility visibility = DeclarationContext.getVisibilityFromNameAndFrame(name, callerFrame);
             module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
         }
