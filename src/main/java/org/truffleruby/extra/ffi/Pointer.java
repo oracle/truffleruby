@@ -344,6 +344,6 @@ public class Pointer implements AutoCloseable {
         }
     }
 
-    public static final Unsafe UNSAFE = getUnsafe();
+    private static final Unsafe UNSAFE = getUnsafe();
 
 }
