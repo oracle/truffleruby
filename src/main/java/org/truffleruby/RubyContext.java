@@ -447,12 +447,16 @@ public class RubyContext {
 
     @TruffleBoundary
     public static Object send(Node currentNode, Object receiver, String methodName, Object... arguments) {
-        final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
-        final Node prev = callNodeRef.set(currentNode);
-        try {
+        if (currentNode.isAdoptable()) {
+            final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
+            final Node prev = callNodeRef.set(currentNode);
+            try {
+                return send(receiver, methodName, arguments);
+            } finally {
+                callNodeRef.set(prev);
+            }
+        } else {
             return send(receiver, methodName, arguments);
-        } finally {
-            callNodeRef.set(prev);
         }
     }
 
