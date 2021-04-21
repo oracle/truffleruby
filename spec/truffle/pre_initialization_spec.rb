@@ -15,8 +15,8 @@ guard -> { TruffleRuby.native? } do
       Truffle::Boot.was_preinitialized?.should == true
     end
 
-    it "is not used if --preinit=false is passed" do
-      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "--experimental-options --preinit=false")
+    it "is not used if --engine.UsePreInitializedContext=false is passed" do
+      out = ruby_exe("p Truffle::Boot.was_preinitialized?", options: "--experimental-options --engine.UsePreInitializedContext=false")
       out.should == "false\n"
     end
 

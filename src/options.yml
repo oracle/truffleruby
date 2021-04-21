@@ -160,7 +160,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     ROPE_PRINT_INTERN_STATS: [rope-print-intern-stats, boolean, false, Print interned rope stats at application exit]
 
     # Options to debug the implementation
-    PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
     LAZY_BUILTINS: [lazy-builtins, boolean, LAZY_CALLTARGETS, Load builtin classes (core methods & primitives) lazily on first use]
     LAZY_TRANSLATION_CORE: [lazy-translation-core, boolean, LAZY_CALLTARGETS, Lazily translation of core source files]
 

@@ -149,8 +149,6 @@ public class Options {
     public final boolean LOG_PENDING_INTERRUPTS;
     /** --rope-print-intern-stats=false */
     public final boolean ROPE_PRINT_INTERN_STATS;
-    /** --preinit=true */
-    public final boolean PREINITIALIZATION;
     /** --array-small=3 */
     public final int ARRAY_SMALL;
     /** --cexts-marking-cache=100 */
@@ -254,7 +252,6 @@ public class Options {
         BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
-        PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
         CEXTS_TONATIVE_STATS = options.get(OptionsCatalog.CEXTS_TONATIVE_STATS_KEY);
@@ -404,8 +401,6 @@ public class Options {
                 return LOG_PENDING_INTERRUPTS;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
-            case "ruby.preinit":
-                return PREINITIALIZATION;
             case "ruby.array-small":
                 return ARRAY_SMALL;
             case "ruby.cexts-marking-cache":

@@ -2,4 +2,4 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby --stress --trace --preinit=false -e "abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?; puts 'hello'"
+jt ruby --stress --trace --engine.UsePreInitializedContext=false -e "abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?; puts 'hello'"

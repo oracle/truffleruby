@@ -44,3 +44,6 @@ Debugging on the JVM can be achieved with:
 ```
 jt ruby --jvm --vm.Dpolyglot.image-build-time.PreinitializeContexts=ruby --log.level=FINE --no-core-load-path -e 'p :hi'
 ```
+
+It is also possible to disable pre-initialization explicitly to compare behavior with
+`--experimental-options --engine.UsePreInitializedContext=false`.
