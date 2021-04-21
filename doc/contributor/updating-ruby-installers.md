@@ -74,6 +74,12 @@ add the version in [ruby-builder-versions.js](https://github.com/ruby/setup-ruby
 update the [README](https://github.com/ruby/setup-ruby/blob/master/README.md#supported-versions),
 and make a release.
 
+## flavorjones/docker-truffleruby
+
+Make a PR to [flavorjones/docker-truffleruby](https://github.com/flavorjones/docker-truffleruby).
+See [CONTRIBUTING.md](https://github.com/flavorjones/docker-truffleruby/blob/master/CONTRIBUTING.md)
+for how to update to the latest release.
+
 ## Conclusion
 
 This is easy enough but feels a bit redundant and requires manual steps for
