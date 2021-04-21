@@ -56,6 +56,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected static final String SEND = "__send__";
     protected static final String NIL = "nil?";
     protected static final String EQUAL = "equal?";
+    protected static final String EQL = "eql?";
     protected static final String DELETE = "delete";
     protected static final String SIZE = "size";
     protected static final String KEYS = "keys";
@@ -67,11 +68,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected static final String KIND_OF = "kind_of?";
     protected static final String OBJECT_ID = "object_id";
     protected static final String ID = "__id__";
+    protected static final String HASH = "hash";
 
     @Specialization(
             guards = {
                     "name == cachedName",
-                    "cachedName.equals(OBJECT_ID) || cachedName.equals(ID)",
+                    "(cachedName.equals(OBJECT_ID) || cachedName.equals(ID)) || cachedName.equals(HASH)",
                     "args.length == 0" },
             limit = "1")
     protected int objectId(Object receiver, String name, Object[] args,
@@ -180,7 +182,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return nullNode.execute(receiver);
     }
 
-    @Specialization(guards = { "name == cachedName", "cachedName.equals(EQUAL)", "args.length == 1" }, limit = "1")
+    @Specialization(
+            guards = { "name == cachedName", "cachedName.equals(EQUAL) || cachedName.equals(EQL)", "args.length == 1" },
+            limit = "1")
     protected boolean isEqual(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary lhsInterop,
@@ -267,8 +271,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
     protected static boolean canHaveBadArguments(String cachedName) {
         return cachedName.equals(INDEX_READ) || cachedName.equals(INDEX_WRITE) || cachedName.equals(SEND) ||
-                cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(OBJECT_ID) ||
-                cachedName.equals(ID);
+                cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(EQL) ||
+                cachedName.equals(OBJECT_ID) || cachedName.equals(ID) || cachedName.equals(HASH);
     }
 
     protected static boolean badArity(Object[] args, int cachedArity, String cachedName) {
@@ -306,6 +310,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case NIL:
             case OBJECT_ID:
             case ID:
+            case HASH:
                 return 0;
             case RESPOND_TO:
             case DELETE:
@@ -313,6 +318,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case KIND_OF:
             case INDEX_READ:
             case EQUAL:
+            case EQL:
             case SEND:
                 return 1;
             case INDEX_WRITE:
@@ -428,6 +434,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "!cachedName.equals(SEND)",
                     "!cachedName.equals(NIL)",
                     "!cachedName.equals(EQUAL)",
+                    "!cachedName.equals(EQL)",
                     "!isRedirectToTruffleInterop(cachedName)",
                     "!isOperatorMethod(cachedName)",
                     "!isAssignmentMethod(cachedName)",
@@ -458,6 +465,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "!cachedName.equals(SEND)",
                     "!cachedName.equals(NIL)",
                     "!cachedName.equals(EQUAL)",
+                    "!cachedName.equals(EQL)",
                     "!isRedirectToTruffleInterop(cachedName)",
                     "!isOperatorMethod(cachedName)",
                     "!isAssignmentMethod(cachedName)",
@@ -580,7 +588,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 @Cached InteropNodes.InvokeMemberNode invokeNode) {
             return invokeNode.execute(receiver, name, args);
         }
-
     }
 
 }
