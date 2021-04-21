@@ -64,10 +64,13 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         final RubyContext context = contextReference.get();
 
         final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
+        assert sharedMethodInfo.getStaticLexicalScopeOrNull() == context.getRootLexicalScope() ||
+                sharedMethodInfo.getStaticLexicalScopeOrNull() == null;
+
         final InternalMethod method = new InternalMethod(
                 context,
                 sharedMethodInfo,
-                sharedMethodInfo.getStaticLexicalScopeOrNull(),
+                context.getRootLexicalScope(), // This is a top-level parse, so the lexical scope is always the root one
                 DeclarationContext.topLevel(context),
                 sharedMethodInfo.getMethodNameForNotBlock(),
                 context.getCoreLibrary().objectClass,
