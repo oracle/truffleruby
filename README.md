@@ -96,7 +96,7 @@ TruffleRuby is actively tested on the following systems:
 Architectures:
 
 * AMD64 (aka `x86_64`): Supported
-* AArch64 (aka `arm64`): Experimental, C extensions do not work yet on AArch64
+* AArch64 (aka `arm64`): Supported on Linux (from 20.2)
 
 You may find that TruffleRuby will not work if you severely restrict the
 environment, for example, by unmounting system filesystems such as `/dev/shm`.
