@@ -515,6 +515,12 @@ public abstract class VMPrimitiveNodes {
             return e.getMessage() == MESSAGE;
         }
 
+        public static boolean ignore(RubyException rubyException) {
+            final Backtrace backtrace = rubyException.backtrace;
+            final Throwable throwable = backtrace == null ? null : backtrace.getJavaThrowable();
+            return throwable instanceof StackOverflowError && ignore((StackOverflowError) throwable);
+        }
+
         @Specialization
         protected Object initStackOverflowClassesEagerly() {
             final StackOverflowError stackOverflowError = new StackOverflowError("initStackOverflowClassesEagerly");
