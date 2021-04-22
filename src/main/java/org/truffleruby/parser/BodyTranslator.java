@@ -2735,7 +2735,9 @@ public class BodyTranslator extends Translator {
                 }
             } else {
                 final RubyNode bodyNode = translateNodeOrNil(rescueBody.getPosition(), rescueBody.getBodyNode());
-                final RescueAnyNode rescueNode = new RescueAnyNode(bodyNode);
+                final RescueAnyNode rescueNode = withSourceSection(
+                        rescueBody.getPosition(),
+                        new RescueAnyNode(bodyNode));
                 rescueNodes.add(rescueNode);
             }
 

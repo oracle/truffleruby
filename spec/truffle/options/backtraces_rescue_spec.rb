@@ -13,7 +13,7 @@ describe "The --backtraces-rescue option" do
     file = fixture __FILE__ , 'raise_rescue.rb'
     out = ruby_exe(file, options: "--experimental-options --backtraces-rescue", args: "2>&1")
     out.should ==  <<~OUTPUT
-    rescued at #{file}:10:
+    rescued at #{file}:11:
     #{file}:10:in `some_method': error (RuntimeError)
     \tfrom #{file}:15:in `<main>'
     OUTPUT
