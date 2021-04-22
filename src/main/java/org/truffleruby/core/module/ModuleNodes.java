@@ -103,7 +103,6 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.FixedDefaultDefinee;
-import org.truffleruby.language.methods.GetCurrentVisibilityNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.Split;
@@ -454,7 +453,8 @@ public abstract class ModuleNodes {
 
         protected void generateAccessor(Frame callerFrame, RubyModule module, Object[] names, Accessor accessor,
                 Node currentNode) {
-            final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
+            final Visibility visibility = DeclarationContext
+                    .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
             createAccessors(module, names, accessor, visibility, currentNode);
         }
 
@@ -1379,7 +1379,8 @@ public abstract class ModuleNodes {
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
-            final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, callerFrame);
+            final Visibility visibility = DeclarationContext
+                    .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
             module.addMethodConsiderNameVisibility(getContext(), method, visibility, this);
             return getSymbol(method.getName());
         }

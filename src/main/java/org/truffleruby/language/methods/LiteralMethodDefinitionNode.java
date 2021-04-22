@@ -35,7 +35,6 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
     private final CachedSupplier<RootCallTarget> callTargetSupplier;
 
     @Child private RubyNode moduleNode;
-    @Child private GetCurrentVisibilityNode visibilityNode;
 
     public LiteralMethodDefinitionNode(
             RubyNode moduleNode,
@@ -48,9 +47,6 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
         this.isDefSingleton = isDefSingleton;
         this.callTargetSupplier = callTargetSupplier;
         this.moduleNode = moduleNode;
-        if (!isDefSingleton) {
-            this.visibilityNode = new GetCurrentVisibilityNode();
-        }
     }
 
     @Override
@@ -61,7 +57,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
         if (isDefSingleton) {
             visibility = Visibility.PUBLIC;
         } else {
-            visibility = visibilityNode.getVisibility(frame);
+            visibility = DeclarationContext.findVisibility(frame);
         }
 
         final DeclarationContext declarationContext = RubyArguments
