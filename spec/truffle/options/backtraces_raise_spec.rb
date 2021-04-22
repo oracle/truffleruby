@@ -8,20 +8,16 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "The --backtraces-rescue option" do
-  it "prints a backtrace on rescue" do
+describe "The --backtraces-raise option" do
+  it "prints a backtrace on #raise" do
     file = fixture __FILE__ , 'raise_rescue.rb'
-    out = ruby_exe(file, options: "--experimental-options --backtraces-rescue", args: "2>&1")
+    out = ruby_exe(file, options: "--experimental-options --backtraces-raise", args: "2>&1")
     out = out.gsub(/:\d+:(in `(?:full_message|get_formatted_backtrace)')/, ':LINE:\1')
     out.should ==  <<~OUTPUT
-    rescued at #{file}:10:
-    #{file}:10:in `<main>': foo (RuntimeError)
-    \tfrom <internal:core> core/exception.rb:LINE:in `full_message'
+    raise: <internal:core> core/exception.rb:LINE:in `full_message': foo (RuntimeError)
     \tfrom <internal:core> core/truffle/exception_operations.rb:LINE:in `get_formatted_backtrace'
+    \tfrom #{file}:10:in `raise'
+    \tfrom #{file}:10:in `<main>'
     OUTPUT
-  end
-
-  it "can be used to print backtraces in silent rescues" do
-    ruby_exe("1/0 rescue nil", options: "--experimental-options --backtraces-rescue", args: "2>&1").should include("divided by 0 (ZeroDivisionError)")
   end
 end
