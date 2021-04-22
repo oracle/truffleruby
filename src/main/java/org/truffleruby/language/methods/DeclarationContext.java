@@ -123,7 +123,13 @@ public class DeclarationContext {
     public static Visibility findVisibilityCheckSelfAndDefaultDefinee(RubyModule module, Frame callerFrame) {
         final Frame visibilityFrame = lookupVisibility(callerFrame);
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
-        if (RubyArguments.getSelf(callerFrame) != module) {
+        if (declarationContext == DeclarationContext.NONE) {
+            // For Java core methods, e.g. method(:attr_accessor).to_proc as in spec/truffle/always_inlined_spec.rb
+            // The generated Proc uses the DeclarationContext from Module#attr_accessor and knows nothing about the
+            // lexical scope surrounding the Proc#call.
+            // Maybe we should go to the 2nd caller in this case, skipping the SetReceiverNode CallTarget.
+            return Visibility.PUBLIC;
+        } else if (RubyArguments.getSelf(callerFrame) != module) {
             return Visibility.PUBLIC;
         } else if (declarationContext.getModuleToDefineMethods() != module) {
             return Visibility.PUBLIC;
