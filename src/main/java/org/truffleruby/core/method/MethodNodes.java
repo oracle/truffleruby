@@ -343,6 +343,28 @@ public abstract class MethodNodes {
         protected int getCacheLimit() {
             return getLanguage().options.METHOD_TO_PROC_CACHE;
         }
+
+    }
+
+    private static class SetReceiverNode extends RubyContextSourceNode {
+        private final InternalMethod method;
+        @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
+
+        public SetReceiverNode(InternalMethod method) {
+            this.method = method;
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
+            return callInternalMethodNode.execute(
+                    frame,
+                    null,
+                    method,
+                    originalBoundMethodReceiver,
+                    RubyArguments.getBlock(frame),
+                    RubyArguments.getArguments(frame));
+        }
     }
 
     @Primitive(name = "method_unimplement")
@@ -379,27 +401,6 @@ public abstract class MethodNodes {
             return rubyMethod.method.isUnimplemented();
         }
 
-    }
-
-    private static class SetReceiverNode extends RubyContextSourceNode {
-        private final InternalMethod method;
-        @Child private CallInternalMethodNode callInternalMethodNode = CallInternalMethodNode.create();
-
-        public SetReceiverNode(InternalMethod method) {
-            this.method = method;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            final Object originalBoundMethodReceiver = RubyArguments.getSelf(RubyArguments.getDeclarationFrame(frame));
-            return callInternalMethodNode.execute(
-                    frame,
-                    null,
-                    method,
-                    originalBoundMethodReceiver,
-                    RubyArguments.getBlock(frame),
-                    RubyArguments.getArguments(frame));
-        }
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
