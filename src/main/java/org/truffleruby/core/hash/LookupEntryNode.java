@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.core.hash.HashingNodes.ToHash;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -45,7 +46,7 @@ public class LookupEntryNode extends RubyBaseNode {
         final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
         int hashed = hashNode.execute(key, compareByIdentity);
 
-        final Entry[] entries = (Entry[]) hash.store;
+        final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
         final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
         Entry entry = entries[index];
 

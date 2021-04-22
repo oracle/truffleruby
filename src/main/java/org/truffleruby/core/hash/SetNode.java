@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -51,8 +52,7 @@ public abstract class SetNode extends RubyContextNode {
         propagateSharingKeyNode.executePropagate(hash, key);
         propagateSharingValueNode.executePropagate(hash, value);
 
-        Object store = PackedArrayStrategy.createStore(getLanguage(), hashed, key, value);
-        hash.store = store;
+        hash.store = PackedArrayStrategy.createStore(getLanguage(), hashed, key, value);
         hash.size = 1;
         hash.firstInSequence = null;
         hash.lastInSequence = null;
@@ -121,7 +121,7 @@ public abstract class SetNode extends RubyContextNode {
         final Entry entry = result.getEntry();
 
         if (foundProfile.profile(entry == null)) {
-            final Entry[] entries = (Entry[]) hash.store;
+            final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
 
             final Entry newEntry = new Entry(result.getHashed(), key, value);
 

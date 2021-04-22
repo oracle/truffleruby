@@ -27,6 +27,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -74,7 +75,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
 
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
-        if (store instanceof Entry[]) {
+        if (store instanceof EntryArrayHashStore) {
             BucketsStrategy.getAdjacentObjects(reachable, firstInSequence);
         } else {
             ObjectGraph.addProperty(reachable, store);

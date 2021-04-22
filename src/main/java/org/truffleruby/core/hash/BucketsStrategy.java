@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -78,7 +79,7 @@ public abstract class BucketsStrategy {
         assert HashGuards.isBucketHash(hash);
         assert HashOperations.verifyStore(context, hash);
 
-        final Entry[] buckets = (Entry[]) hash.store;
+        final Entry[] buckets = ((EntryArrayHashStore) hash.store).entries;
 
         final Entry entry = new Entry(hashed, key, value);
 
@@ -138,8 +139,7 @@ public abstract class BucketsStrategy {
             entry = entry.getNextInSequence();
         }
 
-        hash.store = newEntries;
-
+        hash.store = new EntryArrayHashStore(newEntries);
         assert HashOperations.verifyStore(context, hash);
     }
 
@@ -157,7 +157,7 @@ public abstract class BucketsStrategy {
         assert HashOperations.verifyStore(context, from);
         assert HashOperations.verifyStore(context, to);
 
-        final Entry[] newEntries = new Entry[((Entry[]) from.store).length];
+        final Entry[] newEntries = new Entry[((EntryArrayHashStore) from.store).entries.length];
 
         Entry firstInSequence = null;
         Entry lastInSequence = null;
@@ -187,7 +187,7 @@ public abstract class BucketsStrategy {
         }
 
         int size = from.size;
-        to.store = newEntries;
+        to.store = new EntryArrayHashStore(newEntries);
         to.size = size;
         to.firstInSequence = firstInSequence;
         to.lastInSequence = lastInSequence;
@@ -217,7 +217,7 @@ public abstract class BucketsStrategy {
 
     public static void removeFromLookupChain(RubyHash hash, int index, Entry entry, Entry previousEntry) {
         if (previousEntry == null) {
-            ((Entry[]) hash.store)[index] = entry.getNextInLookup();
+            ((EntryArrayHashStore) hash.store).entries[index] = entry.getNextInLookup();
         } else {
             previousEntry.setNextInLookup(entry.getNextInLookup());
         }

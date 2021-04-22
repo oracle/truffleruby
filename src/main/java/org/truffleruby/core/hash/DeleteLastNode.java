@@ -10,6 +10,7 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -68,7 +69,7 @@ public abstract class DeleteLastNode extends RubyContextNode {
         }
         int hashed = lastEntry.getHashed();
 
-        final Entry[] entries = (Entry[]) hash.store;
+        final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
         final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
 
         // Lookup previous entry

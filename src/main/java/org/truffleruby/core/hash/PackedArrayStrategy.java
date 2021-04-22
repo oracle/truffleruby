@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 
 public abstract class PackedArrayStrategy {
 
@@ -123,7 +124,7 @@ public abstract class PackedArrayStrategy {
             }
         }
 
-        hash.store = buckets;
+        hash.store = new EntryArrayHashStore(buckets);
         hash.size = size;
         hash.firstInSequence = firstInSequence;
         hash.lastInSequence = lastInSequence;

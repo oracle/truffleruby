@@ -13,6 +13,7 @@ import java.util.Arrays;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -30,6 +31,9 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.NullHashStore;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
@@ -65,7 +69,8 @@ public abstract class HashNodes {
         @Specialization
         protected RubyHash allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().hashShape;
-            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), null, 0, null, null, nil, nil, false);
+            final NullHashStore store = NullHashStore.NULL_HASH_STORE;
+            final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0, null, null, nil, nil, false);
             AllocationTracing.trace(hash, this);
             return hash;
         }
@@ -223,10 +228,10 @@ public abstract class HashNodes {
 
         public abstract Object executeGet(VirtualFrame frame, RubyHash hash, Object key);
 
-        @Specialization
+        @Specialization(limit = "hashStrategyLimit()")
         protected Object get(VirtualFrame frame, RubyHash hash, Object key,
-                @Cached HashLookupOrExecuteDefaultNode hashLookup) {
-            return hashLookup.executeGet(frame, hash, key, this);
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            return hashes.lookupOrDefault(hash.store, frame, hash, key, this);
         }
 
         @Override
@@ -281,7 +286,7 @@ public abstract class HashNodes {
         @Specialization(guards = "!isNullHash(hash)")
         protected RubyHash empty(RubyHash hash) {
             assert HashOperations.verifyStore(getContext(), hash);
-            hash.store = null;
+            hash.store = NullHashStore.NULL_HASH_STORE;
             hash.size = 0;
             hash.firstInSequence = null;
             hash.lastInSequence = null;
@@ -570,7 +575,7 @@ public abstract class HashNodes {
 
             propagateSharingNode.executePropagate(self, from);
 
-            self.store = null;
+            self.store = NullHashStore.NULL_HASH_STORE;
             self.size = 0;
             self.firstInSequence = null;
             self.lastInSequence = null;
@@ -800,7 +805,7 @@ public abstract class HashNodes {
                 hash.lastInSequence = null;
             }
 
-            final Entry[] store = (Entry[]) hash.store;
+            final Entry[] store = ((EntryArrayHashStore) hash.store).entries;
             final int index = BucketsStrategy.getBucketIndex(first.getHashed(), store.length);
 
             Entry previous = null;
@@ -900,7 +905,7 @@ public abstract class HashNodes {
 
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
 
-            final Entry[] entries = (Entry[]) hash.store;
+            final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
             Arrays.fill(entries, null);
 
             Entry entry = hash.firstInSequence;

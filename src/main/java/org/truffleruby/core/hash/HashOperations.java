@@ -12,6 +12,8 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
+import org.truffleruby.core.hash.library.NullHashStore;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
@@ -27,7 +29,7 @@ public abstract class HashOperations {
                 context.getCoreLibrary().hashClass,
                 language.hashShape,
                 context,
-                null,
+                NullHashStore.NULL_HASH_STORE,
                 0,
                 null,
                 null,
@@ -43,7 +45,7 @@ public abstract class HashOperations {
         final Entry firstInSequence = hash.firstInSequence;
         final Entry lastInSequence = hash.lastInSequence;
 
-        assert store == null || store.getClass() == Object[].class || store instanceof Entry[];
+        assert store instanceof NullHashStore || store instanceof Object[] || store instanceof EntryArrayHashStore;
 
         if (store == null) {
             assert size == 0;
@@ -52,7 +54,7 @@ public abstract class HashOperations {
         } else if (store instanceof Entry[]) {
             assert lastInSequence == null || lastInSequence.getNextInSequence() == null;
 
-            final Entry[] entryStore = (Entry[]) store;
+            final Entry[] entryStore = ((EntryArrayHashStore) store).entries;
 
             Entry foundFirst = null;
             Entry foundLast = null;

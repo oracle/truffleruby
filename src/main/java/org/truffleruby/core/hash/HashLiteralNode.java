@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -164,12 +165,11 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 setNode = insert(SetNode.create());
             }
 
-            final Entry[] newEntries = new Entry[bucketsCount];
             final RubyHash hash = new RubyHash(
                     coreLibrary().hashClass,
                     language.hashShape,
                     getContext(),
-                    newEntries,
+                    new EntryArrayHashStore(new Entry[bucketsCount]),
                     0,
                     null,
                     null,
