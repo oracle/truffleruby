@@ -12,12 +12,9 @@ describe "The --backtraces-rescue option" do
   it "prints a backtrace on rescue" do
     file = fixture __FILE__ , 'raise_rescue.rb'
     out = ruby_exe(file, options: "--experimental-options --backtraces-rescue", args: "2>&1")
-    out = out.gsub(/:\d+:(in `(?:full_message|get_formatted_backtrace)')/, ':LINE:\1')
     out.should ==  <<~OUTPUT
     rescued at #{file}:10:
     #{file}:10:in `<main>': foo (RuntimeError)
-    \tfrom <internal:core> core/exception.rb:LINE:in `full_message'
-    \tfrom <internal:core> core/truffle/exception_operations.rb:LINE:in `get_formatted_backtrace'
     OUTPUT
   end
 

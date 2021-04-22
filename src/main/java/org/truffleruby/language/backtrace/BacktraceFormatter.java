@@ -117,6 +117,12 @@ public class BacktraceFormatter {
             return;
         }
 
+        // Ensure the backtrace is materialized here, before calling Ruby methods.
+        final Backtrace backtrace = rubyException.backtrace;
+        if (backtrace != null && backtrace.getRaiseException() != null) {
+            TruffleStackTrace.fillIn(backtrace.getRaiseException());
+        }
+
         final PrintStream printer = context.getEnvErrStream();
         if (!info.isEmpty()) {
             printer.print(info);

@@ -12,12 +12,8 @@ describe "The --backtraces-raise option" do
   it "prints a backtrace on #raise" do
     file = fixture __FILE__ , 'raise_rescue.rb'
     out = ruby_exe(file, options: "--experimental-options --backtraces-raise", args: "2>&1")
-    out = out.gsub(/:\d+:(in `(?:full_message|get_formatted_backtrace)')/, ':LINE:\1')
     out.should ==  <<~OUTPUT
-    raise: <internal:core> core/exception.rb:LINE:in `full_message': foo (RuntimeError)
-    \tfrom <internal:core> core/truffle/exception_operations.rb:LINE:in `get_formatted_backtrace'
-    \tfrom #{file}:10:in `raise'
-    \tfrom #{file}:10:in `<main>'
+    raise: #{file}:10:in `<main>': foo (RuntimeError)
     OUTPUT
   end
 end
