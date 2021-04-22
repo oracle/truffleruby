@@ -14,7 +14,8 @@ describe "The --backtraces-rescue option" do
     out = ruby_exe(file, options: "--experimental-options --backtraces-rescue", args: "2>&1")
     out.should ==  <<~OUTPUT
     rescued at #{file}:10:
-    #{file}:10:in `<main>': foo (RuntimeError)
+    #{file}:10:in `some_method': error (RuntimeError)
+    \tfrom #{file}:15:in `<main>'
     OUTPUT
   end
 
