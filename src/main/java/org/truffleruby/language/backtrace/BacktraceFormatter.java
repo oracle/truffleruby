@@ -21,6 +21,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.core.VMPrimitiveNodes.InitStackOverflowClassesEagerlyNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -112,6 +113,16 @@ public class BacktraceFormatter {
     @SuppressFBWarnings("OS")
     @TruffleBoundary
     public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
+        if (InitStackOverflowClassesEagerlyNode.ignore(rubyException)) {
+            return;
+        }
+
+        // Ensure the backtrace is materialized here, before calling Ruby methods.
+        final Backtrace backtrace = rubyException.backtrace;
+        if (backtrace != null && backtrace.getRaiseException() != null) {
+            TruffleStackTrace.fillIn(backtrace.getRaiseException());
+        }
+
         final PrintStream printer = context.getEnvErrStream();
         if (!info.isEmpty()) {
             printer.print(info);

@@ -1,1 +1,2 @@
 slow:The --backtraces-rescue option can be used to print backtraces in silent rescues
+slow:The --backtraces-rescue option prints a backtrace on rescue
