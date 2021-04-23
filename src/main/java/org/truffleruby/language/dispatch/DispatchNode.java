@@ -113,7 +113,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return dispatch(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         assert block instanceof Nil || block instanceof RubyProc : block;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
@@ -229,11 +229,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                     CallInternalMethodNodeGen.getUncached(),
                     ConditionProfile.getUncached(),
                     BranchProfile.getUncached());
-        }
-
-        @Override
-        public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-            return super.dispatch(null, receiver, methodName, block, arguments);
         }
 
         @Override
