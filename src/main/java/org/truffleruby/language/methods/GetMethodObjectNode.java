@@ -67,7 +67,6 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @Cached ConditionProfile notFoundProfile,
             @Cached ConditionProfile respondToMissingProfile,
             @Cached LogicalClassNode logicalClassNode) {
-        assert this != GetMethodObjectNodeGen.getUncached() || frame == null;
         DeclarationContext originalDeclarationContext = null;
 
         if (frame != null) {

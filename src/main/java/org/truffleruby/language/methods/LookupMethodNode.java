@@ -77,9 +77,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached ConditionProfile publicProfile,
             @Cached ConditionProfile privateProfile,
             @Cached ConditionProfile isVisibleProfile) {
-
-        assert this != LookupMethodNodeGen.getUncached() || frame == null;
-
         // Actual lookup
 
         if (foreignProfile.profile(metaClass == context.getCoreLibrary().truffleInteropForeignClass)) {
