@@ -18,6 +18,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -327,6 +328,12 @@ public class CoreMethodNodeManager {
             RubyLanguage language, SharedMethodInfo sharedMethodInfo, Split split, CoreMethod method) {
 
         if (method.alwaysInlined()) {
+            // See CallInternalMethodNode#getUncachedAlwaysInlinedMethodNode()
+            assert nodeFactory.getUncachedInstance() != null : nodeFactory.getNodeClass() +
+                    " must use @GenerateUncached";
+            assert nodeFactory.getUncachedInstance() instanceof AlwaysInlinedMethodNode : nodeFactory.getNodeClass() +
+                    " must subclass AlwaysInlinedMethodNode";
+
             RubyRootNode reRaiseRootNode = new RubyRootNode(
                     language,
                     sharedMethodInfo.getSourceSection(),

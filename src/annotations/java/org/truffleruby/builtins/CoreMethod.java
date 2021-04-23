@@ -37,6 +37,8 @@ public @interface CoreMethod {
      * both a singleton method and instance method. */
     boolean isModuleFunction() default false;
 
+    /** When set to true, this core method is always AST-inlined, there is no call in between, and it's always passed
+     * the caller frame. The node must subclass AlwaysInlinedMethodNode and use @GenerateUncached. */
     boolean alwaysInlined() default false;
 
     boolean needsSelf() default true;

@@ -2275,6 +2275,7 @@ public abstract class ModuleNodes {
 
     }
 
+    @GenerateUncached
     @CoreMethod(names = "using", required = 1, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleUsingNode extends UsingNode {
         @Specialization
