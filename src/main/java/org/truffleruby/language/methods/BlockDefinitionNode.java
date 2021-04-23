@@ -42,9 +42,9 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
             ProcType type,
             SharedMethodInfo sharedMethodInfo,
             ProcCallTargets callTargets,
-
             BreakID breakID,
             FrameSlot frameOnStackMarkerSlot) {
+        assert (type == ProcType.PROC) == (frameOnStackMarkerSlot != null);
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTargets = callTargets;
@@ -65,12 +65,11 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     @Override
     public RubyProc execute(VirtualFrame frame) {
         final FrameOnStackMarker frameOnStackMarker;
-
-        if (readFrameOnStackMarkerNode == null) {
-            frameOnStackMarker = null;
-        } else {
+        if (readFrameOnStackMarkerNode != null) {
             frameOnStackMarker = (FrameOnStackMarker) readFrameOnStackMarkerNode.executeRead(frame);
             assert frameOnStackMarker != null;
+        } else {
+            frameOnStackMarker = null;
         }
 
         return ProcOperations.createRubyProc(
@@ -83,7 +82,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
                 readSpecialVariableStorageNode.execute(frame),
                 RubyArguments.getMethod(frame),
                 RubyArguments.getBlock(frame),
-                type == ProcType.PROC ? frameOnStackMarker : null,
+                readFrameOnStackMarkerNode != null ? frameOnStackMarker : null,
                 executeWithoutVisibility(RubyArguments.getDeclarationContext(frame)));
     }
 
