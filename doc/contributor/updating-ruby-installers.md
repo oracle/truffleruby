@@ -32,6 +32,8 @@ There is a handy script in the repo that does everything needed:
 ./update.sh truffleruby-graalvm $VERSION
 ```
 
+Only push after making sure it works with `ruby-build` (see below).
+
 ## ruby-build
 
 There is a script in the repo that does everything needed:
@@ -39,6 +41,12 @@ There is a script in the repo that does everything needed:
 ```bash
 script/update-truffleruby $VERSION ../ruby-versions/pkg
 script/update-truffleruby-graalvm $VERSION ../ruby-versions/pkg
+```
+
+Make sure it works with:
+```bash
+bin/ruby-build truffleruby-$VERSION ~/.rubies/truffleruby-$VERSION
+bin/ruby-build truffleruby+graalvm-$VERSION ~/.rubies/truffleruby+graalvm-$VERSION
 ```
 
 `rbenv` users which installed `ruby-build` using Homebrew need a new release of
