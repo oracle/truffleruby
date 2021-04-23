@@ -74,7 +74,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                     "cachedMethod.alwaysInlined()" },
             assumptions = "getModuleAssumption(cachedMethod)", // to remove the inline cache entry when the method is redefined or removed
             limit = "getCacheLimit()")
-    protected Object alwaysInlinedCached(
+    protected Object alwaysInlined(
             Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached(value = "method.getCallTarget()") RootCallTarget cachedCallTarget,
             @Cached("method") InternalMethod cachedMethod,
@@ -102,14 +102,15 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlinedCached")
+    @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlined")
     protected Object alwaysInlinedUncached(
             Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
             @Cached BranchProfile checkArityProfile,
             @Cached BranchProfile exceptionProfile,
             @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
-        return alwaysInlinedCached(
-                frame,
+        return alwaysInlined(
+                // alwaysInlinedNode.execute() is a @TruffleBoundary with a Frame argument
+                frame == null ? null : frame.materialize(),
                 callerData,
                 method,
                 self,
@@ -129,6 +130,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                 .createNodeFromFactory(method.alwaysInlinedNodeFactory, RubyNode.EMPTY_ARRAY);
     }
 
+    /** Asserted in {@link CoreMethodNodeManager#createCoreMethodRootNode} */
     protected AlwaysInlinedMethodNode getUncachedAlwaysInlinedMethodNode(InternalMethod method) {
         return (AlwaysInlinedMethodNode) method.alwaysInlinedNodeFactory.getUncachedInstance();
     }
