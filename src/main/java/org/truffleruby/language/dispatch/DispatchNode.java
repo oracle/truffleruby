@@ -26,10 +26,12 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNodeGen;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
@@ -144,7 +146,18 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         final RubySymbol symbolName = nameToSymbol(methodName);
         final Object[] newArguments = ArrayUtils.unshift(arguments, symbolName);
-        final Object result = callMethodMissingNode(frame, receiver, block, newArguments);
+
+        // NOTE(norswap, 24 Jul 2020): We change the DeclarationContext to avoid looking up refinements,
+        // which are ignored for #method_missing on CRuby: https://bugs.ruby-lang.org/issues/13129
+        final Object result;
+        DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+        DeclarationContext withoutRefinements = declarationContext.withRefinements(DeclarationContext.NO_REFINEMENTS);
+        RubyArguments.setDeclarationContext(frame, withoutRefinements);
+        try {
+            result = callMethodMissingNode(frame, receiver, block, newArguments);
+        } finally {
+            RubyArguments.setDeclarationContext(frame, declarationContext);
+        }
 
         if (result == MISSING) {
             methodMissingMissing.enter();
@@ -172,10 +185,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissing = insert(DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
         }
-        // NOTE(norswap, 24 Jul 2020): It's important to not pass a frame here in order to avoid looking up refinements,
-        //   which should be ignored in the case of `method_missing`.
-        //   cf. https://bugs.ruby-lang.org/issues/13129
-        return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
+        return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -250,8 +260,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
                         DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING));
             }
 
-            // null: see note in supermethod
-            return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
+            return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
         }
 
         @Override
