@@ -40,7 +40,9 @@ describe "TruffleRuby::ConcurrentHashMap" do
 
   it "#merge_pair stores value if key is absent" do
     new_value = "bloop"
-    @h.merge_pair(:foobar, new_value).should equal new_value
+    @h.merge_pair(:foobar, new_value) do |value|
+      value + new_value
+    end.should equal new_value
     @h[:foobar].should equal new_value
   end
 
