@@ -27,9 +27,8 @@ public class PackedHashStoreLibrary {
     @ExportMessage
     protected static Object lookupOrDefault(
             Object[] store, Frame frame, RubyHash hash, Object key, BiFunctionNode defaultNode,
-            // TODO remove allowUncached after rebasing on top of hash interop
-            @Cached(allowUncached = true) LookupPackedEntryNode lookupPackedEntryNode,
-            @Cached(allowUncached = true) HashingNodes.ToHash hashNode) {
+            @Cached LookupPackedEntryNode lookupPackedEntryNode,
+            @Cached HashingNodes.ToHash hashNode) {
 
         int hashed = hashNode.execute(key, hash.compareByIdentity);
         return lookupPackedEntryNode.executePackedLookup((VirtualFrame) frame, hash, key, hashed, defaultNode);

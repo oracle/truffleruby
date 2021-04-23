@@ -34,9 +34,8 @@ public class EntryArrayHashStore {
 
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultNode,
-            // TODO remove allowUncached after rebasing on top of hash interop
-            @Cached(value = "new()", allowUncached = true) LookupEntryNode lookupEntryNode,
-            @Cached BranchProfile notInHashProfile) {
+            @Cached LookupEntryNode lookup,
+            @Cached BranchProfile notInHash) {
 
         final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
 
@@ -44,7 +43,7 @@ public class EntryArrayHashStore {
             return hashLookupResult.getEntry().getValue();
         }
 
-        notInHashProfile.enter();
+        notInHash.enter();
         return defaultNode.accept((VirtualFrame) frame, hash, key);
     }
 }

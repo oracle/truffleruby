@@ -28,7 +28,6 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
-import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
@@ -57,7 +56,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "Hash", isClass = true)
@@ -175,51 +173,6 @@ public abstract class HashNodes {
         }
     }
 
-    @GenerateUncached
-    @ImportStatic(HashGuards.class)
-    public abstract static class HashLookupOrExecuteDefaultNode extends RubyBaseNode {
-
-        public static HashLookupOrExecuteDefaultNode create() {
-            return HashLookupOrExecuteDefaultNodeGen.create();
-        }
-
-        public static HashLookupOrExecuteDefaultNode getUncached() {
-            return HashLookupOrExecuteDefaultNodeGen.getUncached();
-        }
-
-        public abstract Object executeGet(Frame frame, RubyHash hash, Object key,
-                PEBiFunction defaultValueNode);
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected Object getNull(Frame frame, RubyHash hash, Object key, PEBiFunction defaultValueNode) {
-            // frame should be virtual or null
-            return defaultValueNode.accept((VirtualFrame) frame, hash, key);
-        }
-
-        @Specialization(guards = "isPackedHash(hash)")
-        protected Object getPackedArray(Frame frame, RubyHash hash, Object key, PEBiFunction defaultValueNode,
-                @Cached LookupPackedEntryNode lookupPackedEntryNode,
-                @Cached HashingNodes.ToHash hashNode) {
-            int hashed = hashNode.execute(key, hash.compareByIdentity); // Call key.hash only once
-            return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultValueNode);
-        }
-
-        @Specialization(guards = "isBucketHash(hash)")
-        protected Object getBuckets(Frame frame, RubyHash hash, Object key, PEBiFunction defaultValueNode,
-                @Cached LookupEntryNode lookupEntryNode,
-                @Cached BranchProfile notInHashProfile) {
-            final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
-
-            if (hashLookupResult.getEntry() != null) {
-                return hashLookupResult.getEntry().getValue();
-            }
-
-            notInHashProfile.enter();
-            // frame should be virtual or null
-            return defaultValueNode.accept((VirtualFrame) frame, hash, key);
-        }
-    }
-
     @CoreMethod(names = "[]", required = 1)
     @ImportStatic(HashGuards.class)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements PEBiFunction {
@@ -245,19 +198,18 @@ public abstract class HashNodes {
     }
 
     @Primitive(name = "hash_get_or_undefined")
+    @ImportStatic(HashGuards.class)
     public abstract static class GetOrUndefinedNode extends PrimitiveArrayArgumentsNode implements PEBiFunction {
 
-        @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
-
-        @Specialization
-        protected Object getOrUndefined(VirtualFrame frame, RubyHash hash, Object key) {
-            return lookupNode.executeGet(frame, hash, key, this);
+        @Specialization(limit = "hashStrategyLimit()")
+        protected Object getOrUndefined(VirtualFrame frame, RubyHash hash, Object key,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            return hashes.lookupOrDefault(hash.store, frame, hash, key, this);
         }
 
         public Object accept(VirtualFrame frame, Object hash, Object key) {
             return NotProvided.INSTANCE;
         }
-
     }
 
     @CoreMethod(names = "[]=", required = 2, raiseIfFrozenSelf = true)

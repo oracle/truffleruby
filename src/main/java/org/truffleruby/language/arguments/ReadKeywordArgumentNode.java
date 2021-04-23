@@ -10,54 +10,64 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.collections.PEBiFunction;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
+import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
+@ImportStatic(HashGuards.class)
 public class ReadKeywordArgumentNode extends RubyContextSourceNode implements PEBiFunction {
 
     private final RubySymbol name;
-    private final ConditionProfile defaultProfile = ConditionProfile.create();
 
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private HashLookupOrExecuteDefaultNode hashLookupNode;
 
-    public ReadKeywordArgumentNode(int minimum, RubySymbol name, RubyNode defaultValue) {
+    public static ReadKeywordArgumentNode create(int minimum, RubySymbol name, RubyNode defaultValue) {
+        return ReadKeywordArgumentNodeGen.create(minimum, name, defaultValue);
+    }
+
+    @Override
+    public final Object execute(VirtualFrame frame) {
+        return execute(frame, readUserKeywordsHashNode.execute(frame));
+    }
+
+    public abstract Object execute(VirtualFrame frame, RubyHash hash);
+
+    protected ReadKeywordArgumentNode(int minimum, RubySymbol name, RubyNode defaultValue) {
         this.name = name;
         this.defaultValue = defaultValue;
         readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        final RubyHash hash = readUserKeywordsHashNode.execute(frame);
-
-        if (defaultProfile.profile(hash == null)) {
-            return defaultValue.execute(frame);
-        }
-
-        return lookupKeywordInHash(frame, hash);
+    @Specialization(guards = "hash == null")
+    protected Object nullHash(VirtualFrame frame, RubyHash hash) {
+        return defaultValue.execute(frame);
     }
 
-    private Object lookupKeywordInHash(VirtualFrame frame, RubyHash hash) {
-        if (hashLookupNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashLookupNode = insert(HashLookupOrExecuteDefaultNode.create());
-        }
+    @Specialization(guards = "hash != null", limit = "hashStrategyLimit()")
+    protected Object lookupKeywordInHash(VirtualFrame frame, RubyHash hash,
+            @CachedLibrary("getHashStore(hash)") HashStoreLibrary hashes) {
+        return hashes.lookupOrDefault(hash.store, frame, hash, name, this);
+    }
 
-        return hashLookupNode.executeGet(frame, hash, name, this);
+    private static final Object OBJECT = new Object();
+
+    // Workaround for Truffle where the library expression is tried before the guard, resulting in a NPE if
+    // hash is null. Return a dummy object instead, causing the library accepts(receiver) method to fail.
+    protected Object getHashStore(RubyHash hash) {
+        return hash == null ? OBJECT : hash.store;
     }
 
     @Override
     public Object accept(VirtualFrame frame, Object hash, Object key) {
         return defaultValue.execute(frame);
     }
-
 }

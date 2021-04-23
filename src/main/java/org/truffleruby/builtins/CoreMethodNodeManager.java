@@ -379,7 +379,7 @@ public class CoreMethodNodeManager {
                         "core method has been declared with both optional arguments and a keyword-as-optional argument");
             }
 
-            argumentsNodes[i++] = new ReadKeywordArgumentNode(
+            argumentsNodes[i++] = ReadKeywordArgumentNode.create(
                     required,
                     language.getSymbol(method.keywordAsOptional()),
                     new NotProvidedNode());
