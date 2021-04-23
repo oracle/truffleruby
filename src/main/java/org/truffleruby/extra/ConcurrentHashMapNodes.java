@@ -1,6 +1,15 @@
+/*
+ * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.extra;
 
-import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.builtins.CoreMethod;
@@ -8,17 +17,15 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
-import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.inlined.InlinedDispatchNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.AllocationTracing;
-import org.truffleruby.language.yield.CallBlockNode;
+
+import java.util.Map;
 
 @CoreModule(value = "TruffleRuby::ConcurrentHashMap", isClass = true)
 public class ConcurrentHashMapNodes {
@@ -29,8 +36,7 @@ public class ConcurrentHashMapNodes {
         @Specialization
         protected RubyConcurrentHashMap allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().concurrentHashMapShape;
-            final RubyHash hash = HashOperations.newEmptyHash(getContext(), getLanguage());
-            final RubyConcurrentHashMap instance = new RubyConcurrentHashMap(rubyClass, shape, null, hash);
+            final RubyConcurrentHashMap instance = new RubyConcurrentHashMap(rubyClass, shape, null);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -41,28 +47,22 @@ public class ConcurrentHashMapNodes {
 
         @Specialization
         protected RubyConcurrentHashMap initializeNoValue(RubyConcurrentHashMap self, NotProvided options) {
-            self.hash = HashOperations.newEmptyHash(getContext(), getLanguage());
             return self;
         }
 
         @Specialization
         protected RubyConcurrentHashMap initializeNil(RubyConcurrentHashMap self, Nil options) {
-            self.hash = HashOperations.newEmptyHash(getContext(), getLanguage());
+            return self;
+        }
+
+        @Specialization
+        protected RubyConcurrentHashMap initializeWithOptions(RubyConcurrentHashMap self, RubyHash options) {
             return self;
         }
 
         @Specialization(guards = { "!isNil(options)", "wasProvided(options)" })
         protected RubyConcurrentHashMap initializeWithOptions(RubyConcurrentHashMap self, RubyBasicObject options) {
-            self.hash = HashOperations.newEmptyHash(getContext(), getLanguage());
             return self;
-        }
-    }
-
-    @CoreMethod(names = "get_internal_hash")
-    public abstract static class GetInternalHashNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected RubyHash getInternalHash(RubyConcurrentHashMap self) {
-            return self.hash;
         }
     }
 
@@ -70,204 +70,231 @@ public class ConcurrentHashMapNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected RubyConcurrentHashMap initializeCopy(RubyConcurrentHashMap self, RubyConcurrentHashMap other) {
-            DispatchNode.getUncached().call((Object) self.hash, "replace", other.hash);
+            self.concurrentHash.putAll(self.concurrentHash);
             return self;
         }
     }
 
     @CoreMethod(names = "[]", required = 1)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object getIndex(RubyConcurrentHashMap self, Object key) {
-            return DispatchNode.getUncached().call((Object) self.hash, "[]", key);
+            final Object value = self.concurrentHash.get(new RubyConcurrentHashMap.Key(key));
+            if (value == null) {
+                return nil;
+            } else {
+                return value;
+            }
         }
     }
 
     @CoreMethod(names = "[]=", required = 2)
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object setIndex(RubyConcurrentHashMap self, Object key, Object value) {
-            synchronized (self) {
-                return DispatchNode.getUncached().call((Object) self.hash, "[]=", key, value);
-            }
+            self.concurrentHash.put(new RubyConcurrentHashMap.Key(key), value);
+            return value;
         }
     }
 
     @CoreMethod(names = "compute_if_absent", required = 1, needsBlock = true)
     public abstract static class ComputeIfAbsentNode extends YieldingCoreMethodNode {
+        @TruffleBoundary
         @Specialization
         protected Object computeIfAbsent(RubyConcurrentHashMap self, Object key, RubyProc block) {
-            synchronized (self) {
-                if ((boolean) DispatchNode.getUncached().call((Object) self.hash, "key?", key)) {
-                    return DispatchNode.getUncached().call((Object) self.hash, "[]", key);
-                } else {
-                    Object newValue = callBlock(block);
-                    return DispatchNode.getUncached().call((Object) self.hash, "[]=", key, newValue);
-                }
+            Object returnValue = self.concurrentHash.computeIfAbsent(new RubyConcurrentHashMap.Key(key), k -> {
+                return callBlock(block);
+            });
+
+            if (returnValue == null) {
+                return nil;
             }
+            return returnValue;
         }
     }
 
     @CoreMethod(names = "compute_if_present", required = 1, needsBlock = true)
     public abstract static class ComputeIfPresentNode extends YieldingCoreMethodNode {
+        @TruffleBoundary
         @Specialization
         protected Object computeIfPresent(RubyConcurrentHashMap self, Object key, RubyProc block) {
-            synchronized (self) {
-                if ((boolean) DispatchNode.getUncached().call((Object) self.hash, "key?", key)) {
-                    Object oldValue = DispatchNode.getUncached().call((Object) self.hash, "[]", key);
-                    Object newValue = callBlock(block, oldValue);
-                    return DispatchNode.getUncached().call((Object) self, "store_computed_value", key, newValue);
+            Object returnValue = self.concurrentHash.computeIfPresent(new RubyConcurrentHashMap.Key(key), (k, v) -> {
+                Object newValue = callBlock(block, v);
+
+                if (newValue == nil) {
+                    return null;
+                } else {
+                    return newValue;
                 }
-                return Nil.INSTANCE;
+            });
+
+            if (returnValue == null) {
+                return nil;
             }
+            return returnValue;
         }
     }
 
     @CoreMethod(names = "compute", required = 1, needsBlock = true)
     public abstract static class ComputeNode extends YieldingCoreMethodNode {
+        @TruffleBoundary
         @Specialization
         protected Object compute(RubyConcurrentHashMap self, Object key, RubyProc block) {
-            synchronized (self) {
-                Object oldValue = DispatchNode.getUncached().call((Object) self.hash, "[]", key);
-                Object newValue = callBlock(block, oldValue);
-                return DispatchNode.getUncached().call((Object) self, "store_computed_value", key, newValue);
-            }
-        }
-    }
+            Object returnValue = self.concurrentHash.compute(new RubyConcurrentHashMap.Key(key), (k, v) -> {
+                Object oldValue;
+                if (v == null) {
+                    oldValue = nil;
+                } else {
+                    oldValue = v;
+                }
 
-    @CoreMethod(names = "store_computed_value", required = 2, visibility = Visibility.PRIVATE)
-    public abstract static class StoreComputedValueNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected static Object storeComputedValue(RubyConcurrentHashMap self, Object key, Object newValue) {
-            if (newValue == Nil.INSTANCE) {
-                DispatchNode.getUncached().call((Object) self.hash, "delete", key);
-                return Nil.INSTANCE;
-            } else {
-                DispatchNode.getUncached().call((Object) self.hash, "[]=", key, newValue);
-                return newValue;
+                Object newValue = callBlock(block, oldValue);
+
+                if (newValue == nil) {
+                    return null;
+                } else {
+                    return newValue;
+                }
+            });
+
+            if (returnValue == null) {
+                return nil;
             }
+            return returnValue;
         }
     }
 
     @CoreMethod(names = "merge_pair", required = 2, needsBlock = true)
     public abstract static class MergePairNode extends YieldingCoreMethodNode {
+        @TruffleBoundary
         @Specialization
         protected Object mergePair(RubyConcurrentHashMap self, Object key, Object value, RubyProc block) {
-            synchronized (self) {
-                if ((boolean) DispatchNode.getUncached().call((Object) self.hash, "key?", key)) {
-                    Object oldValue = DispatchNode.getUncached().call((Object) self.hash, "[]", key);
-                    Object newValue = callBlock(block, oldValue);
+            Object returnValue = self.concurrentHash.merge(new RubyConcurrentHashMap.Key(key), value, (k, v) -> {
+                final Object oldValue = self.concurrentHash.get(new RubyConcurrentHashMap.Key(key));
+                Object newValue = callBlock(block, oldValue);
 
-                    Object computedValue = DispatchNode.getUncached().call((Object) self, "store_computed_value", key, newValue);
-                    return computedValue;
+                if (newValue == nil) {
+                    return null;
                 } else {
-                    DispatchNode.getUncached().call((Object) self.hash, "[]=", key, value);
-                    return value;
+                    return newValue;
                 }
+            });
+
+            if (returnValue == null) {
+                return nil;
             }
+            return returnValue;
         }
     }
 
     @CoreMethod(names = "replace_pair", required = 3)
     public abstract static class ReplacePairNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected boolean replacePair(RubyConcurrentHashMap self, Object key, Object oldValue, Object newValue) {
-            synchronized (self) {
-                if (((boolean) DispatchNode.getUncached().call((Object) self.hash, "key?", key))
-                    && (DispatchNode.getUncached().call((Object) self.hash, "[]", key) == oldValue)) {
-                    DispatchNode.getUncached().call((Object) self.hash, "[]=", key, newValue);
-                    return true;
-                }
-                return false;
-            }
+            return self.concurrentHash.replace(new RubyConcurrentHashMap.Key(key), oldValue, newValue);
         }
     }
 
     @CoreMethod(names = "replace_if_exists", required = 2)
     public abstract static class ReplaceIfExistsNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object replaceIfExists(RubyConcurrentHashMap self, Object key, Object newValue) {
-            synchronized (self) {
-                if ((boolean) DispatchNode.getUncached().call((Object) self.hash, "key?", key)) {
-                    Object old_value = DispatchNode.getUncached().call((Object) self.hash, "[]", key);
-                    DispatchNode.getUncached().call((Object) self.hash, "[]=", key, newValue);
-                    return old_value;
-                }
-                return Nil.INSTANCE;
+            final Object oldValue = self.concurrentHash.replace(new RubyConcurrentHashMap.Key(key), newValue);
+            if (oldValue == null) {
+                return nil;
+            } else {
+                return oldValue;
             }
         }
     }
 
     @CoreMethod(names = "get_and_set", required = 2)
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object getAndSet(RubyConcurrentHashMap self, Object key, Object value) {
-            synchronized (self) {
-                Object old_value = DispatchNode.getUncached().call((Object) self.hash, "[]", key);
-                DispatchNode.getUncached().call((Object) self.hash, "[]=", key, value);
-                return old_value;
+            final Object oldValue = self.concurrentHash.get(new RubyConcurrentHashMap.Key(key));
+            self.concurrentHash.put(new RubyConcurrentHashMap.Key(key), value);
+            if (oldValue == null) {
+                return nil;
+            } else {
+                return oldValue;
             }
         }
     }
 
     @CoreMethod(names = "key?", required = 1)
     public abstract static class KeyNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected boolean key(RubyConcurrentHashMap self, Object key) {
-            return (boolean) DispatchNode.getUncached().call((Object) self.hash, "key?", key);
+            return self.concurrentHash.containsKey(new RubyConcurrentHashMap.Key(key));
         }
     }
 
     @CoreMethod(names = "delete", required = 1)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object delete(RubyConcurrentHashMap self, Object key) {
-            synchronized (self) {
-                return DispatchNode.getUncached().call((Object) self.hash, "delete", key);
+            if (self.concurrentHash.containsKey(new RubyConcurrentHashMap.Key(key))) {
+                return self.concurrentHash.remove(new RubyConcurrentHashMap.Key(key));
+            } else {
+                return nil;
             }
         }
     }
 
     @CoreMethod(names = "delete_pair", required = 2)
     public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected boolean deletePair(RubyConcurrentHashMap self, Object key, Object value) {
-            synchronized (self) {
-                if ((boolean) (DispatchNode.getUncached().call((Object) self.hash, "key?", key)) &&
-                        (DispatchNode.getUncached().call((Object) self.hash, "[]", key) == value)) {
-                    DispatchNode.getUncached().call((Object) self.hash, "delete", key);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            return self.concurrentHash.remove(new RubyConcurrentHashMap.Key(key), value);
         }
     }
 
     @CoreMethod(names = "clear")
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected RubyConcurrentHashMap clear(RubyConcurrentHashMap self) {
-            synchronized (self) {
-                DispatchNode.getUncached().call((Object) self.hash, "clear");
-                return self;
-            }
+            self.concurrentHash.clear();
+            return self;
         }
     }
 
     @CoreMethod(names = "size")
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected int size(RubyConcurrentHashMap self) {
-            return self.hash.size;
+            return self.concurrentHash.size();
         }
     }
 
     @CoreMethod(names = "get_or_default", required = 2)
     public abstract static class GetOrDefaultNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
         @Specialization
         protected Object getOrDefault(RubyConcurrentHashMap self, Object key, Object defaultValue) {
-            return DispatchNode.getUncached().call((Object) self.hash, "fetch", key, defaultValue);
+            return self.concurrentHash.getOrDefault(new RubyConcurrentHashMap.Key(key), defaultValue);
+        }
+    }
+
+    @CoreMethod(names = "each_pair", needsBlock = true)
+    public abstract static class EachPairNode extends YieldingCoreMethodNode {
+        @TruffleBoundary
+        @Specialization
+        protected Object eachPair(RubyConcurrentHashMap self, RubyProc block) {
+            for (Map.Entry<RubyConcurrentHashMap.Key, Object> pair : self.concurrentHash.entrySet()) {
+                callBlock(block, pair.getKey().key, pair.getValue());
+            }
+            return self;
         }
     }
 }
