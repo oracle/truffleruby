@@ -85,13 +85,15 @@ public class ModuleBodyDefinitionNode extends RubyContextNode {
         if (staticLexicalScope != null) {
             staticLexicalScope.unsafeSetLiveModule(module);
             return staticLexicalScope;
-        } else {
+        } else if (getLanguage().singleContext) {
             // Cache the scope per module in case the module body is run multiple times.
             // This allows dynamic constant lookup to cache better.
             return ConcurrentOperations.getOrCompute(
                     dynamicLexicalScopes,
                     module,
                     k -> new LexicalScope(parentLexicalScope, module));
+        } else {
+            return new LexicalScope(parentLexicalScope, module);
         }
     }
 
