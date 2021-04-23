@@ -192,7 +192,7 @@ public class RubyContext {
         defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this, language);
         userBacktraceFormatter = new BacktraceFormatter(this, language, BacktraceFormatter.USER_BACKTRACE_FLAGS);
 
-        rubyHome = findRubyHome(options);
+        rubyHome = findRubyHome();
         rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
 
         // Load the core library classes
@@ -282,7 +282,7 @@ public class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
-        final String newHome = findRubyHome(newOptions);
+        final String newHome = findRubyHome();
         if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
             return false;
         }
@@ -716,8 +716,8 @@ public class RubyContext {
         return finalizing;
     }
 
-    private String findRubyHome(Options options) {
-        final String home = searchRubyHome(options);
+    private String findRubyHome() {
+        final String home = searchRubyHome();
         if (RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             RubyLanguage.LOGGER.config("home: " + home);
         }
@@ -725,8 +725,8 @@ public class RubyContext {
     }
 
     // Returns a canonical path to the home
-    private String searchRubyHome(Options options) {
-        if (options.NO_HOME_PROVIDED) {
+    private String searchRubyHome() {
+        if (language.options.NO_HOME_PROVIDED) {
             RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
             return null;
         }

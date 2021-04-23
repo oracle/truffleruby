@@ -22,6 +22,8 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 // @formatter:off
 public class LanguageOptions {
 
+    /** --no-home-provided=false */
+    public final boolean NO_HOME_PROVIDED;
     /** --core-load-path="resource:/truffleruby" */
     public final String CORE_LOAD_PATH;
     /** --frozen-string-literals=false */
@@ -120,6 +122,7 @@ public class LanguageOptions {
     public final boolean SHARED_OBJECTS_FORCE;
 
     public LanguageOptions(Env env, OptionValues options, boolean singleContext) {
+        NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
@@ -172,6 +175,8 @@ public class LanguageOptions {
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
         switch (descriptor.getName()) {
+            case "ruby.no-home-provided":
+                return NO_HOME_PROVIDED;
             case "ruby.core-load-path":
                 return CORE_LOAD_PATH;
             case "ruby.frozen-string-literals":
@@ -274,7 +279,8 @@ public class LanguageOptions {
     }
 
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
-        return one.get(OptionsCatalog.CORE_LOAD_PATH_KEY).equals(two.get(OptionsCatalog.CORE_LOAD_PATH_KEY)) &&
+        return one.get(OptionsCatalog.NO_HOME_PROVIDED_KEY).equals(two.get(OptionsCatalog.NO_HOME_PROVIDED_KEY)) &&
+               one.get(OptionsCatalog.CORE_LOAD_PATH_KEY).equals(two.get(OptionsCatalog.CORE_LOAD_PATH_KEY)) &&
                one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
                one.get(OptionsCatalog.LAZY_CALLTARGETS_KEY).equals(two.get(OptionsCatalog.LAZY_CALLTARGETS_KEY)) &&
@@ -327,6 +333,13 @@ public class LanguageOptions {
     public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
         Object oldValue;
         Object newValue;
+
+        oldValue = oldOptions.NO_HOME_PROVIDED;
+        newValue = newOptions.NO_HOME_PROVIDED;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --no-home-provided differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
 
         oldValue = oldOptions.CORE_LOAD_PATH;
         newValue = newOptions.CORE_LOAD_PATH;

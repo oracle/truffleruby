@@ -44,7 +44,7 @@ guard -> { TruffleRuby.native? } do
       code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
       out = ruby_exe(code, options: "--experimental-options --log.level=FINE --no-home-provided", args: "2>&1")
       out.should include("[nil, false]\n")
-      out.should include("not reusing pre-initialized context: Ruby home is unset")
+      out.should include("not reusing pre-initialized context: --no-home-provided differs, was: false and is now: true")
     end
 
     it "is used when $VERBOSE changes" do

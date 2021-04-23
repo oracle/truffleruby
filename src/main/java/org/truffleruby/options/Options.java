@@ -39,8 +39,6 @@ public class Options {
     public final String INTERNAL_ENCODING;
     /** --external-encoding="" */
     public final String EXTERNAL_ENCODING;
-    /** --no-home-provided=false */
-    public final boolean NO_HOME_PROVIDED;
     /** --launcher="" */
     public final String LAUNCHER;
     /** --rubygems=true */
@@ -197,7 +195,6 @@ public class Options {
         SOURCE_ENCODING = options.get(OptionsCatalog.SOURCE_ENCODING_KEY);
         INTERNAL_ENCODING = options.get(OptionsCatalog.INTERNAL_ENCODING_KEY);
         EXTERNAL_ENCODING = options.get(OptionsCatalog.EXTERNAL_ENCODING_KEY);
-        NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
@@ -291,8 +288,6 @@ public class Options {
                 return INTERNAL_ENCODING;
             case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
-            case "ruby.no-home-provided":
-                return NO_HOME_PROVIDED;
             case "ruby.launcher":
                 return LAUNCHER;
             case "ruby.rubygems":
