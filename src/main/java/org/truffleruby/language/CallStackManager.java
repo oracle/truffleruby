@@ -16,6 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -58,6 +59,14 @@ public class CallStackManager {
         // System.err.printf("Getting a caller frame...\n");
         // new Error().printStackTrace();
         return getCallerFrame(f -> isRubyFrame(f.getFrame(FrameAccess.READ_ONLY)), frameAccess);
+    }
+
+    @TruffleBoundary
+    public Frame getNonJavaCoreCallerFrame(FrameAccess frameAccess) {
+        return getCallerFrame(f -> {
+            final Frame frame = f.getFrame(FrameAccess.READ_ONLY);
+            return isRubyFrame(frame) && !isJavaCore(tryGetMethod(frame));
+        }, frameAccess);
     }
 
     @TruffleBoundary
@@ -189,6 +198,10 @@ public class CallStackManager {
 
     private static InternalMethod tryGetMethod(Frame frame) {
         return RubyArguments.tryGetMethod(frame);
+    }
+
+    public static boolean isJavaCore(InternalMethod method) {
+        return method != null && method.getSharedMethodInfo().getSourceSection() == CoreLibrary.SOURCE_SECTION;
     }
 
     // Backtraces

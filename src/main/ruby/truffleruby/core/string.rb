@@ -1385,7 +1385,7 @@ class String
       return self[0, prefix.length] == prefix
     end
 
-    # This is the workaround because `Primitive.caller_binding` doesn't work inside blocks yet.
+    # This is the workaround because `Primitive.caller_special_variables` doesn't work inside blocks yet.
     storage = Primitive.caller_special_variables if prefixes.any?(Regexp)
 
     prefixes.each do |original_prefix|
