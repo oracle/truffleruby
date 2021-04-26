@@ -658,7 +658,8 @@ module Kernel
                  caller = initial
                  # MRI would reuse the file:line of the user code caller for methods defined in C.
                  # Similarly, we skip <internal:* calls, notably to skip Kernel#require calls.
-                 while caller and caller.path.start_with?('<internal:')
+                 while caller and path = caller.path and
+                     (path.start_with?('<internal:') || path.end_with?('/rubygems/core_ext/kernel_require.rb'))
                    uplevel += 1
                    caller, = Kernel.caller_locations(uplevel, 1)
                  end
