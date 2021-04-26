@@ -374,43 +374,45 @@ CODE
     end
   end
 
-  it "activates refinements from the eval scope" do
-    refinery = Module.new do
-      refine EvalSpecs::A do
-        def foo
-          "bar"
+  describe 'with refinements' do
+    it "activates refinements from the eval scope" do
+      refinery = Module.new do
+        refine EvalSpecs::A do
+          def foo
+            "bar"
+          end
         end
       end
+
+      result = nil
+
+      Module.new do
+        using refinery
+
+        result = eval "EvalSpecs::A.new.foo"
+      end
+
+      result.should == "bar"
     end
 
-    result = nil
-
-    Module.new do
-      using refinery
-
-      result = eval "EvalSpecs::A.new.foo"
-    end
-
-    result.should == "bar"
-  end
-
-  it "activates refinements from the binding" do
-    refinery = Module.new do
-      refine EvalSpecs::A do
-        def foo
-          "bar"
+    it "activates refinements from the binding" do
+      refinery = Module.new do
+        refine EvalSpecs::A do
+          def foo
+            "bar"
+          end
         end
       end
+
+      b = nil
+      m = Module.new do
+        using refinery
+        b = binding
+      end
+
+      result = eval "EvalSpecs::A.new.foo", b
+
+      result.should == "bar"
     end
-
-    b = nil
-    m = Module.new do
-      using refinery
-      b = binding
-    end
-
-    result = eval "EvalSpecs::A.new.foo", b
-
-    result.should == "bar"
   end
 end
