@@ -17,6 +17,8 @@ import java.util.Set;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -32,6 +34,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
@@ -495,8 +498,17 @@ public abstract class BindingNodes {
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
-        protected RubyBinding binding(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+        protected RubyBinding binding(VirtualFrame frame,
+                @Cached ConditionProfile javaCoreMethodProfile) {
+            MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+
+            if (javaCoreMethodProfile.profile(CallStackManager.isJavaCore(RubyArguments.tryGetMethod(callerFrame)))) {
+                // we are called from a Java core method, e.g., Method#call, we need to find the actual caller
+                callerFrame = getContext()
+                        .getCallStack()
+                        .getNonJavaCoreCallerFrame(FrameAccess.MATERIALIZE)
+                        .materialize();
+            }
 
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame);
         }
