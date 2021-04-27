@@ -406,7 +406,8 @@ public abstract class BasicObjectNodes {
 
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
-                    new SingletonClassOfSelfDefaultDefinee(receiver));
+                    new SingletonClassOfSelfDefaultDefinee(receiver),
+                    DeclarationContext.NO_REFINEMENTS);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL,

@@ -15,18 +15,29 @@ public enum DispatchConfiguration {
     PRIVATE(true, false, MissingBehavior.CALL_METHOD_MISSING),
     PROTECTED(false, false, MissingBehavior.CALL_METHOD_MISSING),
     PUBLIC_RETURN_MISSING(false, true, MissingBehavior.RETURN_MISSING),
-    PRIVATE_RETURN_MISSING(true, false, MissingBehavior.RETURN_MISSING);
+    PRIVATE_RETURN_MISSING(true, false, MissingBehavior.RETURN_MISSING),
+    PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS(true, false, MissingBehavior.RETURN_MISSING, true);
 
     public final boolean ignoreVisibility;
     public final boolean onlyLookupPublic;
     public final MissingBehavior missingBehavior;
+    public final boolean ignoreRefinements;
 
     DispatchConfiguration(
             boolean ignoreVisibility,
             boolean onlyLookupPublic,
             MissingBehavior missingBehavior) {
+        this(ignoreVisibility, onlyLookupPublic, missingBehavior, false);
+    }
+
+    DispatchConfiguration(
+            boolean ignoreVisibility,
+            boolean onlyLookupPublic,
+            MissingBehavior missingBehavior,
+            boolean ignoreRefinements) {
         this.ignoreVisibility = ignoreVisibility;
         this.onlyLookupPublic = onlyLookupPublic;
         this.missingBehavior = missingBehavior;
+        this.ignoreRefinements = ignoreRefinements;
     }
 }

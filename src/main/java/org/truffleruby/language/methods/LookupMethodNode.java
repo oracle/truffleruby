@@ -77,8 +77,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached ConditionProfile publicProfile,
             @Cached ConditionProfile privateProfile,
             @Cached ConditionProfile isVisibleProfile) {
-
-        assert this != LookupMethodNodeGen.getUncached() || frame == null;
+        CompilerAsserts.partialEvaluationConstant(config); // the DispatchConfiguration is always a constant in the caller
 
         // Actual lookup
 
@@ -86,7 +85,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             return null;
         }
 
-        final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(frame);
+        final DeclarationContext declarationContext = getDeclarationContext(frame, config);
         final InternalMethod method;
         // Lookup first in the metaclass as we are likely to find the method there
         final ModuleFields fields = metaClass.fields;
@@ -146,7 +145,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             return new MethodLookupResult(null);
         }
 
-        final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callingFrame);
+        final DeclarationContext declarationContext = getDeclarationContext(callingFrame, config);
         final MethodLookupResult method = ModuleOperations.lookupMethodCached(metaClass, name, declarationContext);
 
         if (!method.isDefined()) {
@@ -176,6 +175,10 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         }
 
         return method;
+    }
+
+    private static DeclarationContext getDeclarationContext(Frame frame, DispatchConfiguration config) {
+        return config.ignoreRefinements ? null : RubyArguments.tryGetDeclarationContext(frame);
     }
 
     private static RubyClass getCallerClass(RubyContext context, Frame callingFrame) {

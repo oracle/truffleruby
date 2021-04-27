@@ -113,7 +113,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         return dispatch(null, receiver, method, block, arguments);
     }
 
-    public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
+    public final Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
         assert block instanceof Nil || block instanceof RubyProc : block;
 
         final RubyClass metaclass = metaclassNode.execute(receiver);
@@ -144,6 +144,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
 
         final RubySymbol symbolName = nameToSymbol(methodName);
         final Object[] newArguments = ArrayUtils.unshift(arguments, symbolName);
+
         final Object result = callMethodMissingNode(frame, receiver, block, newArguments);
 
         if (result == MISSING) {
@@ -170,12 +171,11 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     protected Object callMethodMissingNode(Frame frame, Object receiver, Object block, Object[] arguments) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissing = insert(DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
+            // #method_missing ignores refinements on CRuby: https://bugs.ruby-lang.org/issues/13129
+            callMethodMissing = insert(
+                    DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
-        // NOTE(norswap, 24 Jul 2020): It's important to not pass a frame here in order to avoid looking up refinements,
-        //   which should be ignored in the case of `method_missing`.
-        //   cf. https://bugs.ruby-lang.org/issues/13129
-        return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
+        return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
     }
 
     protected RubySymbol nameToSymbol(String methodName) {
@@ -232,11 +232,6 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         }
 
         @Override
-        public Object dispatch(Frame frame, Object receiver, String methodName, Object block, Object[] arguments) {
-            return super.dispatch(null, receiver, methodName, block, arguments);
-        }
-
-        @Override
         protected Object callForeign(Object receiver, String methodName, Object block, Object[] arguments) {
             if (callForeign == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -252,11 +247,10 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
-                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING));
+                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
             }
 
-            // null: see note in supermethod
-            return callMethodMissing.dispatch(null, receiver, "method_missing", block, arguments);
+            return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
         }
 
         @Override

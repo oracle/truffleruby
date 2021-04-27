@@ -31,7 +31,11 @@ import org.truffleruby.language.objects.SingletonClassNode;
  * </ul>
 */
 public class DeclarationContext {
+
     public static final Map<RubyModule, RubyModule[]> NO_REFINEMENTS = Collections.emptyMap();
+
+    /** Used when we know there cannot be a method definition inside a given method. */
+    public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null, NO_REFINEMENTS);
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
@@ -69,17 +73,13 @@ public class DeclarationContext {
     }
 
     public static DeclarationContext topLevel(RubyModule defaultDefinee) {
-        return new DeclarationContext(Visibility.PRIVATE, new FixedDefaultDefinee(defaultDefinee));
+        return new DeclarationContext(Visibility.PRIVATE, new FixedDefaultDefinee(defaultDefinee), NO_REFINEMENTS);
     }
 
     public final Visibility visibility;
     public final DefaultDefinee defaultDefinee;
     /** Maps a refined class (C) to refinement modules (M) */
     private final Map<RubyModule, RubyModule[]> refinements; // immutable
-
-    public DeclarationContext(Visibility visibility, DefaultDefinee defaultDefinee) {
-        this(visibility, defaultDefinee, NO_REFINEMENTS);
-    }
 
     public DeclarationContext(
             Visibility visibility,
@@ -185,9 +185,6 @@ public class DeclarationContext {
     public boolean hasRefinements() {
         return refinements != NO_REFINEMENTS;
     }
-
-    /** Used when we know there cannot be a method definition inside a given method. */
-    public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
 
     @TruffleBoundary
     @Override
