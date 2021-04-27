@@ -70,6 +70,23 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected static final String ID = "__id__";
     protected static final String HASH = "hash";
 
+    protected static boolean hasSpecializationForMethod(String methodName) {
+        return methodName.equals(INDEX_READ) ||
+                methodName.equals(INDEX_WRITE) ||
+                methodName.equals(CALL) ||
+                methodName.equals(NEW) ||
+                methodName.equals(SEND) ||
+                methodName.equals(NIL) ||
+                methodName.equals(EQUAL) ||
+                methodName.equals(EQL) ||
+                methodName.equals(OBJECT_ID) ||
+                methodName.equals(ID) ||
+                methodName.equals(HASH) ||
+                isRedirectToTruffleInterop(methodName) ||
+                isOperatorMethod(methodName) ||
+                isAssignmentMethod(methodName);
+    }
+
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -427,17 +444,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "name == cachedName",
-                    "!cachedName.equals(INDEX_READ)",
-                    "!cachedName.equals(INDEX_WRITE)",
-                    "!cachedName.equals(CALL)",
-                    "!cachedName.equals(NEW)",
-                    "!cachedName.equals(SEND)",
-                    "!cachedName.equals(NIL)",
-                    "!cachedName.equals(EQUAL)",
-                    "!cachedName.equals(EQL)",
-                    "!isRedirectToTruffleInterop(cachedName)",
-                    "!isOperatorMethod(cachedName)",
-                    "!isAssignmentMethod(cachedName)",
+                    "!hasSpecializationForMethod(cachedName)",
                     "args.length == 0"
             },
             limit = "1")
@@ -458,17 +465,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "name == cachedName",
-                    "!cachedName.equals(INDEX_READ)",
-                    "!cachedName.equals(INDEX_WRITE)",
-                    "!cachedName.equals(CALL)",
-                    "!cachedName.equals(NEW)",
-                    "!cachedName.equals(SEND)",
-                    "!cachedName.equals(NIL)",
-                    "!cachedName.equals(EQUAL)",
-                    "!cachedName.equals(EQL)",
-                    "!isRedirectToTruffleInterop(cachedName)",
-                    "!isOperatorMethod(cachedName)",
-                    "!isAssignmentMethod(cachedName)",
+                    "!hasSpecializationForMethod(cachedName)",
                     "args.length != 0"
             },
             limit = "1")
