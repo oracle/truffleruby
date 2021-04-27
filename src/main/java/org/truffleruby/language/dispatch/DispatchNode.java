@@ -26,12 +26,10 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallForeignMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNodeGen;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
@@ -147,17 +145,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
         final RubySymbol symbolName = nameToSymbol(methodName);
         final Object[] newArguments = ArrayUtils.unshift(arguments, symbolName);
 
-        // NOTE(norswap, 24 Jul 2020): We change the DeclarationContext to avoid looking up refinements,
-        // which are ignored for #method_missing on CRuby: https://bugs.ruby-lang.org/issues/13129
-        final Object result;
-        DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-        DeclarationContext withoutRefinements = declarationContext.withRefinements(DeclarationContext.NO_REFINEMENTS);
-        RubyArguments.setDeclarationContext(frame, withoutRefinements);
-        try {
-            result = callMethodMissingNode(frame, receiver, block, newArguments);
-        } finally {
-            RubyArguments.setDeclarationContext(frame, declarationContext);
-        }
+        final Object result = callMethodMissingNode(frame, receiver, block, newArguments);
 
         if (result == MISSING) {
             methodMissingMissing.enter();
@@ -183,7 +171,9 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
     protected Object callMethodMissingNode(Frame frame, Object receiver, Object block, Object[] arguments) {
         if (callMethodMissing == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissing = insert(DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING));
+            // #method_missing ignores refinements on CRuby: https://bugs.ruby-lang.org/issues/13129
+            callMethodMissing = insert(
+                    DispatchNode.create(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
         }
         return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);
     }
@@ -257,7 +247,7 @@ public class DispatchNode extends FrameAndVariablesSendingNode implements Dispat
             if (callMethodMissing == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callMethodMissing = insert(
-                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING));
+                        DispatchNode.getUncached(DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS));
             }
 
             return callMethodMissing.dispatch(frame, receiver, "method_missing", block, arguments);

@@ -67,11 +67,7 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @Cached ConditionProfile notFoundProfile,
             @Cached ConditionProfile respondToMissingProfile,
             @Cached LogicalClassNode logicalClassNode) {
-        DeclarationContext originalDeclarationContext = null;
-
         if (frame != null) {
-            originalDeclarationContext = RubyArguments.getDeclarationContext(frame);
-
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
             if (declarationContext != null) {
                 RubyArguments.setDeclarationContext(frame, declarationContext);
@@ -86,12 +82,12 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             final Object respondToMissing = respondToMissingNode
                     .call(self, "respond_to_missing?", symbolName, dispatchConfig.ignoreVisibility);
             if (respondToMissingProfile.profile(booleanCastNode.executeToBoolean(respondToMissing))) {
-                if (frame != null) {
-                    // refinements should not affect BasicObject#method_missing
-                    RubyArguments.setDeclarationContext(frame, originalDeclarationContext);
-                }
-                final InternalMethod methodMissing = lookupMethodNode
-                        .execute(frame, self, "method_missing", dispatchConfig);
+                // refinements should not affect BasicObject#method_missing: https://bugs.ruby-lang.org/issues/13129
+                final InternalMethod methodMissing = lookupMethodNode.execute(
+                        frame,
+                        self,
+                        "method_missing",
+                        DispatchConfiguration.PRIVATE_RETURN_MISSING_IGNORE_REFINEMENTS);
                 method = createMissingMethod(self, symbolName, normalizedName, methodMissing, language, context);
             } else {
                 throw new RaiseException(
