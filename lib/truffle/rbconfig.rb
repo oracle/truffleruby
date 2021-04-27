@@ -242,6 +242,8 @@ module RbConfig
   mkconfig['datarootdir'] = '$(prefix)/share'
   expanded['datadir'] = datarootdir
   mkconfig['datadir'] = '$(datarootdir)'
+  expanded['mandir'] = "#{datarootdir}/man"
+  mkconfig['mandir'] = '$(datarootdir)/man'
   expanded['ridir'] = "#{datarootdir}/ri"
   mkconfig['ridir'] = '$(datarootdir)/ri'
   expanded['vendordir'] = "#{rubylibprefix}/vendor_ruby"

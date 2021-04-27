@@ -19,6 +19,7 @@ Compatibility:
 * Fix `Hash#rehash` to remove duplicate keys after modifications (#2266, @MattAlp)
 * Only fail `rb_check_type` for typed data, not wrapped untyped structs (#2331).
 * Decide the visibility in `Module#define_method` based on `self` and the default definee (#2334).
+* Configure `mandir` value in `RbConfig::CONFIG` and `RbConfig::MAKEFILE_CONFIG` (#2315).
 
 Performance:
 
