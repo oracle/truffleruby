@@ -121,13 +121,13 @@ io-console/console.$(DLEXT): io-console/Makefile io-console/*.c
 etc/Makefile: etc/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd etc && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-etc/etc.$(DLEXT): etc/Makefile etc/etc.c
-	$(Q) cd etc && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+etc/constdefs.h: etc/mkconstants.rb $(EXTCONF_DEPS)
+	$(Q) $(RUBY) $< -o $@
 
 etc/etc.c: etc/constdefs.h
 
-etc/constdefs.h: etc/mkconstants.rb
-	$(Q) $(RUBY) $< -o $@
+etc/etc.$(DLEXT): etc/Makefile etc/etc.c
+	$(Q) cd etc && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # rbconfig/sizeof
 rbconfig-sizeof/Makefile: rbconfig-sizeof/extconf.rb $(EXTCONF_DEPS)
