@@ -308,7 +308,7 @@ public class CoreMethodNodeManager {
         }
 
         return new SharedMethodInfo(
-                CoreLibrary.SOURCE_SECTION,
+                CoreLibrary.JAVA_CORE_SOURCE_SECTION,
                 LexicalScope.IGNORE,
                 arity,
                 name,
