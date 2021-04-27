@@ -773,7 +773,10 @@ public abstract class ModuleNodes {
 
             return getContext().getCodeLoader().prepareExecute(
                     ParserContext.MODULE,
-                    new DeclarationContext(Visibility.PUBLIC, new FixedDefaultDefinee(module)),
+                    new DeclarationContext(
+                            Visibility.PUBLIC,
+                            new FixedDefaultDefinee(module),
+                            DeclarationContext.NO_REFINEMENTS),
                     rootNode,
                     callerFrame,
                     module);
