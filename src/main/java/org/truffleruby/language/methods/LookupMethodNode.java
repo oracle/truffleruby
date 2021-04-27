@@ -77,6 +77,8 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached ConditionProfile publicProfile,
             @Cached ConditionProfile privateProfile,
             @Cached ConditionProfile isVisibleProfile) {
+        CompilerAsserts.partialEvaluationConstant(config); // the DispatchConfiguration is always a constant in the caller
+
         // Actual lookup
 
         if (foreignProfile.profile(metaClass == context.getCoreLibrary().truffleInteropForeignClass)) {
