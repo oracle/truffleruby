@@ -118,7 +118,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             throws UnknownIdentifierException {
         if (definedNode.execute(null, this, name)) {
             Object rubyName = nameToRubyNode.executeConvert(name);
-            return getMethodObjectNode.execute(null, this, rubyName, DispatchConfiguration.PRIVATE, null);
+            return getMethodObjectNode.execute(null, this, rubyName, DispatchConfiguration.PRIVATE);
         } else {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);

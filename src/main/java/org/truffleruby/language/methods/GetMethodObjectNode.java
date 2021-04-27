@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
@@ -51,12 +50,10 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
         return GetMethodObjectNodeGen.create();
     }
 
-    public abstract RubyMethod execute(Frame frame, Object self, Object name,
-            DispatchConfiguration dispatchConfig, MaterializedFrame callerFrame);
+    public abstract RubyMethod execute(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig);
 
     @Specialization
-    protected RubyMethod getMethodObject(
-            Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig, MaterializedFrame callerFrame,
+    protected RubyMethod getMethodObject(Frame frame, Object self, Object name, DispatchConfiguration dispatchConfig,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached NameToJavaStringNode nameToJavaStringNode,
@@ -67,13 +64,6 @@ public abstract class GetMethodObjectNode extends RubyBaseNode {
             @Cached ConditionProfile notFoundProfile,
             @Cached ConditionProfile respondToMissingProfile,
             @Cached LogicalClassNode logicalClassNode) {
-        if (frame != null) {
-            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
-            if (declarationContext != null) {
-                RubyArguments.setDeclarationContext(frame, declarationContext);
-            }
-        }
-
         final String normalizedName = nameToJavaStringNode.execute(name);
         InternalMethod method = lookupMethodNode.execute(frame, self, normalizedName, dispatchConfig);
 

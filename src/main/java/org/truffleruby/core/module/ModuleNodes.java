@@ -75,6 +75,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -982,7 +983,7 @@ public abstract class ModuleNodes {
 
     @Primitive(name = "module_const_get")
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
     @NodeChild(value = "check_name", type = RubyNode.class)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
@@ -992,7 +993,7 @@ public abstract class ModuleNodes {
         @Child private GetConstantNode getConstantNode = GetConstantNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToSymbolOrString(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToSymbolOrString(RubyBaseNodeWithExecute name) {
             // We want to know if the name is a Symbol, as then scoped lookup is not tried
             return ToStringOrSymbolNodeGen.create(name);
         }
@@ -1109,14 +1110,14 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "const_source_location", required = 1, optional = 1)
     @NodeChild(value = "module", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @NodeChild(value = "name", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "inherit", type = RubyNode.class)
     public abstract static class ConstSourceLocationNode extends CoreMethodNode {
 
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @CreateCast("name")
-        protected RubyNode coerceToStringOrSymbol(RubyNode name) {
+        protected RubyBaseNodeWithExecute coerceToStringOrSymbol(RubyBaseNodeWithExecute name) {
             return ToStringOrSymbolNodeGen.create(name);
         }
 
