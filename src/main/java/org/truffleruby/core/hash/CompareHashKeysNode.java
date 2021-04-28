@@ -9,52 +9,45 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
-import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
+@GenerateUncached
+public abstract class CompareHashKeysNode extends RubyBaseNode {
 
-public class CompareHashKeysNode extends RubyContextNode {
-
-    @Child private SameOrEqlNode sameOrEqlNode;
-    @Child private ReferenceEqualNode equalNode;
-
-    public boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        if (compareByIdentity) {
-            return equal(key, otherKey);
-        } else {
-            return hashed == otherHashed && sameOrEql(key, otherKey);
-        }
+    public static CompareHashKeysNode create() {
+        return CompareHashKeysNodeGen.create();
     }
+
+    public static CompareHashKeysNode getUncached() {
+        return CompareHashKeysNodeGen.getUncached();
+    }
+
+    public abstract boolean execute(boolean compareByIdentity, Object key, int hashed,
+            Object otherKey, int otherHashed);
 
     /** Checks if the two keys are the same object, which is used by both modes (by identity or not) of lookup. Enables
      * to check if the two keys are the same without a method call. */
-    public boolean referenceEqualKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
-            int otherHashed) {
-        if (compareByIdentity) {
-            return equal(key, otherKey);
-        } else {
-            return hashed == otherHashed && equal(key, otherKey);
-        }
+    public static boolean referenceEqualKeys(ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
+            int hashed, Object otherKey, int otherHashed) {
+        return compareByIdentity
+                ? refEqual.executeReferenceEqual(key, otherKey)
+                : hashed == otherHashed && refEqual.executeReferenceEqual(key, otherKey);
     }
 
-    private boolean sameOrEql(Object key1, Object key2) {
-        if (sameOrEqlNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            sameOrEqlNode = insert(SameOrEqlNodeFactory.create(null));
-        }
-        return sameOrEqlNode.executeSameOrEql(key1, key2);
+    @Specialization(guards = "compareByIdentity")
+    protected boolean refEquals(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
+            @Cached ReferenceEqualNode refEqual) {
+        return refEqual.executeReferenceEqual(key, otherKey);
     }
 
-    private boolean equal(Object key1, Object key2) {
-        if (equalNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            equalNode = insert(ReferenceEqualNodeFactory.create(null));
-        }
-        return equalNode.executeReferenceEqual(key1, key2);
+    @Specialization(guards = "!compareByIdentity")
+    protected boolean same(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed,
+            @Cached SameOrEqlNode same) {
+        return hashed == otherHashed && same.execute(key, otherKey);
     }
-
 }

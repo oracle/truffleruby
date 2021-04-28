@@ -55,6 +55,23 @@
   `polyglot_array_element_removable?`.
   The methods correspond to messages defined in
   [InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html).
+- **polyglot hash** – an object which implements the `polyglot_*` methods for hash elements, which are:
+  `polyglot_has_hash_entries?`,
+  `polyglot_hash_size`,
+  `polyglot_hash_entry_existing?`,
+  `polyglot_hash_entry_insertable?`,
+  `polyglot_hash_entry_modifiable?`,
+  `polyglot_hash_entry_readable?`,
+  `polyglot_hash_entry_removable?`,
+  `polyglot_hash_entry_writable?`,
+  `polyglot_read_hash_entry`,
+  `polyglot_write_hash_entry`,
+  `polyglot_remove_hash_entry`,
+  `polyglot_hash_entries_iterator`,
+  `polyglot_hash_keys_iterator`,
+  `polyglot_hash_values_iterator`.
+  The methods correspond to messages defined in
+  [InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html).
 - **polyglot int array** – an object which implements the `polyglot_*` methods for array elements allowing only Integers to be stored
 
 # Behavior of interop messages for Ruby objects
@@ -191,14 +208,110 @@ When interop message `isArrayElementRemovable` is sent
 - otherwise
   it returns false.
 
+## Hash related messages
+
+When interop message `hasHashEntries` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true.
+- otherwise
+  it returns false.
+
+When interop message `getHashSize` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns size of the hash.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `isHashEntryExisting` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true if there is an entry for the key.
+- otherwise
+  it returns false.
+
+When interop message `isHashEntryReadable` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true if there is a readable entry for the key.
+- otherwise
+  it returns false.
+
+When interop message `isHashEntryInsertable` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true if the key can be inserted.
+- otherwise
+  it returns false.
+
+When interop message `isHashEntryRemovable` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true if there is a removable entry for the key.
+- otherwise
+  it returns false.
+
+When interop message `isHashEntryModifiable` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true if there is a modifiable entry for the key.
+- otherwise
+  it returns false.
+
+When interop message `isHashEntryWritable` is sent
+- to **a `Hash`** or **polyglot hash**
+  it returns true if the key can be inserted or there is a modifiable entry for it.
+- otherwise
+  it returns false.
+
+When interop message `readHashValue` is sent
+- to **a `Hash`** or **polyglot hash**
+  it reads an entry that exists.
+- to **a `Hash`** or **polyglot hash**
+  it fails with KeyError if the entry does not exist.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `writeHashEntry` is sent
+- to **a `Hash`** or **polyglot hash**
+  it writes entries, new and existing.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `removeHashEntry` is sent
+- to **a `Hash`** or **polyglot hash**
+  it removes existing entries.
+- to **a `Hash`** or **polyglot hash**
+  it fails with KeyError if the entry does not exist.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `getHashEntriesIterator` is sent
+- to **a `Hash`** or **polyglot hash**
+  it retrieves an entry iterator.
+- to **a `Hash`** or **polyglot hash**
+  it fails with StopIterationException if the hash is empty.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `getHashKeysIterator` is sent
+- to **a `Hash`** or **polyglot hash**
+  it retrieves a key iterator.
+- to **a `Hash`** or **polyglot hash**
+  it fails with StopIterationException if the hash is empty.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
+When interop message `getHashValuesIterator` is sent
+- to **a `Hash`** or **polyglot hash**
+  it retrieves a value iterator.
+- to **a `Hash`** or **polyglot hash**
+  it fails with StopIterationException if the hash is empty.
+- otherwise
+  it fails with `UnsupportedMessageError`.
+
 ## Members related messages (incomplete)
 
 When interop message `readMember` is sent
-- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it returns a method with the given name when the method is defined.
-- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+- to any non-immediate `Object` like **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it fails with `UnknownIdentifierException` when the method is not defined.
-- to any non-immediate `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+- to any non-immediate `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it reads the given instance variable.
 - to **polyglot members**
   it reads the value stored with the given name.
@@ -208,7 +321,7 @@ When interop message `readMember` is sent
   it fails with `UnsupportedMessageError`.
 
 When interop message `writeMember` is sent
-- to any non-immediate non-frozen `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+- to any non-immediate non-frozen `Object` like **a `String`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot array** or **polyglot hash**
   it writes the given instance variable.
 - to **polyglot members**
   it writes the given value under the given name.

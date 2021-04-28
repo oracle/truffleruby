@@ -9,16 +9,37 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.core.hash.HashingNodes.ToHash;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class LookupEntryNode extends RubyContextNode {
+public class LookupEntryNode extends RubyBaseNode {
 
-    @Child HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-    @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+    public static LookupEntryNode create() {
+        return new LookupEntryNode(ToHash.create(), CompareHashKeysNode.create(), ConditionProfile.create());
+    }
 
-    private final ConditionProfile byIdentityProfile = ConditionProfile.create();
+    public static LookupEntryNode getUncached() {
+        return new LookupEntryNode(
+                ToHash.getUncached(),
+                CompareHashKeysNode.getUncached(),
+                ConditionProfile.getUncached());
+    }
+
+    @Child ToHash hashNode;
+    @Child CompareHashKeysNode compareHashKeysNode;
+
+    private final ConditionProfile byIdentityProfile;
+
+    public LookupEntryNode(
+            ToHash hashNode,
+            CompareHashKeysNode compareHashKeysNode,
+            ConditionProfile byIdentityProfile) {
+        this.hashNode = hashNode;
+        this.compareHashKeysNode = compareHashKeysNode;
+        this.byIdentityProfile = byIdentityProfile;
+    }
 
     public HashLookupResult lookup(RubyHash hash, Object key) {
         final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
@@ -43,7 +64,7 @@ public class LookupEntryNode extends RubyContextNode {
     }
 
     protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
+        return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }

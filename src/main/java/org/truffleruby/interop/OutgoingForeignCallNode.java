@@ -56,6 +56,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected static final String SEND = "__send__";
     protected static final String NIL = "nil?";
     protected static final String EQUAL = "equal?";
+    protected static final String EQL = "eql?";
     protected static final String DELETE = "delete";
     protected static final String SIZE = "size";
     protected static final String KEYS = "keys";
@@ -67,11 +68,101 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected static final String KIND_OF = "kind_of?";
     protected static final String OBJECT_ID = "object_id";
     protected static final String ID = "__id__";
+    protected static final String HASH = "hash";
+
+    protected static boolean hasSpecializationForMethod(String methodName) {
+        return methodName.equals(INDEX_READ) ||
+                methodName.equals(INDEX_WRITE) ||
+                methodName.equals(CALL) ||
+                methodName.equals(NEW) ||
+                methodName.equals(SEND) ||
+                methodName.equals(NIL) ||
+                methodName.equals(EQUAL) ||
+                methodName.equals(EQL) ||
+                methodName.equals(OBJECT_ID) ||
+                methodName.equals(ID) ||
+                methodName.equals(HASH) ||
+                isRedirectToTruffleInterop(methodName) ||
+                isOperatorMethod(methodName) ||
+                isAssignmentMethod(methodName);
+    }
+
+    @TruffleBoundary
+    protected static String specialToInteropMethod(String name) {
+        switch (name) {
+            case TO_A:
+            case TO_ARY:
+                return "to_array";
+            case SIZE:
+                return "array_size";
+            case KEYS:
+                return "members";
+            case RESPOND_TO:
+                return "foreign_respond_to?";
+            case INSPECT:
+                return "foreign_inspect";
+            case CLASS:
+                return "foreign_class";
+            case TO_S:
+                return "foreign_to_s";
+            case TO_STR:
+                return "foreign_to_str";
+            case IS_A:
+            case KIND_OF:
+                return "foreign_is_a?";
+            default:
+                return null;
+        }
+    }
+
+    @TruffleBoundary
+    protected static int expectedArity(String name) {
+        switch (name) {
+            case TO_A:
+            case TO_ARY:
+            case SIZE:
+            case KEYS:
+            case INSPECT:
+            case CLASS:
+            case TO_F:
+            case TO_I:
+            case TO_S:
+            case TO_STR:
+            case NIL:
+            case OBJECT_ID:
+            case ID:
+            case HASH:
+                return 0;
+            case RESPOND_TO:
+            case DELETE:
+            case IS_A:
+            case KIND_OF:
+            case INDEX_READ:
+            case EQUAL:
+            case EQL:
+            case SEND:
+                return 1;
+            case INDEX_WRITE:
+                return 2;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    protected static boolean canHaveBadArguments(String cachedName) {
+        return cachedName.equals(INDEX_READ) || cachedName.equals(INDEX_WRITE) || cachedName.equals(SEND) ||
+                cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(EQL) ||
+                cachedName.equals(OBJECT_ID) || cachedName.equals(ID) || cachedName.equals(HASH);
+    }
+
+    protected static boolean badArity(Object[] args, int cachedArity, String cachedName) {
+        return cachedName.equals(SEND) ? args.length < cachedArity : args.length != cachedArity;
+    }
 
     @Specialization(
             guards = {
                     "name == cachedName",
-                    "cachedName.equals(OBJECT_ID) || cachedName.equals(ID)",
+                    "(cachedName.equals(OBJECT_ID) || cachedName.equals(ID)) || cachedName.equals(HASH)",
                     "args.length == 0" },
             limit = "1")
     protected int objectId(Object receiver, String name, Object[] args,
@@ -180,7 +271,9 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return nullNode.execute(receiver);
     }
 
-    @Specialization(guards = { "name == cachedName", "cachedName.equals(EQUAL)", "args.length == 1" }, limit = "1")
+    @Specialization(
+            guards = { "name == cachedName", "cachedName.equals(EQUAL) || cachedName.equals(EQL)", "args.length == 1" },
+            limit = "1")
     protected boolean isEqual(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedLibrary("receiver") InteropLibrary lhsInterop,
@@ -265,16 +358,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
     }
 
-    protected static boolean canHaveBadArguments(String cachedName) {
-        return cachedName.equals(INDEX_READ) || cachedName.equals(INDEX_WRITE) || cachedName.equals(SEND) ||
-                cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(OBJECT_ID) ||
-                cachedName.equals(ID);
-    }
-
-    protected static boolean badArity(Object[] args, int cachedArity, String cachedName) {
-        return cachedName.equals(SEND) ? args.length < cachedArity : args.length != cachedArity;
-    }
-
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -288,66 +371,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         throw new RaiseException(
                 context,
                 context.getCoreExceptions().argumentError(args.length, cachedArity, this));
-    }
-
-    @TruffleBoundary
-    protected static int expectedArity(String name) {
-        switch (name) {
-            case TO_A:
-            case TO_ARY:
-            case SIZE:
-            case KEYS:
-            case INSPECT:
-            case CLASS:
-            case TO_F:
-            case TO_I:
-            case TO_S:
-            case TO_STR:
-            case NIL:
-            case OBJECT_ID:
-            case ID:
-                return 0;
-            case RESPOND_TO:
-            case DELETE:
-            case IS_A:
-            case KIND_OF:
-            case INDEX_READ:
-            case EQUAL:
-            case SEND:
-                return 1;
-            case INDEX_WRITE:
-                return 2;
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    @TruffleBoundary
-    protected static String specialToInteropMethod(String name) {
-        switch (name) {
-            case TO_A:
-            case TO_ARY:
-                return "to_array";
-            case SIZE:
-                return "array_size";
-            case KEYS:
-                return "members";
-            case RESPOND_TO:
-                return "foreign_respond_to?";
-            case INSPECT:
-                return "foreign_inspect";
-            case CLASS:
-                return "foreign_class";
-            case TO_S:
-                return "foreign_to_s";
-            case TO_STR:
-                return "foreign_to_str";
-            case IS_A:
-            case KIND_OF:
-                return "foreign_is_a?";
-            default:
-                return null;
-        }
     }
 
     protected static boolean isRedirectToTruffleInterop(String cachedName) {
@@ -421,16 +444,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "name == cachedName",
-                    "!cachedName.equals(INDEX_READ)",
-                    "!cachedName.equals(INDEX_WRITE)",
-                    "!cachedName.equals(CALL)",
-                    "!cachedName.equals(NEW)",
-                    "!cachedName.equals(SEND)",
-                    "!cachedName.equals(NIL)",
-                    "!cachedName.equals(EQUAL)",
-                    "!isRedirectToTruffleInterop(cachedName)",
-                    "!isOperatorMethod(cachedName)",
-                    "!isAssignmentMethod(cachedName)",
+                    "!hasSpecializationForMethod(cachedName)",
                     "args.length == 0"
             },
             limit = "1")
@@ -451,16 +465,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "name == cachedName",
-                    "!cachedName.equals(INDEX_READ)",
-                    "!cachedName.equals(INDEX_WRITE)",
-                    "!cachedName.equals(CALL)",
-                    "!cachedName.equals(NEW)",
-                    "!cachedName.equals(SEND)",
-                    "!cachedName.equals(NIL)",
-                    "!cachedName.equals(EQUAL)",
-                    "!isRedirectToTruffleInterop(cachedName)",
-                    "!isOperatorMethod(cachedName)",
-                    "!isAssignmentMethod(cachedName)",
+                    "!hasSpecializationForMethod(cachedName)",
                     "args.length != 0"
             },
             limit = "1")
@@ -580,7 +585,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 @Cached InteropNodes.InvokeMemberNode invokeNode) {
             return invokeNode.execute(receiver, name, args);
         }
-
     }
 
 }

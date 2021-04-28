@@ -10,6 +10,7 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.UnknownKeyException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.IntegerCastNode;
@@ -33,6 +34,10 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 
+/** Translates the Ruby exceptions nested under the {@code Truffle::Interop} into the corresponding (same name) Java
+ * interop exceptions (see {@link com.oracle.truffle.api.interop.InteropLibrary InteropLibrary}. This is used to allow
+ * users to implement the dynamic Interop API in Ruby (see /doc/contributor/interop.md and
+ * /doc/contributor/interop_details.md). */
 @GenerateUncached
 public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
@@ -40,8 +45,8 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException {
         try {
             return execute(exception, 0, null, null);
-        } catch (InvalidArrayIndexException | UnknownIdentifierException | UnsupportedTypeException
-                | ArityException e) {
+        } catch (InvalidArrayIndexException | UnknownIdentifierException | UnsupportedTypeException | ArityException
+                | UnknownKeyException e) {
             throw handleBadErrorType(e, exception);
         }
     }
@@ -50,7 +55,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException, InvalidArrayIndexException {
         try {
             return execute(exception, index, null, null);
-        } catch (UnknownIdentifierException | UnsupportedTypeException | ArityException e) {
+        } catch (UnknownIdentifierException | UnsupportedTypeException | ArityException | UnknownKeyException e) {
             throw handleBadErrorType(e, exception);
         }
     }
@@ -59,7 +64,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException, UnknownIdentifierException {
         try {
             return execute(exception, 0, name, null);
-        } catch (InvalidArrayIndexException | UnsupportedTypeException | ArityException e) {
+        } catch (InvalidArrayIndexException | UnsupportedTypeException | ArityException | UnknownKeyException e) {
             throw handleBadErrorType(e, exception);
         }
     }
@@ -68,7 +73,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
         try {
             return execute(exception, index, null, new Object[]{ value });
-        } catch (UnknownIdentifierException | ArityException e) {
+        } catch (UnknownIdentifierException | ArityException | UnknownKeyException e) {
             throw handleBadErrorType(e, exception);
         }
     }
@@ -77,7 +82,17 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException, UnknownIdentifierException, UnsupportedTypeException, ArityException {
         try {
             return execute(exception, 0, name, arguments);
-        } catch (InvalidArrayIndexException e) {
+        } catch (InvalidArrayIndexException | UnknownKeyException e) {
+            throw handleBadErrorType(e, exception);
+        }
+    }
+
+    public final AssertionError execute(RaiseException exception, Object key)
+            throws UnsupportedMessageException, UnknownKeyException {
+        try {
+            return execute(exception, 0, null, new Object[]{ key });
+        } catch (InvalidArrayIndexException | UnknownIdentifierException | UnsupportedTypeException
+                | ArityException e) {
             throw handleBadErrorType(e, exception);
         }
     }
@@ -85,7 +100,7 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
     protected abstract AssertionError execute(
             RaiseException exception, long index, String identifier, Object[] arguments)
             throws UnsupportedMessageException, InvalidArrayIndexException, UnknownIdentifierException,
-            UnsupportedTypeException, ArityException;
+            UnsupportedTypeException, ArityException, UnknownKeyException;
 
     @Specialization(
             guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
@@ -138,6 +153,16 @@ public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws ArityException {
         int expected = intCastNode.executeCastInt(dispatch.call(exception.getException(), "expected"));
         throw ArityException.create(expected, arguments.length, exception);
+    }
+
+    @Specialization(
+            guards = "logicalClassNode.execute(exception.getException()) == context.getCoreLibrary().unknownKeyExceptionClass",
+            limit = "1")
+    protected AssertionError unknownKeyExceptionClass(
+            RaiseException exception, long index, String identifier, Object[] arguments,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnknownKeyException {
+        throw UnknownKeyException.create(arguments[0]); // the key can be any object, not just a string
     }
 
     @Fallback

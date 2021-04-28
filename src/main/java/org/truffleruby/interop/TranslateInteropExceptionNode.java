@@ -27,6 +27,9 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 
+/** Used to translate Java exceptions thrown by the implementation of an interop/polyglot message (see
+ * {@link com.oracle.truffle.api.interop.InteropLibrary InteropLibrary}) into Ruby exceptions, so that the interop
+ * messages may be sent from Ruby, using the methods in the {@code Truffle::Interop} module. */
 @GenerateUncached
 public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
 

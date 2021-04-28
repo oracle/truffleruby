@@ -95,6 +95,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -224,39 +225,28 @@ public abstract class KernelNodes {
     }
 
     /** Check if operands are the same object or call #eql? */
-    public abstract static class SameOrEqlNode extends CoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    public abstract static class SameOrEqlNode extends RubyBaseNode {
 
-        @Child private DispatchNode eqlNode;
-        @Child private BooleanCastNode booleanCastNode;
-
-        private final ConditionProfile sameProfile = ConditionProfile.create();
-
-        public abstract boolean executeSameOrEql(Object a, Object b);
-
-        @Specialization
-        protected boolean sameOrEql(Object a, Object b,
-                @Cached ReferenceEqualNode referenceEqualNode) {
-            if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
-                return true;
-            } else {
-                return areEql(a, b);
-            }
+        public static SameOrEqlNode create() {
+            return KernelNodesFactory.SameOrEqlNodeGen.create();
         }
 
-        private boolean areEql(Object left, Object right) {
-            if (eqlNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(DispatchNode.create());
-            }
+        public abstract boolean execute(Object a, Object b);
 
-            if (booleanCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                booleanCastNode = insert(BooleanCastNode.create());
-            }
-
-            return booleanCastNode.executeToBoolean(eqlNode.call(left, "eql?", right));
+        @Specialization(guards = "referenceEqual.executeReferenceEqual(a, b)")
+        protected boolean refEqual(Object a, Object b,
+                @Cached ReferenceEqualNode referenceEqual) {
+            return true;
         }
 
+        @Specialization(replaces = "refEqual")
+        protected boolean refEqualOrEql(Object a, Object b,
+                @Cached ReferenceEqualNode referenceEqual,
+                @Cached DispatchNode eql,
+                @Cached BooleanCastNode booleanCast) {
+            return referenceEqual.executeReferenceEqual(a, b) || booleanCast.executeToBoolean(eql.call(a, "eql?", b));
+        }
     }
 
     @Primitive(name = "find_file")

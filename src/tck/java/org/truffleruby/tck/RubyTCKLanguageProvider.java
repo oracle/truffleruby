@@ -13,6 +13,7 @@ import static org.graalvm.polyglot.tck.TypeDescriptor.ANY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.ARRAY;
 import static org.graalvm.polyglot.tck.TypeDescriptor.BOOLEAN;
 import static org.graalvm.polyglot.tck.TypeDescriptor.DATE;
+import static org.graalvm.polyglot.tck.TypeDescriptor.HASH;
 import static org.graalvm.polyglot.tck.TypeDescriptor.ITERABLE;
 import static org.graalvm.polyglot.tck.TypeDescriptor.NULL;
 import static org.graalvm.polyglot.tck.TypeDescriptor.NUMBER;
@@ -93,7 +94,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         vals.add(createValueConstructor(context, "[Object.new]", ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[true, false]", ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[Object.new, 65]", ARRAY_OBJECT));
-        vals.add(createValueConstructor(context, "{ name: 'test' }", ITERABLE_OBJECT));
+        vals.add(createValueConstructor(context, "{ 'name' => 'test' }", HASH_ITERABLE_OBJECT));
         vals.add(createValueConstructor(context, "Struct.new(:foo, :bar).new(1, 'two')", ITERABLE_OBJECT));
         String objectWithIVar = "Object.new.tap { |obj| obj.instance_variable_set(:@name, 'test') }";
         vals.add(createValueConstructor(context, objectWithIVar, OBJECT));
@@ -294,5 +295,5 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     private static final TypeDescriptor ARRAY_OBJECT = intersection(OBJECT, ARRAY);
     private static final TypeDescriptor NUMBER_ARRAY_OBJECT = intersection(OBJECT, array(NUMBER));
     private static final TypeDescriptor ITERABLE_OBJECT = intersection(ITERABLE, OBJECT);
-
+    private static final TypeDescriptor HASH_ITERABLE_OBJECT = intersection(HASH, ITERABLE, OBJECT);
 }

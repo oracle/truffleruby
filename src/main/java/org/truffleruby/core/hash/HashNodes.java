@@ -11,6 +11,8 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -32,6 +34,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -167,23 +170,29 @@ public abstract class HashNodes {
         }
     }
 
+    @GenerateUncached
     @ImportStatic(HashGuards.class)
-    public abstract static class HashLookupOrExecuteDefaultNode extends RubyContextNode {
+    public abstract static class HashLookupOrExecuteDefaultNode extends RubyBaseNode {
 
         public static HashLookupOrExecuteDefaultNode create() {
             return HashLookupOrExecuteDefaultNodeGen.create();
         }
 
-        public abstract Object executeGet(VirtualFrame frame, RubyHash hash, Object key,
+        public static HashLookupOrExecuteDefaultNode getUncached() {
+            return HashLookupOrExecuteDefaultNodeGen.getUncached();
+        }
+
+        public abstract Object executeGet(Frame frame, RubyHash hash, Object key,
                 BiFunctionNode defaultValueNode);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object getNull(VirtualFrame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode) {
-            return defaultValueNode.accept(frame, hash, key);
+        protected Object getNull(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode) {
+            // frame should be virtual or null
+            return defaultValueNode.accept((VirtualFrame) frame, hash, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        protected Object getPackedArray(VirtualFrame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
+        protected Object getPackedArray(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached HashingNodes.ToHash hashNode) {
             int hashed = hashNode.execute(key, hash.compareByIdentity); // Call key.hash only once
@@ -191,8 +200,8 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object getBuckets(VirtualFrame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
-                @Cached("new()") LookupEntryNode lookupEntryNode,
+        protected Object getBuckets(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
+                @Cached LookupEntryNode lookupEntryNode,
                 @Cached BranchProfile notInHashProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
 
@@ -201,23 +210,23 @@ public abstract class HashNodes {
             }
 
             notInHashProfile.enter();
-            return defaultValueNode.accept(frame, hash, key);
+            // frame should be virtual or null
+            return defaultValueNode.accept((VirtualFrame) frame, hash, key);
         }
-
     }
 
     @CoreMethod(names = "[]", required = 1)
     @ImportStatic(HashGuards.class)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements BiFunctionNode {
 
-        @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
         @Child private DispatchNode callDefaultNode;
 
         public abstract Object executeGet(VirtualFrame frame, RubyHash hash, Object key);
 
         @Specialization
-        protected Object get(VirtualFrame frame, RubyHash hash, Object key) {
-            return lookupNode.executeGet(frame, hash, key, this);
+        protected Object get(VirtualFrame frame, RubyHash hash, Object key,
+                @Cached HashLookupOrExecuteDefaultNode hashLookup) {
+            return hashLookup.executeGet(frame, hash, key, this);
         }
 
         @Override
@@ -228,7 +237,6 @@ public abstract class HashNodes {
             }
             return callDefaultNode.call(hash, "default", key);
         }
-
     }
 
     @Primitive(name = "hash_get_or_undefined")
@@ -336,9 +344,9 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+        @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-        @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
+        @Child private LookupEntryNode lookupEntryNode = LookupEntryNode.create();
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization(guards = "isNullHash(hash)")
@@ -417,7 +425,7 @@ public abstract class HashNodes {
 
         protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
                 int otherHashed) {
-            return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
+            return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
         }
 
     }
@@ -839,7 +847,7 @@ public abstract class HashNodes {
     public abstract static class InternalRehashNode extends RubyContextNode {
 
         @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+        @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
 
         public static InternalRehashNode create() {
             return InternalRehashNodeGen.create();
@@ -867,7 +875,7 @@ public abstract class HashNodes {
                 PackedArrayStrategy.setHashed(store, n, newHash);
 
                 for (int m = n - 1; m >= 0; m--) {
-                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.equalKeys(
+                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.execute(
                             compareByIdentity,
                             key,
                             newHash,
@@ -910,7 +918,7 @@ public abstract class HashNodes {
                     Entry previousEntry = entry;
 
                     do {
-                        if (compareHashKeysNode.equalKeys(
+                        if (compareHashKeysNode.execute(
                                 compareByIdentity,
                                 entry.getKey(),
                                 newHash,

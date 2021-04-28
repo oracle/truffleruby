@@ -10,8 +10,8 @@
 package org.truffleruby.core.numeric;
 
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -23,14 +23,14 @@ import com.oracle.truffle.api.dsl.Specialization;
  *
  * <p>
  * See {@link org.truffleruby.core.cast.ToIntNode} for a comparison of different integer conversion nodes. */
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
 public abstract class FixnumLowerNode extends RubyContextSourceNode {
 
     public static FixnumLowerNode create() {
         return FixnumLowerNodeGen.create(null);
     }
 
-    public static FixnumLowerNode create(RubyNode child) {
+    public static FixnumLowerNode create(RubyBaseNodeWithExecute child) {
         return FixnumLowerNodeGen.create(child);
     }
 

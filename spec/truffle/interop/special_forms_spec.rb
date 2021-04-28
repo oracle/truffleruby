@@ -294,6 +294,16 @@ describe "Interop special forms" do
     l.log.should include(["isIdentical", other, :InteropLibrary])
   end
 
+  it description['.eql?(other)', :isIdentical, [:other]] do
+    pfo, _, l = proxy[Object.new]
+    pfo.eql?(pfo).should == true
+    l.log.should include(["isIdentical", pfo, :InteropLibrary])
+
+    other = Object.new
+    pfo.eql?(other).should == false
+    l.log.should include(["isIdentical", other, :InteropLibrary])
+  end
+
   it description['.object_id', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
     pfo, obj, l = proxy[Object.new]
     pfo.object_id.should == obj.object_id
@@ -318,6 +328,20 @@ describe "Interop special forms" do
   it doc['.__id__', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
     pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
     pfo.__id__.should be_kind_of(Integer)
+    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should_not include(["identityHashCode"])
+  end
+
+  it description['.hash', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
+    pfo, obj, l = proxy[Object.new]
+    pfo.hash.should == obj.__id__
+    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["identityHashCode"])
+  end
+
+  it doc['.hash', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
+    pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
+    pfo.hash.should be_kind_of(Integer)
     l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
     l.log.should_not include(["identityHashCode"])
   end

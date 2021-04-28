@@ -193,6 +193,7 @@ public class CoreLibrary {
     public final RubyClass unknownIdentifierExceptionClass;
     public final RubyClass unsupportedTypeExceptionClass;
     public final RubyClass arityExceptionClass;
+    public final RubyClass unknownKeyExceptionClass;
     public final RubyModule truffleFeatureLoaderModule;
     public final RubyModule truffleKernelOperationsModule;
     public final RubyModule truffleInteropOperationsModule;
@@ -482,6 +483,10 @@ public class CoreLibrary {
                 truffleInteropModule,
                 interopExceptionClass,
                 "ArityException");
+        unknownKeyExceptionClass = defineClass(
+                truffleInteropModule,
+                interopExceptionClass,
+                "UnknownKeyException");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");

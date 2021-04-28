@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.symbol;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -28,6 +30,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -78,6 +81,40 @@ public abstract class SymbolNodes {
 
     }
 
+    @GenerateUncached
+    public abstract static class HashSymbolNode extends RubyBaseNode {
+
+        public static HashSymbolNode create() {
+            return SymbolNodesFactory.HashSymbolNodeGen.create();
+        }
+
+        public abstract long execute(RubySymbol rubySymbol);
+
+        // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
+        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
+        protected long hashCached(RubySymbol symbol,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached(value = "isPreInitializing(context)") boolean preInitializing,
+                @Cached(value = "symbol") RubySymbol cachedSymbol,
+                @Cached(value = "hash(cachedSymbol, context)") long cachedHash) {
+            return cachedHash;
+        }
+
+        @Specialization(replaces = "hashCached")
+        protected long hash(RubySymbol symbol,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return symbol.computeHashCode(context.getHashing());
+        }
+
+        protected boolean isPreInitializing(RubyContext context) {
+            return context.isPreInitializing();
+        }
+
+        protected int getIdentityCacheLimit() {
+            return RubyLanguage.getCurrentContext().getLanguageSlow().options.IDENTITY_CACHE;
+        }
+    }
+
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
@@ -87,24 +124,11 @@ public abstract class SymbolNodes {
 
         public abstract long execute(RubySymbol rubySymbol);
 
-        // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
-        @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
-        protected long hashCached(RubySymbol symbol,
-                @Cached("isPreInitializing()") boolean preInitializing,
-                @Cached("symbol") RubySymbol cachedSymbol,
-                @Cached("hash(cachedSymbol)") long cachedHash) {
-            return cachedHash;
-        }
-
         @Specialization
-        protected long hash(RubySymbol symbol) {
-            return symbol.computeHashCode(getContext().getHashing());
+        protected long hash(RubySymbol symbol,
+                @Cached HashSymbolNode hash) {
+            return hash.execute(symbol);
         }
-
-        protected boolean isPreInitializing() {
-            return getContext().isPreInitializing();
-        }
-
     }
 
     @CoreMethod(names = "to_proc")

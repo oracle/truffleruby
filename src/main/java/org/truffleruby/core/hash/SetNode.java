@@ -28,7 +28,7 @@ public abstract class SetNode extends RubyContextNode {
 
     @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
     @Child private LookupEntryNode lookupEntryNode;
-    @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
+    @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
     @Child private PropagateSharingNode propagateSharingKeyNode = PropagateSharingNode.create();
     @Child private PropagateSharingNode propagateSharingValueNode = PropagateSharingNode.create();
@@ -161,13 +161,13 @@ public abstract class SetNode extends RubyContextNode {
     private HashLookupResult lookup(RubyHash hash, Object key) {
         if (lookupEntryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupEntryNode = insert(new LookupEntryNode());
+            lookupEntryNode = insert(LookupEntryNode.create());
         }
         return lookupEntryNode.lookup(hash, key);
     }
 
     protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-        return compareHashKeysNode.equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
+        return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
 }

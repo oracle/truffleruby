@@ -38,10 +38,13 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.to_f` tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `TypeError`
 - `foreign_object.to_i` tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `TypeError`
 - `foreign_object.equal?(other)` sends `isIdentical(foreign_object, other)`
+- `foreign_object.eql?(other)` sends `isIdentical(foreign_object, other)`
 - `foreign_object.object_id` sends `identityHashCode(foreign_object)` when `hasIdentity()` is true (which might not be unique)
 - `foreign_object.object_id` uses `System.identityHashCode()` otherwise (which might not be unique)
 - `foreign_object.__id__` sends `identityHashCode(foreign_object)` when `hasIdentity()` is true (which might not be unique)
 - `foreign_object.__id__` uses `System.identityHashCode()` otherwise (which might not be unique)
+- `foreign_object.hash` sends `identityHashCode(foreign_object)` when `hasIdentity()` is true (which might not be unique)
+- `foreign_object.hash` uses `System.identityHashCode()` otherwise (which might not be unique)
 
 Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:inspect)` is always true

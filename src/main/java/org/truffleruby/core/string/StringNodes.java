@@ -162,6 +162,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -352,12 +353,12 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "*", required = 1)
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "times", type = RubyNode.class)
+    @NodeChild(value = "times", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class MulNode extends CoreMethodNode {
 
         @CreateCast("times")
-        protected RubyNode coerceToInteger(RubyNode times) {
+        protected RubyBaseNodeWithExecute coerceToInteger(RubyBaseNodeWithExecute times) {
             // Not ToIntNode, because this works with empty strings, and must throw a different error
             // for long values that don't fit in an int.
             return FixnumLowerNode.create(ToLongNode.create(times));
@@ -1489,6 +1490,26 @@ public abstract class StringNodes {
 
     }
 
+    @GenerateUncached
+    public abstract static class HashStringNode extends RubyBaseNode {
+
+        protected static final int CLASS_SALT = 54008340; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+
+        public static HashStringNode create() {
+            return StringNodesFactory.HashStringNodeGen.create();
+        }
+
+        public abstract long execute(Object string);
+
+        @Specialization
+        protected long hash(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached RopeNodes.HashNode hashNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return context.getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+        }
+    }
+
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
@@ -1502,11 +1523,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected long hash(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings,
-                @Cached RopeNodes.HashNode hashNode) {
-            return getContext().getHashing(this).hash(CLASS_SALT, hashNode.execute(strings.getRope(string)));
+                @Cached HashStringNode hash) {
+            return hash.execute(string);
         }
-
     }
 
     @Primitive(name = "string_initialize")
@@ -2323,8 +2342,8 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "setbyte", required = 2, raiseIfFrozenSelf = true, lowerFixnum = { 1, 2 })
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
-    @NodeChild(value = "value", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class SetByteNode extends CoreMethodNode {
 
@@ -2332,12 +2351,12 @@ public abstract class StringNodes {
         @Child private RopeNodes.SetByteNode setByteNode = RopeNodes.SetByteNode.create();
 
         @CreateCast("index")
-        protected RubyNode coerceIndexToInt(RubyNode index) {
+        protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 
         @CreateCast("value")
-        protected RubyNode coerceValueToInt(RubyNode value) {
+        protected ToIntNode coerceValueToInt(RubyBaseNodeWithExecute value) {
             return ToIntNode.create(value);
         }
 

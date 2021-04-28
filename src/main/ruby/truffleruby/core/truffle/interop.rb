@@ -21,6 +21,7 @@ module Truffle
     class InvalidArrayIndexException < InteropException; end
     class UnknownIdentifierException < InteropException; end
     class UnsupportedTypeException < InteropException; end
+    class UnknownKeyException < InteropException; end
     class ArityException < InteropException
       attr_reader :expected
 

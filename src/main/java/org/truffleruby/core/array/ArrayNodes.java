@@ -54,7 +54,6 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
@@ -74,6 +73,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -719,13 +719,13 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
     @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class DeleteAtNode extends CoreMethodNode {
 
         @CreateCast("index")
-        protected RubyNode coerceOtherToInt(RubyNode index) {
+        protected ToIntNode coerceOtherToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 
@@ -894,7 +894,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqlNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private SameOrEqlNode eqlNode = SameOrEqlNodeFactory.create(null);
+        @Child private SameOrEqlNode eqlNode = SameOrEqlNode.create();
 
         @Specialization(
                 guards = { "stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
@@ -924,7 +924,7 @@ public abstract class ArrayNodes {
 
             loopProfile.profileCounted(aSize);
             for (int i = 0; loopProfile.inject(i < aSize); i++) {
-                if (!eqlNode.executeSameOrEql(stores.read(aStore, i), stores.read(bStore, i))) {
+                if (!eqlNode.execute(stores.read(aStore, i), stores.read(bStore, i))) {
                     falseProfile.enter();
                     return false;
                 }

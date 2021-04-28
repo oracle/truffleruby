@@ -54,6 +54,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -204,12 +205,12 @@ public abstract class ReadlineHistoryNodes {
     }
 
     @CoreMethod(names = "[]=", needsSelf = false, lowerFixnum = 1, required = 2)
-    @NodeChild(value = "index", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyBaseNodeWithExecute.class)
     @NodeChild(value = "line", type = RubyNode.class)
     public abstract static class SetIndexNode extends CoreMethodNode {
 
         @CreateCast("index")
-        protected RubyNode coerceIndexToInt(RubyNode index) {
+        protected ToIntNode coerceIndexToInt(RubyBaseNodeWithExecute index) {
             return ToIntNode.create(index);
         }
 
