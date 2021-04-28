@@ -160,7 +160,7 @@ public class MethodTranslator extends BodyTranslator {
 
         Object frameOnStackMarkerSlot;
 
-        if (frameOnStackMarkerSlotStack.isEmpty()) {
+        if (emitLambda || frameOnStackMarkerSlotStack.isEmpty()) {
             frameOnStackMarkerSlot = null;
         } else {
             frameOnStackMarkerSlot = frameOnStackMarkerSlotStack.peek();

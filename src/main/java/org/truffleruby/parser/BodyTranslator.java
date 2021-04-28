@@ -2014,24 +2014,11 @@ public class BodyTranslator extends Translator {
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
 
-        if (isStabbyLambda) {
-            frameOnStackMarkerSlotStack.push(BAD_FRAME_SLOT);
-        }
-
-        final RubyNode definitionNode;
-
-        try {
-            definitionNode = methodCompiler
-                    .compileBlockNode(
-                            sourceSection,
-                            node.getBodyNode(),
-                            isStabbyLambda,
-                            node.getScope().getVariables());
-        } finally {
-            if (isStabbyLambda) {
-                frameOnStackMarkerSlotStack.pop();
-            }
-        }
+        final RubyNode definitionNode = methodCompiler.compileBlockNode(
+                sourceSection,
+                node.getBodyNode(),
+                isStabbyLambda,
+                node.getScope().getVariables());
 
         return addNewlineIfNeeded(node, definitionNode);
     }
