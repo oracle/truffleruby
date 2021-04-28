@@ -171,10 +171,8 @@ class Thread
   end
 
   def inspect
-    stat = status()
-    stat = 'dead' unless stat
     loc = Primitive.thread_source_location(self)
-    "#<#{self.class}:0x#{object_id.to_s(16)}@#{loc} #{stat}>"
+    "#{super.delete_suffix('>')} #{loc} #{status || 'dead'}>"
   end
   alias_method :to_s, :inspect
 

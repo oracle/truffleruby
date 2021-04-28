@@ -127,7 +127,7 @@ public class MiscTest {
         try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
             context.eval("ruby", "$queue = Queue.new");
             assertEquals(context.eval("ruby", "Thread.main"), context.eval("ruby", "Thread.current"));
-            assertTrue(context.eval("ruby", "Thread.current").toString().contains("@main"));
+            assertTrue(context.eval("ruby", "Thread.current").toString().contains("main"));
             assertFalse(context.eval("ruby", "Thread.current").toString().contains("<foreign thread>"));
 
             Runnable polyglotThreadBody = () -> {

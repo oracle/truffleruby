@@ -1,2 +1,1 @@
 fails:Thread#to_s has a binary encoding
-fails:Thread#to_s returns a description including file and line number
