@@ -146,18 +146,21 @@ public class FiberManager implements ObjectGraphNode {
     private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
+        final boolean entered = !context.getOptions().FIBER_LEAVE_CONTEXT;
+
         final Thread thread = Thread.currentThread();
         final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
         final String oldName = thread.getName();
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
 
-        start(fiber, thread, false);
+        start(fiber, thread, entered);
 
         final TruffleContext truffleContext = context.getEnv().getContext();
-        assert !truffleContext.isEntered();
-
-        final Object prev = truffleContext.enter(currentNode); // enter and leave now to workaround GR-29773
-        context.getSafepointManager().enterThread(); // not done in start() above because the context was not entered
+        Object prev = null;
+        if (!entered) {
+            prev = truffleContext.enter(currentNode);  // enter and leave now to workaround GR-29773
+            context.getSafepointManager().enterThread(); // not done in start() above because the context was not entered
+        }
         final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
             // fully initialized
             fiber.initializedLatch.countDown();
@@ -172,9 +175,11 @@ public class FiberManager implements ObjectGraphNode {
             } finally {
                 // Make sure that other fibers notice we are dead before they gain control back
                 fiber.alive = false;
-                // Leave before resume/sendExceptionToParentFiber -> addToMessageQueue() -> parent Fiber starts executing
-                context.getSafepointManager().leaveThread();
-                truffleContext.leave(currentNode, prev);
+                if (!entered) {
+                    // Leave before resume/sendExceptionToParentFiber -> addToMessageQueue() -> parent Fiber starts executing
+                    context.getSafepointManager().leaveThread();
+                    truffleContext.leave(currentNode, prev);
+                }
             }
             resume(fiber, getReturnFiber(fiber, currentNode, UNPROFILED), FiberOperation.YIELD, result);
 
@@ -198,7 +203,7 @@ public class FiberManager implements ObjectGraphNode {
             final RuntimeException exception = ThreadManager.printInternalError(e);
             sendExceptionToParentFiber(fiber, exception, currentNode);
         } finally {
-            cleanup(fiber, thread, false);
+            cleanup(fiber, thread, entered);
             thread.setName(oldName);
         }
     }

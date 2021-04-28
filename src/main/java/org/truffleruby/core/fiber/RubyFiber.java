@@ -31,7 +31,7 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     public final CountDownLatch initializedLatch = new CountDownLatch(1);
     public CountDownLatch finishedLatch = new CountDownLatch(1);
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
-    final RubyThread rubyThread;
+    public final RubyThread rubyThread;
     volatile RubyFiber lastResumedByFiber = null;
     public volatile boolean alive = true;
     public Thread thread = null;

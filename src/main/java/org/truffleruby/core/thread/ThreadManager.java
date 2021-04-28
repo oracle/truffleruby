@@ -159,7 +159,12 @@ public class ThreadManager {
             throw new UnsupportedOperationException("fibers should not be created while pre-initializing the context");
         }
 
-        final Thread thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        final Thread thread;
+        if (context.getOptions().FIBER_LEAVE_CONTEXT) {
+            thread = new Thread(runnable); // context.getEnv().createUnenteredThread(runnable);
+        } else {
+            thread = context.getEnv().createThread(runnable);
+        }
         thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
             System.err.println("Throwable escaped Fiber pool thread:");
             throwable.printStackTrace();
