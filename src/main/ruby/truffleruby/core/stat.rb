@@ -60,20 +60,22 @@ class File
 
     def initialize(path_or_buffer)
       if path_or_buffer.is_a?(Truffle::FFI::MemoryPointer)
-        @buffer = path_or_buffer.read_array_of_uint64(BUFFER_ELEMENTS)
+        @buffer = path_or_buffer.read_array_of_uint64(UINT64_BUFFER_ELEMENTS)
+        @buffer.concat(path_or_buffer.get_array_of_uint32(UINT64_BUFFER_ELEMENTS * 8, UINT32_BUFFER_ELEMENTS))
       else
         path = Truffle::Type.coerce_to_path(path_or_buffer)
-        Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+        Truffle::FFI::MemoryPointer.new(:uint32, BUFFER_SIZE) do |ptr|
           result = Truffle::POSIX.truffleposix_stat(path, ptr)
           Errno.handle path unless result == 0
-          @buffer = ptr.read_array_of_uint64(BUFFER_ELEMENTS)
+          @buffer = ptr.read_array_of_uint64(UINT64_BUFFER_ELEMENTS)
+          @buffer.concat(ptr.get_array_of_uint32(UINT64_BUFFER_ELEMENTS * 8, UINT32_BUFFER_ELEMENTS))
         end
       end
     end
 
     def self.stat(path)
       path = Truffle::Type.coerce_to_path(path)
-      Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+      Truffle::FFI::MemoryPointer.new(:uint32, BUFFER_SIZE) do |ptr|
         if Truffle::POSIX.truffleposix_stat(path, ptr) == 0
           Stat.new ptr
         else
@@ -90,7 +92,7 @@ class File
 
     def self.lstat?(path)
       path = Truffle::Type.coerce_to_path(path)
-      Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+      Truffle::FFI::MemoryPointer.new(:uint32, BUFFER_SIZE) do |ptr|
         if Truffle::POSIX.truffleposix_lstat(path, ptr) == 0
           Stat.new ptr
         else
@@ -101,7 +103,7 @@ class File
 
     def self.fstat(fd)
       fd = Truffle::Type.coerce_to fd, Integer, :to_int
-      Truffle::FFI::MemoryPointer.new(:uint64, BUFFER_ELEMENTS) do |ptr|
+      Truffle::FFI::MemoryPointer.new(:uint32, BUFFER_SIZE) do |ptr|
         result = Truffle::POSIX.truffleposix_fstat(fd, ptr)
         Errno.handle "file descriptor #{fd}" unless result == 0
         Stat.new ptr
@@ -264,18 +266,20 @@ class File
 
     # These indices are from truffleposix.c
 
-    BUFFER_ELEMENTS = 13
+    UINT64_BUFFER_ELEMENTS = 13
+    UINT32_BUFFER_ELEMENTS = 3
+    BUFFER_SIZE = (UINT64_BUFFER_ELEMENTS * 2) + UINT32_BUFFER_ELEMENTS
 
     def atime
-      Time.at @buffer[0]
+      Time.at(@buffer[0], @buffer[13], :nanosecond)
     end
 
     def mtime
-      Time.at @buffer[1]
+      Time.at(@buffer[1], @buffer[14], :nanosecond)
     end
 
     def ctime
-      Time.at @buffer[2]
+      Time.at(@buffer[2], @buffer[15], :nanosecond)
     end
 
     def nlink
@@ -323,7 +327,7 @@ class File
       "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
       "uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, " \
       "size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, " \
-      "atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
+      "atime=#{self.atime.inspect}, mtime=#{self.mtime.inspect}, ctime=#{self.ctime.inspect}>"
     end
   end
 end

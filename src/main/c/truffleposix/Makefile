@@ -27,8 +27,11 @@ ifeq ($(OS),SunOS)
 LDFLAGS += -lrt
 endif
 
+ROOT := $(realpath ../../../..)
+RUBY_HDR_DIR := $(ROOT)/lib/cext/include
+
 libtruffleposix.$(SOEXT): truffleposix.o Makefile
 	$(Q) $(CC) -shared $(LDFLAGS) -o $@ $<
 
 truffleposix.o: truffleposix.c Makefile
-	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(NFI_HEADERS_DIR) $<
+	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(NFI_HEADERS_DIR) -I$(RUBY_HDR_DIR) $<
