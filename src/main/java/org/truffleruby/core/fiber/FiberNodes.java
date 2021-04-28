@@ -76,7 +76,7 @@ public abstract class FiberNodes {
             }
 
             final FiberManager fiberManager = currentThread.fiberManager;
-            return singleValue(fiberManager.transferControlTo(currentFiber, fiber, operation, args));
+            return singleValue(fiberManager.transferControlTo(currentFiber, fiber, operation, args, this));
         }
 
     }

@@ -132,7 +132,7 @@ public class FiberManager implements ObjectGraphNode {
         if (context.getEnv().getContext().isEntered()) {
             context.getThreadManager().runUntilResultKeepStatus(currentNode, blockingAction);
         } else {
-            context.getThreadManager().retryWhileInterrupted(blockingAction);
+            context.getThreadManager().retryWhileInterrupted(currentNode, blockingAction);
         }
 
         final Throwable uncaughtException = fiber.uncaughtException;
@@ -161,7 +161,7 @@ public class FiberManager implements ObjectGraphNode {
         final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, currentNode, () -> {
             // fully initialized
             fiber.initializedLatch.countDown();
-            return waitMessage(fiber);
+            return waitMessage(fiber, currentNode);
         }, true);
 
         try {
@@ -226,15 +226,19 @@ public class FiberManager implements ObjectGraphNode {
 
     @TruffleBoundary
     private void addToMessageQueue(RubyFiber fiber, FiberMessage message) {
-        assert !context.getEnv().getContext().isEntered() : "should have left context when sending message to fiber";
+        assertNotEntered("should have left context when sending message to fiber");
         fiber.messageQueue.add(message);
     }
 
     /** Send the Java thread that represents this fiber to sleep until it receives a message. */
     @TruffleBoundary
-    private FiberMessage waitMessage(RubyFiber fiber) {
-        assert !context.getEnv().getContext().isEntered() : "should have left context while waiting fiber message";
-        return context.getThreadManager().retryWhileInterrupted(fiber.messageQueue::take);
+    private FiberMessage waitMessage(RubyFiber fiber, Node currentNode) {
+        assertNotEntered("should have left context while waiting fiber message");
+        return context.getThreadManager().retryWhileInterrupted(currentNode, fiber.messageQueue::take);
+    }
+
+    private void assertNotEntered(String reason) {
+        assert !context.getOptions().FIBER_LEAVE_CONTEXT || !context.getEnv().getContext().isEntered() : reason;
     }
 
     @TruffleBoundary
@@ -264,13 +268,14 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args) {
+    public Object[] transferControlTo(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args,
+            Node currentNode) {
         final TruffleContext truffleContext = context.getEnv().getContext();
         final boolean isRubyManagedThread = context.getThreadManager().isRubyManagedThread(Thread.currentThread());
 
         final FiberMessage message = context.getThreadManager().leaveAndEnter(truffleContext, null, () -> {
             resume(fromFiber, fiber, operation, args);
-            return waitMessage(fromFiber);
+            return waitMessage(fromFiber, currentNode);
         }, isRubyManagedThread);
 
         return handleMessage(fromFiber, message);
@@ -347,7 +352,7 @@ public class FiberManager implements ObjectGraphNode {
 
                 // Wait for the Fiber to finish so we only run one Fiber at a time
                 final CountDownLatch finishedLatch = fiber.finishedLatch;
-                context.getThreadManager().retryWhileInterrupted(() -> {
+                context.getThreadManager().retryWhileInterrupted(null, () -> {
                     finishedLatch.await();
                     return BlockingAction.SUCCESS;
                 });

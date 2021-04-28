@@ -468,26 +468,35 @@ public class ThreadManager {
         void unblock();
     }
 
+    /** Only leaves the context if FIBER_LEAVE_CONTEXT is true */
     public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext,
             boolean isRubyManagedThread) {
         assert truffleContext.isEntered();
         assert isRubyManagedThread == isRubyManagedThread(Thread.currentThread());
 
-        if (isRubyManagedThread) {
-            context.getSafepointManager().leaveThread();
-        }
-        try {
-            return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
-        } finally {
+        if (context.getOptions().FIBER_LEAVE_CONTEXT) {
             if (isRubyManagedThread) {
-                context.getSafepointManager().enterThread();
+                context.getSafepointManager().leaveThread();
             }
+            try {
+                return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
+            } finally {
+                if (isRubyManagedThread) {
+                    context.getSafepointManager().enterThread();
+                }
+            }
+        } else {
+            return runWhileOutsideContext.get();
         }
     }
 
     /** Only use when the context is not entered. */
     @TruffleBoundary
-    public <T> T retryWhileInterrupted(BlockingAction<T> action) {
+    public <T> T retryWhileInterrupted(Node currentNode, BlockingAction<T> action) {
+        if (!context.getOptions().FIBER_LEAVE_CONTEXT) {
+            return runUntilResultKeepStatus(currentNode, action);
+        }
+
         assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
         boolean interrupted = false;
         try {
