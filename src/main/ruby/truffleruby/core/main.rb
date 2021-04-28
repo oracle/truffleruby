@@ -56,16 +56,13 @@ class << self
 end
 
 show_backtraces = -> {
-  puts 'Threads and backtraces:'
-  Thread.list.each do |thread|
-    $stderr.puts thread
-    if thread == Thread.current
-      # Ignore the signal handler frames
-      $stderr.puts thread.backtrace[6..-1]
-    else
-      $stderr.puts thread.backtrace
-    end
-    $stderr.puts
+  if Truffle::Boot.get_option('fiber-leave-context')
+    $stderr.puts 'All Thread backtraces (use --fiber-leave-context=false to see all Fiber backtraces):'
+  else
+    $stderr.puts 'All Fiber backtraces:'
+  end
+  Primitive.all_fibers_backtraces.each do |fiber, backtrace|
+    $stderr.puts "#{fiber} of #{Primitive.fiber_thread(fiber)}", backtrace, nil
   end
 }
 

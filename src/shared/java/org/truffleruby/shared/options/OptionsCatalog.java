@@ -52,6 +52,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> PATCHING_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> FIBER_LEAVE_CONTEXT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY = new OptionKey<>(false);
@@ -371,6 +372,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor HASHING_DETERMINISTIC = OptionDescriptor
             .newBuilder(HASHING_DETERMINISTIC_KEY, "ruby.hashing-deterministic")
             .help("Produce deterministic hash values")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor FIBER_LEAVE_CONTEXT = OptionDescriptor
+            .newBuilder(FIBER_LEAVE_CONTEXT_KEY, "ruby.fiber-leave-context")
+            .help("Leave the TruffleContext when suspending a Fiber (avoids triggering multithreading)")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1127,6 +1135,8 @@ public class OptionsCatalog {
                 return PATCHING;
             case "ruby.hashing-deterministic":
                 return HASHING_DETERMINISTIC;
+            case "ruby.fiber-leave-context":
+                return FIBER_LEAVE_CONTEXT;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":
@@ -1362,6 +1372,7 @@ public class OptionsCatalog {
             LAZY_TRANSLATION_USER,
             PATCHING,
             HASHING_DETERMINISTIC,
+            FIBER_LEAVE_CONTEXT,
             EXCEPTIONS_STORE_JAVA,
             EXCEPTIONS_PRINT_JAVA,
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,

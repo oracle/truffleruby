@@ -31,23 +31,27 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     public final CountDownLatch initializedLatch = new CountDownLatch(1);
     public CountDownLatch finishedLatch = new CountDownLatch(1);
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
-    final RubyThread rubyThread;
+    public final RubyThread rubyThread;
     volatile RubyFiber lastResumedByFiber = null;
     public volatile boolean alive = true;
     public Thread thread = null;
     volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
+    String sourceLocation;
 
     public RubyFiber(
             RubyClass rubyClass,
             Shape shape,
             RubyBasicObject fiberLocals,
             RubyArray catchTags,
-            RubyThread rubyThread) {
+            RubyThread rubyThread,
+            String sourceLocation) {
         super(rubyClass, shape);
+        assert rubyThread != null;
         this.fiberLocals = fiberLocals;
         this.catchTags = catchTags;
         this.rubyThread = rubyThread;
+        this.sourceLocation = sourceLocation;
     }
 
     @TruffleBoundary
@@ -59,6 +63,19 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     public void getAdjacentObjects(Set<Object> reachable) {
         reachable.add(fiberLocals);
         reachable.add(rubyThread);
+    }
+
+    public String getStatus() {
+        // TODO (eregon, 28 April 2021): should be "created" if never resumed
+        if (alive) {
+            if (rubyThread.fiberManager.getCurrentFiberRacy() == this) {
+                return "resumed";
+            } else {
+                return "suspended";
+            }
+        } else {
+            return "terminated";
+        }
     }
 
 }

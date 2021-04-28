@@ -40,11 +40,14 @@
  */
 package org.truffleruby.core.thread;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -88,6 +91,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
+import org.truffleruby.language.SafepointPredicate;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
@@ -172,6 +176,43 @@ public abstract class ThreadNodes {
                     null,
                     backtrace,
                     length);
+        }
+    }
+
+    @Primitive(name = "all_fibers_backtraces")
+    public abstract static class AllFibersBacktracesNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray allFibersBacktraces() {
+            final List<Pair<RubyFiber, Backtrace>> backtraces = new ArrayList<>();
+
+            getContext().getSafepointManager().pauseAllThreadsAndExecute(
+                    "all Fibers backtraces",
+                    this,
+                    SafepointPredicate.ALL_THREADS_AND_FIBERS,
+                    (SafepointAction.Pure) (thread, currentNode) -> {
+                        final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, 0);
+                        backtrace.getStackTrace(); // must be done on the thread
+
+                        final RubyFiber fiber = getContext().getThreadManager().getRubyFiberFromCurrentJavaThread();
+                        boolean active = thread.fiberManager.getCurrentFiber() == fiber;
+
+                        synchronized (backtraces) {
+                            backtraces.add(Pair.create(fiber, backtrace));
+                        }
+                    });
+
+            Object[] backtracesArray = new Object[backtraces.size()];
+            for (int i = 0; i < backtracesArray.length; i++) {
+                final Pair<RubyFiber, Backtrace> pair = backtraces.get(i);
+                final RubyArray backtrace = getContext()
+                        .getUserBacktraceFormatter()
+                        .formatBacktraceAsRubyStringArray(null, pair.getRight());
+                backtracesArray[i] = createArray(new Object[]{ pair.getLeft(), backtrace });
+            }
+
+            return createArray(backtracesArray);
         }
     }
 

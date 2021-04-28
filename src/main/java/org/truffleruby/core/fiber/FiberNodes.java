@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.fiber;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -22,6 +23,9 @@ import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
@@ -76,7 +80,7 @@ public abstract class FiberNodes {
             }
 
             final FiberManager fiberManager = currentThread.fiberManager;
-            return singleValue(fiberManager.transferControlTo(currentFiber, fiber, operation, args));
+            return singleValue(fiberManager.transferControlTo(currentFiber, fiber, operation, args, this));
         }
 
     }
@@ -88,7 +92,13 @@ public abstract class FiberNodes {
         protected RubyFiber allocate(RubyClass rubyClass) {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             final RubyFiber fiber = thread.fiberManager
-                    .createFiber(getLanguage(), getContext(), thread, rubyClass, getLanguage().fiberShape);
+                    .createFiber(
+                            getLanguage(),
+                            getContext(),
+                            thread,
+                            rubyClass,
+                            getLanguage().fiberShape,
+                            "<uninitialized>");
             AllocationTracing.trace(fiber, this);
             return fiber;
         }
@@ -219,6 +229,32 @@ public abstract class FiberNodes {
             return currentThread.fiberManager.getCurrentFiber();
         }
 
+    }
+
+    @Primitive(name = "fiber_source_location")
+    public abstract static class FiberSourceLocationNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyString sourceLocation(RubyFiber fiber,
+                @Cached MakeStringNode makeStringNode) {
+            return makeStringNode.executeMake(fiber.sourceLocation, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+    }
+
+    @Primitive(name = "fiber_status")
+    public abstract static class FiberStatusNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyString status(RubyFiber fiber,
+                @Cached MakeStringNode makeStringNode) {
+            return makeStringNode.executeMake(fiber.getStatus(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+    }
+
+    @Primitive(name = "fiber_thread")
+    public abstract static class FiberThreadNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyThread thread(RubyFiber fiber) {
+            return fiber.rubyThread;
+        }
     }
 
     @Primitive(name = "fiber_get_catch_tags")

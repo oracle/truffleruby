@@ -481,8 +481,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
-            if (rubyThread.thread == thread) { // new Ruby Thread
+            final RubyThread rubyThread = context.getThreadManager().getCurrentThreadOrNull();
+            if (rubyThread != null && rubyThread.thread == thread) { // new Ruby Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives
                             .shouldNotReachHere("Ruby threads should be initialized on their Java thread");
@@ -510,8 +510,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
-            final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
-            if (rubyThread.thread == thread) { // Thread
+            final RubyThread rubyThread = context.getThreadManager().getCurrentThreadOrNull();
+            if (rubyThread != null && rubyThread.thread == thread) { // Thread
                 if (thread != Thread.currentThread()) {
                     throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
                 }
