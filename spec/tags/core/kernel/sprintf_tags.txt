@@ -12,8 +12,6 @@ fails:Kernel#sprintf flags - left-justifies the result of conversion if width is
 fails:Kernel#sprintf flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified uses radix-1 when displays negative argument as a two's complement
 fails:Kernel#sprintf flags * left-justifies the result if width is negative
 fails:Kernel#sprintf flags * left-justifies the result if specified with $ argument is negative
-fails:Kernel#sprintf precision string formats determines the maximum number of characters to be copied from the string
-fails:Kernel#sprintf reference by name %{name} style supports flags, width and precision
 fails:Kernel.sprintf returns a String in the same encoding as the format String if compatible
 fails:Kernel.sprintf returns a String in the argument's encoding if format encoding is more restrictive
 fails:Kernel.sprintf raises Encoding::CompatibilityError if both encodings are ASCII compatible and there ano not ASCII characters
@@ -28,7 +26,5 @@ fails:Kernel.sprintf flags - left-justifies the result of conversion if width is
 fails:Kernel.sprintf flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified uses radix-1 when displays negative argument as a two's complement
 fails:Kernel.sprintf flags * left-justifies the result if width is negative
 fails:Kernel.sprintf flags * left-justifies the result if specified with $ argument is negative
-fails:Kernel.sprintf precision string formats determines the maximum number of characters to be copied from the string
-fails:Kernel.sprintf reference by name %{name} style supports flags, width and precision
 fails:Kernel#sprintf other formats % alone raises an ArgumentError
 fails:Kernel.sprintf other formats % alone raises an ArgumentError
