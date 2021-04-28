@@ -64,7 +64,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
     public final Queue<SafepointAction> pendingSafepointActions = newLinkedBlockingQueue();
     Object threadGroup;
-    String sourceLocation;
+    public String sourceLocation;
     Object name = Nil.INSTANCE;
 
     public RubyThread(

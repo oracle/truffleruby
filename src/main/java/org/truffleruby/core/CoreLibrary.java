@@ -951,6 +951,7 @@ public class CoreLibrary {
             "/core/channel.rb",
             "/core/configuration.rb",
             "/core/false.rb",
+            "/core/fiber.rb",
             "/core/gc.rb",
             "/core/nil.rb",
             "/core/truffle/platform.rb",

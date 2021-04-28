@@ -91,21 +91,30 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     private RubyFiber createRootFiber(RubyLanguage language, RubyContext context, RubyThread thread) {
-        return createFiber(language, context, thread, context.getCoreLibrary().fiberClass, language.fiberShape);
+        return createFiber(
+                language,
+                context,
+                thread,
+                context.getCoreLibrary().fiberClass,
+                language.fiberShape,
+                "root");
     }
 
     public RubyFiber createFiber(RubyLanguage language, RubyContext context, RubyThread thread, RubyClass rubyClass,
-            Shape shape) {
+            Shape shape, String sourceLocation) {
         CompilerAsserts.partialEvaluationConstant(language);
         final RubyBasicObject fiberLocals = new RubyBasicObject(
                 context.getCoreLibrary().objectClass,
                 language.basicObjectShape);
         final RubyArray catchTags = ArrayHelpers.createEmptyArray(context, language);
 
-        return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread);
+        return new RubyFiber(rubyClass, shape, fiberLocals, catchTags, thread, sourceLocation);
     }
 
     public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {
+        final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
+        fiber.sourceLocation = RubyLanguage.fileLine(sourceSection);
+
         final TruffleContext truffleContext = context.getEnv().getContext();
 
         ThreadManager.FIBER_BEING_SPAWNED.set(fiber);

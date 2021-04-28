@@ -62,7 +62,7 @@ show_backtraces = -> {
     $stderr.puts 'All Fiber backtraces:'
   end
   Primitive.all_fibers_backtraces.each do |fiber, backtrace|
-    $stderr.puts fiber, backtrace, nil
+    $stderr.puts "#{fiber} of #{Primitive.fiber_thread(fiber)}", backtrace, nil
   end
 }
 
