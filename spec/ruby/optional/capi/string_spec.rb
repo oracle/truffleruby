@@ -1055,6 +1055,36 @@ end
       s = 'Result: true.'
       @s.rb_sprintf4(true.class).should == s
     end
+
+    it "truncates a string to a supplied precision if that is shorter than the string" do
+      s = 'Result: Hel.'
+      @s.rb_sprintf5(0, 3, "Hello").should == s
+    end
+
+    it "does not truncates a string to a supplied precision if that is longer than the string" do
+      s = 'Result: Hello.'
+      @s.rb_sprintf5(0, 8, "Hello").should == s
+    end
+
+    it "pads a string to a supplied width if that is longer than the string" do
+      s = 'Result:    Hello.'
+      @s.rb_sprintf5(8, 5, "Hello").should == s
+    end
+
+    it "truncates a VALUE string to a supplied precision if that is shorter than the VALUE string" do
+      s = 'Result: Hel.'
+      @s.rb_sprintf6(0, 3, "Hello").should == s
+    end
+
+    it "does not truncates a VALUE string to a supplied precision if that is longer than the VALUE string" do
+      s = 'Result: Hello.'
+      @s.rb_sprintf6(0, 8, "Hello").should == s
+    end
+
+    it "pads a VALUE string to a supplied width if that is longer than the VALUE string" do
+      s = 'Result:    Hello.'
+      @s.rb_sprintf6(8, 5, "Hello").should == s
+    end
   end
 
   describe "rb_vsprintf" do

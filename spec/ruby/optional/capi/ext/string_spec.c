@@ -453,6 +453,14 @@ static VALUE string_spec_rb_sprintf4(VALUE self, VALUE str) {
   return rb_sprintf("Result: %+" PRIsVALUE ".", str);
 }
 
+static VALUE string_spec_rb_sprintf5(VALUE self, VALUE width, VALUE precision, VALUE str) {
+  return rb_sprintf("Result: %*.*s.", FIX2INT(width), FIX2INT(precision), RSTRING_PTR(str));
+}
+
+static VALUE string_spec_rb_sprintf6(VALUE self, VALUE width, VALUE precision, VALUE str) {
+  return rb_sprintf("Result: %*.*" PRIsVALUE ".", FIX2INT(width), FIX2INT(precision), str);
+}
+
 static VALUE string_spec_rb_vsprintf_worker(char* fmt, ...) {
   va_list varargs;
   VALUE str;
@@ -608,6 +616,8 @@ void Init_string_spec(void) {
   rb_define_method(cls, "rb_sprintf2", string_spec_rb_sprintf2, 3);
   rb_define_method(cls, "rb_sprintf3", string_spec_rb_sprintf3, 1);
   rb_define_method(cls, "rb_sprintf4", string_spec_rb_sprintf4, 1);
+  rb_define_method(cls, "rb_sprintf5", string_spec_rb_sprintf5, 3);
+  rb_define_method(cls, "rb_sprintf6", string_spec_rb_sprintf6, 3);
   rb_define_method(cls, "rb_vsprintf", string_spec_rb_vsprintf, 4);
   rb_define_method(cls, "rb_str_equal", string_spec_rb_str_equal, 2);
   rb_define_method(cls, "rb_usascii_str_new", string_spec_rb_usascii_str_new, 2);
