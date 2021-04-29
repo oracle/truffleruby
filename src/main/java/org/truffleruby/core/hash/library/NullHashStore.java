@@ -42,4 +42,9 @@ public class NullHashStore {
         hash.store = packedStore;
         return packedHashStoreLibrary.set(packedStore, hash, key, value, byIdentity);
     }
+
+    @ExportMessage
+    protected void clear(RubyHash hash) {
+        // nothing to do, the hash is already empty
+    }
 }

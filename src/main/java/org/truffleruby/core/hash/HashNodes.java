@@ -225,22 +225,12 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNullHash(hash)")
-        protected RubyHash emptyNull(RubyHash hash) {
+        @Specialization(limit = "2")
+        protected RubyHash clear(RubyHash hash,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            hashes.clear(hash.store, hash);
             return hash;
         }
-
-        @Specialization(guards = "!isNullHash(hash)")
-        protected RubyHash empty(RubyHash hash) {
-            assert HashOperations.verifyStore(getContext(), hash);
-            hash.store = NullHashStore.NULL_HASH_STORE;
-            hash.size = 0;
-            hash.firstInSequence = null;
-            hash.lastInSequence = null;
-            assert HashOperations.verifyStore(getContext(), hash);
-            return hash;
-        }
-
     }
 
     @CoreMethod(names = "compare_by_identity", raiseIfFrozenSelf = true)
@@ -258,7 +248,6 @@ public abstract class HashNodes {
         protected RubyHash alreadyCompareByIdentity(RubyHash hash) {
             return hash;
         }
-
     }
 
     @CoreMethod(names = "compare_by_identity?")
@@ -270,7 +259,6 @@ public abstract class HashNodes {
         protected boolean compareByIdentity(RubyHash hash) {
             return profile.profile(hash.compareByIdentity);
         }
-
     }
 
     @CoreMethod(names = "default_proc")
@@ -280,7 +268,6 @@ public abstract class HashNodes {
         protected Object defaultProc(RubyHash hash) {
             return hash.defaultBlock;
         }
-
     }
 
     @Primitive(name = "hash_default_value")

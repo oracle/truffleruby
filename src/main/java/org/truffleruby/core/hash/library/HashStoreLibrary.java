@@ -18,6 +18,7 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 
 /** Library for accessing and manipulating the storage used for representing hashes. This includes reading, modifying,
  * and copy the storage. */
@@ -46,4 +47,11 @@ public abstract class HashStoreLibrary extends Library {
      * should be compared using Java identity, or using {@link SameOrEqlNode} semantics. */
     @Abstract
     public abstract boolean set(Object store, RubyHash hash, Object key, Object value, boolean byIdentity);
+
+    public void clear(Object store, RubyHash hash) {
+        hash.store = NullHashStore.NULL_HASH_STORE;
+        hash.size = 0;
+        hash.firstInSequence = null;
+        hash.lastInSequence = null;
+    }
 }
