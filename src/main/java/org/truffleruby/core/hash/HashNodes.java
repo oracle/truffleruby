@@ -11,8 +11,6 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
@@ -37,7 +35,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -216,14 +213,12 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetNode setNode = SetNode.create();
-
-        @Specialization
-        protected Object set(RubyHash hash, Object key, Object value) {
-            setNode.executeSet(hash, key, value, hash.compareByIdentity);
+        @Specialization(limit = "hashStrategyLimit()")
+        protected Object set(RubyHash hash, Object key, Object value,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            hashes.set(hash.store, hash, key, value, hash.compareByIdentity);
             return value;
         }
-
     }
 
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)

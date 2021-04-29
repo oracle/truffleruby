@@ -74,7 +74,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.DeleteLastNode;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.SetNode;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
@@ -743,11 +743,11 @@ public abstract class ThreadNodes {
     public abstract static class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
-        @Child private SetNode addNode = SetNode.create();
+        @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
         @Child private DeleteLastNode delNode = DeleteLastNode.create();
 
         protected boolean add(RubyHash hash, Object key, Object value) {
-            return addNode.executeSet(hash, key, value, true);
+            return hashes.set(hash.store, hash, key, value, true);
         }
 
         protected Object removeLast(RubyHash hash, Object key) {

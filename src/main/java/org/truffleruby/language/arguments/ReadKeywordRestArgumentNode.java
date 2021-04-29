@@ -14,7 +14,7 @@ import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.SetNode;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.methods.Arity;
@@ -30,7 +30,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
-    @Child private SetNode setNode = SetNode.create();
+    @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
 
     private final ConditionProfile noHash = ConditionProfile.create();
 
@@ -58,7 +58,8 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
         if (!keywordExcluded(key)) {
-            setNode.executeSet((RubyHash) kwRest, key, value, false);
+            final RubyHash hash = (RubyHash) kwRest;
+            hashes.set(hash.store, hash, key, value, false);
         }
     }
 

@@ -16,6 +16,7 @@ import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
 
 /** Library for accessing and manipulating the storage used for representing hashes. This includes reading, modifying,
@@ -30,9 +31,19 @@ public abstract class HashStoreLibrary extends Library {
         return FACTORY;
     }
 
+    public static HashStoreLibrary getDispatched() {
+        return FACTORY.createDispatched(HashGuards.hashStrategyLimit());
+    }
+
     /** Looks up the key in the hash and returns the associated value, or the result of calling {@code defaultNode} if
      * no entry for the given key exists. */
     @Abstract
     public abstract Object lookupOrDefault(Object store, Frame frame, RubyHash hash, Object key,
             BiFunctionNode defaultNode);
+
+    /** Associates the key with the value and returns true only if the hash changed as a result of the operation (i.e.
+     * returns false if the key was already associated with the value). {@code byIdentity} indicates whether the key
+     * should be compared using Java identity, or using {@link SameOrEqlNode} semantics. */
+    @Abstract
+    public abstract boolean set(Object store, RubyHash hash, Object key, Object value, boolean byIdentity);
 }

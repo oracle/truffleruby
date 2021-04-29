@@ -165,7 +165,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     public void writeHashEntry(Object key, Object value,
             @Cached @Exclusive DispatchNode set,
             @CachedLibrary("this") RubyLibrary rubyLibrary,
-            @Cached ForeignToRubyNode toRuby)
+            @Cached @Shared("toRuby") ForeignToRubyNode toRuby)
             throws UnsupportedMessageException {
         if (rubyLibrary.isFrozen(this)) {
             throw UnsupportedMessageException.create();
@@ -178,7 +178,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
             @Cached @Exclusive DispatchNode delete,
             @CachedLibrary("this") RubyLibrary rubyLibrary,
             @CachedLibrary("this") InteropLibrary interop,
-            @Cached @Exclusive ForeignToRubyNode toRuby)
+            @Cached @Shared("toRuby") ForeignToRubyNode toRuby)
             throws UnsupportedMessageException, UnknownKeyException {
         if (rubyLibrary.isFrozen(this)) {
             throw UnsupportedMessageException.create();

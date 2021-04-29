@@ -10,16 +10,18 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
-public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
+@GenerateUncached
+public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
@@ -30,7 +32,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
     @Specialization(
             guards = "rubyLibrary.isFrozen(string)",
-            limit = "getRubyLibraryCacheLimit()")
+            limit = "baseGetRubyLibraryCacheLimit()")
     protected Object alreadyFrozen(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
@@ -38,10 +40,10 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
     @Specialization(
             guards = { "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
-            limit = "getRubyLibraryCacheLimit()")
+            limit = "baseGetRubyLibraryCacheLimit()")
     protected Object dupAndFreeze(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
-            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject,
+            @CachedLibrary(limit = "baseGetRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject,
             @Cached DispatchNode dupNode) {
         final Object object = dupNode.call(string, "dup");
         rubyLibraryObject.freeze(object);
@@ -50,7 +52,7 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
     @Specialization(
             guards = { "!rubyLibrary.isFrozen(string)", "compareByIdentity" },
-            limit = "getRubyLibraryCacheLimit()")
+            limit = "baseGetRubyLibraryCacheLimit()")
     protected Object compareByIdentity(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
@@ -60,5 +62,4 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
     protected Object passThrough(Object value, boolean compareByIdentity) {
         return value;
     }
-
 }

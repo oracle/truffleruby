@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -148,7 +149,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     public static class GenericHashLiteralNode extends HashLiteralNode {
 
-        @Child SetNode setNode;
+        @Child HashStoreLibrary hashes;
         private final int bucketsCount;
 
         public GenericHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
@@ -160,9 +161,9 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
-            if (setNode == null) {
+            if (hashes == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                setNode = insert(SetNode.create());
+                hashes = insert(HashStoreLibrary.getDispatched());
             }
 
             final RubyHash hash = new RubyHash(
@@ -180,7 +181,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
             for (int n = 0; n < keyValues.length; n += 2) {
                 final Object key = keyValues[n].execute(frame);
                 final Object value = keyValues[n + 1].execute(frame);
-                setNode.executeSet(hash, key, value, false);
+                hashes.set(hash.store, hash, key, value, false);
             }
 
             return hash;
