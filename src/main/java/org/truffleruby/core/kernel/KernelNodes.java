@@ -9,9 +9,6 @@
  */
 package org.truffleruby.core.kernel;
 
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
-
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -45,7 +42,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
@@ -108,6 +105,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
@@ -1283,22 +1281,16 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "method", required = 1)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class MethodNode extends CoreMethodNode {
-
-        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create();
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
-
-        @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
-            return ToStringOrSymbolNodeGen.create(name);
-        }
+    @GenerateUncached
+    @CoreMethod(names = "method", required = 1, alwaysInlined = true)
+    public abstract static class MethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod method(VirtualFrame frame, Object self, Object name) {
-            return getMethodObjectNode.execute(frame, self, name, PRIVATE, readCallerFrame.execute(frame));
+        protected RubyMethod method(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @Cached ToStringOrSymbolNode toStringOrSymbolNode,
+                @Cached GetMethodObjectNode getMethodObjectNode) {
+            Object name = toStringOrSymbolNode.execute(args[0]);
+            return getMethodObjectNode.execute(callerFrame, self, name, DispatchConfiguration.PRIVATE);
         }
 
     }
@@ -1423,22 +1415,16 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "public_method", required = 1)
-    @NodeChild(value = "receiver", type = RubyNode.class)
-    @NodeChild(value = "name", type = RubyNode.class)
-    public abstract static class PublicMethodNode extends CoreMethodNode {
-
-        @Child private GetMethodObjectNode getMethodObjectNode = GetMethodObjectNode.create();
-        @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
-
-        @CreateCast("name")
-        protected RubyNode coerceToString(RubyNode name) {
-            return ToStringOrSymbolNodeGen.create(name);
-        }
+    @GenerateUncached
+    @CoreMethod(names = "public_method", required = 1, alwaysInlined = true)
+    public abstract static class PublicMethodNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected RubyMethod publicMethod(VirtualFrame frame, Object self, Object name) {
-            return getMethodObjectNode.execute(frame, self, name, PUBLIC, readCallerFrame.execute(frame));
+        protected RubyMethod method(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @Cached ToStringOrSymbolNode toStringOrSymbolNode,
+                @Cached GetMethodObjectNode getMethodObjectNode) {
+            Object name = toStringOrSymbolNode.execute(args[0]);
+            return getMethodObjectNode.execute(callerFrame, self, name, DispatchConfiguration.PUBLIC);
         }
 
     }
@@ -1500,7 +1486,7 @@ public abstract class KernelNodes {
         private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
-            dispatch = InternalRespondToNode.create(PUBLIC);
+            dispatch = InternalRespondToNode.create(DispatchConfiguration.PUBLIC);
             dispatchIgnoreVisibility = InternalRespondToNode.create();
             dispatchRespondToMissing = InternalRespondToNode.create();
         }
