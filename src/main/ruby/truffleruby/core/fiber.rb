@@ -9,6 +9,13 @@
 # GNU Lesser General Public License version 2.1.
 
 class Fiber
+
+  def raise(*args)
+    exc = Truffle::ExceptionOperations.make_exception(args)
+    exc = RuntimeError.new('') unless exc
+    Primitive.fiber_raise(self, exc)
+  end
+
   def inspect
     loc = Primitive.fiber_source_location(self)
     status = Primitive.fiber_status(self)
