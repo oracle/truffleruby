@@ -120,6 +120,24 @@ describe "Always-inlined core methods" do
         e.backtrace_locations[1].lineno.should == line + 2
       }
     end
+
+    guard -> { RUBY_ENGINE != "ruby" } do
+      it "for Method#call" do
+        def method_to_call
+          raise "foo"
+        end
+        line = __LINE__
+        meth = method(:method_to_call)
+        -> {
+          meth.call
+        }.should raise_error(RuntimeError, "foo") { |e|
+          e.backtrace_locations[0].label.should == 'method_to_call'
+          e.backtrace_locations[0].lineno.should == line - 2
+          e.backtrace_locations[1].label.should.start_with?('block (5 levels)')
+          e.backtrace_locations[1].lineno.should == line + 3
+        }
+      end
+    end
   end
 
   it "go uncached if seeing too many different always-inlined methods at a call site" do

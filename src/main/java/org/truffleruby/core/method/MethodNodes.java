@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.method;
 
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.frame.Frame;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -19,6 +21,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -126,14 +129,14 @@ public abstract class MethodNodes {
 
     }
 
-    @CoreMethod(names = { "call", "[]", "===" }, needsBlock = true, rest = true)
-    public abstract static class CallNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallBoundMethodNode callBoundMethodNode = CallBoundMethodNode.create();
+    @GenerateUncached
+    @CoreMethod(names = { "call", "[]", "===" }, needsBlock = true, rest = true, alwaysInlined = true)
+    public abstract static class CallNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        protected Object call(VirtualFrame frame, RubyMethod method, Object[] arguments, Object maybeBlock) {
-            return callBoundMethodNode.execute(frame, method, arguments, maybeBlock);
+        protected Object call(Frame callerFrame, RubyMethod method, Object[] args, Object block, RootCallTarget target,
+                @Cached CallBoundMethodNode callBoundMethodNode) {
+            return callBoundMethodNode.execute(callerFrame, method, args, block);
         }
 
     }
