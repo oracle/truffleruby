@@ -40,8 +40,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return LookupMethodNodeGen.create();
     }
 
-    public abstract InternalMethod execute(Frame frame, RubyClass metaClass, String name,
-            DispatchConfiguration config);
+    public abstract InternalMethod execute(Frame frame, RubyClass metaClass, String name, DispatchConfiguration config);
 
     @Specialization(
             // no need to guard on the context, the metaClass is context-specific

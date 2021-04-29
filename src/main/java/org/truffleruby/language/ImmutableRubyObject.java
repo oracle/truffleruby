@@ -14,7 +14,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
-import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.dispatch.DispatchConfiguration;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
@@ -112,13 +111,11 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public Object readMember(String name,
             @Cached @Shared("definedNode") InternalRespondToNode definedNode,
-            @Cached ForeignToRubyNode nameToRubyNode,
             @Cached GetMethodObjectNode getMethodObjectNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.execute(null, this, name)) {
-            Object rubyName = nameToRubyNode.executeConvert(name);
-            return getMethodObjectNode.execute(null, this, rubyName, DispatchConfiguration.PRIVATE);
+            return getMethodObjectNode.execute(null, this, name, DispatchConfiguration.PRIVATE);
         } else {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);
