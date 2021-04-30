@@ -36,4 +36,11 @@ public abstract class RubyBaseNode extends Node {
         return RubyLanguage.getCurrentLanguage().singleContext;
     }
 
+    public Object nilToNull(Object value) {
+        return value == nil ? null : value;
+    }
+
+    public Object nullToNil(Object value) {
+        return value == null ? nil : value;
+    }
 }
