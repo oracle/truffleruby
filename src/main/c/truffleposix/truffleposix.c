@@ -41,6 +41,8 @@ SUCH DAMAGE.
 /* For flock() on Darwin */
 #define _DARWIN_C_SOURCE 1
 
+#include "ruby/config.h"
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -88,6 +90,9 @@ struct truffleposix_stat {
   uint64_t mode;
   uint64_t gid;
   uint64_t uid;
+  uint32_t atime_nsec;
+  uint32_t mtime_nsec;
+  uint32_t ctime_nsec;
 };
 
 static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
@@ -406,6 +411,34 @@ static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer
   buffer->mode    = native_stat->st_mode;
   buffer->gid     = native_stat->st_gid;
   buffer->uid     = native_stat->st_uid;
+
+#if defined(HAVE_STRUCT_STAT_ST_ATIM)
+  buffer->atime_nsec = native_stat->st_atim.tv_nsec;
+#elif defined(HAVE_STRUCT_STAT_ST_ATIMESPEC)
+  buffer->atime_nsec = native_stat->st_atimespec.tv_nsec;
+#elif defined(HAVE_STRUCT_STAT_ST_ATIMENSEC)
+  buffer->atime_nsec = (long)native_stat->st_atimensec;
+#else
+  buffer->atime_nsec = 0
+#endif
+#if defined(HAVE_STRUCT_STAT_ST_MTIM)
+  buffer->mtime_nsec = native_stat->st_mtim.tv_nsec;
+#elif defined(HAVE_STRUCT_STAT_ST_MTIMESPEC)
+  buffer->mtime_nsec = native_stat->st_mtimespec.tv_nsec;
+#elif defined(HAVE_STRUCT_STAT_ST_MTIMENSEC)
+  buffer->mtime_nsec = (long)native_stat->st_mtimensec;
+#else
+  buffer->mtime_nsec = 0;
+#endif
+#if defined(HAVE_STRUCT_STAT_ST_CTIM)
+  buffer->ctime_nsec = native_stat->st_ctim.tv_nsec;
+#elif defined(HAVE_STRUCT_STAT_ST_CTIMESPEC)
+  buffer->ctime_nsec = native_stat->st_ctimespec.tv_nsec;
+#elif defined(HAVE_STRUCT_STAT_ST_CTIMENSEC)
+  buffer->ctime_nsec = (long)native_stat->st_ctimensec;
+#else
+  buffer->ctime_nsec = 0;
+#endif
 }
 
 #ifndef NO_CLOCK_GETTIME

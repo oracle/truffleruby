@@ -8,6 +8,7 @@ Bug fixes:
 * Fix of different values of self in different scopes.
 * `Truffle::POSIX.select` was being redefined repeatedly (#2332).
 * Fix the `--backtraces-raise` and `--backtraces-rescue` options in JVM mode (#2335).
+* Fix `File.{atime, mtime, ctime}` to include nanoseconds (#2337).
 
 Compatibility:
 
