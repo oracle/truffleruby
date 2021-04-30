@@ -21,8 +21,8 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.collections.BiConsumerNode;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiConsumer;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
@@ -183,16 +183,16 @@ public abstract class HashNodes {
         }
 
         public abstract Object executeGet(Frame frame, RubyHash hash, Object key,
-                BiFunctionNode defaultValueNode);
+                PEBiFunction defaultValueNode);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object getNull(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode) {
+        protected Object getNull(Frame frame, RubyHash hash, Object key, PEBiFunction defaultValueNode) {
             // frame should be virtual or null
             return defaultValueNode.accept((VirtualFrame) frame, hash, key);
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        protected Object getPackedArray(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
+        protected Object getPackedArray(Frame frame, RubyHash hash, Object key, PEBiFunction defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached HashingNodes.ToHash hashNode) {
             int hashed = hashNode.execute(key, hash.compareByIdentity); // Call key.hash only once
@@ -200,7 +200,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object getBuckets(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultValueNode,
+        protected Object getBuckets(Frame frame, RubyHash hash, Object key, PEBiFunction defaultValueNode,
                 @Cached LookupEntryNode lookupEntryNode,
                 @Cached BranchProfile notInHashProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(hash, key);
@@ -217,7 +217,7 @@ public abstract class HashNodes {
 
     @CoreMethod(names = "[]", required = 1)
     @ImportStatic(HashGuards.class)
-    public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements BiFunctionNode {
+    public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements PEBiFunction {
 
         @Child private DispatchNode callDefaultNode;
 
@@ -240,7 +240,7 @@ public abstract class HashNodes {
     }
 
     @Primitive(name = "hash_get_or_undefined")
-    public abstract static class GetOrUndefinedNode extends PrimitiveArrayArgumentsNode implements BiFunctionNode {
+    public abstract static class GetOrUndefinedNode extends PrimitiveArrayArgumentsNode implements PEBiFunction {
 
         @Child private HashLookupOrExecuteDefaultNode lookupNode = HashLookupOrExecuteDefaultNode.create();
 
@@ -950,11 +950,11 @@ public abstract class HashNodes {
             return EachKeyValueNodeGen.create();
         }
 
-        public abstract Object executeEachKeyValue(VirtualFrame frame, RubyHash hash, BiConsumerNode callbackNode,
+        public abstract Object executeEachKeyValue(VirtualFrame frame, RubyHash hash, PEBiConsumer callbackNode,
                 Object state);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object eachNull(RubyHash hash, BiConsumerNode callbackNode, Object state) {
+        protected Object eachNull(RubyHash hash, PEBiConsumer callbackNode, Object state) {
             return state;
         }
 
@@ -963,7 +963,7 @@ public abstract class HashNodes {
                 guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" },
                 limit = "getPackedHashLimit()")
         protected Object eachPackedArrayCached(
-                VirtualFrame frame, RubyHash hash, BiConsumerNode callbackNode, Object state,
+                VirtualFrame frame, RubyHash hash, PEBiConsumer callbackNode, Object state,
                 @Cached("getSize(hash)") int cachedSize) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] store = (Object[]) hash.store;
@@ -980,7 +980,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object eachBuckets(VirtualFrame frame, RubyHash hash, BiConsumerNode callbackNode, Object state) {
+        protected Object eachBuckets(VirtualFrame frame, RubyHash hash, PEBiConsumer callbackNode, Object state) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             Entry entry = hash.firstInSequence;

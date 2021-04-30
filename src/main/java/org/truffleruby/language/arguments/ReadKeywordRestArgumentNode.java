@@ -10,7 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiConsumerNode;
+import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements BiConsumerNode {
+public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements PEBiConsumer {
 
     @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 

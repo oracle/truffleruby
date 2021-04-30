@@ -13,7 +13,7 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -35,7 +35,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
     }
 
     public abstract Object executePackedLookup(Frame frame, RubyHash hash, Object key, int hashed,
-            BiFunctionNode defaultValueNode);
+            PEBiFunction defaultValueNode);
 
     @Specialization(
             guards = {
@@ -44,7 +44,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
                     "cachedIndex < getSize(hash)",
                     "sameKeysAtIndex(refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
             limit = "1")
-    protected Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, BiFunctionNode defaultValueNode,
+    protected Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
             @Cached ReferenceEqualNode refEqual,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
             @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
@@ -93,7 +93,7 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(replaces = "getConstantIndexPackedArray")
-    protected Object getPackedArray(Frame frame, RubyHash hash, Object key, int hashed, BiFunctionNode defaultValueNode,
+    protected Object getPackedArray(Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
             @Cached CompareHashKeysNode compareHashKeys,
             @Cached BranchProfile notInHashProfile,
             @Cached ConditionProfile byIdentityProfile,

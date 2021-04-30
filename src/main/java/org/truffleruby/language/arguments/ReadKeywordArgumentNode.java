@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadKeywordArgumentNode extends RubyContextSourceNode implements BiFunctionNode {
+public class ReadKeywordArgumentNode extends RubyContextSourceNode implements PEBiFunction {
 
     private final RubySymbol name;
     private final ConditionProfile defaultProfile = ConditionProfile.create();
