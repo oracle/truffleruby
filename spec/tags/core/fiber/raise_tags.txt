@@ -1,26 +1,2 @@
-fails:Fiber#raise aborts execution
-fails:Fiber#raise raises RuntimeError if no exception class is given
-fails:Fiber#raise raises a given Exception instance
-fails:Fiber#raise raises a RuntimeError if string given
-fails:Fiber#raise passes no arguments to the constructor when given only an exception class
-fails:Fiber#raise raises a TypeError when passed a non-Exception object
-fails:Fiber#raise raises a TypeError when passed true
-fails:Fiber#raise raises a TypeError when passed false
-fails:Fiber#raise raises a TypeError when passed nil
 fails:Fiber#raise re-raises a previously rescued exception without overwriting the backtrace
-fails:Fiber#raise allows Exception, message, and backtrace parameters
-fails:Fiber#raise raises RuntimeError by default
 fails:Fiber#raise raises FiberError if Fiber is not born
-fails:Fiber#raise raises FiberError if Fiber is dead
-fails:Fiber#raise accepts error class
-fails:Fiber#raise accepts error message
-fails:Fiber#raise does not accept array of backtrace information only
-fails:Fiber#raise does not accept integer
-fails:Fiber#raise accepts error class with error message
-fails:Fiber#raise accepts error class with with error message and backtrace information
-fails:Fiber#raise does not accept only error message and backtrace information
-fails:Fiber#raise raises a FiberError if invoked from a different Thread
-fails:Fiber#raise kills Fiber
-fails:Fiber#raise raises a FiberError if invoked on a transferring Fiber
-fails:Fiber#raise accepts an exception that implements to_hash
-fails:Fiber#raise allows the message parameter to be a hash

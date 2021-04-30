@@ -22,6 +22,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.RubyThread;
@@ -266,8 +267,12 @@ public class FiberManager implements ObjectGraphNode {
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
             assert context.getThreadManager().getCurrentThread() == resumeMessage.getSendingFiber().rubyThread;
-            if (resumeMessage.getOperation() == FiberOperation.RESUME) {
+            if (resumeMessage.getOperation() == FiberOperation.RESUME ||
+                    resumeMessage.getOperation() == FiberOperation.RAISE) {
                 fiber.lastResumedByFiber = resumeMessage.getSendingFiber();
+            }
+            if (resumeMessage.getOperation() == FiberOperation.RAISE) {
+                throw new RaiseException(context, (RubyException) resumeMessage.getArgs()[0]);
             }
             return resumeMessage.getArgs();
         } else {

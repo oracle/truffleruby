@@ -20,6 +20,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -149,13 +150,19 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "resume", rest = true)
-    public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
+
+    public abstract static class FiberResumeNode extends CoreMethodArrayArgumentsNode {
+
+        public static FiberResumeNode create() {
+            return FiberNodesFactory.FiberResumeNodeFactory.create(null);
+        }
+
+        public abstract Object executeResume(FiberOperation operation, RubyFiber fiber, Object[] args);
 
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object resume(RubyFiber fiber, Object[] args,
+        protected Object resume(FiberOperation operation, RubyFiber fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile doubleResumeProfile,
                 @Cached ConditionProfile transferredProfile) {
@@ -178,7 +185,32 @@ public abstract class FiberNodes {
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
             return fiberTransferNode
-                    .executeTransferControlTo(currentThread, currentFiber, fiber, FiberOperation.RESUME, args);
+                    .executeTransferControlTo(currentThread, currentFiber, fiber, operation, args);
+        }
+
+    }
+
+
+    @Primitive(name = "fiber_raise")
+    public abstract static class FiberRaiseNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
+
+        @Specialization
+        protected Object raise(RubyFiber fiber, RubyException exception) {
+            return fiberResumeNode.executeResume(FiberOperation.RAISE, fiber, new Object[]{ exception });
+        }
+
+    }
+
+    @CoreMethod(names = "resume", rest = true)
+    public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
+
+        @Specialization
+        protected Object resume(RubyFiber fiber, Object[] args) {
+            return fiberResumeNode.executeResume(FiberOperation.RESUME, fiber, args);
         }
 
     }

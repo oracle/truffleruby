@@ -10,6 +10,7 @@
 package org.truffleruby.core.fiber;
 
 public enum FiberOperation {
+    RAISE,
     RESUME,
     TRANSFER,
     YIELD
