@@ -11,11 +11,11 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -40,21 +40,21 @@ public class PackedHashStoreLibrary {
     protected static Object lookupOrDefault(
             Object[] store, Frame frame, RubyHash hash, Object key, BiFunctionNode defaultNode,
             @Cached LookupPackedEntryNode lookupPackedEntryNode,
-            @Cached @Exclusive HashingNodes.ToHash hashNode) {
+            @Cached @Shared("toHash") HashingNodes.ToHash hashNode) {
 
         int hashed = hashNode.execute(key, hash.compareByIdentity);
-        return lookupPackedEntryNode.executePackedLookup((VirtualFrame) frame, hash, key, hashed, defaultNode);
+        return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultNode);
     }
 
     @ExportMessage
     protected static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
-            @Cached ConditionProfile byIdentityProfile,
+            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
-            @Cached @Exclusive HashingNodes.ToHash hashNode,
+            @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
             @Cached PropagateSharingNode propagateSharingKey,
             @Cached PropagateSharingNode propagateSharingValue,
-            @Cached CompareHashKeysNode compareHashKeys,
-            @Cached ConditionProfile strategy,
+            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+            @Cached @Exclusive ConditionProfile strategy,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
@@ -93,5 +93,38 @@ public class PackedHashStoreLibrary {
 
         assert HashOperations.verifyStore(context, hash);
         return true;
+    }
+
+    @ExportMessage
+    protected static Object delete(Object[] store, RubyHash hash, Object key,
+            @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
+            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+        final int hashed = hashNode.execute(key, compareByIdentity);
+        final int size = hash.size;
+
+        // written very carefully to allow PE
+        for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+            if (n < size) {
+                final int otherHashed = PackedArrayStrategy.getHashed(store, n);
+                final Object otherKey = PackedArrayStrategy.getKey(store, n);
+
+                if (compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                    final Object value = PackedArrayStrategy.getValue(store, n);
+                    PackedArrayStrategy.removeEntry(language, store, n);
+                    hash.size -= 1;
+                    assert HashOperations.verifyStore(context, hash);
+                    return value;
+                }
+            }
+        }
+
+        assert HashOperations.verifyStore(context, hash);
+        return null;
     }
 }

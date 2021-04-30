@@ -283,90 +283,21 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
-        @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-        @Child private LookupEntryNode lookupEntryNode = LookupEntryNode.create();
-        @Child private CallBlockNode yieldNode = CallBlockNode.create();
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected Object deleteNull(RubyHash hash, Object key, Nil block) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            return nil;
-        }
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected Object deleteNull(RubyHash hash, Object key, RubyProc block) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            return yieldNode.yield(block, key);
-        }
-
-        @Specialization(guards = "isPackedHash(hash)")
-        protected Object deletePackedArray(RubyHash hash, Object key, Object maybeBlock,
-                @Cached ConditionProfile byIdentityProfile) {
-            assert HashOperations.verifyStore(getContext(), hash);
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-            final int hashed = hashNode.execute(key, compareByIdentity);
-
-            final Object[] store = (Object[]) hash.store;
-            final int size = hash.size;
-
-            for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    final int otherHashed = PackedArrayStrategy.getHashed(store, n);
-                    final Object otherKey = PackedArrayStrategy.getKey(store, n);
-
-                    if (equalKeys(compareByIdentity, key, hashed, otherKey, otherHashed)) {
-                        final Object value = PackedArrayStrategy.getValue(store, n);
-                        PackedArrayStrategy.removeEntry(getLanguage(), store, n);
-                        hash.size -= 1;
-                        assert HashOperations.verifyStore(getContext(), hash);
-                        return value;
-                    }
-                }
-            }
-
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            if (maybeBlock == nil) {
-                return nil;
-            } else {
+        @Specialization(limit = "hashStrategyLimit()")
+        protected Object delete(RubyHash hash, Object key, Object maybeBlock,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes,
+                @Cached CallBlockNode yieldNode,
+                @Cached ConditionProfile hasValue,
+                @Cached ConditionProfile hasBlock) {
+            final Object value = hashes.delete(hash.store, hash, key);
+            if (hasValue.profile(value != null)) {
+                return value;
+            } else if (hasBlock.profile(maybeBlock != nil)) {
                 return yieldNode.yield((RubyProc) maybeBlock, key);
+            } else {
+                return nil;
             }
         }
-
-        @Specialization(guards = "isBucketHash(hash)")
-        protected Object delete(RubyHash hash, Object key, Object maybeBlock) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final HashLookupResult lookupResult = lookupEntryNode.lookup(hash, key);
-            final Entry entry = lookupResult.getEntry();
-
-            if (entry == null) {
-                if (maybeBlock == nil) {
-                    return nil;
-                } else {
-                    return yieldNode.yield((RubyProc) maybeBlock, key);
-                }
-            }
-
-            BucketsStrategy.removeFromSequenceChain(hash, entry);
-
-            BucketsStrategy
-                    .removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
-
-            hash.size -= 1;
-
-            assert HashOperations.verifyStore(getContext(), hash);
-            return entry.getValue();
-        }
-
-        protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
-                int otherHashed) {
-            return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
-        }
-
     }
 
     @CoreMethod(names = { "each", "each_pair" }, needsBlock = true, enumeratorSize = "size")

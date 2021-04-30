@@ -116,4 +116,24 @@ public class EntryArrayHashStore {
             return false;
         }
     }
+
+    @ExportMessage
+    protected Object delete(RubyHash hash, Object key,
+            @Cached @Shared("lookup") LookupEntryNode lookup,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+        final HashLookupResult lookupResult = lookup.lookup(hash, key);
+        final Entry entry = lookupResult.getEntry();
+
+        if (entry == null) {
+            return null;
+        }
+
+        BucketsStrategy.removeFromSequenceChain(hash, entry);
+        BucketsStrategy.removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
+        hash.size -= 1;
+        assert HashOperations.verifyStore(context, hash);
+        return entry.getValue();
+    }
 }

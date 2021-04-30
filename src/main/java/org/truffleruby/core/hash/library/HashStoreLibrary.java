@@ -54,4 +54,9 @@ public abstract class HashStoreLibrary extends Library {
         hash.firstInSequence = null;
         hash.lastInSequence = null;
     }
+
+    /** Removes the entry for the key from the hash, and returns the associated value. If the hash does not have an
+     * entry for the key, returns {@code null}. */
+    @Abstract
+    public abstract Object delete(Object store, RubyHash hash, Object key);
 }

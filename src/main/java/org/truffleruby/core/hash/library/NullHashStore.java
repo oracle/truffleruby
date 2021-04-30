@@ -47,4 +47,9 @@ public class NullHashStore {
     protected void clear(RubyHash hash) {
         // nothing to do, the hash is already empty
     }
+
+    @ExportMessage
+    protected Object delete(RubyHash hash, Object key) {
+        return null;
+    }
 }
