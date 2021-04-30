@@ -1,2 +1,1 @@
 fails:Fiber#raise re-raises a previously rescued exception without overwriting the backtrace
-fails:Fiber#raise raises FiberError if Fiber is not born

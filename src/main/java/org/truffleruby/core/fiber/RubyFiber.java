@@ -33,6 +33,7 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
     public final RubyThread rubyThread;
     volatile RubyFiber lastResumedByFiber = null;
+    public volatile boolean resumed = false;
     public volatile boolean alive = true;
     public Thread thread = null;
     volatile boolean transferred = false;
@@ -66,8 +67,9 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     }
 
     public String getStatus() {
-        // TODO (eregon, 28 April 2021): should be "created" if never resumed
-        if (alive) {
+        if (!resumed) {
+            return "created";
+        } else if (alive) {
             if (rubyThread.fiberManager.getCurrentFiberRacy() == this) {
                 return "resumed";
             } else {

@@ -181,6 +181,7 @@ public class FiberManager implements ObjectGraphNode {
             final Object result;
             try {
                 final Object[] args = handleMessage(fiber, message);
+                fiber.resumed = true;
                 result = ProcOperations.rootCall(block, args);
             } finally {
                 // Make sure that other fibers notice we are dead before they gain control back
