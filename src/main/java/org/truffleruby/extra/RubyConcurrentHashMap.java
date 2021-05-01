@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2021 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -22,31 +22,33 @@ public class RubyConcurrentHashMap extends RubyDynamicObject {
    public static class Key {
 
        public final Object key;
+       private final int hashCode;
 
-       public Key(Object key) {
+       public Key(Object key, int hashCode) {
            this.key = key;
+           this.hashCode = hashCode;
        }
 
        @Override
        public int hashCode() {
-           final Object code = RubyContext.send(key, "hash");
-           if (code instanceof Integer) {
-               return (int) code;
-           } else if (code instanceof Long) {
-               return (int) (long) code;
-           } else {
-               throw new UnsupportedOperationException(code.getClass().getName());
-           }
+           return hashCode;
        }
 
        @Override
-       public boolean equals(Object otherKey) {
-           assert otherKey instanceof Key;
-           final Object code = RubyContext.send(key, "eql?", ((Key) otherKey).key);
-           if (code instanceof Boolean) {
-               return (boolean) code;
+       public boolean equals(Object other) {
+           assert other instanceof Key;
+           final Key otherKey = (Key) other;
+
+           if (hashCode != otherKey.hashCode) {
+               return false;
            } else {
-               throw new UnsupportedOperationException(code.getClass().getName());
+               // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
+               final Object returnValue = RubyContext.send(key, "eql?", otherKey.key);
+               if (returnValue instanceof Boolean) {
+                   return (boolean) returnValue;
+               } else {
+                   throw new UnsupportedOperationException(returnValue.getClass().getName());
+               }
            }
        }
    }
