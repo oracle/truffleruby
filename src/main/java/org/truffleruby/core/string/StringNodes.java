@@ -5200,7 +5200,9 @@ public abstract class StringNodes {
                 final ConcatRope concatRope = (ConcatRope) base;
 
                 final ConcatState state = concatRope.getState();
-                if (state.isChildren()) {
+                if (state.isFlattened()) {
+                    return new SearchResult(index, base);
+                } else {
                     final Rope left = state.left;
                     final Rope right = state.right;
                     if (index + characterLength <= left.characterLength()) {
@@ -5213,8 +5215,6 @@ public abstract class StringNodes {
                     } else {
                         return new SearchResult(index, concatRope);
                     }
-                } else {
-                    return new SearchResult(index, base);
                 }
             } else if (base instanceof RepeatingRope) {
                 final RepeatingRope repeatingRope = (RepeatingRope) base;

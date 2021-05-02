@@ -379,7 +379,7 @@ public class RopeOperations {
                 final ConcatRope concatRope = (ConcatRope) current;
 
                 final ConcatState state = concatRope.getState();
-                if (state.isBytes()) {
+                if (state.isFlattened()) {
                     // The rope got concurrently flattened between entering the iteration and reaching here,
                     // restart the iteration from the top.
                     workStack.push(concatRope);
@@ -508,7 +508,7 @@ public class RopeOperations {
             } else if (rope instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) rope;
                 final ConcatState state = concatRope.getState();
-                if (state.isBytes()) {
+                if (state.isFlattened()) {
                     // Rope got concurrently flattened.
                     return state.bytes[index];
                 }
@@ -580,7 +580,7 @@ public class RopeOperations {
             } else if (rope instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) rope;
                 final ConcatState state = concatRope.getState();
-                if (state.isBytes()) {
+                if (state.isFlattened()) {
                     // Rope got concurrently flattened.
                     resultHash = Hashing.stringHash(state.bytes, startingHashCode, offset, length);
                 } else {

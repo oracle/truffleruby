@@ -33,12 +33,8 @@ public class ConcatRope extends ManagedRope {
             this.bytes = bytes;
         }
 
-        public boolean isBytes() {
+        public boolean isFlattened() {
             return bytes != null;
-        }
-
-        public boolean isChildren() {
-            return bytes == null;
         }
     }
 
