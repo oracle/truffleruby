@@ -89,11 +89,15 @@ public class ConcatRope extends ManagedRope {
 
     @Override
     protected byte[] getBytesSlow() {
+        flatten();
+        return bytes;
+    }
+
+    private void flatten() {
         bytes = RopeOperations.flattenBytes(this);
         MemoryFence.storeStore();
         left = null;
         right = null;
-        return bytes;
     }
 
     /** Access the state in a way that prevents race conditions.
