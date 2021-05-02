@@ -91,6 +91,10 @@ public abstract class FiberNodes {
 
         @Specialization
         protected RubyFiber allocate(RubyClass rubyClass) {
+            if (getContext().getOptions().BACKTRACE_ON_NEW_FIBER) {
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("fiber: ", this);
+            }
+
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             final RubyFiber fiber = thread.fiberManager
                     .createFiber(

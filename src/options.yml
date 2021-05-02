@@ -111,10 +111,14 @@ EXPERT:
     BACKTRACES_INTERLEAVE_JAVA: [backtraces-interleave-java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
     BACKTRACES_LIMIT: [backtraces-limit, integer, 9999, Limit the size of Ruby backtraces]
     BACKTRACES_OMIT_UNUSED: [backtraces-omit-unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
+
+    # Print backtraces at key events
     BACKTRACE_ON_INTERRUPT: [backtraces-on-interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]
     BACKTRACE_ON_SIGALRM: [backtraces-sigalrm, boolean, '!EMBEDDED', Show the backtraces of all Threads on SIGALRM]
     BACKTRACE_ON_RAISE: [backtraces-raise, boolean, false, Show the backtraces of exceptions at the point of them being raised]
     BACKTRACE_ON_RESCUE: [backtraces-rescue, boolean, false, Show the backtraces of exceptions at the point of them being rescued]
+    BACKTRACE_ON_NEW_THREAD: [backtraces-new-thread, boolean, false, Show a backtrace when new threads are created]
+    BACKTRACE_ON_NEW_FIBER: [backtraces-new-fiber, boolean, false, Show a backtrace when new fibers are created]
 
     # C extension options
     CEXTS: [cexts, boolean, true, Enable use of C extensions]

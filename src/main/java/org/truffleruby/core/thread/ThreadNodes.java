@@ -374,6 +374,10 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected RubyThread allocate(RubyClass rubyClass) {
+            if (getContext().getOptions().BACKTRACE_ON_NEW_THREAD) {
+                getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr("thread: ", this);
+            }
+
             final Shape shape = getLanguage().threadShape;
             final RubyThread instance = getContext().getThreadManager().createThread(rubyClass, shape, getLanguage());
             AllocationTracing.trace(instance, this);

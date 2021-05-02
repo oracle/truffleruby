@@ -66,6 +66,8 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_SIGALRM_KEY = new OptionKey<>(!EMBEDDED_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BACKTRACE_ON_RAISE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_RESCUE_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> BACKTRACE_ON_NEW_THREAD_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> BACKTRACE_ON_NEW_FIBER_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY = new OptionKey<>(true);
@@ -470,6 +472,20 @@ public class OptionsCatalog {
     public static final OptionDescriptor BACKTRACE_ON_RESCUE = OptionDescriptor
             .newBuilder(BACKTRACE_ON_RESCUE_KEY, "ruby.backtraces-rescue")
             .help("Show the backtraces of exceptions at the point of them being rescued")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_ON_NEW_THREAD = OptionDescriptor
+            .newBuilder(BACKTRACE_ON_NEW_THREAD_KEY, "ruby.backtraces-new-thread")
+            .help("Show a backtrace when new threads are created")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor BACKTRACE_ON_NEW_FIBER = OptionDescriptor
+            .newBuilder(BACKTRACE_ON_NEW_FIBER_KEY, "ruby.backtraces-new-fiber")
+            .help("Show a backtrace when new fibers are created")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1163,6 +1179,10 @@ public class OptionsCatalog {
                 return BACKTRACE_ON_RAISE;
             case "ruby.backtraces-rescue":
                 return BACKTRACE_ON_RESCUE;
+            case "ruby.backtraces-new-thread":
+                return BACKTRACE_ON_NEW_THREAD;
+            case "ruby.backtraces-new-fiber":
+                return BACKTRACE_ON_NEW_FIBER;
             case "ruby.cexts":
                 return CEXTS;
             case "ruby.cexts-lock":
@@ -1386,6 +1406,8 @@ public class OptionsCatalog {
             BACKTRACE_ON_SIGALRM,
             BACKTRACE_ON_RAISE,
             BACKTRACE_ON_RESCUE,
+            BACKTRACE_ON_NEW_THREAD,
+            BACKTRACE_ON_NEW_FIBER,
             CEXTS,
             CEXT_LOCK,
             CEXTS_PREPEND_TOOLCHAIN_TO_PATH,
