@@ -197,7 +197,14 @@ public abstract class FiberNodes {
         @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
 
         @Specialization
-        protected Object raise(RubyFiber fiber, RubyException exception) {
+        protected Object raise(RubyFiber fiber, RubyException exception,
+                @Cached BranchProfile errorProfile) {
+            if (!fiber.resumed) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("cannot raise exception on unborn fiber", this));
+            }
             return fiberResumeNode.executeResume(FiberOperation.RAISE, fiber, new Object[]{ exception });
         }
 
