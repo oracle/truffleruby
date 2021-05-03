@@ -747,7 +747,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -768,7 +768,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; O: %d; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -795,7 +795,7 @@ public abstract class RopeNodes {
             if (state.isFlattened()) {
                 System.err.println(StringUtils.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                        printString ? rope.toString() : "<skipped>",
+                        printString ? RopeOperations.escape(rope) : "<skipped>",
                         rope.getClass().getSimpleName(),
                         bytesAreNull,
                         rope.byteLength(),
@@ -805,7 +805,7 @@ public abstract class RopeNodes {
             } else {
                 System.err.println(StringUtils.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                        printString ? rope.toString() : "<skipped>",
+                        printString ? RopeOperations.escape(rope) : "<skipped>",
                         rope.getClass().getSimpleName(),
                         bytesAreNull,
                         rope.byteLength(),
@@ -830,7 +830,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; T: %d; D: %d; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -854,7 +854,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; V: %d, D: %d; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),

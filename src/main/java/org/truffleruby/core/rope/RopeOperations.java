@@ -687,4 +687,32 @@ public class RopeOperations {
         //   to worry about the risk of retaining a substring rope whose child contains the value.
         return rope.byteLength() >= value.length() && RopeOperations.decodeRope(rope).contains(value);
     }
+
+    public static String escape(Rope rope) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append('"');
+
+        for (int i = 0; i < rope.byteLength(); i++) {
+            final byte character = rope.get(i);
+            switch (character) {
+                case '\\':
+                    builder.append("\\");
+                    break;
+                case '"':
+                    builder.append("\\\"");
+                    break;
+                default:
+                    if (character >= 32 && character <= 126) {
+                        builder.append((char) character);
+                    } else {
+                        builder.append(StringUtils.format("\\x%02x", character));
+                    }
+                    break;
+            }
+        }
+
+        builder.append('"');
+        return builder.toString();
+    }
+
 }
