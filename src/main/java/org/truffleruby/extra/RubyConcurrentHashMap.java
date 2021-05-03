@@ -11,7 +11,6 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -53,11 +52,9 @@ public class RubyConcurrentHashMap extends RubyDynamicObject {
        }
    }
 
-  final RubyBasicObject options;
   public ConcurrentHashMap<Key, Object> concurrentHash = new ConcurrentHashMap<>();
 
-  public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape, RubyBasicObject options) {
+  public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape) {
       super(rubyClass, shape);
-      this.options = options;
   }
 }

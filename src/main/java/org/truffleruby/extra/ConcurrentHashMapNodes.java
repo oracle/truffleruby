@@ -42,7 +42,7 @@ public class ConcurrentHashMapNodes {
         @Specialization
         protected RubyConcurrentHashMap allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().concurrentHashMapShape;
-            final RubyConcurrentHashMap instance = new RubyConcurrentHashMap(rubyClass, shape, null);
+            final RubyConcurrentHashMap instance = new RubyConcurrentHashMap(rubyClass, shape);
             AllocationTracing.trace(instance, this);
             return instance;
         }
