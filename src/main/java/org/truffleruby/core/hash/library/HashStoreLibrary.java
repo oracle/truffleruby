@@ -77,6 +77,10 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract void each(Object store, RubyHash hash, RubyProc block);
 
+    /** Replaces the contents of {@code dest} with a copy of {@code hash}. */
+    @Abstract
+    public abstract void replace(Object store, RubyHash hash, RubyHash dest);
+
     /** cf. {@link #each} */
     @GenerateUncached
     public abstract static class YieldPairNode extends RubyBaseNode {

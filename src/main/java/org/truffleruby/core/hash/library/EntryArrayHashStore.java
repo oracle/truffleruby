@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -62,8 +64,8 @@ public class EntryArrayHashStore {
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
             @Cached ConditionProfile byIdentityProfile,
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
-            @Cached PropagateSharingNode propagateSharingKey,
-            @Cached PropagateSharingNode propagateSharingValue,
+            @Cached @Exclusive PropagateSharingNode propagateSharingKey,
+            @Cached @Exclusive PropagateSharingNode propagateSharingValue,
             @Cached @Shared("lookup") LookupEntryNode lookup,
             @Cached ConditionProfile found,
             @Cached ConditionProfile bucketCollision,
@@ -151,5 +153,24 @@ public class EntryArrayHashStore {
             yieldPair.execute(block, entry.getKey(), entry.getValue());
             entry = entry.getNextInSequence();
         }
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    protected void replace(RubyHash hash, RubyHash dest,
+            @Cached @Exclusive PropagateSharingNode propagateSharing,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        if (hash == dest) {
+            return;
+        }
+
+        propagateSharing.executePropagate(dest, hash);
+        BucketsStrategy.copyInto(context, hash, dest);
+        dest.defaultBlock = hash.defaultBlock;
+        dest.defaultValue = hash.defaultValue;
+        dest.compareByIdentity = hash.compareByIdentity;
+
+        assert HashOperations.verifyStore(context, dest);
     }
 }

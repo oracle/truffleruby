@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
@@ -16,11 +18,14 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
@@ -57,5 +62,26 @@ public class NullHashStore {
     @ExportMessage
     protected void each(RubyHash hash, RubyProc block) {
         // nothing to do, the hash is empty
+    }
+
+    @ExportMessage
+    protected void replace(RubyHash hash, RubyHash dest,
+            @Cached PropagateSharingNode propagateSharing,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        if (hash == dest) {
+            return;
+        }
+
+        propagateSharing.executePropagate(dest, hash);
+
+        dest.store = NullHashStore.NULL_HASH_STORE;
+        dest.size = 0;
+        dest.firstInSequence = null;
+        dest.lastInSequence = null;
+        dest.defaultBlock = hash.defaultBlock;
+        dest.defaultValue = hash.defaultValue;
+        dest.compareByIdentity = hash.compareByIdentity;
+
+        assert HashOperations.verifyStore(context, dest);
     }
 }

@@ -56,8 +56,8 @@ public class PackedHashStoreLibrary {
             @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-            @Cached PropagateSharingNode propagateSharingKey,
-            @Cached PropagateSharingNode propagateSharingValue,
+            @Cached @Exclusive PropagateSharingNode propagateSharingKey,
+            @Cached @Exclusive PropagateSharingNode propagateSharingValue,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
             @Cached @Exclusive ConditionProfile strategy,
             @CachedLanguage RubyLanguage language,
@@ -160,5 +160,29 @@ public class PackedHashStoreLibrary {
             final Node node = self.isAdoptable() ? self : EncapsulatingNodeReference.getCurrent().get();
             LoopNode.reportLoopCount(node, n);
         }
+    }
+
+    @ExportMessage
+    protected static void replace(Object[] store, RubyHash hash, RubyHash dest,
+            @Cached @Exclusive PropagateSharingNode propagateSharing,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        if (hash == dest) {
+            return;
+        }
+
+        propagateSharing.executePropagate(dest, hash);
+
+        Object storeCopy = PackedArrayStrategy.copyStore(language, store);
+        int size = hash.size;
+        dest.store = storeCopy;
+        dest.size = size;
+        dest.firstInSequence = null;
+        dest.lastInSequence = null;
+        dest.defaultBlock = hash.defaultBlock;
+        dest.defaultValue = hash.defaultValue;
+        dest.compareByIdentity = hash.compareByIdentity;
+
+        assert HashOperations.verifyStore(context, dest);
     }
 }

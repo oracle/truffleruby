@@ -45,7 +45,6 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -371,90 +370,31 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
-
         public static InitializeCopyNode create() {
             return InitializeCopyNodeFactory.create(null);
         }
 
-        public abstract RubyHash executeReplace(RubyHash self, RubyHash from);
+        public abstract RubyHash execute(RubyHash self, RubyHash from);
 
-        @Specialization(guards = "isNullHash(from)")
-        protected RubyHash replaceNull(RubyHash self, RubyHash from) {
-            if (self == from) {
-                return self;
-            }
-
-            propagateSharingNode.executePropagate(self, from);
-
-            self.store = NullHashStore.NULL_HASH_STORE;
-            self.size = 0;
-            self.firstInSequence = null;
-            self.lastInSequence = null;
-
-            copyOtherFields(self, from);
-
-            assert HashOperations.verifyStore(getContext(), self);
-            return self;
-        }
-
-        @Specialization(guards = "isPackedHash(from)")
-        protected RubyHash replacePackedArray(RubyHash self, RubyHash from) {
-            if (self == from) {
-                return self;
-            }
-
-            propagateSharingNode.executePropagate(self, from);
-
-            final Object[] store = (Object[]) from.store;
-            Object storeCopy = PackedArrayStrategy.copyStore(getLanguage(), store);
-            int size = from.size;
-            self.store = storeCopy;
-            self.size = size;
-            self.firstInSequence = null;
-            self.lastInSequence = null;
-
-            copyOtherFields(self, from);
-
-            assert HashOperations.verifyStore(getContext(), self);
-            return self;
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "isBucketHash(from)")
-        protected RubyHash replaceBuckets(RubyHash self, RubyHash from) {
-            if (self == from) {
-                return self;
-            }
-
-            propagateSharingNode.executePropagate(self, from);
-
-            BucketsStrategy.copyInto(getContext(), from, self);
-            copyOtherFields(self, from);
-
-            assert HashOperations.verifyStore(getContext(), self);
+        @Specialization(limit = "hashStrategyLimit()")
+        protected RubyHash replace(RubyHash self, RubyHash from,
+                @CachedLibrary("from.store") HashStoreLibrary hashes) {
+            hashes.replace(from.store, from, self);
             return self;
         }
 
         @Specialization(guards = "!isRubyHash(from)")
         protected RubyHash replaceCoerce(RubyHash self, Object from,
                 @Cached DispatchNode coerceNode,
-                @Cached InitializeCopyNode initializeCopyNode) {
+                @Cached InitializeCopyNode initializeCopy) {
             final Object otherHash = coerceNode.call(
                     coreLibrary().truffleTypeModule,
                     "coerce_to",
                     from,
                     coreLibrary().hashClass,
                     coreSymbols().TO_HASH);
-            return initializeCopyNode.executeReplace(self, (RubyHash) otherHash);
+            return initializeCopy.execute(self, (RubyHash) otherHash);
         }
-
-        private void copyOtherFields(RubyHash self, RubyHash from) {
-            self.defaultBlock = from.defaultBlock;
-            self.defaultValue = from.defaultValue;
-            self.compareByIdentity = from.compareByIdentity;
-        }
-
     }
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
@@ -539,7 +479,6 @@ public abstract class HashNodes {
         protected RubyProc setDefaultProc(RubyHash hash, RubyProc defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(hash, defaultProc);
-
             hash.defaultValue = nil;
             hash.defaultBlock = defaultProc;
             return defaultProc;
@@ -551,7 +490,6 @@ public abstract class HashNodes {
             hash.defaultBlock = nil;
             return nil;
         }
-
     }
 
     @CoreMethod(names = "default=", required = 1, raiseIfFrozenSelf = true)
@@ -657,7 +595,6 @@ public abstract class HashNodes {
         protected int sizePackedArray(RubyHash hash) {
             return hash.size;
         }
-
     }
 
     @ImportStatic(HashGuards.class)
