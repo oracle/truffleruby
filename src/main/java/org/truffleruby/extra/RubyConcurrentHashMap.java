@@ -18,43 +18,43 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RubyConcurrentHashMap extends RubyDynamicObject {
 
-   public static class Key {
+    public static class Key {
 
-       public final Object key;
-       private final int hashCode;
+        public final Object key;
+        private final int hashCode;
 
-       public Key(Object key, int hashCode) {
-           this.key = key;
-           this.hashCode = hashCode;
-       }
+        public Key(Object key, int hashCode) {
+            this.key = key;
+            this.hashCode = hashCode;
+        }
 
-       @Override
-       public int hashCode() {
-           return hashCode;
-       }
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
 
-       @Override
-       public boolean equals(Object other) {
-           assert other instanceof Key;
-           final Key otherKey = (Key) other;
+        @Override
+        public boolean equals(Object other) {
+            assert other instanceof Key;
+            final Key otherKey = (Key) other;
 
-           if (hashCode != otherKey.hashCode) {
-               return false;
-           } else {
-               // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
-               final Object returnValue = RubyContext.send(key, "eql?", otherKey.key);
-               if (returnValue instanceof Boolean) {
-                   return (boolean) returnValue;
-               } else {
-                   throw new UnsupportedOperationException(returnValue.getClass().getName());
-               }
-           }
-       }
-   }
+            if (hashCode != otherKey.hashCode) {
+                return false;
+            } else {
+                // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
+                final Object returnValue = RubyContext.send(key, "eql?", otherKey.key);
+                if (returnValue instanceof Boolean) {
+                    return (boolean) returnValue;
+                } else {
+                    throw new UnsupportedOperationException(returnValue.getClass().getName());
+                }
+            }
+        }
+    }
 
-  public ConcurrentHashMap<Key, Object> map = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<Key, Object> map = new ConcurrentHashMap<>();
 
-  public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape) {
-      super(rubyClass, shape);
-  }
+    public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape) {
+        super(rubyClass, shape);
+    }
 }

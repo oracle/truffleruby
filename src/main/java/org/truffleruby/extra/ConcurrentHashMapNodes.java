@@ -86,14 +86,14 @@ public class ConcurrentHashMapNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object getIndex(RubyConcurrentHashMap self, Object key,
-                                  @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(get(self.map, new RubyConcurrentHashMap.Key(key, hashCode)));
         }
 
         @TruffleBoundary
         private Object get(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                           RubyConcurrentHashMap.Key key) {
+                RubyConcurrentHashMap.Key key) {
             return hashMap.get(key);
         }
     }
@@ -102,7 +102,7 @@ public class ConcurrentHashMapNodes {
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object setIndex(RubyConcurrentHashMap self, Object key, Object value,
-                                  @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             put(self.map, new RubyConcurrentHashMap.Key(key, hashCode), value);
             return value;
@@ -110,7 +110,7 @@ public class ConcurrentHashMapNodes {
 
         @TruffleBoundary
         private void put(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                         RubyConcurrentHashMap.Key key, Object value) {
+                RubyConcurrentHashMap.Key key, Object value) {
             hashMap.put(key, value);
         }
     }
@@ -119,9 +119,11 @@ public class ConcurrentHashMapNodes {
     public abstract static class ComputeIfAbsentNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object computeIfAbsent(RubyConcurrentHashMap self, Object key, RubyProc block,
-                                         @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            Object returnValue = getOrCompute(self.map, new RubyConcurrentHashMap.Key(key, hashCode),
+            Object returnValue = getOrCompute(
+                    self.map,
+                    new RubyConcurrentHashMap.Key(key, hashCode),
                     (k) -> callBlock(block));
             assert returnValue != null;
             return returnValue;
@@ -129,8 +131,8 @@ public class ConcurrentHashMapNodes {
 
         @TruffleBoundary
         private Object getOrCompute(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                                       RubyConcurrentHashMap.Key key,
-                                       Function<RubyConcurrentHashMap.Key, Object> remappingFunction) {
+                RubyConcurrentHashMap.Key key,
+                Function<RubyConcurrentHashMap.Key, Object> remappingFunction) {
             return ConcurrentOperations.getOrCompute(hashMap, key, remappingFunction);
         }
     }
@@ -139,17 +141,17 @@ public class ConcurrentHashMapNodes {
     public abstract static class ComputeIfPresentNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object computeIfPresent(RubyConcurrentHashMap self, Object key, RubyProc block,
-                                          @Cached HashingNodes.ToHashByHashCode hashNode) {
-            return nullToNil(computeIfPresent(self.map, new RubyConcurrentHashMap.Key(key, hashNode.execute(key)), (k, v) ->
-               // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
-               nilToNull(callBlock(block, v))
-            ));
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
+            return nullToNil(
+                    computeIfPresent(self.map, new RubyConcurrentHashMap.Key(key, hashNode.execute(key)), (k, v) ->
+                    // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
+                    nilToNull(callBlock(block, v))));
         }
 
         @TruffleBoundary
         private Object computeIfPresent(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                                        RubyConcurrentHashMap.Key key,
-                                        BiFunction<RubyConcurrentHashMap.Key, Object, Object> remappingFunction) {
+                RubyConcurrentHashMap.Key key,
+                BiFunction<RubyConcurrentHashMap.Key, Object, Object> remappingFunction) {
             return hashMap.computeIfPresent(key, remappingFunction);
         }
     }
@@ -158,19 +160,21 @@ public class ConcurrentHashMapNodes {
     public abstract static class ComputeNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object compute(RubyConcurrentHashMap self, Object key, RubyProc block,
-                                 @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            return nullToNil(compute(self.map, new RubyConcurrentHashMap.Key(key, hashCode),
+            return nullToNil(compute(
+                    self.map,
+                    new RubyConcurrentHashMap.Key(key, hashCode),
                     (k, v) -> {
-                Object newValue = callBlock(block, nullToNil(v));
-                return nilToNull(newValue);
-            }));
+                        Object newValue = callBlock(block, nullToNil(v));
+                        return nilToNull(newValue);
+                    }));
         }
 
         @TruffleBoundary
         private Object compute(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                               RubyConcurrentHashMap.Key key,
-                               BiFunction<RubyConcurrentHashMap.Key, Object, Object> remappingFunction) {
+                RubyConcurrentHashMap.Key key,
+                BiFunction<RubyConcurrentHashMap.Key, Object, Object> remappingFunction) {
             return hashMap.compute(key, remappingFunction);
         }
     }
@@ -179,7 +183,7 @@ public class ConcurrentHashMapNodes {
     public abstract static class MergePairNode extends YieldingCoreMethodNode {
         @Specialization
         protected Object mergePair(RubyConcurrentHashMap self, Object key, Object value, RubyProc block,
-                                   @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(merge(self.map, new RubyConcurrentHashMap.Key(key, hashCode), value, (k, v) -> {
                 final Object oldValue = get(self.map, new RubyConcurrentHashMap.Key(key, hashCode));
@@ -189,15 +193,15 @@ public class ConcurrentHashMapNodes {
 
         @TruffleBoundary
         private Object merge(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                             RubyConcurrentHashMap.Key key,
-                             Object value,
-                             BiFunction<Object, Object, Object> remappingFunction) {
+                RubyConcurrentHashMap.Key key,
+                Object value,
+                BiFunction<Object, Object, Object> remappingFunction) {
             return hashMap.merge(key, value, remappingFunction);
         }
 
         @TruffleBoundary
         private Object get(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                           RubyConcurrentHashMap.Key key) {
+                RubyConcurrentHashMap.Key key) {
             return hashMap.get(key);
         }
     }
@@ -206,14 +210,14 @@ public class ConcurrentHashMapNodes {
     public abstract static class ReplacePairNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean replacePair(RubyConcurrentHashMap self, Object key, Object oldValue, Object newValue,
-                                      @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return replace(self.map, new RubyConcurrentHashMap.Key(key, hashCode), oldValue, newValue);
         }
 
         @TruffleBoundary
         private boolean replace(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                             RubyConcurrentHashMap.Key key, Object oldValue, Object newValue) {
+                RubyConcurrentHashMap.Key key, Object oldValue, Object newValue) {
             return hashMap.replace(key, oldValue, newValue);
         }
     }
@@ -222,30 +226,30 @@ public class ConcurrentHashMapNodes {
     public abstract static class ReplaceIfExistsNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object replaceIfExists(RubyConcurrentHashMap self, Object key, Object newValue,
-                                         @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(replace(self.map, new RubyConcurrentHashMap.Key(key, hashCode), newValue));
         }
 
         @TruffleBoundary
         private Object replace(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                               RubyConcurrentHashMap.Key key, Object newValue) {
+                RubyConcurrentHashMap.Key key, Object newValue) {
             return hashMap.replace(key, newValue);
         }
     }
 
-@CoreMethod(names = "get_and_set", required = 2)
+    @CoreMethod(names = "get_and_set", required = 2)
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object getAndSet(RubyConcurrentHashMap self, Object key, Object value,
-                                   @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(put(self.map, new RubyConcurrentHashMap.Key(key, hashCode), value));
         }
 
         @TruffleBoundary
         private Object put(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                           RubyConcurrentHashMap.Key key, Object value) {
+                RubyConcurrentHashMap.Key key, Object value) {
             return hashMap.put(key, value);
         }
     }
@@ -254,14 +258,14 @@ public class ConcurrentHashMapNodes {
     public abstract static class KeyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean key(RubyConcurrentHashMap self, Object key,
-                              @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return containsKey(self.map, new RubyConcurrentHashMap.Key(key, hashCode));
         }
 
         @TruffleBoundary
         private boolean containsKey(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                                   RubyConcurrentHashMap.Key key) {
+                RubyConcurrentHashMap.Key key) {
             return hashMap.containsKey(key);
         }
     }
@@ -270,14 +274,14 @@ public class ConcurrentHashMapNodes {
     public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object delete(RubyConcurrentHashMap self, Object key,
-                                @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return nullToNil(remove(self.map, new RubyConcurrentHashMap.Key(key, hashCode)));
         }
 
         @TruffleBoundary
         private Object remove(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                               RubyConcurrentHashMap.Key key) {
+                RubyConcurrentHashMap.Key key) {
             return hashMap.remove(key);
         }
     }
@@ -286,14 +290,14 @@ public class ConcurrentHashMapNodes {
     public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean deletePair(RubyConcurrentHashMap self, Object key, Object value,
-                                     @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return remove(self.map, new RubyConcurrentHashMap.Key(key, hashCode), value);
         }
 
         @TruffleBoundary
         private boolean remove(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                              RubyConcurrentHashMap.Key key, Object value) {
+                RubyConcurrentHashMap.Key key, Object value) {
             return hashMap.remove(key, value);
         }
     }
@@ -321,14 +325,14 @@ public class ConcurrentHashMapNodes {
     public abstract static class GetOrDefaultNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected Object getOrDefault(RubyConcurrentHashMap self, Object key, Object defaultValue,
-                                      @Cached HashingNodes.ToHashByHashCode hashNode) {
+                @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
             return getOrDefault(self.map, new RubyConcurrentHashMap.Key(key, hashCode), defaultValue);
         }
 
         @TruffleBoundary
         private Object getOrDefault(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                                    RubyConcurrentHashMap.Key key, Object defaultValue) {
+                RubyConcurrentHashMap.Key key, Object defaultValue) {
             return hashMap.getOrDefault(key, defaultValue);
         }
     }
@@ -345,7 +349,8 @@ public class ConcurrentHashMapNodes {
         }
 
         @TruffleBoundary
-        private Set<Map.Entry<RubyConcurrentHashMap.Key, Object>> entrySet(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap) {
+        private Set<Map.Entry<RubyConcurrentHashMap.Key, Object>> entrySet(
+                ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap) {
             return hashMap.entrySet();
         }
     }
