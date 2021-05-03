@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
@@ -120,15 +121,17 @@ public class ConcurrentHashMapNodes {
         protected Object computeIfAbsent(RubyConcurrentHashMap self, Object key, RubyProc block,
                                          @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            return nullToNil(computeIfAbsent(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode),
-                    (k) -> callBlock(block)));
+            Object returnValue = getOrCompute(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode),
+                    (k) -> callBlock(block));
+            assert returnValue != null;
+            return returnValue;
         }
 
         @TruffleBoundary
-        private Object computeIfAbsent(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
+        private Object getOrCompute(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
                                        RubyConcurrentHashMap.Key key,
                                        Function<RubyConcurrentHashMap.Key, Object> remappingFunction) {
-            return hashMap.computeIfAbsent(key, remappingFunction);
+            return ConcurrentOperations.getOrCompute(hashMap, key, remappingFunction);
         }
     }
 
