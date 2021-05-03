@@ -67,7 +67,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
@@ -769,7 +768,6 @@ public class CoreLibrary {
                 final Source source = sourceRopePair.getLeft();
                 language.parsingRequestParams.set(new ParsingParameters(
                         node,
-                        language.coreLoadPath + file,
                         sourceRopePair.getRight(),
                         source));
                 final RootCallTarget rootCallTarget;
@@ -778,7 +776,7 @@ public class CoreLibrary {
                             .getEnv()
                             .parseInternal(source);
                 } finally {
-                    language.parsingRequestParams.remove();
+                    language.parsingRequestParams.set(null);
                 }
 
                 final RubyRootNode rootNode = RubyRootNode.of(rootCallTarget);
@@ -817,21 +815,6 @@ public class CoreLibrary {
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);
             return fileLoader.loadFileSource(context.getEnv(), path);
-        }
-    }
-
-    public RubySource loadCoreFile(String path) throws IOException {
-        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
-                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
-                return new RubySource(rootParseNode.getSource(), path);
-            } else {
-                final ResourceLoader resourceLoader = new ResourceLoader();
-                return resourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL);
-            }
-        } else {
-            final FileLoader fileLoader = new FileLoader(context, language);
-            return fileLoader.loadFile(context.getEnv(), path);
         }
     }
 
