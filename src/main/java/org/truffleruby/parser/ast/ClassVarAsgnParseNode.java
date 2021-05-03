@@ -47,7 +47,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
     public ClassVarAsgnParseNode(SourceIndexLength position, Rope name, ParseNode valueNode) {
         super(position, valueNode);
 
-        this.name = name.normaliseAndGetJavaString();
+        this.name = name.getJavaString();
     }
 
     @Override

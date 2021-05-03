@@ -53,7 +53,7 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
 
         assert bodyNode != null : "bodyNode must not be null";
 
-        this.name = name.normaliseAndGetJavaString();
+        this.name = name.getJavaString();
         this.argsNode = argsNode;
         this.scope = scope;
         this.bodyNode = bodyNode;

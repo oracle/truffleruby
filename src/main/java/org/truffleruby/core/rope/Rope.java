@@ -158,15 +158,15 @@ public abstract class Rope implements Comparable<Rope> {
         return getByteSlow(index);
     }
 
+    /** This is designed to not have any side effects - compare to {@link #getJavaString} - but this makes it
+     * inefficient - for debugging only */
     @Override
     public String toString() {
-        // This is designed to not have any side effects - compare to getString
         return RopeOperations.decode(encoding, RopeOperations.flattenBytes(this));
     }
 
-    /** Should only be used by the parser */
-    public final String normaliseAndGetJavaString() {
-        // This will have side effects such as flattening a ConcatString
+    /** Should only be used by the parser - it has side effects */
+    public final String getJavaString() {
         return RopeOperations.decodeRope(this);
     }
 

@@ -48,7 +48,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
         super(position, valueNode);
 
         assert constNode != null || (name != null && !name.isEmpty());
-        this.name = name == null ? null : name.normaliseAndGetJavaString();
+        this.name = name == null ? null : name.getJavaString();
         this.constNode = constNode;
     }
 

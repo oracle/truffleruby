@@ -2234,7 +2234,7 @@ states[266] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[267] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    support.warning(lexer.getPosition(), "comparison '" + ((Rope)yyVals[-1+yyTop]).normaliseAndGetJavaString() + "' after comparison");
+    support.warning(lexer.getPosition(), "comparison '" + ((Rope)yyVals[-1+yyTop]).getJavaString() + "' after comparison");
     yyVal = support.getOperatorCallNode(((ParseNode)yyVals[-2+yyTop]), ((Rope)yyVals[-1+yyTop]), ((ParseNode)yyVals[0+yyTop]), lexer.getPosition());
     return yyVal;
 };

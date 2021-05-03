@@ -48,7 +48,7 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
     public InstAsgnParseNode(SourceIndexLength position, Rope name, ParseNode valueNode) {
         super(position, valueNode);
 
-        this.name = name.normaliseAndGetJavaString();
+        this.name = name.getJavaString();
     }
 
     @Override
