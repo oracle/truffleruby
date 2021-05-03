@@ -783,6 +783,7 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
+        @Specialization
         protected Object debugPrintConcatRopeBytes(ConcatRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
