@@ -116,13 +116,13 @@ public abstract class TruffleRopesNodes {
         }
 
         private static String getStructure(LeafRope rope) {
-            return "\"" + rope.toString() + "\"";
+            return escape(rope);
         }
 
         private static String getStructure(ConcatRope rope) {
             final ConcatState state = rope.getState();
             return state.isFlattened()
-                    ? "(\"flat concat rope\"; " + rope.toString() + ")"
+                    ? "(\"flat concat rope\"; " + escape(rope) + ")"
                     : "(" + getStructure(state.left) + " + " + getStructure(state.right) + ")";
         }
 
@@ -135,6 +135,33 @@ public abstract class TruffleRopesNodes {
 
         private static String getStructure(RepeatingRope rope) {
             return "(" + getStructure(rope.getChild()) + "*" + rope.getTimes() + ")";
+        }
+
+        private static String escape(Rope rope) {
+            final StringBuilder builder = new StringBuilder();
+            builder.append('"');
+
+            for (int i = 0; i < rope.byteLength(); i++) {
+                final byte character = rope.get(i);
+                switch (character) {
+                    case '\\':
+                        builder.append("\\");
+                        break;
+                    case '"':
+                        builder.append("\\\"");
+                        break;
+                    default:
+                        if (character >= 32 && character <= 126) {
+                            builder.append((char) character);
+                        } else {
+                            builder.append(StringUtils.format("\\x%02x", character));
+                        }
+                        break;
+                }
+            }
+
+            builder.append('"');
+            return builder.toString();
         }
 
     }
