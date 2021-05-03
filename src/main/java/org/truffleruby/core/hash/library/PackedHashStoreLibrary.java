@@ -16,8 +16,12 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -30,6 +34,7 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.LookupPackedEntryNode;
 import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
@@ -126,5 +131,34 @@ public class PackedHashStoreLibrary {
 
         assert HashOperations.verifyStore(context, hash);
         return null;
+    }
+
+    @ExportMessage
+    protected static void each(Object[] store, RubyHash hash, RubyProc block,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached HashStoreLibrary.YieldPairNode yieldPair,
+            @CachedLibrary("store") HashStoreLibrary self) {
+
+        assert HashOperations.verifyStore(context, hash);
+
+        // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
+        final int size = hash.size;
+        final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+
+        int n = 0;
+        try {
+            for (; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+                if (n < size) {
+                    yieldPair.execute(
+                            block,
+                            PackedArrayStrategy.getKey(storeCopy, n),
+                            PackedArrayStrategy.getValue(storeCopy, n));
+                }
+            }
+        } finally {
+            final Node node = self.isAdoptable() ? self : EncapsulatingNodeReference.getCurrent().get();
+            LoopNode.reportLoopCount(node, n);
+        }
     }
 }

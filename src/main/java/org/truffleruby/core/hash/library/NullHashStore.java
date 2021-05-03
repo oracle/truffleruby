@@ -20,6 +20,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.proc.RubyProc;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
@@ -51,5 +52,10 @@ public class NullHashStore {
     @ExportMessage
     protected Object delete(RubyHash hash, Object key) {
         return null;
+    }
+
+    @ExportMessage
+    protected void each(RubyHash hash, RubyProc block) {
+        // nothing to do, the hash is empty
     }
 }

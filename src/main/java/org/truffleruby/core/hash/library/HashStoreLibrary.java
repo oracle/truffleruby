@@ -9,16 +9,28 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
+import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.yield.CallBlockNode;
 
 /** Library for accessing and manipulating the storage used for representing hashes. This includes reading, modifying,
  * and copy the storage. */
@@ -59,4 +71,30 @@ public abstract class HashStoreLibrary extends Library {
      * entry for the key, returns {@code null}. */
     @Abstract
     public abstract Object delete(Object store, RubyHash hash, Object key);
+
+    /** Runs the given block over every entry. If the block has > 1 arity, passes the key and the value as arguments,
+     * otherwise passes an array containing the key and the value as single argument. */
+    @Abstract
+    public abstract void each(Object store, RubyHash hash, RubyProc block);
+
+    /** cf. {@link #each} */
+    @GenerateUncached
+    public abstract static class YieldPairNode extends RubyBaseNode {
+        public abstract Object execute(RubyProc block, Object key, Object value);
+
+        @Specialization
+        protected Object yieldPair(RubyProc block, Object key, Object value,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached CallBlockNode yieldNode,
+                @Cached ConditionProfile arityMoreThanOne) {
+            // MRI behavior, see rb_hash_each_pair()
+            // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
+            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
+                return yieldNode.yield(block, key, value);
+            } else {
+                return yieldNode.yield(block, ArrayHelpers.createArray(context, language, new Object[]{ key, value }));
+            }
+        }
+    }
 }

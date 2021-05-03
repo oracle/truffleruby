@@ -12,6 +12,7 @@ package org.truffleruby.core.hash.library;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -29,6 +30,7 @@ import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.LookupEntryNode;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class)
@@ -135,5 +137,19 @@ public class EntryArrayHashStore {
         hash.size -= 1;
         assert HashOperations.verifyStore(context, hash);
         return entry.getValue();
+    }
+
+    @ExportMessage
+    protected void each(RubyHash hash, RubyProc block,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached HashStoreLibrary.YieldPairNode yieldPair) {
+
+        assert HashOperations.verifyStore(context, hash);
+        Entry entry = hash.firstInSequence;
+        while (entry != null) {
+            yieldPair.execute(block, entry.getKey(), entry.getValue());
+            entry = entry.getNextInSequence();
+        }
     }
 }

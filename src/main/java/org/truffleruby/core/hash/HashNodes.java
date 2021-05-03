@@ -302,65 +302,14 @@ public abstract class HashNodes {
 
     @CoreMethod(names = { "each", "each_pair" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
-    public abstract static class EachNode extends YieldingCoreMethodNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected RubyHash eachNull(RubyHash hash, RubyProc block) {
+        @Specialization(limit = "hashStrategyLimit()")
+        protected RubyHash each(RubyHash hash, RubyProc block,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            hashes.each(hash.store, hash, block);
             return hash;
         }
-
-        @ExplodeLoop
-        @Specialization(guards = "isPackedHash(hash)")
-        protected RubyHash eachPackedArray(RubyHash hash, RubyProc block) {
-            assert HashOperations.verifyStore(getContext(), hash);
-            final Object[] originalStore = (Object[]) hash.store;
-
-            // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
-            final int size = hash.size;
-            final Object[] storeCopy = PackedArrayStrategy.copyStore(getLanguage(), originalStore);
-
-            int n = 0;
-            try {
-                for (; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
-                    if (n < size) {
-                        yieldPair(
-                                block,
-                                PackedArrayStrategy.getKey(storeCopy, n),
-                                PackedArrayStrategy.getValue(storeCopy, n));
-                    }
-                }
-            } finally {
-                LoopNode.reportLoopCount(this, n);
-            }
-
-            return hash;
-        }
-
-        @Specialization(guards = "isBucketHash(hash)")
-        protected RubyHash eachBuckets(RubyHash hash, RubyProc block) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            Entry entry = hash.firstInSequence;
-            while (entry != null) {
-                yieldPair(block, entry.getKey(), entry.getValue());
-                entry = entry.getNextInSequence();
-            }
-
-            return hash;
-        }
-
-        private Object yieldPair(RubyProc block, Object key, Object value) {
-            // MRI behavior, see rb_hash_each_pair()
-            // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
-            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
-                return callBlock(block, key, value);
-            } else {
-                return callBlock(block, createArray(new Object[]{ key, value }));
-            }
-        }
-
     }
 
     @CoreMethod(names = "empty?")
@@ -376,7 +325,6 @@ public abstract class HashNodes {
         protected boolean emptyPackedArray(RubyHash hash) {
             return hash.size == 0;
         }
-
     }
 
     @CoreMethod(names = "initialize", needsBlock = true, optional = 1, raiseIfFrozenSelf = true)
@@ -417,7 +365,6 @@ public abstract class HashNodes {
                     getContext(),
                     coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
         }
-
     }
 
     @CoreMethod(names = { "initialize_copy", "replace" }, required = 1, raiseIfFrozenSelf = true)
