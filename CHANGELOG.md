@@ -23,6 +23,7 @@ Compatibility:
 * Configure `mandir` value in `RbConfig::CONFIG` and `RbConfig::MAKEFILE_CONFIG` (#2315).
 * TruffleRuby now supports the Truffle polyglot Hash interop API.
 * Implement `Fiber#raise` (#2338).
+* Update `File.basename` to return new `String` instances (#2343).
 
 Performance:
 
