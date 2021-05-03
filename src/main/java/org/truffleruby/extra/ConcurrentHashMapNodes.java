@@ -237,15 +237,7 @@ public class ConcurrentHashMapNodes {
         protected Object getAndSet(RubyConcurrentHashMap self, Object key, Object value,
                                    @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            final Object oldValue = get(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode));
-            put(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode), value);
-            return nullToNil(oldValue);
-        }
-
-        @TruffleBoundary
-        private Object get(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                           RubyConcurrentHashMap.Key key) {
-            return hashMap.get(key);
+            return nullToNil(put(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode), value));
         }
 
         @TruffleBoundary
