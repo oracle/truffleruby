@@ -277,17 +277,7 @@ public class ConcurrentHashMapNodes {
         protected Object delete(RubyConcurrentHashMap self, Object key,
                                 @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            if (containsKey(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode))) {
-                return remove(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode));
-            } else {
-                return nil;
-            }
-        }
-
-        @TruffleBoundary
-        private boolean containsKey(ConcurrentHashMap<RubyConcurrentHashMap.Key, Object> hashMap,
-                                    RubyConcurrentHashMap.Key key) {
-            return hashMap.containsKey(key);
+            return nullToNil(remove(self.concurrentHash, new RubyConcurrentHashMap.Key(key, hashCode)));
         }
 
         @TruffleBoundary
