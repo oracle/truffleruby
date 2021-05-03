@@ -36,7 +36,7 @@ public class GlobalVariableReader {
         if (globalVariableAliasedAssumption.isValid()) {
             return unaliasedStorage.getValue();
         } else {
-            return globalVariablesArray.get(index);
+            return globalVariablesArray.get(index).getValue();
         }
     }
 
