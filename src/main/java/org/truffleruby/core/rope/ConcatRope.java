@@ -65,6 +65,8 @@ public class ConcatRope extends ManagedRope {
             int characterLength,
             byte[] bytes) {
         super(encoding, codeRange, byteLength, characterLength, bytes);
+        assert left != null;
+        assert right != null;
         this.left = left;
         this.right = right;
     }
@@ -81,10 +83,14 @@ public class ConcatRope extends ManagedRope {
         return withEncoding(ASCIIEncoding.INSTANCE, CodeRange.CR_VALID, byteLength(), bytesNotNull);
     }
 
-    private ConcatRope withEncoding(Encoding encoding, CodeRange codeRange, int characterLength,
+    private Rope withEncoding(Encoding encoding, CodeRange codeRange, int characterLength,
             ConditionProfile bytesNotNull) {
         final ConcatState state = getState(bytesNotNull);
-        return new ConcatRope(state.left, state.right, encoding, codeRange, byteLength(), characterLength, state.bytes);
+        if (state.isFlattened()) {
+            return RopeOperations.create(state.bytes, encoding, codeRange);
+        } else {
+            return new ConcatRope(state.left, state.right, encoding, codeRange, byteLength(), characterLength, null);
+        }
     }
 
     @Override
