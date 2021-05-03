@@ -184,11 +184,6 @@ public class NativeRope extends Rope {
     }
 
     @Override
-    public String toString() {
-        return toLeafRope().toString();
-    }
-
-    @Override
     Rope withEncoding7bit(Encoding newEncoding, ConditionProfile bytesNotNull) {
         return withEncoding(newEncoding);
     }

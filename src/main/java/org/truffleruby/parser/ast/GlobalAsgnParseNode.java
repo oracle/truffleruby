@@ -47,7 +47,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
     public GlobalAsgnParseNode(SourceIndexLength position, Rope name, ParseNode valueNode) {
         super(position, valueNode);
 
-        this.name = name.getString();
+        this.name = name.normaliseAndGetJavaString();
     }
 
     @Override

@@ -21,9 +21,6 @@ public abstract class Rope implements Comparable<Rope> {
     // NativeRope, RepeatingRope, 3 LeafRope, ConcatRope, SubstringRope, 1 LazyRope
     public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
 
-    // Useful for debugging. Setting to true avoids ManagedRope#toString to populate bytes as a side-effect of the debugger calling toString().
-    protected static final boolean DEBUG_ROPE_BYTES = false;
-
     public final Encoding encoding;
     private final int byteLength;
     private int hashCode = 0;
@@ -161,8 +158,15 @@ public abstract class Rope implements Comparable<Rope> {
         return getByteSlow(index);
     }
 
+    @Override
+    public String toString() {
+        // This is designed to not have any side effects - compare to getString
+        return RopeOperations.decode(encoding, RopeOperations.flattenBytes(this));
+    }
+
     /** Should only be used by the parser */
-    public final String getString() {
+    public final String normaliseAndGetJavaString() {
+        // This will have side effects such as flattening a ConcatString
         return RopeOperations.decodeRope(this);
     }
 

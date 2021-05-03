@@ -232,7 +232,7 @@ public class RubyLexer implements MagicCommentHandler {
         Rope value = createTokenRope();
 
         if (isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
-                parserSupport.getCurrentScope().isDefined(value.getString().intern()) >= 0) {
+                parserSupport.getCurrentScope().isDefined(value.normaliseAndGetJavaString().intern()) >= 0) {
             setState(EXPR_END);
         }
 
@@ -1076,7 +1076,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private int identifierToken(int result, Rope value) {
         if (result == RubyParser.tIDENTIFIER && !isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
-                parserSupport.getCurrentScope().isDefined(value.getString().intern()) >= 0) {
+                parserSupport.getCurrentScope().isDefined(value.normaliseAndGetJavaString().intern()) >= 0) {
             setState(EXPR_END | EXPR_LABEL);
         }
 
@@ -1663,7 +1663,7 @@ public class RubyLexer implements MagicCommentHandler {
                 }
 
                 int ref;
-                String refAsString = createTokenRope().getString();
+                String refAsString = createTokenRope().normaliseAndGetJavaString();
 
                 try {
                     ref = Integer.parseInt(refAsString.substring(1).intern());

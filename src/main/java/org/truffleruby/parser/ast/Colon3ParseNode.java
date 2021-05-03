@@ -45,7 +45,7 @@ public class Colon3ParseNode extends ParseNode implements INameNode {
 
     public Colon3ParseNode(SourceIndexLength position, Rope name) {
         super(position);
-        this.name = name.getString();
+        this.name = name.normaliseAndGetJavaString();
     }
 
     @Override

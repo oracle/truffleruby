@@ -43,7 +43,7 @@ public class ConstParseNode extends ParseNode implements INameNode {
     private String name;
 
     public ConstParseNode(SourceIndexLength position, Rope name) {
-        this(position, name.getString());
+        this(position, name.normaliseAndGetJavaString());
     }
 
     public ConstParseNode(SourceIndexLength position, String name) {
