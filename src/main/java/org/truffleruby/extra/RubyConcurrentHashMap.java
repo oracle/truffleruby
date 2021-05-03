@@ -52,7 +52,7 @@ public class RubyConcurrentHashMap extends RubyDynamicObject {
        }
    }
 
-  public ConcurrentHashMap<Key, Object> concurrentHash = new ConcurrentHashMap<>();
+  public ConcurrentHashMap<Key, Object> map = new ConcurrentHashMap<>();
 
   public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape) {
       super(rubyClass, shape);
