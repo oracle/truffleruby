@@ -20,8 +20,6 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** An append-only map of names or identifiers to indices. The map is stored in {@link org.truffleruby.RubyLanguage} and
@@ -49,9 +47,7 @@ public final class SharedIndicesMap {
 
         protected final SharedIndicesMap sharedIndicesMap;
         protected final Supplier<T> createWhenAbsent;
-        /** Reading from this field in PE code must be very careful to only return if the value is non-null. Otherwise
-         * it might miss updates if e.g. the array was reassigned by some other access. */
-        @CompilationFinal(dimensions = 1) protected T[] data;
+        protected T[] data;
 
         protected LazyDataArray(
                 SharedIndicesMap sharedIndicesMap,
@@ -70,15 +66,10 @@ public final class SharedIndicesMap {
             if (index < localData.length) {
                 T value = localData[index];
                 if (value != null) {
-                    // We can only return if the value is non-null, see the comment on the field
                     return value;
                 }
             }
 
-            if (CompilerDirectives.isPartialEvaluationConstant(data)) {
-                // To see the new data next time
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-            }
             return getSlowPath(index);
         }
 
@@ -146,8 +137,8 @@ public final class SharedIndicesMap {
 
     }
 
-    /** An array holding context-specific values. A value at a given index can not be set to null again. Reads fold to a
-     * constant in single-context mode, if the index is already set. */
+    /** An array holding context-specific values. A value at a given index must not be set to null again. Reads do not
+     * fold to a constant, even in single-context mode, use a node inline cache to fold them. */
     public static final class ContextArray<T> extends LazyDataArray<T> {
 
         public ContextArray(
@@ -177,9 +168,7 @@ public final class SharedIndicesMap {
             }
         }
 
-        /** Returns the previous value or null if the index was unset. Using this method requires external invalidation
-         * (e.g., via an Assumption) if the index was already set, to be noticed from get() which reads from a
-         * CompilationFinal array */
+        /** Returns the previous value or null if the index was unset. */
         @TruffleBoundary
         public T set(int index, T value) {
             assert value != null;
@@ -193,22 +182,6 @@ public final class SharedIndicesMap {
                 data[index] = value;
                 return prev;
             }
-        }
-
-        /** Sees updated values from {@link #set(int, Object)} even without external invalidation */
-        @TruffleBoundary
-        public T getNonConstant(int index) {
-            assert index <= sharedIndicesMap.size();
-
-            final T[] localData = this.data;
-            if (index < localData.length) {
-                T value = localData[index];
-                if (value != null) {
-                    return value;
-                }
-            }
-
-            return getSlowPath(index);
         }
 
     }
