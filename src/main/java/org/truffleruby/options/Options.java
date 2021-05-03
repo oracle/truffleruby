@@ -97,6 +97,10 @@ public class Options {
     public final boolean BACKTRACE_ON_RAISE;
     /** --backtraces-rescue=false */
     public final boolean BACKTRACE_ON_RESCUE;
+    /** --backtraces-new-thread=false */
+    public final boolean BACKTRACE_ON_NEW_THREAD;
+    /** --backtraces-new-fiber=false */
+    public final boolean BACKTRACE_ON_NEW_FIBER;
     /** --cexts=true */
     public final boolean CEXTS;
     /** --cexts-lock=true */
@@ -226,6 +230,8 @@ public class Options {
         BACKTRACE_ON_SIGALRM = options.hasBeenSet(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) ? options.get(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) : !EMBEDDED;
         BACKTRACE_ON_RAISE = options.get(OptionsCatalog.BACKTRACE_ON_RAISE_KEY);
         BACKTRACE_ON_RESCUE = options.get(OptionsCatalog.BACKTRACE_ON_RESCUE_KEY);
+        BACKTRACE_ON_NEW_THREAD = options.get(OptionsCatalog.BACKTRACE_ON_NEW_THREAD_KEY);
+        BACKTRACE_ON_NEW_FIBER = options.get(OptionsCatalog.BACKTRACE_ON_NEW_FIBER_KEY);
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
         CEXTS_PREPEND_TOOLCHAIN_TO_PATH = options.get(OptionsCatalog.CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY);
@@ -349,6 +355,10 @@ public class Options {
                 return BACKTRACE_ON_RAISE;
             case "ruby.backtraces-rescue":
                 return BACKTRACE_ON_RESCUE;
+            case "ruby.backtraces-new-thread":
+                return BACKTRACE_ON_NEW_THREAD;
+            case "ruby.backtraces-new-fiber":
+                return BACKTRACE_ON_NEW_FIBER;
             case "ruby.cexts":
                 return CEXTS;
             case "ruby.cexts-lock":

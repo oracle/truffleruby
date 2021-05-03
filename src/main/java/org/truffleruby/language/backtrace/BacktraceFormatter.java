@@ -155,11 +155,22 @@ public class BacktraceFormatter {
         }
     }
 
+    public void printBacktraceOnEnvStderr(Node currentNode) {
+        printBacktraceOnEnvStderr("", currentNode);
+    }
+
     @SuppressFBWarnings("OS")
     @TruffleBoundary
-    public void printBacktraceOnEnvStderr(Node currentNode) {
+    public void printBacktraceOnEnvStderr(String info, Node currentNode) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        context.getEnvErrStream().println(formatBacktrace(null, backtrace));
+
+        final PrintStream printer = context.getEnvErrStream();
+
+        if (!info.isEmpty()) {
+            printer.print(info);
+        }
+
+        printer.println(formatBacktrace(null, backtrace));
     }
 
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
