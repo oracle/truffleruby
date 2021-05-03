@@ -1,0 +1,5 @@
+DYNAMIC_IMPORTS=/substratevm-enterprise,substratevm-enterprise-gcs,/tools
+COMPONENTS=TruffleRuby,SubstrateVM Enterprise,SubstrateVM Enterprise GC,suite:tools
+NATIVE_IMAGES=true
+EXTRA_IMAGE_BUILDER_ARGUMENTS=truffleruby:-H:+UseG1GC
+DISABLE_INSTALLABLES=false
