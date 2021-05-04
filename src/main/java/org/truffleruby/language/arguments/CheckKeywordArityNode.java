@@ -14,7 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiConsumerNode;
+import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -80,7 +80,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
+    private static class CheckKeywordArgumentsNode extends RubyContextNode implements PEBiConsumer {
 
         private final boolean doesNotAcceptExtraArguments;
         private final int required;

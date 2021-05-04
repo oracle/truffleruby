@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.collections.BiConsumerNode;
+import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
@@ -20,7 +20,7 @@ import org.truffleruby.language.RubyContextNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
+public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements PEBiConsumer {
 
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
     @Child private SetNode setNode = SetNode.create();

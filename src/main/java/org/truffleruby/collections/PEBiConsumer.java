@@ -12,11 +12,8 @@ package org.truffleruby.collections;
 import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInterface;
 
-/** {@link BiConsumer} as a Node */
-public interface BiConsumerNode extends NodeInterface {
-
+/** A {@link BiConsumer} that can be partially evaluated. */
+public interface PEBiConsumer {
     void accept(VirtualFrame frame, Object key, Object value, Object state);
-
 }

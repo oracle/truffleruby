@@ -26,7 +26,7 @@ import com.oracle.truffle.api.object.Shape;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -98,7 +98,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
         return size;
     }
 
-    private static final class DefaultProvider implements BiFunctionNode {
+    private static final class DefaultProvider implements PEBiFunction {
         final Object defaultValue;
 
         private DefaultProvider(Object defaultValue) {
