@@ -15,6 +15,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
+import org.truffleruby.core.array.library.ObjectArrayStore;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 
@@ -71,12 +72,12 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
 
         @Override
         public BuilderState start() {
-            return new BuilderState(ArrayStoreLibrary.INITIAL_ALLOCATOR.allocate(0), 0);
+            return new BuilderState(ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(0), 0);
         }
 
         @Override
         public BuilderState start(int length) {
-            return new BuilderState(ArrayStoreLibrary.INITIAL_ALLOCATOR.allocate(0), length);
+            return new BuilderState(ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length), length);
         }
 
         @TruffleBoundary
@@ -84,54 +85,44 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         public void appendArray(BuilderState state, int index, RubyArray other) {
             assert state.nextIndex == index;
             final int otherSize = other.size;
-            if (otherSize != 0) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                final ArrayStoreLibrary newArrayLibrary = ArrayStoreLibrary.getFactory().getUncached();
-                final int neededSize = index + otherSize;
-
-                final Object newStore;
-
-                final int currentCapacity = state.capacity;
-                final int neededCapacity;
-                if (neededSize > currentCapacity) {
-                    neededCapacity = ArrayUtils
-                            .capacity(RubyLanguage.getCurrentLanguage(), currentCapacity, neededSize);
-                } else {
-                    neededCapacity = currentCapacity;
-                }
-
-                final ArrayAllocator newAllocator = newArrayLibrary.generalizeForStore(state.store, other.store);
-                newStore = newAllocator.allocate(neededCapacity);
-
-                newArrayLibrary.copyContents(state.store, 0, newStore, 0, index);
-
-                final Object otherStore = other.store;
-                newArrayLibrary.copyContents(otherStore, 0, newStore, index, otherSize);
-
-                state.store = newStore;
-                state.capacity = neededCapacity;
-                state.nextIndex = state.nextIndex + otherSize;
+            if (otherSize == 0) {
+                return;
             }
+
+            final ArrayStoreLibrary library = ArrayStoreLibrary.getFactory().getUncached(state.store);
+            final int neededSize = index + otherSize;
+
+            final int currentCapacity = state.capacity;
+            final int neededCapacity = neededSize > currentCapacity
+                    ? ArrayUtils.capacity(RubyLanguage.getCurrentLanguage(), currentCapacity, neededSize)
+                    : currentCapacity;
+
+            final Object newStore = ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(neededCapacity);
+            library.copyContents(state.store, 0, newStore, 0, index);
+
+            final Object otherStore = other.store;
+            library.copyContents(otherStore, 0, newStore, index, otherSize);
+
+            state.store = newStore;
+            state.capacity = neededCapacity;
+            state.nextIndex = state.nextIndex + otherSize;
         }
 
         @TruffleBoundary
         @Override
         public void appendValue(BuilderState state, int index, Object value) {
             assert state.nextIndex == index;
-            final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
-            ArrayStoreLibrary.ArrayAllocator newAllocator = stores.generalizeForValue(state.store, value);
+            final ArrayStoreLibrary library = ArrayStoreLibrary.getFactory().getUncached(state.store);
 
             final int currentCapacity = state.capacity;
-            final int neededCapacity;
-            if (index >= currentCapacity) {
-                neededCapacity = ArrayUtils.capacityForOneMore(RubyLanguage.getCurrentLanguage(), currentCapacity);
-            } else {
-                neededCapacity = currentCapacity;
-            }
+            final int neededCapacity = index > currentCapacity
+                    ? ArrayUtils.capacityForOneMore(RubyLanguage.getCurrentLanguage(), currentCapacity)
+                    : currentCapacity;
 
-            final Object newStore = newAllocator.allocate(neededCapacity);
-            stores.copyContents(state.store, 0, newStore, 0, index);
-            stores.write(newStore, index, value);
+            final Object newStore = ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(neededCapacity);
+            library.copyContents(state.store, 0, newStore, 0, index);
+            library.write(newStore, index, value);
+
             state.store = newStore;
             state.capacity = neededCapacity;
             state.nextIndex++;
