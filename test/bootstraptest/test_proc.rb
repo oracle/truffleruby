@@ -230,13 +230,13 @@ assert_equal %q{1}, %q{
   }
   $SAFE = 1
   pr.call
-}, tagged: true
+}
 assert_equal %q{[1, 1]}, %q{
   pr = proc{
     $SAFE += 1
   }
   [pr.call, $SAFE]
-}, tagged: true
+}
 assert_equal %q{1}, %q{
   def m(&b)
     b
@@ -268,7 +268,7 @@ assert_equal 'ok', %q{
   else
     :ok
   end
-}, '[ruby-core:15551]', tagged: true
+}, '[ruby-core:15551]'
 
 assert_equal 'ok', %q{
   lambda {
@@ -301,7 +301,7 @@ assert_equal 'ok', %q{
    end
    test_def7
    $x
-}, '[ruby-core:17164]', tagged: true
+}, '[ruby-core:17164]'
 
 assert_equal 'ok', %q{
   lambda { a = lambda { return }; $x = :ng; a[]; $x = :ok }.call
@@ -331,7 +331,7 @@ assert_equal 'ok', %q{
    end
    def9
    $x
-}, '[ruby-core:17164]', tagged: true
+}, '[ruby-core:17164]'
 
 assert_equal 'ok', %q{
    def def10
@@ -438,7 +438,7 @@ assert_equal 'ok', %q{
     end
   end.call
   :ok
-}, tagged: true
+}
 
 assert_equal 'ok', %q{
   $proc = proc{return}
@@ -454,7 +454,7 @@ assert_equal 'ok', %q{
   rescue LocalJumpError
     :ok
   end
-}, tagged: true
+}
 
 assert_equal 'ok', %q{
   def x
@@ -462,14 +462,14 @@ assert_equal 'ok', %q{
   end
   b = x{|a| a }
   b.eval('yield("ok")')
-}, '[Bug #5634]', tagged: true
+}, '[Bug #5634]'
 
 assert_equal 'ok', %q{
   def x
     binding
   end
   eval("x { 'ok' }").eval "yield"
-}, '[Bug #5634]', tagged: true
+}, '[Bug #5634]'
 
 assert_equal 'ok', %q{
   def x
@@ -479,5 +479,5 @@ assert_equal 'ok', %q{
     x{ 'ok' }
   end
   eval('yield', m)
-}, '[Bug #5634]', tagged: true
+}, '[Bug #5634]'
 

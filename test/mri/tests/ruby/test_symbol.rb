@@ -507,7 +507,7 @@ class TestSymbol < Test::Unit::TestCase
   def test_symbol_fstr_leak
     bug10686 = '[ruby-core:67268] [Bug #10686]'
     x = x = 0
-    assert_no_memory_leak([], '200_000.times { |i| i.to_s.to_sym }; GC.start', "#{<<-"begin;"}\n#{<<-"end;"}", bug10686, limit: 1.9, rss: true, timeout: 20)
+    assert_no_memory_leak([], '200_000.times { |i| i.to_s.to_sym }; GC.start', "#{<<-"begin;"}\n#{<<-"end;"}", bug10686, limit: 1.71, rss: true, timeout: 20)
     begin;
       200_000.times { |i| (i + 200_000).to_s.to_sym }
     end;

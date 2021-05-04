@@ -13,7 +13,7 @@ module OpenSSL
   end
 
   def self.restore_warning_flag
-    $warnflags = @warnflags if defined?(@warnflags)
+    $warnflags = @warnflags
   end
 
   def self.check_func(func, header)

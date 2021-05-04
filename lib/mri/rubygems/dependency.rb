@@ -285,7 +285,7 @@ class Gem::Dependency
 
     if platform_only
       matches.reject! do |spec|
-        spec.nil? || !Gem::Platform.match_spec?(spec)
+        spec.nil? || !Gem::Platform.match(spec.platform)
       end
     end
 

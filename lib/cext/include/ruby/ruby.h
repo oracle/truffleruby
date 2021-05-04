@@ -21,10 +21,7 @@ extern "C" {
 #endif
 #endif
 
-// Must be first, as it defines feature test macros like _GNU_SOURCE,
-// which influences the definitions exposed by system header files.
 #include "ruby/config.h"
-#include <truffleruby/truffleruby-pre.h>
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
 #endif
@@ -102,10 +99,8 @@ typedef uintptr_t ID;
 # define SIZEOF_VALUE SIZEOF_UINTPTR_T
 # undef PRI_VALUE_PREFIX
 #elif SIZEOF_LONG == SIZEOF_VOIDP
-#ifndef TRUFFLERUBY
 typedef unsigned long VALUE;
 typedef unsigned long ID;
-#endif
 # define SIGNED_VALUE long
 # define SIZEOF_VALUE SIZEOF_LONG
 # define PRI_VALUE_PREFIX "l"
@@ -168,11 +163,7 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define PRIuVALUE PRI_VALUE_PREFIX"u"
 #define PRIxVALUE PRI_VALUE_PREFIX"x"
 #define PRIXVALUE PRI_VALUE_PREFIX"X"
-#ifdef TRUFFLERUBY
-#define PRIsVALUE "P"
-#else
 #define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
-#endif
 #endif
 #ifndef PRI_VALUE_PREFIX
 # define PRI_VALUE_PREFIX ""
@@ -263,23 +254,14 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 # endif
 #endif
 
-#ifdef TRUFFLERUBY
-#define RUBY_FIXNUM_MAX LONG_MAX
-#define RUBY_FIXNUM_MIN LONG_MIN
-#else
 #define RUBY_FIXNUM_MAX (LONG_MAX>>1)
 #define RUBY_FIXNUM_MIN RSHIFT((long)LONG_MIN,1)
-#endif
 #define FIXNUM_MAX RUBY_FIXNUM_MAX
 #define FIXNUM_MIN RUBY_FIXNUM_MIN
 
 #define RB_INT2FIX(i) (((VALUE)(i))<<1 | RUBY_FIXNUM_FLAG)
 #define INT2FIX(i) RB_INT2FIX(i)
-#ifdef TRUFFLERUBY
-#define RB_LONG2FIX(i) (VALUE)rb_tr_longwrap((long)(i))
-#else
 #define RB_LONG2FIX(i) RB_INT2FIX(i)
-#endif
 #define LONG2FIX(i) RB_INT2FIX(i)
 #define rb_fix_new(v) RB_INT2FIX(v)
 VALUE rb_int2inum(intptr_t);
@@ -353,9 +335,6 @@ VALUE rb_ull2inum(unsigned LONG_LONG);
 NORETURN(void rb_out_of_int(SIGNED_VALUE num));
 #endif
 
-#ifdef TRUFFLERUBY
-int rb_long2int(long value);
-#else
 #if SIZEOF_INT < SIZEOF_LONG
 static inline int
 rb_long2int_inline(long n)
@@ -369,7 +348,6 @@ rb_long2int_inline(long n)
 #define rb_long2int(n) rb_long2int_inline(n)
 #else
 #define rb_long2int(n) ((int)(n))
-#endif
 #endif
 
 #ifndef PIDT2NUM
@@ -397,11 +375,7 @@ rb_long2int_inline(long n)
 #define MODET2NUM(v) INT2NUM(v)
 #endif
 
-#ifdef TRUFFLERUBY
-#define RB_FIX2LONG(x) ((long)polyglot_as_i64(rb_tr_unwrap(x)))
-#else
 #define RB_FIX2LONG(x) ((long)RSHIFT((SIGNED_VALUE)(x),1))
-#endif
 static inline long
 rb_fix2long(VALUE x)
 {
@@ -413,13 +387,8 @@ rb_fix2ulong(VALUE x)
 {
     return RB_FIX2ULONG(x);
 }
-#ifdef TRUFFLERUBY
-int RB_FIXNUM_P(VALUE value);
-#define RB_POSFIXABLE(f) ((f) <= RUBY_FIXNUM_MAX)
-#else
 #define RB_FIXNUM_P(f) (((int)(SIGNED_VALUE)(f))&RUBY_FIXNUM_FLAG)
 #define RB_POSFIXABLE(f) ((f) < RUBY_FIXNUM_MAX+1)
-#endif
 #define RB_NEGFIXABLE(f) ((f) >= RUBY_FIXNUM_MIN)
 #define RB_FIXABLE(f) (RB_POSFIXABLE(f) && RB_NEGFIXABLE(f))
 #define FIX2LONG(x) RB_FIX2LONG(x)
@@ -432,21 +401,11 @@ int RB_FIXNUM_P(VALUE value);
 #define RB_IMMEDIATE_P(x) ((VALUE)(x) & RUBY_IMMEDIATE_MASK)
 #define IMMEDIATE_P(x) RB_IMMEDIATE_P(x)
 
-static inline VALUE
-rb_symbol_p_inline(VALUE v)
-{
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "SYMBOL_P", rb_tr_unwrap(v)));
-}
-
 ID rb_sym2id(VALUE);
 VALUE rb_id2sym(ID);
 #define RB_STATIC_SYM_P(x) (((VALUE)(x)&~((~(VALUE)0)<<RUBY_SPECIAL_SHIFT)) == RUBY_SYMBOL_FLAG)
 #define RB_DYNAMIC_SYM_P(x) (!RB_SPECIAL_CONST_P(x) && RB_BUILTIN_TYPE(x) == (RUBY_T_SYMBOL))
-#ifdef TRUFFLERUBY
-#define RB_SYMBOL_P(x) rb_symbol_p_inline(x)
-#else
 #define RB_SYMBOL_P(x) (RB_STATIC_SYM_P(x)||RB_DYNAMIC_SYM_P(x))
-#endif
 #define RB_ID2SYM(x) (rb_id2sym(x))
 #define RB_SYM2ID(x) (rb_sym2id(x))
 #define STATIC_SYM_P(x) RB_STATIC_SYM_P(x)
@@ -588,34 +547,16 @@ enum ruby_value_type {
 #define T_MOVED RUBY_T_MOVED
 #define T_MASK   RUBY_T_MASK
 
-#ifdef TRUFFLERUBY
-#define RB_BUILTIN_TYPE(OBJECT) rb_type(OBJECT)
-#define RB_BUILTIN_TYPE_NATIVE(x) (int)(((struct RBasic*)(x))->flags & RUBY_T_MASK)
-#else
 #define RB_BUILTIN_TYPE(x) (int)(((struct RBasic*)(x))->flags & RUBY_T_MASK)
-#endif
 #define BUILTIN_TYPE(x) RB_BUILTIN_TYPE(x)
 
-#ifdef TRUFFLERUBY
-int rb_type(VALUE value);
-#else
 static inline int rb_type(VALUE obj);
-#endif
 #define TYPE(x) rb_type((VALUE)(x))
 
-#ifdef TRUFFLERUBY
-/* TruffleRuby: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats. */
-#define RB_FLOAT_TYPE_P(obj) (\
-	polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", rb_tr_unwrap(obj))))
-#else
 #define RB_FLOAT_TYPE_P(obj) (\
 	RB_FLONUM_P(obj) || \
 	(!RB_SPECIAL_CONST_P(obj) && RB_BUILTIN_TYPE(obj) == RUBY_T_FLOAT))
-#endif
 
-#ifdef TRUFFLERUBY
-bool RB_TYPE_P(VALUE value, int type);
-#else
 #define RB_TYPE_P(obj, type) ( \
 	((type) == RUBY_T_FIXNUM) ? RB_FIXNUM_P(obj) : \
 	((type) == RUBY_T_TRUE) ? ((obj) == RUBY_Qtrue) : \
@@ -625,16 +566,7 @@ bool RB_TYPE_P(VALUE value, int type);
 	((type) == RUBY_T_SYMBOL) ? RB_SYMBOL_P(obj) : \
 	((type) == RUBY_T_FLOAT) ? RB_FLOAT_TYPE_P(obj) : \
 	(!RB_SPECIAL_CONST_P(obj) && RB_BUILTIN_TYPE(obj) == (type)))
-#endif
 
-#ifdef TRUFFLERUBY
-#define RB_GC_GUARD(v) \
-    (*__extension__ ({ \
-	polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v); \
-	volatile VALUE *rb_gc_guarded_ptr = &v; \
-	rb_gc_guarded_ptr; \
-    }))
-#else
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
@@ -652,7 +584,6 @@ volatile VALUE *rb_gc_guarded_ptr_val(volatile VALUE *ptr, VALUE val);
 #define HAVE_RB_GC_GUARDED_PTR_VAL 1
 #define RB_GC_GUARD(v) (*rb_gc_guarded_ptr_val(&(v),(v)))
 #endif
-#endif
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))
@@ -664,25 +595,13 @@ void rb_check_type(VALUE,int);
 #define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
 VALUE rb_str_to_str(VALUE);
-#ifdef TRUFFLERUBY
-VALUE rb_string_value(VALUE *value_pointer);
-char *rb_string_value_ptr(VALUE *value_pointer);
-char *rb_string_value_cstr(VALUE *value_pointer);
-#else
 VALUE rb_string_value(volatile VALUE*);
 char *rb_string_value_ptr(volatile VALUE*);
 char *rb_string_value_cstr(volatile VALUE*);
-#endif
 
-#ifdef TRUFFLERUBY
-#define StringValue(v) rb_tr_string_value(&(v))
-#define StringValuePtr(v) rb_tr_string_value_ptr(&(v))
-#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
-#else
 #define StringValue(v) rb_string_value(&(v))
 #define StringValuePtr(v) rb_string_value_ptr(&(v))
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
-#endif
 
 void rb_check_safe_obj(VALUE);
 #define SafeStringValue(v) StringValue(v)
@@ -702,11 +621,7 @@ VALUE rb_str_export(VALUE);
 VALUE rb_str_export_locale(VALUE);
 
 VALUE rb_get_path(VALUE);
-#ifdef TRUFFLERUBY
-#define FilePathValue(v) (v = rb_get_path(v))
-#else
 #define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
-#endif
 
 VALUE rb_get_path_no_checksafe(VALUE);
 #define FilePathStringValue(v) ((v) = rb_get_path(v))
@@ -970,16 +885,8 @@ enum ruby_fl_type {
 
 struct RUBY_ALIGNAS(SIZEOF_VALUE) RBasic {
     VALUE flags;
-#ifdef TRUFFLERUBY
-    VALUE klass;
-#else
     const VALUE klass;
-#endif
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RBasic)
-#endif
 
 VALUE rb_obj_hide(VALUE obj);
 VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change klass information */
@@ -996,11 +903,7 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
      OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 #endif
 
-#ifdef TRUFFLERUBY
-#define RBASIC_CLASS(obj) (rb_class_of(obj))
-#else
 #define RBASIC_CLASS(obj) (RBASIC(obj)->klass)
-#endif
 
 #define RVALUE_EMBED_LEN_MAX RVALUE_EMBED_LEN_MAX
 enum ruby_rvalue_flags {
@@ -1099,17 +1002,6 @@ struct RString {
 #define RSTRING_EMBED_LEN(str) \
      (long)((RBASIC(str)->flags >> RSTRING_EMBED_LEN_SHIFT) & \
             (RSTRING_EMBED_LEN_MASK >> RSTRING_EMBED_LEN_SHIFT))
-#ifdef TRUFFLERUBY
-int rb_str_len(VALUE string);
-#define RSTRING_LEN(str) (long)rb_str_len(str)
-
-char *RSTRING_PTR_IMPL(VALUE string);
-char *RSTRING_END_IMPL(VALUE string);
-#define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
-#define RSTRING_END(str) RSTRING_END_IMPL(str)
-#define RSTRING_LENINT(str) rb_str_len(str)
-#define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
-#else
 #define RSTRING_LEN(str) \
     (!(RBASIC(str)->flags & RSTRING_NOEMBED) ? \
      RSTRING_EMBED_LEN(str) : \
@@ -1127,7 +1019,6 @@ char *RSTRING_END_IMPL(VALUE string);
     (!(RBASIC(str)->flags & RSTRING_NOEMBED) ? \
      ((ptrvar) = RSTRING(str)->as.ary, (lenvar) = RSTRING_EMBED_LEN(str)) : \
      ((ptrvar) = RSTRING(str)->as.heap.ptr, (lenvar) = RSTRING(str)->as.heap.len))
-#endif
 
 #ifndef USE_TRANSIENT_HEAP
 #define USE_TRANSIENT_HEAP 1
@@ -1177,13 +1068,7 @@ struct RArray {
     (long)((RBASIC(a)->flags >> RARRAY_EMBED_LEN_SHIFT) & \
 	   (RARRAY_EMBED_LEN_MASK >> RARRAY_EMBED_LEN_SHIFT))
 #define RARRAY_LEN(a) rb_array_len(a)
-#ifdef TRUFFLERUBY
-long rb_array_len(VALUE a);
-int RARRAY_LENINT(VALUE array);
-#else
 #define RARRAY_LENINT(ary) rb_long2int(RARRAY_LEN(ary))
-#endif
-
 #define RARRAY_CONST_PTR(a) rb_array_const_ptr(a)
 #define RARRAY_CONST_PTR_TRANSIENT(a) rb_array_const_ptr_transient(a)
 
@@ -1213,10 +1098,6 @@ int RARRAY_LENINT(VALUE array);
     RARRAY_PTR_USE_END(_ary); \
 } while (0)
 
-#ifdef TRUFFLERUBY
-VALUE RARRAY_AREF(VALUE array, long index);
-#define RARRAY_ASET(a, i, v) rb_ary_store(a, i, v)
-#else
 #define RARRAY_AREF(a, i) (RARRAY_CONST_PTR_TRANSIENT(a)[i])
 #define RARRAY_ASET(a, i, v) do { \
     const VALUE _ary = (a); \
@@ -1225,14 +1106,8 @@ VALUE RARRAY_AREF(VALUE array, long index);
     RB_OBJ_WRITE(_ary, &ptr[i], _v); \
     RARRAY_PTR_USE_END_TRANSIENT(_ary); \
 } while (0)
-#endif
 
-#ifdef TRUFFLERUBY
-VALUE *RARRAY_PTR_IMPL(VALUE array);
-#define RARRAY_PTR(array) RARRAY_PTR_IMPL(array)
-#else
 #define RARRAY_PTR(a) ((VALUE *)RARRAY_CONST_PTR(RB_OBJ_WB_UNPROTECT_FOR(ARRAY, a)))
-#endif
 
 struct RRegexp {
     struct RBasic basic;
@@ -1261,20 +1136,12 @@ struct RFile {
     struct rb_io_t *fptr;
 };
 
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RFile)
-#endif
-
 struct RData {
     struct RBasic basic;
     void (*dmark)(void*);
     void (*dfree)(void*);
     void *data;
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RData)
-#endif
 
 typedef struct rb_data_type_struct rb_data_type_t;
 
@@ -1299,18 +1166,11 @@ struct rb_data_type_struct {
 #define HAVE_RB_DATA_TYPE_T_PARENT 1
 
 struct RTypedData {
-#ifndef TRUFFLERUBY
-    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
-#endif
     const rb_data_type_t *type;
     VALUE typed_flag; /* 1 or not */
     void *data;
 };
-
-#ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(RTypedData)
-#endif
 
 #define DATA_PTR(dta) (RDATA(dta)->data)
 
@@ -1404,29 +1264,16 @@ int rb_big_sign(VALUE);
 
 #define R_CAST(st)   (struct st*)
 #define RMOVED(obj)  (R_CAST(RMoved)(obj))
-#ifdef TRUFFLERUBY
-#define RBASIC(obj) (polyglot_as_RBasic(polyglot_invoke(RUBY_CEXT, "RBASIC", rb_tr_unwrap(obj))))
-#else
 #define RBASIC(obj)  (R_CAST(RBasic)(obj))
-#endif
 #define ROBJECT(obj) (R_CAST(RObject)(obj))
 #define RCLASS(obj)  (R_CAST(RClass)(obj))
 #define RMODULE(obj) RCLASS(obj)
 #define RSTRING(obj) (R_CAST(RString)(obj))
 #define RREGEXP(obj) (R_CAST(RRegexp)(obj))
 #define RARRAY(obj)  (R_CAST(RArray)(obj))
-#ifdef TRUFFLERUBY
-#define RDATA(obj) (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
-#define RTYPEDDATA(obj) (polyglot_as_RTypedData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
-#else
 #define RDATA(obj)   (R_CAST(RData)(obj))
 #define RTYPEDDATA(obj)   (R_CAST(RTypedData)(obj))
-#endif
-#ifdef TRUFFLERUBY
-#define RFILE(obj) (polyglot_as_RFile(RUBY_CEXT_INVOKE_NO_WRAP("RFILE", obj)))
-#else
 #define RFILE(obj)   (R_CAST(RFile)(obj))
-#endif
 
 #define FL_SINGLETON    ((VALUE)RUBY_FL_SINGLETON)
 #define FL_WB_PROTECTED ((VALUE)RUBY_FL_WB_PROTECTED)
@@ -1462,69 +1309,38 @@ int rb_big_sign(VALUE);
 #define FL_USER18 	((VALUE)RUBY_FL_USER18)
 #define FL_USER19 	((VALUE)(unsigned int)RUBY_FL_USER19)
 
-#ifdef TRUFFLERUBY
-int rb_special_const_p(VALUE object);
-#define RB_SPECIAL_CONST_P(x) rb_special_const_p(x)
-#else
 #define RB_SPECIAL_CONST_P(x) (RB_IMMEDIATE_P(x) || !RB_TEST(x))
-#endif
 #define SPECIAL_CONST_P(x) RB_SPECIAL_CONST_P(x)
 
 #define RB_FL_ABLE(x) (!RB_SPECIAL_CONST_P(x) && RB_BUILTIN_TYPE(x) != RUBY_T_NODE)
-#ifdef TRUFFLERUBY
-#define RB_FL_TEST_RAW(x,f) (rb_tr_flags(x)&(f))
-#else
 #define RB_FL_TEST_RAW(x,f) (RBASIC(x)->flags&(f))
-#endif
 #define RB_FL_TEST(x,f) (RB_FL_ABLE(x)?RB_FL_TEST_RAW((x),(f)):0)
 #define RB_FL_ANY_RAW(x,f) RB_FL_TEST_RAW((x),(f))
 #define RB_FL_ANY(x,f) RB_FL_TEST((x),(f))
 #define RB_FL_ALL_RAW(x,f) (RB_FL_TEST_RAW((x),(f)) == (f))
 #define RB_FL_ALL(x,f) (RB_FL_TEST((x),(f)) == (f))
-#ifdef TRUFFLERUBY
-#define RB_FL_SET_RAW(x,f) rb_tr_add_flags(x,f)
-#else
 #define RB_FL_SET_RAW(x,f) (void)(RBASIC(x)->flags |= (f))
-#endif
 #define RB_FL_SET(x,f) (RB_FL_ABLE(x) ? RB_FL_SET_RAW(x, f) : (void)0)
 #define RB_FL_UNSET_RAW(x,f) (void)(RBASIC(x)->flags &= ~(VALUE)(f))
 #define RB_FL_UNSET(x,f) (RB_FL_ABLE(x) ? RB_FL_UNSET_RAW(x, f) : (void)0)
 #define RB_FL_REVERSE_RAW(x,f) (void)(RBASIC(x)->flags ^= (f))
 #define RB_FL_REVERSE(x,f) (RB_FL_ABLE(x) ? RB_FL_REVERSE_RAW(x, f) : (void)0)
 
-#ifdef TRUFFLERUBY
-#define RB_OBJ_TAINTABLE(x) rb_tr_obj_taintable_p(x)
-#define RB_OBJ_TAINTED_RAW(x) rb_tr_obj_tainted_p(x)
-#define RB_OBJ_TAINTED(x) rb_tr_obj_tainted_p(x)
-#define RB_OBJ_TAINT_RAW(x) rb_obj_taint(x)
-#else
 #define RB_OBJ_TAINTABLE(x) (RB_FL_ABLE(x) && RB_BUILTIN_TYPE(x) != RUBY_T_BIGNUM && RB_BUILTIN_TYPE(x) != RUBY_T_FLOAT)
 #define RB_OBJ_TAINTED_RAW(x) RB_FL_TEST_RAW(x, RUBY_FL_TAINT)
 #define RB_OBJ_TAINTED(x) (!!RB_FL_TEST((x), RUBY_FL_TAINT))
 #define RB_OBJ_TAINT_RAW(x) RB_FL_SET_RAW(x, RUBY_FL_TAINT)
-#endif
 #define RB_OBJ_TAINT(x) (RB_OBJ_TAINTABLE(x) ? RB_OBJ_TAINT_RAW(x) : (void)0)
 #define RB_OBJ_UNTRUSTED(x) RB_OBJ_TAINTED(x)
 #define RB_OBJ_UNTRUST(x) RB_OBJ_TAINT(x)
-#ifdef TRUFFLERUBY
-#define RB_OBJ_INFECT_RAW(x,s) rb_tr_obj_infect(x, s)
-#define RB_OBJ_INFECT(x,s) rb_tr_obj_infect(x, s)
-#else
 #define RB_OBJ_INFECT_RAW(x,s) RB_FL_SET_RAW(x, RB_OBJ_TAINTED_RAW(s))
 #define RB_OBJ_INFECT(x,s) ( \
     (RB_OBJ_TAINTABLE(x) && RB_FL_ABLE(s)) ? \
     RB_OBJ_INFECT_RAW(x, s) : (void)0)
-#endif
 
-#ifdef TRUFFLERUBY
-#define RB_OBJ_FROZEN_RAW(x) rb_obj_frozen_p(x)
-#define RB_OBJ_FROZEN(x) rb_obj_frozen_p(x)
-#define RB_OBJ_FREEZE_RAW(x) rb_obj_freeze(x)
-#else
 #define RB_OBJ_FROZEN_RAW(x) (RBASIC(x)->flags&RUBY_FL_FREEZE)
 #define RB_OBJ_FROZEN(x) (!RB_FL_ABLE(x) || RB_OBJ_FROZEN_RAW(x))
 #define RB_OBJ_FREEZE_RAW(x) (void)(RBASIC(x)->flags |= RUBY_FL_FREEZE)
-#endif
 #define RB_OBJ_FREEZE(x) rb_obj_freeze_inline((VALUE)x)
 
 /*!
@@ -1564,9 +1380,6 @@ int rb_special_const_p(VALUE object);
 
 void rb_freeze_singleton_class(VALUE klass);
 
-#ifdef TRUFFLERUBY
-#define rb_obj_freeze_inline(object) rb_obj_freeze(object)
-#else
 static inline void
 rb_obj_freeze_inline(VALUE x)
 {
@@ -1577,7 +1390,6 @@ rb_obj_freeze_inline(VALUE x)
 	}
     }
 }
-#endif
 
 #if GCC_VERSION_SINCE(4,4,0)
 # define RUBY_UNTYPED_DATA_FUNC(func) func __attribute__((warning("untyped Data is unsafe; use TypedData instead")))
@@ -1607,20 +1419,12 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 #endif
 #endif
 
-#ifdef TRUFFLERUBY
-static inline void *
-rb_data_object_get(VALUE obj)
-{
-    return DATA_PTR(obj);
-}
-#else
 static inline void *
 rb_data_object_get(VALUE obj)
 {
     Check_Type(obj, RUBY_T_DATA);
     return ((struct RData *)obj)->data;
 }
-#endif
 
 #if defined(__GNUC__) && !defined(__NO_INLINE__)
 static inline void *
@@ -1637,11 +1441,6 @@ rb_data_object_make(VALUE klass, RUBY_DATA_FUNC mark_func, RUBY_DATA_FUNC free_f
     return result;
 }
 
-#ifdef TRUFFLERUBY
-VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, void **data_pointer, size_t size);
-
-#define rb_data_object_alloc(klass, data, dmark, dfree) rb_data_object_wrap(klass, data, dmark, dfree)
-#else
 static inline VALUE
 rb_data_typed_object_make(VALUE klass, const rb_data_type_t *type, void **datap, size_t size)
 {
@@ -1656,7 +1455,6 @@ rb_data_object_alloc(VALUE klass, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FU
 {
     return rb_data_object_wrap(klass, data, dmark, dfree);
 }
-#endif
 #endif
 
 #ifndef rb_data_typed_object_alloc
@@ -1827,11 +1625,7 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
 	return RB_LONG2FIX(v);
     else
-#ifdef TRUFFLERUBY
-	return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v));
-#else
 	return rb_uint2big(v);
-#endif
 }
 #define RB_ULONG2NUM(x) rb_ulong2num_inline(x)
 
@@ -1959,7 +1753,6 @@ rb_alloc_tmp_buffer2(volatile VALUE *store, long count, size_t elsize)
 #define MEMCPY(p1,p2,type,n) memcpy((p1), (p2), sizeof(type)*(size_t)(n))
 #define MEMMOVE(p1,p2,type,n) memmove((p1), (p2), sizeof(type)*(size_t)(n))
 #define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(size_t)(n))
-#ifndef TRUFFLERUBY
 #ifdef __GLIBC__
 static inline void *
 ruby_nonempty_memcpy(void *dest, const void *src, size_t n)
@@ -1968,7 +1761,6 @@ ruby_nonempty_memcpy(void *dest, const void *src, size_t n)
     return (n ? memcpy(dest, src, n) : dest);
 }
 #define memcpy(p1,p2,n) ruby_nonempty_memcpy(p1, p2, n)
-#endif
 #endif
 
 void rb_obj_infect(VALUE victim, VALUE carrier);
@@ -2020,11 +1812,7 @@ void rb_undef_method(VALUE,const char*);
 void rb_define_alias(VALUE,const char*,const char*);
 void rb_define_attr(VALUE,const char*,int,int);
 
-#ifdef TRUFFLERUBY
-#define rb_global_variable(address) ;
-#else
 void rb_global_variable(VALUE*);
-#endif
 void rb_gc_register_mark_object(VALUE);
 void rb_gc_register_address(VALUE*);
 void rb_gc_unregister_address(VALUE*);
@@ -2040,15 +1828,6 @@ VALUE rb_sym2str(VALUE);
 VALUE rb_to_symbol(VALUE name);
 VALUE rb_check_symbol(volatile VALUE *namep);
 
-#ifdef TRUFFLERUBY
-#define RUBY_CONST_ID_CACHE(result, str)		\
-    {							\
-	static ID rb_intern_id_cache;			\
-	if (!polyglot_is_value((void*)rb_intern_id_cache)) \
-	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
-	result rb_intern_id_cache;			\
-    }
-#else
 #define RUBY_CONST_ID_CACHE(result, str)		\
     {							\
 	static ID rb_intern_id_cache;			\
@@ -2056,7 +1835,6 @@ VALUE rb_check_symbol(volatile VALUE *namep);
 	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
 	result rb_intern_id_cache;			\
     }
-#endif
 #define RUBY_CONST_ID(var, str) \
     do RUBY_CONST_ID_CACHE((var) =, (str)) while (0)
 #define CONST_ID_CACHE(result, str) RUBY_CONST_ID_CACHE(result, str)
@@ -2073,7 +1851,6 @@ VALUE rb_check_symbol(volatile VALUE *namep);
      __extension__ (rb_intern2((str), (long)strlen(str))) : \
      (rb_intern)(str))
 
-#ifndef TRUFFLERUBY
 # define rb_varargs_argc_check_runtime(argc, vargc) \
     (((argc) <= (vargc)) ? (argc) : \
      (rb_fatal("argc(%d) exceeds actual arguments(%d)", \
@@ -2097,7 +1874,6 @@ ERRORFUNC((" argument length doesn't match"), int rb_varargs_bad_length(int,int)
 #   define rb_varargs_argc_check(argc, vargc) \
 	rb_varargs_argc_check_runtime(argc, vargc)
 # endif
-#endif
 
 #else
 #define rb_intern_const(str) rb_intern2((str), (long)strlen(str))
@@ -2311,13 +2087,8 @@ RUBY_EXTERN VALUE rb_eLoadError;
 
 RUBY_EXTERN VALUE rb_eMathDomainError;
 
-#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_stdin, rb_stdout, rb_stderr;
-#endif
 
-#ifdef TRUFFLERUBY
-VALUE rb_class_of(VALUE object);
-#else
 static inline VALUE
 rb_class_of(VALUE obj)
 {
@@ -2350,11 +2121,7 @@ rb_type(VALUE obj)
     }
     return RB_BUILTIN_TYPE(obj);
 }
-#endif
 
-#ifdef TRUFFLERUBY
-#define rb_type_p(obj, type) (rb_type(obj) == (type))
-#else
 #ifdef __GNUC__
 #define rb_type_p(obj, type) \
     __extension__ (__builtin_constant_p(type) ? RB_TYPE_P((obj), (type)) : \
@@ -2362,9 +2129,7 @@ rb_type(VALUE obj)
 #else
 #define rb_type_p(obj, type) (rb_type(obj) == (type))
 #endif
-#endif
 
-#ifndef TRUFFLERUBY
 #ifdef __GNUC__
 #define rb_special_const_p(obj) \
     __extension__ ({ \
@@ -2379,11 +2144,9 @@ rb_special_const_p(VALUE obj)
     return (int)RUBY_Qfalse;
 }
 #endif
-#endif
 
 #include "ruby/intern.h"
 
-#ifndef TRUFFLERUBY
 static inline void
 rb_clone_setup(VALUE clone, VALUE obj)
 {
@@ -2406,7 +2169,6 @@ rb_array_len(VALUE a)
     return (RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
 	RARRAY_EMBED_LEN(a) : RARRAY(a)->as.heap.len;
 }
-#endif
 
 #if defined(__fcc__) || defined(__fcc_version) || \
     defined(__FCC__) || defined(__FCC_VERSION)
@@ -2416,13 +2178,6 @@ rb_array_len(VALUE a)
 # define FIX_CONST_VALUE_PTR(x) (x)
 #endif
 
-#ifdef TRUFFLERUBY
-static inline const VALUE *
-rb_array_const_ptr_transient(VALUE a)
-{
-    return ((const VALUE *) RARRAY_PTR(a));
-}
-#else
 /* internal function. do not use this function */
 static inline const VALUE *
 rb_array_const_ptr_transient(VALUE a)
@@ -2430,7 +2185,6 @@ rb_array_const_ptr_transient(VALUE a)
     return FIX_CONST_VALUE_PTR((RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
 	RARRAY(a)->as.ary : RARRAY(a)->as.heap.ptr);
 }
-#endif
 
 /* internal function. do not use this function */
 static inline const VALUE *
@@ -2446,7 +2200,6 @@ rb_array_const_ptr(VALUE a)
     return rb_array_const_ptr_transient(a);
 }
 
-#ifndef TRUFFLERUBY
 /* internal function. do not use this function */
 static inline VALUE *
 rb_array_ptr_use_start(VALUE a, int allow_transient)
@@ -2474,7 +2227,6 @@ rb_array_ptr_use_end(VALUE a, int allow_transient)
     rb_ary_ptr_use_end(a);
     (void)allow_transient;
 }
-#endif
 
 #if defined(EXTLIB) && defined(USE_DLN_A_OUT)
 /* hook for external modules */
@@ -2581,8 +2333,6 @@ int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
 
 /* -- Remove In 3.0, Only public for rb_scan_args optimized version -- */
 int rb_empty_keyword_given_p(void);
-
-#ifndef TRUFFLERUBY
 
 #if defined(HAVE_BUILTIN___BUILTIN_CHOOSE_EXPR_CONSTANT_P) && defined(HAVE_VA_ARGS_MACRO) && defined(__OPTIMIZE__)
 # define rb_scan_args(argc,argvp,fmt,...) \
@@ -2942,8 +2692,6 @@ __extension__({ \
     })
 #endif
 
-#endif // TRUFFLERUBY
-
 #ifndef RUBY_DONT_SUBST
 #include "ruby/subst.h"
 #endif
@@ -3013,8 +2761,6 @@ void ruby_sig_finalize(void);
 #endif
 
 RUBY_SYMBOL_EXPORT_END
-
-#include <truffleruby/truffleruby.h>
 
 #if defined(__cplusplus)
 #if 0

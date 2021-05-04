@@ -3,7 +3,7 @@
 
 require "optparse"
 require "rbconfig"
-require "leakchecker" unless defined?(::TruffleRuby)
+require "leakchecker"
 
 ##
 # Minimal (mostly drop-in) replacement for test-unit.
@@ -939,7 +939,7 @@ module MiniTest
         filter === m || filter === "#{suite}##{m}"
       }
 
-      leakchecker = LeakChecker.new unless defined?(::TruffleRuby)
+      leakchecker = LeakChecker.new
 
       continuation = proc do
         assertions = filtered_test_methods.map { |method|
@@ -957,7 +957,7 @@ module MiniTest
           $stdout.flush
 
           unless defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # compiler process is wrongly considered as leak
-            leakchecker.check("#{inst.class}\##{inst.__name__}") unless defined?(::TruffleRuby)
+            leakchecker.check("#{inst.class}\##{inst.__name__}")
           end
 
           inst._assertions

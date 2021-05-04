@@ -544,7 +544,7 @@ Gem dependencies file #{@path} includes git reference for both ref/branch and ta
       raise ArgumentError, "unknown platform #{platform_name.inspect}" unless
         platform = PLATFORM_MAP[platform_name]
 
-      next false unless Gem::Platform.match_platforms? platform, Gem.platforms
+      next false unless Gem::Platform.match platform
 
       if engines = ENGINE_MAP[platform_name]
         next false unless engines.include? Gem.ruby_engine

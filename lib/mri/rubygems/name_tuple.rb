@@ -62,7 +62,7 @@ class Gem::NameTuple
   # Indicate if this NameTuple matches the current platform.
 
   def match_platform?
-    Gem::Platform.match_gem? @platform, @name
+    Gem::Platform.match @platform
   end
 
   ##

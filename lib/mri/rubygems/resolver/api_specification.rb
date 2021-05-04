@@ -43,7 +43,7 @@ class Gem::Resolver::APISpecification < Gem::Resolver::Specification
   end
 
   def installable_platform? # :nodoc:
-    Gem::Platform.match_gem? @platform, @name
+    Gem::Platform.match @platform
   end
 
   def pretty_print(q) # :nodoc:

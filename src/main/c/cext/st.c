@@ -1,5 +1,3 @@
-#include <truffleruby-impl.h>
-
 /* This is a public domain general purpose hash table package
    originally written by Peter Moore @ UCB.
 
@@ -1817,7 +1815,7 @@ st_values_check(st_table *tab, st_data_t *values, st_index_t size,
 #ifndef UNALIGNED_WORD_ACCESS
 # if defined(__i386) || defined(__i386__) || defined(_M_IX86) || \
      defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || \
-     defined(__powerpc64__) || \
+     defined(__powerpc64__) || defined(__aarch64__) || \
      defined(__mc68020__)
 #   define UNALIGNED_WORD_ACCESS 1
 # endif
@@ -2374,5 +2372,26 @@ st_insert_generic(st_table *tab, long argc, const VALUE *argv, VALUE hash)
 
     /* reindex */
     st_rehash(tab);
+}
+
+/* Mimics ruby's { foo => bar } syntax. This function is subpart
+   of rb_hash_bulk_insert. */
+void
+rb_hash_bulk_insert_into_st_table(long argc, const VALUE *argv, VALUE hash)
+{
+    st_index_t n, size = argc / 2;
+    st_table *tab = RHASH_ST_TABLE(hash);
+
+    tab = RHASH_TBL_RAW(hash);
+    n = tab->entries_bound + size;
+    st_expand_table(tab, n);
+    if (UNLIKELY(tab->num_entries))
+        st_insert_generic(tab, argc, argv, hash);
+    else if (argc <= 2)
+        st_insert_single(tab, hash, argv[0], argv[1]);
+    else if (tab->bin_power <= MAX_POWER2_FOR_TABLES_WITHOUT_BINS)
+        st_insert_linear(tab, argc, argv, hash);
+    else
+        st_insert_generic(tab, argc, argv, hash);
 }
 #endif

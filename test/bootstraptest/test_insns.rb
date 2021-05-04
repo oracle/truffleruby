@@ -89,7 +89,7 @@ tests = [
   [ 'putiseq',                  %q{ -> { true }.() }, ],
   [ 'putstring',                %q{ "true" }, ],
   [ 'tostring / concatstrings', %q{ "#{true}" }, ],
-  [ 'freezestring',             %q{ "#{true}" }, fsl, {tagged: true} ],
+  [ 'freezestring',             %q{ "#{true}" }, fsl, ],
   [ 'freezestring',             %q{ "#{true}" }, '-d', fsl, ],
   [ 'toregexp',                 %q{ /#{true}/ =~ "true" && $~ }, ],
   [ 'intern',                   %q{ :"#{true}" }, ],
@@ -279,7 +279,7 @@ tests = [
     x = once(128); x = once(7); x = once(16);
     x =~ "true" && $~
   },
-  [ 'once', <<-'},', {tagged: true}],         # {
+  [ 'once', <<-'},', ],         # {
     # inter-thread lockup situation
     def once n
       return Thread.start n do |m|

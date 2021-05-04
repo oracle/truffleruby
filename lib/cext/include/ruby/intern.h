@@ -308,8 +308,6 @@ void rb_check_trusted(VALUE);
 	    rb_error_frozen_object(frozen_obj); \
 	} \
     } while (0)
-#define rb_check_trusted_internal(obj) ((void) 0)
-#ifndef TRUFFLERUBY
 #ifdef __GNUC__
 #define rb_check_frozen(obj) __extension__({rb_check_frozen_internal(obj);})
 #else
@@ -325,7 +323,6 @@ rb_check_trusted_inline(VALUE obj)
     rb_check_trusted(obj);
 }
 #define rb_check_trusted(obj) rb_check_trusted_inline(obj)
-#endif
 #endif
 void rb_check_copyable(VALUE obj, VALUE orig);
 
@@ -583,13 +580,11 @@ VALUE rb_hash_size(VALUE);
 void rb_hash_free(VALUE);
 /* io.c */
 #define rb_defout rb_stdout
-#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_fs;
 RUBY_EXTERN VALUE rb_output_fs;
 RUBY_EXTERN VALUE rb_rs;
 RUBY_EXTERN VALUE rb_default_rs;
 RUBY_EXTERN VALUE rb_output_rs;
-#endif
 VALUE rb_io_write(VALUE, VALUE);
 VALUE rb_io_gets(VALUE);
 VALUE rb_io_getbyte(VALUE);
@@ -842,7 +837,6 @@ VALUE rb_str_scrub(VALUE, VALUE);
 /* symbol.c */
 VALUE rb_sym_all_symbols(void);
 
-#ifndef TRUFFLERUBY
 #ifdef HAVE_BUILTIN___BUILTIN_CONSTANT_P
 #define rb_str_new(str, len) RB_GNUC_EXTENSION_BLOCK(	\
     (__builtin_constant_p(str) && __builtin_constant_p(len)) ? \
@@ -905,7 +899,6 @@ VALUE rb_sym_all_symbols(void);
 	rb_exc_new((klass), (ptr), (long)strlen(ptr)) : \
 	rb_exc_new_cstr((klass), (ptr))		\
 )
-#endif
 #endif
 #define rb_str_new2 rb_str_new_cstr
 #define rb_str_new3 rb_str_new_shared

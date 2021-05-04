@@ -35,11 +35,7 @@ typedef union rb_thread_lock_union {
 #elif defined(HAVE_PTHREAD_H)
 #include <pthread.h>
 typedef pthread_t rb_nativethread_id_t;
-#ifdef TRUFFLERUBY
-typedef VALUE rb_nativethread_lock_t;
-#else
 typedef pthread_mutex_t rb_nativethread_lock_t;
-#endif
 
 #else
 #error "unsupported thread type"
