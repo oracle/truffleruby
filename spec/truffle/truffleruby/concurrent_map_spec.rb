@@ -1,8 +1,8 @@
 require_relative '../../ruby/spec_helper'
 
-describe "TruffleRuby::ConcurrentHashMap" do
+describe "TruffleRuby::ConcurrentMap" do
   before do
-    @h = TruffleRuby::ConcurrentHashMap.new
+    @h = TruffleRuby::ConcurrentMap.new
   end
 
   it "#[] of a new instance is empty" do

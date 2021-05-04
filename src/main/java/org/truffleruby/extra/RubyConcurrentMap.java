@@ -17,7 +17,7 @@ import org.truffleruby.language.RubyDynamicObject;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RubyConcurrentHashMap extends RubyDynamicObject {
+public class RubyConcurrentMap extends RubyDynamicObject {
 
     public static class Key {
 
@@ -55,7 +55,7 @@ public class RubyConcurrentHashMap extends RubyDynamicObject {
 
     public final ConcurrentHashMap<Key, Object> map;
 
-    public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape) {
+    public RubyConcurrentMap(RubyClass rubyClass, Shape shape) {
         super(rubyClass, shape);
         map = allocateMap();
     }
