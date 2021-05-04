@@ -53,16 +53,19 @@ public class RubyConcurrentMap extends RubyDynamicObject {
         }
     }
 
-    public final ConcurrentHashMap<Key, Object> map;
+    private ConcurrentHashMap<Key, Object> map;
 
     public RubyConcurrentMap(RubyClass rubyClass, Shape shape) {
         super(rubyClass, shape);
-        map = allocateMap();
     }
 
     @TruffleBoundary
-    private ConcurrentHashMap<Key, Object> allocateMap() {
+    public void allocateMap(int initialCapacity, float loadFactor) {
         // To do: This method is seems empty but was blacklisted on CI
-        return new ConcurrentHashMap<>();
+        map = new ConcurrentHashMap<>(initialCapacity, loadFactor);
+    }
+
+    public ConcurrentHashMap<Key, Object> getMap() {
+        return map;
     }
 }
