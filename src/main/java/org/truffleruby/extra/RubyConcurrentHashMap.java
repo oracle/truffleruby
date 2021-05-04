@@ -11,6 +11,7 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
@@ -42,7 +43,7 @@ public class RubyConcurrentHashMap extends RubyDynamicObject {
                 return false;
             } else {
                 // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
-                final Object returnValue = RubyContext.send(key, "eql?", otherKey.key);
+                final Object returnValue = KernelNodes.SameOrEqlNode.getUncached().execute(key, otherKey.key);
                 if (returnValue instanceof Boolean) {
                     return (boolean) returnValue;
                 } else {
