@@ -20,11 +20,15 @@ import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
@@ -72,8 +76,7 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract Object delete(Object store, RubyHash hash, Object key);
 
-    /** Runs the given block over every entry. If the block has > 1 arity, passes the key and the value as arguments,
-     * otherwise passes an array containing the key and the value as single argument. */
+    /** Runs the given block over every entry, in the manner specified by {@link YieldPairNode}. */
     @Abstract
     public abstract void each(Object store, RubyHash hash, RubyProc block);
 
@@ -81,7 +84,13 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract void replace(Object store, RubyHash hash, RubyHash dest);
 
-    /** cf. {@link #each} */
+    /** Returns a ruby array containing the result of applying {@code block} on every hash entry, in the manner
+     * specified by {@link YieldPairNode}. */
+    @Abstract
+    public abstract RubyArray map(Object store, RubyHash hash, RubyProc block);
+
+    /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
+     * otherwise passes an array containing the key and the value as single argument. */
     @GenerateUncached
     public abstract static class YieldPairNode extends RubyBaseNode {
         public abstract Object execute(RubyProc block, Object key, Object value);
@@ -100,5 +109,11 @@ public abstract class HashStoreLibrary extends Library {
                 return yieldNode.yield(block, ArrayHelpers.createArray(context, language, new Object[]{ key, value }));
             }
         }
+    }
+
+    /** Useful for library implementations. */
+    public static void reportLoopCount(HashStoreLibrary self, int n) {
+        final Node node = self.isAdoptable() ? self : EncapsulatingNodeReference.getCurrent().get();
+        LoopNode.reportLoopCount(node, n);
     }
 }

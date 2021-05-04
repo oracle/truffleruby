@@ -21,6 +21,8 @@ import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
@@ -83,5 +85,12 @@ public class NullHashStore {
         dest.compareByIdentity = hash.compareByIdentity;
 
         assert HashOperations.verifyStore(context, dest);
+    }
+
+    @ExportMessage
+    protected RubyArray map(RubyHash hash, RubyProc block,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return ArrayHelpers.createEmptyArray(context, language);
     }
 }

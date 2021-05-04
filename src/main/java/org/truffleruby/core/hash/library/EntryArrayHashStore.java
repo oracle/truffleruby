@@ -18,6 +18,7 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -25,6 +26,9 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.BucketsStrategy;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
@@ -145,7 +149,7 @@ public class EntryArrayHashStore {
     protected void each(RubyHash hash, RubyProc block,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached HashStoreLibrary.YieldPairNode yieldPair) {
+            @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair) {
 
         assert HashOperations.verifyStore(context, hash);
         Entry entry = hash.firstInSequence;
@@ -172,5 +176,34 @@ public class EntryArrayHashStore {
         dest.compareByIdentity = hash.compareByIdentity;
 
         assert HashOperations.verifyStore(context, dest);
+    }
+
+    @ExportMessage
+    protected RubyArray map(RubyHash hash, RubyProc block,
+            @Cached ArrayBuilderNode arrayBuilder,
+            @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair,
+            @CachedLibrary("this") HashStoreLibrary self,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+
+        final int length = hash.size;
+        ArrayBuilderNode.BuilderState state = arrayBuilder.start(length);
+
+        int index = 0;
+
+        try {
+            Entry entry = hash.firstInSequence;
+            while (entry != null) {
+                arrayBuilder.appendValue(state, index, yieldPair.execute(block, entry.getKey(), entry.getValue()));
+                index++;
+                entry = entry.getNextInSequence();
+            }
+        } finally {
+            HashStoreLibrary.reportLoopCount(self, length);
+        }
+
+        return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, length), length);
     }
 }

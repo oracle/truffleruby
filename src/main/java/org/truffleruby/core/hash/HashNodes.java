@@ -399,77 +399,13 @@ public abstract class HashNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
-    public abstract static class MapNode extends YieldingCoreMethodNode {
+    public abstract static class MapNode extends CoreMethodArrayArgumentsNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected RubyArray mapNull(RubyHash hash, RubyProc block) {
-            assert HashOperations.verifyStore(getContext(), hash);
-            return createEmptyArray();
+        @Specialization(limit = "hashStrategyLimit()")
+        protected RubyArray map(RubyHash hash, RubyProc block,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            return hashes.map(hash.store, hash, block);
         }
-
-        @ExplodeLoop
-        @Specialization(guards = "isPackedHash(hash)")
-        protected RubyArray mapPackedArray(RubyHash hash, RubyProc block,
-                @Cached ArrayBuilderNode arrayBuilderNode) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final Object[] store = (Object[]) hash.store;
-
-            final int length = hash.size;
-            BuilderState state = arrayBuilderNode.start(length);
-
-            try {
-                for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
-                    if (n < length) {
-                        final Object key = PackedArrayStrategy.getKey(store, n);
-                        final Object value = PackedArrayStrategy.getValue(store, n);
-                        arrayBuilderNode.appendValue(state, n, yieldPair(block, key, value));
-                    }
-                }
-            } finally {
-                LoopNode.reportLoopCount(this, length);
-            }
-
-            return createArray(arrayBuilderNode.finish(state, length), length);
-        }
-
-        @Specialization(guards = "isBucketHash(hash)")
-        protected RubyArray mapBuckets(RubyHash hash, RubyProc block,
-                @Cached ArrayBuilderNode arrayBuilderNode) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final int length = hash.size;
-            BuilderState state = arrayBuilderNode.start(length);
-
-            int index = 0;
-
-            try {
-                Entry entry = hash.firstInSequence;
-                while (entry != null) {
-                    arrayBuilderNode
-                            .appendValue(state, index, yieldPair(block, entry.getKey(), entry.getValue()));
-                    index++;
-                    entry = entry.getNextInSequence();
-                }
-            } finally {
-                LoopNode.reportLoopCount(this, length);
-            }
-
-            return createArray(arrayBuilderNode.finish(state, length), length);
-        }
-
-        private Object yieldPair(RubyProc block, Object key, Object value) {
-            // MRI behavior, see rb_hash_each_pair()
-            // We use getMethodArityNumber() here since for non-lambda the semantics are the same for both branches
-            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getMethodArityNumber() > 1)) {
-                return callBlock(block, key, value);
-            } else {
-                return callBlock(block, createArray(new Object[]{ key, value }));
-            }
-        }
-
     }
 
     @Primitive(name = "hash_set_default_proc")
