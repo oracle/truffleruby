@@ -18,7 +18,7 @@ public class TruffleRuby {
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
     public static final String ENGINE_ID = "truffleruby";
-    public static final String LANGUAGE_VERSION = "2.7.2";
+    public static final String LANGUAGE_VERSION = "2.7.3";
     public static final String LANGUAGE_REVISION = BuildInformationImpl.INSTANCE.getFullRevision();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-" +

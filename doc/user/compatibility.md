@@ -1,7 +1,7 @@
 # Compatibility
 
 TruffleRuby aims to be fully compatible with the standard implementation of
-Ruby, MRI, version 2.7.2, [including C extensions](#c-extension-compatibility).
+Ruby, MRI, version 2.7.3, [including C extensions](#c-extension-compatibility).
 TruffleRuby is still in development, so it is not 100% compatible yet.
 
 Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
