@@ -15,6 +15,8 @@ To update a specific default gem to a newer version than in the MRI release, run
 cd ruby
 git checkout -b truffleruby-updates-$VERSION vn_n_n
 ruby tool/sync_default_gems.rb $GEM
+
+git push -u eregon HEAD
 ```
 to update the default gem in MRI.
 Then follow the instructions below to reimport MRI files and to update default gems.
@@ -25,6 +27,20 @@ Set the environment variable `$VERSION` to the target version:
 ```
 export VERSION=n.n.n
 ```
+
+Re-install the target MRI version using the commands, to have a clean set of gems:
+```
+rm -rf ~/.rubies/ruby-$VERSION
+ruby-install ruby $VERSION
+# OR
+rm -rf ~/.rubies/ruby-$VERSION
+bin/ruby-build $VERSION ~/.rubies/ruby-$VERSION
+ruby-install -r ~/tmp ruby $VERSION
+```
+
+`ruby-build` does not keep the build directory
+(required as `RUBY_BUILD_DIR` for `tool/import-mri-files.sh`),
+so one needs the extra `ruby-install` command when using `ruby-build`.
 
 ## Create reference branches
 
@@ -48,18 +64,14 @@ update.
 
 ## Update MRI with modifications
 
-Re-install the target MRI version using the commands, to have a clean set of gems:
-```
-rm -rf ~/.rubies/ruby-$VERSION
-ruby-install ruby $VERSION
-```
-
-In your working branch you can import MRI files again, and you can re-apply
-old patches using the old reference branch.
+In your working branch you can cherry-pick the new reference branch,
+and then re-apply old patches using the old reference branch.
 
 ```bash
-tool/import-mri-files.sh
-git revert vNN
+# Commit message: Import files from MRI n.n.n
+git cherry-pick vNew
+# Commit message: Re-apply changes on top of n.n.n files
+git revert vOld
 ```
 
 You'll usually get some conflicts to work out.
@@ -140,9 +152,9 @@ ruby tool/patch-default-gemspecs.rb
 ## Updating bin/ executables
 
 ```
-rm -rf bin
-cp -R ~/.rubies/ruby-$VERSION/bin .
-rm -f bin/ruby
+rm -rf exe
+cp -R ~/.rubies/ruby-$VERSION/bin exe
+rm -f exe/ruby
 ruby tool/patch_launchers.rb
 ```
 
@@ -151,7 +163,8 @@ ruby tool/patch_launchers.rb
 In a separate commit, update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
-* Update `versions.json` (from `../ruby/gems/bundled_gems`)
+* Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
+* Update `versions.json` (from `cat ../ruby/gems/bundled_gems`, `ls -l lib/gems/specifications/default` and `jt gem --version`)
 * Copy and paste `-h` and `--help` output to `RubyLauncher`
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
 * Update `doc/user/compatibility.md` and `README.md`
@@ -161,7 +174,6 @@ In a separate commit, update all of these:
 * Grep for the old version with `git grep -F x.y.z`
 * If `tool/id.def` or `lib/cext/include/truffleruby/internal/id.h` has changed, `jt build core-symbols` and check for correctness.
 * Update the list of `:next` specs and change the "next version" in `spec/truffleruby.mspec`.
-* Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
 
 ## Last step
 
