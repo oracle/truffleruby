@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Keiju ISHITSUKA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "Mixin to extend objects to be handled like a Mutex.".freeze
   s.email = ["keiju@ruby-lang.org".freeze]
   s.files = ["mutex_m.rb".freeze]
   s.homepage = "https://github.com/ruby/mutex_m".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "Mixin to extend objects to be handled like a Mutex.".freeze
 
   if s.respond_to? :specification_version then

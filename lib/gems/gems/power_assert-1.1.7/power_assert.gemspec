@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/k-tsj/power_assert".freeze
   s.licenses = ["2-clause BSDL".freeze, "Ruby's".freeze]
   s.rdoc_options = ["--main".freeze, "README.rdoc".freeze]
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.2".freeze
   s.summary = "Power Assert for Ruby".freeze
 
   if s.respond_to? :specification_version then

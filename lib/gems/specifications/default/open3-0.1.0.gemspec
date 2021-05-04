@@ -10,12 +10,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "Popen, but with stderr, too".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["open3.rb".freeze, "open3/version.rb".freeze]
   s.homepage = "https://github.com/ruby/open3".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "Popen, but with stderr, too".freeze
 end

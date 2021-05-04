@@ -10,12 +10,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "Simple Mail Transfer Protocol client library for Ruby.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["net/smtp.rb".freeze, "net/smtp/version.rb".freeze]
   s.homepage = "https://github.com/ruby/net-smtp".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "Simple Mail Transfer Protocol client library for Ruby.".freeze
 end

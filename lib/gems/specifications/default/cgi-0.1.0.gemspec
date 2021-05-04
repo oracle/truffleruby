@@ -10,12 +10,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "Support for the Common Gateway Interface protocol.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.files = ["cgi.rb".freeze, "cgi/cookie.rb".freeze, "cgi/core.rb".freeze, "cgi/html.rb".freeze, "cgi/session.rb".freeze, "cgi/session/pstore.rb".freeze, "cgi/util.rb".freeze, "cgi/version.rb".freeze]
   s.homepage = "https://github.com/ruby/cgi".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "Support for the Common Gateway Interface protocol.".freeze
 end
