@@ -59,7 +59,12 @@ if !Dir.respond_to?(:mktmpdir)
 end
 
 def main
-  @ruby = File.expand_path('miniruby')
+  if defined?(::TruffleRuby)
+    require 'rbconfig'
+    @ruby = RbConfig.ruby
+  else
+    @ruby = File.expand_path('miniruby')
+  end
   @verbose = false
   $VERBOSE = false
   $stress = false
@@ -162,6 +167,7 @@ End
     end
     puts "Target is #{`#{@ruby} -v`.chomp}"
     puts
+    `#{@ruby} -e '$stderr.puts "WARNING: this test will take a long time unless you run in a native configuration" if defined?(::TruffleRuby) && !TruffleRuby.native?'`
     $stdout.flush
   end
 
@@ -181,6 +187,7 @@ end
 def exec_test(pathes)
   @count = 0
   @error = 0
+  @tagged = 0
   @errbuf = []
   @location = nil
   @columns = 0
@@ -193,14 +200,15 @@ def exec_test(pathes)
     $stderr.puts if @verbose
     count = @count
     error = @error
+    tagged = @tagged
     load File.expand_path(path)
     if @tty
       if @error == error
-        msg = "PASS #{@count-count}"
+        msg = "PASS #{(@count-count)-(@tagged-tagged)} (#{@tagged-tagged} tagged)"
         @columns += msg.size - 1
         $stderr.print "#{@progress_bs}#{@passed}#{msg}#{@reset}"
       else
-        msg = "FAIL #{@error-error}/#{@count-count}"
+        msg = "FAIL #{@error-error}/#{(@count-count)-(@tagged-tagged)} (#{@tagged-tagged} tagged)"
         $stderr.print "#{@progress_bs}#{@failed}#{msg}#{@reset}"
         @columns = 0
       end
@@ -215,11 +223,11 @@ def exec_test(pathes)
     if @count == 0
       $stderr.puts "No tests, no problem"
     else
-      $stderr.puts "#{@passed}PASS#{@reset} all #{@count} tests"
+      $stderr.puts "#{@passed}PASS#{@reset} all #{@count-@tagged} tests (#{@tagged} tagged)"
     end
     exit true
   else
-    $stderr.puts "#{@failed}FAIL#{@reset} #{@error}/#{@count} tests failed"
+    $stderr.puts "#{@failed}FAIL#{@reset} #{@error}/#{@count-@tagged} tests failed (#{@tagged} tagged)"
     exit false
   end
 end
@@ -273,6 +281,11 @@ def show_limit(testsrc, opt = '', **argh)
 end
 
 def assert_check(testsrc, message = '', opt = '', **argh)
+  if argh[:tagged]
+    argh.delete :tagged
+    @tagged += 1
+    return
+  end
   show_progress(message) {
     result = get_result_string(testsrc, opt, **argh)
     check_coredump
@@ -292,9 +305,9 @@ def assert_equal(expected, testsrc, message = '', opt = '', **argh)
   }
 end
 
-def assert_match(expected_pattern, testsrc, message = '')
+def assert_match(expected_pattern, testsrc, message = '', **argh)
   newtest
-  assert_check(testsrc, message) {|result|
+  assert_check(testsrc, message, **argh) {|result|
     if expected_pattern =~ result
       nil
     else
@@ -304,9 +317,9 @@ def assert_match(expected_pattern, testsrc, message = '')
   }
 end
 
-def assert_not_match(unexpected_pattern, testsrc, message = '')
+def assert_not_match(unexpected_pattern, testsrc, message = '', **argh)
   newtest
-  assert_check(testsrc, message) {|result|
+  assert_check(testsrc, message, **argh) {|result|
     if unexpected_pattern !~ result
       nil
     else
@@ -325,6 +338,11 @@ end
 
 def assert_normal_exit(testsrc, *rest, timeout: nil, **opt)
   newtest
+  if opt[:tagged]
+    opt.delete :tagged
+    @tagged += 1
+    return
+  end
   message, ignore_signals = rest
   message ||= ''
   show_progress(message) {
@@ -375,11 +393,18 @@ def assert_normal_exit(testsrc, *rest, timeout: nil, **opt)
   }
 end
 
-def assert_finish(timeout_seconds, testsrc, message = '')
+def assert_finish(timeout_seconds, testsrc, message = '', **argh)
   if RubyVM.const_defined? :MJIT
     timeout_seconds *= 3 if RubyVM::MJIT.enabled? # for --jit-wait
+  elsif defined?(::TruffleRuby)
+    timeout_seconds *= 3
   end
   newtest
+  if argh[:tagged]
+    argh.delete :tagged
+    @tagged += 1
+    return
+  end
   show_progress(message) {
     faildesc = nil
     filename = make_srcfile(testsrc)

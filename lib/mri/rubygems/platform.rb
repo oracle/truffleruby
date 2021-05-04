@@ -23,10 +23,28 @@ class Gem::Platform
   end
 
   def self.match(platform)
-    Gem.platforms.any? do |local_platform|
+    warn 'Gem::Platform.match should not be used on TruffleRuby, use match_spec? instead', uplevel: 1
+    match_platforms?(platform, Gem.platforms)
+  end
+
+  def self.match_platforms?(platform, platforms)
+    platforms.any? do |local_platform|
       platform.nil? or
         local_platform == platform or
         (local_platform != Gem::Platform::RUBY and local_platform =~ platform)
+    end
+  end
+
+  def self.match_spec?(spec)
+    match_gem?(spec.platform, spec.name)
+  end
+
+  def self.match_gem?(platform, gem_name)
+    raise unless String === gem_name
+    if gem_name == 'libv8'
+      match_platforms?(platform, [Gem::Platform::RUBY, Gem::Platform.local])
+    else
+      match_platforms?(platform, Gem.platforms)
     end
   end
 
@@ -34,7 +52,7 @@ class Gem::Platform
     if spec.respond_to? :installable_platform?
       spec.installable_platform?
     else
-      match spec.platform
+      match_spec? spec
     end
   end
 
