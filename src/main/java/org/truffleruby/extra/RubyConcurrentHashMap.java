@@ -9,8 +9,8 @@
  */
 package org.truffleruby.extra;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
@@ -53,9 +53,16 @@ public class RubyConcurrentHashMap extends RubyDynamicObject {
         }
     }
 
-    public ConcurrentHashMap<Key, Object> map = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Key, Object> map;
 
     public RubyConcurrentHashMap(RubyClass rubyClass, Shape shape) {
         super(rubyClass, shape);
+        map = allocateMap();
+    }
+
+    @TruffleBoundary
+    private ConcurrentHashMap<Key, Object> allocateMap() {
+        // To do: This method is seems empty but was blacklisted on CI
+        return new ConcurrentHashMap<>();
     }
 }

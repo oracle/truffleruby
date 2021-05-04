@@ -76,6 +76,7 @@ public class ConcurrentHashMapNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
+        @TruffleBoundary
         protected RubyConcurrentHashMap initializeCopy(RubyConcurrentHashMap self, RubyConcurrentHashMap other) {
             self.map.putAll(self.map);
             return self;
@@ -341,6 +342,7 @@ public class ConcurrentHashMapNodes {
     public abstract static class EachPairNode extends YieldingCoreMethodNode {
 
         @Specialization
+        @TruffleBoundary
         protected Object eachPair(RubyConcurrentHashMap self, RubyProc block) {
             for (Map.Entry<RubyConcurrentHashMap.Key, Object> pair : entrySet(self.map)) {
                 callBlock(block, pair.getKey().key, pair.getValue());
