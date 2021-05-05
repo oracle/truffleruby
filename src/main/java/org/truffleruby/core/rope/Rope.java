@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.rope;
 
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
+import java.util.List;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
@@ -158,10 +160,23 @@ public abstract class Rope implements Comparable<Rope> {
         return getByteSlow(index);
     }
 
+    private static boolean isJavaDebuggerAttached() {
+        final List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+        for (String arg : inputArguments) {
+            if (arg.contains("jdwp")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static final boolean JAVA_DEBUGGER = isJavaDebuggerAttached();
+
     /** This is designed to not have any side effects - compare to {@link #getJavaString} - but this makes it
      * inefficient - for debugging only */
     @Override
     public String toString() {
+        assert JAVA_DEBUGGER : "Rope#toString() should only be called by Java debuggers, use RubyStringLibrary or RopeOperations.decodeRope() instead";
         return RopeOperations.decode(encoding, RopeOperations.flattenBytes(this));
     }
 
