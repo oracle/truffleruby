@@ -92,6 +92,9 @@ public class CoreExceptions {
             if (backtrace != null && backtrace.getStackTrace().length > 0) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
+            if (RubyStringLibrary.getUncached().isRubyString(message)) {
+                message = RubyStringLibrary.getUncached().getJavaString(message);
+            }
             final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
             if (context.getCoreLibrary().isLoaded()) {
                 RubyString outputString = StringOperations
