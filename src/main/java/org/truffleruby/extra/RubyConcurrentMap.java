@@ -39,10 +39,14 @@ public class RubyConcurrentMap extends RubyDynamicObject {
             assert other instanceof Key;
             final Key otherKey = (Key) other;
 
-            if (hashCode != otherKey.hashCode) {
+            if (key == otherKey.key) {
+                // If they're exactly the same object then they must be equal
+                return true;
+            } else if (hashCode != otherKey.hashCode) {
+                // If they have different hash codes then they cannot be equal
                 return false;
             } else {
-                // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
+                // Last resort - we have to actually call equal?
                 final Object returnValue = KernelNodes.SameOrEqlNode.getUncached().execute(key, otherKey.key);
                 if (returnValue instanceof Boolean) {
                     return (boolean) returnValue;
