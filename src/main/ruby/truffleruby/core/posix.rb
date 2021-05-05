@@ -366,13 +366,14 @@ module Truffle::POSIX
 
   # Used in IO#read_nonblock
 
-  def self.read_string_nonblock(io, count)
+  def self.read_string_nonblock(io, count, exception)
     # must call #read_string in order to properly support polyglot STDIO.
     string, errno = read_string(io, count)
     if errno == 0
       string
     elsif TRY_AGAIN_ERRNOS.include? errno
-      raise IO::EAGAINWaitReadable
+      raise IO::EAGAINWaitReadable if exception
+      return :wait_readable
     else
       Errno.handle_errno(errno)
     end
