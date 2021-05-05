@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import java.util.Arrays;
-
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
@@ -19,16 +17,11 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
-import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
-import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.NullHashStore;
 import org.truffleruby.core.klass.RubyClass;
@@ -51,7 +44,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "Hash", isClass = true)
@@ -236,11 +228,12 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class CompareByIdentityNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "!isCompareByIdentity(hash)")
+        @Specialization(guards = "!isCompareByIdentity(hash)", limit = "hashStrategyLimit()")
         protected RubyHash compareByIdentity(RubyHash hash,
-                @Cached InternalRehashNode internalRehashNode) {
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             hash.compareByIdentity = true;
-            return internalRehashNode.executeRehash(hash);
+            hashes.rehash(hash.store, hash);
+            return hash;
         }
 
         @Specialization(guards = "isCompareByIdentity(hash)")
@@ -446,76 +439,17 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchNode callDefaultNode = DispatchNode.create();
-
         @Specialization(guards = "isEmptyHash(hash)")
-        protected Object shiftEmpty(RubyHash hash) {
-            return callDefaultNode.call(hash, "default", nil);
+        protected Object shiftEmpty(RubyHash hash,
+                @Cached DispatchNode callDefault) {
+            return callDefault.call(hash, "default", nil);
         }
 
-        @Specialization(guards = { "!isEmptyHash(hash)", "isPackedHash(hash)" })
-        protected RubyArray shiftPackedArray(RubyHash hash) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final Object[] store = (Object[]) hash.store;
-
-            final Object key = PackedArrayStrategy.getKey(store, 0);
-            final Object value = PackedArrayStrategy.getValue(store, 0);
-
-            PackedArrayStrategy.removeEntry(getLanguage(), store, 0);
-
-            hash.size -= 1;
-
-            assert HashOperations.verifyStore(getContext(), hash);
-            return createArray(new Object[]{ key, value });
+        @Specialization(guards = "!isEmptyHash(hash)", limit = "hashStrategyLimit()")
+        protected RubyArray shift(RubyHash hash,
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            return hashes.shift(hash.store, hash);
         }
-
-        @Specialization(guards = { "!isEmptyHash(hash)", "isBucketHash(hash)" })
-        protected RubyArray shiftBuckets(RubyHash hash) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final Entry first = hash.firstInSequence;
-            assert first.getPreviousInSequence() == null;
-
-            final Object key = first.getKey();
-            final Object value = first.getValue();
-
-            hash.firstInSequence = first.getNextInSequence();
-
-            if (first.getNextInSequence() != null) {
-                first.getNextInSequence().setPreviousInSequence(null);
-                hash.firstInSequence = first.getNextInSequence();
-            }
-
-            if (hash.lastInSequence == first) {
-                hash.lastInSequence = null;
-            }
-
-            final Entry[] store = ((EntryArrayHashStore) hash.store).entries;
-            final int index = BucketsStrategy.getBucketIndex(first.getHashed(), store.length);
-
-            Entry previous = null;
-            Entry entry = store[index];
-            while (entry != null) {
-                if (entry == first) {
-                    if (previous == null) {
-                        store[index] = first.getNextInLookup();
-                    } else {
-                        previous.setNextInLookup(first.getNextInLookup());
-                    }
-                    break;
-                }
-
-                previous = entry;
-                entry = entry.getNextInLookup();
-            }
-
-            hash.size -= 1;
-
-            assert HashOperations.verifyStore(getContext(), hash);
-            return createArray(new Object[]{ key, value });
-        }
-
     }
 
     @CoreMethod(names = { "size", "length" })
@@ -531,106 +465,6 @@ public abstract class HashNodes {
         protected int sizePackedArray(RubyHash hash) {
             return hash.size;
         }
-    }
-
-    @ImportStatic(HashGuards.class)
-    public abstract static class InternalRehashNode extends RubyContextNode {
-
-        @Child private HashingNodes.ToHash hashNode = HashingNodes.ToHash.create();
-        @Child private CompareHashKeysNode compareHashKeysNode = CompareHashKeysNode.create();
-
-        public static InternalRehashNode create() {
-            return InternalRehashNodeGen.create();
-        }
-
-        public abstract RubyHash executeRehash(RubyHash hash);
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected RubyHash rehashNull(RubyHash hash) {
-            return hash;
-        }
-
-        @Specialization(guards = "isPackedHash(hash)")
-        protected RubyHash rehashPackedArray(RubyHash hash,
-                @Cached ConditionProfile byIdentityProfile) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final Object[] store = (Object[]) hash.store;
-            int size = hash.size;
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-
-            for (int n = 0; n < size; n++) {
-                final Object key = PackedArrayStrategy.getKey(store, n);
-                final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity);
-                PackedArrayStrategy.setHashed(store, n, newHash);
-
-                for (int m = n - 1; m >= 0; m--) {
-                    if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeysNode.execute(
-                            compareByIdentity,
-                            key,
-                            newHash,
-                            PackedArrayStrategy.getKey(store, m),
-                            PackedArrayStrategy.getHashed(store, m))) {
-                        PackedArrayStrategy.removeEntry(getLanguage(), store, n);
-                        size--;
-                        n--;
-                        break;
-                    }
-                }
-            }
-
-            hash.size = size;
-            return hash;
-        }
-
-        @Specialization(guards = "isBucketHash(hash)")
-        protected RubyHash rehashBuckets(RubyHash hash,
-                @Cached ConditionProfile byIdentityProfile) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-
-            final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
-            Arrays.fill(entries, null);
-
-            Entry entry = hash.firstInSequence;
-            while (entry != null) {
-                final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
-                entry.setHashed(newHash);
-                entry.setNextInLookup(null);
-
-                final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
-                Entry bucketEntry = entries[index];
-
-                if (bucketEntry == null) {
-                    entries[index] = entry;
-                } else {
-                    Entry previousEntry = entry;
-
-                    do {
-                        if (compareHashKeysNode.execute(
-                                compareByIdentity,
-                                entry.getKey(),
-                                newHash,
-                                bucketEntry.getKey(),
-                                bucketEntry.getHashed())) {
-                            BucketsStrategy.removeFromSequenceChain(hash, entry);
-                            hash.size--;
-                            break;
-                        }
-                        previousEntry = bucketEntry;
-                        bucketEntry = bucketEntry.getNextInLookup();
-                    } while (bucketEntry != null);
-
-                    previousEntry.setNextInLookup(entry);
-                }
-                entry = entry.getNextInSequence();
-            }
-
-            assert HashOperations.verifyStore(getContext(), hash);
-            return hash;
-        }
-
     }
 
     @ImportStatic(HashGuards.class)
@@ -703,12 +537,11 @@ public abstract class HashNodes {
             return hash;
         }
 
-        @Specialization(guards = "!isCompareByIdentity(hash)")
+        @Specialization(guards = "!isCompareByIdentity(hash)", limit = "hashStrategyLimit()")
         protected RubyHash rehashNotIdentity(RubyHash hash,
-                @Cached InternalRehashNode internalRehashNode) {
-            return internalRehashNode.executeRehash(hash);
+                @CachedLibrary("hash.store") HashStoreLibrary hashes) {
+            hashes.rehash(hash.store, hash);
+            return hash;
         }
-
     }
-
 }

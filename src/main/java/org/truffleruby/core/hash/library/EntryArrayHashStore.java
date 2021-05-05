@@ -30,14 +30,18 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.BucketsStrategy;
+import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
 import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.LookupEntryNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
+
+import java.util.Arrays;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
@@ -66,15 +70,15 @@ public class EntryArrayHashStore {
 
     @ExportMessage
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
-            @Cached ConditionProfile byIdentityProfile,
+            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
             @Cached @Exclusive PropagateSharingNode propagateSharingKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingValue,
             @Cached @Shared("lookup") LookupEntryNode lookup,
-            @Cached ConditionProfile found,
-            @Cached ConditionProfile bucketCollision,
-            @Cached ConditionProfile appending,
-            @Cached ConditionProfile resize,
+            @Cached @Exclusive ConditionProfile found,
+            @Cached @Exclusive ConditionProfile bucketCollision,
+            @Cached @Exclusive ConditionProfile appending,
+            @Cached @Exclusive ConditionProfile resize,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
@@ -88,7 +92,6 @@ public class EntryArrayHashStore {
         final Entry entry = result.getEntry();
 
         if (found.profile(entry == null)) {
-            final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
 
             final Entry newEntry = new Entry(result.getHashed(), key2, value);
 
@@ -205,5 +208,105 @@ public class EntryArrayHashStore {
         }
 
         return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, length), length);
+    }
+
+    @ExportMessage
+    protected RubyArray shift(RubyHash hash,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+
+        final Entry first = hash.firstInSequence;
+        assert first.getPreviousInSequence() == null;
+
+        final Object key = first.getKey();
+        final Object value = first.getValue();
+
+        hash.firstInSequence = first.getNextInSequence();
+
+        if (first.getNextInSequence() != null) {
+            first.getNextInSequence().setPreviousInSequence(null);
+            hash.firstInSequence = first.getNextInSequence();
+        }
+
+        if (hash.lastInSequence == first) {
+            hash.lastInSequence = null;
+        }
+
+        final int index = BucketsStrategy.getBucketIndex(first.getHashed(), this.entries.length);
+
+        Entry previous = null;
+        Entry entry = entries[index];
+        while (entry != null) {
+            if (entry == first) {
+                if (previous == null) {
+                    entries[index] = first.getNextInLookup();
+                } else {
+                    previous.setNextInLookup(first.getNextInLookup());
+                }
+                break;
+            }
+
+            previous = entry;
+            entry = entry.getNextInLookup();
+        }
+
+        hash.size -= 1;
+
+        assert HashOperations.verifyStore(context, hash);
+        return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
+    }
+
+    @ExportMessage
+    protected void rehash(RubyHash hash,
+            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
+            @Cached CompareHashKeysNode compareHashKeys,
+            @Cached HashingNodes.ToHash hashNode,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+
+        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+        Arrays.fill(entries, null);
+
+        Entry entry = hash.firstInSequence;
+        while (entry != null) {
+            final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
+            entry.setHashed(newHash);
+            entry.setNextInLookup(null);
+
+            final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
+            Entry bucketEntry = entries[index];
+
+            if (bucketEntry == null) {
+                entries[index] = entry;
+            } else {
+                Entry previousEntry = entry;
+
+                int size = hash.size;
+                do {
+                    if (compareHashKeys.execute(
+                            compareByIdentity,
+                            entry.getKey(),
+                            newHash,
+                            bucketEntry.getKey(),
+                            bucketEntry.getHashed())) {
+                        BucketsStrategy.removeFromSequenceChain(hash, entry);
+                        size--;
+                        break;
+                    }
+                    previousEntry = bucketEntry;
+                    bucketEntry = bucketEntry.getNextInLookup();
+                } while (bucketEntry != null);
+
+                previousEntry.setNextInLookup(entry);
+                hash.size = size;
+            }
+            entry = entry.getNextInSequence();
+        }
+
+        assert HashOperations.verifyStore(context, hash);
     }
 }

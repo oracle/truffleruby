@@ -93,4 +93,14 @@ public class NullHashStore {
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return ArrayHelpers.createEmptyArray(context, language);
     }
+
+    @ExportMessage
+    protected RubyArray shift(RubyHash hash) {
+        return null;
+    }
+
+    @ExportMessage
+    protected void rehash(RubyHash hash) {
+        // nothing to do, the hash is empty
+    }
 }

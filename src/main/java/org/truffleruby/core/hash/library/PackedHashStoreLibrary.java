@@ -19,9 +19,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
-import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -213,5 +210,56 @@ public class PackedHashStoreLibrary {
         }
 
         return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, length), length);
+    }
+
+    @ExportMessage
+    protected static RubyArray shift(Object[] store, RubyHash hash,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+        final Object key = PackedArrayStrategy.getKey(store, 0);
+        final Object value = PackedArrayStrategy.getValue(store, 0);
+        PackedArrayStrategy.removeEntry(language, store, 0);
+        hash.size -= 1;
+        assert HashOperations.verifyStore(context, hash);
+        return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
+    }
+
+    @ExportMessage
+    protected static void rehash(Object[] store, RubyHash hash,
+            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
+            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+            @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+
+        int size = hash.size;
+        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+
+        for (int n = 0; n < size; n++) {
+            final Object key = PackedArrayStrategy.getKey(store, n);
+            final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity);
+            PackedArrayStrategy.setHashed(store, n, newHash);
+
+            for (int m = n - 1; m >= 0; m--) {
+                if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeys.execute(
+                        compareByIdentity,
+                        key,
+                        newHash,
+                        PackedArrayStrategy.getKey(store, m),
+                        PackedArrayStrategy.getHashed(store, m))) {
+                    PackedArrayStrategy.removeEntry(language, store, n);
+                    size--;
+                    n--;
+                    break;
+                }
+            }
+        }
+
+        hash.size = size;
+        assert HashOperations.verifyStore(context, hash);
     }
 }

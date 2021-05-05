@@ -89,6 +89,16 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract RubyArray map(Object store, RubyHash hash, RubyProc block);
 
+    /** Removes a key-value pair from the hash and returns it as the two-item array [key, value], or null if the hash is
+     * empty. */
+    @Abstract
+    public abstract RubyArray shift(Object store, RubyHash hash);
+
+    /** Re-hashes the keys in the hash (if the keys are mutable objects, then changes to these objects may change the
+     * hash. */
+    @Abstract
+    public abstract void rehash(Object store, RubyHash hash);
+
     /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
      * otherwise passes an array containing the key and the value as single argument. */
     @GenerateUncached
