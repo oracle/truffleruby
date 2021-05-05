@@ -25,6 +25,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocationTracing;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -331,12 +332,36 @@ public class ConcurrentMapNodes {
     public abstract static class EachPairNode extends YieldingCoreMethodNode {
 
         @Specialization
-        @TruffleBoundary
         protected Object eachPair(RubyConcurrentMap self, RubyProc block) {
-            for (Map.Entry<RubyConcurrentMap.Key, Object> pair : self.getMap().entrySet()) {
+            final Iterator<Map.Entry<RubyConcurrentMap.Key, Object>> iterator = iterate(self.getMap());
+
+            while (true) {
+                final Map.Entry<RubyConcurrentMap.Key, Object> pair = next(iterator);
+
+                if (pair == null) {
+                    break;
+                }
+
                 callBlock(block, pair.getKey().key, pair.getValue());
             }
+
             return self;
+        }
+
+        @TruffleBoundary
+        private Iterator<Map.Entry<RubyConcurrentMap.Key, Object>> iterate(
+                ConcurrentHashMap<RubyConcurrentMap.Key, Object> map) {
+            return map.entrySet().iterator();
+        }
+
+        @TruffleBoundary
+        private Map.Entry<RubyConcurrentMap.Key, Object> next(
+                Iterator<Map.Entry<RubyConcurrentMap.Key, Object>> iterator) {
+            if (iterator.hasNext()) {
+                return iterator.next();
+            } else {
+                return null;
+            }
         }
 
     }
