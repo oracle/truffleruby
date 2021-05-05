@@ -174,10 +174,12 @@ public class ConcurrentMapNodes {
         protected Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
                 @Cached HashingNodes.ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            return nullToNil(merge(self.getMap(), new RubyConcurrentMap.Key(key, hashCode), value, (k, v) -> {
-                final Object oldValue = get(self.getMap(), new RubyConcurrentMap.Key(key, hashCode));
-                return nilToNull(callBlock(block, oldValue));
-            }));
+            return nullToNil(merge(
+                    self.getMap(),
+                    new RubyConcurrentMap.Key(key, hashCode),
+                    value,
+                    (existingValue, newValue) -> nilToNull(callBlock(block, existingValue))
+            ));
         }
 
         @TruffleBoundary
