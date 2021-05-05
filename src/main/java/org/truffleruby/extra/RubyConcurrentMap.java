@@ -57,11 +57,9 @@ public class RubyConcurrentMap extends RubyDynamicObject {
         }
     }
 
-    /*
-     * In Concurrent::Map, and so TruffleRuby::ConcurrentMap, keys are compared with #hash and #eql?, and keys by
-     * identity (#equal? in NonConcurrentMapBackend.) To use custom code to compare the keys we need to subclass
-     * and implement #hashCode and #equals. Identity is the default, so we don't need to do anything there.
-     */
+    /* In Concurrent::Map, and so TruffleRuby::ConcurrentMap, keys are compared with #hash and #eql?, and keys by
+     * identity (#equal? in NonConcurrentMapBackend.) To use custom code to compare the keys we need to subclass and
+     * implement #hashCode and #equals. Identity is the default, so we don't need to do anything there. */
     private ConcurrentHashMap<Key, Object> map;
 
     public RubyConcurrentMap(RubyClass rubyClass, Shape shape) {

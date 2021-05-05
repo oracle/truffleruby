@@ -178,8 +178,7 @@ public class ConcurrentMapNodes {
                     self.getMap(),
                     new RubyConcurrentMap.Key(key, hashCode),
                     value,
-                    (existingValue, newValue) -> nilToNull(callBlock(block, existingValue))
-            ));
+                    (existingValue, newValue) -> nilToNull(callBlock(block, existingValue))));
         }
 
         @TruffleBoundary
