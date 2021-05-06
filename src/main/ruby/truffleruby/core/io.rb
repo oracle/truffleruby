@@ -1654,11 +1654,14 @@ class IO
 
   # Normally only provided by io/nonblock
   def nonblock=(value)
-    if value
-      fcntl(F_SETFL, fcntl(F_GETFL) | NONBLOCK)
-    else
-      fcntl(F_SETFL, fcntl(F_GETFL) & ~NONBLOCK)
-    end
+    old_flags = fcntl(F_GETFL)
+    new_flags = if value
+                  old_flags | NONBLOCK
+                else
+                  old_flags & ~NONBLOCK
+                end
+    fcntl(F_SETFL, new_flags) unless old_flags == new_flags
+    self
   end
 
   ##
@@ -1831,17 +1834,12 @@ class IO
       return @ibuffer.shift(size)
     end
 
-    begin
-      str = Truffle::POSIX.read_string_nonblock(self, size)
-    rescue Errno::EAGAIN
-      if exception
-        raise EAGAINWaitReadable
-      else
-        return :wait_readable
-      end
-    end
+    str = Truffle::POSIX.read_string_nonblock(self, size, exception)
 
-    if str
+    case str
+    when Symbol
+      str
+    when String
       buffer ? buffer.replace(str) : str
     else # EOF
       if exception
