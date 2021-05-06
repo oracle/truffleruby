@@ -373,7 +373,7 @@ module Truffle::POSIX
       string
     elsif TRY_AGAIN_ERRNOS.include? errno
       raise IO::EAGAINWaitReadable if exception
-      return :wait_readable
+      :wait_readable
     else
       Errno.handle_errno(errno)
     end

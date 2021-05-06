@@ -1660,7 +1660,7 @@ class IO
                 else
                   old_flags & ~NONBLOCK
                 end
-    fcntl(F_SETFL, new_flags) if old_flags != new_flags
+    fcntl(F_SETFL, new_flags) unless old_flags == new_flags
     self
   end
 
@@ -1841,7 +1841,7 @@ class IO
       str
     when String
       buffer ? buffer.replace(str) : str
-    else
+    else # EOF
       if exception
         raise EOFError, 'end of file reached'
       else
