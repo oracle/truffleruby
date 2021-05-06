@@ -228,22 +228,22 @@ public class PackedHashStoreLibrary {
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-        final int length = hash.size;
-        ArrayBuilderNode.BuilderState state = arrayBuilder.start(length);
-
+        // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
+        final int size = hash.size;
+        final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        final ArrayBuilderNode.BuilderState state = arrayBuilder.start(size);
         try {
             for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < length) {
-                    final Object key = PackedArrayStrategy.getKey(store, n);
-                    final Object value = PackedArrayStrategy.getValue(store, n);
+                if (n < size) {
+                    final Object key = PackedArrayStrategy.getKey(storeCopy, n);
+                    final Object value = PackedArrayStrategy.getValue(storeCopy, n);
                     arrayBuilder.appendValue(state, n, yieldPair.execute(block, key, value));
                 }
             }
         } finally {
-            HashStoreLibrary.reportLoopCount(self, length);
+            HashStoreLibrary.reportLoopCount(self, size);
         }
-
-        return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, length), length);
+        return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, size), size);
     }
 
     @ExportMessage
