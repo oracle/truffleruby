@@ -183,20 +183,20 @@ class File < IO
         end
 
         # edge case, it's all /'s, return "/"
-        return slash unless found
+        return slash.dup unless found
 
         # Now that we've trimmed the /'s at the end, search again
         pos = Primitive.find_string_reverse(path, slash, path.bytesize)
         if ext_not_present and !pos
           # No /'s found and ext not present, return path.
-          return path
+          return path.dup
         end
       end
 
       path = path.byteslice(pos + 1, path.bytesize - pos) if pos
     end
 
-    return path if ext_not_present
+    return path.dup if ext_not_present
 
     # special case. if ext is ".*", remove any extension
 
@@ -213,7 +213,7 @@ class File < IO
       end
     end
 
-    path
+    path.dup
   end
 
   def self.query_stat_mode(path)
