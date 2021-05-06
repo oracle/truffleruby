@@ -11,7 +11,7 @@
 module TruffleRuby
   class ConcurrentMap
     def initialize(initial_capacity: nil, load_factor: nil)
-      Primitive.concurrent_map_initialize(self, initial_capacity || 0, load_factor || 0.75)
+      Primitive.concurrent_map_initialize(self, initial_capacity || 0, load_factor || 0.0)
     end
   end
 end

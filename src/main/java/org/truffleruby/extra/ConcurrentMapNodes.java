@@ -68,7 +68,7 @@ public class ConcurrentMapNodes {
         @TruffleBoundary
         protected RubyConcurrentMap initializeCopy(RubyConcurrentMap self, RubyConcurrentMap other) {
             if (self.getMap() == null) {
-                self.allocateMap(other.getMap().size(), 0.75f);
+                self.allocateMap(0, 0.0f);
             }
             self.getMap().putAll(other.getMap());
             return self;

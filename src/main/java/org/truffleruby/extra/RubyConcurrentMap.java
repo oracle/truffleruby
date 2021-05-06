@@ -63,7 +63,13 @@ public class RubyConcurrentMap extends RubyDynamicObject {
 
     @TruffleBoundary
     public void allocateMap(int initialCapacity, float loadFactor) {
-        map = new ConcurrentHashMap<>(initialCapacity, loadFactor);
+        if (initialCapacity <= 0) {
+            map = new ConcurrentHashMap<>();
+        } else if (loadFactor <= 0.0f) {
+            map = new ConcurrentHashMap<>(initialCapacity);
+        } else {
+            map = new ConcurrentHashMap<>(initialCapacity, loadFactor);
+        }
     }
 
     public ConcurrentHashMap<Key, Object> getMap() {
