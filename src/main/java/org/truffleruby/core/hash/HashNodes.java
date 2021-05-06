@@ -306,13 +306,8 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNullHash(hash)")
-        protected boolean emptyNull(RubyHash hash) {
-            return true;
-        }
-
-        @Specialization(guards = "!isNullHash(hash)")
-        protected boolean emptyPackedArray(RubyHash hash) {
+        @Specialization
+        protected boolean isEmpty(RubyHash hash) {
             return hash.size == 0;
         }
     }
@@ -454,13 +449,8 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNullHash(hash)")
-        protected int sizeNull(RubyHash hash) {
-            return 0;
-        }
-
-        @Specialization(guards = "!isNullHash(hash)")
-        protected int sizePackedArray(RubyHash hash) {
+        @Specialization
+        protected int size(RubyHash hash) {
             return hash.size;
         }
     }
