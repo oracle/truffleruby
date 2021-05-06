@@ -54,9 +54,9 @@ TruffleRuby provides these non-standard methods and classes that provide additio
 
 ### Concurrent Maps
 
-`TruffleRuby::ConcurrentMap` is a key-value data structure, like a `Hash` and using `#hash` and `#eql?` to compare keys and identity to compare values. Unlike `Hash` it is unordered. All methods on `TruffleRuby::ConcurrentMap` are thread-safe but should have higher concurrency than a fully syncronized implementation. It is intended to be used by gems such as Concurrent Ruby - please use via this gem rather than using directly in most cases.
+`TruffleRuby::ConcurrentMap` is a key-value data structure, like a `Hash` and using `#hash` and `#eql?` to compare keys and identity to compare values. Unlike `Hash` it is unordered. All methods on `TruffleRuby::ConcurrentMap` are thread-safe but should have higher concurrency than a fully syncronized implementation. It is intended to be used by gems such as [`concurrent-ruby`](https://github.com/ruby-concurrency/concurrent-ruby) - please use via this gem rather than using directly.
 
-* `map = TruffleRuby::ConcurrentMap.new([initial_capacity: 1024], [load_factor: 0.5])`
+* `map = TruffleRuby::ConcurrentMap.new([initial_capacity: ...], [load_factor: ...])`
 
 * `map[key] = new_value`
 

@@ -2,7 +2,7 @@
 
 New features:
 
-* New `TruffleRuby::ConcurrentMap` data structure for use in Concurrent Ruby (#2339, @wildmaples).
+* New `TruffleRuby::ConcurrentMap` data structure for use in [`concurrent-ruby`](https://github.com/ruby-concurrency/concurrent-ruby) (#2339, @wildmaples).
 
 Bug fixes:
 
