@@ -128,13 +128,12 @@ public class ConcurrentMapNodes {
             final int hashCode = hashNode.execute(key);
             return nullToNil(
                     computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) ->
-                    // To do: It's unfortunate we're calling this behind a boundary! Can we do better?
+                    // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
                     nilToNull(callBlock(block, v))));
         }
 
         @TruffleBoundary
-        private Object computeIfPresent(ConcurrentHashMap<Key, Object> map,
-                Key key,
+        private Object computeIfPresent(ConcurrentHashMap<Key, Object> map, Key key,
                 BiFunction<Key, Object, Object> remappingFunction) {
             return map.computeIfPresent(key, remappingFunction);
         }
@@ -153,8 +152,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object compute(ConcurrentHashMap<Key, Object> map,
-                Key key,
+        private Object compute(ConcurrentHashMap<Key, Object> map, Key key,
                 BiFunction<Key, Object, Object> remappingFunction) {
             return map.compute(key, remappingFunction);
         }
@@ -174,9 +172,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object merge(ConcurrentHashMap<Key, Object> map,
-                Key key,
-                Object value,
+        private Object merge(ConcurrentHashMap<Key, Object> map, Key key, Object value,
                 BiFunction<Object, Object, Object> remappingFunction) {
             return map.merge(key, value, remappingFunction);
         }
@@ -198,8 +194,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private boolean replace(ConcurrentHashMap<Key, Object> map,
-                Key key, Object oldValue, Object newValue) {
+        private boolean replace(ConcurrentHashMap<Key, Object> map, Key key, Object oldValue, Object newValue) {
             return map.replace(key, oldValue, newValue);
         }
     }
@@ -214,8 +209,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object replace(ConcurrentHashMap<Key, Object> map,
-                Key key, Object newValue) {
+        private Object replace(ConcurrentHashMap<Key, Object> map, Key key, Object newValue) {
             return map.replace(key, newValue);
         }
     }
@@ -230,8 +224,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object put(ConcurrentHashMap<Key, Object> map,
-                Key key, Object value) {
+        private Object put(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
             return map.put(key, value);
         }
     }
@@ -246,8 +239,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private boolean containsKey(ConcurrentHashMap<Key, Object> map,
-                Key key) {
+        private boolean containsKey(ConcurrentHashMap<Key, Object> map, Key key) {
             return map.containsKey(key);
         }
     }
@@ -262,8 +254,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object remove(ConcurrentHashMap<Key, Object> map,
-                Key key) {
+        private Object remove(ConcurrentHashMap<Key, Object> map, Key key) {
             return map.remove(key);
         }
     }
@@ -278,8 +269,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private boolean remove(ConcurrentHashMap<Key, Object> map,
-                Key key, Object value) {
+        private boolean remove(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
             return map.remove(key, value);
         }
     }
@@ -313,8 +303,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object getOrDefault(ConcurrentHashMap<Key, Object> map,
-                Key key, Object defaultValue) {
+        private Object getOrDefault(ConcurrentHashMap<Key, Object> map, Key key, Object defaultValue) {
             return map.getOrDefault(key, defaultValue);
         }
     }
@@ -324,7 +313,7 @@ public class ConcurrentMapNodes {
 
         @Specialization
         protected Object eachPair(RubyConcurrentMap self, RubyProc block) {
-            final Iterator<Map.Entry<Key, Object>> iterator = iterate(self.getMap());
+            final Iterator<Map.Entry<Key, Object>> iterator = iterator(self.getMap());
 
             while (true) {
                 final Map.Entry<Key, Object> pair = next(iterator);
@@ -340,14 +329,12 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Iterator<Map.Entry<Key, Object>> iterate(
-                ConcurrentHashMap<Key, Object> map) {
+        private Iterator<Map.Entry<Key, Object>> iterator(ConcurrentHashMap<Key, Object> map) {
             return map.entrySet().iterator();
         }
 
         @TruffleBoundary
-        private Map.Entry<Key, Object> next(
-                Iterator<Map.Entry<Key, Object>> iterator) {
+        private Map.Entry<Key, Object> next(Iterator<Map.Entry<Key, Object>> iterator) {
             if (iterator.hasNext()) {
                 return iterator.next();
             } else {
