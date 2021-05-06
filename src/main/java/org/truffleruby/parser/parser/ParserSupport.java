@@ -238,7 +238,7 @@ public class ParserSupport {
             case LOCALASGNNODE:
                 String name = ((INameNode) node).getName();
                 final Rope currentArg = lexer.getCurrentArg();
-                if (currentArg != null && name.equals(currentArg.getString())) {
+                if (currentArg != null && name.equals(currentArg.getJavaString())) {
                     warn(node.getPosition(), "circular argument reference - " + name);
                 }
                 checkDeclarationForNumberedParameterMisuse(name, node);
@@ -283,21 +283,21 @@ public class ParserSupport {
     }
 
     public void checkMethodName(Rope rope) {
-        String name = rope.getString();
+        String name = rope.getJavaString();
         if (isNumberedParameter(name)) {
             warnNumberedParameterLikeDeclaration(lexer.getPosition(), name);
         }
     }
 
     public ParseNode declareIdentifier(Rope rope) {
-        return declareIdentifier(rope.getString());
+        return declareIdentifier(rope.getJavaString());
     }
 
     // Despite the confusing name, called for every identifier use in expressions.
     public ParseNode declareIdentifier(String string) {
         String name = string.intern();
         final Rope currentArg = lexer.getCurrentArg();
-        if (currentArg != null && name.equals(currentArg.getString())) {
+        if (currentArg != null && name.equals(currentArg.getJavaString())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
         }
 
@@ -334,7 +334,7 @@ public class ParserSupport {
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
     public AssignableParseNode assignableLabelOrIdentifier(Rope name, ParseNode value) {
-        return assignableLabelOrIdentifier(name.getString().intern(), value);
+        return assignableLabelOrIdentifier(name.getJavaString().intern(), value);
     }
 
     public AssignableParseNode assignableLabelOrIdentifier(String name, ParseNode value) {
@@ -417,7 +417,7 @@ public class ParserSupport {
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
     public AssignableParseNode assignableInCurr(Rope name, ParseNode value) {
-        String nameString = name.getString().intern();
+        String nameString = name.getJavaString().intern();
         checkDeclarationForNumberedParameterMisuse(nameString, value);
         currentScope.addVariableThisScope(nameString);
         return currentScope.assign(lexer.getPosition(), nameString, makeNullNil(value));
@@ -426,7 +426,7 @@ public class ParserSupport {
     public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator) {
         value_expr(lexer, firstNode);
 
-        return new CallParseNode(firstNode.getPosition(), firstNode, operator.getString(), null, null);
+        return new CallParseNode(firstNode.getPosition(), firstNode, operator.getJavaString(), null, null);
     }
 
     public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator, ParseNode secondNode) {
@@ -446,7 +446,7 @@ public class ParserSupport {
         return new CallParseNode(
                 firstNode.getPosition(),
                 firstNode,
-                operator.getString(),
+                operator.getJavaString(),
                 new ArrayParseNode(secondNode.getPosition(), secondNode),
                 null);
     }
@@ -487,7 +487,12 @@ public class ParserSupport {
     public ParseNode attrset(ParseNode receiver, Rope callType, Rope name) {
         value_expr(lexer, receiver);
 
-        return new_attrassign(receiver.getPosition(), receiver, name.getString() + "=", null, isLazy(callType));
+        return new_attrassign(
+                receiver.getPosition(),
+                receiver,
+                name.getJavaString() + "=",
+                null,
+                isLazy(callType));
     }
 
     public void backrefAssignError(ParseNode node) {
@@ -1022,7 +1027,7 @@ public class ParserSupport {
         ParseNode newNode = new OpElementAsgnParseNode(
                 position,
                 receiverNode,
-                operatorName.getString(),
+                operatorName.getJavaString(),
                 argsNode,
                 valueNode);
 
@@ -1042,8 +1047,8 @@ public class ParserSupport {
                 position,
                 receiverNode,
                 valueNode,
-                variableName.getString(),
-                operatorName.getString(),
+                variableName.getJavaString(),
+                operatorName.getJavaString(),
                 isLazy(callType));
     }
 
@@ -1075,7 +1080,7 @@ public class ParserSupport {
             return new CallParseNode(
                     position(receiver, argsNode),
                     receiver,
-                    name.getString(),
+                    name.getJavaString(),
                     blockPass.getArgsNode(),
                     blockPass,
                     isLazy(callType));
@@ -1084,7 +1089,7 @@ public class ParserSupport {
         return new CallParseNode(
                 position(receiver, argsNode),
                 receiver,
-                name.getString(),
+                name.getJavaString(),
                 argsNode,
                 iter,
                 isLazy(callType));
@@ -1131,7 +1136,7 @@ public class ParserSupport {
     }
 
     public ParseNode new_fcall(Rope operation) {
-        return new FCallParseNode(lexer.tokline, operation.getString());
+        return new FCallParseNode(lexer.tokline, operation.getJavaString());
     }
 
     public ParseNode new_super(SourceIndexLength position, ParseNode args) {
@@ -1440,7 +1445,7 @@ public class ParserSupport {
         if (keywordRestArgNameRope.isEmpty()) {
             restKwargsName = TEMP_PREFIX + "_kwrest";
         } else {
-            restKwargsName = keywordRestArgNameRope.getString().intern();
+            restKwargsName = keywordRestArgNameRope.getJavaString().intern();
         }
 
         int slot = currentScope.exists(restKwargsName);
@@ -1558,7 +1563,7 @@ public class ParserSupport {
     // 1.9
     public ParseNode new_bv(Rope identifier) {
         if (!is_local_id(identifier)) {
-            getterIdentifierError(lexer.getPosition(), identifier.getString());
+            getterIdentifierError(lexer.getPosition(), identifier.getJavaString());
         }
         shadowing_lvar(identifier);
 
@@ -1568,7 +1573,7 @@ public class ParserSupport {
     // 1.9
     @SuppressFBWarnings("ES")
     public ArgumentParseNode arg_var(Rope rope) {
-        return arg_var(rope.getString());
+        return arg_var(rope.getJavaString());
     }
 
     // Called with parameter names
@@ -1604,7 +1609,7 @@ public class ParserSupport {
     // 1.9
     @SuppressFBWarnings("ES")
     public Rope shadowing_lvar(Rope rope) {
-        String name = rope.getString().intern();
+        String name = rope.getJavaString().intern();
         if (name == "_") {
             return rope;
         }

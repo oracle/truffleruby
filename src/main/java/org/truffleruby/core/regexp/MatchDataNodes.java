@@ -34,6 +34,7 @@ import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
@@ -309,7 +310,7 @@ public abstract class MatchDataNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libIndex) {
             return executeGetIndex(
                     matchData,
-                    getBackRefFromRope(matchData, index, libIndex.getRope(index)),
+                    getBackRefFromRope(matchData, libIndex.getRope(index)),
                     NotProvided.INSTANCE);
         }
 
@@ -368,12 +369,11 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         private int getBackRefFromSymbol(RubyMatchData matchData, RubySymbol index) {
-            final Rope value = index.getRope();
-            return getBackRefFromRope(matchData, index, value);
+            return getBackRefFromRope(matchData, index.getRope());
         }
 
         @TruffleBoundary
-        private int getBackRefFromRope(RubyMatchData matchData, Object index, Rope value) {
+        private int getBackRefFromRope(RubyMatchData matchData, Rope value) {
             try {
                 return getRegexp(matchData).regex.nameToBackrefNumber(
                         value.getBytes(),
@@ -384,7 +384,8 @@ public abstract class MatchDataNodes {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().indexError(
-                                StringUtils.format("undefined group name reference: %s", index),
+                                StringUtils
+                                        .format("undefined group name reference: %s", RopeOperations.decodeRope(value)),
                                 this));
             }
         }

@@ -747,7 +747,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -768,7 +768,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; O: %d; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -783,6 +783,7 @@ public abstract class RopeNodes {
         }
 
         @TruffleBoundary
+        @Specialization
         protected Object debugPrintConcatRopeBytes(ConcatRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
@@ -791,10 +792,10 @@ public abstract class RopeNodes {
             // Before the print, as `toString()` may cause the bytes to become populated.
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
-            if (state.isBytes()) {
+            if (state.isFlattened()) {
                 System.err.println(StringUtils.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                        printString ? rope.toString() : "<skipped>",
+                        printString ? RopeOperations.escape(rope) : "<skipped>",
                         rope.getClass().getSimpleName(),
                         bytesAreNull,
                         rope.byteLength(),
@@ -804,7 +805,7 @@ public abstract class RopeNodes {
             } else {
                 System.err.println(StringUtils.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
-                        printString ? rope.toString() : "<skipped>",
+                        printString ? RopeOperations.escape(rope) : "<skipped>",
                         rope.getClass().getSimpleName(),
                         bytesAreNull,
                         rope.byteLength(),
@@ -829,7 +830,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; T: %d; D: %d; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -853,7 +854,7 @@ public abstract class RopeNodes {
 
             System.err.println(StringUtils.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; V: %d, D: %d; E: %s)",
-                    printString ? rope.toString() : "<skipped>",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
                     rope.byteLength(),
@@ -994,7 +995,7 @@ public abstract class RopeNodes {
         //   Therefore it's important to test isChildren first, as it's possible to transition from children to bytes
         //   but not the other way around.
 
-        @Specialization(guards = "state.isChildren()")
+        @Specialization(guards = "!state.isFlattened()")
         protected int getByteConcatRope(ConcatRope rope, int index,
                 @Cached ConditionProfile stateBytesNotNull,
                 @Bind("rope.getState(stateBytesNotNull)") ConcatState state,
@@ -1020,7 +1021,7 @@ public abstract class RopeNodes {
 
         // Necessary because getRawBytes() might return null, but then be populated and the children nulled
         // before we get to run the other getByteConcatRope.
-        @Specialization(guards = "state.isBytes()")
+        @Specialization(guards = "state.isFlattened()")
         protected int getByteConcatRope(ConcatRope rope, int index,
                 @Cached ConditionProfile stateBytesNotNull,
                 @Bind("rope.getState(stateBytesNotNull)") ConcatState state) {

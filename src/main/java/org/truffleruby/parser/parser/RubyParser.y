@@ -1277,7 +1277,7 @@ rel_expr        : arg relop arg   %prec tGT {
                      $$ = support.getOperatorCallNode($1, $2, $3, lexer.getPosition());
                 }
                 | rel_expr relop arg   %prec tGT {
-                     support.warning(lexer.getPosition(), "comparison '" + $2.getString() + "' after comparison");
+                     support.warning(lexer.getPosition(), "comparison '" + $2.getJavaString() + "' after comparison");
                      $$ = support.getOperatorCallNode($1, $2, $3, lexer.getPosition());
                 }
  

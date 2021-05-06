@@ -42,7 +42,7 @@ public class LiteralParseNode extends ParseNode implements InvisibleNode {
     public LiteralParseNode(SourceIndexLength position, Rope name) {
         super(position);
 
-        this.name = name.getString();
+        this.name = name.getJavaString();
     }
 
     public String getName() {

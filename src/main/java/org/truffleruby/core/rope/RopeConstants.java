@@ -112,7 +112,7 @@ public class RopeConstants {
             final LeafRope rope = new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
             final Rope existing = ROPE_CONSTANTS.putIfAbsent(string, rope);
             if (existing != null) {
-                throw new AssertionError("Duplicate Rope in RopeConstants: " + existing.getString());
+                throw new AssertionError("Duplicate Rope in RopeConstants: " + existing);
             }
             return rope;
         }

@@ -54,7 +54,7 @@ public class RopeCache {
         final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
         final Rope existing = bytesToRope.put(key, rope);
         if (existing != null && existing != rope) {
-            throw new AssertionError("Duplicate Rope in RopeCache: " + existing.getString());
+            throw new AssertionError("Duplicate Rope in RopeCache: " + existing);
         }
     }
 

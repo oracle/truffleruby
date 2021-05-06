@@ -44,8 +44,8 @@ public class VAliasParseNode extends ParseNode {
 
     public VAliasParseNode(SourceIndexLength position, Rope newName, Rope oldName) {
         super(position);
-        this.oldName = oldName.getString();
-        this.newName = newName.getString();
+        this.oldName = oldName.getJavaString();
+        this.newName = newName.getJavaString();
     }
 
     @Override

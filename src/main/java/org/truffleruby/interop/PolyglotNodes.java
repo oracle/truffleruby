@@ -110,7 +110,9 @@ public abstract class PolyglotNodes {
                 if (language == null) {
                     throw new RaiseException(
                             getContext(),
-                            coreExceptions().argumentError("Could not find language of file " + fileName, this));
+                            coreExceptions().argumentError(
+                                    "Could not find language of file " + path,
+                                    this));
                 }
                 source = Source.newBuilder(language, file).build();
             } catch (IOException e) {

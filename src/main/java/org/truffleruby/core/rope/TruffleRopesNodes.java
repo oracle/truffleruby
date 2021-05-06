@@ -116,14 +116,14 @@ public abstract class TruffleRopesNodes {
         }
 
         private static String getStructure(LeafRope rope) {
-            return "\"" + rope.toString() + "\"";
+            return RopeOperations.escape(rope);
         }
 
         private static String getStructure(ConcatRope rope) {
             final ConcatState state = rope.getState();
-            return state.isChildren()
-                    ? "(" + getStructure(state.left) + " + " + getStructure(state.right) + ")"
-                    : "(\"flat concat rope\"; " + rope.toString() + ")";
+            return state.isFlattened()
+                    ? "(\"flat concat rope\"; " + RopeOperations.escape(rope) + ")"
+                    : "(" + getStructure(state.left) + " + " + getStructure(state.right) + ")";
         }
 
         private static String getStructure(SubstringRope rope) {

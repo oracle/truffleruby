@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.rope;
 
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
+import java.util.List;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
@@ -20,9 +22,6 @@ public abstract class Rope implements Comparable<Rope> {
 
     // NativeRope, RepeatingRope, 3 LeafRope, ConcatRope, SubstringRope, 1 LazyRope
     public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
-
-    // Useful for debugging. Setting to true avoids ManagedRope#toString to populate bytes as a side-effect of the debugger calling toString().
-    protected static final boolean DEBUG_ROPE_BYTES = false;
 
     public final Encoding encoding;
     private final int byteLength;
@@ -161,8 +160,28 @@ public abstract class Rope implements Comparable<Rope> {
         return getByteSlow(index);
     }
 
-    /** Should only be used by the parser */
-    public final String getString() {
+    private static boolean isJavaDebuggerAttached() {
+        final List<String> inputArguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+        for (String arg : inputArguments) {
+            if (arg.contains("jdwp")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static final boolean JAVA_DEBUGGER = isJavaDebuggerAttached();
+
+    /** This is designed to not have any side effects - compare to {@link #getJavaString} - but this makes it
+     * inefficient - for debugging only */
+    @Override
+    public String toString() {
+        assert JAVA_DEBUGGER : "Rope#toString() should only be called by Java debuggers, use RubyStringLibrary or RopeOperations.decodeRope() instead";
+        return RopeOperations.decode(encoding, RopeOperations.flattenBytes(this));
+    }
+
+    /** Should only be used by the parser - it has side effects */
+    public final String getJavaString() {
         return RopeOperations.decodeRope(this);
     }
 

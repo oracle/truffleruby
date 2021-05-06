@@ -57,7 +57,7 @@ public class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperato
     }
 
     public String getOperator() {
-        return operator.getString();
+        return operator.getJavaString();
     }
 
     @Override

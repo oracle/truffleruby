@@ -43,7 +43,7 @@ public class GlobalVarParseNode extends ParseNode implements INameNode {
     private String name;
 
     public GlobalVarParseNode(SourceIndexLength position, Rope name) {
-        this(position, name.getString());
+        this(position, name.getJavaString());
     }
 
     public GlobalVarParseNode(SourceIndexLength position, String name) {
