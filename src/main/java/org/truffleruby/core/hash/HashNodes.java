@@ -20,7 +20,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.NullHashStore;
@@ -28,7 +27,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -465,66 +463,6 @@ public abstract class HashNodes {
         protected int sizePackedArray(RubyHash hash) {
             return hash.size;
         }
-    }
-
-    @ImportStatic(HashGuards.class)
-    public abstract static class EachKeyValueNode extends RubyContextNode {
-
-        public static EachKeyValueNode create() {
-            return EachKeyValueNodeGen.create();
-        }
-
-        public abstract Object executeEachKeyValue(VirtualFrame frame, RubyHash hash, PEBiConsumer callbackNode,
-                Object state);
-
-        @Specialization(guards = "isNullHash(hash)")
-        protected Object eachNull(RubyHash hash, PEBiConsumer callbackNode, Object state) {
-            return state;
-        }
-
-        @ExplodeLoop
-        @Specialization(
-                guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" },
-                limit = "getPackedHashLimit()")
-        protected Object eachPackedArrayCached(
-                VirtualFrame frame, RubyHash hash, PEBiConsumer callbackNode, Object state,
-                @Cached("getSize(hash)") int cachedSize) {
-            assert HashOperations.verifyStore(getContext(), hash);
-            final Object[] store = (Object[]) hash.store;
-
-            for (int i = 0; i < cachedSize; i++) {
-                callbackNode.accept(
-                        frame,
-                        PackedArrayStrategy.getKey(store, i),
-                        PackedArrayStrategy.getValue(store, i),
-                        state);
-            }
-
-            return state;
-        }
-
-        @Specialization(guards = "isBucketHash(hash)")
-        protected Object eachBuckets(VirtualFrame frame, RubyHash hash, PEBiConsumer callbackNode, Object state) {
-            assert HashOperations.verifyStore(getContext(), hash);
-
-            Entry entry = hash.firstInSequence;
-            while (entry != null) {
-                callbackNode.accept(frame, entry.getKey(), entry.getValue(), state);
-                entry = entry.getNextInSequence();
-            }
-
-            return state;
-        }
-
-        protected int getSize(RubyHash hash) {
-            return hash.size;
-        }
-
-        protected int getPackedHashLimit() {
-            // + 1 for packed Hash with size = 0
-            return RubyLanguage.getCurrentLanguage().options.HASH_PACKED_ARRAY_MAX + 1;
-        }
-
     }
 
     @CoreMethod(names = "rehash", raiseIfFrozenSelf = true)

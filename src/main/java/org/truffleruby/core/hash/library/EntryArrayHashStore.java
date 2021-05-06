@@ -25,6 +25,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -146,6 +147,21 @@ public class EntryArrayHashStore {
         hash.size -= 1;
         assert HashOperations.verifyStore(context, hash);
         return entry.getValue();
+    }
+
+    @ExportMessage
+    protected Object eachEntry(Frame frame, RubyHash hash, BiConsumerNode callback, Object state,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+
+        Entry entry = hash.firstInSequence;
+        while (entry != null) {
+            callback.accept((VirtualFrame) frame, entry.getKey(), entry.getValue(), state);
+            entry = entry.getNextInSequence();
+        }
+
+        return state;
     }
 
     @ExportMessage

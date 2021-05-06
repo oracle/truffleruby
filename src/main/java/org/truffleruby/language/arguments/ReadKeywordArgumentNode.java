@@ -23,7 +23,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @ImportStatic(HashGuards.class)
-public class ReadKeywordArgumentNode extends RubyContextSourceNode implements PEBiFunction {
+public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode implements PEBiFunction {
 
     private final RubySymbol name;
 

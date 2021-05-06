@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.core.hash.library.NullHashStore;
 
@@ -30,6 +31,11 @@ public abstract class HashGuards {
 
     public static int hashStrategyLimit() {
         return 3;
+    }
+
+    public static int packedHashLimit() {
+        // + 1 for packed Hash with size = 0
+        return RubyLanguage.getCurrentLanguage().options.HASH_PACKED_ARRAY_MAX + 1;
     }
 
     // Higher level properties

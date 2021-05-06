@@ -16,7 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
+import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
@@ -33,7 +33,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
-    @Child private EachKeyValueNode eachKeyNode;
+    @Child private HashStoreLibrary hashes;
 
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
 
@@ -69,15 +69,15 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     }
 
     void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
-        if (eachKeyNode == null) {
+        if (hashes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            eachKeyNode = insert(EachKeyValueNode.create());
+            hashes = insert(HashStoreLibrary.getDispatched());
         }
         if (checkKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
         }
-        eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
+        hashes.eachEntry(keywordArguments.store, frame, keywordArguments, checkKeywordArgumentsNode, null);
     }
 
     private static class CheckKeywordArgumentsNode extends RubyContextNode implements PEBiConsumer {
@@ -139,5 +139,4 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
         return symbols;
     }
-
 }

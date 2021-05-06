@@ -11,7 +11,6 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiConsumer;
-import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
@@ -29,7 +28,6 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
     @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
 
     private final ConditionProfile noHash = ConditionProfile.create();
@@ -51,7 +49,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
             return HashOperations.newEmptyHash(getContext(), getLanguage());
         } else {
             final RubyHash kwRest = HashOperations.newEmptyHash(getContext(), getLanguage());
-            return eachKeyNode.executeEachKeyValue(frame, hash, this, kwRest);
+            return hashes.eachEntry(hash.store, frame, hash, this, kwRest);
         }
     }
 
@@ -73,5 +71,4 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
         return false;
     }
-
 }

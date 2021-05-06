@@ -20,6 +20,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -59,6 +60,11 @@ public class NullHashStore {
     @ExportMessage
     protected Object delete(RubyHash hash, Object key) {
         return null;
+    }
+
+    @ExportMessage
+    protected Object eachEntry(Frame frame, RubyHash hash, BiConsumerNode callback, Object state) {
+        return state;
     }
 
     @ExportMessage

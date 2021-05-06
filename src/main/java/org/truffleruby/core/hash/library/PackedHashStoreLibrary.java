@@ -15,13 +15,17 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -131,6 +135,42 @@ public class PackedHashStoreLibrary {
 
         assert HashOperations.verifyStore(context, hash);
         return null;
+    }
+
+    @ExportMessage
+    @ImportStatic(HashGuards.class)
+    static class EachEntry {
+
+        @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
+        protected static Object eachEntry(
+                Object[] store, Frame frame, RubyHash hash, BiConsumerNode callback, Object state,
+                @Cached("hash.size") int cachedSize,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+
+            assert HashOperations.verifyStore(context, hash);
+            iterate(store, frame, callback, state, cachedSize);
+            return state;
+        }
+
+        @Specialization(replaces = "eachEntry")
+        protected static Object eachEntryUncached(
+                Object[] store, VirtualFrame frame, RubyHash hash, BiConsumerNode callback, Object state,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+
+            assert HashOperations.verifyStore(context, hash);
+            iterate(store, frame, callback, state, hash.size);
+            return state;
+        }
+
+        private static void iterate(Object[] store, Frame frame, BiConsumerNode callback, Object state, int size) {
+            for (int i = 0; i < size; i++) {
+                callback.accept(
+                        (VirtualFrame) frame,
+                        PackedArrayStrategy.getKey(store, i),
+                        PackedArrayStrategy.getValue(store, i),
+                        state);
+            }
+        }
     }
 
     @ExportMessage

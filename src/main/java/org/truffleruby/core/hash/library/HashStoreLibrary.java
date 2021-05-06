@@ -26,6 +26,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -75,6 +76,11 @@ public abstract class HashStoreLibrary extends Library {
      * entry for the key, returns {@code null}. */
     @Abstract
     public abstract Object delete(Object store, RubyHash hash, Object key);
+
+    /** Calls {@code callback} on every entry in the hash. */
+    @Abstract
+    public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, BiConsumerNode callback,
+            Object state);
 
     /** Runs the given block over every entry, in the manner specified by {@link YieldPairNode}. */
     @Abstract
