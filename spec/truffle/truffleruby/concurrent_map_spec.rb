@@ -65,6 +65,18 @@ describe "TruffleRuby::ConcurrentMap" do
     @h[:foobar].should equal new_value
   end
 
+  it "#replace_pair replaces the entry if the old value is a primitive" do
+    one_as_long = (1 << 48) / (1 << 48)
+    Truffle::Debug.java_class_of(one_as_long).should == 'Long'
+    one_as_int = 1
+    Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
+
+    @h[:foobar] = one_as_long
+
+    @h.replace_pair(:foobar, one_as_int, 2).should be_true
+    @h[:foobar].should == 2
+  end
+
   it "#replace_pair doesn't replace old value if current value doesn't match old value" do
     expected_old_value = "BLOOP"
     @h[:foobar] = expected_old_value
@@ -109,6 +121,18 @@ describe "TruffleRuby::ConcurrentMap" do
     value = "bloop"
     @h[:foobar] = value
     @h.delete_pair(:foobar, value).should be_true
+    @h[:foobar].should be_nil
+  end
+
+  it "#delete_pair deletes pair if the old value is a primitive" do
+    one_as_long = (1 << 48) / (1 << 48)
+    Truffle::Debug.java_class_of(one_as_long).should == 'Long'
+    one_as_int = 1
+    Truffle::Debug.java_class_of(one_as_int).should == 'Integer'
+
+    @h[:foobar] = one_as_long
+
+    @h.delete_pair(:foobar, one_as_int).should be_true
     @h[:foobar].should be_nil
   end
 

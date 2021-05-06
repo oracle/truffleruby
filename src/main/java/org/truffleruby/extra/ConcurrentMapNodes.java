@@ -19,20 +19,28 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.hash.HashingNodes.ToHashByHashCode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.extra.AtomicReferenceNodes.CompareAndSetReferenceNode;
 import org.truffleruby.extra.RubyConcurrentMap.Key;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocationTracing;
 
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
 @CoreModule(value = "TruffleRuby::ConcurrentMap", isClass = true)
 public class ConcurrentMapNodes {
+
+    @TruffleBoundary
+    private static Object get(ConcurrentHashMap<Key, Object> map, Key key) {
+        return map.get(key);
+    }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -83,11 +91,6 @@ public class ConcurrentMapNodes {
             final int hashCode = hashNode.execute(key);
             return nullToNil(get(self.getMap(), new Key(key, hashCode)));
         }
-
-        @TruffleBoundary
-        private Object get(ConcurrentHashMap<Key, Object> map, Key key) {
-            return map.get(key);
-        }
     }
 
     @CoreMethod(names = "[]=", required = 2)
@@ -101,7 +104,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private void put(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
+        private static void put(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
             map.put(key, value);
         }
     }
@@ -133,7 +136,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object computeIfPresent(ConcurrentHashMap<Key, Object> map, Key key,
+        private static Object computeIfPresent(ConcurrentHashMap<Key, Object> map, Key key,
                 BiFunction<Key, Object, Object> remappingFunction) {
             return map.computeIfPresent(key, remappingFunction);
         }
@@ -152,7 +155,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object compute(ConcurrentHashMap<Key, Object> map, Key key,
+        private static Object compute(ConcurrentHashMap<Key, Object> map, Key key,
                 BiFunction<Key, Object, Object> remappingFunction) {
             return map.compute(key, remappingFunction);
         }
@@ -172,30 +175,84 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object merge(ConcurrentHashMap<Key, Object> map, Key key, Object value,
+        private static Object merge(ConcurrentHashMap<Key, Object> map, Key key, Object value,
                 BiFunction<Object, Object, Object> remappingFunction) {
             return map.merge(key, value, remappingFunction);
-        }
-
-        @TruffleBoundary
-        private Object get(ConcurrentHashMap<Key, Object> map,
-                Key key) {
-            return map.get(key);
         }
     }
 
     @CoreMethod(names = "replace_pair", required = 3)
     public abstract static class ReplacePairNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean replacePair(RubyConcurrentMap self, Object key, Object oldValue, Object newValue,
+        /** See {@link CompareAndSetReferenceNode} */
+        @Specialization(guards = "isPrimitive(expectedValue)")
+        protected boolean replacePairPrimitive(
+                RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
+                @Cached ToHashByHashCode hashNode,
+                @Cached ReferenceEqualNode equalNode) {
+            final int hashCode = hashNode.execute(key);
+            final Key keyWrapper = new Key(key, hashCode);
+
+            while (true) {
+                final Object currentValue = get(self.getMap(), keyWrapper);
+
+                if (RubyGuards.isPrimitive(currentValue) &&
+                        equalNode.executeReferenceEqual(expectedValue, currentValue)) {
+                    if (replace(self.getMap(), keyWrapper, currentValue, newValue)) {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        @Specialization(guards = "!isPrimitive(expectedValue)")
+        protected boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
                 @Cached ToHashByHashCode hashNode) {
             final int hashCode = hashNode.execute(key);
-            return replace(self.getMap(), new Key(key, hashCode), oldValue, newValue);
+            return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
         }
 
         @TruffleBoundary
-        private boolean replace(ConcurrentHashMap<Key, Object> map, Key key, Object oldValue, Object newValue) {
+        private static boolean replace(ConcurrentHashMap<Key, Object> map, Key key, Object oldValue, Object newValue) {
             return map.replace(key, oldValue, newValue);
+        }
+    }
+
+    @CoreMethod(names = "delete_pair", required = 2)
+    public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
+        /** See {@link CompareAndSetReferenceNode} */
+        @Specialization(guards = "isPrimitive(expectedValue)")
+        protected boolean deletePairPrimitive(RubyConcurrentMap self, Object key, Object expectedValue,
+                @Cached ToHashByHashCode hashNode,
+                @Cached ReferenceEqualNode equalNode) {
+            final int hashCode = hashNode.execute(key);
+            final Key keyWrapper = new Key(key, hashCode);
+
+            while (true) {
+                final Object currentValue = get(self.getMap(), keyWrapper);
+
+                if (RubyGuards.isPrimitive(currentValue) &&
+                        equalNode.executeReferenceEqual(expectedValue, currentValue)) {
+                    if (remove(self.getMap(), keyWrapper, currentValue)) {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        @Specialization(guards = "!isPrimitive(expectedValue)")
+        protected boolean deletePair(RubyConcurrentMap self, Object key, Object expectedValue,
+                @Cached ToHashByHashCode hashNode) {
+            final int hashCode = hashNode.execute(key);
+            return remove(self.getMap(), new Key(key, hashCode), expectedValue);
+        }
+
+        @TruffleBoundary
+        private static boolean remove(ConcurrentHashMap<Key, Object> map, Key key, Object expectedValue) {
+            return map.remove(key, expectedValue);
         }
     }
 
@@ -209,7 +266,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object replace(ConcurrentHashMap<Key, Object> map, Key key, Object newValue) {
+        private static Object replace(ConcurrentHashMap<Key, Object> map, Key key, Object newValue) {
             return map.replace(key, newValue);
         }
     }
@@ -224,7 +281,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object put(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
+        private static Object put(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
             return map.put(key, value);
         }
     }
@@ -239,7 +296,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private boolean containsKey(ConcurrentHashMap<Key, Object> map, Key key) {
+        private static boolean containsKey(ConcurrentHashMap<Key, Object> map, Key key) {
             return map.containsKey(key);
         }
     }
@@ -254,23 +311,8 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object remove(ConcurrentHashMap<Key, Object> map, Key key) {
+        private static Object remove(ConcurrentHashMap<Key, Object> map, Key key) {
             return map.remove(key);
-        }
-    }
-
-    @CoreMethod(names = "delete_pair", required = 2)
-    public abstract static class DeletePairNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        protected boolean deletePair(RubyConcurrentMap self, Object key, Object value,
-                @Cached ToHashByHashCode hashNode) {
-            final int hashCode = hashNode.execute(key);
-            return remove(self.getMap(), new Key(key, hashCode), value);
-        }
-
-        @TruffleBoundary
-        private boolean remove(ConcurrentHashMap<Key, Object> map, Key key, Object value) {
-            return map.remove(key, value);
         }
     }
 
@@ -303,7 +345,7 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Object getOrDefault(ConcurrentHashMap<Key, Object> map, Key key, Object defaultValue) {
+        private static Object getOrDefault(ConcurrentHashMap<Key, Object> map, Key key, Object defaultValue) {
             return map.getOrDefault(key, defaultValue);
         }
     }
@@ -313,10 +355,10 @@ public class ConcurrentMapNodes {
 
         @Specialization
         protected Object eachPair(RubyConcurrentMap self, RubyProc block) {
-            final Iterator<Map.Entry<Key, Object>> iterator = iterator(self.getMap());
+            final Iterator<Entry<Key, Object>> iterator = iterator(self.getMap());
 
             while (true) {
-                final Map.Entry<Key, Object> pair = next(iterator);
+                final Entry<Key, Object> pair = next(iterator);
 
                 if (pair == null) {
                     break;
@@ -329,12 +371,12 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private Iterator<Map.Entry<Key, Object>> iterator(ConcurrentHashMap<Key, Object> map) {
+        private static Iterator<Entry<Key, Object>> iterator(ConcurrentHashMap<Key, Object> map) {
             return map.entrySet().iterator();
         }
 
         @TruffleBoundary
-        private Map.Entry<Key, Object> next(Iterator<Map.Entry<Key, Object>> iterator) {
+        private static Entry<Key, Object> next(Iterator<Entry<Key, Object>> iterator) {
             if (iterator.hasNext()) {
                 return iterator.next();
             } else {
