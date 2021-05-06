@@ -410,7 +410,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(message)")
         protected Object throwAssertionError(Object message,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            throw new AssertionError(strings.getRope(message));
+            throw new AssertionError(strings.getJavaString(message));
         }
 
     }
