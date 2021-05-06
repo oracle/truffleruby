@@ -9,6 +9,8 @@
  */
 package org.truffleruby.collections;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -22,6 +24,7 @@ public abstract class ConcurrentOperations {
      * #computeIfAbsent() is used if the key cannot be found with {@link Map#get(Object)}, and therefore this method has
      * the same semantics as the passed map's #computeIfAbsent(). Notably, for ConcurrentHashMap, the lambda is
      * guaranteed to be only executed once per missing key. */
+    @TruffleBoundary
     public static <K, V> V getOrCompute(Map<K, V> map, K key, Function<? super K, ? extends V> compute) {
         V value = map.get(key);
         if (value != null) {

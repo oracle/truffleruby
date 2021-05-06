@@ -140,6 +140,8 @@ import org.truffleruby.debug.TruffleDebugNodesBuiltins;
 import org.truffleruby.debug.TruffleDebugNodesFactory;
 import org.truffleruby.extra.AtomicReferenceNodesBuiltins;
 import org.truffleruby.extra.AtomicReferenceNodesFactory;
+import org.truffleruby.extra.ConcurrentMapNodesBuiltins;
+import org.truffleruby.extra.ConcurrentMapNodesFactory;
 import org.truffleruby.extra.TruffleGraalNodesBuiltins;
 import org.truffleruby.extra.TruffleGraalNodesFactory;
 import org.truffleruby.extra.TrufflePosixNodesBuiltins;
@@ -182,6 +184,7 @@ public abstract class BuiltinsClasses {
         ByteArrayNodesBuiltins.setup(coreManager);
         CExtNodesBuiltins.setup(coreManager);
         ClassNodesBuiltins.setup(coreManager);
+        ConcurrentMapNodesBuiltins.setup(coreManager);
         ConditionVariableNodesBuiltins.setup(coreManager);
         CoverageNodesBuiltins.setup(coreManager);
         CustomRandomizerNodesBuiltins.setup(coreManager);
@@ -263,6 +266,7 @@ public abstract class BuiltinsClasses {
         CExtNodesBuiltins.setupPrimitives(primitiveManager);
         ClassNodesBuiltins.setupPrimitives(primitiveManager);
         CustomRandomizerNodesBuiltins.setupPrimitives(primitiveManager);
+        ConcurrentMapNodesBuiltins.setupPrimitives(primitiveManager);
         ConditionVariableNodesBuiltins.setupPrimitives(primitiveManager);
         CoverageNodesBuiltins.setupPrimitives(primitiveManager);
         DigestNodesBuiltins.setupPrimitives(primitiveManager);
@@ -343,6 +347,7 @@ public abstract class BuiltinsClasses {
                 ByteArrayNodesFactory.getFactories(),
                 CExtNodesFactory.getFactories(),
                 ClassNodesFactory.getFactories(),
+                ConcurrentMapNodesFactory.getFactories(),
                 ConditionVariableNodesFactory.getFactories(),
                 CoverageNodesFactory.getFactories(),
                 CustomRandomizerNodesFactory.getFactories(),

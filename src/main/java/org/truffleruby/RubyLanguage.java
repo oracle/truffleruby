@@ -82,6 +82,7 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.time.RubyTime;
 import org.truffleruby.core.tracepoint.RubyTracePoint;
 import org.truffleruby.extra.RubyAtomicReference;
+import org.truffleruby.extra.RubyConcurrentMap;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.NotProvided;
@@ -195,6 +196,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
     public final Shape bindingShape = createShape(RubyBinding.class);
     public final Shape byteArrayShape = createShape(RubyByteArray.class);
+    public final Shape concurrentMapShape = createShape(RubyConcurrentMap.class);
     public final Shape conditionVariableShape = createShape(RubyConditionVariable.class);
     public final Shape customRandomizerShape = createShape(RubyCustomRandomizer.class);
     public final Shape digestShape = createShape(RubyDigest.class);

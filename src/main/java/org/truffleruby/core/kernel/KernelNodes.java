@@ -230,6 +230,10 @@ public abstract class KernelNodes {
             return KernelNodesFactory.SameOrEqlNodeGen.create();
         }
 
+        public static SameOrEqlNode getUncached() {
+            return KernelNodesFactory.SameOrEqlNodeGen.getUncached();
+        }
+
         public abstract boolean execute(Object a, Object b);
 
         @Specialization(guards = "referenceEqual.executeReferenceEqual(a, b)")
