@@ -62,17 +62,17 @@ TruffleRuby provides these non-standard methods and classes that provide additio
 
 * `map[key]`
 
-* `map.compute_if_absent(key) { computed_value }` if the key is not found, run the block and store the result. If the block returns `nil` the store is cancelled. The block is run at most once. Returns the final value, or `nil` if the store was cancelled.
+* `map.compute_if_absent(key) { computed_value }` if the key is not found, run the block and store the result. The block is run at most once. Returns the computed value.
 
-* `map.compute_if_present(key) { |current_value| computed_value }` if the key is found, run the block and store the result. If the block returns `nil` the store is cancelled. The block is run at most once. Returns the final value, or `nil` if the store was cancelled.
+* `map.compute_if_present(key) { |current_value| computed_value }` if the key is found, run the block and store the result. If the block returns `nil` the entry for that key is removed. The block is run at most once. Returns the final value, or `nil` if the block returned `nil`.
 
-* `map.compute(key) { |current_value| computed_value }` run the block, passing the current value if there is one or `nil`, and store the result. Returns the final value, or `nil` if the store was cancelled.
+* `map.compute(key) { |current_value| computed_value }` run the block, passing the current value if there is one or `nil`, and store the result. If the block returns `nil` the entry for that key is removed. Returns the computed value.
 
-* `map.merge_pair(key, new_value) { |existing_value| merged_value }` if key is not found or is `nil`, store the new value, otherwise call the block and store the result. Returns the final value, or `nil` if the store was cancelled.
+* `map.merge_pair(key, new_value) { |existing_value| merged_value }` if key is not found or is `nil`, store the new value, otherwise call the block and store the result, or remove the entry if the block returns `nil`. Returns the final value for that entry, or `nil` if the block returned `nil`.
 
-* `map.replace_pair(key, expected_value, new_value)` replace the value for key but only if it was as expected. Returns if the value was replaced or not.
+* `map.replace_pair(key, expected_value, new_value)` replace the value for key but only if the existing value for it is the same as `expected_value` (compared by identity). Returns if the value was replaced or not.
 
-* `map.replace_if_exists(key, value)` replace the value for key but only if it was found. Returns if the value was replaced or not.
+* `map.replace_if_exists(key, value)` replace the value for key but only if it was found. Returns `value` if the key exists or `nil`.
 
 * `map.get_and_set(key, new_value)` sets the value for a key and returns the previous value.
 
@@ -80,7 +80,7 @@ TruffleRuby provides these non-standard methods and classes that provide additio
 
 * `map.delete(key)` removes a key from the map if it exists, returning the value or `nil` if it did not exist.
 
-* `map.delete_pair(key, expected_value)` removes a key but only if it was the expected value. Returns if the key was deleted.
+* `map.delete_pair(key, expected_value)` removes a key but only if the existing value for it is the same as `expected_value` (compared by identity). Returns if the key was deleted.
 
 * `map.clear` removes all entries from the map.
 
