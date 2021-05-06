@@ -1661,6 +1661,7 @@ class IO
                   old_flags & ~NONBLOCK
                 end
     fcntl(F_SETFL, new_flags) if old_flags != new_flags
+    self
   end
 
   ##
@@ -1837,7 +1838,7 @@ class IO
 
     case str
     when Symbol
-      return str
+      str
     when String
       buffer ? buffer.replace(str) : str
     else
