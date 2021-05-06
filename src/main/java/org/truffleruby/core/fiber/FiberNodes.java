@@ -178,7 +178,7 @@ public abstract class FiberNodes {
                 throw new RaiseException(getContext(), coreExceptions().fiberError("double resume", this));
             }
 
-            if (transferredProfile.profile(fiber.transferred)) {
+            if (operation != FiberOperation.RAISE && transferredProfile.profile(fiber.transferred)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().fiberError("cannot resume transferred Fiber", this));
