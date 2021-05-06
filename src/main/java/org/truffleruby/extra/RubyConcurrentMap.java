@@ -11,12 +11,15 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/** In Concurrent::Map, and so TruffleRuby::ConcurrentMap, keys are compared with #hash and #eql?, and values by
+ * identity (#equal? in NonConcurrentMapBackend). To use custom code to compare the keys we need a wrapper for keys
+ * implementing #hashCode and #equals. Identity is the default, so we don't need to do anything there. */
 public class RubyConcurrentMap extends RubyDynamicObject {
 
     public static class Key {
@@ -46,20 +49,12 @@ public class RubyConcurrentMap extends RubyDynamicObject {
                 // If they have different hash codes then they cannot be equal
                 return false;
             } else {
-                // Last resort - we have to actually call equal?
-                final Object returnValue = KernelNodes.SameOrEqlNode.getUncached().execute(key, otherKey.key);
-                if (returnValue instanceof Boolean) {
-                    return (boolean) returnValue;
-                } else {
-                    throw new UnsupportedOperationException(returnValue.getClass().getName());
-                }
+                // Last resort - we have to actually call eql?
+                return SameOrEqlNode.getUncached().execute(key, otherKey.key);
             }
         }
     }
 
-    /* In Concurrent::Map, and so TruffleRuby::ConcurrentMap, keys are compared with #hash and #eql?, and keys by
-     * identity (#equal? in NonConcurrentMapBackend.) To use custom code to compare the keys we need to subclass and
-     * implement #hashCode and #equals. Identity is the default, so we don't need to do anything there. */
     private ConcurrentHashMap<Key, Object> map;
 
     public RubyConcurrentMap(RubyClass rubyClass, Shape shape) {
@@ -68,7 +63,6 @@ public class RubyConcurrentMap extends RubyDynamicObject {
 
     @TruffleBoundary
     public void allocateMap(int initialCapacity, float loadFactor) {
-        // To do: This method is seems empty but was blacklisted on CI
         map = new ConcurrentHashMap<>(initialCapacity, loadFactor);
     }
 
