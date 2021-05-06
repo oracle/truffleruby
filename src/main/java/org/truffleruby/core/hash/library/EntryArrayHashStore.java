@@ -71,7 +71,6 @@ public class EntryArrayHashStore {
 
     @ExportMessage
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
-            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
             @Cached @Exclusive PropagateSharingNode propagateSharingKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingValue,
@@ -83,8 +82,7 @@ public class EntryArrayHashStore {
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-        final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
-        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, compareByIdentity);
+        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
 
         propagateSharingKey.executePropagate(hash, key2);
         propagateSharingValue.executePropagate(hash, value);
@@ -276,7 +274,6 @@ public class EntryArrayHashStore {
 
     @ExportMessage
     protected void rehash(RubyHash hash,
-            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached CompareHashKeysNode compareHashKeys,
             @Cached HashingNodes.ToHash hashNode,
             @CachedLanguage RubyLanguage language,
@@ -284,12 +281,11 @@ public class EntryArrayHashStore {
 
         assert HashOperations.verifyStore(context, hash);
 
-        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
         Arrays.fill(entries, null);
 
         Entry entry = hash.firstInSequence;
         while (entry != null) {
-            final int newHash = hashNode.execute(entry.getKey(), compareByIdentity);
+            final int newHash = hashNode.execute(entry.getKey(), hash.compareByIdentity);
             entry.setHashed(newHash);
             entry.setNextInLookup(null);
 
@@ -304,7 +300,7 @@ public class EntryArrayHashStore {
                 int size = hash.size;
                 do {
                     if (compareHashKeys.execute(
-                            compareByIdentity,
+                            hash.compareByIdentity,
                             entry.getKey(),
                             newHash,
                             bucketEntry.getKey(),

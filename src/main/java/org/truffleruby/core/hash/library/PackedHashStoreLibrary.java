@@ -57,7 +57,6 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
-            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
             @Cached @Exclusive PropagateSharingNode propagateSharingKey,
@@ -68,10 +67,9 @@ public class PackedHashStoreLibrary {
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-        final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
-        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, compareByIdentity);
+        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
 
-        final int hashed = hashNode.execute(key2, compareByIdentity);
+        final int hashed = hashNode.execute(key2, byIdentity);
 
         propagateSharingKey.executePropagate(hash, key2);
         propagateSharingValue.executePropagate(hash, value);
@@ -83,7 +81,7 @@ public class PackedHashStoreLibrary {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);
-                if (compareHashKeys.execute(compareByIdentity, key2, hashed, otherKey, otherHashed)) {
+                if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
                     PackedArrayStrategy.setValue(store, n, value);
                     assert HashOperations.verifyStore(context, hash);
                     return false;
@@ -108,22 +106,19 @@ public class PackedHashStoreLibrary {
     protected static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-        final int hashed = hashNode.execute(key, compareByIdentity);
+        final int hashed = hashNode.execute(key, hash.compareByIdentity);
         final int size = hash.size;
-
         // written very carefully to allow PE
         for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {
                 final int otherHashed = PackedArrayStrategy.getHashed(store, n);
                 final Object otherKey = PackedArrayStrategy.getKey(store, n);
 
-                if (compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (compareHashKeys.execute(hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     final Object value = PackedArrayStrategy.getValue(store, n);
                     PackedArrayStrategy.removeEntry(language, store, n);
                     hash.size -= 1;
@@ -132,7 +127,6 @@ public class PackedHashStoreLibrary {
                 }
             }
         }
-
         assert HashOperations.verifyStore(context, hash);
         return null;
     }
@@ -268,25 +262,21 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static void rehash(Object[] store, RubyHash hash,
-            @Cached @Shared("byIdentity") ConditionProfile byIdentityProfile,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-
         int size = hash.size;
-        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
-
         for (int n = 0; n < size; n++) {
             final Object key = PackedArrayStrategy.getKey(store, n);
-            final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), compareByIdentity);
+            final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), hash.compareByIdentity);
             PackedArrayStrategy.setHashed(store, n, newHash);
 
             for (int m = n - 1; m >= 0; m--) {
                 if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeys.execute(
-                        compareByIdentity,
+                        hash.compareByIdentity,
                         key,
                         newHash,
                         PackedArrayStrategy.getKey(store, m),
@@ -298,7 +288,6 @@ public class PackedHashStoreLibrary {
                 }
             }
         }
-
         hash.size = size;
         assert HashOperations.verifyStore(context, hash);
     }
