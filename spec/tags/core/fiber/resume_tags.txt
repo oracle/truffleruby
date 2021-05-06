@@ -1,2 +1,1 @@
-fails:Fiber#resume executes the ensure clause
-fails:Fiber#resume raises a FiberError if the Fiber tries to resume itself
+slow:Fiber#resume executes the ensure clause

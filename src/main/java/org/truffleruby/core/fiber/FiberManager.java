@@ -11,6 +11,8 @@ package org.truffleruby.core.fiber;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
+
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
@@ -118,7 +120,7 @@ public class FiberManager {
         FiberMessage lastMessage = null;
         try {
             final Object[] args = handleMessage(fiber, message, currentNode);
-            fiber.resumed = true;
+            fiber.status = FiberStatus.RESUMED;
             final Object result = ProcOperations.rootCall(block, args);
 
             lastMessage = new FiberResumeMessage(FiberOperation.YIELD, fiber, new Object[]{ result });
@@ -144,7 +146,7 @@ public class FiberManager {
 
             // Perform all cleanup before resuming the parent Fiber
             // Make sure that other fibers notice we are dead before they gain control back
-            fiber.alive = false;
+            fiber.status = FiberStatus.TERMINATED;
             // Leave context before addToMessageQueue() -> parent Fiber starts executing
             truffleContext.leave(currentNode, prev);
             thread.threadLocalState.rubyThread = null;
@@ -161,18 +163,27 @@ public class FiberManager {
         assert currentFiber == currentFiber.rubyThread.getCurrentFiber();
 
         final RubyFiber rootFiber = currentFiber.rubyThread.getRootFiber();
-        if (currentFiber == rootFiber) {
-            errorProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().yieldFromRootFiberError(currentNode));
+
+        final RubyFiber previousFiber = currentFiber.lastResumedByFiber;
+        if (previousFiber != null) {
+            currentFiber.lastResumedByFiber = null;
+            previousFiber.resumingFiber = null;
+            return previousFiber;
+        } else {
+
+            if (currentFiber == rootFiber) {
+                errorProfile.enter();
+                throw new RaiseException(context, context.getCoreExceptions().yieldFromRootFiberError(currentNode));
+            }
+
+            RubyFiber fiber = rootFiber;
+            while (fiber.resumingFiber != null) {
+                fiber = fiber.resumingFiber;
+            }
+            return fiber;
         }
 
-        final RubyFiber parentFiber = currentFiber.lastResumedByFiber;
-        if (parentFiber != null) {
-            currentFiber.lastResumedByFiber = null;
-            return parentFiber;
-        } else {
-            return rootFiber;
-        }
+
     }
 
     @TruffleBoundary
@@ -256,6 +267,25 @@ public class FiberManager {
     @TruffleBoundary
     private FiberMessage resumeAndWait(RubyFiber fromFiber, RubyFiber fiber, FiberOperation operation, Object[] args,
             Node currentNode) {
+
+        assert fromFiber.resumingFiber == null;
+        if (operation == FiberOperation.RESUME) {
+            fromFiber.resumingFiber = fiber;
+            fiber.lastResumedByFiber = fromFiber;
+            fiber.yielding = false;
+        }
+
+        //        assert !fromFiber.yielding;
+        if (operation == FiberOperation.YIELD) {
+            fromFiber.yielding = true;
+        }
+
+        if (fromFiber.status == FiberStatus.RESUMED) {
+            fromFiber.status = FiberStatus.SUSPENDED;
+        }
+
+        fiber.status = FiberStatus.RESUMED;
+
         final TruffleContext truffleContext = context.getEnv().getContext();
         final FiberMessage message = context
                 .getThreadManager()
@@ -306,7 +336,7 @@ public class FiberManager {
 
         context.getValueWrapperManager().cleanup(context, fiber.handleData);
 
-        fiber.alive = false;
+        fiber.status = FiberStatus.TERMINATED;
 
         threadManager.cleanupValuesForJavaThread(javaThread);
 

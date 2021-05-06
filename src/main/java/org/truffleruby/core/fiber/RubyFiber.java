@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -33,6 +34,15 @@ import com.oracle.truffle.api.object.Shape;
 
 public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
 
+    /* Fiber status: [Fiber.new] ------> FIBER_CREATED | [Fiber#resume] v +--> FIBER_RESUMED ----+ [Fiber#resume] | |
+     * [Fiber.yield] | | v | +-- FIBER_SUSPENDED | [Terminate] | FIBER_TERMINATED <-+ */
+    public enum FiberStatus {
+        CREATED,
+        RESUMED,
+        SUSPENDED,
+        TERMINATED
+    }
+
     public final RubyBasicObject fiberLocals;
     public final RubyArray catchTags;
     public final CountDownLatch initializedLatch = new CountDownLatch(1);
@@ -40,14 +50,14 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
     public final RubyThread rubyThread;
     volatile RubyFiber lastResumedByFiber = null;
-    public volatile boolean resumed = false;
-    public volatile boolean alive = true;
+    volatile RubyFiber resumingFiber = null;
     public Thread thread = null;
-    volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
     String sourceLocation;
     public final MarkingService.ExtensionCallStack extensionCallStack;
     public final ValueWrapperManager.HandleBlockHolder handleData;
+    volatile boolean yielding = false;
+    volatile FiberStatus status = FiberStatus.CREATED;
 
     public RubyFiber(
             RubyClass rubyClass,
@@ -73,17 +83,26 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         return rubyThread.getRootFiber() == this;
     }
 
-    public String getStatus() {
-        if (!resumed) {
-            return "created";
-        } else if (alive) {
-            if (rubyThread.getCurrentFiberRacy() == this) {
+    public boolean isTerminated() {
+        return status == FiberStatus.TERMINATED;
+    }
+
+    public void restart() {
+        status = FiberStatus.CREATED;
+    }
+
+    public String getStatusString() {
+        switch (status) {
+            case CREATED:
+                return "created";
+            case RESUMED:
                 return "resumed";
-            } else {
+            case SUSPENDED:
                 return "suspended";
-            }
-        } else {
-            return "terminated";
+            case TERMINATED:
+                return "terminated";
+            default:
+                throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

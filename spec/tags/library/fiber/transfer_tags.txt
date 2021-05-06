@@ -1,2 +1,0 @@
-fails:Fiber#transfer transfers control from one Fiber to another when called from a Fiber
-fails:Fiber#transfer can not transfer control to a Fiber that has suspended by Fiber.yield

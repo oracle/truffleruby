@@ -45,6 +45,10 @@ public abstract class FiberNodes {
 
     public abstract static class FiberTransferNode extends CoreMethodArrayArgumentsNode {
 
+        public static FiberTransferNode create() {
+            return FiberTransferNodeFactory.create(null);
+        }
+
         @Child private SingleValueCastNode singleValueCastNode;
 
         public Object singleValue(Object[] args) {
@@ -67,7 +71,7 @@ public abstract class FiberNodes {
                 Object[] args,
                 @Cached BranchProfile errorProfile) {
 
-            if (!fiber.alive) {
+            if (fiber.status == RubyFiber.FiberStatus.TERMINATED) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().deadFiberCalledError(this));
             }
@@ -130,10 +134,18 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object resume(RubyFiber fiber, Object[] args,
+        protected Object transfer(RubyFiber fiber, Object[] args,
                 @Cached ConditionProfile sameFiberProfile) {
 
-            fiber.transferred = true;
+            if (fiber.resumingFiber != null) {
+                throw new RaiseException(getContext(), coreExceptions()
+                        .fiberError("attempt to transfer to a resuming fiber", this));
+            }
+
+            if (fiber.yielding) {
+                throw new RaiseException(getContext(), coreExceptions()
+                        .fiberError("attempt to transfer to a yielding fiber", this));
+            }
 
             final RubyThread currentThread = getLanguage().getCurrentThread();
             final RubyFiber currentFiber = currentThread.getCurrentFiber();
@@ -162,23 +174,43 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object resume(FiberOperation operation, RubyFiber fiber, Object[] args,
-                @Cached ConditionProfile doubleResumeProfile,
-                @Cached ConditionProfile transferredProfile) {
-
-            final RubyFiber parentFiber = fiber.lastResumedByFiber;
-
-            if (doubleResumeProfile.profile(parentFiber != null || fiber.isRootFiber())) {
-                throw new RaiseException(getContext(), coreExceptions().fiberError("double resume", this));
-            }
-
-            if (operation != FiberOperation.RAISE && transferredProfile.profile(fiber.transferred)) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().fiberError("cannot resume transferred Fiber", this));
-            }
+                @Cached BranchProfile errorProfile) {
 
             final RubyThread currentThread = getLanguage().getCurrentThread();
             final RubyFiber currentFiber = currentThread.getCurrentFiber();
+
+            if (operation == FiberOperation.RAISE && fiber.status == RubyFiber.FiberStatus.CREATED) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("cannot raise exception on unborn fiber", this));
+            } else if (fiber.status == RubyFiber.FiberStatus.TERMINATED) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("attempt to resume a terminated fiber", this));
+            } else if (fiber == currentFiber) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("attempt to resume the current fiber", this));
+            } else if (fiber.lastResumedByFiber != null) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("attempt to resume a resumed fiber (double resume)", this));
+            } else if (fiber.resumingFiber != null) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("attempt to resume a resuming fiber", this));
+            } else if (fiber.lastResumedByFiber == null &&
+                    (!fiber.yielding && fiber.status != RubyFiber.FiberStatus.CREATED)) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().fiberError("attempt to resume a transferring fiber", this));
+            }
 
             return fiberTransferNode
                     .executeTransferControlTo(currentThread, currentFiber, fiber, operation, args);
@@ -190,18 +222,45 @@ public abstract class FiberNodes {
     @Primitive(name = "fiber_raise")
     public abstract static class FiberRaiseNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private FiberResumeNode fiberResumeNode = FiberResumeNode.create();
+        @Child private FiberResumeNode fiberResumeNode;
+        @Child private FiberTransferNode fiberTransferNode;
 
         @Specialization
         protected Object raise(RubyFiber fiber, RubyException exception,
                 @Cached BranchProfile errorProfile) {
-            if (!fiber.resumed) {
+            if (fiber.resumingFiber != null) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().fiberError("cannot raise exception on unborn fiber", this));
+                        coreExceptions().fiberError("attempt to raise a resuming fiber", this));
+            } else if (fiber.status == RubyFiber.FiberStatus.SUSPENDED && !fiber.yielding) {
+                final RubyThread currentThread = getLanguage().getCurrentThread();
+                final RubyFiber currentFiber = currentThread.getCurrentFiber();
+                return getTransferNode().executeTransferControlTo(
+                        currentThread,
+                        currentFiber,
+                        fiber,
+                        FiberOperation.RAISE,
+                        new Object[]{ exception });
+            } else {
+                return getResumeNode().executeResume(FiberOperation.RAISE, fiber, new Object[]{ exception });
             }
-            return fiberResumeNode.executeResume(FiberOperation.RAISE, fiber, new Object[]{ exception });
+        }
+
+        private FiberResumeNode getResumeNode() {
+            if (fiberResumeNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fiberResumeNode = insert(FiberResumeNode.create());
+            }
+            return fiberResumeNode;
+        }
+
+        private FiberTransferNode getTransferNode() {
+            if (fiberTransferNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fiberTransferNode = insert(FiberTransferNode.create());
+            }
+            return fiberTransferNode;
         }
 
     }
@@ -248,7 +307,7 @@ public abstract class FiberNodes {
 
         @Specialization
         protected boolean alive(RubyFiber fiber) {
-            return fiber.alive;
+            return fiber.status != RubyFiber.FiberStatus.TERMINATED;
         }
 
     }
@@ -277,7 +336,7 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyString status(RubyFiber fiber,
                 @Cached MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(fiber.getStatus(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(fiber.getStatusString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 
