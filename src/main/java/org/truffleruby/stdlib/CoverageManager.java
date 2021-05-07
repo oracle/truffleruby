@@ -82,22 +82,22 @@ public class CoverageManager {
                         .build(),
                 eventContext -> new ExecutionEventNode() {
 
-                    @CompilationFinal private boolean configured;
-                    @CompilationFinal private int lineNumber;
+                    @CompilationFinal private int lineNumber = -2;
                     @CompilationFinal private AtomicLongArray counters;
 
                     @Override
                     protected void onEnter(VirtualFrame frame) {
-                        if (!configured) {
+                        if (lineNumber == -2) { // not yet initialized
                             CompilerDirectives.transferToInterpreterAndInvalidate();
                             final SourceSection sourceSection = eventContext.getInstrumentedSourceSection();
 
                             if (getLineHasCode(sourceSection.getSource(), sourceSection.getStartLine())) {
                                 lineNumber = lineToIndex(sourceSection.getStartLine());
                                 counters = getCounters(sourceSection.getSource());
+                            } else {
+                                lineNumber = -1;
                             }
-
-                            configured = true;
+                            assert lineNumber != -2;
                         }
 
                         if (counters != null) {
