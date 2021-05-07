@@ -38,6 +38,7 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.LookupPackedEntryNode;
 import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.HashStoreLibrary.YieldPairNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -148,7 +149,7 @@ public class PackedHashStoreLibrary {
 
         @Specialization(replaces = "eachEntry")
         protected static Object eachEntryUncached(
-                Object[] store, VirtualFrame frame, RubyHash hash, BiConsumerNode callback, Object state,
+                Object[] store, Frame frame, RubyHash hash, BiConsumerNode callback, Object state,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
 
             assert HashOperations.verifyStore(context, hash);
@@ -156,6 +157,7 @@ public class PackedHashStoreLibrary {
             return state;
         }
 
+        @ExplodeLoop
         private static void iterate(Object[] store, Frame frame, BiConsumerNode callback, Object state, int size) {
             for (int i = 0; i < size; i++) {
                 callback.accept(
@@ -171,27 +173,49 @@ public class PackedHashStoreLibrary {
     protected static void each(Object[] store, RubyHash hash, RubyProc block,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair,
+            @Cached @Shared("yield") YieldPairNode yieldPair,
             @CachedLibrary("store") HashStoreLibrary self) {
 
         assert HashOperations.verifyStore(context, hash);
-
         // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
-        final int size = hash.size;
         final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        // TODO: should we pass the block as the state and cache the EachCallback instance instead?
+        self.eachEntry(storeCopy, null, hash, new EachCallback(yieldPair, block), null);
 
-        int n = 0;
-        try {
-            for (; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    yieldPair.execute(
-                            block,
-                            PackedArrayStrategy.getKey(storeCopy, n),
-                            PackedArrayStrategy.getValue(storeCopy, n));
-                }
-            }
-        } finally {
-            HashStoreLibrary.reportLoopCount(self, n);
+        // TODO: old implementation, minus verifyStore
+        //   Is there some part of that (including the peculiar loop, use of HASH_PACKED_ARRAY_MAX and reportLoop)
+        //   that needs to be ported to eachEntry? (which explodes on all possible sizes, excepted for uncached)
+
+        //        // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
+        //        final int size = hash.size;
+        //        final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        //        int n = 0;
+        //        try {
+        //            for (; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+        //                if (n < size) {
+        //                    yieldPair.execute(
+        //                            block,
+        //                            PackedArrayStrategy.getKey(storeCopy, n),
+        //                            PackedArrayStrategy.getValue(storeCopy, n));
+        //                }
+        //            }
+        //        } finally {
+        //            HashStoreLibrary.reportLoopCount(self, n);
+        //        }
+    }
+
+    public static final class EachCallback implements BiConsumerNode {
+        private final YieldPairNode yieldPair;
+        private final RubyProc block;
+
+        public EachCallback(YieldPairNode yieldPair, RubyProc block) {
+            this.yieldPair = yieldPair;
+            this.block = block;
+        }
+
+        @Override
+        public final void accept(VirtualFrame frame, Object key, Object value, Object state) {
+            yieldPair.execute(block, key, value);
         }
     }
 
@@ -222,28 +246,61 @@ public class PackedHashStoreLibrary {
     @ExportMessage
     protected static RubyArray map(Object[] store, RubyHash hash, RubyProc block,
             @Cached ArrayBuilderNode arrayBuilder,
-            @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair,
+            @Cached @Shared("yield") YieldPairNode yieldPair,
             @CachedLibrary("store") HashStoreLibrary self,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
         // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
-        final int size = hash.size;
         final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        final int size = hash.size;
         final ArrayBuilderNode.BuilderState state = arrayBuilder.start(size);
-        try {
-            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    final Object key = PackedArrayStrategy.getKey(storeCopy, n);
-                    final Object value = PackedArrayStrategy.getValue(storeCopy, n);
-                    arrayBuilder.appendValue(state, n, yieldPair.execute(block, key, value));
-                }
-            }
-        } finally {
-            HashStoreLibrary.reportLoopCount(self, size);
-        }
+        // TODO: - should we pass the parameters as a state and cache the EachCallback instance instead?
+        //       - should we pass make a builder state a MapCallback field?
+        self.eachEntry(storeCopy, null, hash, new MapCallback(yieldPair, block, arrayBuilder), state);
         return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, size), size);
+
+        // TODO: old implementation, minus verifyStore
+        //   Is there some part of that (including the peculiar loop, use of HASH_PACKED_ARRAY_MAX and reportLoop)
+        //   that needs to be ported to eachEntry? (which explodes on all possible sizes, excepted for uncached)
+
+        //        // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
+        //        final int size = hash.size;
+        //        final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        //        final ArrayBuilderNode.BuilderState state = arrayBuilder.start(size);
+        //        try {
+        //            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+        //                if (n < size) {
+        //                    final Object key = PackedArrayStrategy.getKey(storeCopy, n);
+        //                    final Object value = PackedArrayStrategy.getValue(storeCopy, n);
+        //                    arrayBuilder.appendValue(state, n, yieldPair.execute(block, key, value));
+        //                }
+        //            }
+        //        } finally {
+        //            HashStoreLibrary.reportLoopCount(self, size);
+        //        }
+        //
+        //        return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, size), size);
+    }
+
+    public static final class MapCallback implements BiConsumerNode {
+        private final YieldPairNode yieldPair;
+        private final RubyProc block;
+        private final ArrayBuilderNode arrayBuilder;
+        private int i = 0;
+
+        public MapCallback(YieldPairNode yieldPair, RubyProc block, ArrayBuilderNode arrayBuilder) {
+            this.yieldPair = yieldPair;
+            this.block = block;
+            this.arrayBuilder = arrayBuilder;
+        }
+
+        @Override
+        public final void accept(VirtualFrame frame, Object key, Object value, Object state) {
+            // TODO: will the i++ here not ruin PE?
+            arrayBuilder.appendValue((ArrayBuilderNode.BuilderState) state, i++, yieldPair.execute(block, key, value));
+        }
     }
 
     @ExportMessage
