@@ -91,7 +91,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.options.LanguageOptions;
@@ -449,14 +448,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     request.getSource(),
                     parsingParameters.getPath(),
                     parsingParameters.getRope());
-            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+            return RubyLanguage.getCurrentContext().getCodeLoader().parse(
                     rubySource,
                     ParserContext.TOP_LEVEL,
                     null,
                     null,
                     true,
                     parsingParameters.getCurrentNode());
-            return Truffle.getRuntime().createCallTarget(rootNode);
         }
 
         if (request.getSource().isInteractive()) {

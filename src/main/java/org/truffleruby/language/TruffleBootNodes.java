@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.graalvm.options.OptionDescriptor;
@@ -133,7 +134,7 @@ public abstract class TruffleBootNodes {
                 if (getContext().getOptions().SYNTAX_CHECK) {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
                 } else {
-                    final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                    final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                             source,
                             ParserContext.TOP_LEVEL_FIRST,
                             null,
@@ -142,9 +143,9 @@ public abstract class TruffleBootNodes {
                             null);
 
                     final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                            callTarget,
                             ParserContext.TOP_LEVEL_FIRST,
                             DeclarationContext.topLevel(getContext()),
-                            rootNode,
                             null,
                             coreLibrary().mainObject);
 
@@ -292,9 +293,10 @@ public abstract class TruffleBootNodes {
         @Specialization
         protected Object innerCheckSyntax(RubySource source) {
             RubyContext context = getContext();
-            RubyRootNode rubyRootNode = context
+            RootCallTarget callTarget = context
                     .getCodeLoader()
                     .parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
+            RubyRootNode rubyRootNode = RubyRootNode.of(callTarget);
             EmitWarningsNode emitWarningsNode = NodeUtil.findFirstNodeInstance(rubyRootNode, EmitWarningsNode.class);
             if (emitWarningsNode != null) {
                 emitWarningsNode.printWarnings(context);

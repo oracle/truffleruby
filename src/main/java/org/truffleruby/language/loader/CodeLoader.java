@@ -25,7 +25,6 @@ import org.truffleruby.parser.TranslatorDriver;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -39,7 +38,7 @@ public class CodeLoader {
     }
 
     @TruffleBoundary
-    public RubyRootNode parse(RubySource source,
+    public RootCallTarget parse(RubySource source,
             ParserContext parserContext,
             MaterializedFrame parentFrame,
             RubyModule wrap,
@@ -47,16 +46,6 @@ public class CodeLoader {
             Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context, source);
         return translator.parse(source, parserContext, null, parentFrame, wrap, ownScopeForAssignments, currentNode);
-    }
-
-    @TruffleBoundary
-    public DeferredCall prepareExecute(ParserContext parserContext,
-            DeclarationContext declarationContext,
-            RubyRootNode rootNode,
-            MaterializedFrame parentFrame,
-            Object self) {
-        RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-        return prepareExecute(callTarget, parserContext, declarationContext, parentFrame, self);
     }
 
     @TruffleBoundary

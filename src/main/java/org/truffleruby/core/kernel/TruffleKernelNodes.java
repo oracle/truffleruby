@@ -11,6 +11,7 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.source.Source;
@@ -118,7 +119,7 @@ public abstract class TruffleKernelNodes {
                 wrapModule = null;
             }
 
-            final RubyRootNode rootNode = getContext()
+            final RootCallTarget callTarget = getContext()
                     .getCodeLoader()
                     .parse(source, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
 
@@ -136,9 +137,9 @@ public abstract class TruffleKernelNodes {
             }
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    callTarget,
                     ParserContext.TOP_LEVEL,
                     declarationContext,
-                    rootNode,
                     null,
                     self);
 

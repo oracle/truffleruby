@@ -9,11 +9,11 @@
  */
 package org.truffleruby.debug;
 
+import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -72,14 +72,14 @@ public abstract class DebugHelpers {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "debug-eval").build();
 
-        final RubyRootNode rootNode = context
+        final RootCallTarget callTarget = context
                 .getCodeLoader()
                 .parse(new RubySource(source, "debug-eval"), ParserContext.INLINE, evalFrame, null, true, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                callTarget,
                 ParserContext.INLINE,
                 declarationContext,
-                rootNode,
                 evalFrame,
                 RubyArguments.getSelf(evalFrame));
 

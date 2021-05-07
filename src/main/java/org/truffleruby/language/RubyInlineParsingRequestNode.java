@@ -46,7 +46,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
 
         // We use the current frame as the lexical scope to parse, but then we may run with a new frame in the future
         final TranslatorDriver translator = new TranslatorDriver(context, rubySource);
-        final RubyRootNode rootNode = translator.parse(
+        final RootCallTarget callTarget = translator.parse(
                 rubySource,
                 ParserContext.INLINE,
                 null,
@@ -55,12 +55,10 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 false,
                 null);
 
-        final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-
         callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
         callNode.forceInlining();
 
-        final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
+        final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
         this.method = new InternalMethod(
                 context,
                 sharedMethodInfo,

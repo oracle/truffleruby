@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.oracle.truffle.api.RootCallTarget;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.truffleruby.language.RubyRootNode;
@@ -53,15 +54,14 @@ public abstract class RubyTest {
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, text, "test.rb").build();
 
         testInContext(() -> {
-            final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(
+            final RootCallTarget callTarget = RubyLanguage.getCurrentContext().getCodeLoader().parse(
                     new RubySource(source, source.getName()),
                     ParserContext.TOP_LEVEL,
                     null,
                     null,
                     true,
                     null);
-            rootNode.adoptChildren();
-            test.accept(rootNode);
+            test.accept(RubyRootNode.of(callTarget));
         });
     }
 

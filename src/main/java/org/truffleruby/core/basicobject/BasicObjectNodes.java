@@ -45,7 +45,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -396,7 +395,7 @@ public abstract class BasicObjectNodes {
             final RubySource source = createEvalSourceNode
                     .createEvalSource(stringRope, "instance_eval", fileNameString, line);
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+            final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.EVAL,
                     callerFrame,
@@ -410,9 +409,9 @@ public abstract class BasicObjectNodes {
                     DeclarationContext.NO_REFINEMENTS);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    callTarget,
                     ParserContext.EVAL,
                     declarationContext,
-                    rootNode,
                     callerFrame,
                     receiver);
 
