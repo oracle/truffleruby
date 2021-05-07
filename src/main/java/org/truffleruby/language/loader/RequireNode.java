@@ -18,15 +18,18 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.source.Source;
+import org.graalvm.collections.Pair;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
@@ -35,7 +38,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -210,26 +212,20 @@ public abstract class RequireNode extends RubyContextNode {
             requireCExtension(feature, expandedPath, this);
         } else {
             // All other files are assumed to be Ruby, the file type detection is not enough
-            final RubySource source;
+            final Pair<Source, Rope> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                source = fileLoader.loadFile(getContext().getEnv(), expandedPath);
+                sourceRopePair = fileLoader.loadFile(expandedPath);
             } catch (IOException e) {
                 return false;
             }
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                    source,
-                    ParserContext.TOP_LEVEL,
-                    null,
-                    null,
-                    true,
-                    this);
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    callTarget,
                     ParserContext.TOP_LEVEL,
                     DeclarationContext.topLevel(getContext()),
-                    rootNode,
                     null,
                     coreLibrary().mainObject);
 

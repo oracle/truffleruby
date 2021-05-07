@@ -11,8 +11,11 @@ package org.truffleruby.core.kernel;
 
 import java.io.IOException;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.source.Source;
+import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -26,6 +29,7 @@ import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableS
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.Nil;
@@ -98,43 +102,44 @@ public abstract class TruffleKernelNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = strings.getJavaString(file);
-            final RubySource source;
+            final Pair<Source, Rope> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                source = fileLoader.loadFile(getContext().getEnv(), feature);
+                sourceRopePair = fileLoader.loadFile(feature);
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            final RubyModule wrapModule;
-            if (wrap) {
-                wrapModule = ModuleNodes
-                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
-            } else {
-                wrapModule = null;
-            }
-
-            final RubyRootNode rootNode = getContext()
-                    .getCodeLoader()
-                    .parse(source, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
-
             final RubyBasicObject mainObject = getContext().getCoreLibrary().mainObject;
+
+            final RootCallTarget callTarget;
             final DeclarationContext declarationContext;
             final Object self;
+            if (!wrap) {
+                callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
-            if (wrapModule == null) {
                 declarationContext = DeclarationContext.topLevel(getContext());
                 self = mainObject;
             } else {
+                final RubyModule wrapModule = ModuleNodes
+                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
+                final RubySource rubySource = new RubySource(
+                        sourceRopePair.getLeft(),
+                        feature,
+                        sourceRopePair.getRight());
+                callTarget = getContext()
+                        .getCodeLoader()
+                        .parse(rubySource, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
+
                 declarationContext = DeclarationContext.topLevel(wrapModule);
                 self = DispatchNode.getUncached().call(mainObject, "clone");
                 DispatchNode.getUncached().call(self, "extend", wrapModule);
             }
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    callTarget,
                     ParserContext.TOP_LEVEL,
                     declarationContext,
-                    rootNode,
                     null,
                     self);
 

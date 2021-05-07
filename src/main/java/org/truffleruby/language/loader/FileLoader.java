@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 import com.oracle.truffle.api.nodes.Node;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -21,7 +22,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
@@ -58,7 +58,8 @@ public class FileLoader {
         }
     }
 
-    public RubySource loadFile(Env env, String path) throws IOException {
+
+    public Pair<Source, Rope> loadFile(String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
         }
@@ -72,10 +73,8 @@ public class FileLoader {
 
         final byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-        final Source source = buildSource(file, path, sourceRope, isInternal(path));
-
-        return new RubySource(source, path, sourceRope);
+        final Source source = buildSource(file, path, sourceRope, isInternal(path), false);
+        return Pair.create(source, sourceRope);
     }
 
     static TruffleFile getSafeTruffleFile(RubyContext context, String path) {
@@ -121,7 +120,7 @@ public class FileLoader {
         return relativePathFromHome.startsWith("lib");
     }
 
-    Source buildSource(TruffleFile file, String path, Rope sourceRope, boolean internal) {
+    Source buildSource(TruffleFile file, String path, Rope sourceRope, boolean internal, boolean mainSource) {
         /* I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
          * default MIME type that Ruby supports.
          *
@@ -133,12 +132,23 @@ public class FileLoader {
 
         assert file.getPath().equals(path);
 
+        /* Do not cache the Source->AST if coverage is enabled. Coverage.result has strange semantics where it stops
+         * coverage for all files, but then when the same file is loaded later it somehow needs to start reporting
+         * coverage again if Coverage.running? (most likely due to CRuby not having any parse caching). Other files
+         * which are not reloaded since Coverage.result should not report coverage, so it seems really difficult to do
+         * any caching when coverage is enabled. */
+        final boolean coverageEnabled = language.coverageManager.isEnabled();
+        final String mimeType = mainSource
+                ? RubyLanguage.MIME_TYPE_MAIN_SCRIPT
+                : RubyLanguage.getMimeType(coverageEnabled);
+
         final Source source = Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)
                 .canonicalizePath(false)
-                .mimeType(TruffleRuby.MIME_TYPE)
+                .mimeType(mimeType)
                 .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
                 .internal(internal)
+                .cached(!coverageEnabled)
                 .build();
 
         assert source.getPath().equals(path) : "Source#getPath() = " + source.getPath() + " is not the same as " + path;

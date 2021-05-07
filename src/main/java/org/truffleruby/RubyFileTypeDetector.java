@@ -22,7 +22,6 @@ import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.parser.lexer.RubyLexer;
-import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
 
@@ -44,20 +43,20 @@ public class RubyFileTypeDetector implements TruffleFile.FileTypeDetector {
 
         for (String candidate : KNOWN_RUBY_SUFFIXES) {
             if (lowerCaseFileName.endsWith(candidate)) {
-                return TruffleRuby.MIME_TYPE;
+                return RubyLanguage.getMimeType(false);
             }
         }
 
         for (String candidate : KNOWN_RUBY_FILES) {
             if (fileName.equals(candidate)) {
-                return TruffleRuby.MIME_TYPE;
+                return RubyLanguage.getMimeType(false);
             }
         }
 
         try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
             final String firstLine = fileContent.readLine();
             if (firstLine != null && SHEBANG_REGEXP.matcher(firstLine).matches()) {
-                return TruffleRuby.MIME_TYPE;
+                return RubyLanguage.getMimeType(false);
             }
         } catch (IOException | SecurityException e) {
             // Reading random files as UTF-8 could cause all sorts of errors

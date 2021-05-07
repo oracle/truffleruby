@@ -9,14 +9,12 @@
  */
 package org.truffleruby.parser;
 
-import org.truffleruby.RubyContext;
 import com.oracle.truffle.api.source.Source;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
 
-import java.util.Optional;
 
 /** Translator environment, unique per parse/translation. This must be immutable to be correct for lazy translation, as
  * then multiple threads might lazy translate methods of the same file in parallel. */
@@ -25,7 +23,6 @@ public class ParseEnvironment {
     public final Source source;
     private final boolean inCore;
     private final boolean coverageEnabled;
-    public final Optional<RubyContext> contextIfSingleContext;
 
     // Set once after parsing and before translating
     public Boolean allowTruffleRubyPrimitives = null;
@@ -33,8 +30,8 @@ public class ParseEnvironment {
     public ParseEnvironment(RubyLanguage language, RubySource rubySource) {
         this.source = rubySource.getSource();
         this.inCore = RubyLanguage.getPath(source).startsWith(language.corePath);
-        coverageEnabled = language.contextIfSingleContext.map(c -> c.getCoverageManager().isEnabled()).orElse(false);
-        contextIfSingleContext = language.contextIfSingleContext;
+        this.coverageEnabled = language.contextIfSingleContext.isPresent() &&
+                RubyLanguage.MIME_TYPE_COVERAGE.equals(rubySource.getSource().getMimeType());
     }
 
     public boolean inCore() {

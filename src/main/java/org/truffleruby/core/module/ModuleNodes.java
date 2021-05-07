@@ -764,7 +764,7 @@ public abstract class ModuleNodes {
                             file,
                             line);
 
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+            final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
                     ParserContext.MODULE,
                     callerFrame,
@@ -773,12 +773,12 @@ public abstract class ModuleNodes {
                     this);
 
             return getContext().getCodeLoader().prepareExecute(
+                    callTarget,
                     ParserContext.MODULE,
                     new DeclarationContext(
                             Visibility.PUBLIC,
                             new FixedDefaultDefinee(module),
                             DeclarationContext.NO_REFINEMENTS),
-                    rootNode,
                     callerFrame,
                     module);
         }

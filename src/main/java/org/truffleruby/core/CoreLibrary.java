@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.RootCallTarget;
+import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.Layouts;
@@ -42,6 +44,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.debug.BindingLocalVariablesObject;
@@ -51,7 +54,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableReader;
 import org.truffleruby.language.globals.GlobalVariables;
@@ -63,7 +65,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
@@ -754,28 +755,26 @@ public class CoreLibrary {
         state = State.LOADING_RUBY_CORE;
 
         try {
-            for (int n = 0; n < CORE_FILES.length; n++) {
-                final String file = CORE_FILES[n];
+            for (String file : CORE_FILES) {
                 if (file == POST_BOOT_FILE) {
                     afterLoadCoreLibrary();
                     state = State.LOADED;
                 }
 
-                final RubySource source = loadCoreFile(language.coreLoadPath + file);
-                final RubyRootNode rootNode = context
-                        .getCodeLoader()
-                        .parse(source, ParserContext.TOP_LEVEL, null, null, true, node);
+                final Pair<Source, Rope> sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
+                final Source source = sourceRopePair.getLeft();
+                final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceRopePair, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                        callTarget,
                         ParserContext.TOP_LEVEL,
                         DeclarationContext.topLevel(context),
-                        rootNode,
                         null,
                         context.getCoreLibrary().mainObject);
 
-                TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source.getSource());
+                TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
                 deferredCall.callWithoutCallNode();
-                TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source.getSource());
+                TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source);
             }
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
@@ -787,18 +786,17 @@ public class CoreLibrary {
         }
     }
 
-    public RubySource loadCoreFile(String path) throws IOException {
+    public Pair<Source, Rope> loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
                 final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
-                return new RubySource(rootParseNode.getSource(), path);
+                return Pair.create(rootParseNode.getSource(), null);
             } else {
-                final ResourceLoader resourceLoader = new ResourceLoader();
-                return resourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL);
+                return Pair.create(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), null);
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);
-            return fileLoader.loadFile(context.getEnv(), path);
+            return fileLoader.loadFile(path);
         }
     }
 

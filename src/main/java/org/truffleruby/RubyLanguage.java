@@ -20,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -93,6 +94,9 @@ import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.language.objects.RubyObjectType;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 import org.truffleruby.options.LanguageOptions;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.ParsingParameters;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
@@ -119,8 +123,11 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
         version = TruffleRuby.LANGUAGE_VERSION,
-        characterMimeTypes = TruffleRuby.MIME_TYPE,
-        defaultMimeType = TruffleRuby.MIME_TYPE,
+        characterMimeTypes = {
+                RubyLanguage.MIME_TYPE,
+                RubyLanguage.MIME_TYPE_COVERAGE,
+                RubyLanguage.MIME_TYPE_MAIN_SCRIPT },
+        defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
         fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
@@ -135,6 +142,12 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         StandardTags.WriteVariableTag.class,
 })
 public final class RubyLanguage extends TruffleLanguage<RubyContext> {
+
+    /** Do not access directly, instead use {@link #getMimeType(boolean)} */
+    static final String MIME_TYPE = "application/x-ruby";
+    public static final String MIME_TYPE_COVERAGE = "application/x-ruby;coverage=true";
+    public static final String MIME_TYPE_MAIN_SCRIPT = "application/x-ruby;main-script=true";
+    public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE, MIME_TYPE_MAIN_SCRIPT };
 
     public static final String PLATFORM = String.format(
             "%s-%s%s",
@@ -176,6 +189,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal public LanguageOptions options;
 
     @CompilationFinal private AllocationReporter allocationReporter;
+    @CompilationFinal public CoverageManager coverageManager;
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
@@ -238,6 +252,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             .layout(ClassVariableStorage.class)
             .build();
 
+    public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
+
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
         coreStrings = new CoreStrings(this);
@@ -247,6 +263,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
         frozenStringLiterals = new FrozenStringLiterals(ropeCache);
         encodings = new Encodings(this);
+    }
+
+    public static String getMimeType(boolean coverageEnabled) {
+        return coverageEnabled ? MIME_TYPE_COVERAGE : MIME_TYPE;
     }
 
     @TruffleBoundary
@@ -333,13 +353,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         Metrics.initializeOption();
 
         synchronized (this) {
-            if (allocationReporter == null) {
-                allocationReporter = env.lookup(AllocationReporter.class);
-            }
-            if (this.options == null) {
+            if (this.options == null) { // First context
+                this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
+                this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
@@ -408,6 +427,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected void disposeContext(RubyContext context) {
         LOGGER.fine("disposeContext()");
         context.disposeContext();
+
+        if (options.COVERAGE_GLOBAL) {
+            coverageManager.print(this, System.out);
+        }
     }
 
     public static RubyContext getCurrentContext() {
@@ -422,15 +445,36 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
-        if (request.getSource().isInteractive()) {
-            return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, request.getSource()));
+        final Source source = request.getSource();
+
+        final ParsingParameters parsingParameters = parsingRequestParams.get();
+        if (parsingParameters != null) { // from #require or core library
+            assert parsingParameters.getSource().equals(source);
+            final RubySource rubySource = new RubySource(
+                    source,
+                    parsingParameters.getPath(),
+                    parsingParameters.getRope());
+            final ParserContext parserContext = MIME_TYPE_MAIN_SCRIPT.equals(source.getMimeType())
+                    ? ParserContext.TOP_LEVEL_FIRST
+                    : ParserContext.TOP_LEVEL;
+            return RubyLanguage.getCurrentContext().getCodeLoader().parse(
+                    rubySource,
+                    parserContext,
+                    null,
+                    null,
+                    true,
+                    parsingParameters.getCurrentNode());
+        }
+
+        if (source.isInteractive()) {
+            return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, source));
         } else {
             final RubyContext context = Objects.requireNonNull(getCurrentContext());
             return Truffle.getRuntime().createCallTarget(
                     new RubyParsingRequestNode(
                             this,
                             context,
-                            request.getSource(),
+                            source,
                             request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY)));
         }
     }

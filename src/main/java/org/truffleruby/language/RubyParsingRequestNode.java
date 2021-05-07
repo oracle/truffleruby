@@ -44,7 +44,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
         final RubySource rubySource = new RubySource(source, language.getSourcePath(source));
 
         final TranslatorDriver translator = new TranslatorDriver(context, rubySource);
-        final RubyRootNode rootNode = translator.parse(
+        callTarget = translator.parse(
                 rubySource,
                 ParserContext.TOP_LEVEL,
                 argumentNames,
@@ -52,7 +52,6 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                 null,
                 true,
                 null);
-        callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
         callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
         callNode.forceInlining();

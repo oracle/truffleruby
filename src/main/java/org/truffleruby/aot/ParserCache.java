@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.parser.RubyDeferredWarnings;
@@ -51,8 +52,9 @@ public class ParserCache {
 
     private static RubySource loadSource(String feature) {
         try {
-            final ResourceLoader resourceLoader = new ResourceLoader();
-            return resourceLoader.loadResource(feature, OptionsCatalog.CORE_AS_INTERNAL_KEY.getDefaultValue());
+            final Source source = ResourceLoader
+                    .loadResource(feature, OptionsCatalog.CORE_AS_INTERNAL_KEY.getDefaultValue());
+            return new RubySource(source, feature);
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }

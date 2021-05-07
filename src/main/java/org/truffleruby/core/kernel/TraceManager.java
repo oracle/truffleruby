@@ -22,7 +22,6 @@ import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -84,7 +83,11 @@ public class TraceManager {
 
         instruments.add(
                 instrumenter.attachExecutionEventFactory(
-                        SourceSectionFilter.newBuilder().mimeTypeIs(TruffleRuby.MIME_TYPE).tagIs(LineTag.class).build(),
+                        SourceSectionFilter
+                                .newBuilder()
+                                .mimeTypeIs(RubyLanguage.MIME_TYPES)
+                                .tagIs(LineTag.class)
+                                .build(),
                         eventContext -> new BaseEventEventNode(
                                 context,
                                 language,
@@ -96,7 +99,7 @@ public class TraceManager {
                 instrumenter.attachExecutionEventFactory(
                         SourceSectionFilter
                                 .newBuilder()
-                                .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                                .mimeTypeIs(RubyLanguage.MIME_TYPES)
                                 .tagIs(ClassTag.class)
                                 .build(),
                         eventContext -> new BaseEventEventNode(
@@ -111,7 +114,7 @@ public class TraceManager {
                     instrumenter.attachExecutionEventFactory(
                             SourceSectionFilter
                                     .newBuilder()
-                                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                                    .mimeTypeIs(RubyLanguage.MIME_TYPES)
                                     .tagIs(CallTag.class)
                                     .includeInternal(false)
                                     .build(),

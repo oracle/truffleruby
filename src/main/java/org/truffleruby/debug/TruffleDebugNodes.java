@@ -72,7 +72,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.CallBlockNode;
-import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -123,7 +122,7 @@ public abstract class TruffleDebugNodes {
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
-                    .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                    .mimeTypeIs(RubyLanguage.MIME_TYPES)
                     .sourceIs(source -> source != null && getLanguage().getSourcePath(source).equals(fileString))
                     .lineIs(line)
                     .tagIs(StandardTags.StatementTag.class)

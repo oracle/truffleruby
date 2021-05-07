@@ -9,8 +9,12 @@
  */
 package org.truffleruby.language.loader;
 
+import com.oracle.truffle.api.source.Source;
+import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -20,26 +24,41 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 
 public class CodeLoader {
 
+    private final RubyLanguage language;
     private final RubyContext context;
 
-    public CodeLoader(RubyContext context) {
+    public CodeLoader(RubyLanguage language, RubyContext context) {
+        this.language = language;
         this.context = context;
     }
 
     @TruffleBoundary
-    public RubyRootNode parse(RubySource source,
+    public RootCallTarget parseTopLevelWithCache(Pair<Source, Rope> sourceRopePair, Node currentNode) {
+        final Source source = sourceRopePair.getLeft();
+        final Rope rope = sourceRopePair.getRight();
+
+        language.parsingRequestParams.set(new ParsingParameters(currentNode, rope, source));
+        try {
+            return (RootCallTarget) context.getEnv().parseInternal(source);
+        } finally {
+            language.parsingRequestParams.set(null);
+        }
+    }
+
+    @TruffleBoundary
+    public RootCallTarget parse(RubySource source,
             ParserContext parserContext,
             MaterializedFrame parentFrame,
             RubyModule wrap,
@@ -50,15 +69,14 @@ public class CodeLoader {
     }
 
     @TruffleBoundary
-    public DeferredCall prepareExecute(ParserContext parserContext,
+    public DeferredCall prepareExecute(RootCallTarget callTarget,
+            ParserContext parserContext,
             DeclarationContext declarationContext,
-            RubyRootNode rootNode,
             MaterializedFrame parentFrame,
             Object self) {
-        final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+        final RubyRootNode rootNode = RubyRootNode.of(callTarget);
 
         final RubyModule declaringModule;
-
         if (parserContext == ParserContext.EVAL && parentFrame != null) {
             declaringModule = RubyArguments.getMethod(parentFrame).getDeclaringModule();
         } else if (parserContext == ParserContext.MODULE) {

@@ -41,6 +41,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -104,7 +106,7 @@ public class TranslatorDriver {
         this.parseEnvironment = new ParseEnvironment(language, rubySource);
     }
 
-    public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
+    public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, RubyModule wrap, boolean ownScopeForAssignments, Node currentNode) {
         if (rubySource.getSource() != parseEnvironment.source) {
             throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
@@ -250,11 +252,6 @@ public class TranslatorDriver {
 
         // Translate to Ruby Truffle nodes
 
-        // Like MRI, do not track coverage of eval's. This also avoids having to merge multiple Sources with the same RubyContext.getPath().
-        if (!rubySource.isEval()) {
-            context.getCoverageManager().loadingSource(source);
-        }
-
         final BodyTranslator translator = new BodyTranslator(
                 language,
                 null,
@@ -384,8 +381,9 @@ public class TranslatorDriver {
                     .sequence(sourceIndexLength, Arrays.asList(new MakeSpecialVariableStorageNode(), truffleNode));
         }
 
+        final RubyRootNode rootNode;
         if (parserContext.isTopLevel()) {
-            return new RubyMethodRootNode(
+            rootNode = new RubyMethodRootNode(
                     language,
                     sourceIndexLength.toSourceSection(source),
                     environment.getFrameDescriptor(),
@@ -395,7 +393,7 @@ public class TranslatorDriver {
                     environment.getReturnID(),
                     Arity.ANY_ARGUMENTS);
         } else {
-            return new RubyRootNode(
+            rootNode = new RubyRootNode(
                     language,
                     sourceIndexLength.toSourceSection(source),
                     environment.getFrameDescriptor(),
@@ -404,6 +402,8 @@ public class TranslatorDriver {
                     Split.HEURISTIC,
                     environment.getReturnID());
         }
+
+        return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
     private String getMethodName(ParserContext parserContext, MaterializedFrame parentFrame) {

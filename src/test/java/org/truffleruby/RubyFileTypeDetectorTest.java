@@ -25,7 +25,6 @@ import java.util.function.Consumer;
 import org.graalvm.polyglot.Source;
 import org.junit.Test;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -47,12 +46,12 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                         if (testCase.hasRubyMimeType) {
                             assertEquals(
                                     testCase.path.toString(),
-                                    TruffleRuby.MIME_TYPE,
+                                    RubyLanguage.getMimeType(false),
                                     fileTypeDetector.findMimeType(file));
                         } else {
                             assertNotEquals(
                                     testCase.path.toString(),
-                                    TruffleRuby.MIME_TYPE,
+                                    RubyLanguage.getMimeType(false),
                                     fileTypeDetector.findMimeType(file));
                         }
                     }
@@ -69,12 +68,12 @@ public class RubyFileTypeDetectorTest extends RubyTest {
             if (testCase.hasRubyMimeType) {
                 assertEquals(
                         testCase.path.toString(),
-                        TruffleRuby.MIME_TYPE,
+                        RubyLanguage.getMimeType(false),
                         Source.findMimeType(testCase.path.toFile()));
             } else {
                 assertNotEquals(
                         testCase.path.toString(),
-                        TruffleRuby.MIME_TYPE,
+                        RubyLanguage.getMimeType(false),
                         Source.findMimeType(testCase.path.toFile()));
             }
         }

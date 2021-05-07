@@ -121,6 +121,7 @@ import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadD
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.IsANode;
@@ -139,7 +140,6 @@ import org.truffleruby.utils.Utils;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -731,18 +731,6 @@ public abstract class KernelNodes {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
 
-        protected static class RootNodeWrapper {
-            private final RubyRootNode rootNode;
-
-            public RootNodeWrapper(RubyRootNode rootNode) {
-                this.rootNode = rootNode;
-            }
-
-            public RubyRootNode getRootNode() {
-                return rootNode;
-            }
-        }
-
         public abstract Object execute(VirtualFrame frame, Object target, Object source, RubyBinding binding,
                 Object file, int line);
 
@@ -756,7 +744,7 @@ public abstract class KernelNodes {
                         "equalNode.execute(libSource.getRope(source), cachedSource)",
                         "equalNode.execute(libFile.getRope(file), cachedFile)",
                         "line == cachedLine",
-                        "!assignsNewUserVariables(getDescriptor(cachedRootNode))",
+                        "!assignsNewUserVariables(getDescriptor(cachedCallTarget))",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
@@ -767,12 +755,11 @@ public abstract class KernelNodes {
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
-                @Cached("createCallTarget(cachedRootNode)") RootCallTarget cachedCallTarget,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = binding.getFrame();
-            return eval(target, cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(target, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
@@ -782,8 +769,8 @@ public abstract class KernelNodes {
                         "equalNode.execute(libSource.getRope(source), cachedSource)",
                         "equalNode.execute(libFile.getRope(file), cachedFile)",
                         "line == cachedLine",
-                        "assignsNewUserVariables(getDescriptor(cachedRootNode))",
-                        "!assignsNewUserVariables(getDescriptor(rootNodeToEval))",
+                        "assignsNewUserVariables(getDescriptor(firstCallTarget))",
+                        "!assignsNewUserVariables(getDescriptor(cachedCallTarget))",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
@@ -794,14 +781,13 @@ public abstract class KernelNodes {
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
-                @Cached("getDescriptor(cachedRootNode).copy()") FrameDescriptor newBindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootNodeWrapper rootNodeToEval,
-                @Cached("createCallTarget(rootNodeToEval)") RootCallTarget cachedCallTarget,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget firstCallTarget,
+                @Cached("getDescriptor(firstCallTarget).copy()") FrameDescriptor newBindingDescriptor,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(target, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            return eval(target, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" })
@@ -818,14 +804,15 @@ public abstract class KernelNodes {
             return deferredCall.call(callNode);
         }
 
-        private Object eval(Object target, RootNodeWrapper rootNode, RootCallTarget callTarget, DirectCallNode callNode,
+        private Object eval(Object target, RootCallTarget callTarget, DirectCallNode callNode,
                 MaterializedFrame parentFrame) {
+            final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
             final InternalMethod method = new InternalMethod(
                     getContext(),
-                    rootNode.getRootNode().getSharedMethodInfo(),
+                    sharedMethodInfo,
                     RubyArguments.getMethod(parentFrame).getLexicalScope(),
                     RubyArguments.getDeclarationContext(parentFrame),
-                    rootNode.getRootNode().getSharedMethodInfo().getMethodNameForNotBlock(),
+                    sharedMethodInfo.getMethodNameForNotBlock(),
                     RubyArguments.getMethod(parentFrame).getDeclaringModule(),
                     Visibility.PUBLIC,
                     callTarget);
@@ -845,19 +832,19 @@ public abstract class KernelNodes {
             final MaterializedFrame frame = BindingNodes.newFrame(binding.getFrame());
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
-            RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
+            RootCallTarget callTarget = parse(source, frame, file, line, false);
             if (assignsNewUserVariables(descriptor)) {
                 binding.setFrame(frame);
             }
             return getContext().getCodeLoader().prepareExecute(
+                    callTarget,
                     ParserContext.EVAL,
                     declarationContext,
-                    rootNode,
                     frame,
                     target);
         }
 
-        protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
+        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
                 boolean ownScopeForAssignments) {
             //intern() to improve footprint
             final String sourceFile = RopeOperations.decodeRope(file).intern();
@@ -867,25 +854,21 @@ public abstract class KernelNodes {
                     .parse(source, ParserContext.EVAL, parentFrame, null, ownScopeForAssignments, this);
         }
 
-        protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
-            return new RootNodeWrapper(buildRootNode(sourceText, parentFrame, file, line, true));
+        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
+            return parse(sourceText, parentFrame, file, line, true);
         }
 
-        protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame,
+        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame,
                 FrameDescriptor additionalVariables, Rope file, int line) {
             return compileSource(sourceText, BindingNodes.newFrame(parentFrame, additionalVariables), file, line);
-        }
-
-        protected RootCallTarget createCallTarget(RootNodeWrapper rootNode) {
-            return Truffle.getRuntime().createCallTarget(rootNode.rootNode);
         }
 
         protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {
             return BindingNodes.getFrameDescriptor(binding);
         }
 
-        protected FrameDescriptor getDescriptor(RootNodeWrapper rootNode) {
-            return rootNode.getRootNode().getFrameDescriptor();
+        protected FrameDescriptor getDescriptor(RootCallTarget callTarget) {
+            return RubyRootNode.of(callTarget).getFrameDescriptor();
         }
 
         protected MaterializedFrame getBindingFrame(RubyBinding binding) {
