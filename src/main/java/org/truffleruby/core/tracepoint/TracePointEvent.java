@@ -17,7 +17,6 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.shared.TruffleRuby;
 
 public final class TracePointEvent {
 
@@ -45,7 +44,7 @@ public final class TracePointEvent {
 
         final SourceSectionFilter sourceSectionFilter = SourceSectionFilter
                 .newBuilder()
-                .mimeTypeIs(TruffleRuby.MIME_TYPE)
+                .mimeTypeIs(RubyLanguage.MIME_TYPES)
                 .tagIs(tagClass)
                 .includeInternal(false)
                 .build();

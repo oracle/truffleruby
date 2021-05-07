@@ -123,8 +123,8 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
         version = TruffleRuby.LANGUAGE_VERSION,
-        characterMimeTypes = TruffleRuby.MIME_TYPE,
-        defaultMimeType = TruffleRuby.MIME_TYPE,
+        characterMimeTypes = { RubyLanguage.MIME_TYPE, RubyLanguage.MIME_TYPE_COVERAGE },
+        defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
         fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
@@ -139,6 +139,11 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         StandardTags.WriteVariableTag.class,
 })
 public final class RubyLanguage extends TruffleLanguage<RubyContext> {
+
+    /** Do not access directly, instead use {@link #getMimeType(boolean)} */
+    static final String MIME_TYPE = "application/x-ruby";
+    public static final String MIME_TYPE_COVERAGE = "application/x-ruby;coverage=true";
+    public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE };
 
     public static final String PLATFORM = String.format(
             "%s-%s%s",
@@ -253,6 +258,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         symbolTable = new SymbolTable(ropeCache, coreSymbols);
         frozenStringLiterals = new FrozenStringLiterals(ropeCache);
         encodings = new Encodings(this);
+    }
+
+    public static String getMimeType(boolean coverageEnabled) {
+        return coverageEnabled ? MIME_TYPE_COVERAGE : MIME_TYPE;
     }
 
     @TruffleBoundary

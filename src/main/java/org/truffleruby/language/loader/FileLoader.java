@@ -136,16 +136,17 @@ public class FileLoader {
          * coverage for all files, but then when the same file is loaded later it somehow needs to start reporting
          * coverage again if Coverage.running? (most likely due to CRuby not having any parse caching). Other files
          * which are not reloaded since Coverage.result should not report coverage, so it seems really difficult to do
-         * any caching (e.g., with a application/x-ruby;coverage=true mime type) when coverage is enabled. */
-        boolean cached = !context.getCoverageManager().isEnabled();
+         * any caching when coverage is enabled. */
+        final boolean coverageEnabled = context.getCoverageManager().isEnabled();
+        final String mimeType = RubyLanguage.getMimeType(coverageEnabled);
 
         final Source source = Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)
                 .canonicalizePath(false)
-                .mimeType(TruffleRuby.MIME_TYPE)
+                .mimeType(mimeType)
                 .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
                 .internal(internal)
-                .cached(cached)
+                .cached(!coverageEnabled)
                 .build();
 
         assert source.getPath().equals(path) : "Source#getPath() = " + source.getPath() + " is not the same as " + path;

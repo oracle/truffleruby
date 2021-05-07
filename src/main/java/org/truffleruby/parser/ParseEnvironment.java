@@ -33,7 +33,8 @@ public class ParseEnvironment {
     public ParseEnvironment(RubyLanguage language, RubySource rubySource) {
         this.source = rubySource.getSource();
         this.inCore = RubyLanguage.getPath(source).startsWith(language.corePath);
-        coverageEnabled = language.contextIfSingleContext.map(c -> c.getCoverageManager().isEnabled()).orElse(false);
+        coverageEnabled = language.contextIfSingleContext.isPresent() &&
+                RubyLanguage.MIME_TYPE_COVERAGE.equals(rubySource.getSource().getMimeType());
         contextIfSingleContext = language.contextIfSingleContext;
     }
 
