@@ -11,10 +11,8 @@ package org.truffleruby.stdlib;
 
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLongArray;
 
@@ -45,7 +43,6 @@ public class CoverageManager {
     private final Instrumenter instrumenter;
     private EventBinding<?> binding;
     private final Map<Source, AtomicLongArray> counters = new ConcurrentHashMap<>();
-    private final Set<Source> coveredSources = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private volatile boolean enabled;
 
@@ -57,21 +54,13 @@ public class CoverageManager {
         }
     }
 
-    public synchronized void loadingSource(Source source) {
-        if (enabled) {
-            coveredSources.add(source);
-        }
-    }
-
     private int lineToIndex(int line) {
         return line - 1;
     }
 
     public void setLineHasCode(Source source, int line) {
-        if (coveredSources.contains(source)) {
-            final AtomicLongArray counters = getCounters(source);
-            counters.set(lineToIndex(line), 0);
-        }
+        final AtomicLongArray counters = getCounters(source);
+        counters.set(lineToIndex(line), 0);
     }
 
     private boolean getLineHasCode(Source source, int line) {
@@ -88,7 +77,7 @@ public class CoverageManager {
         binding = instrumenter.attachExecutionEventFactory(
                 SourceSectionFilter
                         .newBuilder()
-                        .sourceIs(coveredSources::contains)
+                        .mimeTypeIs(RubyLanguage.MIME_TYPE_COVERAGE)
                         .tagIs(LineTag.class)
                         .build(),
                 eventContext -> new ExecutionEventNode() {
@@ -135,7 +124,6 @@ public class CoverageManager {
 
         binding.dispose();
         counters.clear();
-        coveredSources.clear();
 
         enabled = false;
     }
