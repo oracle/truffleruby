@@ -13,6 +13,8 @@ import java.io.IOException;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.source.Source;
+import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -26,6 +28,7 @@ import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableS
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameOrVariablesReadingNode;
 import org.truffleruby.language.Nil;
@@ -101,7 +104,8 @@ public abstract class TruffleKernelNodes {
             final RubySource source;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                source = fileLoader.loadFile(getContext().getEnv(), feature);
+                final Pair<Source, Rope> sourceRopePair = fileLoader.loadFile(feature);
+                source = new RubySource(sourceRopePair.getLeft(), feature, sourceRopePair.getRight());
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }

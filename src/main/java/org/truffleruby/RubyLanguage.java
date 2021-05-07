@@ -429,7 +429,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
         final ParsingParameters parsingParameters = parsingRequestParams.get();
-        if (parsingParameters != null) {
+        if (parsingParameters != null) { // from #require or core library
+            assert parsingParameters.getSource().equals(request.getSource());
             final RubySource rubySource = new RubySource(
                     request.getSource(),
                     parsingParameters.getPath(),

@@ -217,7 +217,7 @@ public abstract class RequireNode extends RubyContextNode {
             final Pair<Source, Rope> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                sourceRopePair = fileLoader.loadFileSource(getContext().getEnv(), expandedPath);
+                sourceRopePair = fileLoader.loadFile(expandedPath);
             } catch (IOException e) {
                 return false;
             }
@@ -229,9 +229,7 @@ public abstract class RequireNode extends RubyContextNode {
                     source));
             final RootCallTarget rootCallTarget;
             try {
-                rootCallTarget = (RootCallTarget) getContext()
-                        .getEnv()
-                        .parseInternal(source);
+                rootCallTarget = (RootCallTarget) getContext().getEnv().parseInternal(source);
             } finally {
                 getLanguage().parsingRequestParams.set(null);
             }

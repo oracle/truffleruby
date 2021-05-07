@@ -803,12 +803,11 @@ public class CoreLibrary {
                 final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
                 return Pair.create(rootParseNode.getSource(), null);
             } else {
-                final ResourceLoader resourceLoader = new ResourceLoader();
-                return Pair.create(resourceLoader.loadResourceSource(path, language.options.CORE_AS_INTERNAL), null);
+                return Pair.create(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), null);
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);
-            return fileLoader.loadFileSource(context.getEnv(), path);
+            return fileLoader.loadFile(path);
         }
     }
 

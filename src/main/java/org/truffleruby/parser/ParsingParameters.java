@@ -16,6 +16,7 @@ import org.truffleruby.core.rope.Rope;
 
 public final class ParsingParameters {
 
+    /** For exceptions during parsing */
     private final Node currentNode;
     private final Rope rope;
     private final Source source;

@@ -22,7 +22,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
@@ -60,7 +59,7 @@ public class FileLoader {
     }
 
 
-    public Pair<Source, Rope> loadFileSource(Env env, String path) throws IOException {
+    public Pair<Source, Rope> loadFile(String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
         }
@@ -76,11 +75,6 @@ public class FileLoader {
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         final Source source = buildSource(file, path, sourceRope, isInternal(path));
         return Pair.create(source, sourceRope);
-    }
-
-    public RubySource loadFile(Env env, String path) throws IOException {
-        final Pair<Source, Rope> sourceRopePair = loadFileSource(env, path);
-        return new RubySource(sourceRopePair.getLeft(), path, sourceRopePair.getRight());
     }
 
     static TruffleFile getSafeTruffleFile(RubyContext context, String path) {

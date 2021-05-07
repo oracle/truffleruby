@@ -21,7 +21,6 @@ import java.util.Locale;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.source.Source;
@@ -31,7 +30,7 @@ import com.oracle.truffle.api.source.Source;
  */
 public class ResourceLoader {
 
-    public Source loadResourceSource(String path, boolean internal) throws IOException {
+    public static Source loadResource(String path, boolean internal) throws IOException {
         assert path.startsWith(RubyLanguage.RESOURCE_SCHEME);
 
         if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
@@ -55,11 +54,6 @@ public class ResourceLoader {
         }
 
         return source;
-    }
-
-    public RubySource loadResource(String path, boolean internal) throws IOException {
-        final Source source = loadResourceSource(path, internal);
-        return new RubySource(source, path);
     }
 
 }
