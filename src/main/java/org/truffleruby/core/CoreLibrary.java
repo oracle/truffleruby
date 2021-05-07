@@ -54,7 +54,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableReader;
 import org.truffleruby.language.globals.GlobalVariables;
@@ -772,22 +771,17 @@ public class CoreLibrary {
                         source));
                 final RootCallTarget rootCallTarget;
                 try {
-                    rootCallTarget = (RootCallTarget) context
-                            .getEnv()
-                            .parseInternal(source);
+                    rootCallTarget = (RootCallTarget) context.getEnv().parseInternal(source);
                 } finally {
                     language.parsingRequestParams.set(null);
                 }
 
-                final RubyRootNode rootNode = RubyRootNode.of(rootCallTarget);
-
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                        rootCallTarget,
                         ParserContext.TOP_LEVEL,
                         DeclarationContext.topLevel(context),
-                        rootNode,
                         null,
-                        context.getCoreLibrary().mainObject,
-                        rootCallTarget);
+                        context.getCoreLibrary().mainObject);
 
                 TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
                 deferredCall.callWithoutCallNode();
