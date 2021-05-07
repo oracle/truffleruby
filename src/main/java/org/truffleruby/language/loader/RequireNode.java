@@ -30,7 +30,6 @@ import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
@@ -234,12 +233,10 @@ public abstract class RequireNode extends RubyContextNode {
                 getLanguage().parsingRequestParams.set(null);
             }
 
-            final RubyRootNode rootNode = RubyRootNode.of(rootCallTarget);
-
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                    rootCallTarget,
                     ParserContext.TOP_LEVEL,
                     DeclarationContext.topLevel(getContext()),
-                    rootNode,
                     null,
                     coreLibrary().mainObject);
 
