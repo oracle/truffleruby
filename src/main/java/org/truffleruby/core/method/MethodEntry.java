@@ -20,6 +20,7 @@ public final class MethodEntry {
     private final InternalMethod method;
 
     public MethodEntry(InternalMethod method) {
+        assert method != null;
         this.assumption = Truffle.getRuntime().createAssumption();
         this.method = method;
     }
