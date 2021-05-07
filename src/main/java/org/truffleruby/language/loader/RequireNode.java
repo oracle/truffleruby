@@ -38,7 +38,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -221,20 +220,10 @@ public abstract class RequireNode extends RubyContextNode {
                 return false;
             }
 
-            final Source source = sourceRopePair.getLeft();
-            getLanguage().parsingRequestParams.set(new ParsingParameters(
-                    this,
-                    sourceRopePair.getRight(),
-                    source));
-            final RootCallTarget rootCallTarget;
-            try {
-                rootCallTarget = (RootCallTarget) getContext().getEnv().parseInternal(source);
-            } finally {
-                getLanguage().parsingRequestParams.set(null);
-            }
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                    rootCallTarget,
+                    callTarget,
                     ParserContext.TOP_LEVEL,
                     DeclarationContext.topLevel(getContext()),
                     null,

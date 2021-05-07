@@ -111,7 +111,7 @@ public class RubyContext {
 
     private final SafepointManager safepointManager;
     private final InteropManager interopManager = new InteropManager(this);
-    private final CodeLoader codeLoader = new CodeLoader(this);
+    private final CodeLoader codeLoader;
     private final FeatureLoader featureLoader;
     private final TraceManager traceManager;
     private final ReferenceProcessor referenceProcessor;
@@ -177,6 +177,7 @@ public class RubyContext {
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
+        codeLoader = new CodeLoader(language, this);
         featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
         finalizationService = new FinalizationService(this, referenceProcessor);

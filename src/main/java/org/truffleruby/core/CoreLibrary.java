@@ -65,7 +65,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
@@ -756,8 +755,7 @@ public class CoreLibrary {
         state = State.LOADING_RUBY_CORE;
 
         try {
-            for (int n = 0; n < CORE_FILES.length; n++) {
-                final String file = CORE_FILES[n];
+            for (String file : CORE_FILES) {
                 if (file == POST_BOOT_FILE) {
                     afterLoadCoreLibrary();
                     state = State.LOADED;
@@ -765,19 +763,10 @@ public class CoreLibrary {
 
                 final Pair<Source, Rope> sourceRopePair = loadCoreFileSource(language.coreLoadPath + file);
                 final Source source = sourceRopePair.getLeft();
-                language.parsingRequestParams.set(new ParsingParameters(
-                        node,
-                        sourceRopePair.getRight(),
-                        source));
-                final RootCallTarget rootCallTarget;
-                try {
-                    rootCallTarget = (RootCallTarget) context.getEnv().parseInternal(source);
-                } finally {
-                    language.parsingRequestParams.set(null);
-                }
+                final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceRopePair, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                        rootCallTarget,
+                        callTarget,
                         ParserContext.TOP_LEVEL,
                         DeclarationContext.topLevel(context),
                         null,

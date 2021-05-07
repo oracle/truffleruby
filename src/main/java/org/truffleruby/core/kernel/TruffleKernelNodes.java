@@ -102,35 +102,35 @@ public abstract class TruffleKernelNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached IndirectCallNode callNode) {
             final String feature = strings.getJavaString(file);
-            final RubySource source;
+            final Pair<Source, Rope> sourceRopePair;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                final Pair<Source, Rope> sourceRopePair = fileLoader.loadFile(feature);
-                source = new RubySource(sourceRopePair.getLeft(), feature, sourceRopePair.getRight());
+                sourceRopePair = fileLoader.loadFile(feature);
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            final RubyModule wrapModule;
-            if (wrap) {
-                wrapModule = ModuleNodes
-                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
-            } else {
-                wrapModule = null;
-            }
-
-            final RootCallTarget callTarget = getContext()
-                    .getCodeLoader()
-                    .parse(source, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
-
             final RubyBasicObject mainObject = getContext().getCoreLibrary().mainObject;
+
+            final RootCallTarget callTarget;
             final DeclarationContext declarationContext;
             final Object self;
+            if (!wrap) {
+                callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceRopePair, this);
 
-            if (wrapModule == null) {
                 declarationContext = DeclarationContext.topLevel(getContext());
                 self = mainObject;
             } else {
+                final RubyModule wrapModule = ModuleNodes
+                        .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);
+                final RubySource rubySource = new RubySource(
+                        sourceRopePair.getLeft(),
+                        feature,
+                        sourceRopePair.getRight());
+                callTarget = getContext()
+                        .getCodeLoader()
+                        .parse(rubySource, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
+
                 declarationContext = DeclarationContext.topLevel(wrapModule);
                 self = DispatchNode.getUncached().call(mainObject, "clone");
                 DispatchNode.getUncached().call(self, "extend", wrapModule);
