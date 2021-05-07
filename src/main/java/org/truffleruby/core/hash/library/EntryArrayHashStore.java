@@ -25,8 +25,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiConsumerNode;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiConsumer;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -55,7 +55,7 @@ public class EntryArrayHashStore {
     }
 
     @ExportMessage
-    protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultNode,
+    protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached @Shared("lookup") LookupEntryNode lookup,
             @Cached BranchProfile notInHash) {
 
@@ -148,7 +148,7 @@ public class EntryArrayHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(Frame frame, RubyHash hash, BiConsumerNode callback, Object state,
+    protected Object eachEntry(Frame frame, RubyHash hash, PEBiConsumer callback, Object state,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);

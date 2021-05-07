@@ -20,8 +20,8 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiConsumerNode;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiConsumer;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashOperations;
@@ -37,7 +37,7 @@ public class NullHashStore {
     public static final NullHashStore NULL_HASH_STORE = new NullHashStore();
 
     @ExportMessage
-    protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, BiFunctionNode defaultNode) {
+    protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode) {
         return defaultNode.accept((VirtualFrame) frame, hash, key);
     }
 
@@ -63,7 +63,7 @@ public class NullHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(Frame frame, RubyHash hash, BiConsumerNode callback, Object state) {
+    protected Object eachEntry(Frame frame, RubyHash hash, PEBiConsumer callback, Object state) {
         return state;
     }
 

@@ -26,8 +26,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiConsumerNode;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiConsumer;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashGuards;
@@ -57,7 +57,7 @@ public abstract class HashStoreLibrary extends Library {
      * no entry for the given key exists. */
     @Abstract
     public abstract Object lookupOrDefault(Object store, Frame frame, RubyHash hash, Object key,
-            BiFunctionNode defaultNode);
+            PEBiFunction defaultNode);
 
     /** Associates the key with the value and returns true only if the hash changed as a result of the operation (i.e.
      * returns false if the key was already associated with the value). {@code byIdentity} indicates whether the key
@@ -79,7 +79,7 @@ public abstract class HashStoreLibrary extends Library {
 
     /** Calls {@code callback} on every entry in the hash. */
     @Abstract
-    public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, BiConsumerNode callback,
+    public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, PEBiConsumer callback,
             Object state);
 
     /** Runs the given block over every entry, in the manner specified by {@link YieldPairNode}. */

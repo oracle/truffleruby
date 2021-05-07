@@ -25,8 +25,8 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.BiConsumerNode;
-import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.collections.PEBiConsumer;
+import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -48,7 +48,7 @@ public class PackedHashStoreLibrary {
 
     @ExportMessage
     protected static Object lookupOrDefault(
-            Object[] store, Frame frame, RubyHash hash, Object key, BiFunctionNode defaultNode,
+            Object[] store, Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached LookupPackedEntryNode lookupPackedEntryNode,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode) {
 
@@ -138,7 +138,7 @@ public class PackedHashStoreLibrary {
 
         @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
         protected static Object eachEntry(
-                Object[] store, Frame frame, RubyHash hash, BiConsumerNode callback, Object state,
+                Object[] store, Frame frame, RubyHash hash, PEBiConsumer callback, Object state,
                 @Cached("hash.size") int cachedSize,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
 
@@ -149,7 +149,7 @@ public class PackedHashStoreLibrary {
 
         @Specialization(replaces = "eachEntry")
         protected static Object eachEntryUncached(
-                Object[] store, Frame frame, RubyHash hash, BiConsumerNode callback, Object state,
+                Object[] store, Frame frame, RubyHash hash, PEBiConsumer callback, Object state,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
 
             assert HashOperations.verifyStore(context, hash);
@@ -158,7 +158,7 @@ public class PackedHashStoreLibrary {
         }
 
         @ExplodeLoop
-        private static void iterate(Object[] store, Frame frame, BiConsumerNode callback, Object state, int size) {
+        private static void iterate(Object[] store, Frame frame, PEBiConsumer callback, Object state, int size) {
             for (int i = 0; i < size; i++) {
                 callback.accept(
                         (VirtualFrame) frame,
@@ -204,7 +204,7 @@ public class PackedHashStoreLibrary {
         //        }
     }
 
-    public static final class EachCallback implements BiConsumerNode {
+    public static final class EachCallback implements PEBiConsumer {
         private final YieldPairNode yieldPair;
         private final RubyProc block;
 
@@ -284,7 +284,7 @@ public class PackedHashStoreLibrary {
         //        return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, size), size);
     }
 
-    public static final class MapCallback implements BiConsumerNode {
+    public static final class MapCallback implements PEBiConsumer {
         private final YieldPairNode yieldPair;
         private final RubyProc block;
         private final ArrayBuilderNode arrayBuilder;
