@@ -137,7 +137,7 @@ public class FileLoader {
          * coverage again if Coverage.running? (most likely due to CRuby not having any parse caching). Other files
          * which are not reloaded since Coverage.result should not report coverage, so it seems really difficult to do
          * any caching when coverage is enabled. */
-        final boolean coverageEnabled = context.getCoverageManager().isEnabled();
+        final boolean coverageEnabled = language.coverageManager.isEnabled();
         final String mimeType = RubyLanguage.getMimeType(coverageEnabled);
 
         final Source source = Source

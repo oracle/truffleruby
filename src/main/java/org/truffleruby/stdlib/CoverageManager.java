@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentOperations;
 
@@ -33,6 +33,7 @@ import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.options.LanguageOptions;
 
 public class CoverageManager {
 
@@ -48,10 +49,10 @@ public class CoverageManager {
 
     private volatile boolean enabled;
 
-    public CoverageManager(RubyContext context, Instrumenter instrumenter) {
+    public CoverageManager(LanguageOptions options, Instrumenter instrumenter) {
         this.instrumenter = instrumenter;
 
-        if (context.getOptions().COVERAGE_GLOBAL) {
+        if (options.COVERAGE_GLOBAL) {
             enable();
         }
     }
@@ -167,7 +168,7 @@ public class CoverageManager {
         return counts;
     }
 
-    public synchronized void print(RubyContext context, PrintStream out) {
+    public synchronized void print(RubyLanguage language, PrintStream out) {
         final int maxCountDigits = Long.toString(getMaxCount()).length();
 
         final String countFormat = "%" + maxCountDigits + "d";
@@ -178,7 +179,7 @@ public class CoverageManager {
         final String noCodeString = new String(noCodeChars);
 
         for (Map.Entry<Source, AtomicLongArray> entry : counters.entrySet()) {
-            out.println(context.getLanguageSlow().getSourcePath(entry.getKey()));
+            out.println(language.getSourcePath(entry.getKey()));
 
             for (int n = 0; n < entry.getValue().length(); n++) {
                 // TODO CS 5-Sep-17 can we keep the line as a CharSequence rather than using toString?

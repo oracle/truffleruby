@@ -63,8 +63,6 @@ public class Options {
     public final boolean HOST_INTEROP;
     /** --trace-calls=true */
     public final boolean TRACE_CALLS;
-    /** --coverage-global=false */
-    public final boolean COVERAGE_GLOBAL;
     /** --pattern-matching=false */
     public final boolean PATTERN_MATCHING;
     /** --patching=true */
@@ -213,7 +211,6 @@ public class Options {
         POLYGLOT_STDIO = options.hasBeenSet(OptionsCatalog.POLYGLOT_STDIO_KEY) ? options.get(OptionsCatalog.POLYGLOT_STDIO_KEY) : EMBEDDED || !NATIVE_PLATFORM;
         HOST_INTEROP = env.isHostLookupAllowed() && (options.get(OptionsCatalog.HOST_INTEROP_KEY));
         TRACE_CALLS = options.get(OptionsCatalog.TRACE_CALLS_KEY);
-        COVERAGE_GLOBAL = options.get(OptionsCatalog.COVERAGE_GLOBAL_KEY);
         PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
@@ -321,8 +318,6 @@ public class Options {
                 return HOST_INTEROP;
             case "ruby.trace-calls":
                 return TRACE_CALLS;
-            case "ruby.coverage-global":
-                return COVERAGE_GLOBAL;
             case "ruby.pattern-matching":
                 return PATTERN_MATCHING;
             case "ruby.patching":

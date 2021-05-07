@@ -3093,10 +3093,7 @@ public class BodyTranslator extends Translator {
 
             if (environment.getParseEnvironment().isCoverageEnabled()) {
                 node.unsafeSetIsCoverageLine();
-                environment.getParseEnvironment().contextIfSingleContext
-                        .get()
-                        .getCoverageManager()
-                        .setLineHasCode(source, current.toSourceSection(source).getStartLine());
+                language.coverageManager.setLineHasCode(source, current.toSourceSection(source).getStartLine());
             }
             node.unsafeSetIsNewLine();
         }

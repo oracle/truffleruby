@@ -32,6 +32,8 @@ public class LanguageOptions {
     public final boolean DEFAULT_LAZY;
     /** --lazy-calltargets=singleContext && DEFAULT_LAZY */
     public final boolean LAZY_CALLTARGETS;
+    /** --coverage-global=false */
+    public final boolean COVERAGE_GLOBAL;
     /** --core-as-internal=false */
     public final boolean CORE_AS_INTERNAL;
     /** --stdlib-as-internal=false */
@@ -127,6 +129,7 @@ public class LanguageOptions {
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
         LAZY_CALLTARGETS = singleContext && (options.hasBeenSet(OptionsCatalog.LAZY_CALLTARGETS_KEY) ? options.get(OptionsCatalog.LAZY_CALLTARGETS_KEY) : DEFAULT_LAZY);
+        COVERAGE_GLOBAL = options.get(OptionsCatalog.COVERAGE_GLOBAL_KEY);
         CORE_AS_INTERNAL = options.get(OptionsCatalog.CORE_AS_INTERNAL_KEY);
         STDLIB_AS_INTERNAL = options.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY);
         LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : LAZY_CALLTARGETS;
@@ -185,6 +188,8 @@ public class LanguageOptions {
                 return DEFAULT_LAZY;
             case "ruby.lazy-calltargets":
                 return LAZY_CALLTARGETS;
+            case "ruby.coverage-global":
+                return COVERAGE_GLOBAL;
             case "ruby.core-as-internal":
                 return CORE_AS_INTERNAL;
             case "ruby.stdlib-as-internal":
@@ -284,6 +289,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
                one.get(OptionsCatalog.LAZY_CALLTARGETS_KEY).equals(two.get(OptionsCatalog.LAZY_CALLTARGETS_KEY)) &&
+               one.get(OptionsCatalog.COVERAGE_GLOBAL_KEY).equals(two.get(OptionsCatalog.COVERAGE_GLOBAL_KEY)) &&
                one.get(OptionsCatalog.CORE_AS_INTERNAL_KEY).equals(two.get(OptionsCatalog.CORE_AS_INTERNAL_KEY)) &&
                one.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY).equals(two.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY)) &&
@@ -366,6 +372,13 @@ public class LanguageOptions {
         newValue = newOptions.LAZY_CALLTARGETS;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --lazy-calltargets differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.COVERAGE_GLOBAL;
+        newValue = newOptions.COVERAGE_GLOBAL;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --coverage-global differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

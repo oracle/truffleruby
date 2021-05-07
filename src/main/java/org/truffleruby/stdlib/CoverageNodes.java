@@ -33,7 +33,7 @@ public abstract class CoverageNodes {
 
         @Specialization
         protected Object enable() {
-            getContext().getCoverageManager().enable();
+            getLanguage().coverageManager.enable();
             return nil;
         }
 
@@ -44,7 +44,7 @@ public abstract class CoverageNodes {
 
         @Specialization
         protected Object disable() {
-            getContext().getCoverageManager().disable();
+            getLanguage().coverageManager.disable();
             return nil;
         }
 
@@ -59,7 +59,7 @@ public abstract class CoverageNodes {
         @Specialization
         protected RubyArray resultArray() {
 
-            final Map<Source, long[]> counts = getContext().getCoverageManager().getCounts();
+            final Map<Source, long[]> counts = getLanguage().coverageManager.getCounts();
 
             if (counts == null) {
                 throw new RaiseException(getContext(), coreExceptions().runtimeErrorCoverageNotEnabled(this));

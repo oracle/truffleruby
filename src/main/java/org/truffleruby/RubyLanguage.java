@@ -20,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -185,6 +186,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal public LanguageOptions options;
 
     @CompilationFinal private AllocationReporter allocationReporter;
+    @CompilationFinal public CoverageManager coverageManager;
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectSpaceManager.INITIAL_LANGUAGE_OBJECT_ID);
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
@@ -348,13 +350,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         Metrics.initializeOption();
 
         synchronized (this) {
-            if (allocationReporter == null) {
-                allocationReporter = env.lookup(AllocationReporter.class);
-            }
-            if (this.options == null) {
+            if (this.options == null) { // First context
+                this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
+                this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
@@ -423,6 +424,10 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected void disposeContext(RubyContext context) {
         LOGGER.fine("disposeContext()");
         context.disposeContext();
+
+        if (options.COVERAGE_GLOBAL) {
+            coverageManager.print(this, System.out);
+        }
     }
 
     public static RubyContext getCurrentContext() {

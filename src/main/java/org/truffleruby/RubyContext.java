@@ -84,7 +84,6 @@ import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.RubyOptionTypes;
-import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -143,7 +142,6 @@ public class RubyContext {
     @CompilationFinal private CoreMethods coreMethods;
     private final ThreadManager threadManager;
     private final LexicalScope rootLexicalScope;
-    private final CoverageManager coverageManager;
     private volatile ConsoleHolder consoleHolder;
 
     public final ContextArray<GlobalVariableStorage> globalVariablesArray;
@@ -230,7 +228,6 @@ public class RubyContext {
         Metrics.printTime("before-instruments");
         final Instrumenter instrumenter = env.lookup(Instrumenter.class);
         traceManager = new TraceManager(language, this, instrumenter);
-        coverageManager = new CoverageManager(this, instrumenter);
         Metrics.printTime("after-instruments");
 
         Metrics.printTime("after-context-constructor");
@@ -526,10 +523,6 @@ public class RubyContext {
             RubyLanguage.LOGGER.info(
                     "Total VALUE object to native conversions: " + getValueWrapperManager().totalHandleAllocations());
         }
-
-        if (options.COVERAGE_GLOBAL) {
-            coverageManager.print(this, System.out);
-        }
     }
 
     public boolean isPreInitializing() {
@@ -630,10 +623,6 @@ public class RubyContext {
 
     public LexicalScope getRootLexicalScope() {
         return rootLexicalScope;
-    }
-
-    public CoverageManager getCoverageManager() {
-        return coverageManager;
     }
 
     public CodeLoader getCodeLoader() {
