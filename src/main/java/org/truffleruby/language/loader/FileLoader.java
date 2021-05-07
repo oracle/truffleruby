@@ -73,7 +73,7 @@ public class FileLoader {
 
         final byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        final Source source = buildSource(file, path, sourceRope, isInternal(path));
+        final Source source = buildSource(file, path, sourceRope, isInternal(path), false);
         return Pair.create(source, sourceRope);
     }
 
@@ -120,7 +120,7 @@ public class FileLoader {
         return relativePathFromHome.startsWith("lib");
     }
 
-    Source buildSource(TruffleFile file, String path, Rope sourceRope, boolean internal) {
+    Source buildSource(TruffleFile file, String path, Rope sourceRope, boolean internal, boolean mainSource) {
         /* I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
          * default MIME type that Ruby supports.
          *
@@ -138,7 +138,9 @@ public class FileLoader {
          * which are not reloaded since Coverage.result should not report coverage, so it seems really difficult to do
          * any caching when coverage is enabled. */
         final boolean coverageEnabled = language.coverageManager.isEnabled();
-        final String mimeType = RubyLanguage.getMimeType(coverageEnabled);
+        final String mimeType = mainSource
+                ? RubyLanguage.MIME_TYPE_MAIN_SCRIPT
+                : RubyLanguage.getMimeType(coverageEnabled);
 
         final Source source = Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)

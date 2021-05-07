@@ -40,7 +40,10 @@ public class MainLoader {
     }
 
     public RubySource loadFromCommandLineArgument(String code) {
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "-e").build();
+        final Source source = Source
+                .newBuilder(TruffleRuby.LANGUAGE_ID, code, "-e")
+                .mimeType(RubyLanguage.MIME_TYPE_MAIN_SCRIPT)
+                .build();
         return new RubySource(source, "-e");
     }
 
@@ -48,10 +51,10 @@ public class MainLoader {
         byte[] sourceBytes = readAllOfStandardIn();
         final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
 
-        final Source source = Source.newBuilder(
-                TruffleRuby.LANGUAGE_ID,
-                RopeOperations.decodeOrEscapeBinaryRope(sourceRope),
-                path).build();
+        final Source source = Source
+                .newBuilder(TruffleRuby.LANGUAGE_ID, RopeOperations.decodeOrEscapeBinaryRope(sourceRope), path)
+                .mimeType(RubyLanguage.MIME_TYPE_MAIN_SCRIPT)
+                .build();
         return new RubySource(source, path, sourceRope);
     }
 
@@ -96,7 +99,7 @@ public class MainLoader {
         byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = transformScript(currentNode, mainPath, sourceBytes);
 
-        final Source mainSource = fileLoader.buildSource(file, mainPath, sourceRope, false);
+        final Source mainSource = fileLoader.buildSource(file, mainPath, sourceRope, false, true);
 
         return new RubySource(mainSource, mainPath, sourceRope);
     }

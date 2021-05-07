@@ -17,9 +17,11 @@ import java.util.stream.Collectors;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -28,6 +30,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -134,13 +137,10 @@ public abstract class TruffleBootNodes {
                 if (getContext().getOptions().SYNTAX_CHECK) {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
                 } else {
-                    final RootCallTarget callTarget = getContext().getCodeLoader().parse(
-                            source,
-                            ParserContext.TOP_LEVEL_FIRST,
-                            null,
-                            null,
-                            true,
-                            null);
+                    final Pair<Source, Rope> sourceRopePair = Pair.create(source.getSource(), source.getRope());
+                    final RootCallTarget callTarget = getContext()
+                            .getCodeLoader()
+                            .parseTopLevelWithCache(sourceRopePair, null);
 
                     final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                             callTarget,
@@ -173,39 +173,38 @@ public abstract class TruffleBootNodes {
         }
 
         private RubySource loadMainSourceSettingDollarZero(String kind, String toExecute) {
-            final RubySource source;
+            final RubySource rubySource;
             final Object dollarZeroValue;
             final MainLoader mainLoader = new MainLoader(getContext(), getLanguage());
             try {
                 switch (kind) {
-                    case "FILE": {
-                        source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
+                    case "FILE":
+                        rubySource = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
                         dollarZeroValue = utf8(toExecute);
-                    }
                         break;
 
-                    case "STDIN": {
-                        source = mainLoader.loadFromStandardIn(this, "-");
+                    case "STDIN":
+                        rubySource = mainLoader.loadFromStandardIn(this, "-");
                         dollarZeroValue = utf8("-");
-                    }
                         break;
 
-                    case "INLINE": {
-                        source = mainLoader.loadFromCommandLineArgument(toExecute);
+                    case "INLINE":
+                        rubySource = mainLoader.loadFromCommandLineArgument(toExecute);
                         dollarZeroValue = utf8("-e");
-                    }
                         break;
 
                     default:
-                        throw new IllegalStateException();
+                        throw CompilerDirectives.shouldNotReachHere(kind);
                 }
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
+            assert RubyLanguage.MIME_TYPE_MAIN_SCRIPT.equals(rubySource.getSource().getMimeType());
 
             int index = getLanguage().getGlobalVariableIndex("$0");
             getContext().getGlobalVariableStorage(index).setValueInternal(dollarZeroValue);
-            return source;
+
+            return rubySource;
         }
 
         private RubyString utf8(String string) {

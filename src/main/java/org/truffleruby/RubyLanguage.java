@@ -123,7 +123,10 @@ import org.truffleruby.stdlib.digest.RubyDigest;
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
         version = TruffleRuby.LANGUAGE_VERSION,
-        characterMimeTypes = { RubyLanguage.MIME_TYPE, RubyLanguage.MIME_TYPE_COVERAGE },
+        characterMimeTypes = {
+                RubyLanguage.MIME_TYPE,
+                RubyLanguage.MIME_TYPE_COVERAGE,
+                RubyLanguage.MIME_TYPE_MAIN_SCRIPT },
         defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
         fileTypeDetectors = RubyFileTypeDetector.class)
@@ -143,7 +146,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     /** Do not access directly, instead use {@link #getMimeType(boolean)} */
     static final String MIME_TYPE = "application/x-ruby";
     public static final String MIME_TYPE_COVERAGE = "application/x-ruby;coverage=true";
-    public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE };
+    public static final String MIME_TYPE_MAIN_SCRIPT = "application/x-ruby;main-script=true";
+    public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE, MIME_TYPE_MAIN_SCRIPT };
 
     public static final String PLATFORM = String.format(
             "%s-%s%s",
@@ -248,7 +252,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             .layout(ClassVariableStorage.class)
             .build();
 
-    public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<ParsingParameters>();
+    public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
 
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
@@ -441,31 +445,36 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
+        final Source source = request.getSource();
+
         final ParsingParameters parsingParameters = parsingRequestParams.get();
         if (parsingParameters != null) { // from #require or core library
-            assert parsingParameters.getSource().equals(request.getSource());
+            assert parsingParameters.getSource().equals(source);
             final RubySource rubySource = new RubySource(
-                    request.getSource(),
+                    source,
                     parsingParameters.getPath(),
                     parsingParameters.getRope());
+            final ParserContext parserContext = MIME_TYPE_MAIN_SCRIPT.equals(source.getMimeType())
+                    ? ParserContext.TOP_LEVEL_FIRST
+                    : ParserContext.TOP_LEVEL;
             return RubyLanguage.getCurrentContext().getCodeLoader().parse(
                     rubySource,
-                    ParserContext.TOP_LEVEL,
+                    parserContext,
                     null,
                     null,
                     true,
                     parsingParameters.getCurrentNode());
         }
 
-        if (request.getSource().isInteractive()) {
-            return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, request.getSource()));
+        if (source.isInteractive()) {
+            return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, source));
         } else {
             final RubyContext context = Objects.requireNonNull(getCurrentContext());
             return Truffle.getRuntime().createCallTarget(
                     new RubyParsingRequestNode(
                             this,
                             context,
-                            request.getSource(),
+                            source,
                             request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY)));
         }
     }
