@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Andr\u00E9 Arko".freeze, "Samuel Giddins".freeze, "Colby Swandale".freeze, "Hiroshi Shibata".freeze, "David Rodr\u00EDguez".freeze, "Grey Baker".freeze, "Stephanie Morillo".freeze, "Chris Morris".freeze, "James Wen".freeze, "Tim Moore".freeze, "Andr\u00E9 Medeiros".freeze, "Jessica Lynn Suttles".freeze, "Terence Lee".freeze, "Carl Lerche".freeze, "Yehuda Katz".freeze]
   s.bindir = "libexec".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "Bundler manages an application's dependencies through its entire life, across many machines, systematically and repeatably".freeze
   s.email = ["team@bundler.io".freeze]
   s.executables = ["bundle".freeze, "bundler".freeze]
@@ -18,6 +18,6 @@ Gem::Specification.new do |s|
   s.homepage = "https://bundler.io".freeze
   s.licenses = ["MIT".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "The best way to manage your application's dependencies".freeze
 end

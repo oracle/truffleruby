@@ -9,12 +9,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Keiju ISHITSUKA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "Provides delegation of specified methods to a designated object.".freeze
   s.email = ["keiju@ruby-lang.org".freeze]
   s.files = ["forwardable.rb".freeze, "forwardable/impl.rb".freeze, "forwardable/version.rb".freeze]
   s.homepage = "https://github.com/ruby/forwardable".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "Provides delegation of specified methods to a designated object.".freeze
 end

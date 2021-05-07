@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Aaron Patterson".freeze, "SHIBATA Hiroshi".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-11-04"
+  s.date = "2021-05-04"
   s.description = "A libffi wrapper for Ruby.".freeze
   s.email = ["aaron@tenderlovemaking.com".freeze, "hsbt@ruby-lang.org".freeze]
   s.files = ["fiddle.rb".freeze, "fiddle.#{Truffle::Platform::DLEXT}".freeze, "fiddle/closure.rb".freeze, "fiddle/cparser.rb".freeze, "fiddle/function.rb".freeze, "fiddle/import.rb".freeze, "fiddle/pack.rb".freeze, "fiddle/struct.rb".freeze, "fiddle/types.rb".freeze, "fiddle/value.rb".freeze]
   s.homepage = "https://github.com/ruby/fiddle".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.6".freeze
   s.summary = "A libffi wrapper for Ruby.".freeze
 
   if s.respond_to? :specification_version then

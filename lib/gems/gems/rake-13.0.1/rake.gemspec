@@ -19,6 +19,6 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--main".freeze, "README.rdoc".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.2".freeze)
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.2".freeze
   s.summary = "Rake is a Make-like program implemented in Ruby".freeze
 end

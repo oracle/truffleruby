@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/net-telnet".freeze
   s.licenses = ["ruby".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.1.4".freeze
+  s.rubygems_version = "3.1.2".freeze
   s.summary = "Provides telnet client functionality.".freeze
 
   if s.respond_to? :specification_version then

@@ -13,6 +13,7 @@ Bug fixes:
 
 Compatibility:
 
+* Updated to Ruby 2.7.3. The `resolv` stdlib was not updated (`resolv` in 2.7.3 has [bugs](https://bugs.ruby-lang.org/issues/17748)).
 * Make interpolated strings frozen for compatibility with Ruby 2.7 (#2304, @kirs).
 * `require 'socket'` now also requires `'io/wait'` like CRuby (#2326).
 * Support precision when formatting strings (#2281, @kirs).
@@ -38,6 +39,10 @@ Performance:
 
 Changes:
 
+
+Security:
+
+* Updated to Ruby 2.7.3 to fix CVE-2021-28965 and CVE-2021-28966.
 
 # 21.1.0
 

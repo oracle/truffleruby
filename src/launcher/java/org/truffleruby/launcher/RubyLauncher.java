@@ -309,7 +309,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     // To update this, use:
     // ruby --help | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
     // replace ruby by truffleruby for the first line, and remove unsupported flags.
-    // Also add an extra out.println(); before out.println("Features:");
+    // Also add an extra out.println(); before out.println("Features:"); and out.println("Warning categories:");
     // Remove the "Dump List:" section and jit-related lines.
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");

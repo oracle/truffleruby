@@ -1374,6 +1374,15 @@ eom
     assert_nil obj.test
   end
 
+  def test_assignment_return_in_loop
+    obj = Object.new
+    def obj.test
+      x = nil
+      _y = (return until x unless x)
+    end
+    assert_nil obj.test, "[Bug #16695]"
+  end
+
   def test_method_call_location
     line = __LINE__+5
     e = assert_raise(NoMethodError) do
@@ -1542,6 +1551,119 @@ eom
       assert_equal(:rest, parameters.dig(0, 0))
       assert_equal(:block, parameters.dig(1, 0))
     end
+  end
+
+  def test_argument_forwarding_with_leading_arguments
+    obj = Object.new
+    def obj.bar(*args, **kws, &block)
+      if block
+        block.call(args, kws)
+      else
+        [args, kws]
+      end
+    end
+    obj.instance_eval('def foo(_a, ...) bar(...) end', __FILE__, __LINE__)
+    assert_equal [[], {}], obj.foo(1)
+    assert_equal [[2], {}], obj.foo(1, 2)
+    assert_equal [[2, 3], {}], obj.foo(1, 2, 3)
+    assert_equal [[], {a: 1}], obj.foo(1, a: 1)
+    assert_equal [[2], {a: 1}], obj.foo(1, 2, a: 1)
+    assert_equal [[2, 3], {a: 1}], obj.foo(1, 2, 3, a: 1)
+    assert_equal [[2, 3], {a: 1}], obj.foo(1, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(...) bar(1, ...) end', __FILE__, __LINE__)
+    assert_equal [[1], {}], obj.foo
+    assert_equal [[1, 1], {}], obj.foo(1)
+    assert_equal [[1, 1, 2], {}], obj.foo(1, 2)
+    assert_equal [[1, 1, 2, 3], {}], obj.foo(1, 2, 3)
+    assert_equal [[1], {a: 1}], obj.foo(a: 1)
+    assert_equal [[1, 1], {a: 1}], obj.foo(1, a: 1)
+    assert_equal [[1, 1, 2], {a: 1}], obj.foo(1, 2, a: 1)
+    assert_equal [[1, 1, 2, 3], {a: 1}], obj.foo(1, 2, 3, a: 1)
+    assert_equal [[1, 1, 2, 3], {a: 1}], obj.foo(1, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(a, ...) bar(a, ...) end', __FILE__, __LINE__)
+    assert_equal [[4], {}], obj.foo(4)
+    assert_equal [[4, 2], {}], obj.foo(4, 2)
+    assert_equal [[4, 2, 3], {}], obj.foo(4, 2, 3)
+    assert_equal [[4], {a: 1}], obj.foo(4, a: 1)
+    assert_equal [[4, 2], {a: 1}], obj.foo(4, 2, a: 1)
+    assert_equal [[4, 2, 3], {a: 1}], obj.foo(4, 2, 3, a: 1)
+    assert_equal [[4, 2, 3], {a: 1}], obj.foo(4, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(_a, ...) bar(1, ...) end', __FILE__, __LINE__)
+    assert_equal [[1], {}], obj.foo(4)
+    assert_equal [[1, 2], {}], obj.foo(4, 2)
+    assert_equal [[1, 2, 3], {}], obj.foo(4, 2, 3)
+    assert_equal [[1], {a: 1}], obj.foo(4, a: 1)
+    assert_equal [[1, 2], {a: 1}], obj.foo(4, 2, a: 1)
+    assert_equal [[1, 2, 3], {a: 1}], obj.foo(4, 2, 3, a: 1)
+    assert_equal [[1, 2, 3], {a: 1}], obj.foo(4, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(_a, _b, ...) bar(...) end', __FILE__, __LINE__)
+    assert_equal [[], {}], obj.foo(4, 5)
+    assert_equal [[2], {}], obj.foo(4, 5, 2)
+    assert_equal [[2, 3], {}], obj.foo(4, 5, 2, 3)
+    assert_equal [[], {a: 1}], obj.foo(4, 5, a: 1)
+    assert_equal [[2], {a: 1}], obj.foo(4, 5, 2, a: 1)
+    assert_equal [[2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
+    assert_equal [[2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(_a, _b, ...) bar(1, ...) end', __FILE__, __LINE__)
+    assert_equal [[1], {}], obj.foo(4, 5)
+    assert_equal [[1, 2], {}], obj.foo(4, 5, 2)
+    assert_equal [[1, 2, 3], {}], obj.foo(4, 5, 2, 3)
+    assert_equal [[1], {a: 1}], obj.foo(4, 5, a: 1)
+    assert_equal [[1, 2], {a: 1}], obj.foo(4, 5, 2, a: 1)
+    assert_equal [[1, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
+    assert_equal [[1, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(_a, ...) bar(1, 2, ...) end', __FILE__, __LINE__)
+    assert_equal [[1, 2], {}], obj.foo(5)
+    assert_equal [[1, 2, 5], {}], obj.foo(4, 5)
+    assert_equal [[1, 2, 5, 2], {}], obj.foo(4, 5, 2)
+    assert_equal [[1, 2, 5, 2, 3], {}], obj.foo(4, 5, 2, 3)
+    assert_equal [[1, 2, 5], {a: 1}], obj.foo(4, 5, a: 1)
+    assert_equal [[1, 2, 5, 2], {a: 1}], obj.foo(4, 5, 2, a: 1)
+    assert_equal [[1, 2, 5, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
+    assert_equal [[1, 2, 5, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(a, b, ...) bar(b, a, ...) end', __FILE__, __LINE__)
+    assert_equal [[5, 4], {}], obj.foo(4, 5)
+    assert_equal [[5, 4, 2], {}], obj.foo(4, 5, 2)
+    assert_equal [[5, 4, 2, 3], {}], obj.foo(4, 5, 2, 3)
+    assert_equal [[5, 4], {a: 1}], obj.foo(4, 5, a: 1)
+    assert_equal [[5, 4, 2], {a: 1}], obj.foo(4, 5, 2, a: 1)
+    assert_equal [[5, 4, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
+    assert_equal [[5, 4, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(a, _b, ...) bar(a, ...) end', __FILE__, __LINE__)
+    assert_equal [[4], {}], obj.foo(4, 5)
+    assert_equal [[4, 2], {}], obj.foo(4, 5, 2)
+    assert_equal [[4, 2, 3], {}], obj.foo(4, 5, 2, 3)
+    assert_equal [[4], {a: 1}], obj.foo(4, 5, a: 1)
+    assert_equal [[4, 2], {a: 1}], obj.foo(4, 5, 2, a: 1)
+    assert_equal [[4, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
+    assert_equal [[4, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
+
+    obj.singleton_class.send(:remove_method, :foo)
+    obj.instance_eval('def foo(a, ...) bar(a, 1, ...) end', __FILE__, __LINE__)
+    assert_equal [[4, 1], {}], obj.foo(4)
+    assert_equal [[4, 1, 5], {}], obj.foo(4, 5)
+    assert_equal [[4, 1, 5, 2], {}], obj.foo(4, 5, 2)
+    assert_equal [[4, 1, 5, 2, 3], {}], obj.foo(4, 5, 2, 3)
+    assert_equal [[4, 1, 5], {a: 1}], obj.foo(4, 5, a: 1)
+    assert_equal [[4, 1, 5, 2], {a: 1}], obj.foo(4, 5, 2, a: 1)
+    assert_equal [[4, 1, 5, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1)
+    assert_equal [[4, 1, 5, 2, 3], {a: 1}], obj.foo(4, 5, 2, 3, a: 1){|args, kws| [args, kws]}
   end
 
   private
