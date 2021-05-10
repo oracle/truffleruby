@@ -295,6 +295,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
         while (!moduleAncestors.isEmpty()) {
             RubyModule mod = moduleAncestors.pop();
+            // Module#include only adds modules between the current class and the super class,
+            // so invalidating the current class is enough as all affected lookups would go through the current class.
             newMethodsVersion(mod.fields.getMethodNames());
             inclusionPoint.insertAfter(mod);
         }
@@ -324,16 +326,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
+        // Previous calls on instances of the current class must have looked up through the first prepended module,
+        // so invalidate that one.
+        final ModuleFields moduleFieldsToInvalidate = getFirstModuleChain().getActualModule().fields;
+
         ModuleChain mod = module.fields.start;
-        final ModuleChain topPrependedModule = start.getParentModule();
-
-        final ModuleFields moduleFieldsToInvalidate;
-        if (topPrependedModule != this) {
-            moduleFieldsToInvalidate = topPrependedModule.getActualModule().fields;
-        } else {
-            moduleFieldsToInvalidate = this;
-        }
-
         ModuleChain cur = start;
         while (mod != null &&
                 !(mod instanceof ModuleFields && ((ModuleFields) mod).rubyModule instanceof RubyClass)) {
