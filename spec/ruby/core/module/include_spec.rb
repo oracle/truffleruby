@@ -302,6 +302,33 @@ describe "Module#include" do
       end
     end
 
+    m_module = Module.new do
+      def foo
+        'm'
+      end
+    end
+
+    b_class = Class.new(a_class)
+    b = b_class.new
+
+    foo = -> { b.foo }
+
+    foo.call.should == 'a'
+
+    b_class.class_eval do
+      include m_module
+    end
+
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when a new module with nested module is included" do
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+
     n_module = Module.new do
       def foo
         'n'
@@ -324,33 +351,6 @@ describe "Module#include" do
     end
 
     foo.call.should == 'n'
-  end
-  
-  it "updates the method when a new module with nested module is included" do
-    a_class = Class.new do
-      def foo
-        'a'
-      end
-    end
-
-    m_module = Module.new do
-      def foo
-        'm'
-      end
-    end
-
-    b_class = Class.new(a_class)
-    b = b_class.new
-
-    foo = -> { b.foo }
-
-    foo.call.should == 'a'
-
-    b_class.class_eval do
-      include m_module
-    end
-
-    foo.call.should == 'm'
   end
 end
 
