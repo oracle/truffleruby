@@ -37,9 +37,9 @@ import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
 import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
-import org.truffleruby.core.hash.LookupEntryNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -570,4 +570,61 @@ public class EntryArrayHashStore {
     }
 
     // endregion
+
+    public static class LookupEntryNode extends RubyBaseNode {
+
+        public static LookupEntryNode create() {
+            return new LookupEntryNode(
+                    HashingNodes.ToHash.create(),
+                    CompareHashKeysNode.create(),
+                    ConditionProfile.create());
+        }
+
+        public static LookupEntryNode getUncached() {
+            return new LookupEntryNode(
+                    HashingNodes.ToHash.getUncached(),
+                    CompareHashKeysNode.getUncached(),
+                    ConditionProfile.getUncached());
+        }
+
+        @Child HashingNodes.ToHash hashNode;
+        @Child CompareHashKeysNode compareHashKeysNode;
+        private final ConditionProfile byIdentityProfile;
+
+        public LookupEntryNode(
+                HashingNodes.ToHash hashNode,
+                CompareHashKeysNode compareHashKeysNode,
+                ConditionProfile byIdentityProfile) {
+            this.hashNode = hashNode;
+            this.compareHashKeysNode = compareHashKeysNode;
+            this.byIdentityProfile = byIdentityProfile;
+        }
+
+        public HashLookupResult lookup(RubyHash hash, Object key) {
+            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+            int hashed = hashNode.execute(key, compareByIdentity);
+
+            final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
+            final int index = getBucketIndex(hashed, entries.length);
+            Entry entry = entries[index];
+
+            Entry previousEntry = null;
+
+            while (entry != null) {
+                if (equalKeys(compareByIdentity, key, hashed, entry.getKey(), entry.getHashed())) {
+                    return new HashLookupResult(hashed, index, previousEntry, entry);
+                }
+
+                previousEntry = entry;
+                entry = entry.getNextInLookup();
+            }
+
+            return new HashLookupResult(hashed, index, previousEntry, null);
+        }
+
+        protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
+                int otherHashed) {
+            return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
+        }
+    }
 }

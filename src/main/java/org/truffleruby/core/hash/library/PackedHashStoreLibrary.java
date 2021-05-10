@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -24,6 +25,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -32,15 +34,17 @@ import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
+import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
-import org.truffleruby.core.hash.LookupPackedEntryNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary.YieldPairNode;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
@@ -168,7 +172,7 @@ public class PackedHashStoreLibrary {
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode) {
 
         int hashed = hashNode.execute(key, hash.compareByIdentity);
-        return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultNode);
+        return lookupPackedEntryNode.execute(frame, hash, key, hashed, defaultNode);
     }
 
     @ExportMessage
@@ -485,4 +489,92 @@ public class PackedHashStoreLibrary {
     }
 
     // endregion
+
+    @GenerateUncached
+    @ImportStatic(HashGuards.class)
+    public abstract static class LookupPackedEntryNode extends RubyBaseNode {
+
+        public abstract Object execute(Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValue);
+
+        @Specialization(
+                guards = {
+                        "isCompareByIdentity(hash) == cachedByIdentity",
+                        "cachedIndex >= 0",
+                        "cachedIndex < hash.size",
+                        "sameKeysAtIndex(refEqual, hash, key, hashed, cachedIndex, cachedByIdentity)" },
+                limit = "1")
+        protected Object getConstantIndexPackedArray(
+                RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
+                @Cached BasicObjectNodes.ReferenceEqualNode refEqual,
+                @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
+                @Cached("index(refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
+
+            final Object[] store = (Object[]) hash.store;
+            return getValue(store, cachedIndex);
+        }
+
+        protected int index(BasicObjectNodes.ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
+                boolean compareByIdentity) {
+
+            final Object[] store = (Object[]) hash.store;
+            final int size = hash.size;
+            for (int n = 0; n < size; n++) {
+                final int otherHashed = getHashed(store, n);
+                final Object otherKey = getKey(store, n);
+                if (sameKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                    return n;
+                }
+            }
+            return -1;
+        }
+
+        protected boolean sameKeysAtIndex(BasicObjectNodes.ReferenceEqualNode refEqual, RubyHash hash, Object key,
+                int hashed,
+                int cachedIndex, boolean cachedByIdentity) {
+
+            final Object[] store = (Object[]) hash.store;
+            final Object otherKey = getKey(store, cachedIndex);
+            final int otherHashed = getHashed(store, cachedIndex);
+            return sameKeys(refEqual, cachedByIdentity, key, hashed, otherKey, otherHashed);
+        }
+
+        private boolean sameKeys(BasicObjectNodes.ReferenceEqualNode refEqual, boolean compareByIdentity, Object key,
+                int hashed,
+                Object otherKey, int otherHashed) {
+            return CompareHashKeysNode
+                    .referenceEqualKeys(refEqual, compareByIdentity, key, hashed, otherKey, otherHashed);
+        }
+
+        @ExplodeLoop(kind = ExplodeLoop.LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
+        @Specialization(replaces = "getConstantIndexPackedArray")
+        protected Object getPackedArray(
+                Frame frame, RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
+                @Cached CompareHashKeysNode compareHashKeys,
+                @Cached BranchProfile notInHashProfile,
+                @Cached ConditionProfile byIdentityProfile,
+                @CachedLanguage RubyLanguage language) {
+
+            final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
+            final Object[] store = (Object[]) hash.store;
+            final int size = hash.size;
+            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+                if (n < size) {
+                    final int otherHashed = getHashed(store, n);
+                    final Object otherKey = getKey(store, n);
+                    if (equalKeys(compareHashKeys, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                        return getValue(store, n);
+                    }
+                }
+            }
+            notInHashProfile.enter();
+            // frame should be virtual or null
+            return defaultValueNode.accept((VirtualFrame) frame, hash, key);
+        }
+
+        protected boolean equalKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key,
+                int hashed,
+                Object otherKey, int otherHashed) {
+            return compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
+        }
+    }
 }
