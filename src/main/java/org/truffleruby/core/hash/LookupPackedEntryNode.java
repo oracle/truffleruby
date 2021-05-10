@@ -56,10 +56,6 @@ public abstract class LookupPackedEntryNode extends RubyBaseNode {
     protected int index(ReferenceEqualNode refEqual, RubyHash hash, Object key, int hashed,
             boolean compareByIdentity) {
 
-        if (!HashGuards.isPackedHash(hash)) {
-            return -1;
-        }
-
         final Object[] store = (Object[]) hash.store;
         final int size = hash.size;
 

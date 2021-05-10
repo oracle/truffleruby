@@ -34,7 +34,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
-import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
@@ -118,11 +117,8 @@ public class EntryArrayHashStore {
     }
 
     public static void addNewEntry(RubyContext context, RubyHash hash, int hashed, Object key, Object value) {
-        assert HashGuards.isBucketHash(hash);
-        assert HashOperations.verifyStore(context, hash);
-
+        assert hash.store instanceof EntryArrayHashStore;
         final Entry[] buckets = ((EntryArrayHashStore) hash.store).entries;
-
         final Entry entry = new Entry(hashed, key, value);
 
         if (hash.firstInSequence == null) {
@@ -155,7 +151,6 @@ public class EntryArrayHashStore {
 
     @TruffleBoundary
     private static void resize(RubyContext context, RubyHash hash) {
-        assert HashGuards.isBucketHash(hash);
         assert HashOperations.verifyStore(context, hash);
 
         final int bucketsCount = capacityGreaterThan(hash.size) * OVERALLOCATE_FACTOR;
@@ -195,7 +190,6 @@ public class EntryArrayHashStore {
     }
 
     private static void copyInto(RubyContext context, RubyHash from, RubyHash to) {
-        assert HashGuards.isBucketHash(from);
         assert HashOperations.verifyStore(context, from);
         assert HashOperations.verifyStore(context, to);
 
