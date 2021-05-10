@@ -737,10 +737,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public void newMethodsVersion(List<String> methodsToInvalidate) {
         for (String entryToInvalidate : methodsToInvalidate) {
-            MethodEntry methodEntry = methods.get(entryToInvalidate);
-            if (methodEntry != null) {
-                methodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entryToInvalidate));
-                methods.put(entryToInvalidate, methodEntry.withNewAssumption());
+            while (true) {
+                final MethodEntry methodEntry = methods.get(entryToInvalidate);
+                if (methodEntry == null) {
+                    break;
+                } else {
+                    methodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entryToInvalidate));
+                    if (methods.replace(entryToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
+                        break;
+                    }
+                }
             }
         }
     }
