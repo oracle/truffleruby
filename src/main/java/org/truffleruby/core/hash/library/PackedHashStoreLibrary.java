@@ -35,16 +35,21 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
+import org.truffleruby.core.hash.FreezeHashKeyIfNeededNodeGen;
 import org.truffleruby.core.hash.HashGuards;
+import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary.YieldPairNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
@@ -65,7 +70,7 @@ public class PackedHashStoreLibrary {
         return copied;
     }
 
-    public static int getHashed(Object[] store, int n) {
+    private static int getHashed(Object[] store, int n) {
         return (int) store[n * ELEMENTS_PER_ENTRY];
     }
 
@@ -81,11 +86,11 @@ public class PackedHashStoreLibrary {
         store[n * ELEMENTS_PER_ENTRY] = hashed;
     }
 
-    public static void setKey(Object[] store, int n, Object key) {
+    private static void setKey(Object[] store, int n, Object key) {
         store[n * ELEMENTS_PER_ENTRY + 1] = key;
     }
 
-    public static void setValue(Object[] store, int n, Object value) {
+    private static void setValue(Object[] store, int n, Object value) {
         store[n * ELEMENTS_PER_ENTRY + 2] = value;
     }
 
@@ -489,6 +494,7 @@ public class PackedHashStoreLibrary {
     }
 
     // endregion
+    // region Nodes
 
     @GenerateUncached
     @ImportStatic(HashGuards.class)
@@ -577,4 +583,88 @@ public class PackedHashStoreLibrary {
             return compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
         }
     }
+
+    public static class SmallHashLiteralNode extends HashLiteralNode {
+
+        @Child private HashingNodes.ToHashByHashCode hashNode;
+        @Child private DispatchNode equalNode;
+        @Child private BooleanCastNode booleanCastNode;
+        @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
+        private final BranchProfile duplicateKeyProfile = BranchProfile.create();
+
+        public SmallHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
+            super(language, keyValues);
+        }
+
+        @ExplodeLoop
+        @Override
+        public Object execute(VirtualFrame frame) {
+            final Object[] store = createStore(language);
+
+            int size = 0;
+
+            for (int n = 0; n < keyValues.length / 2; n++) {
+                Object key = keyValues[n * 2].execute(frame);
+                key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(key, false);
+
+                final int hashed = hash(key);
+
+                final Object value = keyValues[n * 2 + 1].execute(frame);
+                boolean duplicateKey = false;
+
+                for (int i = 0; i < n; i++) {
+                    if (i < size &&
+                            hashed == getHashed(store, i) &&
+                            callEqual(key, getKey(store, i))) {
+                        duplicateKeyProfile.enter();
+                        setKey(store, i, key);
+                        setValue(store, i, value);
+                        duplicateKey = true;
+                        break;
+                    }
+                }
+
+                if (!duplicateKey) {
+                    setHashedKeyValue(store, size, hashed, key, value);
+                    size++;
+                }
+            }
+
+            return new RubyHash(
+                    coreLibrary().hashClass,
+                    language.hashShape,
+                    getContext(),
+                    store,
+                    size,
+                    null,
+                    null,
+                    nil,
+                    nil,
+                    false);
+        }
+
+        private int hash(Object key) {
+            if (hashNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                hashNode = insert(HashingNodes.ToHashByHashCode.create());
+            }
+            return hashNode.execute(key);
+        }
+
+        private boolean callEqual(Object receiver, Object key) {
+            if (equalNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                equalNode = insert(DispatchNode.create());
+            }
+
+            if (booleanCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                booleanCastNode = insert(BooleanCastNode.create());
+            }
+
+            return booleanCastNode.executeToBoolean(equalNode.call(receiver, "eql?", key));
+        }
+    }
+
+    // endregion
 }

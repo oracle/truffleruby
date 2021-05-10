@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
@@ -34,12 +35,14 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
+import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -570,6 +573,7 @@ public class EntryArrayHashStore {
     }
 
     // endregion
+    // region Nodes
 
     public static class LookupEntryNode extends RubyBaseNode {
 
@@ -627,4 +631,47 @@ public class EntryArrayHashStore {
             return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
         }
     }
+
+    public static class GenericHashLiteralNode extends HashLiteralNode {
+
+        @Child HashStoreLibrary hashes;
+        private final int bucketsCount;
+
+        public GenericHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
+            super(language, keyValues);
+            bucketsCount = capacityGreaterThan(keyValues.length / 2) *
+                    OVERALLOCATE_FACTOR;
+        }
+
+        @ExplodeLoop
+        @Override
+        public Object execute(VirtualFrame frame) {
+            if (hashes == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                hashes = insert(HashStoreLibrary.getDispatched());
+            }
+
+            final RubyHash hash = new RubyHash(
+                    coreLibrary().hashClass,
+                    language.hashShape,
+                    getContext(),
+                    new EntryArrayHashStore(new Entry[bucketsCount]),
+                    0,
+                    null,
+                    null,
+                    nil,
+                    nil,
+                    false);
+
+            for (int n = 0; n < keyValues.length; n += 2) {
+                final Object key = keyValues[n].execute(frame);
+                final Object value = keyValues[n + 1].execute(frame);
+                hashes.set(hash.store, hash, key, value, false);
+            }
+
+            return hash;
+        }
+    }
+
+    // endregion
 }

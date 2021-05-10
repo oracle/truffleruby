@@ -25,9 +25,11 @@ import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class)
@@ -113,5 +115,17 @@ public class NullHashStore {
     @ExportMessage
     protected void rehash(RubyHash hash) {
         // nothing to do, the hash is empty
+    }
+
+    public static class EmptyHashLiteralNode extends HashLiteralNode {
+
+        public EmptyHashLiteralNode(RubyLanguage language) {
+            super(language, RubyNode.EMPTY_ARRAY);
+        }
+
+        @Override
+        public Object execute(VirtualFrame frame) {
+            return HashOperations.newEmptyHash(getContext(), getLanguage());
+        }
     }
 }
