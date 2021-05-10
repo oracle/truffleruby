@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -30,13 +31,12 @@ import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.hash.BucketsStrategy;
 import org.truffleruby.core.hash.CompareHashKeysNode;
+import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.LookupPackedEntryNode;
-import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary.YieldPairNode;
 import org.truffleruby.core.proc.RubyProc;
@@ -45,6 +45,120 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
 public class PackedHashStoreLibrary {
+
+    public static final int ELEMENTS_PER_ENTRY = 3;
+
+    // region Utilities
+
+    public static Object[] createStore(RubyLanguage language) {
+        return new Object[language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY];
+    }
+
+    private static Object[] copyStore(RubyLanguage language, Object[] store) {
+        final Object[] copied = createStore(language);
+        System.arraycopy(store, 0, copied, 0, language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY);
+        return copied;
+    }
+
+    public static int getHashed(Object[] store, int n) {
+        return (int) store[n * ELEMENTS_PER_ENTRY];
+    }
+
+    public static Object getKey(Object[] store, int n) {
+        return store[n * ELEMENTS_PER_ENTRY + 1];
+    }
+
+    public static Object getValue(Object[] store, int n) {
+        return store[n * ELEMENTS_PER_ENTRY + 2];
+    }
+
+    private static void setHashed(Object[] store, int n, int hashed) {
+        store[n * ELEMENTS_PER_ENTRY] = hashed;
+    }
+
+    public static void setKey(Object[] store, int n, Object key) {
+        store[n * ELEMENTS_PER_ENTRY + 1] = key;
+    }
+
+    public static void setValue(Object[] store, int n, Object value) {
+        store[n * ELEMENTS_PER_ENTRY + 2] = value;
+    }
+
+    public static void setHashedKeyValue(Object[] store, int n, int hashed, Object key, Object value) {
+        setHashed(store, n, hashed);
+        setKey(store, n, key);
+        setValue(store, n, value);
+    }
+
+    public static void removeEntry(RubyLanguage language, Object[] store, int n) {
+        assert verifyIntegerHashes(language, store);
+
+        final int index = n * ELEMENTS_PER_ENTRY;
+        System.arraycopy(
+                store,
+                index + ELEMENTS_PER_ENTRY,
+                store,
+                index,
+                language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY - ELEMENTS_PER_ENTRY - index);
+
+        assert verifyIntegerHashes(language, store);
+    }
+
+    private static boolean verifyIntegerHashes(RubyLanguage language, Object[] store) {
+        for (int i = 0; i < language.options.HASH_PACKED_ARRAY_MAX *
+                ELEMENTS_PER_ENTRY; i += ELEMENTS_PER_ENTRY) {
+            assert store[i] == null || store[i] instanceof Integer;
+        }
+        return true;
+    }
+
+    @TruffleBoundary
+    private static void promoteToBuckets(RubyContext context, RubyHash hash, Object[] store, int size) {
+        final Entry[] buckets = new Entry[EntryArrayHashStore.capacityGreaterThan(size)];
+
+        Entry firstInSequence = null;
+        Entry previousInSequence = null;
+        Entry lastInSequence = null;
+
+        for (int n = 0; n < size; n++) {
+            final int hashed = getHashed(store, n);
+            final Entry entry = new Entry(hashed, getKey(store, n), getValue(store, n));
+
+            if (previousInSequence == null) {
+                firstInSequence = entry;
+            } else {
+                previousInSequence.setNextInSequence(entry);
+                entry.setPreviousInSequence(previousInSequence);
+            }
+
+            previousInSequence = entry;
+            lastInSequence = entry;
+
+            final int bucketIndex = EntryArrayHashStore.getBucketIndex(hashed, buckets.length);
+
+            Entry previousInLookup = buckets[bucketIndex];
+
+            if (previousInLookup == null) {
+                buckets[bucketIndex] = entry;
+            } else {
+                while (previousInLookup.getNextInLookup() != null) {
+                    previousInLookup = previousInLookup.getNextInLookup();
+                }
+
+                previousInLookup.setNextInLookup(entry);
+            }
+        }
+
+        hash.store = new EntryArrayHashStore(buckets);
+        hash.size = size;
+        hash.firstInSequence = firstInSequence;
+        hash.lastInSequence = lastInSequence;
+
+        assert HashOperations.verifyStore(context, hash);
+    }
+
+    // endregion
+    // region Messages
 
     @ExportMessage
     protected static Object lookupOrDefault(
@@ -80,10 +194,10 @@ public class PackedHashStoreLibrary {
         // written very carefully to allow PE
         for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {
-                final int otherHashed = PackedArrayStrategy.getHashed(store, n);
-                final Object otherKey = PackedArrayStrategy.getKey(store, n);
+                final int otherHashed = getHashed(store, n);
+                final Object otherKey = getKey(store, n);
                 if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
-                    PackedArrayStrategy.setValue(store, n, value);
+                    setValue(store, n, value);
                     assert HashOperations.verifyStore(context, hash);
                     return false;
                 }
@@ -91,12 +205,12 @@ public class PackedHashStoreLibrary {
         }
 
         if (strategy.profile(size < language.options.HASH_PACKED_ARRAY_MAX)) {
-            PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key2, value);
+            setHashedKeyValue(store, size, hashed, key2, value);
             hash.size += 1;
             return true;
         } else {
-            PackedArrayStrategy.promoteToBuckets(context, hash, store, size);
-            BucketsStrategy.addNewEntry(context, hash, hashed, key2, value);
+            promoteToBuckets(context, hash, store, size);
+            EntryArrayHashStore.addNewEntry(context, hash, hashed, key2, value);
         }
 
         assert HashOperations.verifyStore(context, hash);
@@ -116,12 +230,12 @@ public class PackedHashStoreLibrary {
         // written very carefully to allow PE
         for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {
-                final int otherHashed = PackedArrayStrategy.getHashed(store, n);
-                final Object otherKey = PackedArrayStrategy.getKey(store, n);
+                final int otherHashed = getHashed(store, n);
+                final Object otherKey = getKey(store, n);
 
                 if (compareHashKeys.execute(hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
-                    final Object value = PackedArrayStrategy.getValue(store, n);
-                    PackedArrayStrategy.removeEntry(language, store, n);
+                    final Object value = getValue(store, n);
+                    removeEntry(language, store, n);
                     hash.size -= 1;
                     assert HashOperations.verifyStore(context, hash);
                     return value;
@@ -162,8 +276,8 @@ public class PackedHashStoreLibrary {
             for (int i = 0; i < size; i++) {
                 callback.accept(
                         (VirtualFrame) frame,
-                        PackedArrayStrategy.getKey(store, i),
-                        PackedArrayStrategy.getValue(store, i),
+                        getKey(store, i),
+                        getValue(store, i),
                         state);
             }
         }
@@ -178,7 +292,7 @@ public class PackedHashStoreLibrary {
 
         assert HashOperations.verifyStore(context, hash);
         // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
-        final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        final Object[] storeCopy = copyStore(language, store);
         // TODO: should we pass the block as the state and cache the EachCallback instance instead?
         self.eachEntry(storeCopy, null, hash, new EachCallback(yieldPair, block), null);
 
@@ -230,7 +344,7 @@ public class PackedHashStoreLibrary {
 
         propagateSharing.executePropagate(dest, hash);
 
-        Object storeCopy = PackedArrayStrategy.copyStore(language, store);
+        Object storeCopy = copyStore(language, store);
         int size = hash.size;
         dest.store = storeCopy;
         dest.size = size;
@@ -253,7 +367,7 @@ public class PackedHashStoreLibrary {
 
         assert HashOperations.verifyStore(context, hash);
         // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
-        final Object[] storeCopy = PackedArrayStrategy.copyStore(language, store);
+        final Object[] storeCopy = copyStore(language, store);
         final int size = hash.size;
         final ArrayBuilderNode.BuilderState state = arrayBuilder.start(size);
         // TODO: - should we pass the parameters as a state and cache the EachCallback instance instead?
@@ -309,9 +423,9 @@ public class PackedHashStoreLibrary {
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-        final Object key = PackedArrayStrategy.getKey(store, 0);
-        final Object value = PackedArrayStrategy.getValue(store, 0);
-        PackedArrayStrategy.removeEntry(language, store, 0);
+        final Object key = getKey(store, 0);
+        final Object value = getValue(store, 0);
+        removeEntry(language, store, 0);
         hash.size -= 1;
         assert HashOperations.verifyStore(context, hash);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
@@ -327,18 +441,18 @@ public class PackedHashStoreLibrary {
         assert HashOperations.verifyStore(context, hash);
         int size = hash.size;
         for (int n = 0; n < size; n++) {
-            final Object key = PackedArrayStrategy.getKey(store, n);
-            final int newHash = hashNode.execute(PackedArrayStrategy.getKey(store, n), hash.compareByIdentity);
-            PackedArrayStrategy.setHashed(store, n, newHash);
+            final Object key = getKey(store, n);
+            final int newHash = hashNode.execute(getKey(store, n), hash.compareByIdentity);
+            setHashed(store, n, newHash);
 
             for (int m = n - 1; m >= 0; m--) {
-                if (PackedArrayStrategy.getHashed(store, m) == newHash && compareHashKeys.execute(
+                if (getHashed(store, m) == newHash && compareHashKeys.execute(
                         hash.compareByIdentity,
                         key,
                         newHash,
-                        PackedArrayStrategy.getKey(store, m),
-                        PackedArrayStrategy.getHashed(store, m))) {
-                    PackedArrayStrategy.removeEntry(language, store, n);
+                        getKey(store, m),
+                        getHashed(store, m))) {
+                    removeEntry(language, store, n);
                     size--;
                     n--;
                     break;
@@ -348,4 +462,6 @@ public class PackedHashStoreLibrary {
         hash.size = size;
         assert HashOperations.verifyStore(context, hash);
     }
+
+    // endregion
 }

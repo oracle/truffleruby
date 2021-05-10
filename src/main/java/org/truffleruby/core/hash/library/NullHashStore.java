@@ -25,7 +25,6 @@ import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashOperations;
-import org.truffleruby.core.hash.PackedArrayStrategy;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -47,7 +46,7 @@ public class NullHashStore {
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
             @CachedLanguage RubyLanguage language,
             @CachedLibrary(limit = "1") HashStoreLibrary packedHashStoreLibrary) {
-        final Object[] packedStore = PackedArrayStrategy.createStore(language);
+        final Object[] packedStore = PackedHashStoreLibrary.createStore(language);
         hash.store = packedStore;
         return packedHashStoreLibrary.set(packedStore, hash, key, value, byIdentity);
     }

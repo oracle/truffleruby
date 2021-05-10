@@ -22,6 +22,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.NullHashStore;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
@@ -74,7 +75,7 @@ public abstract class HashNodes {
             final Object[] store = (Object[]) array.store;
 
             final int size = array.size;
-            final Object[] newStore = PackedArrayStrategy.createStore(getLanguage());
+            final Object[] newStore = PackedHashStoreLibrary.createStore(getLanguage());
 
             // written very carefully to allow PE
             for (int n = 0; n < getLanguage().options.HASH_PACKED_ARRAY_MAX; n++) {
@@ -99,7 +100,7 @@ public abstract class HashNodes {
 
                     final int hashed = hashNode.execute(key);
 
-                    PackedArrayStrategy.setHashedKeyValue(newStore, n, hashed, key, value);
+                    PackedHashStoreLibrary.setHashedKeyValue(newStore, n, hashed, key, value);
                 }
             }
 

@@ -13,6 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -79,7 +80,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
-            final Object[] store = PackedArrayStrategy.createStore(language);
+            final Object[] store = PackedHashStoreLibrary.createStore(language);
 
             int size = 0;
 
@@ -94,18 +95,18 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
                 for (int i = 0; i < n; i++) {
                     if (i < size &&
-                            hashed == PackedArrayStrategy.getHashed(store, i) &&
-                            callEqual(key, PackedArrayStrategy.getKey(store, i))) {
+                            hashed == PackedHashStoreLibrary.getHashed(store, i) &&
+                            callEqual(key, PackedHashStoreLibrary.getKey(store, i))) {
                         duplicateKeyProfile.enter();
-                        PackedArrayStrategy.setKey(store, i, key);
-                        PackedArrayStrategy.setValue(store, i, value);
+                        PackedHashStoreLibrary.setKey(store, i, key);
+                        PackedHashStoreLibrary.setValue(store, i, value);
                         duplicateKey = true;
                         break;
                     }
                 }
 
                 if (!duplicateKey) {
-                    PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
+                    PackedHashStoreLibrary.setHashedKeyValue(store, size, hashed, key, value);
                     size++;
                 }
             }
@@ -154,8 +155,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
         public GenericHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
             super(language, keyValues);
-            bucketsCount = BucketsStrategy.capacityGreaterThan(keyValues.length / 2) *
-                    BucketsStrategy.OVERALLOCATE_FACTOR;
+            bucketsCount = EntryArrayHashStore.capacityGreaterThan(keyValues.length / 2) *
+                    EntryArrayHashStore.OVERALLOCATE_FACTOR;
         }
 
         @ExplodeLoop

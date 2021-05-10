@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
 import org.truffleruby.core.hash.library.NullHashStore;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
@@ -111,17 +112,17 @@ public abstract class HashOperations {
             assert foundSizeSequence == size : StringUtils.format("%d %d", foundSizeSequence, size);
         } else if (store.getClass() == Object[].class) {
             assert ((Object[]) store).length == context.getLanguageSlow().options.HASH_PACKED_ARRAY_MAX *
-                    PackedArrayStrategy.ELEMENTS_PER_ENTRY : ((Object[]) store).length;
+                    PackedHashStoreLibrary.ELEMENTS_PER_ENTRY : ((Object[]) store).length;
 
             final Object[] packedStore = (Object[]) store;
 
-            for (int i = 0; i < size * PackedArrayStrategy.ELEMENTS_PER_ENTRY; i++) {
+            for (int i = 0; i < size * PackedHashStoreLibrary.ELEMENTS_PER_ENTRY; i++) {
                 assert packedStore[i] != null;
             }
 
             for (int n = 0; n < size; n++) {
-                final Object key = PackedArrayStrategy.getKey(packedStore, n);
-                final Object value = PackedArrayStrategy.getValue(packedStore, n);
+                final Object key = PackedHashStoreLibrary.getKey(packedStore, n);
+                final Object value = PackedHashStoreLibrary.getValue(packedStore, n);
 
                 assert SharedObjects.assertPropagateSharing(hash, key) : "unshared key in shared Hash: " + key;
                 assert SharedObjects.assertPropagateSharing(hash, value) : "unshared value in shared Hash: " +

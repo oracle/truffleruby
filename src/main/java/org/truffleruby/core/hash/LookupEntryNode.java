@@ -47,7 +47,7 @@ public class LookupEntryNode extends RubyBaseNode {
         int hashed = hashNode.execute(key, compareByIdentity);
 
         final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
-        final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
+        final int index = EntryArrayHashStore.getBucketIndex(hashed, entries.length);
         Entry entry = entries[index];
 
         Entry previousEntry = null;

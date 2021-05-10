@@ -79,7 +79,7 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
         if (store instanceof EntryArrayHashStore) {
-            BucketsStrategy.getAdjacentObjects(reachable, firstInSequence);
+            EntryArrayHashStore.getAdjacentObjects(reachable, firstInSequence);
         } else {
             ObjectGraph.addProperty(reachable, store);
         }

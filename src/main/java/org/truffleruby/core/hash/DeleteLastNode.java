@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
+import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -43,15 +44,15 @@ public abstract class DeleteLastNode extends RubyContextNode {
         int n = size - 1;
 
         // removable
-        final Object otherKey = PackedArrayStrategy.getKey(store, n);
+        final Object otherKey = PackedHashStoreLibrary.getKey(store, n);
         if (key != otherKey) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives
                     .shouldNotReachHere("The last key was not " + key + " as expected but was " + otherKey);
         }
 
-        final Object value = PackedArrayStrategy.getValue(store, n);
-        PackedArrayStrategy.removeEntry(getLanguage(), store, n);
+        final Object value = PackedHashStoreLibrary.getValue(store, n);
+        PackedHashStoreLibrary.removeEntry(getLanguage(), store, n);
         hash.size -= 1;
         assert HashOperations.verifyStore(getContext(), hash);
         return value;
@@ -70,7 +71,7 @@ public abstract class DeleteLastNode extends RubyContextNode {
         int hashed = lastEntry.getHashed();
 
         final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
-        final int index = BucketsStrategy.getBucketIndex(hashed, entries.length);
+        final int index = EntryArrayHashStore.getBucketIndex(hashed, entries.length);
 
         // Lookup previous entry
         Entry entry = entries[index];
@@ -93,7 +94,7 @@ public abstract class DeleteLastNode extends RubyContextNode {
             hash.lastInSequence = previousInSequence;
         }
 
-        BucketsStrategy.removeFromLookupChain(hash, index, entry, previousEntry);
+        EntryArrayHashStore.removeFromLookupChain(hash, index, entry, previousEntry);
 
         hash.size -= 1;
 

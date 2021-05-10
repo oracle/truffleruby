@@ -30,19 +30,21 @@ import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.hash.BucketsStrategy;
 import org.truffleruby.core.hash.CompareHashKeysNode;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
+import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.LookupEntryNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import java.util.Arrays;
+import java.util.Set;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
@@ -53,6 +55,217 @@ public class EntryArrayHashStore {
     public EntryArrayHashStore(Entry[] entries) {
         this.entries = entries;
     }
+
+    // region Constants
+
+    // If the size is more than this fraction of the number of buckets, resize
+    private static final double LOAD_FACTOR = 0.75;
+
+    // Create this many more buckets than there are entries when resizing or creating from scratch
+    public static final int OVERALLOCATE_FACTOR = 4;
+
+    private static final int SIGN_BIT_MASK = ~(1 << 31);
+
+    // Prime numbers used in MRI
+    private static final int[] CAPACITIES = {
+            8 + 3,
+            16 + 3,
+            32 + 5,
+            64 + 3,
+            128 + 3,
+            256 + 27,
+            512 + 9,
+            1024 + 9,
+            2048 + 5,
+            4096 + 3,
+            8192 + 27,
+            16384 + 43,
+            32768 + 3,
+            65536 + 45,
+            131072 + 29,
+            262144 + 3,
+            524288 + 21,
+            1048576 + 7,
+            2097152 + 17,
+            4194304 + 15,
+            8388608 + 9,
+            16777216 + 43,
+            33554432 + 35,
+            67108864 + 15,
+            134217728 + 29,
+            268435456 + 3,
+            536870912 + 11,
+            1073741824 + 85
+    };
+
+    // endregion
+    // region Utilities
+
+    @TruffleBoundary
+    public static int capacityGreaterThan(int size) {
+        for (int capacity : CAPACITIES) {
+            if (capacity > size) {
+                return capacity;
+            }
+        }
+
+        return CAPACITIES[CAPACITIES.length - 1];
+    }
+
+    public static int getBucketIndex(int hashed, int bucketsCount) {
+        return (hashed & SIGN_BIT_MASK) % bucketsCount;
+    }
+
+    public static void addNewEntry(RubyContext context, RubyHash hash, int hashed, Object key, Object value) {
+        assert HashGuards.isBucketHash(hash);
+        assert HashOperations.verifyStore(context, hash);
+
+        final Entry[] buckets = ((EntryArrayHashStore) hash.store).entries;
+
+        final Entry entry = new Entry(hashed, key, value);
+
+        if (hash.firstInSequence == null) {
+            hash.firstInSequence = entry;
+        } else {
+            hash.lastInSequence.setNextInSequence(entry);
+            entry.setPreviousInSequence(hash.lastInSequence);
+        }
+
+        hash.lastInSequence = entry;
+
+        final int bucketIndex = getBucketIndex(hashed, buckets.length);
+
+        Entry previousInLookup = buckets[bucketIndex];
+
+        if (previousInLookup == null) {
+            buckets[bucketIndex] = entry;
+        } else {
+            while (previousInLookup.getNextInLookup() != null) {
+                previousInLookup = previousInLookup.getNextInLookup();
+            }
+
+            previousInLookup.setNextInLookup(entry);
+        }
+
+        hash.size += 1;
+
+        assert HashOperations.verifyStore(context, hash);
+    }
+
+    @TruffleBoundary
+    private static void resize(RubyContext context, RubyHash hash) {
+        assert HashGuards.isBucketHash(hash);
+        assert HashOperations.verifyStore(context, hash);
+
+        final int bucketsCount = capacityGreaterThan(hash.size) * OVERALLOCATE_FACTOR;
+        final Entry[] newEntries = new Entry[bucketsCount];
+
+        Entry entry = hash.firstInSequence;
+
+        while (entry != null) {
+            final int bucketIndex = getBucketIndex(entry.getHashed(), bucketsCount);
+            Entry previousInLookup = newEntries[bucketIndex];
+
+            if (previousInLookup == null) {
+                newEntries[bucketIndex] = entry;
+            } else {
+                while (previousInLookup.getNextInLookup() != null) {
+                    previousInLookup = previousInLookup.getNextInLookup();
+                }
+
+                previousInLookup.setNextInLookup(entry);
+            }
+
+            entry.setNextInLookup(null);
+            entry = entry.getNextInSequence();
+        }
+
+        hash.store = new EntryArrayHashStore(newEntries);
+        assert HashOperations.verifyStore(context, hash);
+    }
+
+    public static void getAdjacentObjects(Set<Object> reachable, Entry firstInSequence) {
+        Entry entry = firstInSequence;
+        while (entry != null) {
+            ObjectGraph.addProperty(reachable, entry.getKey());
+            ObjectGraph.addProperty(reachable, entry.getValue());
+            entry = entry.getNextInSequence();
+        }
+    }
+
+    private static void copyInto(RubyContext context, RubyHash from, RubyHash to) {
+        assert HashGuards.isBucketHash(from);
+        assert HashOperations.verifyStore(context, from);
+        assert HashOperations.verifyStore(context, to);
+
+        final Entry[] newEntries = new Entry[((EntryArrayHashStore) from.store).entries.length];
+
+        Entry firstInSequence = null;
+        Entry lastInSequence = null;
+
+        Entry entry = from.firstInSequence;
+
+        while (entry != null) {
+            final Entry newEntry = new Entry(entry.getHashed(), entry.getKey(), entry.getValue());
+
+            final int index = getBucketIndex(entry.getHashed(), newEntries.length);
+
+            newEntry.setNextInLookup(newEntries[index]);
+            newEntries[index] = newEntry;
+
+            if (firstInSequence == null) {
+                firstInSequence = newEntry;
+            }
+
+            if (lastInSequence != null) {
+                lastInSequence.setNextInSequence(newEntry);
+                newEntry.setPreviousInSequence(lastInSequence);
+            }
+
+            lastInSequence = newEntry;
+
+            entry = entry.getNextInSequence();
+        }
+
+        int size = from.size;
+        to.store = new EntryArrayHashStore(newEntries);
+        to.size = size;
+        to.firstInSequence = firstInSequence;
+        to.lastInSequence = lastInSequence;
+        assert HashOperations.verifyStore(context, to);
+    }
+
+    private static void removeFromSequenceChain(RubyHash hash, Entry entry) {
+        final Entry previousInSequence = entry.getPreviousInSequence();
+        final Entry nextInSequence = entry.getNextInSequence();
+
+        if (previousInSequence == null) {
+            assert hash.firstInSequence == entry;
+            hash.firstInSequence = nextInSequence;
+        } else {
+            assert hash.firstInSequence != entry;
+            previousInSequence.setNextInSequence(nextInSequence);
+        }
+
+        if (nextInSequence == null) {
+            assert hash.lastInSequence == entry;
+            hash.lastInSequence = previousInSequence;
+        } else {
+            assert hash.lastInSequence != entry;
+            nextInSequence.setPreviousInSequence(previousInSequence);
+        }
+    }
+
+    public static void removeFromLookupChain(RubyHash hash, int index, Entry entry, Entry previousEntry) {
+        if (previousEntry == null) {
+            ((EntryArrayHashStore) hash.store).entries[index] = entry.getNextInLookup();
+        } else {
+            previousEntry.setNextInLookup(entry.getNextInLookup());
+        }
+    }
+
+    // endregion
+    // region Messages
 
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
@@ -115,8 +328,8 @@ public class EntryArrayHashStore {
 
             // TODO CS 11-May-15 could store the next size for resize instead of doing a float operation each time
 
-            if (resize.profile(newSize / (double) entries.length > BucketsStrategy.LOAD_FACTOR)) {
-                BucketsStrategy.resize(context, hash);
+            if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
+                resize(context, hash);
             }
             assert HashOperations.verifyStore(context, hash);
             return true;
@@ -140,8 +353,8 @@ public class EntryArrayHashStore {
             return null;
         }
 
-        BucketsStrategy.removeFromSequenceChain(hash, entry);
-        BucketsStrategy.removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
+        removeFromSequenceChain(hash, entry);
+        removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
         hash.size -= 1;
         assert HashOperations.verifyStore(context, hash);
         return entry.getValue();
@@ -187,7 +400,7 @@ public class EntryArrayHashStore {
         }
 
         propagateSharing.executePropagate(dest, hash);
-        BucketsStrategy.copyInto(context, hash, dest);
+        copyInto(context, hash, dest);
         dest.defaultBlock = hash.defaultBlock;
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
@@ -248,7 +461,7 @@ public class EntryArrayHashStore {
             hash.lastInSequence = null;
         }
 
-        final int index = BucketsStrategy.getBucketIndex(first.getHashed(), this.entries.length);
+        final int index = getBucketIndex(first.getHashed(), this.entries.length);
 
         Entry previous = null;
         Entry entry = entries[index];
@@ -289,7 +502,7 @@ public class EntryArrayHashStore {
             entry.setHashed(newHash);
             entry.setNextInLookup(null);
 
-            final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
+            final int index = getBucketIndex(newHash, entries.length);
             Entry bucketEntry = entries[index];
 
             if (bucketEntry == null) {
@@ -305,7 +518,7 @@ public class EntryArrayHashStore {
                             newHash,
                             bucketEntry.getKey(),
                             bucketEntry.getHashed())) {
-                        BucketsStrategy.removeFromSequenceChain(hash, entry);
+                        removeFromSequenceChain(hash, entry);
                         size--;
                         break;
                     }
@@ -321,4 +534,6 @@ public class EntryArrayHashStore {
 
         assert HashOperations.verifyStore(context, hash);
     }
+
+    // endregion
 }
