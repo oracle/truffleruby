@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: Runtime Configurations
+link_title: Runtime Configurations
+permalink: /reference-manual/ruby/RuntimeConfigurations/
+redirect_from: /docs/reference-manual/ruby/RuntimeConfigurations/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/InstallingGraalVM/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Debugging/
+---
 # Deploying TruffleRuby
 
 If you are attempting to experiment with deploying TruffleRuby to production we would encourage you to contact us so we can help you understand what is possible at the moment and to help solve any issues for you.

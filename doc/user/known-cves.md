@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: Security
+link_title: Security
+permalink: /reference-manual/ruby/KnownCVEs/
+redirect_from: /docs/reference-manual/ruby/KnownCVEs/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Optcarrot/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/ReportingPerformanceProblems/
+---
 # Security
 
 Please report security vulnerabilities via the process outlined in the [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
@@ -28,7 +38,7 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
 CVE-2021-28966 | Path traversal in Tempfile on Windows | Sanitization of paths in tmpdir.rb | In `test/mri/tests/test_tmpdir.rb` | Sanitization of paths in tmpdir.rb
-CVE-2021-28965 | XML round-trip vulnerability in REXML | Update to REXML 3.2.5 | In ruby/rexml | Update to REXML 3.2.5 
+CVE-2021-28965 | XML round-trip vulnerability in REXML | Update to REXML 3.2.5 | In ruby/rexml | Update to REXML 3.2.5
 CVE-2020-10663 | Unsafe Object Creation Vulnerability in JSON (Additional fix) | [Fix](https://bugs.ruby-lang.org/issues/16698) | [Spec](https://github.com/ruby/spec/pull/764) | The pure Ruby version of JSON we use is safe
 CVE-2019-16255 | A code injection vulnerability of Shell#[] and Shell#test | [Fix](https://github.com/ruby/ruby/commit/d6adc68dc9c74a33b3ca012af171e2d59f0dea10) | MRI test | Same
 CVE-2019-16254 | HTTP response splitting in WEBrick (Additional fix) | [Fix](https://github.com/ruby/ruby/commit/3ce238b5f9795581eb84114dcfbdf4aa086bfecc) | MRI test | Same

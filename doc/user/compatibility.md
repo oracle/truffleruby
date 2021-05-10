@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: Compatibility
+link_title: Compatibility
+permalink: /reference-manual/ruby/Compatibility/
+redirect_from: /docs/reference-manual/ruby/Compatibility/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Debugging/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/
+---
 # Compatibility
 
 TruffleRuby aims to be fully compatible with the standard implementation of

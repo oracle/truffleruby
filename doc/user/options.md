@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: TruffleRuby Options
+link_title: TruffleRuby Options and Command Line
+permalink: /reference-manual/ruby/Options/
+redirect_from: /docs/reference-manual/ruby/Options/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Polyglot/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/JRubyMigration/
+---
 # TruffleRuby Options and Command Line
 
 TruffleRuby has the same command-line interface as our compatible MRI version.

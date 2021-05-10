@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: Standalone Distribution
+link_title: Standalone Distribution
+permalink: /reference-manual/ruby/StandaloneDistribution/
+redirect_from: /docs/reference-manual/ruby/StandaloneDistribution/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Tools/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/RubyManagers/
+---
 # Standalone Distribution
 
 For details regarding the three ways to install TruffleRuby, see [Getting Started](../../README.md#getting-started).

@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: Using Ruby with GraalVM
+link_title: Using Ruby with GraalVM
+permalink: /reference-manual/ruby/InstallingGraalVM/
+redirect_from: /docs/reference-manual/ruby/InstallingGraalVM/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Installinglibssl/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/RuntimeConfigurations/
+---
 # Using TruffleRuby with GraalVM
 
 [GraalVM](http://graalvm.org/) is the platform on which TruffleRuby runs.

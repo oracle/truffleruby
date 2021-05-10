@@ -1,3 +1,13 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: Installing `libssl`
+link_title: Installing `libssl`
+permalink: /reference-manual/ruby/Installinglibssl/
+redirect_from: /docs/reference-manual/ruby/Installinglibssl/
+next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/InstallingLLVM/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/InstallingGraalVM/
+---
 # Installing `libssl`
 
 TruffleRuby provides the `openssl` module but not the native `libssl` system library that the module uses.

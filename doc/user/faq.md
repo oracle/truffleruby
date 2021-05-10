@@ -1,3 +1,12 @@
+---
+layout: docs-experimental
+toc_group: ruby
+title: FAQ
+link_title: FAQ
+permalink: /reference-manual/ruby/FAQ/
+redirect_from: /docs/reference-manual/ruby/FAQ/
+previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Optcarrot/
+---
 # Frequently Asked Questions
 
 ### What is TruffleRuby?
