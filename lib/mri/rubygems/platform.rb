@@ -41,7 +41,7 @@ class Gem::Platform
 
   def self.match_gem?(platform, gem_name)
     raise unless String === gem_name
-    if gem_name == 'libv8'
+    if gem_name == 'libv8' or gem_name == 'sorbet-static'
       match_platforms?(platform, [Gem::Platform::RUBY, Gem::Platform.local])
     else
       match_platforms?(platform, Gem.platforms)
