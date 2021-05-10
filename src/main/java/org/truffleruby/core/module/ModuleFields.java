@@ -798,19 +798,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public InternalMethod getMethodAndAssumption(String name, List<Assumption> assumptions) {
-        MethodEntry methodEntry = ConcurrentOperations.getOrCompute(
-                methods,
-                name,
-                n -> new MethodEntry());
+        MethodEntry methodEntry = ConcurrentOperations.getOrCompute(methods, name, n -> new MethodEntry());
         assumptions.add(methodEntry.getAssumption());
         return methodEntry.getMethod();
     }
 
+    @TruffleBoundary
     public Assumption getOrCreateMethodAssumption(String name) {
-        return ConcurrentOperations.getOrCompute(
-                methods,
-                name,
-                n -> new MethodEntry()).getAssumption();
+        return ConcurrentOperations.getOrCompute(methods, name, n -> new MethodEntry()).getAssumption();
     }
 
     /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
