@@ -292,7 +292,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         newHierarchyVersion();
     }
 
-    public void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
+    private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
         while (!moduleAncestors.isEmpty()) {
             RubyModule mod = moduleAncestors.pop();
             newMethodsVersion(mod.fields.getMethodNames());
@@ -300,7 +300,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public boolean isIncludedModuleBeforeSuperClass(RubyModule module) {
+    private boolean isIncludedModuleBeforeSuperClass(RubyModule module) {
         ModuleChain included = parentModule;
         while (included instanceof IncludedModule) {
             if (included.getActualModule() == module) {
