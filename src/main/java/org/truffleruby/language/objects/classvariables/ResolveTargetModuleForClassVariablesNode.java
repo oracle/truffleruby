@@ -25,7 +25,7 @@ public abstract class ResolveTargetModuleForClassVariablesNode extends RubyBaseN
 
     public abstract RubyModule execute(LexicalScope lexicalScope);
 
-    @Specialization(guards = "lexicalScope == cachedLexicalScope")
+    @Specialization(guards = { "isSingleContext()", "lexicalScope == cachedLexicalScope" })
     protected RubyModule cached(LexicalScope lexicalScope,
             @Cached("lexicalScope") LexicalScope cachedLexicalScope,
             @Cached("uncached(lexicalScope)") RubyModule cachedModule) {
