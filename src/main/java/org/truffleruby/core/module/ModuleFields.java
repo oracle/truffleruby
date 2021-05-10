@@ -295,10 +295,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
         while (!moduleAncestors.isEmpty()) {
             RubyModule mod = moduleAncestors.pop();
+            inclusionPoint.insertAfter(mod);
             // Module#include only adds modules between the current class and the super class,
             // so invalidating the current class is enough as all affected lookups would go through the current class.
             newMethodsVersion(mod.fields.getMethodNames());
-            inclusionPoint.insertAfter(mod);
         }
     }
 
@@ -337,8 +337,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (!(mod instanceof PrependMarker)) {
                 final RubyModule actualModule = mod.getActualModule();
                 if (!ModuleOperations.includesModule(rubyModule, actualModule)) {
-                    moduleFieldsToInvalidate.newMethodsVersion(actualModule.fields.getMethodNames());
                     cur.insertAfter(actualModule);
+                    moduleFieldsToInvalidate.newMethodsVersion(actualModule.fields.getMethodNames());
                     cur = cur.getParentModule();
                 }
             }
