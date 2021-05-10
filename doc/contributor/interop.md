@@ -58,8 +58,8 @@ exception like
 it raises corresponding Ruby exception available in `Truffle::Interop` module.
 The names are the same, e.g. `Truffle::Interop::UnsupportedMessageException`.
 These exceptions inherit from `Exception`, therefore they are not caught by
-default in `rescue` (which catches descendants of `StandardError`). Only `Truffle::Interop::ArityException`takes an
-argument, an `Integer` to describe the number of expected arguments.
+default in `rescue` (which catches descendants of `StandardError`). Only `Truffle::Interop::ArityException`takes
+arguments, two `Integer`s to describe the minimum and maximum number of expected arguments.
 
 The detailed definitions of the behavior can be found in
 [another document](interop_details.md).
