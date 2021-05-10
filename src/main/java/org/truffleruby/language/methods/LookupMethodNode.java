@@ -89,7 +89,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         // Lookup first in the metaclass as we are likely to find the method there
         final ModuleFields fields = metaClass.fields;
         InternalMethod topMethod;
-        if (noPrependedModulesProfile.profile(fields.getFirstModuleChain() == fields) &&
+        if (noPrependedModulesProfile.profile(!fields.hasPrependedModules()) &&
                 onMetaClassProfile.profile((topMethod = fields.getMethod(name)) != null) &&
                 !hasRefinementsProfile.profile(declarationContext != null && declarationContext.hasRefinements())) {
             method = topMethod;

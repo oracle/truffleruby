@@ -177,7 +177,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    private boolean hasPrependedModules() {
+    public boolean hasPrependedModules() {
         return start.getParentModule() != this;
     }
 
