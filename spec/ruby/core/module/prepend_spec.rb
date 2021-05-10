@@ -36,6 +36,77 @@ describe "Module#prepend" do
     ScratchPad.recorded.should == [ [ m3, c], [ m2, c ], [ m, c ] ]
   end
 
+  it "updates the method when a module is prepended" do
+    m_module = Module.new do
+      def foo
+        "m"
+      end
+    end
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+    b_class = Class.new(a_class)
+    b = b_class.new
+    foo = -> { b.foo }
+    foo.call.should == 'a'
+    a_class.class_eval do
+      prepend m_module
+    end
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when a prepended module is updated" do
+    m_module = Module.new
+    a_class = Class.new do
+      prepend m_module
+      def foo
+        'a'
+      end
+    end
+    b_class = Class.new(a_class)
+    b = b_class.new
+    foo = -> { b.foo }
+    foo.call.should == 'a'
+    m_module.module_eval do
+      def foo
+        "m"
+      end
+    end
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when a new module with an included module is prepended" do
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+
+    n_module = Module.new do
+      def foo
+        'n'
+      end
+    end
+
+    m_module = Module.new  do
+      include n_module
+    end
+
+    b_class = Class.new(a_class)
+    b = b_class.new
+    foo = -> { b.foo }
+
+    foo.call.should == 'a'
+
+    a_class.class_eval do
+      prepend m_module
+    end
+
+    foo.call.should == 'n'
+  end
+
   it "raises a TypeError when the argument is not a Module" do
     -> { ModuleSpecs::Basic.prepend(Class.new) }.should raise_error(TypeError)
   end

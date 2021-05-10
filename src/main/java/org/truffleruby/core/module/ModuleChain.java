@@ -9,12 +9,10 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-
 /** Either an IncludedModule, a RubyClass or a RubyModule. Private interface, do not use outside RubyModule. */
 public abstract class ModuleChain {
 
-    @CompilationFinal protected ModuleChain parentModule;
+    protected ModuleChain parentModule;
 
     public ModuleChain(ModuleChain parentModule) {
         this.parentModule = parentModule;

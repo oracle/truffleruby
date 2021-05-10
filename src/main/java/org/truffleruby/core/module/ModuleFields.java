@@ -10,12 +10,16 @@
 package org.truffleruby.core.module;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -29,6 +33,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.method.MethodEntry;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -45,6 +50,7 @@ import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
@@ -95,7 +101,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     /** The namespace module (M) around the #refine call */
     private RubyModule refinementNamespace;
 
-    private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, MethodEntry> methods = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ClassVariableStorage classVariables;
 
@@ -103,7 +109,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * map of refined classes and modules (C) to refinement modules (R). */
     private final ConcurrentMap<RubyModule, RubyModule> refinements = new ConcurrentHashMap<>();
 
-    private final CyclicAssumption methodsUnmodifiedAssumption;
     private final CyclicAssumption constantsUnmodifiedAssumption;
 
     // Concurrency: only modified during boot
@@ -121,7 +126,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
         this.rubyModule = rubyModule;
-        this.methodsUnmodifiedAssumption = new CyclicAssumption("methods are unmodified");
         this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
@@ -175,7 +179,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    private boolean hasPrependedModules() {
+    public boolean hasPrependedModules() {
         return start.getParentModule() != this;
     }
 
@@ -188,8 +192,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         // Do not copy name, the copy is an anonymous module
         final ModuleFields fromFields = from.fields;
 
-        for (InternalMethod method : fromFields.methods.values()) {
-            this.methods.put(method.getName(), method.withDeclaringModule(rubyModule));
+        for (MethodEntry methodEntry : fromFields.methods.values()) {
+            if (methodEntry.getMethod() != null) {
+                MethodEntry newMethodEntry = new MethodEntry(methodEntry
+                        .getMethod()
+                        .withDeclaringModule(rubyModule));
+                this.methods.put(methodEntry.getMethod().getName(), newMethodEntry);
+            }
         }
 
         for (Entry<String, RubyConstant> entry : fromFields.constants.entrySet()) {
@@ -285,14 +294,17 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         newHierarchyVersion();
     }
 
-    public void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
+    private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
         while (!moduleAncestors.isEmpty()) {
             RubyModule mod = moduleAncestors.pop();
             inclusionPoint.insertAfter(mod);
+            // Module#include only adds modules between the current class and the super class,
+            // so invalidating the current class is enough as all affected lookups would go through the current class.
+            newMethodsVersion(mod.fields.getMethodNames());
         }
     }
 
-    public boolean isIncludedModuleBeforeSuperClass(RubyModule module) {
+    private boolean isIncludedModuleBeforeSuperClass(RubyModule module) {
         ModuleChain included = parentModule;
         while (included instanceof IncludedModule) {
             if (included.getActualModule() == module) {
@@ -316,14 +328,19 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
+        // Previous calls on instances of the current class must have looked up through the first prepended module,
+        // so invalidate that one.
+        final ModuleFields moduleFieldsToInvalidate = getFirstModuleChain().getActualModule().fields;
+
         ModuleChain mod = module.fields.start;
-        final ModuleChain topPrependedModule = start.getParentModule();
         ModuleChain cur = start;
         while (mod != null &&
                 !(mod instanceof ModuleFields && ((ModuleFields) mod).rubyModule instanceof RubyClass)) {
             if (!(mod instanceof PrependMarker)) {
-                if (!ModuleOperations.includesModule(rubyModule, mod.getActualModule())) {
-                    cur.insertAfter(mod.getActualModule());
+                final RubyModule actualModule = mod.getActualModule();
+                if (!ModuleOperations.includesModule(rubyModule, actualModule)) {
+                    cur.insertAfter(actualModule);
+                    moduleFieldsToInvalidate.newMethodsVersion(actualModule.fields.getMethodNames());
                     cur = cur.getParentModule();
                 }
             }
@@ -331,11 +348,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         // If there were already prepended modules, invalidate the first of them
-        if (topPrependedModule != this) {
-            topPrependedModule.getActualModule().fields.newHierarchyVersion();
-        } else {
-            this.newHierarchyVersion();
-        }
+        moduleFieldsToInvalidate.newHierarchyVersion();
 
         invalidateBuiltinsAssumptions();
     }
@@ -445,10 +458,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        methods.put(method.getName(), method);
+        MethodEntry previousMethodEntry = methods.put(method.getName(), new MethodEntry(method));
 
         if (!context.getCoreLibrary().isInitializing()) {
-            newMethodsVersion();
+            if (previousMethodEntry != null) {
+                previousMethodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, method.getName()));
+            }
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
             if (refinedModule != null) {
@@ -474,9 +489,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return false;
         }
 
-        methods.remove(methodName);
+        MethodEntry removedEntry = methods.remove(methodName);
+        if (removedEntry != null) {
+            removedEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, methodName));
+        }
 
-        newMethodsVersion();
         changedMethod(methodName);
         return true;
     }
@@ -711,28 +728,35 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public void newHierarchyVersion() {
         newConstantsVersion();
-        newMethodsVersion();
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
         }
     }
 
-    public void newMethodsVersion() {
-        methodsUnmodifiedAssumption.invalidate(givenBaseName);
+    public void newMethodsVersion(List<String> methodsToInvalidate) {
+        for (String entryToInvalidate : methodsToInvalidate) {
+            while (true) {
+                final MethodEntry methodEntry = methods.get(entryToInvalidate);
+                if (methodEntry == null) {
+                    break;
+                } else {
+                    methodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entryToInvalidate));
+                    if (methods.replace(entryToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public Assumption getConstantsUnmodifiedAssumption() {
         return constantsUnmodifiedAssumption.getAssumption();
     }
 
-    public Assumption getMethodsUnmodifiedAssumption() {
-        return methodsUnmodifiedAssumption.getAssumption();
-    }
-
     public Assumption getHierarchyUnmodifiedAssumption() {
         // Both assumptions are invalidated on hierarchy changes, just pick one of them.
-        return getMethodsUnmodifiedAssumption();
+        return getConstantsUnmodifiedAssumption();
     }
 
     public Iterable<Entry<String, RubyConstant>> getConstants() {
@@ -744,13 +768,77 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return constants.get(name);
     }
 
+    private static final class MethodsIterator implements Iterator<InternalMethod> {
+        final Iterator<MethodEntry> methodEntries;
+        InternalMethod nextElement;
+
+        MethodsIterator(Collection<MethodEntry> methodEntries) {
+            this.methodEntries = methodEntries.iterator();
+            computeNext();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return nextElement != null;
+        }
+
+        @Override
+        public InternalMethod next() {
+            final InternalMethod element = nextElement;
+            if (element == null) {
+                throw new NoSuchElementException();
+            }
+            computeNext();
+            return element;
+        }
+
+        private void computeNext() {
+            if (methodEntries.hasNext()) {
+                MethodEntry methodEntry = methodEntries.next();
+                while (methodEntries.hasNext() && methodEntry.getMethod() == null) {
+                    methodEntry = methodEntries.next();
+                }
+                nextElement = methodEntry.getMethod();
+            } else {
+                nextElement = null;
+            }
+        }
+    }
+
     public Iterable<InternalMethod> getMethods() {
-        return methods.values();
+        return () -> new MethodsIterator(methods.values());
+    }
+
+    public List<String> getMethodNames() {
+        List<String> results = new ArrayList<>();
+        for (Entry<String, MethodEntry> entry : methods.entrySet()) {
+            if (entry.getValue().getMethod() != null) {
+                results.add(entry.getKey());
+            }
+        }
+        return results;
     }
 
     @TruffleBoundary
     public InternalMethod getMethod(String name) {
-        return methods.get(name);
+        MethodEntry methodEntry = methods.get(name);
+        if (methodEntry != null) {
+            return methodEntry.getMethod();
+        } else {
+            return null;
+        }
+    }
+
+    @TruffleBoundary
+    public InternalMethod getMethodAndAssumption(String name, List<Assumption> assumptions) {
+        MethodEntry methodEntry = ConcurrentOperations.getOrCompute(methods, name, n -> new MethodEntry());
+        assumptions.add(methodEntry.getAssumption());
+        return methodEntry.getMethod();
+    }
+
+    @TruffleBoundary
+    public Assumption getOrCreateMethodAssumption(String name) {
+        return ConcurrentOperations.getOrCompute(methods, name, n -> new MethodEntry()).getAssumption();
     }
 
     /** All write accesses to this object should use {@code synchronized (getClassVariables()) { ... }}, or check that
@@ -766,6 +854,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void setSuperClass(RubyClass superclass) {
         assert rubyModule instanceof RubyClass;
         this.parentModule = superclass.fields.start;
+        newMethodsVersion(new ArrayList<>(methods.keySet()));
         newHierarchyVersion();
     }
 
@@ -789,7 +878,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getAllMethods(rubyModule);
         } else {
-            allMethods = methods;
+            allMethods = getInternalMethodMap();
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -815,7 +904,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getMethodsBeforeLogicalClass(rubyModule);
         } else {
-            allMethods = methods;
+            allMethods = getInternalMethodMap();
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -834,6 +923,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         return filtered;
+    }
+
+    private Map<String, InternalMethod> getInternalMethodMap() {
+        Map<String, InternalMethod> map = new HashMap<>();
+        for (Entry<String, MethodEntry> e : methods.entrySet()) {
+            if (e.getValue().getMethod() != null) {
+                map.put(e.getKey(), e.getValue().getMethod());
+            }
+        }
+        return map;
     }
 
     public RubyClass getLogicalClass() {
@@ -866,8 +965,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        for (InternalMethod method : methods.values()) {
-            ObjectGraph.addProperty(adjacent, method);
+        for (MethodEntry methodEntry : methods.values()) {
+            if (methodEntry.getMethod() != null) {
+                ObjectGraph.addProperty(adjacent, methodEntry.getMethod());
+            }
         }
     }
 
