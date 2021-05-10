@@ -15,9 +15,11 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -766,14 +768,45 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return constants.get(name);
     }
 
-    public Iterable<InternalMethod> getMethods() {
-        List<InternalMethod> results = new ArrayList<>();
-        for (MethodEntry methodEntry : methods.values()) {
-            if (methodEntry.getMethod() != null) {
-                results.add(methodEntry.getMethod());
+    private static final class MethodsIterator implements Iterator<InternalMethod> {
+        final Iterator<MethodEntry> methodEntries;
+        InternalMethod nextElement;
+
+        MethodsIterator(Collection<MethodEntry> methodEntries) {
+            this.methodEntries = methodEntries.iterator();
+            computeNext();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return nextElement != null;
+        }
+
+        @Override
+        public InternalMethod next() {
+            final InternalMethod element = nextElement;
+            if (element == null) {
+                throw new NoSuchElementException();
+            }
+            computeNext();
+            return element;
+        }
+
+        private void computeNext() {
+            if (methodEntries.hasNext()) {
+                MethodEntry methodEntry = methodEntries.next();
+                while (methodEntries.hasNext() && methodEntry.getMethod() == null) {
+                    methodEntry = methodEntries.next();
+                }
+                nextElement = methodEntry.getMethod();
+            } else {
+                nextElement = null;
             }
         }
-        return results;
+    }
+
+    public Iterable<InternalMethod> getMethods() {
+        return () -> new MethodsIterator(methods.values());
     }
 
     public List<String> getMethodNames() {
