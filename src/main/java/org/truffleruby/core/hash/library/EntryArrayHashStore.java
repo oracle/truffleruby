@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -256,7 +257,7 @@ public class EntryArrayHashStore {
         }
     }
 
-    public static void removeFromLookupChain(RubyHash hash, int index, Entry entry, Entry previousEntry) {
+    private static void removeFromLookupChain(RubyHash hash, int index, Entry entry, Entry previousEntry) {
         if (previousEntry == null) {
             ((EntryArrayHashStore) hash.store).entries[index] = entry.getNextInLookup();
         } else {
@@ -355,6 +356,45 @@ public class EntryArrayHashStore {
 
         removeFromSequenceChain(hash, entry);
         removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
+        hash.size -= 1;
+        assert HashOperations.verifyStore(context, hash);
+        return entry.getValue();
+    }
+
+    @ExportMessage
+    protected Object deleteLast(RubyHash hash, Object key,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+        final Entry lastEntry = hash.lastInSequence;
+        if (key != lastEntry.getKey()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives
+                    .shouldNotReachHere("The last key was not " + key + " as expected but was " + lastEntry.getKey());
+        }
+
+        // Lookup previous entry
+        final int index = getBucketIndex(lastEntry.getHashed(), entries.length);
+        Entry entry = entries[index];
+        Entry previousEntry = null;
+        while (entry != lastEntry) {
+            previousEntry = entry;
+            entry = entry.getNextInLookup();
+        }
+        assert entry.getNextInSequence() == null;
+
+        if (hash.firstInSequence == entry) {
+            assert entry.getPreviousInSequence() == null;
+            hash.firstInSequence = null;
+            hash.lastInSequence = null;
+        } else {
+            assert entry.getPreviousInSequence() != null;
+            final Entry previousInSequence = entry.getPreviousInSequence();
+            previousInSequence.setNextInSequence(null);
+            hash.lastInSequence = previousInSequence;
+        }
+
+        removeFromLookupChain(hash, index, entry, previousEntry);
         hash.size -= 1;
         assert HashOperations.verifyStore(context, hash);
         return entry.getValue();

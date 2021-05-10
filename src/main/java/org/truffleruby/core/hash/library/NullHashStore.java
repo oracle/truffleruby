@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -59,6 +60,11 @@ public class NullHashStore {
     @ExportMessage
     protected Object delete(RubyHash hash, Object key) {
         return null;
+    }
+
+    @ExportMessage
+    protected Object deleteLast(RubyHash hash, Object key) {
+        throw CompilerDirectives.shouldNotReachHere("Cannot delete the last node of an empty hash");
     }
 
     @ExportMessage

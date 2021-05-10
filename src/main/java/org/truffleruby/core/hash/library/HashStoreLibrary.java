@@ -77,6 +77,12 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract Object delete(Object store, RubyHash hash, Object key);
 
+    /** A helper for detect_recursion. A variant of {@link #delete(Object, RubyHash, Object) }optimized for removing the
+     * most recently added key, because we are using the hash like a stack and guarantee that the last entry we added is
+     * the one we'll want to delete. Checks that the deleted key is the one expected by the user. */
+    @Abstract
+    public abstract Object deleteLast(Object store, RubyHash hash, Object key);
+
     /** Calls {@code callback} on every entry in the hash. */
     @Abstract
     public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, PEBiConsumer callback,

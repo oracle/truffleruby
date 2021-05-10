@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -90,7 +91,7 @@ public class PackedHashStoreLibrary {
         setValue(store, n, value);
     }
 
-    public static void removeEntry(RubyLanguage language, Object[] store, int n) {
+    private static void removeEntry(RubyLanguage language, Object[] store, int n) {
         assert verifyIntegerHashes(language, store);
 
         final int index = n * ELEMENTS_PER_ENTRY;
@@ -244,6 +245,26 @@ public class PackedHashStoreLibrary {
         }
         assert HashOperations.verifyStore(context, hash);
         return null;
+    }
+
+    @ExportMessage
+    protected static Object deleteLast(Object[] store, RubyHash hash, Object key,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert HashOperations.verifyStore(context, hash);
+        final int n = hash.size - 1;
+        final Object lastKey = getKey(store, n);
+        if (key != lastKey) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives
+                    .shouldNotReachHere("The last key was not " + key + " as expected but was " + lastKey);
+        }
+        final Object value = getValue(store, n);
+        removeEntry(language, store, n);
+        hash.size -= 1;
+        assert HashOperations.verifyStore(context, hash);
+        return value;
     }
 
     @ExportMessage

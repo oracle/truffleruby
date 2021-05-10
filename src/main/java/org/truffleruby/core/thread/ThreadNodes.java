@@ -72,7 +72,6 @@ import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
-import org.truffleruby.core.hash.DeleteLastNode;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
@@ -744,14 +743,13 @@ public abstract class ThreadNodes {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
         @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
-        @Child private DeleteLastNode delNode = DeleteLastNode.create();
 
         protected boolean add(RubyHash hash, Object key, Object value) {
             return hashes.set(hash.store, hash, key, value, true);
         }
 
         protected Object removeLast(RubyHash hash, Object key) {
-            return delNode.executeDeleteLast(hash, key);
+            return hashes.deleteLast(hash.store, hash, key);
         }
 
         @Specialization
