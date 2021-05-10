@@ -878,13 +878,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getAllMethods(rubyModule);
         } else {
-            Map<String, InternalMethod> results = new HashMap<>();
-            for (Entry<String, MethodEntry> e : methods.entrySet()) {
-                if (e.getValue().getMethod() != null) {
-                    results.put(e.getKey(), e.getValue().getMethod());
-                }
-            }
-            allMethods = results;
+            allMethods = getInternalMethodMap();
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -910,13 +904,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (includeAncestors) {
             allMethods = ModuleOperations.getMethodsBeforeLogicalClass(rubyModule);
         } else {
-            Map<String, InternalMethod> results = new HashMap<>();
-            for (Entry<String, MethodEntry> e : methods.entrySet()) {
-                if (e.getValue().getMethod() != null) {
-                    results.put(e.getKey(), e.getValue().getMethod());
-                }
-            }
-            allMethods = results;
+            allMethods = getInternalMethodMap();
         }
         return filterMethods(language, allMethods, filter);
     }
@@ -935,6 +923,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         return filtered;
+    }
+
+    private Map<String, InternalMethod> getInternalMethodMap() {
+        Map<String, InternalMethod> map = new HashMap<>();
+        for (Entry<String, MethodEntry> e : methods.entrySet()) {
+            if (e.getValue().getMethod() != null) {
+                map.put(e.getKey(), e.getValue().getMethod());
+            }
+        }
+        return map;
     }
 
     public RubyClass getLogicalClass() {
