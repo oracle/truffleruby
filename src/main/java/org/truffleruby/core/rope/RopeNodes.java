@@ -866,6 +866,25 @@ public abstract class RopeNodes {
             return nil;
         }
 
+        @TruffleBoundary
+        @Specialization
+        protected Object debugPrintNative(NativeRope rope, int currentLevel, boolean printString) {
+            printPreamble(currentLevel);
+
+            System.err.println(String.format(
+                    "%s (%s; BL: %d; CL: %d; CR: %s; P: 0x%x, S: %d; E: %s)",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
+                    rope.getClass().getSimpleName(),
+                    rope.byteLength(),
+                    rope.characterLength(),
+                    rope.getCodeRange(),
+                    rope.getNativePointer().getAddress(),
+                    rope.getNativePointer().getSize(),
+                    rope.getEncoding()));
+
+            return nil;
+        }
+
         private void printPreamble(int level) {
             if (level > 0) {
                 for (int i = 0; i < level; i++) {

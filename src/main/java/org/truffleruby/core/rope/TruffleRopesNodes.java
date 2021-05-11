@@ -80,6 +80,8 @@ public abstract class TruffleRopesNodes {
             System.err.println("LD = Left Depth (ConcatRope only)");
             System.err.println("RD = Right Depth (ConcatRope only)");
             System.err.println("E = Encoding");
+            System.err.println("P = Native Pointer (NativeRope only)");
+            System.err.println("S = Native Size (NativeRope only)");
 
             return debugPrintRopeNode.executeDebugPrint(strings.getRope(string), 0, printString);
         }
