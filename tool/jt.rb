@@ -2178,16 +2178,22 @@ module Commands
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options
 
-    env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
+    process_env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
 
-    mx(env, *mx_args, 'build', *mx_build_options)
+    mx(process_env, *mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: :out).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     dest_ruby = "#{dest}/#{language_dir(build_dir)}/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
-    File.symlink(build_dir, dest)
+    if @ruby_name != @mx_env
+      # if `--name NAME` is passed, we want to copy so we don't end up with two symlinks
+      # to the same directory for the same --env but different names
+      FileUtils.cp_r(build_dir, dest)
+    else
+      File.symlink(build_dir, dest)
+    end
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
