@@ -23,11 +23,13 @@ module Truffle
     class UnsupportedTypeException < InteropException; end
     class UnknownKeyException < InteropException; end
     class ArityException < InteropException
-      attr_reader :expected
+      attr_reader :min_expected, :max_expected
 
-      def initialize(expected)
-        @expected = expected
-        raise ArgumentError unless expected.is_a? Integer
+      def initialize(min_expected, max_expected = min_expected)
+        raise ArgumentError unless Primitive.object_kind_of?(min_expected, Integer)
+        raise ArgumentError unless Primitive.object_kind_of?(max_expected, Integer)
+        @min_expected = min_expected
+        @max_expected = max_expected
       end
     end
 

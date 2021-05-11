@@ -125,9 +125,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return new RaiseException(
                 context,
-                context.getCoreExceptions().argumentError(
+                context.getCoreExceptions().argumentErrorMinMaxArity(
                         exception.getActualArity(),
-                        exception.getExpectedArity(),
+                        exception.getExpectedMinArity(),
+                        exception.getExpectedMaxArity(),
                         this),
                 exception);
     }

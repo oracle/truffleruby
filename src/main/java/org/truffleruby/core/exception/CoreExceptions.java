@@ -209,6 +209,17 @@ public class CoreExceptions {
                 required + optional), currentNode);
     }
 
+    @TruffleBoundary
+    public RubyException argumentErrorMinMaxArity(int passed, int minArity, int maxArity, Node currentNode) {
+        if (minArity == maxArity) {
+            return argumentError(passed, minArity, currentNode);
+        } else if (maxArity < 0) {
+            return argumentErrorPlus(passed, minArity, currentNode);
+        } else {
+            return argumentError(passed, minArity, maxArity - minArity, currentNode);
+        }
+    }
+
     public RubyException argumentErrorEmptyVarargs(Node currentNode) {
         return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.getRope(), currentNode, null);
     }
