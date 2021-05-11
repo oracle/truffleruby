@@ -170,9 +170,10 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "convert_to_native", onSingleton = true, required = 1)
     public abstract static class NativeRopeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        protected RubyString nativeRope(RubyString string,
-                @Cached CExtNodes.StringToNativeNode toNativeNode) {
+        @Specialization(guards = "strings.isRubyString(string)")
+        protected Object nativeRope(Object string,
+                @Cached CExtNodes.StringToNativeNode toNativeNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             toNativeNode.executeToNative(string);
             return string;
         }
