@@ -23,12 +23,12 @@ public final class MethodEntry {
 
     public MethodEntry(InternalMethod method) {
         assert method != null;
-        this.assumption = Truffle.getRuntime().createAssumption();
+        this.assumption = Truffle.getRuntime().createAssumption("method is not overridden:");
         this.method = method;
     }
 
     public MethodEntry() {
-        this.assumption = Truffle.getRuntime().createAssumption();
+        this.assumption = Truffle.getRuntime().createAssumption("method is not defined:");
         this.method = null;
     }
 
