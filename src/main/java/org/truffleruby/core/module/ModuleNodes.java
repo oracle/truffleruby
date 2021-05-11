@@ -90,6 +90,7 @@ import org.truffleruby.language.WarningNode.UncachedWarningNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
@@ -936,15 +937,16 @@ public abstract class ModuleNodes {
         protected RubyArray constants(RubyModule module, boolean inherit) {
             final List<RubySymbol> constantsArray = new ArrayList<>();
 
-            final Iterable<Entry<String, RubyConstant>> constants;
+            final Iterable<Entry<String, ConstantEntry>> constants;
             if (inherit) {
                 constants = ModuleOperations.getAllConstants(module);
             } else {
                 constants = module.fields.getConstants();
             }
 
-            for (Entry<String, RubyConstant> constant : constants) {
-                if (!constant.getValue().isPrivate()) {
+            for (Entry<String, ConstantEntry> constant : constants) {
+                if (constant.getValue().getConstant() != null &&
+                        !constant.getValue().getConstant().isPrivate()) {
                     constantsArray.add(getSymbol(constant.getKey()));
                 }
             }

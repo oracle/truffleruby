@@ -46,6 +46,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
@@ -103,7 +104,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private RubyModule refinementNamespace;
 
     private final ConcurrentMap<String, MethodEntry> methods = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ConstantEntry> constants = new ConcurrentHashMap<>();
     private final ClassVariableStorage classVariables;
 
     /** The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
@@ -179,9 +180,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void updateAnonymousChildrenModules(RubyContext context) {
-        for (Map.Entry<String, RubyConstant> entry : constants.entrySet()) {
-            RubyConstant constant = entry.getValue();
-            if (constant.hasValue() && constant.getValue() instanceof RubyModule) {
+        for (Map.Entry<String, ConstantEntry> entry : constants.entrySet()) {
+            ConstantEntry constantEntry = entry.getValue();
+            RubyConstant constant = constantEntry.getConstant();
+            if (constant != null && constant.hasValue() && constant.getValue() instanceof RubyModule) {
                 RubyModule module = (RubyModule) constant.getValue();
                 if (!module.fields.hasFullName()) {
                     module.fields.getAdoptedByLexicalParent(
@@ -216,8 +218,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        for (Entry<String, RubyConstant> entry : fromFields.constants.entrySet()) {
-            this.constants.put(entry.getKey(), entry.getValue());
+        for (Entry<String, ConstantEntry> entry : fromFields.constants.entrySet()) {
+            this.constants.put(entry.getKey(), new ConstantEntry(entry.getValue().getConstant()));
         }
 
         for (Object key : fromFields.classVariables.getShape().getKeys()) {
@@ -441,8 +443,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 : null;
         RubyConstant previous;
         RubyConstant newConstant;
-        do {
-            previous = constants.get(name);
+        ConstantEntry previousEntry;
+        while (true) {
+            previousEntry = constants.get(name);
+            previous = previousEntry != null ? previousEntry.getConstant() : null;
             if (autoload && previous != null) {
                 if (previous.hasValue()) {
                     // abort, do not set an autoload constant, the constant already has a value
@@ -455,9 +459,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 }
             }
             newConstant = newConstant(currentNode, name, value, autoload, previous);
-        } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
+            if (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant))) {
 
-        newConstantsVersion();
+            } else {
+                if (previousEntry != null) {
+                    previousEntry.invalidate("SetInternal-" + name);
+                }
+                break;
+            }
+        }
+
         return autoload ? newConstant : previous;
     }
 
@@ -472,9 +483,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public RubyConstant removeConstant(RubyContext context, Node currentNode, String name) {
         checkFrozen(context, currentNode);
-        final RubyConstant oldConstant = constants.remove(name);
-        newConstantsVersion();
-        return oldConstant;
+        final ConstantEntry oldConstant = constants.remove(name);
+        if (oldConstant != null) {
+            oldConstant.invalidate("Remove-" + name);
+        }
+        return oldConstant != null ? oldConstant.getConstant() : null;
     }
 
     @TruffleBoundary
@@ -602,7 +615,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             final boolean isPrivate) {
 
         while (true) {
-            final RubyConstant previous = constants.get(name);
+            final ConstantEntry previousEntry = constants.get(name);
+            final RubyConstant previous = previousEntry != null ? previousEntry.getConstant() : null;
 
             if (previous == null) {
                 throw new RaiseException(
@@ -613,8 +627,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                                 currentNode));
             }
 
-            if (constants.replace(name, previous, previous.withPrivate(isPrivate))) {
-                newConstantsVersion();
+            if (constants.replace(name, previousEntry, new ConstantEntry(previous.withPrivate(isPrivate)))) {
+                previousEntry.invalidate("ChangeVisibility-" + name);
                 break;
             }
         }
@@ -623,7 +637,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public void deprecateConstant(RubyContext context, Node currentNode, String name) {
         while (true) {
-            final RubyConstant previous = constants.get(name);
+            final ConstantEntry previousEntry = constants.get(name);
+            final RubyConstant previous = previousEntry != null ? previousEntry.getConstant() : null;
 
             if (previous == null) {
                 throw new RaiseException(
@@ -634,8 +649,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                                 currentNode));
             }
 
-            if (constants.replace(name, previous, previous.withDeprecated())) {
-                newConstantsVersion();
+            if (constants.replace(name, previousEntry, new ConstantEntry(previous.withDeprecated()))) {
+                if (previousEntry != null) {
+                    previousEntry.invalidate("Deprecate-" + name);
+                }
                 break;
             }
         }
@@ -643,8 +660,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
-        if (constants.replace(autoloadConstant.getName(), autoloadConstant, autoloadConstant.undefined())) {
-            newConstantsVersion();
+        final ConstantEntry constantEntry = constants.get(autoloadConstant.getName());
+        final boolean replace = autoloadConstant == constantEntry.getConstant();
+        if (replace &&
+                constants.replace(
+                        autoloadConstant.getName(),
+                        constantEntry,
+                        new ConstantEntry(autoloadConstant.undefined()))) {
+            constantEntry.invalidate("UndefinedIfAutoload-" + autoloadConstant.getName());
             return true;
         } else {
             return false;
@@ -765,7 +788,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void newConstantsVersion() {
-        constantsUnmodifiedAssumption.invalidate(givenBaseName);
+        for (Entry<String, ConstantEntry> entry : constants.entrySet()) {
+            entry.getValue().invalidate("NewVersion-" + entry.getKey());
+        }
     }
 
     public void newHierarchyVersion() {
@@ -811,13 +836,24 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return getConstantsUnmodifiedAssumption();
     }
 
-    public Iterable<Entry<String, RubyConstant>> getConstants() {
+    public Iterable<Entry<String, ConstantEntry>> getConstants() {
         return constants.entrySet();
     }
 
     @TruffleBoundary
-    public RubyConstant getConstant(String name) {
+    public ConstantEntry getOrComputeConstantEntry(String name) {
+        return ConcurrentOperations.getOrCompute(constants, name, (n) -> new ConstantEntry());
+    }
+
+    @TruffleBoundary
+    public ConstantEntry getConstantEntry(String name) {
         return constants.get(name);
+    }
+
+
+    @TruffleBoundary
+    public RubyConstant getConstant(String name) {
+        return constants.get(name) != null ? constants.get(name).getConstant() : null;
     }
 
     private static final class MethodsIterator implements Iterator<InternalMethod> {
@@ -1006,8 +1042,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             ObjectGraph.addProperty(adjacent, superClass);
         }
 
-        for (RubyConstant constant : constants.values()) {
-            ObjectGraph.addProperty(adjacent, constant);
+        for (ConstantEntry constant : constants.values()) {
+            if (constant.getConstant() != null) {
+                ObjectGraph.addProperty(adjacent, constant.getConstant());
+            }
         }
 
         for (Object key : classVariables.getShape().getKeys()) {

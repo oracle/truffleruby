@@ -25,6 +25,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -92,18 +93,22 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static Iterable<Entry<String, RubyConstant>> getAllConstants(RubyModule module) {
-        final Map<String, RubyConstant> constants = new HashMap<>();
+    public static Iterable<Entry<String, ConstantEntry>> getAllConstants(RubyModule module) {
+        final Map<String, ConstantEntry> constants = new HashMap<>();
 
         // Look in the current module
-        for (Map.Entry<String, RubyConstant> constant : module.fields.getConstants()) {
-            constants.put(constant.getKey(), constant.getValue());
+        for (Map.Entry<String, ConstantEntry> constant : module.fields.getConstants()) {
+            if (constant.getValue().getConstant() != null) {
+                constants.put(constant.getKey(), constant.getValue());
+            }
         }
 
         // Look in ancestors
         for (RubyModule ancestor : module.fields.prependedAndIncludedModules()) {
-            for (Map.Entry<String, RubyConstant> constant : ancestor.fields.getConstants()) {
-                constants.putIfAbsent(constant.getKey(), constant.getValue());
+            for (Map.Entry<String, ConstantEntry> constant : ancestor.fields.getConstants()) {
+                if (constant.getValue().getConstant() != null) {
+                    constants.putIfAbsent(constant.getKey(), constant.getValue());
+                }
             }
         }
 
@@ -117,13 +122,20 @@ public abstract class ModuleOperations {
     }
 
     /** NOTE: This method might return an undefined RubyConstant */
-    private static boolean constantExists(RubyConstant constant, ArrayList<Assumption> assumptions) {
+    private static boolean constantExists(ConstantEntry constantEntry, ArrayList<Assumption> assumptions) {
+        assumptions.add(constantEntry.getAssumption());
+        final RubyConstant constant = constantEntry.getConstant();
         if (constant != null) {
             if (constant.isAutoload() && constant.getAutoloadConstant().isAutoloading()) {
                 // Cannot cache the lookup of an autoloading constant as the result depends on the calling thread
                 assumptions.add(NeverValidAssumption.INSTANCE);
-                return !constant.getAutoloadConstant().isAutoloadingThread();
+                final boolean result = !constant.getAutoloadConstant().isAutoloadingThread();
+                if (result) {
+
+                }
+                return result;
             } else {
+                assumptions.add(constantEntry.getAssumption());
                 return true;
             }
         } else {
@@ -142,9 +154,9 @@ public abstract class ModuleOperations {
         // Look in the current module
         ModuleFields fields = module.fields;
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
-        RubyConstant constant = fields.getConstant(name);
-        if (constantExists(constant, assumptions)) {
-            return new ConstantLookupResult(constant, toArray(assumptions));
+        ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
+        if (constantExists(constantEntry, assumptions)) {
+            return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
         }
 
         // Look in ancestors
@@ -154,9 +166,9 @@ public abstract class ModuleOperations {
             }
             fields = ancestor.fields;
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
-            constant = fields.getConstant(name);
-            if (constantExists(constant, assumptions)) {
-                return new ConstantLookupResult(constant, toArray(assumptions));
+            constantEntry = fields.getOrComputeConstantEntry(name);
+            if (constantExists(constantEntry, assumptions)) {
+                return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
             }
         }
 
@@ -171,17 +183,17 @@ public abstract class ModuleOperations {
 
         ModuleFields fields = objectClass.fields;
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
-        RubyConstant constant = fields.getConstant(name);
-        if (constantExists(constant, assumptions)) {
-            return new ConstantLookupResult(constant, toArray(assumptions));
+        ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
+        if (constantExists(constantEntry, assumptions)) {
+            return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
         }
 
         for (RubyModule ancestor : objectClass.fields.prependedAndIncludedModules()) {
             fields = ancestor.fields;
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
-            constant = fields.getConstant(name);
-            if (constantExists(constant, assumptions)) {
-                return new ConstantLookupResult(constant, toArray(assumptions));
+            constantEntry = fields.getOrComputeConstantEntry(name);
+            if (constantExists(constantEntry, assumptions)) {
+                return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
             }
         }
 
@@ -214,9 +226,9 @@ public abstract class ModuleOperations {
         while (lexicalScope != context.getRootLexicalScope()) {
             final ModuleFields fields = lexicalScope.getLiveModule().fields;
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
-            final RubyConstant constant = fields.getConstant(name);
-            if (constantExists(constant, assumptions)) {
-                return new ConstantLookupResult(constant, toArray(assumptions));
+            final ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
+            if (constantExists(constantEntry, assumptions)) {
+                return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
             }
 
             lexicalScope = lexicalScope.getParent();
@@ -304,9 +316,9 @@ public abstract class ModuleOperations {
         } else {
             final ModuleFields fields = module.fields;
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
-            final RubyConstant constant = fields.getConstant(name);
-            if (constantExists(constant, assumptions)) {
-                return new ConstantLookupResult(constant, toArray(assumptions));
+            final ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
+            if (constantExists(constantEntry, assumptions)) {
+                return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
             } else {
                 return new ConstantLookupResult(null, toArray(assumptions));
             }
