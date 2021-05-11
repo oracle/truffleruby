@@ -5,7 +5,7 @@ title: FAQ
 link_title: FAQ
 permalink: /reference-manual/ruby/FAQ/
 redirect_from: /docs/reference-manual/ruby/FAQ/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Optcarrot/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Optcarrot/
 ---
 # Frequently Asked Questions
 

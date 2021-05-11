@@ -5,8 +5,8 @@ title: Using Ruby with GraalVM
 link_title: Using Ruby with GraalVM
 permalink: /reference-manual/ruby/InstallingGraalVM/
 redirect_from: /docs/reference-manual/ruby/InstallingGraalVM/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Installinglibssl/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/RuntimeConfigurations/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Installinglibssl/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/RuntimeConfigurations/
 ---
 # Using TruffleRuby with GraalVM
 

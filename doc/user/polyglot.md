@@ -5,8 +5,8 @@ title: Polyglot Programming
 link_title: Polyglot Programming
 permalink: /reference-manual/ruby/Polyglot/
 redirect_from: /docs/reference-manual/ruby/Polyglot/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/RubyManagers/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Options/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/RubyManagers/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Options/
 ---
 # Polyglot Programming
 

@@ -5,8 +5,8 @@ title: Security
 link_title: Security
 permalink: /reference-manual/ruby/KnownCVEs/
 redirect_from: /docs/reference-manual/ruby/KnownCVEs/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Optcarrot/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/ReportingPerformanceProblems/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Optcarrot/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/ReportingPerformanceProblems/
 ---
 # Security
 

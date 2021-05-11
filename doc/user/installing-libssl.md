@@ -5,8 +5,8 @@ title: Installing `libssl`
 link_title: Installing `libssl`
 permalink: /reference-manual/ruby/Installinglibssl/
 redirect_from: /docs/reference-manual/ruby/Installinglibssl/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/InstallingLLVM/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/InstallingGraalVM/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/InstallingLLVM/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/InstallingGraalVM/
 ---
 # Installing `libssl`
 

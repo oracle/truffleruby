@@ -5,8 +5,8 @@ title: Optcarrot Example
 link_title: Optcarrot Example
 permalink: /reference-manual/ruby/Optcarrot/
 redirect_from: /docs/reference-manual/ruby/Optcarrot/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/FAQ/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/KnownCVEs/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/FAQ/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/KnownCVEs/
 ---
 # Running Optcarrot
 

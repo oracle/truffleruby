@@ -5,8 +5,8 @@ title: Migration from JRuby to Ruby
 link_title: Migration from JRuby to Ruby
 permalink: /reference-manual/ruby/JRubyMigration/
 redirect_from: /docs/reference-manual/ruby/JRubyMigration/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Options/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Installingzlib/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Options/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Installingzlib/
 ---
 # Migration from JRuby to TruffleRuby
 

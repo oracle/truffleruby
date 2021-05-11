@@ -5,8 +5,8 @@ title: Debugging Ruby
 link_title: Debugging Ruby
 permalink: /reference-manual/ruby/Debugging/
 redirect_from: /docs/reference-manual/ruby/Debugging/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/RuntimeConfigurations/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/Compatibility/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/RuntimeConfigurations/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Compatibility/
 ---
 # Debugging TruffleRuby
 

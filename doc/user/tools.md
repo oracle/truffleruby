@@ -5,8 +5,8 @@ title: Development Tools for Ruby
 link_title: Development Tools for Ruby
 permalink: /reference-manual/ruby/Tools/
 redirect_from: /docs/reference-manual/ruby/Tools/
-next: /en/graalvm/enterprise/21/docs/reference-manual/ruby/TruffleRubyAdditions/
-previous: /en/graalvm/enterprise/21/docs/reference-manual/ruby/StandaloneDistribution/
+next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/TruffleRubyAdditions/
+previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/StandaloneDistribution/
 ---
 # Development Tools for Ruby
 
