@@ -19,10 +19,10 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
@@ -419,10 +419,16 @@ public class EntryArrayHashStore {
             @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair) {
 
         assert HashOperations.verifyStore(context, hash);
-        Entry entry = hash.firstInSequence;
-        while (entry != null) {
-            yieldPair.execute(block, entry.getKey(), entry.getValue());
-            entry = entry.getNextInSequence();
+        try {
+            Entry entry = hash.firstInSequence;
+            while (entry != null) {
+                yieldPair.execute(block, entry.getKey(), entry.getValue());
+                entry = entry.getNextInSequence();
+            }
+        } finally {
+            // The node is used to get the root node, so fine to use a cached node here.
+            assert CompilerDirectives.isCompilationConstant(yieldPair);
+            LoopNode.reportLoopCount(yieldPair, hash.size);
         }
     }
 
@@ -449,7 +455,6 @@ public class EntryArrayHashStore {
     protected RubyArray map(RubyHash hash, RubyProc block,
             @Cached ArrayBuilderNode arrayBuilder,
             @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair,
-            @CachedLibrary("this") HashStoreLibrary self,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
@@ -468,7 +473,9 @@ public class EntryArrayHashStore {
                 entry = entry.getNextInSequence();
             }
         } finally {
-            HashStoreLibrary.reportLoopCount(self, length);
+            // The node is used to get the root node, so fine to use a cached node here.
+            assert CompilerDirectives.isCompilationConstant(yieldPair);
+            LoopNode.reportLoopCount(yieldPair, length);
         }
 
         return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, length), length);

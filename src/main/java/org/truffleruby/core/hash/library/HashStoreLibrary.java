@@ -20,9 +20,6 @@ import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
-import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
-import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -131,11 +128,5 @@ public abstract class HashStoreLibrary extends Library {
                 return yieldNode.yield(block, ArrayHelpers.createArray(context, language, new Object[]{ key, value }));
             }
         }
-    }
-
-    /** Useful for library implementations. */
-    public static void reportLoopCount(HashStoreLibrary self, int n) {
-        final Node node = self.isAdoptable() ? self : EncapsulatingNodeReference.getCurrent().get();
-        LoopNode.reportLoopCount(node, n);
     }
 }
