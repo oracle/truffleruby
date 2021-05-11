@@ -14,6 +14,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -160,6 +161,18 @@ public abstract class TruffleRopesNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
             return makeStringNode.fromRope(flattened);
+        }
+
+    }
+
+    @CoreMethod(names = "convert_to_native", onSingleton = true, required = 1)
+    public abstract static class NativeRopeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString nativeRope(RubyString string,
+                @Cached CExtNodes.StringToNativeNode toNativeNode) {
+            toNativeNode.executeToNative(string);
+            return string;
         }
 
     }
