@@ -14,6 +14,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -79,6 +80,8 @@ public abstract class TruffleRopesNodes {
             System.err.println("LD = Left Depth (ConcatRope only)");
             System.err.println("RD = Right Depth (ConcatRope only)");
             System.err.println("E = Encoding");
+            System.err.println("P = Native Pointer (NativeRope only)");
+            System.err.println("S = Native Size (NativeRope only)");
 
             return debugPrintRopeNode.executeDebugPrint(strings.getRope(string), 0, printString);
         }
@@ -160,6 +163,19 @@ public abstract class TruffleRopesNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
             return makeStringNode.fromRope(flattened);
+        }
+
+    }
+
+    @CoreMethod(names = "convert_to_native", onSingleton = true, required = 1)
+    public abstract static class NativeRopeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "strings.isRubyString(string)")
+        protected Object nativeRope(Object string,
+                @Cached CExtNodes.StringToNativeNode toNativeNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            toNativeNode.executeToNative(string);
+            return string;
         }
 
     }

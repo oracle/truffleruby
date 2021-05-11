@@ -35,7 +35,6 @@ import org.truffleruby.core.rope.RopeNodesFactory.CompareRopesNodeGen;
 import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
@@ -745,7 +744,7 @@ public abstract class RopeNodes {
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
-            System.err.println(StringUtils.format(
+            System.err.println(String.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                     printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
@@ -766,7 +765,7 @@ public abstract class RopeNodes {
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
-            System.err.println(StringUtils.format(
+            System.err.println(String.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; O: %d; E: %s)",
                     printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
@@ -793,7 +792,7 @@ public abstract class RopeNodes {
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
             if (state.isFlattened()) {
-                System.err.println(StringUtils.format(
+                System.err.println(String.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                         printString ? RopeOperations.escape(rope) : "<skipped>",
                         rope.getClass().getSimpleName(),
@@ -803,7 +802,7 @@ public abstract class RopeNodes {
                         rope.getCodeRange(),
                         rope.getEncoding()));
             } else {
-                System.err.println(StringUtils.format(
+                System.err.println(String.format(
                         "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; E: %s)",
                         printString ? RopeOperations.escape(rope) : "<skipped>",
                         rope.getClass().getSimpleName(),
@@ -828,7 +827,7 @@ public abstract class RopeNodes {
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
-            System.err.println(StringUtils.format(
+            System.err.println(String.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; T: %d; D: %d; E: %s)",
                     printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
@@ -852,7 +851,7 @@ public abstract class RopeNodes {
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
-            System.err.println(StringUtils.format(
+            System.err.println(String.format(
                     "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; V: %d, D: %d; E: %s)",
                     printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
@@ -861,6 +860,25 @@ public abstract class RopeNodes {
                     rope.characterLength(),
                     rope.getCodeRange(),
                     rope.getValue(),
+                    rope.getEncoding()));
+
+            return nil;
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object debugPrintNative(NativeRope rope, int currentLevel, boolean printString) {
+            printPreamble(currentLevel);
+
+            System.err.println(String.format(
+                    "%s (%s; BL: %d; CL: %d; CR: %s; P: 0x%x, S: %d; E: %s)",
+                    printString ? RopeOperations.escape(rope) : "<skipped>",
+                    rope.getClass().getSimpleName(),
+                    rope.byteLength(),
+                    rope.characterLength(),
+                    rope.getCodeRange(),
+                    rope.getNativePointer().getAddress(),
+                    rope.getNativePointer().getSize(),
                     rope.getEncoding()));
 
             return nil;

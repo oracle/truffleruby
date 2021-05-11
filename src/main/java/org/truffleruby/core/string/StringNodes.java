@@ -4936,7 +4936,6 @@ public abstract class StringNodes {
                 @Cached RopeNodes.SubstringNode prependSubstringNode,
                 @Cached RopeNodes.ConcatNode prependConcatNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOther) {
-
             final Encoding encoding = rubyEncoding.encoding;
             final Rope original = string.rope;
             final Rope left = libOther.getRope(other);
@@ -4972,7 +4971,6 @@ public abstract class StringNodes {
                 @Cached RopeNodes.ConcatNode leftConcatNode,
                 @Cached RopeNodes.ConcatNode rightConcatNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libOther) {
-
             final Encoding encoding = rubyEncoding.encoding;
             final Rope source = string.rope;
             final Rope insert = libOther.getRope(other);
