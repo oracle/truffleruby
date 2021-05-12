@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.range;
 
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -93,7 +94,8 @@ public abstract class RangeNodes {
         @Child private DispatchNode eachInternalCall;
 
         @Specialization
-        protected RubyIntRange eachInt(RubyIntRange range, RubyProc block) {
+        protected RubyIntRange eachInt(RubyIntRange range, RubyProc block,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             int result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -104,7 +106,8 @@ public abstract class RangeNodes {
 
             int n = range.begin;
             try {
-                for (; n < exclusiveEnd; n++) {
+                loopProfile.profileCounted(exclusiveEnd - range.begin);
+                for (; loopProfile.inject(n < exclusiveEnd); n++) {
                     callBlock(block, n);
                 }
             } finally {
@@ -115,7 +118,8 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyLongRange eachLong(RubyLongRange range, RubyProc block) {
+        protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             long result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -126,7 +130,8 @@ public abstract class RangeNodes {
 
             long n = range.begin;
             try {
-                for (; n < exclusiveEnd; n++) {
+                loopProfile.profileCounted(exclusiveEnd - range.begin);
+                for (; loopProfile.inject(n < exclusiveEnd); n++) {
                     callBlock(block, n);
                 }
             } finally {
