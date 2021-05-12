@@ -14,9 +14,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
@@ -80,7 +80,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         hashes.eachEntry(keywordArguments.store, frame, keywordArguments, checkKeywordArgumentsNode, null);
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyContextNode implements PEBiConsumer {
+    private static class CheckKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
 
         private final boolean doesNotAcceptExtraArguments;
         private final int required;
@@ -98,7 +98,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
 
         @Override
-        public void accept(VirtualFrame frame, Object key, Object value, Object state) {
+        public void accept(VirtualFrame frame, int index, Object key, Object value, Object state) {
             if (isSymbolProfile.profile(key instanceof RubySymbol)) {
                 if (!keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
@@ -128,7 +128,6 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
             return false;
         }
-
     }
 
     static RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {

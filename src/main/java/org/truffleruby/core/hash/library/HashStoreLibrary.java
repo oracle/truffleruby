@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
@@ -23,7 +24,6 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -80,23 +80,22 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract Object deleteLast(Object store, RubyHash hash, Object key);
 
-    /** Calls {@code callback} on every entry in the hash. */
+    /** Calls {@code callback} on every entry in the hash, returning the state object. */
     @Abstract
-    public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, PEBiConsumer callback,
+    public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, EachEntryCallback callback,
             Object state);
 
-    /** Runs the given block over every entry, in the manner specified by {@link YieldPairNode}. */
+    /** Same as {@link #eachEntry(Object, Frame, RubyHash, EachEntryCallback, Object)} but guaranteed to be safe to use
+     * if the hash is modified during iteration. In particular, the guarantees is that (1) the same entry won't be
+     * proceessed twice, and (2) no error will occur. Entries deleted and inserted during iteration might or might not
+     * be processed. */
     @Abstract
-    public abstract void each(Object store, RubyHash hash, RubyProc block);
+    public abstract Object eachEntrySafe(Object store, Frame frame, RubyHash hash, EachEntryCallback callback,
+            Object state);
 
     /** Replaces the contents of {@code dest} with a copy of {@code hash}. */
     @Abstract
     public abstract void replace(Object store, RubyHash hash, RubyHash dest);
-
-    /** Returns a ruby array containing the result of applying {@code block} on every hash entry, in the manner
-     * specified by {@link YieldPairNode}. */
-    @Abstract
-    public abstract RubyArray map(Object store, RubyHash hash, RubyProc block);
 
     /** Removes a key-value pair from the hash and returns it as the two-item array [key, value], or null if the hash is
      * empty. */
@@ -108,10 +107,19 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract void rehash(Object store, RubyHash hash);
 
+    public interface EachEntryCallback {
+        void accept(VirtualFrame frame, int index, Object key, Object value, Object state);
+    }
+
     /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
      * otherwise passes an array containing the key and the value as single argument. */
     @GenerateUncached
     public abstract static class YieldPairNode extends RubyBaseNode {
+
+        public static YieldPairNode create() {
+            return HashStoreLibraryFactory.YieldPairNodeGen.create();
+        }
+
         public abstract Object execute(RubyProc block, Object key, Object value);
 
         @Specialization

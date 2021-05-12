@@ -18,9 +18,13 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.hash.library.NullHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
@@ -133,13 +137,8 @@ public abstract class HashNodes {
 
             final Object[] objectStore = (Object[]) store;
 
-            if (objectStore.length > language.options.HASH_PACKED_ARRAY_MAX) {
-                return false;
-            }
-
-            return true;
+            return objectStore.length <= language.options.HASH_PACKED_ARRAY_MAX;
         }
-
     }
 
     @CoreMethod(names = "ruby2_keywords_hash?", onSingleton = true, required = 1)
@@ -292,13 +291,21 @@ public abstract class HashNodes {
 
     @CoreMethod(names = { "each", "each_pair" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
-    public abstract static class EachNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class EachNode extends CoreMethodArrayArgumentsNode implements EachEntryCallback {
+
+        @Child HashStoreLibrary.YieldPairNode yieldPair = HashStoreLibrary.YieldPairNode.create();
+        @Child ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
 
         @Specialization(limit = "hashStrategyLimit()")
         protected RubyHash each(RubyHash hash, RubyProc block,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
-            hashes.each(hash.store, hash, block);
+            hashes.eachEntrySafe(hash.store, null, hash, this, block);
             return hash;
+        }
+
+        @Override
+        public void accept(VirtualFrame frame, int index, Object key, Object value, Object state) {
+            yieldPair.execute((RubyProc) state, key, value);
         }
     }
 
@@ -385,12 +392,34 @@ public abstract class HashNodes {
 
     @CoreMethod(names = { "map", "collect" }, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
-    public abstract static class MapNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class MapNode extends CoreMethodArrayArgumentsNode implements EachEntryCallback {
+
+        @Child HashStoreLibrary.YieldPairNode yieldPair = HashStoreLibrary.YieldPairNode.create();
+        @Child ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
+
+        private static class MapState {
+            final BuilderState builderState;
+            final RubyProc block;
+
+            private MapState(BuilderState builderState, RubyProc block) {
+                this.builderState = builderState;
+                this.block = block;
+            }
+        }
 
         @Specialization(limit = "hashStrategyLimit()")
         protected RubyArray map(RubyHash hash, RubyProc block,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
-            return hashes.map(hash.store, hash, block);
+            final int size = hash.size;
+            final BuilderState state = arrayBuilder.start(size);
+            hashes.eachEntrySafe(hash.store, null, hash, this, new MapState(state, block));
+            return ArrayHelpers.createArray(getContext(), getLanguage(), arrayBuilder.finish(state, size), size);
+        }
+
+        @Override
+        public void accept(VirtualFrame frame, int index, Object key, Object value, Object state) {
+            final MapState mapState = (MapState) state;
+            arrayBuilder.appendValue(mapState.builderState, index, yieldPair.execute(mapState.block, key, value));
         }
     }
 

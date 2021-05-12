@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -27,9 +28,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.CompareHashKeysNode;
@@ -40,7 +39,7 @@ import org.truffleruby.core.hash.HashLookupResult;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -398,38 +397,31 @@ public class EntryArrayHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(Frame frame, RubyHash hash, PEBiConsumer callback, Object state,
+    protected Object eachEntry(Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
+            // We only use this to get hold of the root node. No memory overhead because it's shared.
+            @Cached @Shared("lookup") LookupEntryNode witness,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert HashOperations.verifyStore(context, hash);
-
+        int i = 0;
         Entry entry = hash.firstInSequence;
-        while (entry != null) {
-            callback.accept((VirtualFrame) frame, entry.getKey(), entry.getValue(), state);
-            entry = entry.getNextInSequence();
-        }
-
-        return state;
-    }
-
-    @ExportMessage
-    protected void each(RubyHash hash, RubyProc block,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair) {
-
-        assert HashOperations.verifyStore(context, hash);
         try {
-            Entry entry = hash.firstInSequence;
             while (entry != null) {
-                yieldPair.execute(block, entry.getKey(), entry.getValue());
+                callback.accept((VirtualFrame) frame, i++, entry.getKey(), entry.getValue(), state);
                 entry = entry.getNextInSequence();
             }
         } finally {
             // The node is used to get the root node, so fine to use a cached node here.
-            assert CompilerDirectives.isCompilationConstant(yieldPair);
-            LoopNode.reportLoopCount(yieldPair, hash.size);
+            assert CompilerDirectives.isCompilationConstant(witness);
+            LoopNode.reportLoopCount(witness, hash.size);
         }
+        return state;
+    }
+
+    @ExportMessage
+    protected Object eachEntrySafe(Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
+            @CachedLibrary("this") HashStoreLibrary self) {
+        return self.eachEntry(this, frame, hash, callback, state);
     }
 
     @TruffleBoundary
@@ -449,36 +441,6 @@ public class EntryArrayHashStore {
         dest.compareByIdentity = hash.compareByIdentity;
 
         assert HashOperations.verifyStore(context, dest);
-    }
-
-    @ExportMessage
-    protected RubyArray map(RubyHash hash, RubyProc block,
-            @Cached ArrayBuilderNode arrayBuilder,
-            @Cached @Shared("yield") HashStoreLibrary.YieldPairNode yieldPair,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        assert HashOperations.verifyStore(context, hash);
-
-        final int length = hash.size;
-        ArrayBuilderNode.BuilderState state = arrayBuilder.start(length);
-
-        int index = 0;
-
-        try {
-            Entry entry = hash.firstInSequence;
-            while (entry != null) {
-                arrayBuilder.appendValue(state, index, yieldPair.execute(block, entry.getKey(), entry.getValue()));
-                index++;
-                entry = entry.getNextInSequence();
-            }
-        } finally {
-            // The node is used to get the root node, so fine to use a cached node here.
-            assert CompilerDirectives.isCompilationConstant(yieldPair);
-            LoopNode.reportLoopCount(yieldPair, length);
-        }
-
-        return ArrayHelpers.createArray(context, language, arrayBuilder.finish(state, length), length);
     }
 
     @ExportMessage

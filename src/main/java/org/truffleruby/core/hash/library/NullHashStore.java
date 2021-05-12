@@ -21,14 +21,12 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -70,13 +68,13 @@ public class NullHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(Frame frame, RubyHash hash, PEBiConsumer callback, Object state) {
+    protected Object eachEntry(Frame frame, RubyHash hash, EachEntryCallback callback, Object state) {
         return state;
     }
 
     @ExportMessage
-    protected void each(RubyHash hash, RubyProc block) {
-        // nothing to do, the hash is empty
+    protected Object eachEntrySafe(Frame frame, RubyHash hash, EachEntryCallback callback, Object state) {
+        return state;
     }
 
     @ExportMessage
@@ -98,13 +96,6 @@ public class NullHashStore {
         dest.compareByIdentity = hash.compareByIdentity;
 
         assert HashOperations.verifyStore(context, dest);
-    }
-
-    @ExportMessage
-    protected RubyArray map(RubyHash hash, RubyProc block,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return ArrayHelpers.createEmptyArray(context, language);
     }
 
     @ExportMessage

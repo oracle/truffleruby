@@ -10,10 +10,10 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.methods.Arity;
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements PEBiConsumer {
+public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements EachEntryCallback {
 
     @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 
@@ -54,7 +54,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     }
 
     @Override
-    public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
+    public void accept(VirtualFrame frame, int index, Object key, Object value, Object kwRest) {
         if (!keywordExcluded(key)) {
             final RubyHash hash = (RubyHash) kwRest;
             hashes.set(hash.store, hash, key, value, false);

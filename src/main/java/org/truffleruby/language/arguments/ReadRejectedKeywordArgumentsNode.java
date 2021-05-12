@@ -9,17 +9,17 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.collections.PEBiConsumer;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements PEBiConsumer {
+public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
 
     @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
 
@@ -32,7 +32,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
     }
 
     @Override
-    public void accept(VirtualFrame frame, Object key, Object value, Object rejectedKwargs) {
+    public void accept(VirtualFrame frame, int index, Object key, Object value, Object rejectedKwargs) {
         if (!isSymbolProfile.profile(key instanceof RubySymbol)) {
             final RubyHash hash = (RubyHash) rejectedKwargs;
             hashes.set(hash.store, hash, key, value, false);
