@@ -36,14 +36,15 @@ import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.hash.HashLookupResult;
-import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -147,13 +148,10 @@ public class EntryArrayHashStore {
         }
 
         hash.size += 1;
-
-        assert HashOperations.verifyStore(context, hash);
     }
 
     @TruffleBoundary
     private static void resize(RubyContext context, RubyHash hash) {
-        assert HashOperations.verifyStore(context, hash);
 
         final int bucketsCount = capacityGreaterThan(hash.size) * OVERALLOCATE_FACTOR;
         final Entry[] newEntries = new Entry[bucketsCount];
@@ -179,7 +177,6 @@ public class EntryArrayHashStore {
         }
 
         hash.store = new EntryArrayHashStore(newEntries);
-        assert HashOperations.verifyStore(context, hash);
     }
 
     public static void getAdjacentObjects(Set<Object> reachable, Entry firstInSequence) {
@@ -192,44 +189,36 @@ public class EntryArrayHashStore {
     }
 
     private static void copyInto(RubyContext context, RubyHash from, RubyHash to) {
-        assert HashOperations.verifyStore(context, from);
-        assert HashOperations.verifyStore(context, to);
 
         final Entry[] newEntries = new Entry[((EntryArrayHashStore) from.store).entries.length];
 
         Entry firstInSequence = null;
         Entry lastInSequence = null;
-
         Entry entry = from.firstInSequence;
 
         while (entry != null) {
             final Entry newEntry = new Entry(entry.getHashed(), entry.getKey(), entry.getValue());
-
             final int index = getBucketIndex(entry.getHashed(), newEntries.length);
-
             newEntry.setNextInLookup(newEntries[index]);
             newEntries[index] = newEntry;
-
             if (firstInSequence == null) {
                 firstInSequence = newEntry;
             }
-
             if (lastInSequence != null) {
                 lastInSequence.setNextInSequence(newEntry);
                 newEntry.setPreviousInSequence(lastInSequence);
             }
-
             lastInSequence = newEntry;
-
             entry = entry.getNextInSequence();
         }
 
-        int size = from.size;
         to.store = new EntryArrayHashStore(newEntries);
-        to.size = size;
+        to.size = from.size;
         to.firstInSequence = firstInSequence;
         to.lastInSequence = lastInSequence;
-        assert HashOperations.verifyStore(context, to);
+        to.defaultBlock = from.defaultBlock;
+        to.defaultValue = from.defaultValue;
+        to.compareByIdentity = from.compareByIdentity;
     }
 
     private static void removeFromSequenceChain(RubyHash hash, Entry entry) {
@@ -291,7 +280,7 @@ public class EntryArrayHashStore {
             @Cached @Exclusive ConditionProfile resize,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
 
         propagateSharingKey.executePropagate(hash, key2);
@@ -325,14 +314,15 @@ public class EntryArrayHashStore {
 
             // TODO CS 11-May-15 could store the next size for resize instead of doing a float operation each time
 
+            assert verify(hash);
             if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
                 resize(context, hash);
+                assert ((EntryArrayHashStore) hash.store).verify(hash); // store changed!
             }
-            assert HashOperations.verifyStore(context, hash);
             return true;
         } else {
             entry.setValue(value);
-            assert HashOperations.verifyStore(context, hash);
+            assert verify(hash);
             return false;
         }
     }
@@ -342,7 +332,7 @@ public class EntryArrayHashStore {
             @Cached @Shared("lookup") LookupEntryNode lookup,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         final HashLookupResult lookupResult = lookup.lookup(hash, key);
         final Entry entry = lookupResult.getEntry();
 
@@ -353,7 +343,7 @@ public class EntryArrayHashStore {
         removeFromSequenceChain(hash, entry);
         removeFromLookupChain(hash, lookupResult.getIndex(), entry, lookupResult.getPreviousEntry());
         hash.size -= 1;
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         return entry.getValue();
     }
 
@@ -361,7 +351,7 @@ public class EntryArrayHashStore {
     protected Object deleteLast(RubyHash hash, Object key,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         final Entry lastEntry = hash.lastInSequence;
         if (key != lastEntry.getKey()) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -392,7 +382,7 @@ public class EntryArrayHashStore {
 
         removeFromLookupChain(hash, index, entry, previousEntry);
         hash.size -= 1;
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         return entry.getValue();
     }
 
@@ -402,7 +392,7 @@ public class EntryArrayHashStore {
             @Cached @Shared("lookup") LookupEntryNode witness,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         int i = 0;
         Entry entry = hash.firstInSequence;
         try {
@@ -435,12 +425,9 @@ public class EntryArrayHashStore {
         }
 
         propagateSharing.executePropagate(dest, hash);
+        assert verify(hash);
         copyInto(context, hash, dest);
-        dest.defaultBlock = hash.defaultBlock;
-        dest.defaultValue = hash.defaultValue;
-        dest.compareByIdentity = hash.compareByIdentity;
-
-        assert HashOperations.verifyStore(context, dest);
+        assert verify(hash);
     }
 
     @ExportMessage
@@ -448,7 +435,7 @@ public class EntryArrayHashStore {
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
 
         final Entry first = hash.firstInSequence;
         assert first.getPreviousInSequence() == null;
@@ -487,7 +474,7 @@ public class EntryArrayHashStore {
 
         hash.size -= 1;
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 
@@ -498,7 +485,7 @@ public class EntryArrayHashStore {
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
 
         Arrays.fill(entries, null);
 
@@ -538,7 +525,62 @@ public class EntryArrayHashStore {
             entry = entry.getNextInSequence();
         }
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(hash);
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    public boolean verify(RubyHash hash) {
+        assert hash.store == this;
+
+        final int size = hash.size;
+        final Entry firstInSequence = hash.firstInSequence;
+        final Entry lastInSequence = hash.lastInSequence;
+        assert lastInSequence == null || lastInSequence.getNextInSequence() == null;
+
+        Entry foundFirst = null;
+        Entry foundLast = null;
+        int foundSizeBuckets = 0;
+        for (int n = 0; n < entries.length; n++) {
+            Entry entry = entries[n];
+            while (entry != null) {
+                assert SharedObjects.assertPropagateSharing(
+                        hash,
+                        entry.getKey()) : "unshared key in shared Hash: " + entry.getKey();
+                assert SharedObjects.assertPropagateSharing(
+                        hash,
+                        entry.getValue()) : "unshared value in shared Hash: " + entry.getValue();
+                foundSizeBuckets++;
+                if (entry == firstInSequence) {
+                    assert foundFirst == null;
+                    foundFirst = entry;
+                }
+                if (entry == lastInSequence) {
+                    assert foundLast == null;
+                    foundLast = entry;
+                }
+                entry = entry.getNextInLookup();
+            }
+        }
+        assert foundSizeBuckets == size;
+        assert firstInSequence == foundFirst;
+        assert lastInSequence == foundLast;
+
+        int foundSizeSequence = 0;
+        Entry entry = firstInSequence;
+        while (entry != null) {
+            foundSizeSequence++;
+            if (entry.getNextInSequence() == null) {
+                assert entry == lastInSequence;
+            } else {
+                assert entry.getNextInSequence().getPreviousInSequence() == entry;
+            }
+            entry = entry.getNextInSequence();
+            assert entry != firstInSequence;
+        }
+        assert foundSizeSequence == size : StringUtils.format("%d %d", foundSizeSequence, size);
+
+        return true;
     }
 
     // endregion

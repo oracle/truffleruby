@@ -81,12 +81,11 @@ public class NullHashStore {
     protected void replace(RubyHash hash, RubyHash dest,
             @Cached PropagateSharingNode propagateSharing,
             @CachedContext(RubyLanguage.class) RubyContext context) {
+
         if (hash == dest) {
             return;
         }
-
         propagateSharing.executePropagate(dest, hash);
-
         dest.store = NullHashStore.NULL_HASH_STORE;
         dest.size = 0;
         dest.firstInSequence = null;
@@ -94,8 +93,7 @@ public class NullHashStore {
         dest.defaultBlock = hash.defaultBlock;
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
-
-        assert HashOperations.verifyStore(context, dest);
+        assert verify(hash);
     }
 
     @ExportMessage
@@ -106,6 +104,15 @@ public class NullHashStore {
     @ExportMessage
     protected void rehash(RubyHash hash) {
         // nothing to do, the hash is empty
+    }
+
+    @ExportMessage
+    public boolean verify(RubyHash hash) {
+        assert hash.store == NULL_HASH_STORE;
+        assert hash.size == 0;
+        assert hash.firstInSequence == null;
+        assert hash.lastInSequence == null;
+        return true;
     }
 
     public static class EmptyHashLiteralNode extends HashLiteralNode {

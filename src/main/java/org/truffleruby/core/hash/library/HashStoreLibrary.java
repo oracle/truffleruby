@@ -107,6 +107,11 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract void rehash(Object store, RubyHash hash);
 
+    /** Returns true only if the store is in a valid state. To be used in assertions, and also uses assertions
+     * internally. */
+    @Abstract
+    public abstract boolean verify(Object store, RubyHash hash);
+
     public interface EachEntryCallback {
         void accept(VirtualFrame frame, int index, Object key, Object value, Object state);
     }

@@ -41,7 +41,6 @@ import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
 import org.truffleruby.core.hash.FreezeHashKeyIfNeededNodeGen;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.HashLiteralNode;
-import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
@@ -50,6 +49,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -73,11 +73,11 @@ public class PackedHashStoreLibrary {
         return (int) store[n * ELEMENTS_PER_ENTRY];
     }
 
-    public static Object getKey(Object[] store, int n) {
+    private static Object getKey(Object[] store, int n) {
         return store[n * ELEMENTS_PER_ENTRY + 1];
     }
 
-    public static Object getValue(Object[] store, int n) {
+    private static Object getValue(Object[] store, int n) {
         return store[n * ELEMENTS_PER_ENTRY + 2];
     }
 
@@ -162,8 +162,6 @@ public class PackedHashStoreLibrary {
         hash.size = size;
         hash.firstInSequence = firstInSequence;
         hash.lastInSequence = lastInSequence;
-
-        assert HashOperations.verifyStore(context, hash);
     }
 
     // endregion
@@ -187,10 +185,11 @@ public class PackedHashStoreLibrary {
             @Cached @Exclusive PropagateSharingNode propagateSharingValue,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
             @Cached @Exclusive ConditionProfile strategy,
+            @CachedLibrary(limit = "2") HashStoreLibrary hashes,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert hashes.verify(store, hash);
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
 
         final int hashed = hashNode.execute(key2, byIdentity);
@@ -207,7 +206,6 @@ public class PackedHashStoreLibrary {
                 final Object otherKey = getKey(store, n);
                 if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
                     setValue(store, n, value);
-                    assert HashOperations.verifyStore(context, hash);
                     return false;
                 }
             }
@@ -217,12 +215,12 @@ public class PackedHashStoreLibrary {
             setHashedKeyValue(store, size, hashed, key2, value);
             hash.size += 1;
             return true;
-        } else {
-            promoteToBuckets(context, hash, store, size);
-            EntryArrayHashStore.addNewEntry(context, hash, hashed, key2, value);
         }
 
-        assert HashOperations.verifyStore(context, hash);
+        // TODO probably simpler to promote then add in the regular way
+        promoteToBuckets(context, hash, store, size);
+        EntryArrayHashStore.addNewEntry(context, hash, hashed, key2, value);
+        assert hashes.verify(hash.store, hash);
         return true;
     }
 
@@ -230,10 +228,11 @@ public class PackedHashStoreLibrary {
     protected static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
             @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+            @CachedLibrary(limit = "1") HashStoreLibrary hashes,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert hashes.verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
         final int size = hash.size;
         // written very carefully to allow PE
@@ -246,12 +245,11 @@ public class PackedHashStoreLibrary {
                     final Object value = getValue(store, n);
                     removeEntry(language, store, n);
                     hash.size -= 1;
-                    assert HashOperations.verifyStore(context, hash);
                     return value;
                 }
             }
         }
-        assert HashOperations.verifyStore(context, hash);
+        assert hashes.verify(store, hash);
         return null;
     }
 
@@ -260,7 +258,7 @@ public class PackedHashStoreLibrary {
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(store, hash, language, context);
         final int n = hash.size - 1;
         final Object lastKey = getKey(store, n);
         if (key != lastKey) {
@@ -271,7 +269,7 @@ public class PackedHashStoreLibrary {
         final Object value = getValue(store, n);
         removeEntry(language, store, n);
         hash.size -= 1;
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(store, hash, language, context);
         return value;
     }
 
@@ -287,7 +285,7 @@ public class PackedHashStoreLibrary {
                 @Cached(value = "hash.size", allowUncached = true) int cachedSize,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
 
-            assert HashOperations.verifyStore(context, hash);
+            // Don't verify hash here, as `store != hash.store` when calling from `eachEntrySafe`.
             iterate(store, frame, callback, state, cachedSize, witness);
             return state;
         }
@@ -337,7 +335,7 @@ public class PackedHashStoreLibrary {
         dest.defaultValue = hash.defaultValue;
         dest.compareByIdentity = hash.compareByIdentity;
 
-        assert HashOperations.verifyStore(context, dest);
+        assert verify(store, hash, language, context);
     }
 
     @ExportMessage
@@ -345,12 +343,12 @@ public class PackedHashStoreLibrary {
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(store, hash, language, context);
         final Object key = getKey(store, 0);
         final Object value = getValue(store, 0);
         removeEntry(language, store, 0);
         hash.size -= 1;
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(store, hash, language, context);
         return ArrayHelpers.createArray(context, language, new Object[]{ key, value });
     }
 
@@ -361,7 +359,7 @@ public class PackedHashStoreLibrary {
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(store, hash, language, context);
         int size = hash.size;
         for (int n = 0; n < size; n++) {
             final Object key = getKey(store, n);
@@ -383,7 +381,36 @@ public class PackedHashStoreLibrary {
             }
         }
         hash.size = size;
-        assert HashOperations.verifyStore(context, hash);
+        assert verify(store, hash, language, context);
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    protected static boolean verify(Object[] store, RubyHash hash,
+            @CachedLanguage RubyLanguage language,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        assert hash.store == store;
+        final int size = hash.size;
+        assert store.length == language.options.HASH_PACKED_ARRAY_MAX * ELEMENTS_PER_ENTRY : store.length;
+
+        final Entry firstInSequence = hash.firstInSequence;
+        final Entry lastInSequence = hash.lastInSequence;
+        assert firstInSequence == null;
+        assert lastInSequence == null;
+
+        for (int i = 0; i < size * ELEMENTS_PER_ENTRY; i++) {
+            assert store[i] != null;
+        }
+
+        for (int n = 0; n < size; n++) {
+            final Object key = getKey(store, n);
+            final Object value = getValue(store, n);
+            assert SharedObjects.assertPropagateSharing(hash, key) : "unshared key in shared Hash: " + key;
+            assert SharedObjects.assertPropagateSharing(hash, value) : "unshared value in shared Hash: " + value;
+        }
+
+        return true;
     }
 
     // endregion
