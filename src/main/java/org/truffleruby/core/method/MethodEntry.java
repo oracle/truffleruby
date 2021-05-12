@@ -9,10 +9,12 @@
  */
 package org.truffleruby.core.method;
 
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 public final class MethodEntry {
 
@@ -21,12 +23,12 @@ public final class MethodEntry {
 
     public MethodEntry(InternalMethod method) {
         assert method != null;
-        this.assumption = Truffle.getRuntime().createAssumption();
+        this.assumption = Truffle.getRuntime().createAssumption("method is not overridden:");
         this.method = method;
     }
 
     public MethodEntry() {
-        this.assumption = Truffle.getRuntime().createAssumption();
+        this.assumption = Truffle.getRuntime().createAssumption("method is not defined:");
         this.method = null;
     }
 
@@ -46,8 +48,8 @@ public final class MethodEntry {
         return method;
     }
 
-    public void invalidate(String message) {
-        assumption.invalidate(message);
+    public void invalidate(RubyModule module, String methodName) {
+        assumption.invalidate(SharedMethodInfo.moduleAndMethodName(module, methodName));
     }
 
 }

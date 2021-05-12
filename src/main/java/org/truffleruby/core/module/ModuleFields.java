@@ -50,7 +50,6 @@ import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
@@ -462,7 +461,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (!context.getCoreLibrary().isInitializing()) {
             if (previousMethodEntry != null) {
-                previousMethodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, method.getName()));
+                previousMethodEntry.invalidate(rubyModule, method.getName());
             }
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
@@ -491,7 +490,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         MethodEntry removedEntry = methods.remove(methodName);
         if (removedEntry != null) {
-            removedEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, methodName));
+            removedEntry.invalidate(rubyModule, methodName);
         }
 
         changedMethod(methodName);
@@ -741,7 +740,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 if (methodEntry == null) {
                     break;
                 } else {
-                    methodEntry.invalidate(SharedMethodInfo.moduleAndMethodName(rubyModule, entryToInvalidate));
+                    methodEntry.invalidate(rubyModule, entryToInvalidate);
                     if (methods.replace(entryToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
                         break;
                     }
