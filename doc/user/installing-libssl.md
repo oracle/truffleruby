@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Installing `libssl`
 permalink: /reference-manual/ruby/Installinglibssl/
-redirect_from: /docs/reference-manual/ruby/Installinglibssl/
 ---
 # Installing `libssl`
 

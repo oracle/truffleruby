@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Development Tools for Ruby
 permalink: /reference-manual/ruby/Tools/
-redirect_from: /docs/reference-manual/ruby/Tools/
 ---
 # Development Tools for Ruby
 

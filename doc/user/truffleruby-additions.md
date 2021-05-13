@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Ruby Additional Functionality
 permalink: /reference-manual/ruby/TruffleRubyAdditions/
-redirect_from: /docs/reference-manual/ruby/TruffleRubyAdditions/
 ---
 # TruffleRuby Additional Functionality
 

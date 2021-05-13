@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Setting up a UTF-8 Locale
 permalink: /reference-manual/ruby/UTF8Locale/
-redirect_from: /docs/reference-manual/ruby/UTF8Locale/
 ---
 # Setting Up a UTF-8 Locale
 

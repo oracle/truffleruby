@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Optcarrot Example
 permalink: /reference-manual/ruby/Optcarrot/
-redirect_from: /docs/reference-manual/ruby/Optcarrot/
 ---
 # Running Optcarrot
 

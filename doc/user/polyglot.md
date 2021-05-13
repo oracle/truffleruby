@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Polyglot Programming
 permalink: /reference-manual/ruby/Polyglot/
-redirect_from: /docs/reference-manual/ruby/Polyglot/
 ---
 # Polyglot Programming
 

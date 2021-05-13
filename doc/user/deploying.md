@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Runtime Configurations
 permalink: /reference-manual/ruby/RuntimeConfigurations/
-redirect_from: /docs/reference-manual/ruby/RuntimeConfigurations/
 ---
 # Deploying TruffleRuby
 

@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Installing Make and GCC
 permalink: /reference-manual/ruby/InstallingLLVM/
-redirect_from: /docs/reference-manual/ruby/InstallingLLVM/
 ---
 # Installing Make and GCC
 

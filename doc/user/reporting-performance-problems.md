@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Reporting Performance Problems
 permalink: /reference-manual/ruby/ReportingPerformanceProblems/
-redirect_from: /docs/reference-manual/ruby/ReportingPerformanceProblems/
 ---
 # Reporting Performance Problems
 

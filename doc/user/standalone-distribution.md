@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Standalone Distribution
 permalink: /reference-manual/ruby/StandaloneDistribution/
-redirect_from: /docs/reference-manual/ruby/StandaloneDistribution/
 ---
 # Standalone Distribution
 

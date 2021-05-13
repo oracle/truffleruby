@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Installing `zlib`
 permalink: /reference-manual/ruby/Installingzlib/
-redirect_from: /docs/reference-manual/ruby/Installingzlib/
 ---
 # Installing `zlib`
 

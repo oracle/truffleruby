@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: TruffleRuby Options and Command Line
 permalink: /reference-manual/ruby/Options/
-redirect_from: /docs/reference-manual/ruby/Options/
 ---
 # TruffleRuby Options and Command Line
 

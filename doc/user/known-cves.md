@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Security
 permalink: /reference-manual/ruby/KnownCVEs/
-redirect_from: /docs/reference-manual/ruby/KnownCVEs/
 ---
 # Security
 

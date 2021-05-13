@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Migration from JRuby to Ruby
 permalink: /reference-manual/ruby/JRubyMigration/
-redirect_from: /docs/reference-manual/ruby/JRubyMigration/
 ---
 # Migration from JRuby to TruffleRuby
 

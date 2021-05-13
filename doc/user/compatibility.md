@@ -3,7 +3,6 @@ layout: docs-experimental
 toc_group: ruby
 link_title: Compatibility
 permalink: /reference-manual/ruby/Compatibility/
-redirect_from: /docs/reference-manual/ruby/Compatibility/
 ---
 # Compatibility
 
