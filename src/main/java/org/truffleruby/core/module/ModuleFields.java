@@ -111,7 +111,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
      * map of refined classes and modules (C) to refinement modules (R). */
     private final ConcurrentMap<RubyModule, RubyModule> refinements = new ConcurrentHashMap<>();
 
-    private final CyclicAssumption constantsUnmodifiedAssumption;
+    private final CyclicAssumption hierarchyUnmodifiedAssumption;
 
     // Concurrency: only modified during boot
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
@@ -139,7 +139,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
         this.rubyModule = rubyModule;
-        this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
+        this.hierarchyUnmodifiedAssumption = new CyclicAssumption("hierarchy is unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
         this.includedBy = rubyModule instanceof RubyClass
@@ -794,6 +794,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void newHierarchyVersion() {
+        hierarchyUnmodifiedAssumption.invalidate(givenBaseName);
         newConstantsVersion();
 
         if (isRefinement()) {
@@ -827,13 +828,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public Assumption getConstantsUnmodifiedAssumption() {
-        return constantsUnmodifiedAssumption.getAssumption();
-    }
-
     public Assumption getHierarchyUnmodifiedAssumption() {
         // Both assumptions are invalidated on hierarchy changes, just pick one of them.
-        return getConstantsUnmodifiedAssumption();
+        return hierarchyUnmodifiedAssumption.getAssumption();
     }
 
     public Iterable<Entry<String, ConstantEntry>> getConstants() {

@@ -153,7 +153,6 @@ public abstract class ModuleOperations {
             ArrayList<Assumption> assumptions) {
         // Look in the current module
         ModuleFields fields = module.fields;
-        assumptions.add(fields.getConstantsUnmodifiedAssumption());
         ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
         if (constantExists(constantEntry, assumptions)) {
             return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
@@ -165,7 +164,6 @@ public abstract class ModuleOperations {
                 continue;
             }
             fields = ancestor.fields;
-            assumptions.add(fields.getConstantsUnmodifiedAssumption());
             constantEntry = fields.getOrComputeConstantEntry(name);
             if (constantExists(constantEntry, assumptions)) {
                 return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
@@ -182,7 +180,6 @@ public abstract class ModuleOperations {
         final RubyClass objectClass = context.getCoreLibrary().objectClass;
 
         ModuleFields fields = objectClass.fields;
-        assumptions.add(fields.getConstantsUnmodifiedAssumption());
         ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
         if (constantExists(constantEntry, assumptions)) {
             return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
@@ -190,7 +187,6 @@ public abstract class ModuleOperations {
 
         for (RubyModule ancestor : objectClass.fields.prependedAndIncludedModules()) {
             fields = ancestor.fields;
-            assumptions.add(fields.getConstantsUnmodifiedAssumption());
             constantEntry = fields.getOrComputeConstantEntry(name);
             if (constantExists(constantEntry, assumptions)) {
                 return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
@@ -225,7 +221,6 @@ public abstract class ModuleOperations {
         // Look in lexical scope
         while (lexicalScope != context.getRootLexicalScope()) {
             final ModuleFields fields = lexicalScope.getLiveModule().fields;
-            assumptions.add(fields.getConstantsUnmodifiedAssumption());
             final ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
             if (constantExists(constantEntry, assumptions)) {
                 return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
@@ -315,7 +310,6 @@ public abstract class ModuleOperations {
             }
         } else {
             final ModuleFields fields = module.fields;
-            assumptions.add(fields.getConstantsUnmodifiedAssumption());
             final ConstantEntry constantEntry = fields.getOrComputeConstantEntry(name);
             if (constantExists(constantEntry, assumptions)) {
                 return new ConstantLookupResult(constantEntry.getConstant(), toArray(assumptions));
