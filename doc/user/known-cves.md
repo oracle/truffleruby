@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Security
 link_title: Security
 permalink: /reference-manual/ruby/KnownCVEs/
 redirect_from: /docs/reference-manual/ruby/KnownCVEs/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Optcarrot/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/ReportingPerformanceProblems/
 ---
 # Security
 

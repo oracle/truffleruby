@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Ruby Additional Functionality
 link_title: Ruby Additional Functionality
 permalink: /reference-manual/ruby/TruffleRubyAdditions/
 redirect_from: /docs/reference-manual/ruby/TruffleRubyAdditions/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/UTF8Locale/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Tools/
 ---
 # TruffleRuby Additional Functionality
 

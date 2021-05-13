@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Optcarrot Example
 link_title: Optcarrot Example
 permalink: /reference-manual/ruby/Optcarrot/
 redirect_from: /docs/reference-manual/ruby/Optcarrot/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/FAQ/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/KnownCVEs/
 ---
 # Running Optcarrot
 

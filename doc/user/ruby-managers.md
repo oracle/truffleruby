@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Ruby Managers and Installers
 link_title: Ruby Managers and Installers
 permalink: /reference-manual/ruby/RubyManagers/
 redirect_from: /docs/reference-manual/ruby/RubyManagers/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/StandaloneDistribution/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Polyglot/
 ---
 # Ruby Managers and Installers
 

@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Runtime Configurations
 link_title: Runtime Configurations
 permalink: /reference-manual/ruby/RuntimeConfigurations/
 redirect_from: /docs/reference-manual/ruby/RuntimeConfigurations/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/InstallingGraalVM/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Debugging/
 ---
 # Deploying TruffleRuby
 

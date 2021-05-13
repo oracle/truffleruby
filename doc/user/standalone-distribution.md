@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Standalone Distribution
 link_title: Standalone Distribution
 permalink: /reference-manual/ruby/StandaloneDistribution/
 redirect_from: /docs/reference-manual/ruby/StandaloneDistribution/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Tools/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/RubyManagers/
 ---
 # Standalone Distribution
 

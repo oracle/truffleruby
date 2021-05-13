@@ -1,12 +1,9 @@
 ---
 layout: docs-experimental
 toc_group: ruby
-title: Compatibility
 link_title: Compatibility
 permalink: /reference-manual/ruby/Compatibility/
 redirect_from: /docs/reference-manual/ruby/Compatibility/
-next: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/Debugging/
-previous: /en/graalvm/enterprise/{{ site.version }}/docs/reference-manual/ruby/
 ---
 # Compatibility
 
