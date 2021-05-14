@@ -83,7 +83,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
-            @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+            @Cached LoopConditionProfile loopProfile) {
         final int newSize = index + 1;
         Object store = array.store;
         final Object objectStore = arrays.allocateForNewValue(store, nil, newSize);
@@ -109,7 +109,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+            @Cached LoopConditionProfile loopProfile) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
         final Object store = array.store;
         loopProfile.profileCounted(index - array.size);

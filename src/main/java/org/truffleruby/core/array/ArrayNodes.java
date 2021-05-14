@@ -170,7 +170,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected RubyArray mulOther(RubyArray array, int count,
                 @CachedLibrary("array.store") ArrayStoreLibrary arrays,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             final int size = array.size;
             final int newSize;
@@ -478,7 +478,7 @@ public abstract class ArrayNodes {
         protected Object compactObjectsNonMutable(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final int size = array.size;
             final Object store = array.store;
             BuilderState state = arrayBuilder.start(size);
@@ -514,7 +514,7 @@ public abstract class ArrayNodes {
         protected Object compactObjectsNonMutable(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final int size = array.size;
             final Object oldStore = array.store;
             final Object newStore;
@@ -602,7 +602,7 @@ public abstract class ArrayNodes {
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile selfArgProfile,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final int size = array.size;
             Object store = cowNode.execute(array, 0, size);
 
@@ -633,7 +633,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object delete(VirtualFrame frame, RubyArray array, Object value, Object maybeBlock,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             return delete(frame, array, value, maybeBlock, true, array.store, array.store, stores, stores, loopProfile);
         }
@@ -644,7 +644,7 @@ public abstract class ArrayNodes {
         protected Object delete(VirtualFrame frame, RubyArray array, Object value, Object maybeBlock,
                 @CachedLibrary("array.store") ArrayStoreLibrary oldStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             final Object oldStore = array.store;
             final Object newStore = oldStores.allocator(oldStore).allocate(array.size);
@@ -838,7 +838,7 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile sameSizeProfile,
                 @Cached BranchProfile trueProfile,
                 @Cached BranchProfile falseProfile,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             if (sameProfile.profile(a == b)) {
                 return true;
@@ -906,7 +906,7 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile sameSizeProfile,
                 @Cached BranchProfile trueProfile,
                 @Cached BranchProfile falseProfile,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
 
             if (sameProfile.profile(a == b)) {
                 return true;
@@ -967,7 +967,7 @@ public abstract class ArrayNodes {
         protected RubyArray fill(RubyArray array, Object[] args, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object value = args[0];
             propagateSharingNode.executePropagate(array, value);
 
@@ -1010,7 +1010,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached DispatchNode toHashNode,
                 @Cached ToLongNode toLongNode,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final int size = array.size;
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -1037,7 +1037,7 @@ public abstract class ArrayNodes {
         @Specialization(limit = "storageStrategyLimit()")
         protected boolean include(RubyArray array, Object value,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object store = array.store;
 
             loopProfile.profileCounted(array.size);
@@ -1122,7 +1122,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
                 @Cached PropagateSharingNode propagateSharingNode,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object allocatedStore = stores.allocateForNewValue(array.store, fillingValue, size);
             if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
                 propagateSharingNode.executePropagate(array, fillingValue);
@@ -1148,7 +1148,7 @@ public abstract class ArrayNodes {
         protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached PropagateSharingNode propagateSharingNode,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             BuilderState state = arrayBuilder.start(size);
 
             int n = 0;
@@ -1273,7 +1273,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object store = array.store;
             return injectBlockHelper(stores, array, block, store, initialOrSymbol, 0, loopProfile);
         }
@@ -1284,7 +1284,7 @@ public abstract class ArrayNodes {
         protected Object injectNoInitial(
                 RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object store = array.store;
             return injectBlockHelper(stores, array, block, store, stores.read(store, 0), 1, loopProfile);
         }
@@ -1330,7 +1330,7 @@ public abstract class ArrayNodes {
         protected Object injectSymbolWithInitial(
                 VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached ToJavaStringNode toJavaString) {
             final Object store = array.store;
             return injectSymbolHelper(
@@ -1350,7 +1350,7 @@ public abstract class ArrayNodes {
         protected Object injectSymbolNoInitial(
                 VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached ToJavaStringNode toJavaString) {
             final Object store = array.store;
             return injectSymbolHelper(
@@ -1392,7 +1392,7 @@ public abstract class ArrayNodes {
         protected Object map(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object store = array.store;
             final int size = array.size;
             BuilderState state = arrayBuilder.start(size);
@@ -1652,7 +1652,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "rest.length > 0", "wasProvided(value)" })
         protected RubyArray pushMany(VirtualFrame frame, RubyArray array, Object value, Object[] rest,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             // NOTE (eregon): Appending one by one here to avoid useless generalization to Object[]
             // if the arguments all fit in the current storage
             appendOneNode.executeAppendOne(array, value);
@@ -1675,7 +1675,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object store = array.store;
             final int size = array.size;
 
@@ -1720,8 +1720,8 @@ public abstract class ArrayNodes {
         protected Object rejectInPlaceMutableStore(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
-                @Cached("createCountingProfile()") LoopConditionProfile loop1Profile,
-                @Cached("createCountingProfile()") LoopConditionProfile loop2Profile) {
+                @Cached LoopConditionProfile loop1Profile,
+                @Cached LoopConditionProfile loop2Profile) {
             return rejectInPlaceInternal(array, block, mutablestores, array.store, loop1Profile, loop2Profile);
         }
 
@@ -1731,8 +1731,8 @@ public abstract class ArrayNodes {
         protected Object rejectInPlaceImmutableStore(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores,
-                @Cached("createCountingProfile()") LoopConditionProfile loop1Profile,
-                @Cached("createCountingProfile()") LoopConditionProfile loop2Profile) {
+                @Cached LoopConditionProfile loop1Profile,
+                @Cached LoopConditionProfile loop2Profile) {
             final Object mutableStore = stores.allocator(array.store).allocate(array.size);
             stores.copyContents(array.store, 0, mutableStore, 0, array.size);
             array.store = mutableStore;
@@ -1855,9 +1855,9 @@ public abstract class ArrayNodes {
                 @CachedLibrary("array.store") ArrayStoreLibrary arrays,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile,
-                @Cached("createCountingProfile()") LoopConditionProfile loop1Profile,
-                @Cached("createCountingProfile()") LoopConditionProfile loop2Profile,
-                @Cached("createCountingProfile()") LoopConditionProfile loop3Profile) {
+                @Cached LoopConditionProfile loop1Profile,
+                @Cached LoopConditionProfile loop2Profile,
+                @Cached LoopConditionProfile loop3Profile) {
             final int size = sizeProfile.profile(array.size);
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
@@ -1954,7 +1954,7 @@ public abstract class ArrayNodes {
         @Specialization(limit = "storageStrategyLimit()")
         protected Object select(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode) {
             final Object store = array.store;
@@ -2211,7 +2211,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("other.store") ArrayStoreLibrary bStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary pairs,
                 @Cached ConditionProfile bNotSmallerProfile,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             final Object a = array.store;
             final Object b = other.store;
 

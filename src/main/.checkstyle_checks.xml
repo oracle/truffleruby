@@ -226,6 +226,10 @@
       <property name="format" value='@Cached\("createBinaryProfile\(\)"\) ConditionProfile'/>
       <property name="message" value="Use @Cached ConditionProfile instead."/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='@Cached\("createCountingProfile\(\)"\) LoopConditionProfile'/>
+      <property name="message" value="Use @Cached LoopConditionProfile instead."/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="TruffleObject,DynamicObject,PrintWriter"/>

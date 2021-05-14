@@ -95,7 +95,7 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyIntRange eachInt(RubyIntRange range, RubyProc block,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             int result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -119,7 +119,7 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyLongRange eachLong(RubyLongRange range, RubyProc block,
-                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile) {
             long result;
             if (range.excludedEnd) {
                 result = range.end;
