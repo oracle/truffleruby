@@ -305,7 +305,7 @@ class AllBenchmarksBenchmarkSuite(RubyBenchmarkSuite):
             raise AssertionError("Unknown benchmark kind: " + self.config()['kind'])
 
         if ':' in benchmark:
-            benchmark_file, benchmark_name = benchmark.split(':')
+            benchmark_file, benchmark_name = benchmark.split(':', 2)
             benchmark_names = [benchmark_name]
         else:
             benchmark_file = benchmark
