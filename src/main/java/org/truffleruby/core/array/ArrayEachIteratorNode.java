@@ -63,7 +63,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             limit = "storageStrategyLimit()")
     protected RubyArray iterateMany(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
-            @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
+            @Cached LoopConditionProfile loopProfile,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
         loopProfile.profileCounted(array.size - startAt);

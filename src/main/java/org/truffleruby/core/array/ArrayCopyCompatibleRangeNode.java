@@ -56,7 +56,7 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
             @Cached IsSharedNode isSrcShared,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached ConditionProfile share,
-            @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
+            @Cached LoopConditionProfile loopProfile) {
 
         final Object srcStore = src.store;
         stores.copyContents(srcStore, srcStart, dst.store, dstStart, length);
