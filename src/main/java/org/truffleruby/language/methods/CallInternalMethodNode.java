@@ -9,9 +9,11 @@
  */
 package org.truffleruby.language.methods;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -105,12 +107,23 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
     @Specialization(guards = "method.alwaysInlined()", replaces = "alwaysInlined")
     protected Object alwaysInlinedUncached(
             Frame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
-            @Cached BranchProfile checkArityProfile,
-            @Cached BranchProfile exceptionProfile,
             @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
-        return alwaysInlined(
-                // alwaysInlinedNode.execute() is a @TruffleBoundary with a Frame argument
+        return alwaysInlinedBoundary(
                 frame == null ? null : frame.materialize(),
+                callerData,
+                method,
+                self,
+                block,
+                args,
+                contextRef);
+    }
+
+    @TruffleBoundary // getUncachedAlwaysInlinedMethodNode(method) and arity are not PE constants
+    private Object alwaysInlinedBoundary(
+            MaterializedFrame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
+            ContextReference<RubyContext> contextRef) {
+        return alwaysInlined(
+                frame,
                 callerData,
                 method,
                 self,
@@ -120,8 +133,8 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                 method,
                 getUncachedAlwaysInlinedMethodNode(method),
                 method.getSharedMethodInfo().getArity(),
-                checkArityProfile,
-                exceptionProfile,
+                BranchProfile.getUncached(),
+                BranchProfile.getUncached(),
                 contextRef);
     }
 
