@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "d5ec6c894350b4b8c927f877f4e6994a6cd7e8b6",
+                "version": "a5ca5bda7301447bb2c755134f8403e51621dfa4",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -16,7 +16,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "d5ec6c894350b4b8c927f877f4e6994a6cd7e8b6",
+                "version": "a5ca5bda7301447bb2c755134f8403e51621dfa4",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
