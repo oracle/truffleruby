@@ -1,5 +1,11 @@
 #!/bin/bash
 
+SCRIPT_PATH=$(dirname "$0")
+SCRIPT_PATH=$(cd "$SCRIPT_PATH" && pwd)
+TRUFFLERUBY_DIR=$SCRIPT_PATH/../..
+
+unset JAVA_HOME
+
 function jt {
-  ruby tool/jt.rb "$@"
+  ruby "$TRUFFLERUBY_DIR"/tool/jt.rb "$@"
 }
