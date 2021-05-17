@@ -178,50 +178,68 @@ public class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
-            @Cached FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
-            @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
-            @Cached @Exclusive PropagateSharingNode propagateSharingKey,
-            @Cached @Exclusive PropagateSharingNode propagateSharingValue,
-            @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
-            @Cached @Exclusive ConditionProfile strategy,
-            @CachedLibrary(limit = "2") HashStoreLibrary hashes,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    protected static class Set {
+        @Specialization(guards = "hash.size == 0")
+        protected static boolean setFirst(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
+                @Cached @Shared("freeze") FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
+                @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
+                @Cached @Shared("propagateKey") PropagateSharingNode propagateSharingKey,
+                @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue,
+                @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+                @CachedLibrary("store") HashStoreLibrary hashes) {
 
-        assert hashes.verify(store, hash);
-        final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
-
-        final int hashed = hashNode.execute(key2, byIdentity);
-
-        propagateSharingKey.executePropagate(hash, key2);
-        propagateSharingValue.executePropagate(hash, value);
-
-        final int size = hash.size;
-
-        // written very carefully to allow PE
-        for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
-            if (n < size) {
-                final int otherHashed = getHashed(store, n);
-                final Object otherKey = getKey(store, n);
-                if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
-                    setValue(store, n, value);
-                    return false;
-                }
-            }
-        }
-
-        if (strategy.profile(size < language.options.HASH_PACKED_ARRAY_MAX)) {
-            setHashedKeyValue(store, size, hashed, key2, value);
-            hash.size += 1;
+            final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
+            propagateSharingKey.executePropagate(hash, key2);
+            propagateSharingValue.executePropagate(hash, value);
+            setHashedKeyValue(store, 0, hashNode.execute(key2, byIdentity), key2, value);
+            hash.size = 1;
+            assert hashes.verify(store, hash);
             return true;
         }
 
-        // TODO probably simpler to promote then add in the regular way
-        promoteToBuckets(context, hash, store, size);
-        EntryArrayHashStore.addNewEntry(context, hash, hashed, key2, value);
-        assert hashes.verify(hash.store, hash);
-        return true;
+        @Specialization(guards = "hash.size > 0")
+        protected static boolean set(Object[] store, RubyHash hash, Object key, Object value, boolean byIdentity,
+                @Cached @Shared("freeze") FreezeHashKeyIfNeededNode freezeHashKeyIfNeeded,
+                @Cached @Shared("toHash") HashingNodes.ToHash hashNode,
+                @Cached @Shared("propagateKey") PropagateSharingNode propagateSharingKey,
+                @Cached @Shared("propagateValue") PropagateSharingNode propagateSharingValue,
+                @Cached @Shared("compareHashKeys") CompareHashKeysNode compareHashKeys,
+                @CachedLibrary(limit = "2") HashStoreLibrary hashes,
+                @Cached ConditionProfile withinCapacity,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+
+            assert hashes.verify(store, hash);
+            final int size = hash.size;
+            final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
+            final int hashed = hashNode.execute(key2, byIdentity);
+            propagateSharingKey.executePropagate(hash, key2);
+            propagateSharingValue.executePropagate(hash, value);
+
+            // written very carefully to allow PE
+            for (int n = 0; n < language.options.HASH_PACKED_ARRAY_MAX; n++) {
+                if (n < size) {
+                    final int otherHashed = getHashed(store, n);
+                    final Object otherKey = getKey(store, n);
+                    if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
+                        setValue(store, n, value);
+                        return false;
+                    }
+                }
+            }
+
+            if (withinCapacity.profile(size < language.options.HASH_PACKED_ARRAY_MAX)) {
+                setHashedKeyValue(store, size, hashed, key2, value);
+                hash.size += 1;
+                return true;
+            }
+
+            // TODO probably simpler to promote then add in the regular way
+            promoteToBuckets(context, hash, store, size);
+            EntryArrayHashStore.addNewEntry(context, hash, hashed, key2, value);
+            assert hashes.verify(hash.store, hash);
+            return true;
+        }
     }
 
     @ExportMessage

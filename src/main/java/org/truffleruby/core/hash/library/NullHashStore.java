@@ -41,8 +41,6 @@ public class NullHashStore {
         return defaultNode.accept((VirtualFrame) frame, hash, key);
     }
 
-    // TODO the theory is that this PEs as nicely as the original (which manually inserts the entry in the packed array)
-    //   verify this :)
     @ExportMessage
     protected boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
             @CachedLanguage RubyLanguage language,
