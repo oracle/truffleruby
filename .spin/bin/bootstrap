@@ -1,12 +1,19 @@
 #!/bin/bash
 
 set -ex
-source .spin/bin/env
+
+SCRIPT_PATH=$(dirname "$0")
+SCRIPT_PATH=$(cd "$SCRIPT_PATH" && pwd)
+TRUFFLERUBY_DIR=$SCRIPT_PATH/../..
 
 sudo apt-get install -y cmake libssl-dev libz-dev python
 
+source "$TRUFFLERUBY_DIR"/.spin/bin/env
+
+pushd "$TRUFFLERUBY_DIR"
 jt install jvmci
 jt install eclipse
 jt mx sforceimports
 jt build
 jt ruby --version
+popd
