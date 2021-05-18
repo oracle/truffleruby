@@ -102,7 +102,7 @@ public class DeclarationContext {
     }
 
     @TruffleBoundary
-    private static Frame lookupVisibilityInternal(MaterializedFrame frame) {
+    private static MaterializedFrame lookupVisibilityInternal(MaterializedFrame frame) {
         while (frame != null) {
             final Visibility visibility = RubyArguments.getDeclarationContext(frame).visibility;
             if (visibility != null) {
