@@ -76,3 +76,4 @@ slow:The launcher supports running erb symlinked
 slow:The launcher supports running racc symlinked
 slow:The launcher supports running racc2y symlinked
 slow:The launcher supports running y2racc symlinked
+slow:The launcher warns if the locale is not set properly

@@ -159,7 +159,12 @@ public class EncodingManager {
 
         RubyEncoding rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
-            rubyEncoding = getRubyEncoding("US-ASCII");
+            rubyEncoding = getRubyEncoding(USASCIIEncoding.INSTANCE);
+        }
+
+        if (context.getOptions().WARN_LOCALE && rubyEncoding.encoding == USASCIIEncoding.INSTANCE) {
+            RubyLanguage.LOGGER.warning(
+                    "Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly");
         }
 
         localeEncoding = rubyEncoding.encoding;

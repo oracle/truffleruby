@@ -54,6 +54,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> HASHING_DETERMINISTIC_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> FIBER_LEAVE_CONTEXT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LOG_SUBPROCESS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> WARN_LOCALE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_STORE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY = new OptionKey<>(false);
@@ -390,6 +391,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor LOG_SUBPROCESS = OptionDescriptor
             .newBuilder(LOG_SUBPROCESS_KEY, "ruby.log-subprocess")
             .help("Log whenever a subprocess is created")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor WARN_LOCALE = OptionDescriptor
+            .newBuilder(WARN_LOCALE_KEY, "ruby.warn-locale")
+            .help("Warn when the system locale is not set properly")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1171,6 +1179,8 @@ public class OptionsCatalog {
                 return FIBER_LEAVE_CONTEXT;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
+            case "ruby.warn-locale":
+                return WARN_LOCALE;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":
@@ -1414,6 +1424,7 @@ public class OptionsCatalog {
             HASHING_DETERMINISTIC,
             FIBER_LEAVE_CONTEXT,
             LOG_SUBPROCESS,
+            WARN_LOCALE,
             EXCEPTIONS_STORE_JAVA,
             EXCEPTIONS_PRINT_JAVA,
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,
