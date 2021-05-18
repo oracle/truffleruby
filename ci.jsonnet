@@ -67,6 +67,10 @@ local part_definitions = {
         ["ruby", "--version"],
       ],
 
+      catch_files +: [
+        "Graal diagnostic output saved in (?P<filename>.+\\.zip)",
+      ],
+
       mx_build_options:: [],
     },
 
