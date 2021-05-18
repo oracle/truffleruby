@@ -2524,9 +2524,20 @@ public abstract class StringNodes {
             Rope otherRope = RubyStringLibrary.getUncached().getRope(otherStr);
             Encoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE + 1];
-            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc);
 
             boolean singlebyte = rope.isSingleByteOptimizable() && otherRope.isSingleByteOptimizable();
+
+            if (singlebyte && otherRope.byteLength() == 1 && otherStrings.length == 1) {
+                squeeze[otherRope.getRawBytes()[0]] = true;
+                if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
+                    return nil;
+                } else {
+                    string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
+                    return string;
+                }
+            }
+
+            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
