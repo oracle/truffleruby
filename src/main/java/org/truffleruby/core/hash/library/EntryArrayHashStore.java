@@ -119,37 +119,6 @@ public class EntryArrayHashStore {
         return (hashed & SIGN_BIT_MASK) % bucketsCount;
     }
 
-    public static void addNewEntry(RubyContext context, RubyHash hash, int hashed, Object key, Object value) {
-        assert hash.store instanceof EntryArrayHashStore;
-        final Entry[] buckets = ((EntryArrayHashStore) hash.store).entries;
-        final Entry entry = new Entry(hashed, key, value);
-
-        if (hash.firstInSequence == null) {
-            hash.firstInSequence = entry;
-        } else {
-            hash.lastInSequence.setNextInSequence(entry);
-            entry.setPreviousInSequence(hash.lastInSequence);
-        }
-
-        hash.lastInSequence = entry;
-
-        final int bucketIndex = getBucketIndex(hashed, buckets.length);
-
-        Entry previousInLookup = buckets[bucketIndex];
-
-        if (previousInLookup == null) {
-            buckets[bucketIndex] = entry;
-        } else {
-            while (previousInLookup.getNextInLookup() != null) {
-                previousInLookup = previousInLookup.getNextInLookup();
-            }
-
-            previousInLookup.setNextInLookup(entry);
-        }
-
-        hash.size += 1;
-    }
-
     @TruffleBoundary
     private static void resize(RubyContext context, RubyHash hash) {
 

@@ -234,10 +234,8 @@ public class PackedHashStoreLibrary {
                 return true;
             }
 
-            // TODO probably simpler to promote then add in the regular way
             promoteToBuckets(context, hash, store, size);
-            EntryArrayHashStore.addNewEntry(context, hash, hashed, key2, value);
-            assert hashes.verify(hash.store, hash);
+            hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
         }
     }
