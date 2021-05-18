@@ -2527,7 +2527,7 @@ public abstract class StringNodes {
 
             boolean singlebyte = rope.isSingleByteOptimizable() && otherRope.isSingleByteOptimizable();
 
-            if (otherStrings.length == 1 && otherRope.characterLength() == 1 && singlebyte) {
+            if (singlebyte && otherRope.byteLength() == 1 && otherStrings.length == 1) {
                 squeeze[otherRope.getRawBytes()[0]] = true;
                 if (!StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil;
