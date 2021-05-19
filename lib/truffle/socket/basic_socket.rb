@@ -175,7 +175,7 @@ class BasicSocket < IO
   end
 
   private def __recv_nonblock(bytes_to_read, flags, buf, exception)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    self.nonblock = true
 
     internal_recv(bytes_to_read, flags, buf, exception)
   end
@@ -244,7 +244,7 @@ class BasicSocket < IO
   end
 
   private def __recvmsg_nonblock(max_msg_len, flags, max_control_len, scm_rights, exception)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    self.nonblock = true
 
     internal_recvmsg(max_msg_len, flags | Socket::MSG_DONTWAIT, max_control_len, scm_rights, exception)
   end
@@ -296,7 +296,7 @@ class BasicSocket < IO
   end
 
   private def __sendmsg_nonblock(message, flags, dest_sockaddr, controls, exception)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    self.nonblock = true
 
     internal_sendmsg(message, flags | Socket::MSG_DONTWAIT, dest_sockaddr, exception)
   end

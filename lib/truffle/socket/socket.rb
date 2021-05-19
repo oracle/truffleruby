@@ -346,7 +346,7 @@ class Socket < BasicSocket
   end
 
   private def __connect_nonblock(sockaddr, exception)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    self.nonblock = true
 
     if sockaddr.is_a?(Addrinfo)
       sockaddr = sockaddr.to_sockaddr

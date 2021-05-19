@@ -74,7 +74,7 @@ class UDPSocket < IPSocket
   end
 
   private def __recvfrom_nonblock(maxlen, flags, buffer, exception)
-    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    self.nonblock = true
 
     flags = 0 if flags.nil?
 
