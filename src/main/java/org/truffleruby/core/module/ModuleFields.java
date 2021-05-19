@@ -787,8 +787,19 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void newConstantsVersion() {
-        for (Entry<String, ConstantEntry> entry : constants.entrySet()) {
-            entry.getValue().invalidate("newConstantsVersion", rubyModule, entry.getKey());
+        List<String> constantsToInvalidate = new ArrayList<>(constants.keySet());
+        for (String entryToInvalidate : constantsToInvalidate) {
+            while (true) {
+                final ConstantEntry constantEntry = constants.get(entryToInvalidate);
+                if (constantEntry == null) {
+                    break;
+                } else {
+                    constantEntry.invalidate("newConstantsVersion", rubyModule, entryToInvalidate);
+                    if (constants.replace(entryToInvalidate, constantEntry, constantEntry.withNewAssumption())) {
+                        break;
+                    }
+                }
+            }
         }
     }
 

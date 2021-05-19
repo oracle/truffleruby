@@ -30,6 +30,14 @@ public class ConstantEntry {
         this.constant = null;
     }
 
+    public ConstantEntry withNewAssumption() {
+        if (constant != null) {
+            return new ConstantEntry(constant);
+        } else {
+            return new ConstantEntry();
+        }
+    }
+
     public Assumption getAssumption() {
         return assumption;
     }
