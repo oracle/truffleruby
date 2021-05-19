@@ -340,7 +340,7 @@ class Socket < BasicSocket
 
     status = Truffle::Socket::Foreign.connect(Primitive.io_fd(self), sockaddr)
 
-    Truffle::Socket::Error.write_error('connect(2)', self) if status < 0
+    Truffle::Socket::Error.connect_error('connect(2)', self) if status < 0
 
     0
   end
@@ -356,7 +356,7 @@ class Socket < BasicSocket
 
     if status < 0
       if exception
-        Truffle::Socket::Error.write_nonblock('connect(2)')
+        Truffle::Socket::Error.connect_nonblock('connect(2)')
       else
         errno = Errno.errno
         if errno == Errno::EINPROGRESS::Errno
@@ -364,7 +364,7 @@ class Socket < BasicSocket
         elsif errno == Errno::EISCONN::Errno
           0
         else
-          Truffle::Socket::Error.write_nonblock('connect(2)')
+          Truffle::Socket::Error.connect_nonblock('connect(2)')
         end
       end
     else

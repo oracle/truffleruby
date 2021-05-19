@@ -177,9 +177,7 @@ class BasicSocket < IO
   private def __recv_nonblock(bytes_to_read, flags, buf, exception)
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
-    Truffle::Socket::Error.wrap_read_nonblock do
-      internal_recv(bytes_to_read, flags, buf, exception)
-    end
+    internal_recv(bytes_to_read, flags, buf, exception)
   end
 
   private def internal_recvmsg(max_msg_len, flags, max_control_len, scm_rights, exception)
