@@ -57,8 +57,6 @@ module Truffle
         yield
       rescue Errno::EAGAIN => err
         raise_wrapped_error(err, ::IO::EAGAINWaitReadable)
-      rescue Errno::EWOULDBLOCK => err
-        raise_wrapped_error(err, ::IO::EWOULDBLOCKWaitReadable)
       rescue Errno::EINPROGRESS => err
         raise_wrapped_error(err, ::IO::EINPROGRESSWaitReadable)
       end
@@ -67,8 +65,6 @@ module Truffle
         yield
       rescue Errno::EAGAIN => err
         raise_wrapped_error(err, ::IO::EAGAINWaitWritable)
-      rescue Errno::EWOULDBLOCK => err
-        raise_wrapped_error(err, ::IO::EWOULDBLOCKWaitWritable)
       rescue Errno::EINPROGRESS => err
         raise_wrapped_error(err, ::IO::EINPROGRESSWaitWritable)
       end

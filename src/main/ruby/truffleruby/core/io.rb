@@ -49,13 +49,9 @@ class IO
     include WaitWritable
   end
 
-  class EWOULDBLOCKWaitReadable < Errno::EWOULDBLOCK
-    include WaitReadable
-  end
-
-  class EWOULDBLOCKWaitWritable < Errno::EWOULDBLOCK
-    include WaitWritable
-  end
+  # EAGAIN and EWOULDBLOCK are checked to to be the same in posix.rb
+  EWOULDBLOCKWaitReadable = EAGAINWaitReadable
+  EWOULDBLOCKWaitWritable = EAGAINWaitWritable
 
   class EINPROGRESSWaitReadable < Errno::EINPROGRESS
     include WaitReadable
