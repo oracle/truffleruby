@@ -28,7 +28,7 @@ module Truffle
   module Socket
     module Error
       def self.write_error(message, socket)
-        if nonblocking?(socket)
+        if socket.nonblock?
           write_nonblock(message)
         else
           Errno.handle(message)
@@ -36,7 +36,7 @@ module Truffle
       end
 
       def self.read_error(message, socket)
-        if nonblocking?(socket)
+        if socket.nonblock?
           read_nonblock(message)
         else
           Errno.handle(message)
@@ -79,10 +79,6 @@ module Truffle
         error.set_backtrace(original.backtrace)
 
         raise error
-      end
-
-      def self.nonblocking?(socket)
-        socket.fcntl(::Fcntl::F_GETFL) & ::Fcntl::O_NONBLOCK > 0
       end
     end
   end
