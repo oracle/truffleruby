@@ -18,14 +18,14 @@ public class ConstantEntry {
     private final Assumption assumption;
     private final RubyConstant constant;
 
+    public ConstantEntry(RubyConstant constant) {
+        this.assumption = Truffle.getRuntime().createAssumption("constant is not overridden:");
+        this.constant = constant;
+    }
+
     public ConstantEntry() {
         this.assumption = Truffle.getRuntime().createAssumption("constant is not defined:");
         this.constant = null;
-    }
-
-    public ConstantEntry(RubyConstant constant) {
-        this.assumption = Truffle.getRuntime().createAssumption("constant is not overridden");
-        this.constant = constant;
     }
 
     public Assumption getAssumption() {
