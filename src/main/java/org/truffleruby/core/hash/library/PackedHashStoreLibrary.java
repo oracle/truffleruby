@@ -28,6 +28,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
@@ -294,30 +295,28 @@ public class PackedHashStoreLibrary {
     static class EachEntry {
 
         @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
+        @ExplodeLoop
         protected static Object eachEntry(
                 Object[] store, Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
                 // We only use this to get hold of the root node.
                 @Cached YieldPairNode witness,
                 @Cached(value = "hash.size", allowUncached = true) int cachedSize,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
 
             // Don't verify hash here, as `store != hash.store` when calling from `eachEntrySafe`.
-            iterate(store, frame, callback, state, cachedSize, witness);
-            return state;
-        }
-
-        @ExplodeLoop
-        private static void iterate(Object[] store, Frame frame, EachEntryCallback callback, Object state, int size,
-                RubyBaseNode witness) {
+            loopProfile.profileCounted(cachedSize);
+            int i = 0;
             try {
-                for (int i = 0; i < size; i++) {
+                for (; loopProfile.inject(i < cachedSize); i++) {
                     callback.accept((VirtualFrame) frame, i, getKey(store, i), getValue(store, i), state);
                 }
             } finally {
                 // The node is used to get the root node, so fine to use a cached node here.
                 assert CompilerDirectives.isCompilationConstant(witness);
-                LoopNode.reportLoopCount(witness, size);
+                LoopNode.reportLoopCount(witness, i);
             }
+            return state;
         }
     }
 

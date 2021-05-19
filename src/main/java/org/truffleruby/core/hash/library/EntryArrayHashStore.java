@@ -26,6 +26,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
@@ -359,20 +360,22 @@ public class EntryArrayHashStore {
     protected Object eachEntry(Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
             // We only use this to get hold of the root node. No memory overhead because it's shared.
             @Cached @Shared("lookup") LookupEntryNode witness,
+            @Cached LoopConditionProfile loopProfile,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         assert verify(hash);
+        loopProfile.profileCounted(hash.size);
         int i = 0;
         Entry entry = hash.firstInSequence;
         try {
-            while (entry != null) {
+            while (loopProfile.inject(entry != null)) {
                 callback.accept((VirtualFrame) frame, i++, entry.getKey(), entry.getValue(), state);
                 entry = entry.getNextInSequence();
             }
         } finally {
             // The node is used to get the root node, so fine to use a cached node here.
             assert CompilerDirectives.isCompilationConstant(witness);
-            LoopNode.reportLoopCount(witness, hash.size);
+            LoopNode.reportLoopCount(witness, i);
         }
         return state;
     }
