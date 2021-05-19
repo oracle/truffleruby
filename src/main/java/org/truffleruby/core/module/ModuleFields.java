@@ -465,7 +465,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         } while (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant)));
 
         if (previousEntry != null) {
-            previousEntry.invalidate("SetInternal-" + name);
+            previousEntry.invalidate("set", rubyModule, name);
         }
 
         return autoload ? newConstant : previous;
@@ -484,7 +484,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         checkFrozen(context, currentNode);
         final ConstantEntry oldConstant = constants.remove(name);
         if (oldConstant != null) {
-            oldConstant.invalidate("Remove-" + name);
+            oldConstant.invalidate("remove", rubyModule, name);
         }
         return oldConstant != null ? oldConstant.getConstant() : null;
     }
@@ -627,7 +627,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
 
             if (constants.replace(name, previousEntry, new ConstantEntry(previous.withPrivate(isPrivate)))) {
-                previousEntry.invalidate("ChangeVisibility-" + name);
+                previousEntry.invalidate("change visibility", rubyModule, name);
                 break;
             }
         }
@@ -650,7 +650,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
             if (constants.replace(name, previousEntry, new ConstantEntry(previous.withDeprecated()))) {
                 if (previousEntry != null) {
-                    previousEntry.invalidate("Deprecate-" + name);
+                    previousEntry.invalidate("deprecate", rubyModule, name);
                 }
                 break;
             }
@@ -666,7 +666,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                         autoloadConstant.getName(),
                         constantEntry,
                         new ConstantEntry(autoloadConstant.undefined()))) {
-            constantEntry.invalidate("UndefinedIfAutoload-" + autoloadConstant.getName());
+            constantEntry.invalidate("undefine if still autoload", rubyModule, autoloadConstant.getName());
             return true;
         } else {
             return false;
@@ -788,7 +788,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public void newConstantsVersion() {
         for (Entry<String, ConstantEntry> entry : constants.entrySet()) {
-            entry.getValue().invalidate("NewVersion-" + entry.getKey());
+            entry.getValue().invalidate("newConstantsVersion", rubyModule, entry.getKey());
         }
     }
 

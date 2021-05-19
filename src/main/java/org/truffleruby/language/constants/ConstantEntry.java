@@ -11,7 +11,9 @@ package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 public class ConstantEntry {
 
@@ -36,8 +38,8 @@ public class ConstantEntry {
         return constant;
     }
 
-    public void invalidate(String message) {
-        assumption.invalidate(message);
+    public void invalidate(String reason, RubyModule module, String constantName) {
+        assumption.invalidate(reason + ": " + SharedMethodInfo.moduleAndConstantName(module, constantName));
     }
 
 }

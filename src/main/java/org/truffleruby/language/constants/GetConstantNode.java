@@ -141,7 +141,8 @@ public abstract class GetConstantNode extends RubyContextNode {
         final ConstantEntry constantEntry = autoloadConstant.getDeclaringModule().fields
                 .getConstantEntry(autoloadConstant.getName());
         if (constantEntry != null) {
-            constantEntry.invalidate("AutoloadStart-" + autoloadConstant.getName());
+            constantEntry
+                    .invalidate("autoload start", autoloadConstant.getDeclaringModule(), autoloadConstant.getName());
         }
     }
 
