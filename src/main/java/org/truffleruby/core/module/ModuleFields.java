@@ -447,7 +447,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         RubyConstant previous;
         RubyConstant newConstant;
         ConstantEntry previousEntry;
-        while (true) {
+        do {
             previousEntry = constants.get(name);
             previous = previousEntry != null ? previousEntry.getConstant() : null;
             if (autoload && previous != null) {
@@ -462,14 +462,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 }
             }
             newConstant = newConstant(currentNode, name, value, autoload, previous);
-            if (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant))) {
+        } while (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant)));
 
-            } else {
-                if (previousEntry != null) {
-                    previousEntry.invalidate("SetInternal-" + name);
-                }
-                break;
-            }
+        if (previousEntry != null) {
+            previousEntry.invalidate("SetInternal-" + name);
         }
 
         return autoload ? newConstant : previous;
