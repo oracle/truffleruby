@@ -279,12 +279,9 @@ public class BucketsHashStore {
             }
 
             hash.lastInSequence = newEntry;
-
             final int newSize = (hash.size += 1);
-
-            // TODO CS 11-May-15 could store the next size for resize instead of doing a float operation each time
-
             assert verify(hash);
+
             if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
                 resize(context, hash);
                 assert ((BucketsHashStore) hash.store).verify(hash); // store changed!
