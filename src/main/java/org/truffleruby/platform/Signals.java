@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.truffleruby.RubyContext;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
@@ -26,15 +27,14 @@ public class Signals {
     // Use String and not Signal as key to work around SVM not allowing new Signal("PROF")
     /** Default SignalHandlers for the JVM */
     private static final ConcurrentMap<String, SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
-    /** Default signal handlers for Ruby, only SIGINT and SIGALRM, see {@code core/main.rb} */
-    private static final ConcurrentMap<String, SignalHandler> RUBY_DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    public static void registerHandler(SignalHandler newHandler, String signalName, boolean isRubyDefaultHandler) {
+    public static void registerHandler(RubyContext context, SignalHandler newHandler, String signalName,
+            boolean isRubyDefaultHandler) {
         final Signal signal = new Signal(signalName);
         final SignalHandler oldHandler = Signal.handle(signal, newHandler);
         DEFAULT_HANDLERS.putIfAbsent(signalName, oldHandler);
         if (isRubyDefaultHandler) {
-            RUBY_DEFAULT_HANDLERS.putIfAbsent(signalName, newHandler);
+            context.defaultRubySignalHandlers.putIfAbsent(signalName, newHandler);
         }
     }
 
@@ -56,8 +56,8 @@ public class Signals {
         }
     }
 
-    public static boolean restoreRubyDefaultHandler(String signalName) {
-        SignalHandler defaultHandler = RUBY_DEFAULT_HANDLERS.get(signalName);
+    public static boolean restoreRubyDefaultHandler(RubyContext context, String signalName) {
+        SignalHandler defaultHandler = context.defaultRubySignalHandlers.get(signalName);
         if (defaultHandler == null) {
             defaultHandler = DEFAULT_HANDLERS.get(signalName);
         }
