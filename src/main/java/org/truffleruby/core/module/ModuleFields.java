@@ -323,6 +323,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 // Module#include only adds modules between the current class and the super class,
                 // so invalidating the current class is enough as all affected lookups would go through the current class.
                 newMethodsVersion(toInclude.fields.getMethodNames());
+                newConstantsVersion(toInclude.fields.getConstantNames());
             }
         }
     }
@@ -367,9 +368,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     cur.insertAfter(toPrepend);
                     if (rubyModule instanceof RubyClass) { // M.prepend(N) just registers N but does nothing until C.prepend/include(M)
                         final List<String> methodsToInvalidate = toPrepend.fields.getMethodNames();
+                        final List<String> constantsToInvalidate = toPrepend.fields.getConstantNames();
                         for (RubyModule moduleToInvalidate : prependedModulesAndClass) {
                             toPrepend.fields.includedBy.add(moduleToInvalidate);
                             moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
+                            moduleToInvalidate.fields.newConstantsVersion(constantsToInvalidate);
                         }
                     }
                     cur = cur.getParentModule();
@@ -786,8 +789,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    public void newConstantsVersion() {
-        List<String> constantsToInvalidate = new ArrayList<>(constants.keySet());
+    public void newConstantsVersion(List<String> constantsToInvalidate) {
         for (String entryToInvalidate : constantsToInvalidate) {
             while (true) {
                 final ConstantEntry constantEntry = constants.get(entryToInvalidate);
@@ -805,7 +807,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public void newHierarchyVersion() {
         hierarchyUnmodifiedAssumption.invalidate(givenBaseName);
-        newConstantsVersion();
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
@@ -904,6 +905,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return () -> new MethodsIterator(methods.values());
     }
 
+    public List<String> getConstantNames() {
+        List<String> results = new ArrayList<>();
+        for (Entry<String, ConstantEntry> entry : constants.entrySet()) {
+            if (entry.getValue().getConstant() != null) {
+                results.add(entry.getKey());
+            }
+        }
+        return results;
+    }
+
     public List<String> getMethodNames() {
         List<String> results = new ArrayList<>();
         for (Entry<String, MethodEntry> entry : methods.entrySet()) {
@@ -950,6 +961,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         assert rubyModule instanceof RubyClass;
         this.parentModule = superclass.fields.start;
         newMethodsVersion(new ArrayList<>(methods.keySet()));
+        newConstantsVersion(new ArrayList<>(constants.keySet()));
         newHierarchyVersion();
     }
 
