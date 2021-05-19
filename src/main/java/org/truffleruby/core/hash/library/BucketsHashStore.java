@@ -52,11 +52,11 @@ import java.util.Set;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
-public class EntryArrayHashStore {
+public class BucketsHashStore {
 
     public Entry[] entries;
 
-    public EntryArrayHashStore(Entry[] entries) {
+    public BucketsHashStore(Entry[] entries) {
         this.entries = entries;
     }
 
@@ -146,7 +146,7 @@ public class EntryArrayHashStore {
             entry = entry.getNextInSequence();
         }
 
-        hash.store = new EntryArrayHashStore(newEntries);
+        hash.store = new BucketsHashStore(newEntries);
     }
 
     public static void getAdjacentObjects(Set<Object> reachable, Entry firstInSequence) {
@@ -160,7 +160,7 @@ public class EntryArrayHashStore {
 
     private static void copyInto(RubyContext context, RubyHash from, RubyHash to) {
 
-        final Entry[] newEntries = new Entry[((EntryArrayHashStore) from.store).entries.length];
+        final Entry[] newEntries = new Entry[((BucketsHashStore) from.store).entries.length];
 
         Entry firstInSequence = null;
         Entry lastInSequence = null;
@@ -182,7 +182,7 @@ public class EntryArrayHashStore {
             entry = entry.getNextInSequence();
         }
 
-        to.store = new EntryArrayHashStore(newEntries);
+        to.store = new BucketsHashStore(newEntries);
         to.size = from.size;
         to.firstInSequence = firstInSequence;
         to.lastInSequence = lastInSequence;
@@ -214,7 +214,7 @@ public class EntryArrayHashStore {
 
     private static void removeFromLookupChain(RubyHash hash, int index, Entry entry, Entry previousEntry) {
         if (previousEntry == null) {
-            ((EntryArrayHashStore) hash.store).entries[index] = entry.getNextInLookup();
+            ((BucketsHashStore) hash.store).entries[index] = entry.getNextInLookup();
         } else {
             previousEntry.setNextInLookup(entry.getNextInLookup());
         }
@@ -287,7 +287,7 @@ public class EntryArrayHashStore {
             assert verify(hash);
             if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
                 resize(context, hash);
-                assert ((EntryArrayHashStore) hash.store).verify(hash); // store changed!
+                assert ((BucketsHashStore) hash.store).verify(hash); // store changed!
             }
             return true;
         } else {
@@ -591,7 +591,7 @@ public class EntryArrayHashStore {
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             int hashed = hashNode.execute(key, compareByIdentity);
 
-            final Entry[] entries = ((EntryArrayHashStore) hash.store).entries;
+            final Entry[] entries = ((BucketsHashStore) hash.store).entries;
             final int index = getBucketIndex(hashed, entries.length);
             Entry entry = entries[index];
 
@@ -638,7 +638,7 @@ public class EntryArrayHashStore {
                     coreLibrary().hashClass,
                     language.hashShape,
                     getContext(),
-                    new EntryArrayHashStore(new Entry[bucketsCount]),
+                    new BucketsHashStore(new Entry[bucketsCount]),
                     0,
                     null,
                     null,

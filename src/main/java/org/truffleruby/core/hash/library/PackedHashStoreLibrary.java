@@ -124,7 +124,7 @@ public class PackedHashStoreLibrary {
 
     @TruffleBoundary
     private static void promoteToBuckets(RubyContext context, RubyHash hash, Object[] store, int size) {
-        final Entry[] buckets = new Entry[EntryArrayHashStore.capacityGreaterThan(size)];
+        final Entry[] buckets = new Entry[BucketsHashStore.capacityGreaterThan(size)];
 
         Entry firstInSequence = null;
         Entry previousInSequence = null;
@@ -144,7 +144,7 @@ public class PackedHashStoreLibrary {
             previousInSequence = entry;
             lastInSequence = entry;
 
-            final int bucketIndex = EntryArrayHashStore.getBucketIndex(hashed, buckets.length);
+            final int bucketIndex = BucketsHashStore.getBucketIndex(hashed, buckets.length);
 
             Entry previousInLookup = buckets[bucketIndex];
 
@@ -159,7 +159,7 @@ public class PackedHashStoreLibrary {
             }
         }
 
-        hash.store = new EntryArrayHashStore(buckets);
+        hash.store = new BucketsHashStore(buckets);
         hash.size = size;
         hash.firstInSequence = firstInSequence;
         hash.lastInSequence = lastInSequence;
