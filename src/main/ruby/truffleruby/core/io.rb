@@ -42,18 +42,18 @@ class IO
   module WaitWritable; end
 
   class EAGAINWaitReadable < Errno::EAGAIN
-    include IO::WaitReadable
-  end
-
-  class EAGAINWaitWritable < Errno::EAGAIN
-    include IO::WaitWritable
-  end
-
-  class EWOULDBLOCKWaitReadable < Errno::EAGAIN
     include WaitReadable
   end
 
-  class EWOULDBLOCKWaitWritable < Errno::EAGAIN
+  class EAGAINWaitWritable < Errno::EAGAIN
+    include WaitWritable
+  end
+
+  class EWOULDBLOCKWaitReadable < Errno::EWOULDBLOCK
+    include WaitReadable
+  end
+
+  class EWOULDBLOCKWaitWritable < Errno::EWOULDBLOCK
     include WaitWritable
   end
 
