@@ -219,7 +219,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         for (Entry<String, ConstantEntry> entry : fromFields.constants.entrySet()) {
-            this.constants.put(entry.getKey(), new ConstantEntry(entry.getValue().getConstant()));
+            final RubyConstant constant = entry.getValue().getConstant();
+            if (constant != null) {
+                this.constants.put(entry.getKey(), new ConstantEntry(constant));
+            }
         }
 
         for (Object key : fromFields.classVariables.getShape().getKeys()) {
