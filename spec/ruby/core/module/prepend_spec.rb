@@ -47,9 +47,8 @@ describe "Module#prepend" do
         'a'
       end
     end
-    b_class = Class.new(a_class)
-    b = b_class.new
-    foo = -> { b.foo }
+    a = a_class.new
+    foo = -> { a.foo }
     foo.call.should == 'a'
     a_class.class_eval do
       prepend m_module
@@ -65,9 +64,8 @@ describe "Module#prepend" do
         'a'
       end
     end
-    b_class = Class.new(a_class)
-    b = b_class.new
-    foo = -> { b.foo }
+    a = a_class.new
+    foo = -> { a.foo }
     foo.call.should == 'a'
     m_module.module_eval do
       def foo
@@ -94,9 +92,8 @@ describe "Module#prepend" do
       include n_module
     end
 
-    b_class = Class.new(a_class)
-    b = b_class.new
-    foo = -> { b.foo }
+    a = a_class.new
+    foo = -> { a.foo }
 
     foo.call.should == 'a'
 
