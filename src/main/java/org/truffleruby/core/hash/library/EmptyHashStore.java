@@ -32,9 +32,9 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
-public class NullHashStore {
+public class EmptyHashStore {
 
-    public static final NullHashStore NULL_HASH_STORE = new NullHashStore();
+    public static final EmptyHashStore NULL_HASH_STORE = new EmptyHashStore();
 
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode) {
@@ -84,7 +84,7 @@ public class NullHashStore {
             return;
         }
         propagateSharing.executePropagate(dest, hash);
-        dest.store = NullHashStore.NULL_HASH_STORE;
+        dest.store = EmptyHashStore.NULL_HASH_STORE;
         dest.size = 0;
         dest.firstInSequence = null;
         dest.lastInSequence = null;

@@ -11,7 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.EntryArrayHashStore;
-import org.truffleruby.core.hash.library.NullHashStore;
+import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -32,7 +32,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     public static HashLiteralNode create(RubyLanguage language, RubyNode[] keyValues) {
         if (keyValues.length == 0) {
-            return new NullHashStore.EmptyHashLiteralNode(language);
+            return new EmptyHashStore.EmptyHashLiteralNode(language);
         } else if (keyValues.length <= language.options.HASH_PACKED_ARRAY_MAX * 2) {
             return new PackedHashStoreLibrary.SmallHashLiteralNode(language, keyValues);
         } else {

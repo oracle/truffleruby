@@ -63,7 +63,7 @@ public abstract class HashStoreLibrary extends Library {
     public abstract boolean set(Object store, RubyHash hash, Object key, Object value, boolean byIdentity);
 
     public void clear(Object store, RubyHash hash) {
-        hash.store = NullHashStore.NULL_HASH_STORE;
+        hash.store = EmptyHashStore.NULL_HASH_STORE;
         hash.size = 0;
         hash.firstInSequence = null;
         hash.lastInSequence = null;

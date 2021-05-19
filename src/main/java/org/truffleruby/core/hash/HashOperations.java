@@ -11,7 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.hash.library.NullHashStore;
+import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
@@ -25,7 +25,7 @@ public abstract class HashOperations {
                 context.getCoreLibrary().hashClass,
                 language.hashShape,
                 context,
-                NullHashStore.NULL_HASH_STORE,
+                EmptyHashStore.NULL_HASH_STORE,
                 0,
                 null,
                 null,

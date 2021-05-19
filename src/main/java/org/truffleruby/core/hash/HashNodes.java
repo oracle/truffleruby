@@ -23,9 +23,9 @@ import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
+import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
-import org.truffleruby.core.hash.library.NullHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
@@ -57,7 +57,7 @@ public abstract class HashNodes {
         @Specialization
         protected RubyHash allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().hashShape;
-            final NullHashStore store = NullHashStore.NULL_HASH_STORE;
+            final EmptyHashStore store = EmptyHashStore.NULL_HASH_STORE;
             final RubyHash hash = new RubyHash(rubyClass, shape, getContext(), store, 0, null, null, nil, nil, false);
             AllocationTracing.trace(hash, this);
             return hash;
