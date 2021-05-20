@@ -788,8 +788,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (methodEntry == null) {
                 return;
             } else {
-                methodEntry.invalidate(rubyModule, methodToInvalidate);
                 if (methods.replace(methodToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
+                    methodEntry.invalidate(rubyModule, methodToInvalidate);
                     return;
                 }
             }
