@@ -313,10 +313,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         while (!moduleAncestors.isEmpty()) {
             RubyModule toInclude = moduleAncestors.pop();
             inclusionPoint.insertAfter(toInclude);
-            toInclude.fields.includedBy.add(rubyModule);
-            // Module#include only adds modules between the current class and the super class,
-            // so invalidating the current class is enough as all affected lookups would go through the current class.
-            newMethodsVersion(toInclude.fields.getMethodNames());
+            if (rubyModule instanceof RubyClass) { // M.include(N) just registers N but does nothing until C.include/prepend(M)
+                toInclude.fields.includedBy.add(rubyModule);
+                // Module#include only adds modules between the current class and the super class,
+                // so invalidating the current class is enough as all affected lookups would go through the current class.
+                newMethodsVersion(toInclude.fields.getMethodNames());
+            }
         }
     }
 
@@ -346,7 +348,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         /* We need to invalidate all prepended modules and the class, because call sites which looked up methods before
          * only check the class or one of the prepend module (if the method is defined there). */
-        final List<RubyModule> prependedModulesAndSelf = getPrependedModulesAndSelf();
+        final List<RubyModule> prependedModulesAndClass = rubyModule instanceof RubyClass
+                ? getPrependedModulesAndClass()
+                : null;
 
         ModuleChain mod = module.fields.start;
         ModuleChain cur = start;
@@ -356,10 +360,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 final RubyModule toPrepend = mod.getActualModule();
                 if (!ModuleOperations.includesModule(rubyModule, toPrepend)) {
                     cur.insertAfter(toPrepend);
-                    final List<String> methodsToInvalidate = toPrepend.fields.getMethodNames();
-                    for (RubyModule moduleToInvalidate : prependedModulesAndSelf) {
-                        toPrepend.fields.includedBy.add(moduleToInvalidate);
-                        moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
+                    if (rubyModule instanceof RubyClass) { // M.prepend(N) just registers N but does nothing until C.prepend/include(M)
+                        final List<String> methodsToInvalidate = toPrepend.fields.getMethodNames();
+                        for (RubyModule moduleToInvalidate : prependedModulesAndClass) {
+                            toPrepend.fields.includedBy.add(moduleToInvalidate);
+                            moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
+                        }
                     }
                     cur = cur.getParentModule();
                 }
@@ -373,7 +379,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         invalidateBuiltinsAssumptions();
     }
 
-    private List<RubyModule> getPrependedModulesAndSelf() {
+    private List<RubyModule> getPrependedModulesAndClass() {
         final List<RubyModule> prependedModulesAndClass = new ArrayList<>();
         ModuleChain chain = getFirstModuleChain();
         while (chain != this) {
