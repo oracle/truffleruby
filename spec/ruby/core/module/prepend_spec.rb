@@ -47,9 +47,8 @@ describe "Module#prepend" do
         'a'
       end
     end
-    b_class = Class.new(a_class)
-    b = b_class.new
-    foo = -> { b.foo }
+    a = a_class.new
+    foo = -> { a.foo }
     foo.call.should == 'a'
     a_class.class_eval do
       prepend m_module
@@ -65,9 +64,8 @@ describe "Module#prepend" do
         'a'
       end
     end
-    b_class = Class.new(a_class)
-    b = b_class.new
-    foo = -> { b.foo }
+    a = a_class.new
+    foo = -> { a.foo }
     foo.call.should == 'a'
     m_module.module_eval do
       def foo
@@ -75,6 +73,124 @@ describe "Module#prepend" do
       end
     end
     foo.call.should == 'm'
+  end
+
+  it "updates the method when there is a base included method and the prepended module overrides it" do
+    base_module = Module.new do
+      def foo
+        'a'
+      end
+    end
+    a_class = Class.new do
+      include base_module
+    end
+    a = a_class.new
+    foo = -> { a.foo }
+    foo.call.should == 'a'
+
+    m_module = Module.new do
+      def foo
+        "m"
+      end
+    end
+    a_class.prepend m_module
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when there is a base included method and the prepended module is later updated" do
+    base_module = Module.new do
+      def foo
+        'a'
+      end
+    end
+    a_class = Class.new do
+      include base_module
+    end
+    a = a_class.new
+    foo = -> { a.foo }
+    foo.call.should == 'a'
+
+    m_module = Module.new
+    a_class.prepend m_module
+    foo.call.should == 'a'
+
+    m_module.module_eval do
+      def foo
+        "m"
+      end
+    end
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when a module prepended after a call is later updated" do
+    m_module = Module.new
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+    a = a_class.new
+    foo = -> { a.foo }
+    foo.call.should == 'a'
+
+    a_class.prepend m_module
+    foo.call.should == 'a'
+
+    m_module.module_eval do
+      def foo
+        "m"
+      end
+    end
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when a module is prepended after another and the method is defined later on that module" do
+    m_module = Module.new do
+      def foo
+        'a'
+      end
+    end
+    a_class = Class.new
+    a_class.prepend m_module
+    a = a_class.new
+    foo = -> { a.foo }
+    foo.call.should == 'a'
+
+    n_module = Module.new
+    a_class.prepend n_module
+    foo.call.should == 'a'
+
+    n_module.module_eval do
+      def foo
+        "n"
+      end
+    end
+    foo.call.should == 'n'
+  end
+
+  it "updates the method when a module is included in a prepended module and the method is defined later" do
+    a_class = Class.new
+    base_module = Module.new do
+      def foo
+        'a'
+      end
+    end
+    a_class.prepend base_module
+    a = a_class.new
+    foo = -> { a.foo }
+    foo.call.should == 'a'
+
+    m_module = Module.new
+    n_module = Module.new
+    m_module.include n_module
+    a_class.prepend m_module
+
+    n_module.module_eval do
+      def foo
+        "n"
+      end
+    end
+    foo.call.should == 'n'
   end
 
   it "updates the method when a new module with an included module is prepended" do
@@ -94,9 +210,8 @@ describe "Module#prepend" do
       include n_module
     end
 
-    b_class = Class.new(a_class)
-    b = b_class.new
-    foo = -> { b.foo }
+    a = a_class.new
+    foo = -> { a.foo }
 
     foo.call.should == 'a'
 

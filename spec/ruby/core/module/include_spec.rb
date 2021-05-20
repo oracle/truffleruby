@@ -263,6 +263,30 @@ describe "Module#include" do
     foo.call.should == 'm'
   end
 
+
+  it "updates the method when a module included after a call is later updated" do
+    m_module = Module.new
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+    b_class = Class.new(a_class)
+    b = b_class.new
+    foo = -> { b.foo }
+    foo.call.should == 'a'
+
+    b_class.include m_module
+    foo.call.should == 'a'
+
+    m_module.module_eval do
+      def foo
+        "m"
+      end
+    end
+    foo.call.should == 'm'
+  end
+
   it "updates the method when a nested included module is updated" do
     a_class = Class.new do
       def foo
