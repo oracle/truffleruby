@@ -158,39 +158,6 @@ public class BucketsHashStore {
         }
     }
 
-    private static void copyInto(RubyContext context, RubyHash from, RubyHash to) {
-
-        final Entry[] newEntries = new Entry[((BucketsHashStore) from.store).entries.length];
-
-        Entry firstInSequence = null;
-        Entry lastInSequence = null;
-        Entry entry = from.firstInSequence;
-
-        while (entry != null) {
-            final Entry newEntry = new Entry(entry.getHashed(), entry.getKey(), entry.getValue());
-            final int index = getBucketIndex(entry.getHashed(), newEntries.length);
-            newEntry.setNextInLookup(newEntries[index]);
-            newEntries[index] = newEntry;
-            if (firstInSequence == null) {
-                firstInSequence = newEntry;
-            }
-            if (lastInSequence != null) {
-                lastInSequence.setNextInSequence(newEntry);
-                newEntry.setPreviousInSequence(lastInSequence);
-            }
-            lastInSequence = newEntry;
-            entry = entry.getNextInSequence();
-        }
-
-        to.store = new BucketsHashStore(newEntries);
-        to.size = from.size;
-        to.firstInSequence = firstInSequence;
-        to.lastInSequence = lastInSequence;
-        to.defaultBlock = from.defaultBlock;
-        to.defaultValue = from.defaultValue;
-        to.compareByIdentity = from.compareByIdentity;
-    }
-
     private static void removeFromSequenceChain(RubyHash hash, Entry entry) {
         final Entry previousInSequence = entry.getPreviousInSequence();
         final Entry nextInSequence = entry.getNextInSequence();
@@ -395,7 +362,36 @@ public class BucketsHashStore {
 
         propagateSharing.executePropagate(dest, hash);
         assert verify(hash);
-        copyInto(context, hash, dest);
+
+        final Entry[] newEntries = new Entry[((BucketsHashStore) hash.store).entries.length];
+
+        Entry firstInSequence = null;
+        Entry lastInSequence = null;
+        Entry entry = hash.firstInSequence;
+
+        while (entry != null) {
+            final Entry newEntry = new Entry(entry.getHashed(), entry.getKey(), entry.getValue());
+            final int index = getBucketIndex(entry.getHashed(), newEntries.length);
+            newEntry.setNextInLookup(newEntries[index]);
+            newEntries[index] = newEntry;
+            if (firstInSequence == null) {
+                firstInSequence = newEntry;
+            }
+            if (lastInSequence != null) {
+                lastInSequence.setNextInSequence(newEntry);
+                newEntry.setPreviousInSequence(lastInSequence);
+            }
+            lastInSequence = newEntry;
+            entry = entry.getNextInSequence();
+        }
+
+        dest.store = new BucketsHashStore(newEntries);
+        dest.size = hash.size;
+        dest.firstInSequence = firstInSequence;
+        dest.lastInSequence = lastInSequence;
+        dest.defaultBlock = hash.defaultBlock;
+        dest.defaultValue = hash.defaultValue;
+        dest.compareByIdentity = hash.compareByIdentity;
         assert verify(hash);
     }
 
