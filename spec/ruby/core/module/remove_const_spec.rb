@@ -81,4 +81,25 @@ describe "Module#remove_const" do
     ConstantSpecs.autoload :AutoloadedConstant, 'a_file'
     ConstantSpecs.send(:remove_const, :AutoloadedConstant).should be_nil
   end
+
+  it "updates the constant value" do
+    module ConstantSpecs::RemovedConstantUpdate
+      module M
+        FOO = 'm'
+      end
+
+      class A
+        include M
+        FOO = 'a'
+        def foo
+          FOO
+        end
+      end
+
+      a = A.new
+      a.foo.should == 'a'
+      A.send(:remove_const,:FOO)
+      a.foo.should == 'm'
+    end
+  end
 end
