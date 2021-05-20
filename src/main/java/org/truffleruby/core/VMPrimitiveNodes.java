@@ -294,7 +294,7 @@ public abstract class VMPrimitiveNodes {
             }
 
             try {
-                return Signals.restoreRubyDefaultHandler(signalName);
+                return Signals.restoreRubyDefaultHandler(getContext(), signalName);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -341,7 +341,7 @@ public abstract class VMPrimitiveNodes {
             }
 
             try {
-                Signals.registerHandler(newHandler, signalName, isRubyDefaultHandler);
+                Signals.registerHandler(getContext(), newHandler, signalName, isRubyDefaultHandler);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
