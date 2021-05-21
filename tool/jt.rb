@@ -192,7 +192,7 @@ module Utilities
   def ruby_launcher
     return @ruby_launcher if defined? @ruby_launcher
 
-    @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
+    @ruby_name ||= ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
                     elsif @ruby_name.start_with?('/')
@@ -749,7 +749,8 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
-        JT_JDK                                       The JDK version to use: 8, 11 (default) or 16
+        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 16
+        JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
     TXT
   end
@@ -2149,7 +2150,7 @@ module Commands
             options.delete_at i
             options.delete_at i
           else
-            'jvm'
+            ENV['JT_ENV'] || 'jvm'
           end
     @mx_env = env
     raise 'Cannot use both --use and --env' if defined?(@ruby_name)
