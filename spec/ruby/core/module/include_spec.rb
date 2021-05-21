@@ -427,6 +427,32 @@ describe "Module#include" do
     end
   end
 
+  it "updates the constant when a module included in another module after a call is later updated" do
+    module ModuleSpecs::ConstModuleLaterUpdated
+      module A
+        FOO = 'a'
+      end
+
+      module B
+        include A
+        def self.foo
+          FOO
+        end
+      end
+
+      B.foo.should == 'a'
+
+      module M
+      end
+      B.include M
+
+      B.foo.should == 'a'
+
+      M.const_set(:FOO, 'm')
+      B.foo.should == 'm'
+    end
+  end
+
   it "updates the constant when a nested included module is updated" do
     module ModuleSpecs::ConstUpdatedNestedIncludeUpdated
       class A

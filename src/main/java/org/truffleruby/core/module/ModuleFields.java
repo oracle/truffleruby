@@ -318,13 +318,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         while (!moduleAncestors.isEmpty()) {
             RubyModule toInclude = moduleAncestors.pop();
             inclusionPoint.insertAfter(toInclude);
-            if (rubyModule instanceof RubyClass) { // M.include(N) just registers N but does nothing until C.include/prepend(M)
-                toInclude.fields.includedBy.add(rubyModule);
-                // Module#include only adds modules between the current class and the super class,
-                // so invalidating the current class is enough as all affected lookups would go through the current class.
+            // M.include(N) just registers N but does nothing until C.include/prepend(M)
+            toInclude.fields.includedBy.add(rubyModule);
+            // Module#include only adds modules between the current class and the super class,
+            // so invalidating the current class is enough as all affected lookups would go through the current class.
+            if (rubyModule instanceof RubyClass) {
                 newMethodsVersion(toInclude.fields.getMethodNames());
-                newConstantsVersion(toInclude.fields.getConstantNames());
             }
+            newConstantsVersion(toInclude.fields.getConstantNames());
         }
     }
 
