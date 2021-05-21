@@ -46,7 +46,7 @@ public abstract class HashStoreLibrary extends Library {
         return FACTORY;
     }
 
-    public static HashStoreLibrary getDispatched() {
+    public static HashStoreLibrary createDispatched() {
         return FACTORY.createDispatched(HashGuards.hashStrategyLimit());
     }
 
@@ -86,9 +86,8 @@ public abstract class HashStoreLibrary extends Library {
             Object state);
 
     /** Same as {@link #eachEntry(Object, Frame, RubyHash, EachEntryCallback, Object)} but guaranteed to be safe to use
-     * if the hash is modified during iteration. In particular, the guarantees is that (1) the same entry won't be
-     * proceessed twice, and (2) no error will occur. Entries deleted and inserted during iteration might or might not
-     * be processed. */
+     * if the hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed
+     * twice. */
     @Abstract
     public abstract Object eachEntrySafe(Object store, Frame frame, RubyHash hash, EachEntryCallback callback,
             Object state);

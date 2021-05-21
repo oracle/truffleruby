@@ -742,7 +742,7 @@ public abstract class ThreadNodes {
     public abstract static class ThreadDetectRecursionSingleNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
-        @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
+        @Child private HashStoreLibrary hashes = HashStoreLibrary.createDispatched();
 
         protected boolean add(RubyHash hash, Object key, Object value) {
             return hashes.set(hash.store, hash, key, value, true);

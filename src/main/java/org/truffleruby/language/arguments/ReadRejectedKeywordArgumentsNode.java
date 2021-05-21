@@ -21,7 +21,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
 
-    @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
+    @Child private HashStoreLibrary hashes = HashStoreLibrary.createDispatched();
 
     private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 

@@ -36,6 +36,9 @@ public class EmptyHashStore {
 
     public static final EmptyHashStore NULL_HASH_STORE = new EmptyHashStore();
 
+    private EmptyHashStore() {
+    }
+
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode) {
         return defaultNode.accept((VirtualFrame) frame, hash, key);

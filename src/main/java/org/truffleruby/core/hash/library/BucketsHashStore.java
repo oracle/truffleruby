@@ -624,7 +624,7 @@ public class BucketsHashStore {
         public Object execute(VirtualFrame frame) {
             if (hashes == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                hashes = insert(HashStoreLibrary.getDispatched());
+                hashes = insert(HashStoreLibrary.createDispatched());
             }
 
             final RubyHash hash = new RubyHash(

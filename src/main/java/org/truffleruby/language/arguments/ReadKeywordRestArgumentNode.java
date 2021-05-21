@@ -28,7 +28,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
-    @Child private HashStoreLibrary hashes = HashStoreLibrary.getDispatched();
+    @Child private HashStoreLibrary hashes = HashStoreLibrary.createDispatched();
 
     private final ConditionProfile noHash = ConditionProfile.create();
 

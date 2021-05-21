@@ -71,7 +71,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
     void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
         if (hashes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashes = insert(HashStoreLibrary.getDispatched());
+            hashes = insert(HashStoreLibrary.createDispatched());
         }
         if (checkKeywordArgumentsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

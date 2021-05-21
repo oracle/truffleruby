@@ -364,7 +364,7 @@ public abstract class HashNodes {
         private boolean verify(RubyHash hash) {
             if (hashes == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                hashes = insert(HashStoreLibrary.getDispatched());
+                hashes = insert(HashStoreLibrary.createDispatched());
             }
             return hashes.verify(hash.store, hash);
         }
