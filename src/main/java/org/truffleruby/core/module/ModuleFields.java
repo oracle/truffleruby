@@ -794,7 +794,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void newHierarchyVersion() {
-        hierarchyUnmodifiedAssumption.invalidate(givenBaseName);
+        hierarchyUnmodifiedAssumption.invalidate(getName());
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
@@ -819,7 +819,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    private void newConstantVersion(String constantToInvalidate) {
+    public void newConstantVersion(String constantToInvalidate) {
         while (true) {
             final ConstantEntry constantEntry = constants.get(constantToInvalidate);
             if (constantEntry == null) {
@@ -875,7 +875,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public RubyConstant getConstant(String name) {
-        return constants.get(name) != null ? constants.get(name).getConstant() : null;
+        final ConstantEntry constantEntry = constants.get(name);
+        return constantEntry != null ? constantEntry.getConstant() : null;
     }
 
     private static final class MethodsIterator implements Iterator<InternalMethod> {

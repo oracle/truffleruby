@@ -138,12 +138,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         // lookup changes based on whether an autoload constant is loading or not (constant
         // lookup ignores being-autoloaded constants).
 
-        final ConstantEntry constantEntry = autoloadConstant.getDeclaringModule().fields
-                .getConstantEntry(autoloadConstant.getName());
-        if (constantEntry != null) {
-            constantEntry
-                    .invalidate("autoload start", autoloadConstant.getDeclaringModule(), autoloadConstant.getName());
-        }
+        autoloadConstant.getDeclaringModule().fields.newConstantVersion(autoloadConstant.getName());
     }
 
     @TruffleBoundary
