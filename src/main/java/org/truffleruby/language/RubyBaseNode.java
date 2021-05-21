@@ -57,7 +57,7 @@ public abstract class RubyBaseNode extends Node {
     }
 
     // Prefixed with "base" so as not to conflict with RubyNode.WithContext#getRubyLibraryCacheLimit
-    public static int baseGetRubyLibraryCacheLimit() {
+    public int getRubyLibraryCacheLimit() {
         return RubyLanguage.getCurrentLanguage().options.RUBY_LIBRARY_CACHE;
     }
 }
