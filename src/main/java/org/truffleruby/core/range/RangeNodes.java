@@ -58,7 +58,8 @@ public abstract class RangeNodes {
         protected RubyArray map(RubyIntRange range, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached CallBlockNode yieldNode,
-                @Cached ConditionProfile noopProfile) {
+                @Cached ConditionProfile noopProfile,
+                @Cached LoopConditionProfile loopProfile) {
             final int begin = range.begin;
             final int end = range.end;
             final boolean excludedEnd = range.excludedEnd;
@@ -72,7 +73,8 @@ public abstract class RangeNodes {
 
             int n = 0;
             try {
-                for (; n < length; n++) {
+                loopProfile.profileCounted(length);
+                for (; loopProfile.inject(n < length); n++) {
                     arrayBuilder.appendValue(state, n, yieldNode.yield(block, begin + n));
                 }
             } finally {
@@ -255,7 +257,8 @@ public abstract class RangeNodes {
         @Child private DispatchNode stepInternalCall;
 
         @Specialization(guards = "step > 0")
-        protected Object stepInt(RubyIntRange range, int step, RubyProc block) {
+        protected Object stepInt(RubyIntRange range, int step, RubyProc block,
+                @Cached LoopConditionProfile loopProfile) {
             int result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -265,7 +268,8 @@ public abstract class RangeNodes {
 
             int n = range.begin;
             try {
-                for (; n < result; n += step) {
+                loopProfile.profileCounted((result - range.begin - 1) / step + 1);
+                for (; loopProfile.inject(n < result); n += step) {
                     callBlock(block, n);
                 }
             } finally {

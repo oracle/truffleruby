@@ -10,6 +10,7 @@
 package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayGuards;
@@ -26,6 +27,7 @@ public class RescueSplatNode extends RescueNode {
 
     @Child private SplatCastNode splatCastNode;
     @Child private ArrayStoreLibrary stores;
+    private LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
     public RescueSplatNode(RubyLanguage language, RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
@@ -43,7 +45,8 @@ public class RescueSplatNode extends RescueNode {
 
         int i = 0;
         try {
-            for (; i < handlingClasses.size; ++i) {
+            loopProfile.profileCounted(handlingClasses.size);
+            for (; loopProfile.inject(i < handlingClasses.size); ++i) {
                 if (matches(exception, stores.read(handlingClasses.store, i))) {
                     return true;
                 }

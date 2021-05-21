@@ -181,9 +181,14 @@ public abstract class ArrayNodes {
             }
             final Object store = array.store;
             final Object newStore = arrays.allocator(store).allocate(newSize);
-            loopProfile.profileCounted(count);
-            for (int n = 0; loopProfile.inject(n < count); n++) {
-                arrays.copyContents(store, 0, newStore, n * size, size);
+            int n = 0;
+            try {
+                loopProfile.profileCounted(count);
+                for (; loopProfile.inject(n < count); n++) {
+                    arrays.copyContents(store, 0, newStore, n * size, size);
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             final RubyClass logicalClass = array.getLogicalClass();
@@ -485,13 +490,18 @@ public abstract class ArrayNodes {
 
             int m = 0;
 
-            loopProfile.profileCounted(size);
-            for (int n = 0; loopProfile.inject(n < size); n++) {
-                Object v = stores.read(store, n);
-                if (v != nil) {
-                    arrayBuilder.appendValue(state, m, v);
-                    m++;
+            int n = 0;
+            try {
+                loopProfile.profileCounted(size);
+                for (; loopProfile.inject(n < size); n++) {
+                    Object v = stores.read(store, n);
+                    if (v != nil) {
+                        arrayBuilder.appendValue(state, m, v);
+                        m++;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             return createArray(arrayBuilder.finish(state, m), m);
@@ -526,13 +536,18 @@ public abstract class ArrayNodes {
 
             int m = 0;
 
-            loopProfile.profileCounted(size);
-            for (int n = 0; loopProfile.inject(n < size); n++) {
-                Object v = stores.read(oldStore, n);
-                if (v != nil) {
-                    mutableStores.write(newStore, m, v);
-                    m++;
+            int n = 0;
+            try {
+                loopProfile.profileCounted(size);
+                for (; loopProfile.inject(n < size); n++) {
+                    Object v = stores.read(oldStore, n);
+                    if (v != nil) {
+                        mutableStores.write(newStore, m, v);
+                        m++;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             stores.clear(oldStore, m, size - m);
@@ -607,14 +622,19 @@ public abstract class ArrayNodes {
             Object store = cowNode.execute(array, 0, size);
 
             RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
-            loopProfile.profileCounted(rest.length);
-            for (int i = 0; loopProfile.inject(i < rest.length); i++) {
-                Object arg = rest[i];
-                if (selfArgProfile.profile(arg == array)) {
-                    result = appendManyNode.executeAppendMany(array, createArray(store, size));
-                } else {
-                    result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(arg));
+            int i = 0;
+            try {
+                loopProfile.profileCounted(rest.length);
+                for (; loopProfile.inject(i < rest.length); i++) {
+                    Object arg = rest[i];
+                    if (selfArgProfile.profile(arg == array)) {
+                        result = appendManyNode.executeAppendMany(array, createArray(store, size));
+                    } else {
+                        result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(arg));
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, i);
             }
             return result;
         }
@@ -676,20 +696,24 @@ public abstract class ArrayNodes {
 
             int i = 0;
             int n = 0;
-            loopProfile.profileCounted(size);
-            while (loopProfile.inject(n < size)) {
-                final Object stored = oldStores.read(oldStore, n);
+            try {
+                loopProfile.profileCounted(size);
+                while (loopProfile.inject(n < size)) {
+                    final Object stored = oldStores.read(oldStore, n);
 
-                if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
-                    checkFrozen(array);
-                    found = stored;
-                    n++;
-                } else {
-                    newStores.write(newStore, i, oldStores.read(oldStore, n));
+                    if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
+                        checkFrozen(array);
+                        found = stored;
+                        n++;
+                    } else {
+                        newStores.write(newStore, i, oldStores.read(oldStore, n));
 
-                    i++;
-                    n++;
+                        i++;
+                        n++;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             if (i != n) {
@@ -854,15 +878,19 @@ public abstract class ArrayNodes {
             final Object aStore = a.store;
             final Object bStore = b.store;
 
-            loopProfile.profileCounted(aSize);
-            for (int i = 0; loopProfile.inject(i < aSize); i++) {
-                if (!sameOrEqualNode
-                        .executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
-                    falseProfile.enter();
-                    return false;
+            int i = 0;
+            try {
+                loopProfile.profileCounted(aSize);
+                for (; loopProfile.inject(i < aSize); i++) {
+                    if (!sameOrEqualNode
+                            .executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
+                        falseProfile.enter();
+                        return false;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, i);
             }
-
             trueProfile.enter();
             return true;
         }
@@ -922,12 +950,17 @@ public abstract class ArrayNodes {
             final Object aStore = a.store;
             final Object bStore = b.store;
 
-            loopProfile.profileCounted(aSize);
-            for (int i = 0; loopProfile.inject(i < aSize); i++) {
-                if (!eqlNode.execute(stores.read(aStore, i), stores.read(bStore, i))) {
-                    falseProfile.enter();
-                    return false;
+            int i = 0;
+            try {
+                loopProfile.profileCounted(aSize);
+                for (; loopProfile.inject(i < aSize); i++) {
+                    if (!eqlNode.execute(stores.read(aStore, i), stores.read(bStore, i))) {
+                        falseProfile.enter();
+                        return false;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, i);
             }
 
             trueProfile.enter();
@@ -974,9 +1007,14 @@ public abstract class ArrayNodes {
             final Object store = array.store;
             final int size = array.size;
 
-            loopProfile.profileCounted(size);
-            for (int i = 0; loopProfile.inject(i < size); i++) {
-                stores.write(store, i, value);
+            int i = 0;
+            try {
+                loopProfile.profileCounted(size);
+                for (; loopProfile.inject(i < size); i++) {
+                    stores.write(store, i, value);
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, i);
             }
             return array;
         }
@@ -1016,11 +1054,16 @@ public abstract class ArrayNodes {
             h = Hashing.update(h, CLASS_SALT);
             final Object store = array.store;
 
-            loopProfile.profileCounted(size);
-            for (int n = 0; loopProfile.inject(n < size); n++) {
-                final Object value = stores.read(store, n);
-                final long valueHash = toLongNode.execute(toHashNode.call(value, "hash"));
-                h = Hashing.update(h, valueHash);
+            int n = 0;
+            try {
+                loopProfile.profileCounted(size);
+                for (; loopProfile.inject(n < size); n++) {
+                    final Object value = stores.read(store, n);
+                    final long valueHash = toLongNode.execute(toHashNode.call(value, "hash"));
+                    h = Hashing.update(h, valueHash);
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             return Hashing.end(h);
@@ -1040,13 +1083,18 @@ public abstract class ArrayNodes {
                 @Cached LoopConditionProfile loopProfile) {
             final Object store = array.store;
 
-            loopProfile.profileCounted(array.size);
-            for (int n = 0; loopProfile.inject(n < array.size); n++) {
-                final Object stored = stores.read(store, n);
+            int n = 0;
+            try {
+                loopProfile.profileCounted(array.size);
+                for (; loopProfile.inject(n < array.size); n++) {
+                    final Object stored = stores.read(store, n);
 
-                if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
-                    return true;
+                    if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
+                        return true;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             return false;
@@ -1126,9 +1174,14 @@ public abstract class ArrayNodes {
             final Object allocatedStore = stores.allocateForNewValue(array.store, fillingValue, size);
             if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
                 propagateSharingNode.executePropagate(array, fillingValue);
-                loopProfile.profileCounted(size);
-                for (int i = 0; loopProfile.inject(i < size); i++) {
-                    allocatedStores.write(allocatedStore, i, fillingValue);
+                int i = 0;
+                try {
+                    loopProfile.profileCounted(size);
+                    for (; loopProfile.inject(i < size); i++) {
+                        allocatedStores.write(allocatedStore, i, fillingValue);
+                    }
+                } finally {
+                    LoopNode.reportLoopCount(this, i);
                 }
             }
             setStoreAndSize(array, allocatedStore, size);
@@ -1656,13 +1709,17 @@ public abstract class ArrayNodes {
             // NOTE (eregon): Appending one by one here to avoid useless generalization to Object[]
             // if the arguments all fit in the current storage
             appendOneNode.executeAppendOne(array, value);
-            loopProfile.profileCounted(rest.length);
-            for (int i = 0; loopProfile.inject(i < rest.length); i++) {
-                appendOneNode.executeAppendOne(array, rest[i]);
+            int i = 0;
+            try {
+                loopProfile.profileCounted(rest.length);
+                for (; loopProfile.inject(i < rest.length); i++) {
+                    appendOneNode.executeAppendOne(array, rest[i]);
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, i);
             }
             return array;
         }
-
     }
 
     @CoreMethod(names = "reject", needsBlock = true, enumeratorSize = "size")
@@ -1934,16 +1991,19 @@ public abstract class ArrayNodes {
                 Object store, int from, int until, LoopConditionProfile loopProfile) {
             int to = until - 1;
             final int loopCount = (until - from) >> 1;
-            loopProfile.profileCounted(loopCount);
-            while (loopProfile.inject(from < to)) {
-                final Object tmp = stores.read(store, from);
-                stores.write(store, from, stores.read(store, to));
-                stores.write(store, to, tmp);
-                from++;
-                to--;
+            try {
+                loopProfile.profileCounted(loopCount);
+                while (loopProfile.inject(from < to)) {
+                    final Object tmp = stores.read(store, from);
+                    stores.write(store, from, stores.read(store, to));
+                    stores.write(store, to, tmp);
+                    from++;
+                    to--;
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, loopCount);
             }
         }
-
     }
 
     @CoreMethod(names = { "select", "filter" }, needsBlock = true, enumeratorSize = "size")
@@ -2220,16 +2280,21 @@ public abstract class ArrayNodes {
 
             final Object[] zipped = new Object[zippedLength];
 
-            loopProfile.profileCounted(zippedLength);
-            for (int n = 0; loopProfile.inject(n < zippedLength); n++) {
-                if (bNotSmallerProfile.profile(n < bSize)) {
-                    final Object pair = aStores.allocateForNewStore(a, b, 2);
-                    pairs.write(pair, 0, aStores.read(a, n));
-                    pairs.write(pair, 1, bStores.read(b, n));
-                    zipped[n] = createArray(pair, 2);
-                } else {
-                    zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil });
+            int n = 0;
+            try {
+                loopProfile.profileCounted(zippedLength);
+                for (; loopProfile.inject(n < zippedLength); n++) {
+                    if (bNotSmallerProfile.profile(n < bSize)) {
+                        final Object pair = aStores.allocateForNewStore(a, b, 2);
+                        pairs.write(pair, 0, aStores.read(a, n));
+                        pairs.write(pair, 1, bStores.read(b, n));
+                        zipped[n] = createArray(pair, 2);
+                    } else {
+                        zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil });
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, n);
             }
 
             return createArray(zipped, zippedLength);

@@ -11,6 +11,7 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1838,12 +1839,14 @@ public abstract class IntegerNodes {
     public abstract static class DownToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode downtoInternalCall;
+        private LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
         @Specialization
         protected Object downto(int from, int to, RubyProc block) {
             int i = from;
             try {
-                for (; i >= to; i--) {
+                loopProfile.profileCounted(from - to + 1);
+                for (; loopProfile.inject(i >= to); i--) {
                     callBlock(block, i);
                 }
             } finally {
@@ -1862,6 +1865,7 @@ public abstract class IntegerNodes {
         protected Object downto(long from, long to, RubyProc block) {
             long i = from;
             try {
+                loopProfile.profileCounted(from - to + 1);
                 for (; i >= to; i--) {
                     callBlock(block, i);
                 }
@@ -1913,12 +1917,14 @@ public abstract class IntegerNodes {
     public abstract static class UpToNode extends YieldingCoreMethodNode {
 
         @Child private DispatchNode uptoInternalCall;
+        private LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
         @Specialization
         protected Object upto(int from, int to, RubyProc block) {
             int i = from;
             try {
-                for (; i <= to; i++) {
+                loopProfile.profileCounted(to - from + 1);
+                for (; loopProfile.inject(i <= to); i++) {
                     callBlock(block, i);
                 }
             } finally {
@@ -1937,6 +1943,7 @@ public abstract class IntegerNodes {
         protected Object upto(long from, long to, RubyProc block) {
             long i = from;
             try {
+                loopProfile.profileCounted(to - from + 1);
                 for (; i <= to; i++) {
                     callBlock(block, i);
                 }
