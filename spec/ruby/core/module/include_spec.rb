@@ -287,6 +287,120 @@ describe "Module#include" do
     foo.call.should == 'm'
   end
 
+  it "updates the method when a nested included module is updated" do
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+
+    n_module = Module.new
+
+    m_module = Module.new  do
+      include n_module
+    end
+
+    b_class = Class.new(a_class) do
+      include m_module
+    end
+
+    b = b_class.new
+
+    foo = -> { b.foo }
+
+    foo.call.should == 'a'
+
+    n_module.module_eval do
+      def foo
+        'n'
+      end
+    end
+
+    foo.call.should == 'n'
+  end
+
+  it "updates the method when a new module is included" do
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+
+    m_module = Module.new do
+      def foo
+        'm'
+      end
+    end
+
+    b_class = Class.new(a_class)
+    b = b_class.new
+
+    foo = -> { b.foo }
+
+    foo.call.should == 'a'
+
+    b_class.class_eval do
+      include m_module
+    end
+
+    foo.call.should == 'm'
+  end
+
+  it "updates the method when a new module with nested module is included" do
+    a_class = Class.new do
+      def foo
+        'a'
+      end
+    end
+
+    n_module = Module.new do
+      def foo
+        'n'
+      end
+    end
+
+    m_module = Module.new  do
+      include n_module
+    end
+
+    b_class = Class.new(a_class)
+    b = b_class.new
+
+    foo = -> { b.foo }
+
+    foo.call.should == 'a'
+
+    b_class.class_eval do
+      include m_module
+    end
+
+    foo.call.should == 'n'
+  end
+
+  it "updates the constant when an included module is updated" do
+    module ModuleSpecs::ConstUpdated
+      class A
+        FOO = 'a'
+      end
+
+      module M
+      end
+
+      class B < A
+        include M
+        def foo
+          FOO
+        end
+      end
+
+      b = B.new
+      b.foo.should == 'a'
+
+      M.const_set(:FOO, 'm')
+      b.foo.should == 'm'
+    end
+  end
+
   it "updates the constant when a module included after a call is later updated" do
     module ModuleSpecs::ConstLaterUpdated
       class A
@@ -389,89 +503,6 @@ describe "Module#include" do
       end
       b = B.new
 
-      b.foo.should == 'a'
-
-      B.include M
-      b.foo.should == 'n'
-    end
-  end
-
-  it "updates the constant when a nested included module is updated" do
-    module ModuleSpecs::ConstUpdatedNestedIncludedUpdated
-      class A
-        FOO = 'a'
-      end
-
-      module N
-      end
-
-      module M
-        include N
-      end
-
-      class B < A
-        include M
-        def foo
-          FOO
-        end
-      end
-
-      b = B.new
-      b.foo.should == 'a'
-
-      N.const_set(:FOO, 'n')
-      b.foo.should == 'n'
-    end
-  end
-
-  it "updates the constant when a new module is included" do
-    module ModuleSpecs::ConstUpdatedNewModuleIncluded
-      class A
-        FOO = 'a'
-      end
-
-      module M
-        FOO = 'm'
-      end
-
-      class B < A
-        def foo
-          FOO
-        end
-      end
-      b = B.new
-
-      b.foo.should == 'a'
-
-      class B
-        include M
-      end
-
-      b.foo.should == 'm'
-    end
-  end
-
-  it "updates the constant when a new module with nested module is included" do
-    module ModuleSpecs::ConstUpdatedNewNestedModuleIncluded
-      class A
-        FOO = 'a'
-      end
-
-      module N
-        FOO = 'n'
-      end
-
-      module M
-        include N
-      end
-
-      class B < A
-        def foo
-          FOO
-        end
-      end
-
-      b = B.new
       b.foo.should == 'a'
 
       B.include M
