@@ -455,6 +455,14 @@ struct 'sigaction' do |s|
   s.field :sa_handler
 end
 
+# structs used in posix directory operations
+
+struct 'dirent' do |s|
+  s.include 'dirent.h'
+  s.field :d_name
+  s.field :d_type
+end
+
 # Structs used by rubysl-socket
 
 struct 'addrinfo' do |s|
@@ -581,6 +589,7 @@ constants 'file' do |cg|
   cg.include 'fcntl.h'
   cg.include 'fnmatch.h'
   cg.include 'sys/stat.h'
+  cg.include 'dirent.h'
   cg.consts %w[
     FNM_CASEFOLD FNM_DOTMATCH FNM_EXTGLOB FNM_NOESCAPE FNM_PATHNAME FNM_SYSCASE
 
@@ -592,8 +601,13 @@ constants 'file' do |cg|
     S_IRUSR S_IWUSR S_IXUSR S_IRGRP S_IWGRP S_IXGRP S_IROTH S_IWOTH S_IXOTH
     S_IFMT S_IFIFO S_IFCHR S_IFDIR S_IFBLK S_IFREG S_IFLNK S_IFSOCK S_IFWHT
     S_ISUID S_ISGID S_ISVTX
+
+    DT_BLK DT_CHR DT_DIR DT_FIFO DT_LNK DT_REG DT_SOCK DT_UNKNOWN
+
+    NAME_MAX
   ]
 end
+
 
 constants 'io' do |cg|
   cg.include 'stdio.h'
