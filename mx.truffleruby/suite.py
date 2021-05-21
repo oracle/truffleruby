@@ -190,6 +190,7 @@ suite = {
             "buildDependencies": [
                 "org.truffleruby", # for the generated JNI header file
             ],
+            "use_jdk_headers": True, # the generated JNI header includes jni.h
             "cflags": ["-g", "-Wall", "-Werror"],
         },
 
