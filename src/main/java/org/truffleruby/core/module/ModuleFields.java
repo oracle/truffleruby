@@ -471,6 +471,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             previousEntry.invalidate("set", rubyModule, name);
         }
 
+        if (includedBy != null && !includedBy.isEmpty()) {
+            invalidateConstantIncludedBy(name);
+        }
+
         return autoload ? newConstant : previous;
     }
 
@@ -789,22 +793,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    public void newConstantsVersion(List<String> constantsToInvalidate) {
-        for (String entryToInvalidate : constantsToInvalidate) {
-            while (true) {
-                final ConstantEntry constantEntry = constants.get(entryToInvalidate);
-                if (constantEntry == null) {
-                    break;
-                } else {
-                    constantEntry.invalidate("newConstantsVersion", rubyModule, entryToInvalidate);
-                    if (constants.replace(entryToInvalidate, constantEntry, constantEntry.withNewAssumption())) {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     public void newHierarchyVersion() {
         hierarchyUnmodifiedAssumption.invalidate(givenBaseName);
 
@@ -816,6 +804,32 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void invalidateIncludedBy(String method) {
         for (RubyModule module : includedBy) {
             module.fields.newMethodVersion(method);
+        }
+    }
+
+    private void invalidateConstantIncludedBy(String constantName) {
+        for (RubyModule module : includedBy) {
+            module.fields.newConstantVersion(constantName);
+        }
+    }
+
+    public void newConstantsVersion(Collection<String> constantsToInvalidate) {
+        for (String name : constantsToInvalidate) {
+            newConstantVersion(name);
+        }
+    }
+
+    private void newConstantVersion(String constantToInvalidate) {
+        while (true) {
+            final ConstantEntry constantEntry = constants.get(constantToInvalidate);
+            if (constantEntry == null) {
+                return;
+            } else {
+                constantEntry.invalidate("newConstantsVersion", rubyModule, constantToInvalidate);
+                if (constants.replace(constantToInvalidate, constantEntry, constantEntry.withNewAssumption())) {
+                    return;
+                }
+            }
         }
     }
 
