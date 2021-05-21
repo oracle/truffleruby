@@ -604,6 +604,8 @@ constants 'file' do |cg|
 
     DT_BLK DT_CHR DT_DIR DT_FIFO DT_LNK DT_REG DT_SOCK DT_UNKNOWN
 
+    AT_SYMLINK_NOFOLLOW
+
     NAME_MAX
   ]
 end
