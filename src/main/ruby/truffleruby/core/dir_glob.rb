@@ -112,12 +112,20 @@ class Dir
             next
           end
 
-          while ent = dir.read
+          while dirent = Truffle::DirOperations.readdir(dir)
+            ent = dirent[0]
+            type = dirent[1]
             next if ent == '.' || ent == '..'
+            is_dir = false
             full = path_join(path, ent)
-            mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
+            if type == Truffle::DirOperations::DT_DIR
+              is_dir = true
+            elsif type == Truffle::DirOperations::DT_UNKNOWN
+              mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
+              is_dir = Truffle::StatOperations.directory?(mode)
+            end
 
-            if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
+            if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.call matches, full, glob_base_dir
             end
