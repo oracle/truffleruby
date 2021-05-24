@@ -98,7 +98,7 @@ class Dir
 
   def read
     ensure_open
-    entry = Truffle::DirOperations.readdir(@ptr)
+    entry = Truffle::DirOperations.readdir(self)
     return unless entry
 
     entry = entry[0].force_encoding(@encoding)

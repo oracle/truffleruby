@@ -112,20 +112,21 @@ class Dir
             next
           end
 
+          fd = dir.fileno
           while dirent = Truffle::DirOperations.readdir(dir)
             ent = dirent[0]
             type = dirent[1]
             next if ent == '.' || ent == '..'
             is_dir = false
-            full = path_join(path, ent)
             if type == Truffle::DirOperations::DT_DIR
               is_dir = true
             elsif type == Truffle::DirOperations::DT_UNKNOWN
-              mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
+              mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
               is_dir = Truffle::StatOperations.directory?(mode)
             end
 
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
+              full = path_join(path, ent)
               stack << full
               @next.call matches, full, glob_base_dir
             end
@@ -155,9 +156,10 @@ class Dir
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
         dir = Dir.new(path_join(glob_base_dir, '.'))
+        fd = dir.fileno
         while ent = dir.read
           next if ent == '.' || ent == '..'
-          mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, ent))
+          mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
 
           if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
@@ -169,10 +171,11 @@ class Dir
         until stack.empty?
           path = stack.pop
           dir = Dir.new(path_join(glob_base_dir, path))
+          fd = dir.fileno
           while ent = dir.read
             next if ent == '.' || ent == '..'
             full = path_join(path, ent)
-            mode = Truffle::POSIX.truffleposix_lstat_mode(path_join(glob_base_dir, full))
+            mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
 
             if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full

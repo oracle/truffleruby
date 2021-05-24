@@ -16,6 +16,7 @@ module Truffle
     DIRENT_NAME_OFFSET = Truffle::Config['platform.dirent.d_name.offset']
     DIRENT_TYPE_OFFSET = Truffle::Config['platform.dirent.d_type.offset']
 
+    AT_SYMLINK_NOFOLLOW = Truffle::Config['platform.file.AT_SYMLINK_NOFOLLOW']
     DT_DIR = Truffle::Config['platform.file.DT_DIR']
     DT_UNKNOWN  = Truffle::Config['platform.file.DT_UNKNOWN']
     BUFFER_SIZE = DIRENT_SIZE + Truffle::FFI::Pointer::SIZE
