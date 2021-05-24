@@ -364,10 +364,20 @@ public class ConcurrentMapNodes {
                     break;
                 }
 
-                callBlock(block, pair.getKey().key, pair.getValue());
+                callBlock(block, getKey(pair).key, getValue(pair));
             }
 
             return self;
+        }
+
+        @TruffleBoundary
+        private static Object getValue(Entry<Key, Object> pair) {
+            return pair.getValue();
+        }
+
+        @TruffleBoundary
+        private static Key getKey(Entry<Key, Object> pair) {
+            return pair.getKey();
         }
 
         @TruffleBoundary
