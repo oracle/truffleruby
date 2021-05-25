@@ -147,8 +147,8 @@ public abstract class WeakMapNodes {
         @Specialization
         protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
 
-            for (MapEntry entry : entries(map.storage)) {
-                callBlock(block, entry.key, entry.value);
+            for (SimpleEntry<?, ?> entry : entries(map.storage)) {
+                callBlock(block, entry.getKey(), entry.getValue());
             }
 
             return map;
@@ -171,23 +171,13 @@ public abstract class WeakMapNodes {
         return storage.values().toArray();
     }
 
-    private static final class MapEntry {
-        final Object key;
-        final Object value;
-
-        private MapEntry(Object key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
-
     @TruffleBoundary
-    private static MapEntry[] entries(WeakMapStorage storage) {
+    private static SimpleEntry<?, ?>[] entries(WeakMapStorage storage) {
         final Collection<SimpleEntry<CompareByRubyIdentityWrapper, Object>> wrappedEntries = storage.entries();
-        final MapEntry[] entries = new MapEntry[wrappedEntries.size()];
+        final SimpleEntry<?, ?>[] entries = new SimpleEntry<?, ?>[wrappedEntries.size()];
         int i = 0;
         for (SimpleEntry<CompareByRubyIdentityWrapper, Object> wrappedEntry : wrappedEntries) {
-            entries[i++] = new MapEntry(wrappedEntry.getKey().value, wrappedEntry.getValue());
+            entries[i++] = new SimpleEntry<>(wrappedEntry.getKey().value, wrappedEntry.getValue());
         }
         return entries;
     }
