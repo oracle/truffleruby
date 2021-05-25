@@ -275,6 +275,14 @@ class Enumerator
   end
 
   class Lazy < Enumerator
+
+    aliases = Truffle::EnumeratorOperations::LAZY_OVERRIDE_METHODS.map do |m|
+      name = :"_enumerable_#{m}"
+      alias_method name, :"#{m}"
+      name
+    end
+    private(*aliases)
+
     class StopLazyError < Exception # rubocop:disable Lint/InheritException
     end
 
@@ -299,6 +307,7 @@ class Enumerator
     def to_enum(method_name=:each, *method_args, &block)
       size = block_given? ? block : nil
       ret = Lazy.allocate
+      method_name = Truffle::EnumeratorOperations.lazy_method(method_name)
 
       ret.__send__ :initialize_enumerator, self, size, method_name, *method_args
 
@@ -491,6 +500,23 @@ class Enumerator
       end
     end
     alias_method :collect_concat, :flat_map
+
+    def with_index(offset=0, &block)
+      offset = if Primitive.nil?(offset)
+                 0
+               else
+                 Truffle::Type.coerce_to offset, Integer, :to_int
+               end
+
+      Lazy.new(self, enumerator_size) do |yielder, *args|
+        if block
+          yielder.yield yield(*args, offset)
+        else
+          yielder.yield(*args, offset)
+        end
+        offset += 1
+      end
+    end
 
     def zip(*lists)
       return super(*lists) { |entry| yield entry } if block_given?

@@ -30,6 +30,7 @@ Compatibility:
 * Allow `Fiber#raise` after `Fiber#transfer` like Ruby 3.0 (#2342).
 * Fix `ObjectSpace._id2ref` for Symbols and frozen String literals (#2358).
 * Implemented `Enumerator::Lazy#filter_map` (#2356).
+* Implemented `Enumerator::Lazy#with_index` (#2356).
 
 Performance:
 
