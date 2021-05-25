@@ -15,7 +15,9 @@ import java.util.function.Supplier;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.CachedSupplier;
 import org.truffleruby.core.IsNilNode;
-import org.truffleruby.core.cast.ArrayCastNodeGen;
+import org.truffleruby.core.cast.SplatCastNode;
+import org.truffleruby.core.cast.SplatCastNode.NilBehavior;
+import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -201,7 +203,9 @@ public class MethodTranslator extends BodyTranslator {
             final RubyNode readArrayNode = profileArgument(
                     language,
                     new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
-            final RubyNode castArrayNode = ArrayCastNodeGen.create(readArrayNode);
+            final SplatCastNode castArrayNode = SplatCastNodeGen
+                    .create(language, NilBehavior.NIL, true, readArrayNode);
+            castArrayNode.doNotCopy();
 
             final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
             final RubyNode writeArrayNode = new WriteLocalVariableNode(arraySlot, castArrayNode);

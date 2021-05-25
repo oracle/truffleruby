@@ -10,6 +10,7 @@ Bug fixes:
 * `Truffle::POSIX.select` was being redefined repeatedly (#2332).
 * Fix the `--backtraces-raise` and `--backtraces-rescue` options in JVM mode (#2335).
 * Fix `File.{atime, mtime, ctime}` to include nanoseconds (#2337).
+* Fix `Array#[a, b] = "frozen string literal".freeze` (#2355).
 
 Compatibility:
 
