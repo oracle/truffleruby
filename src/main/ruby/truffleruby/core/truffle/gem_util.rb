@@ -59,7 +59,6 @@ module Truffle::GemUtil
     'zlib' => true
   }
 
-
   MARKER_NAME = 'truffleruby_gem_dir_marker.txt'
 
   def self.upgraded_default_gem?(feature)
@@ -115,19 +114,28 @@ module Truffle::GemUtil
 
   # Gem.path, without needing to load RubyGems
   def self.gem_paths
-    @gem_paths ||= begin
-      if gem_path = ENV['GEM_PATH']
-        paths = gem_path.split(File::PATH_SEPARATOR)
+    @gem_paths ||= compute_gem_path
+  end
+
+  def self.compute_gem_path
+    user_dir = "#{Dir.home}/.gem/truffleruby/#{abi_version}"
+    default_dir = "#{Truffle::Boot.ruby_home}/lib/gems"
+    home = ENV['GEM_HOME'] || default_dir
+    # There is also vendor_dir, but it does not exist on TruffleRuby
+    default_path = [user_dir, default_dir, home]
+
+    if gem_path = ENV['GEM_PATH']
+      paths = gem_path.split(File::PATH_SEPARATOR)
+      if gem_path.end_with?(File::PATH_SEPARATOR)
+        paths += default_path
       else
-        user_dir = "#{Dir.home}/.gem/truffleruby/#{abi_version}"
-        paths = [user_dir]
+        paths << home
       end
-
-      home = ENV['GEM_HOME'] || "#{Truffle::Boot.ruby_home}/lib/gems"
-      paths << home
-
-      paths.map { |path| expand(path) }.uniq
+    else
+      paths = default_path
     end
+
+    paths.map { |path| expand(path) }.uniq
   end
 
   def self.abi_version
