@@ -153,15 +153,15 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     }
 
     @TruffleBoundary
-    public Collection<WeakMapEntry<Key, Value>> entries() {
+    public Collection<SimpleEntry<Key, Value>> entries() {
         removeStaleEntries();
-        final Collection<WeakMapEntry<Key, Value>> entries = new ArrayList<>(map.size());
+        final Collection<SimpleEntry<Key, Value>> entries = new ArrayList<>(map.size());
 
         // Filter out null values.
         for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
             final Value value = e.getValue().get();
             if (value != null) {
-                entries.add(new WeakMapEntry<>(e.getKey(), value));
+                entries.add(new SimpleEntry<>(e.getKey(), value));
             }
         }
 
@@ -185,34 +185,6 @@ public class WeakValueCache<Key, Value> implements ReHashable {
             this.key = key;
         }
 
-    }
-
-    /** Note that this class makes a strong reference on its value!
-     *
-     * @see #entries() */
-    public static class WeakMapEntry<Key, Value> implements Map.Entry<Key, Value> {
-        public final Key key;
-        public final Value value;
-
-        private WeakMapEntry(Key key, Value value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public Key getKey() {
-            return key;
-        }
-
-        @Override
-        public Value getValue() {
-            return value;
-        }
-
-        @Override
-        public Value setValue(Value value) {
-            throw new UnsupportedOperationException("weak map entries are immutable");
-        }
     }
 
     /** Attempts to remove map entries whose values have been made unreachable by the GC.
