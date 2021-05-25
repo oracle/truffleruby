@@ -28,6 +28,7 @@ Compatibility:
 * Implement `Fiber#raise` (#2338).
 * Update `File.basename` to return new `String` instances (#2343).
 * Allow `Fiber#raise` after `Fiber#transfer` like Ruby 3.0 (#2342).
+* Implemented `Enumerator::Lazy#filter_map` (#2356).
 
 Performance:
 
