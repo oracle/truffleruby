@@ -19,6 +19,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.collections.SimpleEntry;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.hash.HashingNodes.ToHashByHashCode;
 import org.truffleruby.core.klass.RubyClass;
@@ -358,26 +359,16 @@ public class ConcurrentMapNodes {
             final Iterator<Entry<Key, Object>> iterator = iterator(self.getMap());
 
             while (true) {
-                final Entry<Key, Object> pair = next(iterator);
+                final SimpleEntry<Key, Object> pair = next(iterator);
 
                 if (pair == null) {
                     break;
                 }
 
-                callBlock(block, getKey(pair).key, getValue(pair));
+                callBlock(block, pair.getKey().key, pair.getValue());
             }
 
             return self;
-        }
-
-        @TruffleBoundary
-        private static Object getValue(Entry<Key, Object> pair) {
-            return pair.getValue();
-        }
-
-        @TruffleBoundary
-        private static Key getKey(Entry<Key, Object> pair) {
-            return pair.getKey();
         }
 
         @TruffleBoundary
@@ -386,9 +377,10 @@ public class ConcurrentMapNodes {
         }
 
         @TruffleBoundary
-        private static Entry<Key, Object> next(Iterator<Entry<Key, Object>> iterator) {
+        private static SimpleEntry<Key, Object> next(Iterator<Entry<Key, Object>> iterator) {
             if (iterator.hasNext()) {
-                return iterator.next();
+                final Entry<Key, Object> entry = iterator.next();
+                return new SimpleEntry<>(entry.getKey(), entry.getValue());
             } else {
                 return null;
             }
