@@ -27,6 +27,7 @@ Compatibility:
 * Implement `Fiber#raise` (#2338).
 * Update `File.basename` to return new `String` instances (#2343).
 * Allow `Fiber#raise` after `Fiber#transfer` like Ruby 3.0 (#2342).
+* Fix `ObjectSpace._id2ref` for Symbols and frozen String literals (#2358).
 
 Performance:
 

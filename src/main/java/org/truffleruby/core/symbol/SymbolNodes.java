@@ -63,12 +63,11 @@ public abstract class SymbolNodes {
 
     @CoreMethod(names = "all_symbols", onSingleton = true)
     public abstract static class AllSymbolsNode extends CoreMethodArrayArgumentsNode {
-
+        @TruffleBoundary
         @Specialization
         protected RubyArray allSymbols() {
-            return createArray(getLanguage().symbolTable.allSymbols());
+            return createArray(getLanguage().symbolTable.allSymbols().toArray());
         }
-
     }
 
     @CoreMethod(names = { "==", "eql?" }, required = 1)

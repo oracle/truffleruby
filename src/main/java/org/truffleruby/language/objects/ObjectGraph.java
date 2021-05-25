@@ -17,6 +17,7 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.RubyDynamicObject;
@@ -112,6 +113,10 @@ public abstract class ObjectGraph {
     }
 
     public static void visitContextRoots(RubyContext context, Set<Object> roots) {
+        final RubyLanguage language = context.getLanguageSlow();
+        roots.addAll(language.symbolTable.allSymbols());
+        roots.addAll(language.frozenStringLiterals.allFrozenStrings());
+
         // We do not want to expose the global object
         roots.addAll(context.getCoreLibrary().globalVariables.objectGraphValues());
         roots.addAll(context.getAtExitManager().getHandlers());
