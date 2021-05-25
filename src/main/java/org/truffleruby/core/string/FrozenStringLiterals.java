@@ -17,6 +17,8 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 
+import java.util.Collection;
+
 public class FrozenStringLiterals {
 
     private final RopeCache ropeCache;
@@ -42,6 +44,11 @@ public class FrozenStringLiterals {
         } else {
             return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope));
         }
+    }
+
+    @TruffleBoundary
+    public Collection<ImmutableRubyString> allFrozenStrings() {
+        return values.values();
     }
 
 }

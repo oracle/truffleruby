@@ -151,10 +151,9 @@ public class SymbolTable {
     }
 
     @TruffleBoundary
-    public Object[] allSymbols() {
-        final Collection<RubySymbol> allSymbols = symbolMap.values();
+    public Collection<RubySymbol> allSymbols() {
         // allSymbols is a private concrete collection not a view
-        return allSymbols.toArray();
+        return symbolMap.values();
     }
 
 }
