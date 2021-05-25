@@ -338,9 +338,6 @@ class Dir
       else
         matches = []
         node.call matches, nil, glob_base_dir
-        # Truffle: ensure glob'd files are always sorted in consistent order,
-        # it avoids headaches due to platform differences (OS X is sorted, Linux not).
-        matches.sort!
         all_matches.concat(matches)
       end
     end
