@@ -350,7 +350,7 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone,
+    public static RopeBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();

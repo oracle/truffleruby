@@ -420,24 +420,24 @@ public abstract class TimeNodes {
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached("compilePattern(cachedFormat)") List<Token> pattern,
-                @Cached RopeNodes.EqualNode equalNode) {
+                @Cached(value = "compilePattern(cachedFormat)", dimensions = 0) Token[] pattern,
+                                          @Cached RopeNodes.EqualNode equalNode) {
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
-            final List<Token> pattern = compilePattern(libFormat.getRope(format));
-            return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+            return makeStringNode.fromBuilderUnsafe(formatTime(time, compilePattern(libFormat.getRope(format))), CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
-        protected List<Token> compilePattern(Rope format) {
-            return RubyDateFormatter.compilePattern(format, false, getContext(), this);
+        protected Token[] compilePattern(Rope format) {
+            final List<Token> tokens = RubyDateFormatter.compilePattern(format, false, getContext(), this);
+            return tokens.toArray(new Token[tokens.size()]);
         }
 
-        private RopeBuilder formatTime(RubyTime time, List<Token> pattern) {
+        private RopeBuilder formatTime(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
                     pattern,
                     time.dateTime,
