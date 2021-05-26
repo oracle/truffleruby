@@ -57,12 +57,16 @@ import java.util.List;
 import java.util.Locale;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ErrnoErrorNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.ConcatRope;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
@@ -546,18 +550,34 @@ public abstract class RubyDateFormatter {
     }
 
     public static boolean formatToRopeBuilderCanBeFast(Token[] compiledPattern) {
-        for (Token token : compiledPattern) {
+        for (int i = 0, compiledPatternLength = compiledPattern.length; i < compiledPatternLength; i++) {
+            Token token = compiledPattern[i];
             Format format = token.getFormat();
 
             switch (format) {
                 case FORMAT_ENCODING:
                     // We only care about UTF8 encoding
-                    if (!((Encoding) token.getData() == UTF8Encoding.INSTANCE)) {
+                    if (token.getData() != UTF8Encoding.INSTANCE) {
                         return false;
                     } else {
                         continue;
                     }
                 case FORMAT_OUTPUT:
+                    RubyTimeOutputFormatter formatter = (RubyTimeOutputFormatter) token.getData();
+
+                    // Check for the attributes present in the default case
+                    if (!formatter.flags.isEmpty()) {
+                        return false;
+                    }
+                    if (formatter.width != 6) {
+                        return false;
+                    }
+
+                    // FORMAT_NANOSEC should always come after FORMAT_OUTPUT
+                    if (compiledPattern[i + 1].getFormat() != Format.FORMAT_NANOSEC) {
+                        return false;
+                    }
+                    break;
                 case FORMAT_STRING:
                 case FORMAT_DAY:
                 case FORMAT_HOUR:
@@ -575,10 +595,10 @@ public abstract class RubyDateFormatter {
         return true;
     }
 
-    public static RopeBuilder formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
-                                                  RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
-        RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
-        RopeBuilder toAppendTo = new RopeBuilder();
+    @ExplodeLoop
+    public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
+                                                      RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
+        ManagedRope rope = null;
 
         for (Token token : compiledPattern) {
             String output = null;
@@ -588,11 +608,9 @@ public abstract class RubyDateFormatter {
 
             switch (format) {
                 case FORMAT_ENCODING:
-                    toAppendTo.setEncoding(UTF8Encoding.INSTANCE);
-                    continue; // go to next token
+                    continue;
                 case FORMAT_OUTPUT:
-                    formatter = (RubyTimeOutputFormatter) token.getData();
-                    continue; // go to next token
+                    continue;
                 case FORMAT_STRING:
                     output = token.getData().toString();
                     break;
@@ -621,7 +639,7 @@ public abstract class RubyDateFormatter {
                     type = (value >= 0) ? NUMERIC4 : NUMERIC5;
                     break;
                 case FORMAT_NANOSEC:
-                    formatNano(format, formatter, output, dt);
+                    output = formatNanoFast(dt.getNano());
                     break;
                 default:
                     CompilerDirectives.transferToInterpreter();
@@ -629,7 +647,11 @@ public abstract class RubyDateFormatter {
             }
 
             try {
-                output = formatter.format(output, value, type);
+                if (output == null) {
+                    output = RubyTimeOutputFormatter.formatNumber(value, type.defaultWidth, type.defaultPadder);
+                } else {
+                    output = RubyTimeOutputFormatter.padding(output, type.defaultWidth, type.defaultPadder);
+                }
             } catch (IndexOutOfBoundsException ioobe) {
                 CompilerDirectives.transferToInterpreter();
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
@@ -640,33 +662,38 @@ public abstract class RubyDateFormatter {
                         errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
             }
 
-            // reset formatter
-            formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
+            final ManagedRope appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-            toAppendTo.append(StringOperations.encodeBytes(output, toAppendTo.getEncoding()));
+            if (rope == null) {
+                rope = appendRope;
+            } else {
+                rope = new ConcatRope(rope, appendRope, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
         }
 
-        return toAppendTo;
+        return rope;
     }
 
     @TruffleBoundary
-    private static void formatNano(Format format, RubyTimeOutputFormatter formatter, String output, ZonedDateTime dt) {
-        int defaultWidth = (format == Format.FORMAT_NANOSEC) ? 9 : 3;
-        int width = formatter.getWidth(defaultWidth);
+    private static String formatNanoFast(int nano) {
+        String output;
 
-        output = RubyTimeOutputFormatter.formatNumber(dt.getNano(), 9, '0');
+        if (nano >= 0) {
+            output = RubyTimeOutputFormatter.padding(Long.toString(nano), 9, '0');
+        } else {
+            output = "-" + RubyTimeOutputFormatter.padding(Long.toString(-nano), 8, '0');
+        }
 
-        if (width < output.length()) {
-            output = output.substring(0, width);
+        if (6 < output.length()) {
+            return output.substring(0, 6);
         } else {
             // Not enough precision, fill with 0
             final StringBuilder outputBuilder = new StringBuilder(output);
-            while (outputBuilder.length() < width) {
+            while (outputBuilder.length() < 6) {
                 outputBuilder.append('0');
             }
-            output = outputBuilder.toString();
+            return outputBuilder.toString();
         }
-        formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER; // no more formatting
     }
 
     private static int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {

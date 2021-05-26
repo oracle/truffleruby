@@ -27,6 +27,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -420,11 +421,11 @@ public abstract class TimeNodes {
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached(value = "compilePattern(cachedFormat)", dimensions = 0) Token[] pattern,
+                @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast) {
             if (canUseFast) {
-                return makeStringNode.fromBuilderUnsafe(formatTimeFast(time, pattern), CodeRange.CR_UNKNOWN);
+                return makeStringNode.fromRope(formatTimeFast(time, pattern));
             } else {
                 return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
             }
@@ -446,7 +447,8 @@ public abstract class TimeNodes {
             return tokens.toArray(new Token[tokens.size()]);
         }
 
-        private RopeBuilder formatTimeFast(RubyTime time, Token[] pattern) {
+        // Optimised for the default strftime, "%Y-%m-%dT%H:%M:%S.%6N "
+        private ManagedRope formatTimeFast(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilderFast(
                     pattern,
                     time.dateTime,

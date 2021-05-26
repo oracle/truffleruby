@@ -26,6 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.FieldType;
 
@@ -96,6 +97,7 @@ public class RubyTimeOutputFormatter {
         return sequence;
     }
 
+    @TruffleBoundary
     public static String formatNumber(long value, int width, char padder) {
         if (value >= 0 || padder != '0') {
             return padding(Long.toString(value), width, padder);
@@ -122,6 +124,7 @@ public class RubyTimeOutputFormatter {
 
     private static final int SMALLBUF = 100;
 
+    @TruffleBoundary
     static String padding(String sequence, int width, char padder) {
         if (sequence.length() >= width) {
             return sequence;
