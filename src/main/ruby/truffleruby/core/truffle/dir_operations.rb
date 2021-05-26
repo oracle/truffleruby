@@ -31,6 +31,15 @@ module Truffle
         raise Errno::EBADF unless result == 0;
         if !buffer.read_pointer.null?
           str = dirent.get_string(DIRENT_NAME_OFFSET, DIRENT_NAME_SIZE)
+          str = str.force_encoding(dir.instance_variable_get(:@encoding))
+
+          if Encoding.default_external == Encoding::US_ASCII && !str.valid_encoding?
+            str.force_encoding Encoding::ASCII_8BIT
+          else
+            enc = Encoding.default_internal
+            str = enc ? str.encode(enc) : str
+          end
+
           type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
           [str, type]
         else

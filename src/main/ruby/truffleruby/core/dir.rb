@@ -101,15 +101,7 @@ class Dir
     entry = Truffle::DirOperations.readdir(self)
     return unless entry
 
-    entry = entry[0].force_encoding(@encoding)
-
-    if Encoding.default_external == Encoding::US_ASCII && !entry.valid_encoding?
-      entry.force_encoding Encoding::ASCII_8BIT
-      return entry
-    end
-
-    enc = Encoding.default_internal
-    enc ? entry.encode(enc) : entry
+    entry[0]
   end
 
   def close
