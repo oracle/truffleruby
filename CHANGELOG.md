@@ -11,6 +11,7 @@ Bug fixes:
 * Fix the `--backtraces-raise` and `--backtraces-rescue` options in JVM mode (#2335).
 * Fix `File.{atime, mtime, ctime}` to include nanoseconds (#2337).
 * Fix `Array#[a, b] = "frozen string literal".freeze` (#2355).
+* `rb_funcall()` now releases the C-extension lock (similar to MRI).
 
 Compatibility:
 
