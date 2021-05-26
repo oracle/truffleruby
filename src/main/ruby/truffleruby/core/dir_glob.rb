@@ -267,6 +267,25 @@ class Dir
       end
     end
 
+    class AllNameEntryMatch < EntryMatch
+      def match?(entry)
+        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+        allow_dots or entry.getbyte(0) != 46 # ?.
+      end
+    end
+
+    class EndsWithEntryMatch < EntryMatch
+      def initialize(nxt, flags, glob, suffix)
+        super nxt, flags, glob
+        @suffix = suffix
+      end
+
+      def match?(entry)
+        allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
+        entry.end_with?(@suffix) and (allow_dots or entry.getbyte(0) != 46) # ?.
+      end
+    end
+
     class DirectoriesOnly < Node
       def call(matches, parent, entry, glob_base_dir)
         path = path_join(parent, entry)
@@ -326,6 +345,10 @@ class Dir
         file = parts.pop
         if NO_GLOB_META_CHARS.match?(file)
           last = ConstantEntry.new nil, flags, file
+        elsif file == '*'
+          last = AllNameEntryMatch.new nil, flags, file
+        elsif file && file[0] == '*' && NO_GLOB_META_CHARS.match?(file[1..])
+          last = EndsWithEntryMatch.new nil, flags, file, file[1..]
         else
           last = EntryMatch.new nil, flags, file
         end
