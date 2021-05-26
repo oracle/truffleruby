@@ -393,6 +393,15 @@ class Enumerator
       end
     end
 
+    def filter_map
+      raise ArgumentError, 'Lazy#filter_map requires a block' unless block_given?
+
+      Lazy.new(self, enumerator_size) do |yielder, *args|
+        result = yield(*args)
+        yielder.yield result if result
+      end
+    end
+
     def select
       raise ArgumentError, 'Lazy#{select,find_all} requires a block' unless block_given?
 
