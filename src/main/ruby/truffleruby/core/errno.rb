@@ -48,10 +48,10 @@ module Errno
     raise SystemCallError.new(additional, err)
   end
 
-  def self.handle_errno(errno)
+  def self.handle_errno(errno, additional = nil)
     Primitive.should_not_reach_here('Errno.handle_errno called but errno was 0') if errno == 0
 
-    raise SystemCallError.new(nil, errno)
+    raise SystemCallError.new(additional, errno)
   end
 
   def self.errno
