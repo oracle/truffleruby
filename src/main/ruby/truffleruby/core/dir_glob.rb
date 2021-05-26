@@ -59,12 +59,15 @@ class Dir
         @dir = dir
       end
 
-      def call(matches, path, glob_base_dir)
-        full = path_join(path, @dir)
-
+      def call(matches, parent, entry, glob_base_dir)
         # Don't check if full exists. It just costs us time
         # and the downstream node will be able to check properly.
-        @next.call matches, full, glob_base_dir
+        @next.call matches, path_join(parent, entry), @dir, glob_base_dir
+      end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        #Check an entry with the guarantee that the previous node has checked it exists.
+        @next.call matches, path_join(parent, entry), @dir, glob_base_dir
       end
     end
 
@@ -74,31 +77,38 @@ class Dir
         @name = name
       end
 
-      def call(matches, parent, glob_base_dir)
+      def call(matches, parent, entry, glob_base_dir)
+        parent = path_join(parent, entry)
         path = path_join(parent, @name)
 
         if Truffle::FileOperations.exist? path_join(glob_base_dir, path)
           matches << path
         end
       end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        if entry == @name
+          matches << path_join(parent, entry)
+        end
+      end
     end
 
     class RootDirectory < Node
-      def call(matches, path, glob_base_dir)
-        @next.call matches, '/', glob_base_dir
+      def call(matches, parent, entry, glob_base_dir)
+        @next.call matches, nil, '/', glob_base_dir
+      end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        @next.call matches, nil, '/', glob_base_dir
       end
     end
 
     class RecursiveDirectories < Node
-      def call(matches, start, glob_base_dir)
+      def call(matches, parent, entry, glob_base_dir)
+        start = path_join(parent, entry)
         return if !start || !Truffle::FileOperations.exist?(path_join(glob_base_dir, start))
 
-        # Even though the recursive entry is zero width
-        # in this case, its left separator is still the
-        # dominant one, so we fix things up to use it.
-        switched = @next.dup
-        switched.separator = @separator
-        switched.call matches, start, glob_base_dir
+        @next.process_entry(entry, true, matches, parent, glob_base_dir)
 
         stack = [start]
 
@@ -106,11 +116,8 @@ class Dir
 
         until stack.empty?
           path = stack.pop
-          begin
-            dir = Dir.new(path_join(glob_base_dir, path))
-          rescue Errno::ENOTDIR
-            next
-          end
+          dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path))
+          next unless dir
 
           fd = dir.fileno
           while dirent = Truffle::DirOperations.readdir(dir)
@@ -125,20 +132,26 @@ class Dir
               is_dir = Truffle::StatOperations.directory?(mode)
             end
 
+            full = path_join(path, ent)
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
-              full = path_join(path, ent)
               stack << full
-              @next.call matches, full, glob_base_dir
+              @next.process_entry ent, true, matches, path, glob_base_dir
+            else
+              @next.process_entry ent, is_dir, matches, path, glob_base_dir
             end
           end
           dir.close
         end
       end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        call(matches, parent, entry, glob_base_dir) if is_dir
+      end
     end
 
     class StartRecursiveDirectories < Node
-      def call(matches, start, glob_base_dir)
-        raise 'invalid usage' if start
+      def call(matches, parent, entry, glob_base_dir)
+        raise 'invalid usage' if parent || entry
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the
@@ -146,16 +159,16 @@ class Dir
         if @separator
           switched = @next.dup
           switched.separator = @separator
-          switched.call matches, start, glob_base_dir
+          switched.call matches, parent, entry, glob_base_dir
         else
-          @next.call matches, start, glob_base_dir
+          @next.call matches, parent, entry, glob_base_dir
         end
 
         stack = []
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
-        dir = Dir.new(path_join(glob_base_dir, '.'))
+        dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, '.'))
         fd = dir.fileno
         while ent = dir.read
           next if ent == '.' || ent == '..'
@@ -163,14 +176,14 @@ class Dir
 
           if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
-            @next.call matches, ent, glob_base_dir
+            @next.call matches, nil, ent, glob_base_dir
           end
         end
         dir.close
 
         until stack.empty?
           path = stack.pop
-          dir = Dir.new(path_join(glob_base_dir, path))
+          dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path))
           fd = dir.fileno
           while ent = dir.read
             next if ent == '.' || ent == '..'
@@ -179,11 +192,15 @@ class Dir
 
             if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
-              @next.call matches, full, glob_base_dir
+              @next.call matches, path, ent, glob_base_dir
             end
           end
           dir.close
         end
+      end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        raise 'Invalid usage'
       end
     end
 
@@ -205,25 +222,29 @@ class Dir
         @glob.gsub! '**', '*'
       end
 
-      def call(matches, path, glob_base_dir)
+      def call(matches, parent, entry, glob_base_dir)
+        path = path_join(parent, entry)
         return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
-        dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
+        dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path ? path : '.'))
         while ent = dir.read
           if match? ent
-            full = path_join(path, ent)
-
-            if File.directory? path_join(glob_base_dir, full)
-              @next.call matches, full, glob_base_dir
+            if File.directory? path_join(glob_base_dir, path_join(path, ent))
+              @next.call matches, path, ent, glob_base_dir
             end
           end
         end
         dir.close
       end
-    end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        @next.call matches, parent, entry, glob_base_dir if is_dir
+      end
+   end
 
     class EntryMatch < Match
-      def call(matches, path, glob_base_dir)
+      def call(matches, parent, entry, glob_base_dir)
+        path = path_join(parent, entry)
         return if path and !Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
 
         dir_path = path_join(glob_base_dir, path ? path : '.')
@@ -240,13 +261,22 @@ class Dir
           end
         end
       end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        matches << path_join(parent, entry) if match? entry
+      end
     end
 
     class DirectoriesOnly < Node
-      def call(matches, path, glob_base_dir)
+      def call(matches, parent, entry, glob_base_dir)
+        path = path_join(parent, entry)
         if path and Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
           matches << "#{path}/"
         end
+      end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        matches << "#{path_join(parent, entry)}/" if is_dir
       end
     end
 
@@ -309,7 +339,7 @@ class Dir
           if parts.empty?
             last = StartRecursiveDirectories.new last, flags
           else
-            last = RecursiveDirectories.new last, flags
+            last = RecursiveDirectories.new last, flags unless last.kind_of?(StartRecursiveDirectories) || last.kind_of?(RecursiveDirectories)
           end
         elsif NO_GLOB_META_CHARS.match?(dir)
           while NO_GLOB_META_CHARS.match?(parts[-2])
@@ -334,10 +364,10 @@ class Dir
 
     def self.run(node, all_matches, glob_base_dir)
       if ConstantEntry === node
-        node.call all_matches, nil, glob_base_dir
+        node.call all_matches, nil, nil, glob_base_dir
       else
         matches = []
-        node.call matches, nil, glob_base_dir
+        node.call matches, nil, nil, glob_base_dir
         all_matches.concat(matches)
       end
     end
