@@ -56,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -542,6 +543,130 @@ public abstract class RubyDateFormatter {
         }
 
         return toAppendTo;
+    }
+
+    public static boolean formatToRopeBuilderCanBeFast(Token[] compiledPattern) {
+        for (Token token : compiledPattern) {
+            Format format = token.getFormat();
+
+            switch (format) {
+                case FORMAT_ENCODING:
+                    // We only care about UTF8 encoding
+                    if (!((Encoding) token.getData() == UTF8Encoding.INSTANCE)) {
+                        return false;
+                    } else {
+                        continue;
+                    }
+                case FORMAT_OUTPUT:
+                case FORMAT_STRING:
+                case FORMAT_DAY:
+                case FORMAT_HOUR:
+                case FORMAT_MINUTES:
+                case FORMAT_MONTH:
+                case FORMAT_SECONDS:
+                case FORMAT_YEAR_LONG:
+                case FORMAT_NANOSEC:
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static RopeBuilder formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
+                                                  RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
+        RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
+        RopeBuilder toAppendTo = new RopeBuilder();
+
+        for (Token token : compiledPattern) {
+            String output = null;
+            long value = 0;
+            FieldType type = TEXT;
+            Format format = token.getFormat();
+
+            switch (format) {
+                case FORMAT_ENCODING:
+                    toAppendTo.setEncoding(UTF8Encoding.INSTANCE);
+                    continue; // go to next token
+                case FORMAT_OUTPUT:
+                    formatter = (RubyTimeOutputFormatter) token.getData();
+                    continue; // go to next token
+                case FORMAT_STRING:
+                    output = token.getData().toString();
+                    break;
+                case FORMAT_DAY:
+                    type = NUMERIC2;
+                    value = dt.getDayOfMonth();
+                    break;
+                case FORMAT_HOUR:
+                    type = NUMERIC2;
+                    value = dt.getHour();
+                    break;
+                case FORMAT_MINUTES:
+                    type = NUMERIC2;
+                    value = dt.getMinute();
+                    break;
+                case FORMAT_MONTH:
+                    type = NUMERIC2;
+                    value = dt.getMonthValue();
+                    break;
+                case FORMAT_SECONDS:
+                    type = NUMERIC2;
+                    value = dt.getSecond();
+                    break;
+                case FORMAT_YEAR_LONG:
+                    value = dt.getYear();
+                    type = (value >= 0) ? NUMERIC4 : NUMERIC5;
+                    break;
+                case FORMAT_NANOSEC:
+                    formatNano(format, formatter, output, dt);
+                    break;
+                default:
+                    CompilerDirectives.transferToInterpreter();
+                    throw new UnsupportedOperationException();
+            }
+
+            try {
+                output = formatter.format(output, value, type);
+            } catch (IndexOutOfBoundsException ioobe) {
+                CompilerDirectives.transferToInterpreter();
+                final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+                final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
+                final RubyString message = StringOperations.createString(context, language, messageRope);
+                throw new RaiseException(
+                        context,
+                        errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
+            }
+
+            // reset formatter
+            formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
+
+            toAppendTo.append(StringOperations.encodeBytes(output, toAppendTo.getEncoding()));
+        }
+
+        return toAppendTo;
+    }
+
+    @TruffleBoundary
+    private static void formatNano(Format format, RubyTimeOutputFormatter formatter, String output, ZonedDateTime dt) {
+        int defaultWidth = (format == Format.FORMAT_NANOSEC) ? 9 : 3;
+        int width = formatter.getWidth(defaultWidth);
+
+        output = RubyTimeOutputFormatter.formatNumber(dt.getNano(), 9, '0');
+
+        if (width < output.length()) {
+            output = output.substring(0, width);
+        } else {
+            // Not enough precision, fill with 0
+            final StringBuilder outputBuilder = new StringBuilder(output);
+            while (outputBuilder.length() < width) {
+                outputBuilder.append('0');
+            }
+            output = outputBuilder.toString();
+        }
+        formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER; // no more formatting
     }
 
     private static int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {

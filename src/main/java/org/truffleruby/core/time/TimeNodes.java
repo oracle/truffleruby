@@ -421,8 +421,17 @@ public abstract class TimeNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached(value = "compilePattern(cachedFormat)", dimensions = 0) Token[] pattern,
-                                          @Cached RopeNodes.EqualNode equalNode) {
-            return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+                @Cached RopeNodes.EqualNode equalNode,
+                @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast) {
+            if (canUseFast) {
+                return makeStringNode.fromBuilderUnsafe(formatTimeFast(time, pattern), CodeRange.CR_UNKNOWN);
+            } else {
+                return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+            }
+        }
+
+        protected boolean formatToRopeBuilderCanBeFast(Token[] pattern) {
+            return RubyDateFormatter.formatToRopeBuilderCanBeFast(pattern);
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)")
@@ -435,6 +444,16 @@ public abstract class TimeNodes {
         protected Token[] compilePattern(Rope format) {
             final List<Token> tokens = RubyDateFormatter.compilePattern(format, false, getContext(), this);
             return tokens.toArray(new Token[tokens.size()]);
+        }
+
+        private RopeBuilder formatTimeFast(RubyTime time, Token[] pattern) {
+            return RubyDateFormatter.formatToRopeBuilderFast(
+                    pattern,
+                    time.dateTime,
+                    getContext(),
+                    getLanguage(),
+                    this,
+                    errnoErrorNode);
         }
 
         private RopeBuilder formatTime(RubyTime time, Token[] pattern) {
