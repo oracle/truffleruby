@@ -623,27 +623,27 @@ public abstract class RubyDateFormatter {
                         break;
                     case FORMAT_DAY: {
                         final long value = dt.getDayOfMonth();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_HOUR: {
                         final long value = dt.getHour();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_MINUTES: {
                         final long value = dt.getMinute();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_MONTH: {
                         final long value = dt.getMonthValue();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_SECONDS: {
                         final long value = dt.getSecond();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_YEAR_LONG: {
@@ -654,7 +654,7 @@ public abstract class RubyDateFormatter {
                             return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode).toRope();
                         }
 
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 4);
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 4);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_NANOSEC: {
