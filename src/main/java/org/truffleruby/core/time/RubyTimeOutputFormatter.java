@@ -98,6 +98,15 @@ public class RubyTimeOutputFormatter {
     }
 
     @TruffleBoundary
+    public static String formatNumberZeroPad(long value, int width) {
+        if (value >= 0) {
+            return padding(Long.toString(value), width, '0');
+        } else {
+            return "-" + padding(Long.toString(-value), width - 1, '0');
+        }
+    }
+
+    @TruffleBoundary
     public static String formatNumber(long value, int width, char padder) {
         if (value >= 0 || padder != '0') {
             return padding(Long.toString(value), width, padder);
@@ -123,6 +132,20 @@ public class RubyTimeOutputFormatter {
     }
 
     private static final int SMALLBUF = 100;
+
+    @TruffleBoundary
+    static String paddingZeroSpace(String sequence) {
+        if (sequence.length() >= 0) {
+            return sequence;
+        }
+
+        StringBuilder buf = new StringBuilder(sequence.length());
+        for (int i = sequence.length(); i < 0; i++) {
+            buf.append(' ');
+        }
+        buf.append(sequence);
+        return buf.toString();
+    }
 
     @TruffleBoundary
     static String padding(String sequence, int width, char padder) {

@@ -609,43 +609,43 @@ public abstract class RubyDateFormatter {
                         continue;
                     case FORMAT_STRING: {
                         final String value = token.getData().toString();
-                        final String output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                        final String output = RubyTimeOutputFormatter.paddingZeroSpace(value);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_DAY: {
                         final long value = dt.getDayOfMonth();
-                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_HOUR: {
                         final long value = dt.getHour();
-                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_MINUTES: {
                         final long value = dt.getMinute();
-                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_MONTH: {
                         final long value = dt.getMonthValue();
-                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_SECONDS: {
                         final long value = dt.getSecond();
-                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_YEAR_LONG: {
                         final long value = dt.getYear();
                         final int width = (value >= 0) ? 4 : 5;
-                        final String output = RubyTimeOutputFormatter.formatNumber(value, width, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, width);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_NANOSEC: {
                         final String value = formatNanoFast(dt.getNano());
-                        final String output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                        final String output = RubyTimeOutputFormatter.paddingZeroSpace(value);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     default:
@@ -682,7 +682,7 @@ public abstract class RubyDateFormatter {
             output = "-" + RubyTimeOutputFormatter.padding(Long.toString(-nano), 8, '0');
         }
 
-        if (6 < output.length()) {
+        if (output.length() >= 6) {
             return output.substring(0, 6);
         } else {
             // Not enough precision, fill with 0
