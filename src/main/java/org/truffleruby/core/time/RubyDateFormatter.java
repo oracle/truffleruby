@@ -374,7 +374,7 @@ public abstract class RubyDateFormatter {
                     formatter = (RubyTimeOutputFormatter) token.getData();
                     continue; // go to next token
                 case FORMAT_STRING:
-                    output = token.getData().toString();
+                    output = (String) token.getData();
                     break;
                 case FORMAT_WEEK_LONG:
                     // This is GROSS, but Java API's aren't ISO 8601 compliant at all
@@ -608,7 +608,7 @@ public abstract class RubyDateFormatter {
                     case FORMAT_OUTPUT:
                         continue;
                     case FORMAT_STRING: {
-                        final String value = token.getData().toString();
+                        final String value = (String) token.getData();
                         appendRope = StringOperations.encodeRope(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_DAY: {
