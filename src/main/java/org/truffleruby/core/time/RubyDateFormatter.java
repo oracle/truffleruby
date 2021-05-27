@@ -622,31 +622,21 @@ public abstract class RubyDateFormatter {
                     case FORMAT_STRING:
                         appendRope = token.getRope();
                         break;
-                    case FORMAT_DAY: {
-                        final long value = dt.getDayOfMonth();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositiveTwo(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
-                    case FORMAT_HOUR: {
-                        final long value = dt.getHour();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositiveTwo(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
-                    case FORMAT_MINUTES: {
-                        final long value = dt.getMinute();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositiveTwo(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
-                    case FORMAT_MONTH: {
-                        final long value = dt.getMonthValue();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositiveTwo(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
-                    case FORMAT_SECONDS: {
-                        final long value = dt.getSecond();
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositiveTwo(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
+                    case FORMAT_DAY:
+                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getDayOfMonth()];
+                        break;
+                    case FORMAT_HOUR:
+                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getHour()];
+                        break;
+                    case FORMAT_MINUTES:
+                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getMinute()];
+                        break;
+                    case FORMAT_MONTH:
+                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getMonthValue()];
+                        break;
+                    case FORMAT_SECONDS:
+                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getSecond()];
+                        break;
                     case FORMAT_YEAR_LONG: {
                         final int value = dt.getYear();
 

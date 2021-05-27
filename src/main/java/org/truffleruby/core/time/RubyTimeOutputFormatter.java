@@ -27,6 +27,11 @@
 package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.rope.AsciiOnlyLeafRope;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.FieldType;
 
@@ -97,9 +102,14 @@ public class RubyTimeOutputFormatter {
         return sequence;
     }
 
-    @TruffleBoundary
-    public static String formatNumberZeroPadPositiveTwo(long value) {
-        return padding(Long.toString(value), 2, '0');
+    public static final AsciiOnlyLeafRope[] paddedNumbers;
+
+    static {
+        paddedNumbers = new AsciiOnlyLeafRope[100];
+
+        for (int n = 0; n < paddedNumbers.length; n++) {
+            paddedNumbers[n] = (AsciiOnlyLeafRope) StringOperations.encodeRope(padding(Long.toString(n), 2, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
     }
 
     @TruffleBoundary
