@@ -66,6 +66,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -183,18 +184,24 @@ public abstract class RubyDateFormatter {
     public static class Token {
         private final Format format;
         private final Object data;
+        private final LeafRope rope;
 
         protected Token(Format format) {
             this(format, null);
         }
 
         protected Token(Format formatString, Object data) {
+            this(formatString, data, null);
+        }
+
+        protected Token(Format formatString, Object data, LeafRope rope) {
             this.format = formatString;
             this.data = data;
+            this.rope = rope;
         }
 
         public static Token str(String str) {
-            return new Token(Format.FORMAT_STRING, str);
+            return new Token(Format.FORMAT_STRING, str, StringOperations.encodeRope(str, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         public static Token format(char c) {
@@ -218,6 +225,10 @@ public abstract class RubyDateFormatter {
          * @return Returns a Object */
         public Object getData() {
             return data;
+        }
+
+        public LeafRope getRope() {
+            return rope;
         }
 
         /** Gets the format.
@@ -607,10 +618,9 @@ public abstract class RubyDateFormatter {
                     case FORMAT_ENCODING:
                     case FORMAT_OUTPUT:
                         continue;
-                    case FORMAT_STRING: {
-                        final String value = (String) token.getData();
-                        appendRope = StringOperations.encodeRope(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                    } break;
+                    case FORMAT_STRING:
+                        appendRope = token.getRope();
+                        break;
                     case FORMAT_DAY: {
                         final long value = dt.getDayOfMonth();
                         final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 2);
