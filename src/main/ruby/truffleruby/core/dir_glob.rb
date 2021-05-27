@@ -108,7 +108,9 @@ class Dir
         start = path_join(parent, entry)
         return if !start || !Truffle::FileOperations.exist?(path_join(glob_base_dir, start))
 
-        @next.process_entry(entry, true, matches, parent, glob_base_dir)
+        matched = @next.dup
+        matched.separator = @separator
+        matched.process_entry(entry, true, matches, parent, glob_base_dir)
 
         stack = [start]
 
@@ -136,7 +138,7 @@ class Dir
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.process_entry ent, true, matches, path, glob_base_dir
-            else
+            elsif (allow_dots or ent.getbyte(0) != 46) # ?.
               @next.process_entry ent, is_dir, matches, path, glob_base_dir
             end
           end
@@ -159,40 +161,46 @@ class Dir
         if @separator
           switched = @next.dup
           switched.separator = @separator
-          switched.call matches, parent, entry, glob_base_dir
         else
-          @next.call matches, parent, entry, glob_base_dir
+          @next.process_entry entry, true, matches, parent, glob_base_dir if glob_base_dir
         end
 
-        stack = []
+        stack = [nil]
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
-        dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, '.'))
-        fd = dir.fileno
-        while ent = dir.read
-          next if ent == '.' || ent == '..'
-          mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
-
-          if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
-            stack << ent
-            @next.call matches, nil, ent, glob_base_dir
-          end
-        end
-        dir.close
 
         until stack.empty?
           path = stack.pop
-          dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path))
-          fd = dir.fileno
-          while ent = dir.read
-            next if ent == '.' || ent == '..'
-            full = path_join(path, ent)
-            mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
+          full = if path
+                   path_join(glob_base_dir, path)
+                 elsif glob_base_dir
+                   glob_base_dir
+                 else
+                   '.'
+                 end
+          dir = Dir.allocate.send(:initialize_internal, full)
+          next unless dir
 
-            if Truffle::StatOperations.directory?(mode) and (allow_dots or ent.getbyte(0) != 46) # ?.
+          fd = dir.fileno
+          while dirent = Truffle::DirOperations.readdir(dir)
+            ent = dirent[0]
+            type = dirent[1]
+            next if ent == '.' || ent == '..'
+            is_dir = false
+            if type == Truffle::DirOperations::DT_DIR
+              is_dir = true
+            elsif type == Truffle::DirOperations::DT_UNKNOWN
+              mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
+              is_dir = Truffle::StatOperations.directory?(mode)
+            end
+
+            full = path_join(path, ent)
+            if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
-              @next.call matches, path, ent, glob_base_dir
+              @next.process_entry ent, true, matches, path, glob_base_dir
+            elsif (allow_dots or ent.getbyte(0) != 46) # ?.
+              @next.process_entry ent, is_dir, matches, path, glob_base_dir
             end
           end
           dir.close
@@ -238,9 +246,9 @@ class Dir
       end
 
       def process_entry(entry, is_dir, matches, parent, glob_base_dir)
-        @next.call matches, parent, entry, glob_base_dir if is_dir
+        @next.call matches, parent, entry, glob_base_dir if is_dir && match?(entry)
       end
-   end
+    end
 
     class EntryMatch < Match
       def call(matches, parent, entry, glob_base_dir)
@@ -362,7 +370,7 @@ class Dir
           if parts.empty?
             last = StartRecursiveDirectories.new last, flags
           else
-            last = RecursiveDirectories.new last, flags unless last.kind_of?(StartRecursiveDirectories) || last.kind_of?(RecursiveDirectories)
+            last = RecursiveDirectories.new last, flags
           end
         elsif NO_GLOB_META_CHARS.match?(dir)
           while NO_GLOB_META_CHARS.match?(parts[-2])
