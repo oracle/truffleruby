@@ -183,6 +183,8 @@ public abstract class RubyDateFormatter {
         }
     }
 
+    public static final Token[] EMPTY_TOKEN_ARRAY = new Token[0];
+
     public static class Token {
         private final Format format;
         private final Object data;
@@ -203,7 +205,10 @@ public abstract class RubyDateFormatter {
         }
 
         public static Token str(String str) {
-            return new Token(Format.FORMAT_STRING, str, StringOperations.encodeRope(str, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+            return new Token(
+                    Format.FORMAT_STRING,
+                    str,
+                    StringOperations.encodeRope(str, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         public static Token format(char c) {
@@ -223,7 +228,7 @@ public abstract class RubyDateFormatter {
         }
 
         /** Gets the data.
-         * 
+         *
          * @return Returns a Object */
         public Object getData() {
             return data;
@@ -234,7 +239,7 @@ public abstract class RubyDateFormatter {
         }
 
         /** Gets the format.
-         * 
+         *
          * @return Returns a int */
         public Format getFormat() {
             return format;
@@ -609,7 +614,7 @@ public abstract class RubyDateFormatter {
 
     @ExplodeLoop
     public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt, Object zone,
-                                                      RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
+            RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         try {
             ManagedRope rope = null;
 
@@ -642,17 +647,26 @@ public abstract class RubyDateFormatter {
                         final int value = dt.getYear();
 
                         if (value < 1000) {
-                            CompilerDirectives.transferToInterpreter();
-                            return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode).toRope();
+                            CompilerDirectives.transferToInterpreterAndInvalidate();
+                            return formatToRopeBuilder(
+                                    compiledPattern,
+                                    dt,
+                                    zone,
+                                    context,
+                                    language,
+                                    currentNode,
+                                    errnoErrorNode).toRope();
                         }
 
                         appendRope = new LazyIntRope(value);
-                    } break;
+                    }
+                        break;
                     case FORMAT_NANOSEC: {
                         appendRope = formatNanoFast(dt.getNano());
-                    } break;
+                    }
+                        break;
                     default:
-                        CompilerDirectives.transferToInterpreter();
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw new UnsupportedOperationException();
                 }
 
@@ -665,8 +679,9 @@ public abstract class RubyDateFormatter {
 
             return rope;
         } catch (IndexOutOfBoundsException ioobe) {
-            CompilerDirectives.transferToInterpreter();
-            return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode).toRope();
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode)
+                    .toRope();
         }
     }
 
@@ -677,7 +692,11 @@ public abstract class RubyDateFormatter {
         if (differenceAdjusted == 0) {
             return new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_UNKNOWN);
         } else {
-            return new ConcatRope(nanoRope, RubyTimeOutputFormatter.paddingZeros[differenceAdjusted], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return new ConcatRope(
+                    nanoRope,
+                    RubyTimeOutputFormatter.paddingZeros[differenceAdjusted],
+                    UTF8Encoding.INSTANCE,
+                    CodeRange.CR_UNKNOWN);
         }
     }
 

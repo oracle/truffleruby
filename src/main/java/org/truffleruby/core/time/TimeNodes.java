@@ -438,13 +438,15 @@ public abstract class TimeNodes {
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
-            return makeStringNode.fromBuilderUnsafe(formatTime(time, compilePattern(libFormat.getRope(format))), CodeRange.CR_UNKNOWN);
+            return makeStringNode.fromBuilderUnsafe(
+                    formatTime(time, compilePattern(libFormat.getRope(format))),
+                    CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
         protected Token[] compilePattern(Rope format) {
             final List<Token> tokens = RubyDateFormatter.compilePattern(format, false, getContext(), this);
-            return tokens.toArray(new Token[tokens.size()]);
+            return tokens.toArray(RubyDateFormatter.EMPTY_TOKEN_ARRAY);
         }
 
         // Optimised for the default strftime, "%Y-%m-%dT%H:%M:%S.%6N "

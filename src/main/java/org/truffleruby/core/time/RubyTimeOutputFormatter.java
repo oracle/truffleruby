@@ -30,7 +30,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.AsciiOnlyLeafRope;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.FieldType;
@@ -108,7 +107,8 @@ public class RubyTimeOutputFormatter {
         paddedNumbers = new AsciiOnlyLeafRope[100];
 
         for (int n = 0; n < paddedNumbers.length; n++) {
-            paddedNumbers[n] = (AsciiOnlyLeafRope) StringOperations.encodeRope(padding(Long.toString(n), 2, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            paddedNumbers[n] = (AsciiOnlyLeafRope) StringOperations
+                    .encodeRope(padding(Long.toString(n), 2, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -118,7 +118,8 @@ public class RubyTimeOutputFormatter {
         paddingZeros = new AsciiOnlyLeafRope[6];
 
         for (int n = 0; n < paddingZeros.length; n++) {
-            paddingZeros[n] = (AsciiOnlyLeafRope) StringOperations.encodeRope(padding(Long.toString(0), n, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            paddingZeros[n] = (AsciiOnlyLeafRope) StringOperations
+                    .encodeRope(padding(Long.toString(0), n, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 
