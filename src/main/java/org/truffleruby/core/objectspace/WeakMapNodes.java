@@ -15,7 +15,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.collections.WeakValueCache.WeakMapEntry;
+import org.truffleruby.collections.SimpleEntry;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.CompareByRubyIdentityWrapper;
 import org.truffleruby.core.klass.RubyClass;
@@ -147,8 +147,8 @@ public abstract class WeakMapNodes {
         @Specialization
         protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
 
-            for (MapEntry entry : entries(map.storage)) {
-                callBlock(block, entry.key, entry.value);
+            for (SimpleEntry<?, ?> entry : entries(map.storage)) {
+                callBlock(block, entry.getKey(), entry.getValue());
             }
 
             return map;
@@ -171,23 +171,13 @@ public abstract class WeakMapNodes {
         return storage.values().toArray();
     }
 
-    private static class MapEntry {
-        final Object key;
-        final Object value;
-
-        private MapEntry(Object key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
-
     @TruffleBoundary
-    private static MapEntry[] entries(WeakMapStorage storage) {
-        final Collection<WeakMapEntry<CompareByRubyIdentityWrapper, Object>> wrappedEntries = storage.entries();
-        final MapEntry[] entries = new MapEntry[wrappedEntries.size()];
+    private static SimpleEntry<?, ?>[] entries(WeakMapStorage storage) {
+        final Collection<SimpleEntry<CompareByRubyIdentityWrapper, Object>> wrappedEntries = storage.entries();
+        final SimpleEntry<?, ?>[] entries = new SimpleEntry<?, ?>[wrappedEntries.size()];
         int i = 0;
-        for (WeakMapEntry<CompareByRubyIdentityWrapper, Object> wrappedEntry : wrappedEntries) {
-            entries[i++] = new MapEntry(wrappedEntry.getKey().value, wrappedEntry.getValue());
+        for (SimpleEntry<CompareByRubyIdentityWrapper, Object> wrappedEntry : wrappedEntries) {
+            entries[i++] = new SimpleEntry<>(wrappedEntry.getKey().value, wrappedEntry.getValue());
         }
         return entries;
     }
