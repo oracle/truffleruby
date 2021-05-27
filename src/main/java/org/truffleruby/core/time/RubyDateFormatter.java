@@ -559,9 +559,8 @@ public abstract class RubyDateFormatter {
                     // We only care about UTF8 encoding
                     if (token.getData() != UTF8Encoding.INSTANCE) {
                         return false;
-                    } else {
-                        continue;
                     }
+                    break;
                 case FORMAT_OUTPUT:
                     RubyTimeOutputFormatter formatter = (RubyTimeOutputFormatter) token.getData();
 
@@ -598,80 +597,79 @@ public abstract class RubyDateFormatter {
     @ExplodeLoop
     public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
                                                       RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
-        ManagedRope rope = null;
+        try {
+            ManagedRope rope = null;
 
-        for (Token token : compiledPattern) {
-            String output = null;
-            long value = 0;
-            FieldType type = TEXT;
-            Format format = token.getFormat();
+            for (Token token : compiledPattern) {
+                String output = null;
+                long value = 0;
+                FieldType type = TEXT;
+                Format format = token.getFormat();
 
-            switch (format) {
-                case FORMAT_ENCODING:
-                    continue;
-                case FORMAT_OUTPUT:
-                    continue;
-                case FORMAT_STRING:
-                    output = token.getData().toString();
-                    break;
-                case FORMAT_DAY:
-                    type = NUMERIC2;
-                    value = dt.getDayOfMonth();
-                    break;
-                case FORMAT_HOUR:
-                    type = NUMERIC2;
-                    value = dt.getHour();
-                    break;
-                case FORMAT_MINUTES:
-                    type = NUMERIC2;
-                    value = dt.getMinute();
-                    break;
-                case FORMAT_MONTH:
-                    type = NUMERIC2;
-                    value = dt.getMonthValue();
-                    break;
-                case FORMAT_SECONDS:
-                    type = NUMERIC2;
-                    value = dt.getSecond();
-                    break;
-                case FORMAT_YEAR_LONG:
-                    value = dt.getYear();
-                    type = (value >= 0) ? NUMERIC4 : NUMERIC5;
-                    break;
-                case FORMAT_NANOSEC:
-                    output = formatNanoFast(dt.getNano());
-                    break;
-                default:
-                    CompilerDirectives.transferToInterpreter();
-                    throw new UnsupportedOperationException();
-            }
+                switch (format) {
+                    case FORMAT_ENCODING:
+                    case FORMAT_OUTPUT:
+                        continue;
+                    case FORMAT_STRING:
+                        output = token.getData().toString();
+                        break;
+                    case FORMAT_DAY:
+                        type = NUMERIC2;
+                        value = dt.getDayOfMonth();
+                        break;
+                    case FORMAT_HOUR:
+                        type = NUMERIC2;
+                        value = dt.getHour();
+                        break;
+                    case FORMAT_MINUTES:
+                        type = NUMERIC2;
+                        value = dt.getMinute();
+                        break;
+                    case FORMAT_MONTH:
+                        type = NUMERIC2;
+                        value = dt.getMonthValue();
+                        break;
+                    case FORMAT_SECONDS:
+                        type = NUMERIC2;
+                        value = dt.getSecond();
+                        break;
+                    case FORMAT_YEAR_LONG:
+                        value = dt.getYear();
+                        type = (value >= 0) ? NUMERIC4 : NUMERIC5;
+                        break;
+                    case FORMAT_NANOSEC:
+                        output = formatNanoFast(dt.getNano());
+                        break;
+                    default:
+                        CompilerDirectives.transferToInterpreter();
+                        throw new UnsupportedOperationException();
+                }
 
-            try {
                 if (output == null) {
                     output = RubyTimeOutputFormatter.formatNumber(value, type.defaultWidth, type.defaultPadder);
                 } else {
                     output = RubyTimeOutputFormatter.padding(output, type.defaultWidth, type.defaultPadder);
                 }
-            } catch (IndexOutOfBoundsException ioobe) {
-                CompilerDirectives.transferToInterpreter();
-                final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-                final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-                final RubyString message = StringOperations.createString(context, language, messageRope);
-                throw new RaiseException(
-                        context,
-                        errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
+
+                final ManagedRope appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+
+                if (rope == null) {
+                    rope = appendRope;
+                } else {
+                    rope = new ConcatRope(rope, appendRope, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                }
             }
 
-            final ManagedRope appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-            if (rope == null) {
-                rope = appendRope;
-            } else {
-                rope = new ConcatRope(rope, appendRope, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-            }
+            return rope;
+        } catch (IndexOutOfBoundsException ioobe) {
+            CompilerDirectives.transferToInterpreter();
+            final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+            final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
+            final RubyString message = StringOperations.createString(context, language, messageRope);
+            throw new RaiseException(
+                    context,
+                    errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
         }
-
-        return rope;
     }
 
     @TruffleBoundary
