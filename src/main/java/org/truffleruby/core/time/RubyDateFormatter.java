@@ -66,6 +66,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
+import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
@@ -647,15 +648,14 @@ public abstract class RubyDateFormatter {
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_YEAR_LONG: {
-                        final long value = dt.getYear();
+                        final int value = dt.getYear();
 
-                        if (value < 0) {
+                        if (value < 1000) {
                             CompilerDirectives.transferToInterpreter();
                             return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode).toRope();
                         }
 
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPadPositive(value, 4);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        appendRope = new LazyIntRope(value);
                     } break;
                     case FORMAT_NANOSEC: {
                         final String value = formatNanoFast(dt.getNano());
