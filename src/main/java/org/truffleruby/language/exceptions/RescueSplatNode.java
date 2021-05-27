@@ -27,7 +27,7 @@ public class RescueSplatNode extends RescueNode {
 
     @Child private SplatCastNode splatCastNode;
     @Child private ArrayStoreLibrary stores;
-    private LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
+    private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
     public RescueSplatNode(RubyLanguage language, RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
