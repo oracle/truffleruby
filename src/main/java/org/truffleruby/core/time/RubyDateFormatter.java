@@ -606,7 +606,7 @@ public abstract class RubyDateFormatter {
     }
 
     @ExplodeLoop
-    public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
+    public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt, Object zone,
                                                       RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         try {
             ManagedRope rope = null;
@@ -651,7 +651,7 @@ public abstract class RubyDateFormatter {
 
                         if (value < 0) {
                             CompilerDirectives.transferToInterpreter();
-                            return formatToRopeBuilderFast(compiledPattern, dt, context, language, currentNode, errnoErrorNode);
+                            return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode).toRope();
                         }
 
                         final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 4);
@@ -676,12 +676,7 @@ public abstract class RubyDateFormatter {
             return rope;
         } catch (IndexOutOfBoundsException ioobe) {
             CompilerDirectives.transferToInterpreter();
-            final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-            final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-            final RubyString message = StringOperations.createString(context, language, messageRope);
-            throw new RaiseException(
-                    context,
-                    errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
+            return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode).toRope();
         }
     }
 

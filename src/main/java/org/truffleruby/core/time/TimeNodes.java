@@ -452,6 +452,7 @@ public abstract class TimeNodes {
             return RubyDateFormatter.formatToRopeBuilderFast(
                     pattern,
                     time.dateTime,
+                    time.zone,
                     getContext(),
                     getLanguage(),
                     this,
