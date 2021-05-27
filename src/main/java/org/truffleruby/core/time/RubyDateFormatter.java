@@ -601,7 +601,7 @@ public abstract class RubyDateFormatter {
             ManagedRope rope = null;
 
             for (Token token : compiledPattern) {
-                final String output;
+                final ManagedRope appendRope;
 
                 switch (token.getFormat()) {
                     case FORMAT_ENCODING:
@@ -609,43 +609,49 @@ public abstract class RubyDateFormatter {
                         continue;
                     case FORMAT_STRING: {
                         final String value = token.getData().toString();
-                        output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                        final String output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_DAY: {
                         final long value = dt.getDayOfMonth();
-                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_HOUR: {
                         final long value = dt.getHour();
-                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_MINUTES: {
                         final long value = dt.getMinute();
-                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_MONTH: {
                         final long value = dt.getMonthValue();
-                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_SECONDS: {
                         final long value = dt.getSecond();
-                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_YEAR_LONG: {
                         final long value = dt.getYear();
                         final int width = (value >= 0) ? 4 : 5;
-                        output = RubyTimeOutputFormatter.formatNumber(value, width, '0');
+                        final String output = RubyTimeOutputFormatter.formatNumber(value, width, '0');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_NANOSEC: {
                         final String value = formatNanoFast(dt.getNano());
-                        output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                        final String output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     default:
                         CompilerDirectives.transferToInterpreter();
                         throw new UnsupportedOperationException();
                 }
-
-                final ManagedRope appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
                 if (rope == null) {
                     rope = appendRope;
