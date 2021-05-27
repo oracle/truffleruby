@@ -371,27 +371,27 @@ int64_t truffleposix_fstat_size(int fd) {
   return result;
 }
 
-int truffleposix_fstatat(int fd, char *path, struct truffleposix_stat *buffer, int flags) {
+int truffleposix_fstatat(int dirfd, char *path, struct truffleposix_stat *buffer, int flags) {
   struct stat native_stat;
-  int result = fstatat(fd, path, &native_stat, flags);
+  int result = fstatat(dirfd, path, &native_stat, flags);
   if (result == 0) {
     copy_stat(&native_stat, buffer);
   }
   return result;
 }
 
-mode_t truffleposix_fstatat_mode(int fd, char *path, int flags) {
+mode_t truffleposix_fstatat_mode(int dirfd, char *path, int flags) {
   struct stat native_stat;
-  int result = fstatat(fd, path, &native_stat, flags);
+  int result = fstatat(dirfd, path, &native_stat, flags);
   if (result == 0) {
     return native_stat.st_mode;
   }
   return 0;
 }
 
-int64_t truffleposix_fstatat_size(int fd, char *path, int flags) {
+int64_t truffleposix_fstatat_size(int dirfd, char *path, int flags) {
   struct stat native_stat;
-  int result = fstatat(fd, path, &native_stat, flags);
+  int result = fstatat(dirfd, path, &native_stat, flags);
   if (result == 0) {
     return native_stat.st_size;
   }
