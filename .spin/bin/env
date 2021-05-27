@@ -3,6 +3,7 @@
 SCRIPT_PATH=$(dirname "$0")
 SCRIPT_PATH=$(cd "$SCRIPT_PATH" && pwd)
 TRUFFLERUBY_DIR=$SCRIPT_PATH/../..
+export JT_ENV=jvm-ce
 
 unset JAVA_HOME
 
