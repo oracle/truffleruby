@@ -638,8 +638,13 @@ public abstract class RubyDateFormatter {
                     } break;
                     case FORMAT_YEAR_LONG: {
                         final long value = dt.getYear();
-                        final int width = (value >= 0) ? 4 : 5;
-                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, width);
+
+                        if (value < 0) {
+                            CompilerDirectives.transferToInterpreter();
+                            return formatToRopeBuilderFast(compiledPattern, dt, context, language, currentNode, errnoErrorNode);
+                        }
+
+                        final String output = RubyTimeOutputFormatter.formatNumberZeroPad(value, 4);
                         appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_NANOSEC: {
