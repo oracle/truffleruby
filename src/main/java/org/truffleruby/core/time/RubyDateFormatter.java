@@ -609,8 +609,7 @@ public abstract class RubyDateFormatter {
                         continue;
                     case FORMAT_STRING: {
                         final String value = token.getData().toString();
-                        final String output = RubyTimeOutputFormatter.paddingZeroSpace(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        appendRope = StringOperations.encodeRope(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     case FORMAT_DAY: {
                         final long value = dt.getDayOfMonth();
@@ -645,8 +644,7 @@ public abstract class RubyDateFormatter {
                     } break;
                     case FORMAT_NANOSEC: {
                         final String value = formatNanoFast(dt.getNano());
-                        final String output = RubyTimeOutputFormatter.paddingZeroSpace(value);
-                        appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        appendRope = StringOperations.encodeRope(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                     } break;
                     default:
                         CompilerDirectives.transferToInterpreter();

@@ -134,20 +134,6 @@ public class RubyTimeOutputFormatter {
     private static final int SMALLBUF = 100;
 
     @TruffleBoundary
-    static String paddingZeroSpace(String sequence) {
-        if (sequence.length() >= 0) {
-            return sequence;
-        }
-
-        StringBuilder buf = new StringBuilder(sequence.length());
-        for (int i = sequence.length(); i < 0; i++) {
-            buf.append(' ');
-        }
-        buf.append(sequence);
-        return buf.toString();
-    }
-
-    @TruffleBoundary
     static String padding(String sequence, int width, char padder) {
         if (sequence.length() >= width) {
             return sequence;
