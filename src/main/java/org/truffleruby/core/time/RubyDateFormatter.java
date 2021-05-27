@@ -72,6 +72,7 @@ import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -648,8 +649,7 @@ public abstract class RubyDateFormatter {
                         appendRope = new LazyIntRope(value);
                     } break;
                     case FORMAT_NANOSEC: {
-                        final String value = formatNanoFast(dt.getNano());
-                        appendRope = StringOperations.encodeRope(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        appendRope = formatNanoFast(dt.getNano());
                     } break;
                     default:
                         CompilerDirectives.transferToInterpreter();
@@ -670,19 +670,14 @@ public abstract class RubyDateFormatter {
         }
     }
 
-    @TruffleBoundary
-    private static String formatNanoFast(int nano) {
-        final String output = RubyTimeOutputFormatter.padding(Long.toString(nano), 9, '0');
-
-        if (output.length() >= 6) {
-            return output.substring(0, 6);
+    private static ManagedRope formatNanoFast(int nanos) {
+        final LazyIntRope nanoRope = new LazyIntRope(nanos);
+        final int nanoDifference = 6 - nanoRope.characterLength();
+        final int differenceAdjusted = nanoDifference < 0 ? 0 : nanoDifference;
+        if (differenceAdjusted == 0) {
+            return new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_UNKNOWN);
         } else {
-            // Not enough precision, fill with 0
-            final StringBuilder outputBuilder = new StringBuilder(output);
-            while (outputBuilder.length() < 6) {
-                outputBuilder.append('0');
-            }
-            return outputBuilder.toString();
+            return new ConcatRope(nanoRope, RubyTimeOutputFormatter.paddingZeros[differenceAdjusted], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 
