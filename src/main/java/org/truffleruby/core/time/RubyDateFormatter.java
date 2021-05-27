@@ -672,13 +672,7 @@ public abstract class RubyDateFormatter {
 
     @TruffleBoundary
     private static String formatNanoFast(int nano) {
-        String output;
-
-        if (nano >= 0) {
-            output = RubyTimeOutputFormatter.padding(Long.toString(nano), 9, '0');
-        } else {
-            output = "-" + RubyTimeOutputFormatter.padding(Long.toString(-nano), 8, '0');
-        }
+        final String output = RubyTimeOutputFormatter.padding(Long.toString(nano), 9, '0');
 
         if (output.length() >= 6) {
             return output.substring(0, 6);
