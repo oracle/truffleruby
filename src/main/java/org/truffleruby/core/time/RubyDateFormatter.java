@@ -601,54 +601,48 @@ public abstract class RubyDateFormatter {
             ManagedRope rope = null;
 
             for (Token token : compiledPattern) {
-                String output = null;
-                long value = 0;
-                FieldType type = TEXT;
-                Format format = token.getFormat();
+                final String output;
 
-                switch (format) {
+                switch (token.getFormat()) {
                     case FORMAT_ENCODING:
                     case FORMAT_OUTPUT:
                         continue;
-                    case FORMAT_STRING:
-                        output = token.getData().toString();
-                        break;
-                    case FORMAT_DAY:
-                        type = NUMERIC2;
-                        value = dt.getDayOfMonth();
-                        break;
-                    case FORMAT_HOUR:
-                        type = NUMERIC2;
-                        value = dt.getHour();
-                        break;
-                    case FORMAT_MINUTES:
-                        type = NUMERIC2;
-                        value = dt.getMinute();
-                        break;
-                    case FORMAT_MONTH:
-                        type = NUMERIC2;
-                        value = dt.getMonthValue();
-                        break;
-                    case FORMAT_SECONDS:
-                        type = NUMERIC2;
-                        value = dt.getSecond();
-                        break;
-                    case FORMAT_YEAR_LONG:
-                        value = dt.getYear();
-                        type = (value >= 0) ? NUMERIC4 : NUMERIC5;
-                        break;
-                    case FORMAT_NANOSEC:
-                        output = formatNanoFast(dt.getNano());
-                        break;
+                    case FORMAT_STRING: {
+                        final String value = token.getData().toString();
+                        output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                    } break;
+                    case FORMAT_DAY: {
+                        final long value = dt.getDayOfMonth();
+                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                    } break;
+                    case FORMAT_HOUR: {
+                        final long value = dt.getHour();
+                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                    } break;
+                    case FORMAT_MINUTES: {
+                        final long value = dt.getMinute();
+                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                    } break;
+                    case FORMAT_MONTH: {
+                        final long value = dt.getMonthValue();
+                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                    } break;
+                    case FORMAT_SECONDS: {
+                        final long value = dt.getSecond();
+                        output = RubyTimeOutputFormatter.formatNumber(value, 2, '0');
+                    } break;
+                    case FORMAT_YEAR_LONG: {
+                        final long value = dt.getYear();
+                        final int width = (value >= 0) ? 4 : 5;
+                        output = RubyTimeOutputFormatter.formatNumber(value, width, '0');
+                    } break;
+                    case FORMAT_NANOSEC: {
+                        final String value = formatNanoFast(dt.getNano());
+                        output = RubyTimeOutputFormatter.padding(value, 0, ' ');
+                    } break;
                     default:
                         CompilerDirectives.transferToInterpreter();
                         throw new UnsupportedOperationException();
-                }
-
-                if (output == null) {
-                    output = RubyTimeOutputFormatter.formatNumber(value, type.defaultWidth, type.defaultPadder);
-                } else {
-                    output = RubyTimeOutputFormatter.padding(output, type.defaultWidth, type.defaultPadder);
                 }
 
                 final ManagedRope appendRope = StringOperations.encodeRope(output, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
