@@ -98,8 +98,8 @@ public class RubyTimeOutputFormatter {
     }
 
     @TruffleBoundary
-    public static String formatNumberZeroPadPositive(long value, int width) {
-        return padding(Long.toString(value), width, '0');
+    public static String formatNumberZeroPadPositiveTwo(long value) {
+        return padding(Long.toString(value), 2, '0');
     }
 
     @TruffleBoundary
