@@ -58,7 +58,6 @@ import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory
 import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
-import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -1565,19 +1564,33 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class ModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SetVisibilityNode setVisibilityNode = SetVisibilityNode.create();
-
-        @Specialization
-        protected RubyModule moduleFunction(VirtualFrame frame, RubyModule module, Object[] names,
+        @Specialization(guards = "names.length == 0")
+        protected RubyModule frame(VirtualFrame frame, RubyModule module, Object[] names,
                 @Cached BranchProfile errorProfile) {
+            checkNotClass(module, errorProfile);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
+            DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
+            return module;
+        }
+
+        @Specialization(guards = "names.length > 0")
+        protected RubyModule methods(RubyModule module, Object[] names,
+                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
+                @Cached BranchProfile errorProfile) {
+            checkNotClass(module, errorProfile);
+            for (Object name : names) {
+                setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
+            }
+            return module;
+        }
+
+        private void checkNotClass(RubyModule module, BranchProfile errorProfile) {
             if (module instanceof RubyClass) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeError("module_function must be called for modules", this));
             }
-
-            return setVisibilityNode.execute(frame, module, names, Visibility.MODULE_FUNCTION);
         }
 
     }
@@ -2138,34 +2151,6 @@ public abstract class ModuleNodes {
                 }
             }
             return createArray(refinements.toArray());
-        }
-
-    }
-
-    public abstract static class SetVisibilityNode extends RubyContextNode {
-
-        public static SetVisibilityNode create() {
-            return SetVisibilityNodeGen.create();
-        }
-
-        @Child private SetMethodVisibilityNode setMethodVisibilityNode = SetMethodVisibilityNode.create();
-
-        public abstract RubyModule execute(VirtualFrame frame, RubyModule module, Object[] names,
-                Visibility visibility);
-
-        @Specialization
-        protected RubyModule setVisibility(
-                VirtualFrame frame, RubyModule module, Object[] names, Visibility visibility) {
-            if (names.length == 0) {
-                final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
-                DeclarationContext.setCurrentVisibility(callerFrame, visibility);
-            } else {
-                for (Object name : names) {
-                    setMethodVisibilityNode.execute(module, name, visibility);
-                }
-            }
-
-            return module;
         }
 
     }
