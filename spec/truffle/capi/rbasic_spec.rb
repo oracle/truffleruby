@@ -7,6 +7,7 @@
 # GNU Lesser General Public License version 2.1.
 #
 require_relative '../../ruby/optional/capi/spec_helper'
+
 load_extension("truffleruby_rbasic")
 
 describe "RBasic support" do
