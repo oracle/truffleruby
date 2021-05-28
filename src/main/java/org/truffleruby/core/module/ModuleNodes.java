@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -1561,38 +1562,42 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE)
-    public abstract static class ModuleFunctionNode extends CoreMethodArrayArgumentsNode {
-
+    @GenerateUncached
+    @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
+    public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
         @Specialization(guards = "names.length == 0")
-        protected RubyModule frame(VirtualFrame frame, RubyModule module, Object[] names,
-                @Cached BranchProfile errorProfile) {
-            checkNotClass(module, errorProfile);
-            final Frame callerFrame = getContext().getCallStack().getCallerFrame(FrameAccess.READ_WRITE);
+        protected RubyModule frame(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
+                @Cached BranchProfile errorProfile,
+                @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
+            checkNotClass(module, errorProfile, contextRef);
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
             return module;
         }
 
         @Specialization(guards = "names.length > 0")
-        protected RubyModule methods(RubyModule module, Object[] names,
+        protected RubyModule methods(
+                Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached BranchProfile errorProfile) {
-            checkNotClass(module, errorProfile);
+                @Cached BranchProfile errorProfile,
+                @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
+            checkNotClass(module, errorProfile, contextRef);
             for (Object name : names) {
                 setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
             }
             return module;
         }
 
-        private void checkNotClass(RubyModule module, BranchProfile errorProfile) {
+        private void checkNotClass(RubyModule module, BranchProfile errorProfile,
+                ContextReference<RubyContext> contextRef) {
             if (module instanceof RubyClass) {
                 errorProfile.enter();
+                final RubyContext context = contextRef.get();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeError("module_function must be called for modules", this));
+                        context,
+                        context.getCoreExceptions().typeError("module_function must be called for modules", this));
             }
         }
-
     }
 
     @CoreMethod(names = "name")
