@@ -147,7 +147,7 @@ public class RopeConstants {
         }
 
         for (int n = 10; n < 100; n++) {
-            PADDED_NUMBERS[n] = new AsciiOnlyLeafRope(new byte[]{'0', (byte) ('0' + n)}, UTF8Encoding.INSTANCE);
+            PADDED_NUMBERS[n] = new AsciiOnlyLeafRope(new byte[]{ '0', (byte) ('0' + n) }, UTF8Encoding.INSTANCE);
         }
     }
 

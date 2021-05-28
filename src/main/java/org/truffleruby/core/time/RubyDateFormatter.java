@@ -662,7 +662,8 @@ public abstract class RubyDateFormatter {
                         }
 
                         appendRope = new LazyIntRope(value);
-                    } break;
+                    }
+                        break;
 
                     case FORMAT_NANOSEC: {
                         final LazyIntRope nanoRope = new LazyIntRope(dt.getNano());
@@ -679,7 +680,8 @@ public abstract class RubyDateFormatter {
                                     UTF8Encoding.INSTANCE,
                                     CodeRange.CR_7BIT);
                         }
-                    } break;
+                    }
+                        break;
 
                     default:
                         CompilerDirectives.transferToInterpreterAndInvalidate();
