@@ -649,7 +649,7 @@ public abstract class RubyDateFormatter {
                     case FORMAT_YEAR_LONG: {
                         final int value = dt.getYear();
 
-                        if (value < 1000) {
+                        if (value < 1000 || value > 9999) {
                             CompilerDirectives.transferToInterpreterAndInvalidate();
                             return formatToRopeBuilder(
                                     compiledPattern,
@@ -661,7 +661,7 @@ public abstract class RubyDateFormatter {
                                     errnoErrorNode).toRope();
                         }
 
-                        appendRope = new LazyIntRope(value);
+                        appendRope = new LazyIntRope(value, UTF8Encoding.INSTANCE, 4);
                     }
                         break;
 
