@@ -71,6 +71,7 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.RubyString;
@@ -629,19 +630,19 @@ public abstract class RubyDateFormatter {
                         appendRope = token.getRope();
                         break;
                     case FORMAT_DAY:
-                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getDayOfMonth()];
+                        appendRope = RopeConstants.paddedNumber(dt.getDayOfMonth());
                         break;
                     case FORMAT_HOUR:
-                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getHour()];
+                        appendRope = RopeConstants.paddedNumber(dt.getHour());
                         break;
                     case FORMAT_MINUTES:
-                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getMinute()];
+                        appendRope = RopeConstants.paddedNumber(dt.getMinute());
                         break;
                     case FORMAT_MONTH:
-                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getMonthValue()];
+                        appendRope = RopeConstants.paddedNumber(dt.getMonthValue());
                         break;
                     case FORMAT_SECONDS:
-                        appendRope = RubyTimeOutputFormatter.paddedNumbers[dt.getSecond()];
+                        appendRope = RopeConstants.paddedNumber(dt.getSecond());
                         break;
                     case FORMAT_YEAR_LONG: {
                         final int value = dt.getYear();
@@ -694,7 +695,7 @@ public abstract class RubyDateFormatter {
         } else {
             return new ConcatRope(
                     nanoRope,
-                    RubyTimeOutputFormatter.paddingZeros[differenceAdjusted],
+                    RopeConstants.paddingZeros(differenceAdjusted),
                     UTF8Encoding.INSTANCE,
                     CodeRange.CR_UNKNOWN);
         }

@@ -139,4 +139,38 @@ public class RopeConstants {
         }
     }
 
+    private static final LeafRope[] PADDED_NUMBERS = new LeafRope[100];
+
+    static {
+        for (int n = 0; n < 10; n++) {
+            PADDED_NUMBERS[n] = UTF8_SINGLE_BYTE_ROPES['0' + n];
+        }
+
+        for (int n = 10; n < 100; n++) {
+            PADDED_NUMBERS[n] = new AsciiOnlyLeafRope(new byte[]{'0', (byte) ('0' + n)}, UTF8Encoding.INSTANCE);
+        }
+    }
+
+    public static LeafRope paddedNumber(int n) {
+        return PADDED_NUMBERS[n];
+    }
+
+    private static final LeafRope[] PADDING_ZEROS = new LeafRope[6];
+
+    static {
+        for (int n = 0; n < PADDING_ZEROS.length; n++) {
+            final byte[] bytes = new byte[n];
+
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = '0';
+            }
+
+            PADDING_ZEROS[n] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE);
+        }
+    }
+
+    public static LeafRope paddingZeros(int n) {
+        return PADDING_ZEROS[n];
+    }
+
 }

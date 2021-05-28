@@ -101,29 +101,6 @@ public class RubyTimeOutputFormatter {
         return sequence;
     }
 
-    public static final AsciiOnlyLeafRope[] paddedNumbers;
-
-    static {
-        paddedNumbers = new AsciiOnlyLeafRope[100];
-
-        for (int n = 0; n < paddedNumbers.length; n++) {
-            paddedNumbers[n] = (AsciiOnlyLeafRope) StringOperations
-                    .encodeRope(padding(Long.toString(n), 2, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-    }
-
-    public static final AsciiOnlyLeafRope[] paddingZeros;
-
-    static {
-        paddingZeros = new AsciiOnlyLeafRope[6];
-
-        for (int n = 0; n < paddingZeros.length; n++) {
-            paddingZeros[n] = (AsciiOnlyLeafRope) StringOperations
-                    .encodeRope(padding(Long.toString(0), n, '0'), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-    }
-
-
     @TruffleBoundary
     public static String formatNumber(long value, int width, char padder) {
         if (value >= 0 || padder != '0') {
