@@ -38,11 +38,6 @@ describe "DateTime#strftime" do
     @time.strftime("%v").should == @time.strftime('%e-%b-%Y')
   end
 
-  it "should be able to show default Logger format" do
-    default_logger_format = "%Y-%m-%dT%H:%M:%S.%6N "
-    @time.strftime(default_logger_format).should == "2001-02-03T04:05:06.000000 "
-  end
-
   # additional conversion specifiers only in Date/DateTime
   it 'shows the number of milliseconds since epoch' do
     DateTime.new(1970, 1, 1, 0, 0, 0).strftime("%Q").should == "0"

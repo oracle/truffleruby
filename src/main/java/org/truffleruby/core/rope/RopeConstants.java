@@ -127,12 +127,8 @@ public class RopeConstants {
     private static final LeafRope[] PADDED_NUMBERS = new LeafRope[100];
 
     static {
-        for (int n = 0; n < 10; n++) {
-            PADDED_NUMBERS[n] = UTF8_SINGLE_BYTE_ROPES['0' + n];
-        }
-
-        for (int n = 10; n < 100; n++) {
-            PADDED_NUMBERS[n] = new AsciiOnlyLeafRope(new byte[]{ '0', (byte) ('0' + n) }, UTF8Encoding.INSTANCE);
+        for (int n = 0; n < 100; n++) {
+            PADDED_NUMBERS[n] = new AsciiOnlyLeafRope(new byte[]{ (byte) ('0' + n / 10), (byte) ('0' + n % 10) }, UTF8Encoding.INSTANCE);
         }
     }
 
