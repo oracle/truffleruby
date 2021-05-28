@@ -65,6 +65,17 @@ describe "Always-inlined core methods" do
       end
     end
 
+    it "for Module#module_function" do
+      module_function = Module.instance_method(:module_function)
+      Class.new do
+        -> {
+          module_function.bind_call(self)
+        }.should raise_error(TypeError, 'module_function must be called for modules') { |e|
+          e.backtrace_locations[0].label.should == 'module_function'
+        }
+      end
+    end
+
     it "for main.using" do
       -> do
         eval('using "foo"', TOPLEVEL_BINDING)
