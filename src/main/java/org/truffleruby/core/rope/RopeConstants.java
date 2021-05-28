@@ -127,32 +127,40 @@ public class RopeConstants {
         }
     }
 
-    private static final LeafRope[] PADDED_NUMBERS = new LeafRope[100];
+    private static final LeafRope[] PADDED_NUMBERS = createPaddedNumbersTable();
 
-    static {
-        for (int n = 0; n < 100; n++) {
-            PADDED_NUMBERS[n] = new AsciiOnlyLeafRope(
+    private static LeafRope[] createPaddedNumbersTable() {
+        final LeafRope[] table = new LeafRope[100];
+
+        for (int n = 0; n < table.length; n++) {
+            table[n] = new AsciiOnlyLeafRope(
                     new byte[]{ (byte) ('0' + n / 10), (byte) ('0' + n % 10) },
                     UTF8Encoding.INSTANCE);
         }
+
+        return table;
     }
 
     public static LeafRope paddedNumber(int n) {
         return PADDED_NUMBERS[n];
     }
 
-    private static final LeafRope[] PADDING_ZEROS = new LeafRope[6];
+    private static final LeafRope[] PADDING_ZEROS = createPaddingZeroTable();
 
-    static {
-        for (int n = 0; n < PADDING_ZEROS.length; n++) {
+    private static LeafRope[] createPaddingZeroTable() {
+        final LeafRope[] table = new LeafRope[6];
+
+        for (int n = 0; n < table.length; n++) {
             final byte[] bytes = new byte[n];
 
             for (int i = 0; i < bytes.length; i++) {
                 bytes[i] = '0';
             }
 
-            PADDING_ZEROS[n] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE);
+            table[n] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE);
         }
+
+        return table;
     }
 
     public static LeafRope paddingZeros(int n) {
