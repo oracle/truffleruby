@@ -17,6 +17,8 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 
 public class RopeConstants {
+    
+    public static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
 
     public static final byte[] EMPTY_BYTES = new byte[0];
 
@@ -113,8 +115,6 @@ public class RopeConstants {
     public static final Rope STAR = ascii("*");
     public static final Rope STAR_STAR = ascii("**");
     public static final Rope TILDE = ascii("~");
-
-    public static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
 
     private static Rope ascii(String string) {
         if (string.length() == 1) {
