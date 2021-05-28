@@ -22,9 +22,4 @@ public abstract class LeafRope extends ManagedRope {
         return getRawBytes()[index];
     }
 
-    public LeafRope computeHashCode() {
-        hashCode();
-        return this;
-    }
-
 }
