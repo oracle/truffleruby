@@ -121,18 +121,11 @@ class Dir
           dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path))
           next unless dir
 
-          fd = dir.fileno
           while dirent = Truffle::DirOperations.readdir(dir)
             ent = dirent[0]
             type = dirent[1]
             next if ent == '.' || ent == '..'
-            is_dir = false
-            if type == Truffle::DirOperations::DT_DIR
-              is_dir = true
-            elsif type == Truffle::DirOperations::DT_UNKNOWN
-              mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
-              is_dir = Truffle::StatOperations.directory?(mode)
-            end
+            is_dir = type == Truffle::DirOperations::DT_DIR
 
             full = path_join(path, ent)
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
@@ -182,18 +175,11 @@ class Dir
           dir = Dir.allocate.send(:initialize_internal, full)
           next unless dir
 
-          fd = dir.fileno
           while dirent = Truffle::DirOperations.readdir(dir)
             ent = dirent[0]
             type = dirent[1]
             next if ent == '.' || ent == '..'
-            is_dir = false
-            if type == Truffle::DirOperations::DT_DIR
-              is_dir = true
-            elsif type == Truffle::DirOperations::DT_UNKNOWN
-              mode = Truffle::POSIX.truffleposix_fstatat_mode(fd, ent, Truffle::DirOperations::AT_SYMLINK_NOFOLLOW)
-              is_dir = Truffle::StatOperations.directory?(mode)
-            end
+            is_dir = type == Truffle::DirOperations::DT_DIR
 
             full = path_join(path, ent)
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
