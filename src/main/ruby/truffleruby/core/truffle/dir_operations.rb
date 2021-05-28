@@ -10,7 +10,9 @@
 
 module Truffle
   module DirOperations
-    # We don't do this using FFI structs because directory functionality is needed before them.
+    # We don't do this using FFI structs because directory
+    # functionality is needed before them and we don't want to
+    # duplicate code from the FFI gem.
     DIRENT_SIZE = Truffle::Config['platform.dirent.sizeof']
     DIRENT_NAME_SIZE = Truffle::Config['platform.dirent.d_name.size']
     DIRENT_NAME_OFFSET = Truffle::Config['platform.dirent.d_name.offset']
@@ -24,7 +26,7 @@ module Truffle
     def self.readdir(dir)
       dir.__send__(:ensure_open)
       dirptr = dir.instance_variable_get(:@ptr)
-      dirent = Truffle::POSIX.readdir(dirptr)
+      dirent = Truffle::POSIX.truffleposix_readdir(dirptr)
       if !dirent.null?
         str = dirent.get_string(DIRENT_NAME_OFFSET, DIRENT_NAME_SIZE)
         str = str.force_encoding(dir.instance_variable_get(:@encoding))

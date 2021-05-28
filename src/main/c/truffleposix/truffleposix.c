@@ -229,16 +229,33 @@ retry:
   }
 }
 
-char* truffleposix_readdir(DIR *dirp) {
-  errno = 0;
+struct dirent *truffleposix_readdir(DIR *dirp) {
   struct dirent *entry = readdir(dirp);
-  if (entry != NULL) {
-    return entry->d_name;
-  } else if (errno == 0) {
-    return "";
-  } else {
-    return NULL;
+  if (entry) {
+    if (entry->d_type == DT_UNKNOWN) {
+      struct stat native_stat;
+      int result = fstatat(dirfd(dirp), entry->d_name, &native_stat, AT_SYMLINK_NOFOLLOW);
+      if (result == 0) {
+        if (S_ISREG(native_stat.st_mode)) {
+          entry->d_type = DT_REG;
+        } else if(S_ISDIR(native_stat.st_mode)) {
+          entry->d_type = DT_DIR;
+        } else if (S_ISCHR(native_stat.st_mode)) {
+          entry->d_type = DT_CHR;;
+        } else if (S_ISBLK(native_stat.st_mode)) {
+          entry->d_type = DT_BLK;
+        } else if (S_ISFIFO(native_stat.st_mode)) {
+          entry->d_type = DT_FIFO;
+        } else if (S_ISLNK(native_stat.st_mode)) {
+          entry->d_type = DT_LNK;
+        } else if (S_ISSOCK(native_stat.st_mode)) {
+          entry->d_type = DT_SOCK;
+        }
+
+      }
+    }
   }
+  return entry;
 }
 
 void truffleposix_rewinddir(DIR *dirp) {
