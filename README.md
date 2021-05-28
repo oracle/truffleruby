@@ -191,4 +191,4 @@ For further licensing information, see [LICENCE](LICENCE.md), [3rd_party_license
 
 ## Attribution
 
-TruffleRuby is a fork of [JRuby](https://github.com/jruby/jruby), combined with code from the [Rubinius](https://github.com/rubinius/rubinius) project, and code from the standard implementation of Ruby, [MRI](https://github.com/ruby/ruby).
+TruffleRuby includes infrastructure code from [JRuby](https://github.com/jruby/jruby) (e.g. parser, JCodings, Joni), core library code from the [Rubinius](https://github.com/rubinius/rubinius) project, as well as code from the standard implementation of Ruby, [MRI](https://github.com/ruby/ruby).
