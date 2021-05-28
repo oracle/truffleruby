@@ -626,6 +626,7 @@ public abstract class RubyDateFormatter {
                     case FORMAT_ENCODING:
                     case FORMAT_OUTPUT:
                         continue;
+
                     case FORMAT_STRING:
                         appendRope = token.getRope();
                         break;
@@ -644,6 +645,7 @@ public abstract class RubyDateFormatter {
                     case FORMAT_SECONDS:
                         appendRope = RopeConstants.paddedNumber(dt.getSecond());
                         break;
+
                     case FORMAT_YEAR_LONG: {
                         final int value = dt.getYear();
 
@@ -660,12 +662,25 @@ public abstract class RubyDateFormatter {
                         }
 
                         appendRope = new LazyIntRope(value);
-                    }
-                        break;
+                    } break;
+
                     case FORMAT_NANOSEC: {
-                        appendRope = formatNanoFast(dt.getNano());
-                    }
-                        break;
+                        final LazyIntRope nanoRope = new LazyIntRope(dt.getNano());
+
+                        final int nanoDifference = 6 - nanoRope.characterLength();
+                        final int differenceAdjusted = nanoDifference < 0 ? 0 : nanoDifference;
+
+                        if (differenceAdjusted == 0) {
+                            appendRope = new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_7BIT);
+                        } else {
+                            appendRope = new ConcatRope(
+                                    nanoRope,
+                                    RopeConstants.paddingZeros(differenceAdjusted),
+                                    UTF8Encoding.INSTANCE,
+                                    CodeRange.CR_7BIT);
+                        }
+                    } break;
+
                     default:
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw new UnsupportedOperationException();
@@ -683,21 +698,6 @@ public abstract class RubyDateFormatter {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode)
                     .toRope();
-        }
-    }
-
-    private static ManagedRope formatNanoFast(int nanos) {
-        final LazyIntRope nanoRope = new LazyIntRope(nanos);
-        final int nanoDifference = 6 - nanoRope.characterLength();
-        final int differenceAdjusted = nanoDifference < 0 ? 0 : nanoDifference;
-        if (differenceAdjusted == 0) {
-            return new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_UNKNOWN);
-        } else {
-            return new ConcatRope(
-                    nanoRope,
-                    RopeConstants.paddingZeros(differenceAdjusted),
-                    UTF8Encoding.INSTANCE,
-                    CodeRange.CR_UNKNOWN);
         }
     }
 
