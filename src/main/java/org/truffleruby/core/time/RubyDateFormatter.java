@@ -667,16 +667,16 @@ public abstract class RubyDateFormatter {
 
                     case FORMAT_NANOSEC: {
                         final LazyIntRope nanoRope = new LazyIntRope(dt.getNano());
+                        final int padding = 6 - nanoRope.characterLength();
 
-                        final int nanoDifference = 6 - nanoRope.characterLength();
-                        final int differenceAdjusted = nanoDifference < 0 ? 0 : nanoDifference;
-
-                        if (differenceAdjusted == 0) {
+                        if (padding == 0) {
+                            appendRope = nanoRope;
+                        } else if (padding < 0) {
                             appendRope = new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_7BIT);
                         } else {
                             appendRope = new ConcatRope(
                                     nanoRope,
-                                    RopeConstants.paddingZeros(differenceAdjusted),
+                                    RopeConstants.paddingZeros(padding),
                                     UTF8Encoding.INSTANCE,
                                     CodeRange.CR_7BIT);
                         }
