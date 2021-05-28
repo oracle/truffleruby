@@ -258,6 +258,15 @@ struct dirent *truffleposix_readdir(DIR *dirp) {
   return entry;
 }
 
+char *truffleposix_readdir_name(DIR *dirp) {
+  struct dirent *entry = readdir(dirp);
+  if (entry) {
+    return entry->d_name;
+  } else {
+    return NULL;
+  }
+}
+
 void truffleposix_rewinddir(DIR *dirp) {
   rewinddir(dirp);
 }

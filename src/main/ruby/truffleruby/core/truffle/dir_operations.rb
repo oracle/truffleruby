@@ -28,7 +28,22 @@ module Truffle
       dirptr = dir.instance_variable_get(:@ptr)
       dirent = Truffle::POSIX.truffleposix_readdir(dirptr)
       if !dirent.null?
-        str = dirent.get_string(DIRENT_NAME_OFFSET, DIRENT_NAME_SIZE)
+        str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET, DIRENT_NAME_SIZE))
+        type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
+        [str, type]
+      else
+        nil
+      end
+    end
+
+    def self.readdir_name(dir)
+      dir.__send__(:ensure_open)
+      dirptr = dir.instance_variable_get(:@ptr)
+      fix_entry_encoding(dir, Truffle::POSIX.truffleposix_readdir_name(dirptr))
+    end
+
+    def self.fix_entry_encoding(dir,str)
+      if str
         str = str.force_encoding(dir.instance_variable_get(:@encoding))
 
         if Encoding.default_external == Encoding::US_ASCII && !str.valid_encoding?
@@ -37,12 +52,8 @@ module Truffle
           enc = Encoding.default_internal
           str = enc ? str.encode(enc) : str
         end
-
-        type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
-        [str, type]
-      else
-        nil
       end
+      str
     end
   end
 end
