@@ -36,6 +36,7 @@ Performance:
 * Fiber-local variables are much faster now by using less synchronization.
 * Improved the performance of the exceptional case of `String#chr` (#2318, @chrisseaton).
 * Improved the performance of `IO#read_nonblock` when no data is available to be read.
+* Significantly improved performance of string formatting for basic string formats (#2361, @wildmaples, @chrisseaton).
 
 Changes:
 
