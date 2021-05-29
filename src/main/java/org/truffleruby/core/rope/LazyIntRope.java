@@ -27,29 +27,43 @@ public class LazyIntRope extends ManagedRope {
     protected LazyIntRope(int value, Encoding encoding, int length) {
         super(encoding, CodeRange.CR_7BIT, length, length, null);
         this.value = value;
-        assert Integer.toString(value).length() == length;
+        assert Integer.toString(value).length() == length : value + " " + length;
     }
 
+    private static final int[] LENGTH_TABLE = {
+            9,
+            99,
+            999,
+            9999,
+            99999,
+            999999,
+            9999999,
+            99999999,
+            999999999,
+            2147483647 };
+
     private static int length(int value) {
+        if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value == 0)) {
+            return 1;
+        }
+
         final int sign;
 
-        if (value < 0) {
-            /* We can't represent -Integer.MIN_VALUE, and we're about to multiple by 10 to add the space needed for the
-             * negative character, so handle both of those out-of-range cases. */
-
-            if (value <= -1000000000) {
-                return 11;
-            }
-
-            value = -value;
+        if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value < 0)) {
             sign = 1;
+            value = -value;
         } else {
             sign = 0;
         }
 
-        return sign + (value < 1E5
-                ? value < 1E2 ? value < 1E1 ? 1 : 2 : value < 1E3 ? 3 : value < 1E4 ? 4 : 5
-                : value < 1E7 ? value < 1E6 ? 6 : 7 : value < 1E8 ? 8 : value < 1E9 ? 9 : 10);
+        final int bits = 31 - Integer.numberOfLeadingZeros(value);
+        int digits = ((77 * bits) >>> 8);
+
+        if (value > LENGTH_TABLE[digits]) {
+            digits += 1;
+        }
+
+        return sign + digits + 1;
     }
 
     @Override
