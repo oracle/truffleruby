@@ -11,14 +11,11 @@ package org.truffleruby.core.thread;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
@@ -32,7 +29,6 @@ import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
@@ -43,7 +39,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
     // Fields initialized here are initialized just after the super() call, and before the rest of the constructor
     public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
-    public volatile InterruptMode interruptMode = InterruptMode.IMMEDIATE;
+    public InterruptMode interruptMode = InterruptMode.IMMEDIATE; // only accessed by this Ruby Thread and its Fibers
     public volatile ThreadStatus status = ThreadStatus.RUN;
     public final List<Lock> ownedLocks = new ArrayList<>();
     public final FiberManager fiberManager;
@@ -61,8 +57,6 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public final AtomicBoolean wakeUp = new AtomicBoolean(false);
     volatile int priority = Thread.NORM_PRIORITY;
     public ThreadLocalBuffer ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
-    // Needs to be a thread-safe queue because multiple Fibers of the same Thread might enqueue concurrently
-    public final Queue<SafepointAction> pendingSafepointActions = newLinkedBlockingQueue();
     Object threadGroup;
     public String sourceLocation;
     Object name = Nil.INSTANCE;
@@ -97,9 +91,8 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         ObjectGraph.addProperty(reachable, name);
     }
 
-    @TruffleBoundary
-    private static LinkedBlockingQueue<SafepointAction> newLinkedBlockingQueue() {
-        return new LinkedBlockingQueue<>();
+    @Override
+    public String toString() {
+        return super.toString() + " " + sourceLocation;
     }
-
 }

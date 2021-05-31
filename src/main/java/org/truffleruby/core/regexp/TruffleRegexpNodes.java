@@ -459,15 +459,19 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
             // Keep status as RUN because MRI has an uninterruptible Regexp engine
+            int[] result = new int[1];
             if (onlyMatchAtStart) {
-                return getContext().getThreadManager().runUntilResultKeepStatus(
+                getContext().getThreadManager().runUntilResultKeepStatus(
                         this,
-                        () -> matcher.matchInterruptible(startPos, range, Option.DEFAULT));
+                        r -> r[0] = matcher.matchInterruptible(startPos, range, Option.DEFAULT),
+                        result);
             } else {
-                return getContext().getThreadManager().runUntilResultKeepStatus(
+                getContext().getThreadManager().runUntilResultKeepStatus(
                         this,
-                        () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
+                        r -> r[0] = matcher.searchInterruptible(startPos, range, Option.DEFAULT),
+                        result);
             }
+            return result[0];
         }
 
         @TruffleBoundary

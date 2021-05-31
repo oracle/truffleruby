@@ -20,13 +20,12 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.collections.Memo;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.core.thread.ThreadManager;
-import org.truffleruby.core.thread.ThreadStatus;
+import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -126,64 +125,57 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
-         * safepoints. */
         @SuppressFBWarnings(value = { "UL", "RV" })
         private void awaitSignal(RubyConditionVariable self, RubyThread thread, long durationInNanos,
                 ReentrantLock condLock, Condition condition, long endNanoTime) {
-            final ThreadStatus status = thread.status;
-            while (true) {
-                thread.status = ThreadStatus.SLEEP;
-                try {
-                    try {
-                        /* We must not consumeSignal() here, as we should only consume a signal after being awaken by
-                         * condition.signal() or condition.signalAll(). Otherwise, ConditionVariable#signal might
-                         * condition.signal() a waiting thread, and then if the current thread calls
-                         * ConditionVariable#wait before the waiting thread awakes, we might steal that waiting thread's
-                         * signal with consumeSignal(). So, we must await() first.
-                         * spec/ruby/library/conditionvariable/signal_spec.rb is a good spec for this (run with repeats
-                         * = 10000). */
-                        if (durationInNanos >= 0) {
-                            final long currentTime = System.nanoTime();
-                            if (currentTime >= endNanoTime) {
-                                return;
-                            }
+            final Memo<Boolean> done = new Memo<>(false);
 
-                            condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
-                        } else {
-                            condition.await();
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                if (done.get()) {
+                    return BlockingAction.SUCCESS;
+                }
+
+                while (true) {
+                    /* We must not consumeSignal() here, as we should only consume a signal after being awaken by
+                     * condition.signal() or condition.signalAll(). Otherwise, ConditionVariable#signal might
+                     * condition.signal() a waiting thread, and then if the current thread calls ConditionVariable#wait
+                     * before the waiting thread awakes, we might steal that waiting thread's signal with
+                     * consumeSignal(). So, we must await() first. spec/ruby/library/conditionvariable/signal_spec.rb is
+                     * a good spec for this (run with repeats = 10000). */
+                    if (durationInNanos >= 0) {
+                        final long currentTime = System.nanoTime();
+                        if (currentTime >= endNanoTime) {
+                            return BlockingAction.SUCCESS;
                         }
-                        if (consumeSignal(self)) {
-                            return;
-                        }
-                    } finally {
-                        thread.status = status;
-                    }
-                } catch (InterruptedException e) {
-                    /* Working with ConditionVariables is tricky because of safepoints. To call await or signal on a
-                     * condition variable we must hold the lock, and that lock is released when we start waiting.
-                     * However if the wait is interrupted then the lock will be reacquired before control returns to us.
-                     * If we are interrupted for a safepoint then we must release the lock so that all threads can enter
-                     * the safepoint, and acquire it again before resuming waiting. */
-                    condLock.unlock();
-                    try {
-                        SafepointManager.pollFromBlockingCall(getLanguage(), this);
-                    } finally {
-                        condLock.lock();
-                    }
 
-                    // Thread#{wakeup,run} might have woken us. In that a case, no signal is consumed.
-                    if (thread.wakeUp.getAndSet(false)) {
-                        return;
+                        condition.await(endNanoTime - currentTime, TimeUnit.NANOSECONDS);
+                    } else {
+                        condition.await();
                     }
-
-                    // Check if a signal are available now, since another thread might have used
-                    // ConditionVariable#signal while we released condLock to check for safepoints.
                     if (consumeSignal(self)) {
-                        return;
+                        return BlockingAction.SUCCESS;
                     }
                 }
-            }
+            }, condLock::unlock, () -> {
+                /* Working with ConditionVariables is tricky because of safepoints. To call await or signal on a
+                 * condition variable we must hold the lock, and that lock is released when we start waiting. However if
+                 * the wait is interrupted then the lock will be reacquired before control returns to us. If we are
+                 * interrupted for a safepoint then we must release the lock so that all threads can enter the
+                 * safepoint, and acquire it again before resuming waiting. */
+                condLock.lock();
+
+                // Thread#{wakeup,run} might have woken us. In that a case, no signal is consumed.
+                if (thread.wakeUp.getAndSet(false)) {
+                    done.set(true);
+                    return;
+                }
+
+                // Check if a signal are available now, since another thread might have used
+                // ConditionVariable#signal while we released condLock to check for safepoints.
+                if (consumeSignal(self)) {
+                    done.set(true);
+                }
+            });
         }
 
         private boolean consumeSignal(RubyConditionVariable self) {

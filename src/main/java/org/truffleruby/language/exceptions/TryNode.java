@@ -10,10 +10,10 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyLanguage;
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
@@ -66,7 +66,7 @@ public class TryNode extends RubyContextSourceNode {
                 try {
                     return handleException(frame, exception);
                 } catch (RetryException e) {
-                    SafepointManager.poll(getLanguage(), this);
+                    TruffleSafepoint.poll(this);
                     continue;
                 }
             } catch (ControlFlowException exception) {

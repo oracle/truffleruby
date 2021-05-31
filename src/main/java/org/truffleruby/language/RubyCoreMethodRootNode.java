@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.Arity;
@@ -44,7 +45,7 @@ public class RubyCoreMethodRootNode extends RubyCheckArityRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        SafepointManager.poll(language, this);
+        TruffleSafepoint.poll(this);
 
         checkArity(frame);
 

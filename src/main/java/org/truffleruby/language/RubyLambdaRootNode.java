@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
@@ -65,7 +66,7 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        SafepointManager.poll(language, this);
+        TruffleSafepoint.poll(this);
 
         checkArity(frame);
 
@@ -75,7 +76,7 @@ public class RubyLambdaRootNode extends RubyCheckArityRootNode {
                     return body.execute(frame);
                 } catch (RedoException e) {
                     redoProfile.enter();
-                    SafepointManager.poll(language, this);
+                    TruffleSafepoint.poll(this);
                     continue;
                 }
             }

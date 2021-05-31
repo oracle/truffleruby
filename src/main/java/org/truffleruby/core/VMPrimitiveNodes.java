@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -65,7 +66,7 @@ import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.SafepointPredicate;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -278,10 +279,14 @@ public abstract class VMPrimitiveNodes {
 
             return registerHandler(signalName, signal -> {
                 final RubyThread rootThread = context.getThreadManager().getRootThread();
-                context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(
-                        "Handling of signal " + signal,
-                        SafepointPredicate.currentFiberOfThread(context, rootThread),
-                        (rubyThread, currentNode) -> ProcOperations.rootCall(action, signal.getNumber()));
+                context.getSafepointManager().pauseRubyThreadAndExecute(
+                        DummyNode.INSTANCE,
+                        new SafepointAction("Handling of signal " + signal, rootThread, true, false) {
+                            @Override
+                            public void run(RubyThread rubyThread, Node currentNode) {
+                                ProcOperations.rootCall(action, signal.getNumber());
+                            }
+                        });
             }, isRubyDefaultHandler);
         }
 

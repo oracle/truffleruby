@@ -12,6 +12,7 @@ package org.truffleruby.cext;
 import java.math.BigInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -73,7 +74,6 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -1550,7 +1550,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object checkInts() {
-            SafepointManager.poll(getLanguage(), this);
+            TruffleSafepoint.pollHere(this);
             return nil;
         }
     }

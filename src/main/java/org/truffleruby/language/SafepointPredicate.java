@@ -10,22 +10,17 @@
 package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.core.thread.ThreadManager;
 
-import java.util.function.Predicate;
+public interface SafepointPredicate {
 
-public interface SafepointPredicate extends Predicate<RubyThread> {
+    SafepointPredicate ALL_THREADS_AND_FIBERS = (context, rubyThread, action) -> true;
 
-    static final SafepointPredicate ALL_THREADS_AND_FIBERS = rubyThread -> true;
+    SafepointPredicate CURRENT_FIBER_OF_THREAD = (context, thread, action) -> thread == action.getTargetThread() &&
+            context
+                    .getThreadManager()
+                    .getRubyFiberFromCurrentJavaThread() == action.getTargetThread().fiberManager.getCurrentFiber();
 
-    static SafepointPredicate currentFiberOfThread(RubyContext context, RubyThread targetThread) {
-        final ThreadManager threadManager = context.getThreadManager();
-        final FiberManager fiberManager = targetThread.fiberManager;
-
-        return thread -> thread == targetThread &&
-                threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber();
-    }
+    boolean test(RubyContext context, RubyThread currentThread, SafepointAction action);
 
 }

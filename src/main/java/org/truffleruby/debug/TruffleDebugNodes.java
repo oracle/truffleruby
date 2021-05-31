@@ -30,7 +30,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -820,48 +819,6 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected float foreignBoxedNumber(double value) {
             return (float) value;
-        }
-
-    }
-
-    @CoreMethod(names = "thread_info", onSingleton = true)
-    public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
-
-        @Specialization
-        protected RubyString threadInfo() {
-            return makeStringNode.executeMake(getThreadDebugInfo(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-        @TruffleBoundary
-        private String getThreadDebugInfo() {
-            return getContext().getThreadManager().getThreadDebugInfo() +
-                    getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
-        }
-
-    }
-
-    @CoreMethod(names = "dead_block", onSingleton = true)
-    public abstract static class DeadBlockNode extends CoreMethodArrayArgumentsNode {
-
-        @SuppressFBWarnings("UW")
-        @TruffleBoundary
-        @Specialization
-        protected Object deadBlock() {
-            RubyLanguage.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
-
-            final Object monitor = new Object();
-
-            synchronized (monitor) {
-                while (true) {
-                    try {
-                        monitor.wait();
-                    } catch (InterruptedException e) {
-                        continue;
-                    }
-                }
-            }
         }
 
     }

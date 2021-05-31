@@ -177,7 +177,7 @@ public class RubyContext {
         warningCategoryDeprecated = new AssumedValue<>(options.WARN_DEPRECATED);
         warningCategoryExperimental = new AssumedValue<>(options.WARN_EXPERIMENTAL);
 
-        safepointManager = new SafepointManager(this, language);
+        safepointManager = new SafepointManager(this);
         coreExceptions = new CoreExceptions(this, language);
         encodingManager = new EncodingManager(this, language);
 
@@ -513,7 +513,8 @@ public class RubyContext {
         }
 
         threadManager.cleanupMainThread();
-        safepointManager.checkNoRunningThreads();
+        threadManager.dispose();
+        threadManager.checkNoRunningThreads();
 
         Signals.restoreDefaultHandlers();
 

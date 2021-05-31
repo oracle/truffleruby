@@ -22,7 +22,6 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.language.SafepointManager;
 
 public final class WhileNode extends RubyContextSourceNode {
 
@@ -72,7 +71,6 @@ public final class WhileNode extends RubyContextSourceNode {
             }
 
             while (true) { // for redo
-                SafepointManager.poll(getLanguage(), this);
                 try {
                     body.execute(frame);
                     return true;
@@ -96,7 +94,6 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public boolean executeRepeating(VirtualFrame frame) {
-            SafepointManager.poll(getLanguage(), this);
             try {
                 body.execute(frame);
             } catch (NextException e) {

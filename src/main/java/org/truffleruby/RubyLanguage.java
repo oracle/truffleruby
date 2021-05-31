@@ -520,7 +520,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected void initializeThread(RubyContext context, Thread thread) {
+    public void initializeThread(RubyContext context, Thread thread) {
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
             return;
@@ -545,11 +545,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected void disposeThread(RubyContext context, Thread thread) {
+    public void disposeThread(RubyContext context, Thread thread) {
         if (thread == context.getThreadManager().getRootJavaThread()) {
             if (context.getEnv().isPreInitialization()) {
                 // Cannot save the root Java Thread instance in the image
                 context.getThreadManager().resetMainThread();
+                context.getThreadManager().dispose();
             }
             // Let the context shutdown cleanup the main thread
             return;

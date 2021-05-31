@@ -9,25 +9,73 @@
  */
 package org.truffleruby.language;
 
-import java.util.function.BiConsumer;
-
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.ThreadLocalAction;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.thread.RubyThread;
 
-/** A action to run in a guest-language safepoint. Assumed to have side-effects, unless it is an instance of
- * {@link Pure}. Such actions are always deferred, and not executed inside the safepoint but either just after it or if
- * a thread is inside {@code Thread.handle_interrupt(Object => :never/:blocking) { ... }} then once the thread exit the
- * handle_interrupt block. */
-public interface SafepointAction extends BiConsumer<RubyThread, Node> {
+import java.util.Objects;
 
-    /** A guest-language safepoint with no side effects, which can be run safely even in
-     * {@code Thread.handle_interrupt(Object => :never) { ... }}. Such actions are always executed inside the safepoint
-     * and never deferred. */
-    interface Pure extends SafepointAction {
+/** A action to run in a guest-language safepoint. Actions with side-effects should usually be asynchronous. */
+public abstract class SafepointAction extends ThreadLocalAction {
+
+    private final boolean publicSynchronous;
+    private final String reason;
+    private final SafepointPredicate filter;
+    private final RubyThread targetThread;
+
+    public SafepointAction(String reason, RubyThread targetThread, boolean hasSideEffects, boolean synchronous) {
+        this(reason, SafepointPredicate.CURRENT_FIBER_OF_THREAD, hasSideEffects, synchronous, targetThread);
     }
 
-    static boolean isDeferred(SafepointAction action) {
-        return !(action instanceof Pure);
+    public SafepointAction(String reason, SafepointPredicate filter, boolean hasSideEffects, boolean synchronous) {
+        this(reason, filter, hasSideEffects, synchronous, null);
     }
+
+    private SafepointAction(
+            String reason,
+            SafepointPredicate filter,
+            boolean hasSideEffects,
+            boolean synchronous,
+            RubyThread targetThread) {
+        super(hasSideEffects, synchronous);
+        this.publicSynchronous = synchronous;
+        this.reason = reason;
+        this.filter = filter;
+        this.targetThread = targetThread;
+    }
+
+    public abstract void run(RubyThread rubyThread, Node currentNode);
+
+    @Override
+    protected final void perform(Access access) {
+        if (Thread.currentThread() != access.getThread()) {
+            throw CompilerDirectives.shouldNotReachHere(
+                    "safepoint action for " + access.getThread() + " executed on other thread: " +
+                            Thread.currentThread());
+        }
+
+        final RubyContext context = RubyLanguage.getCurrentContext();
+        final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
+        if (filter.test(context, rubyThread, this)) {
+            run(rubyThread, access.getLocation());
+        }
+    }
+
+    public boolean isSynchronous() {
+        return publicSynchronous;
+    }
+
+    public RubyThread getTargetThread() {
+        return Objects.requireNonNull(targetThread);
+    }
+
+    @Override
+    public String toString() {
+        return reason + " " + Integer.toHexString(System.identityHashCode(this));
+    }
+
 }
 

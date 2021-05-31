@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.RaiseException;
@@ -51,7 +52,7 @@ public class RubyProcRootNode extends RubyRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        SafepointManager.poll(language, this);
+        TruffleSafepoint.poll(this);
 
         try {
             while (true) {
@@ -59,7 +60,7 @@ public class RubyProcRootNode extends RubyRootNode {
                     return body.execute(frame);
                 } catch (RedoException e) {
                     redoProfile.enter();
-                    SafepointManager.poll(language, this);
+                    TruffleSafepoint.poll(this);
                     continue;
                 }
             }

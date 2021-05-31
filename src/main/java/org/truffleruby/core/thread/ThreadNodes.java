@@ -42,10 +42,11 @@ package org.truffleruby.core.thread;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.graalvm.collections.Pair;
 import org.jcodings.specific.USASCIIEncoding;
@@ -83,15 +84,12 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
-import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
-import org.truffleruby.interop.InteropNodes;
+import org.truffleruby.core.thread.ThreadManager.BlockingCallInterruptible;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
-import org.truffleruby.language.SafepointPredicate;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
@@ -112,6 +110,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+
+import static org.truffleruby.language.SafepointPredicate.ALL_THREADS_AND_FIBERS;
 
 @CoreModule(value = "Thread", isClass = true)
 public abstract class ThreadNodes {
@@ -151,13 +151,14 @@ public abstract class ThreadNodes {
             final Memo<Backtrace> backtraceMemo = new Memo<>(null);
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(
-                    "Thread#backtrace",
-                    rubyThread,
                     this,
-                    (SafepointAction.Pure) (thread, currentNode) -> {
-                        final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
-                        backtrace.getStackTrace(); // must be done on the thread
-                        backtraceMemo.set(backtrace);
+                    new SafepointAction("Thread#backtrace", rubyThread, false, true) {
+                        @Override
+                        public void run(RubyThread rubyThread, Node currentNode) {
+                            final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
+                            backtrace.getStackTrace(); // must be done on the thread
+                            backtraceMemo.set(backtrace);
+                        }
                     });
 
             final Backtrace backtrace = backtraceMemo.get();
@@ -188,18 +189,18 @@ public abstract class ThreadNodes {
             final List<Pair<RubyFiber, Backtrace>> backtraces = new ArrayList<>();
 
             getContext().getSafepointManager().pauseAllThreadsAndExecute(
-                    "all Fibers backtraces",
                     this,
-                    SafepointPredicate.ALL_THREADS_AND_FIBERS,
-                    (SafepointAction.Pure) (thread, currentNode) -> {
-                        final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, 0);
-                        backtrace.getStackTrace(); // must be done on the thread
+                    new SafepointAction("all Fibers backtraces", ALL_THREADS_AND_FIBERS, false, true) {
+                        @Override
+                        public void run(RubyThread rubyThread, Node currentNode) {
+                            final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, 0);
+                            backtrace.getStackTrace(); // must be done on the thread
 
-                        final RubyFiber fiber = getContext().getThreadManager().getRubyFiberFromCurrentJavaThread();
-                        boolean active = thread.fiberManager.getCurrentFiber() == fiber;
+                            final RubyFiber fiber = getContext().getThreadManager().getRubyFiberFromCurrentJavaThread();
 
-                        synchronized (backtraces) {
-                            backtraces.add(Pair.create(fiber, backtrace));
+                            synchronized (backtraces) {
+                                backtraces.add(Pair.create(fiber, backtrace));
+                            }
                         }
                     });
 
@@ -233,15 +234,17 @@ public abstract class ThreadNodes {
         private Object backtraceLocationsInternal(RubyThread rubyThread, int omit, int length) {
             final Memo<Object> backtraceLocationsMemo = new Memo<>(null);
 
-            final SafepointAction.Pure safepointAction = (thread, currentNode) -> {
-                final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
-                Object locations = backtrace.getBacktraceLocations(getContext(), getLanguage(), length, currentNode);
-                backtraceLocationsMemo.set(locations);
-            };
-
-            getContext()
-                    .getSafepointManager()
-                    .pauseRubyThreadAndExecute("Thread#backtrace_locations", rubyThread, this, safepointAction);
+            getContext().getSafepointManager().pauseRubyThreadAndExecute(
+                    this,
+                    new SafepointAction("Thread#backtrace_locations", rubyThread, false, true) {
+                        @Override
+                        public void run(RubyThread rubyThread, Node currentNode) {
+                            final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
+                            Object locations = backtrace
+                                    .getBacktraceLocations(getContext(), getLanguage(), length, currentNode);
+                            backtraceLocationsMemo.set(locations);
+                        }
+                    });
 
             // If the thread is dead or aborting the SafepointAction will not run.
             return backtraceLocationsMemo.get() == null
@@ -281,15 +284,16 @@ public abstract class ThreadNodes {
             final RubyThread rootThread = threadManager.getRootThread();
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(
-                    "Thread#kill",
-                    rubyThread,
                     this,
-                    (thread, currentNode) -> {
-                        if (thread == rootThread) {
-                            throw new RaiseException(getContext(), coreExceptions().systemExit(0, currentNode));
-                        } else {
-                            thread.status = ThreadStatus.ABORTING;
-                            throw new KillException();
+                    new SafepointAction("Thread#kill", rubyThread, true, false) {
+                        @Override
+                        public void run(RubyThread rubyThread, Node currentNode) {
+                            if (rubyThread == rootThread) {
+                                throw new RaiseException(getContext(), coreExceptions().systemExit(0, currentNode));
+                            } else {
+                                rubyThread.status = ThreadStatus.ABORTING;
+                                throw new KillException();
+                            }
                         }
                     });
 
@@ -301,13 +305,18 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "pending_interrupt?")
     public abstract static class PendingInterruptNode extends CoreMethodArrayArgumentsNode {
         @Specialization
-        protected boolean pendingInterrupt(RubyThread self) {
-            return !isEmpty(self.pendingSafepointActions);
-        }
-
-        @TruffleBoundary
-        static boolean isEmpty(Queue<SafepointAction> queue) {
-            return queue.isEmpty();
+        protected boolean pendingInterrupt(RubyThread self,
+                @Cached BranchProfile errorProfile) {
+            final RubyThread currentThread = getContext().getThreadManager().getCurrentThread();
+            if (currentThread != self) {
+                errorProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError(
+                                "Thread#pending_interrupt? does not support being called for another Thread than the current Thread",
+                                this));
+            }
+            return TruffleSafepoint.getCurrent().hasPendingSideEffectingActions();
         }
     }
 
@@ -322,35 +331,39 @@ public abstract class ThreadNodes {
                 @Cached BranchProfile afterProfile) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(getLanguage(), timing);
+            final boolean allowSideEffects = newInterruptMode == InterruptMode.IMMEDIATE;
+
+            final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
 
             final InterruptMode oldInterruptMode = self.interruptMode;
             self.interruptMode = newInterruptMode;
+            final boolean prevSideEffects = safepoint.setAllowSideEffects(allowSideEffects);
             try {
                 if (newInterruptMode == InterruptMode.IMMEDIATE) {
                     beforeProfile.enter();
-                    runPendingSafepointActions(self, "before");
+                    runPendingSafepointActions(safepoint, "before");
                 }
 
                 return callBlock(block);
             } finally {
                 self.interruptMode = oldInterruptMode;
+                safepoint.setAllowSideEffects(prevSideEffects);
 
                 if (oldInterruptMode != InterruptMode.NEVER) {
                     afterProfile.enter();
-                    runPendingSafepointActions(self, "after");
+                    runPendingSafepointActions(safepoint, "after");
                 }
             }
         }
 
         @TruffleBoundary
-        private void runPendingSafepointActions(RubyThread thread, String when) {
-            SafepointAction action;
-            while ((action = thread.pendingSafepointActions.poll()) != null) {
+        private void runPendingSafepointActions(TruffleSafepoint safepoint, String when) {
+            if (safepoint.hasPendingSideEffectingActions()) {
                 if (getContext().getOptions().LOG_PENDING_INTERRUPTS) {
                     RubyLanguage.LOGGER
-                            .info("Running pending interrupt " + action + " " + when + " Thread.handle_interrupt");
+                            .info("Running pending interrupts " + when + " Thread.handle_interrupt");
                 }
-                action.accept(thread, this);
+                TruffleSafepoint.pollHere(this);
             }
         }
 
@@ -584,7 +597,16 @@ public abstract class ThreadNodes {
             // This only interrupts Kernel#sleep, Mutex#sleep and ConditionVariable#wait by having those check for the
             // wakeup flag. Other operations just retry when interrupted.
             rubyThread.wakeUp.set(true);
-            getContext().getThreadManager().interrupt(thread);
+
+            // We need to use the current interrupter for that thread, so use an empty ThreadLocalAction for that
+            getContext().getSafepointManager().pauseRubyThreadAndExecute(
+                    this,
+                    new SafepointAction("Thread#wakeup", rubyThread, false, false) {
+                        @Override
+                        public void run(RubyThread rubyThread, Node currentNode) {
+                            // Nothing, just to interrupt the thread
+                        }
+                    });
 
             return rubyThread;
         }
@@ -598,32 +620,46 @@ public abstract class ThreadNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object call(RubyThread thread, Object function, Object arg, Object unblocker, Object unblockerArg,
                 @CachedLibrary("function") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
             final ThreadManager threadManager = getContext().getThreadManager();
-            final UnblockingAction unblockingAction;
+            final Interrupter interrupter;
             if (unblocker == nil) {
-                unblockingAction = threadManager.getNativeCallUnblockingAction();
+                interrupter = threadManager.getNativeCallInterrupter();
             } else {
-                unblockingAction = makeUnblockingAction(getContext(), unblocker, unblockerArg);
+                interrupter = makeInterrupter(getContext(), unblocker, unblockerArg);
             }
 
-            final UnblockingActionHolder actionHolder = threadManager.getActionHolder(Thread.currentThread());
-            final UnblockingAction oldAction = actionHolder.changeTo(unblockingAction);
-            final ThreadStatus status = thread.status;
-            thread.status = ThreadStatus.SLEEP;
-            try {
-                return InteropNodes.execute(function, new Object[]{ arg }, receivers, translateInteropExceptionNode);
-            } finally {
-                thread.status = status;
-                actionHolder.restore(oldAction);
-            }
+            final Object[] args = { arg };
+            return ThreadManager.executeBlockingCall(
+                    thread,
+                    interrupter,
+                    function,
+                    args,
+                    blockingCallInterruptible,
+                    this);
         }
 
         @TruffleBoundary
-        private static UnblockingAction makeUnblockingAction(RubyContext context, Object function, Object argument) {
-            assert InteropLibrary.getUncached().isExecutable(function);
+        private static Interrupter makeInterrupter(RubyContext context, Object function, Object argument) {
+            return new CExtInterrupter(context, function, argument);
+        }
 
-            return () -> {
+        private static class CExtInterrupter implements Interrupter {
+
+            private final RubyContext context;
+            private final Object function;
+            private final Object argument;
+
+            public CExtInterrupter(RubyContext context, Object function, Object argument) {
+                assert InteropLibrary.getUncached().isExecutable(function);
+                this.context = context;
+                this.function = function;
+                this.argument = argument;
+            }
+
+            @Override
+            public void interrupt(Thread thread) {
                 final TruffleContext truffleContext = context.getEnv().getContext();
                 final boolean alreadyEntered = truffleContext.isEntered();
                 Object prev = null;
@@ -652,7 +688,12 @@ public abstract class ThreadNodes {
                         truffleContext.leave(null, prev);
                     }
                 }
-            };
+            }
+
+            @Override
+            public void resetInterrupted() {
+                // Nothing to do
+            }
         }
 
         protected int getCacheLimit() {
@@ -792,15 +833,16 @@ public abstract class ThreadNodes {
             SharedObjects.writeBarrier(language, exception);
 
             context.getSafepointManager().pauseRubyThreadAndExecute(
-                    "Thread#raise",
-                    rubyThread,
                     currentNode,
-                    (currentThread, threadCurrentNode) -> {
-                        if (exception.backtrace == null) {
-                            exception.backtrace = context.getCallStack().getBacktrace(threadCurrentNode);
-                        }
+                    new SafepointAction("Thread#raise", rubyThread, true, false) {
+                        @Override
+                        public void run(RubyThread rubyThread, Node currentNode) {
+                            if (exception.backtrace == null) {
+                                exception.backtrace = context.getCallStack().getBacktrace(currentNode);
+                            }
 
-                        VMRaiseExceptionNode.reRaiseException(context, exception);
+                            VMRaiseExceptionNode.reRaiseException(context, exception);
+                        }
                     });
         }
 
@@ -945,26 +987,22 @@ public abstract class ThreadNodes {
         @Specialization
         protected Object runBlockingSystemCall(Object executable, RubyArray argsArray,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @CachedLibrary(limit = "1") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
+                @CachedLibrary(limit = "1") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached("new(receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             final RubyThread thread = getCurrentRubyThreadNode.execute();
 
             final ThreadManager threadManager = getContext().getThreadManager();
-            final UnblockingAction unblockingAction = threadManager.getNativeCallUnblockingAction();
-            final UnblockingActionHolder actionHolder = threadManager.getActionHolder(Thread.currentThread());
-
-            final UnblockingAction oldAction = actionHolder.changeTo(unblockingAction);
-            final ThreadStatus status = thread.status;
-            thread.status = ThreadStatus.SLEEP;
-            try {
-                return InteropNodes.execute(executable, args, receivers, translateInteropExceptionNode);
-            } finally {
-                thread.status = status;
-                actionHolder.restore(oldAction);
-            }
+            final Interrupter nativeCallInterrupter = threadManager.getNativeCallInterrupter();
+            return ThreadManager.executeBlockingCall(
+                    thread,
+                    nativeCallInterrupter,
+                    executable,
+                    args,
+                    blockingCallInterruptible,
+                    this);
         }
     }
-
 }

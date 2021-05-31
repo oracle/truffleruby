@@ -12,6 +12,7 @@ package org.truffleruby.core.thread;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -19,12 +20,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.TruffleSafepoint.CompiledInterruptible;
+import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
-import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.collections.Memo;
+import org.truffleruby.core.DummyNode;
+import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
@@ -33,8 +42,12 @@ import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.PRNGRandomizerNodes;
+import org.truffleruby.interop.InteropNodes;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
+import org.truffleruby.language.SafepointPredicate;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
@@ -70,41 +83,9 @@ public class ThreadManager {
     public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
-    public static class UnblockingActionHolder {
-
-        private final Thread owner;
-        private volatile UnblockingAction action;
-
-        UnblockingActionHolder(Thread owner, UnblockingAction action) {
-            this.owner = owner;
-            this.action = action;
-        }
-
-        public UnblockingAction get() {
-            return action;
-        }
-
-        // No need for an atomic swap here, only the current thread is allowed to change its UnblockingAction
-        UnblockingAction changeTo(UnblockingAction newAction) {
-            assert Thread.currentThread() == owner;
-            UnblockingAction oldAction = action;
-            this.action = newAction;
-            return oldAction;
-        }
-
-        void restore(UnblockingAction action) {
-            assert Thread.currentThread() == owner;
-            this.action = action;
-        }
-    }
-
-    private final Map<Thread, UnblockingActionHolder> unblockingActions = new ConcurrentHashMap<>();
-    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
-    };
-
     private boolean nativeInterrupt;
-    private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal
-            .withInitial(() -> EMPTY_UNBLOCKING_ACTION);
+    private Timer nativeInterruptTimer;
+    private ThreadLocal<Interrupter> nativeCallInterrupter;
 
     private final ExecutorService fiberPool;
 
@@ -120,6 +101,16 @@ public class ThreadManager {
         if (nativeInterrupt) {
             LibRubySignal.loadLibrary(context.getRubyHome());
             LibRubySignal.setupSIGVTALRMEmptySignalHandler();
+
+            nativeInterruptTimer = new Timer("Ruby-NativeCallInterrupt-Timer", true);
+            nativeCallInterrupter = ThreadLocal.withInitial(
+                    () -> new NativeCallInterrupter(nativeInterruptTimer, LibRubySignal.threadID()));
+        }
+    }
+
+    public void dispose() {
+        if (nativeInterrupt) {
+            nativeInterruptTimer.cancel();
         }
     }
 
@@ -223,8 +214,7 @@ public class ThreadManager {
         });
     }
 
-    /** Whether the thread was created by TruffleRuby. Also decides whether we use the {@link SafepointManager} on the
-     * thread. */
+    /** Whether the thread was created by TruffleRuby. */
     @TruffleBoundary
     public boolean isRubyManagedThread(Thread thread) {
         return rubyManagedThreads.contains(thread);
@@ -338,11 +328,12 @@ public class ThreadManager {
 
     private void rethrowOnMainThread(Node currentNode, RuntimeException e) {
         context.getSafepointManager().pauseRubyThreadAndExecute(
-                "rethrow " + e.getClass() + " to main thread",
-                getRootThread(),
                 currentNode,
-                (rubyThread, threadCurrentNode) -> {
-                    throw e;
+                new SafepointAction("rethrow " + e.getClass() + " to main thread", getRootThread(), true, false) {
+                    @Override
+                    public void run(RubyThread rubyThread, Node currentNode) {
+                        throw e;
+                    }
                 });
     }
 
@@ -405,7 +396,7 @@ public class ThreadManager {
 
         final FiberManager fiberManager = thread.fiberManager;
         final RubyFiber rootFiber = fiberManager.getRootFiber();
-        fiberManager.start(rootFiber, javaThread, true);
+        fiberManager.start(rootFiber, javaThread);
         // fully initialized
         rootFiber.initializedLatch.countDown();
     }
@@ -423,7 +414,7 @@ public class ThreadManager {
 
     public void cleanupThreadState(RubyThread thread, Thread javaThread) {
         final FiberManager fiberManager = thread.fiberManager;
-        fiberManager.cleanup(fiberManager.getRootFiber(), javaThread, true);
+        fiberManager.cleanup(fiberManager.getRootFiber(), javaThread);
 
         thread.ioBuffer.freeAll();
         thread.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
@@ -469,27 +460,12 @@ public class ThreadManager {
         T block() throws InterruptedException;
     }
 
-    public interface UnblockingAction {
-        void unblock();
-    }
-
     /** Only leaves the context if FIBER_LEAVE_CONTEXT is true */
-    public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext,
-            boolean isRubyManagedThread) {
+    public <T> T leaveAndEnter(TruffleContext truffleContext, Node currentNode, Supplier<T> runWhileOutsideContext) {
         assert truffleContext.isEntered();
-        assert isRubyManagedThread == isRubyManagedThread(Thread.currentThread());
 
         if (context.getOptions().FIBER_LEAVE_CONTEXT) {
-            if (isRubyManagedThread) {
-                context.getSafepointManager().leaveThread();
-            }
-            try {
-                return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
-            } finally {
-                if (isRubyManagedThread) {
-                    context.getSafepointManager().enterThread();
-                }
-            }
+            return truffleContext.leaveAndEnter(currentNode, runWhileOutsideContext);
         } else {
             return runWhileOutsideContext.get();
         }
@@ -497,9 +473,10 @@ public class ThreadManager {
 
     /** Only use when the context is not entered. */
     @TruffleBoundary
-    public <T> T retryWhileInterrupted(Node currentNode, BlockingAction<T> action) {
+    public <T> void retryWhileInterrupted(Node currentNode, TruffleSafepoint.Interruptible<T> interruptible, T object) {
         if (!context.getOptions().FIBER_LEAVE_CONTEXT) {
-            return runUntilResultKeepStatus(currentNode, action);
+            runUntilResultKeepStatus(currentNode, interruptible, object);
+            return;
         }
 
         assert !context.getEnv().getContext().isEntered() : "Use runUntilResult*() when entered";
@@ -507,7 +484,8 @@ public class ThreadManager {
         try {
             while (true) {
                 try {
-                    return action.block();
+                    interruptible.apply(object);
+                    break;
                 } catch (InterruptedException e) {
                     interrupted = true;
                     // retry
@@ -521,20 +499,64 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public <T> T runUntilResultKeepStatus(Node currentNode, BlockingAction<T> action) {
+    public <T> void runUntilResultKeepStatus(Node currentNode, TruffleSafepoint.Interruptible<T> action,
+            T object) {
         assert context.getEnv().getContext().isEntered() : "Use retryWhileInterrupted() when not entered";
-        T result = null;
+        TruffleSafepoint.setBlockedThreadInterruptible(currentNode, action, object);
+    }
 
-        do {
-            try {
-                result = action.block();
-            } catch (InterruptedException e) {
-                // We were interrupted, possibly by the SafepointManager.
-                SafepointManager.pollFromBlockingCall(language, currentNode);
+    public static Object executeBlockingCall(RubyThread thread, Interrupter interrupter, Object executable,
+            Object[] args, BlockingCallInterruptible blockingCallInterruptible, Node currentNode) {
+        final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
+
+        final BlockingCallInterruptible.State state = new BlockingCallInterruptible.State(thread, executable, args);
+        safepoint.setBlocked(currentNode, interrupter, blockingCallInterruptible, state, null, null);
+        return state.result;
+    }
+
+    public static class BlockingCallInterruptible implements CompiledInterruptible<BlockingCallInterruptible.State> {
+
+        final InteropLibrary receivers;
+        final TranslateInteropExceptionNode translateInteropExceptionNode;
+
+        public BlockingCallInterruptible(
+                InteropLibrary receivers,
+                TranslateInteropExceptionNode translateInteropExceptionNode) {
+            this.receivers = receivers;
+            this.translateInteropExceptionNode = translateInteropExceptionNode;
+        }
+
+        @ValueType
+        private static class State {
+            final RubyThread thread;
+            final Object executable;
+            final Object[] args;
+            Object result;
+
+            private State(RubyThread thread, Object executable, Object[] args) {
+                this.thread = thread;
+                this.executable = executable;
+                this.args = args;
             }
-        } while (result == null);
+        }
 
-        return result;
+        @Override
+        public void apply(State state) {
+            CompilerAsserts.partialEvaluationConstant(this);
+            final RubyThread thread = state.thread;
+
+            final ThreadStatus status = thread.status;
+            thread.status = ThreadStatus.SLEEP;
+            try {
+                // NOTE: NFI uses CallTargets, so the TruffleSafepoint.poll() will happen before coming back from this call
+                CompilerAsserts.partialEvaluationConstant(receivers);
+                CompilerAsserts.partialEvaluationConstant(translateInteropExceptionNode);
+                state.result = InteropNodes
+                        .execute(state.executable, state.args, receivers, translateInteropExceptionNode);
+            } finally {
+                thread.status = status;
+            }
+        }
     }
 
     /** Runs {@code action} until it returns a non-null value. The given action should throw an
@@ -547,36 +569,51 @@ public class ThreadManager {
      * @return the first non-null return value from {@code action} */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
+        return runUntilResult(currentNode, action, null, null);
+    }
+
+    @TruffleBoundary
+    public <T> T runUntilResult(Node currentNode, BlockingAction<T> action, Runnable beforeInterrupt,
+            Runnable afterInterrupt) {
+        final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
         final RubyThread runningThread = getCurrentThread();
-        T result = null;
 
-        do {
-            final ThreadStatus status = runningThread.status;
-            runningThread.status = ThreadStatus.SLEEP;
+        // For Thread.handle_interrupt(Exception => :on_blocking),
+        // we want to allow side-effecting actions to interrupt this blocking action and run here.
+        final boolean onBlocking = runningThread.interruptMode == InterruptMode.ON_BLOCKING;
 
-            try {
+        final Memo<T> result = new Memo<>(null);
+        final ThreadStatus status = runningThread.status;
+        boolean sideEffects = false;
+
+        if (onBlocking) {
+            sideEffects = safepoint.setAllowSideEffects(true);
+        }
+        try {
+            safepoint.setBlocked(currentNode, Interrupter.THREAD_INTERRUPT, arg -> {
+                runningThread.status = ThreadStatus.SLEEP;
                 try {
-                    result = action.block();
+                    result.set(action.block());
                 } finally {
-                    runningThread.status = status;
+                    runningThread.status = status; // restore status for running the safepoint
                 }
-            } catch (InterruptedException e) {
-                // We were interrupted, possibly by the SafepointManager.
-                SafepointManager.pollFromBlockingCall(language, currentNode);
+            }, null, beforeInterrupt, afterInterrupt);
+        } finally {
+            if (onBlocking) {
+                safepoint.setAllowSideEffects(sideEffects);
             }
-        } while (result == null);
+        }
 
-        return result;
+        return result.get();
     }
 
     @TruffleBoundary
-    UnblockingActionHolder getActionHolder(Thread thread) {
-        return ConcurrentOperations.getOrCompute(unblockingActions, thread, t -> new UnblockingActionHolder(t, null));
-    }
-
-    @TruffleBoundary
-    UnblockingAction getNativeCallUnblockingAction() {
-        return blockingNativeCallUnblockingAction.get();
+    Interrupter getNativeCallInterrupter() {
+        if (nativeInterrupt) {
+            return nativeCallInterrupter.get();
+        } else {
+            return Interrupter.THREAD_INTERRUPT;
+        }
     }
 
     public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
@@ -584,13 +621,6 @@ public class ThreadManager {
             currentThread.set(rubyThread);
         }
         javaThreadToRubyThread.put(thread, rubyThread);
-
-        if (nativeInterrupt && isRubyManagedThread(thread)) {
-            final long threadID = LibRubySignal.threadID();
-            blockingNativeCallUnblockingAction.set(() -> LibRubySignal.sendSIGVTALRMToThread(threadID));
-        }
-
-        unblockingActions.put(thread, new UnblockingActionHolder(thread, () -> thread.interrupt()));
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
@@ -600,12 +630,6 @@ public class ThreadManager {
             context.getValueWrapperManager().cleanupBlockHolder();
         }
         javaThreadToRubyThread.remove(thread);
-
-        if (nativeInterrupt) {
-            blockingNativeCallUnblockingAction.remove();
-        }
-
-        unblockingActions.remove(thread);
     }
 
     @TruffleBoundary
@@ -642,6 +666,14 @@ public class ThreadManager {
     public void unregisterThread(RubyThread thread) {
         if (!runningRubyThreads.remove(thread)) {
             throw new UnsupportedOperationException(thread + " was not registered");
+        }
+    }
+
+
+    public void checkNoRunningThreads() {
+        if (!runningRubyThreads.isEmpty()) {
+            RubyLanguage.LOGGER
+                    .warning("threads are still registered with thread manager at shutdown:\n" + getThreadDebugInfo());
         }
     }
 
@@ -700,45 +732,33 @@ public class ThreadManager {
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
             if (thread != Thread.currentThread()) {
-                runUntilResultKeepStatus(null, () -> {
-                    thread.join();
-                    return BlockingAction.SUCCESS;
-                });
+                runUntilResultKeepStatus(DummyNode.INSTANCE, Thread::join, thread);
             }
         }
-    }
-
-    @TruffleBoundary
-    public void cleanupMainThread() {
-        checkCalledInMainThreadRootFiber();
-        cleanup(rootThread, rootJavaThread);
     }
 
     /** Kill all Ruby threads, except the current Ruby Thread. Each Ruby Threads kills its fibers. */
     @TruffleBoundary
     private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();
+        SafepointPredicate predicate = (context, thread, action) -> Thread.currentThread() != initiatingJavaThread &&
+                getRubyFiberFromCurrentJavaThread() == thread.fiberManager.getCurrentFiber();
 
-        while (true) {
-            try {
-                final String reason = "kill other threads for shutdown";
-                context.getSafepointManager().pauseAllThreadsAndExecute(
-                        reason,
-                        null,
-                        thread -> Thread.currentThread() != initiatingJavaThread &&
-                                getRubyFiberFromCurrentJavaThread() == thread.fiberManager.getCurrentFiber(),
-                        (thread, currentNode) -> {
-                            thread.status = ThreadStatus.ABORTING;
-                            throw new KillException();
-                        });
-                break; // Successfully executed the safepoint and sent the exceptions.
-            } catch (RaiseException e) {
-                final RubyException rubyException = e.getException();
-                context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
-                        "Exception while killing other threads:\n",
-                        rubyException);
-            }
-        }
+        context.getSafepointManager().pauseAllThreadsAndExecute(
+                DummyNode.INSTANCE,
+                new SafepointAction("kill other threads for shutdown", predicate, true, false) {
+                    @Override
+                    public void run(RubyThread rubyThread, Node currentNode) {
+                        rubyThread.status = ThreadStatus.ABORTING;
+                        throw new KillException();
+                    }
+                });
+    }
+
+    @TruffleBoundary
+    public void cleanupMainThread() {
+        checkCalledInMainThreadRootFiber();
+        cleanup(rootThread, rootJavaThread);
     }
 
     @TruffleBoundary
@@ -750,14 +770,6 @@ public class ThreadManager {
     @TruffleBoundary
     public Iterable<RubyThread> iterateThreads() {
         return runningRubyThreads;
-    }
-
-    @TruffleBoundary
-    public void interrupt(Thread thread) {
-        final UnblockingAction action = getActionHolder(thread).get();
-        if (action != null) {
-            action.unblock();
-        }
     }
 
     public String getThreadDebugInfo() {

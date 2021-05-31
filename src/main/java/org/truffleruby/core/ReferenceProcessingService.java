@@ -177,10 +177,10 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             }
             final String sharingReason = "creating " + threadName() + " thread for " + owner.getSimpleName();
 
-            threadManager.initialize(newThread, null, threadName(), sharingReason, () -> {
+            threadManager.initialize(newThread, DummyNode.INSTANCE, threadName(), sharingReason, () -> {
                 while (true) {
                     final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager
-                            .runUntilResult(null, () -> {
+                            .runUntilResult(DummyNode.INSTANCE, () -> {
                                 try {
                                     return processingQueue.remove();
                                 } catch (InterruptedException interrupted) {
@@ -206,10 +206,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             shutdown = true;
             javaThread.interrupt();
 
-            context.getThreadManager().runUntilResultKeepStatus(null, () -> {
-                javaThread.join(1000);
-                return ThreadManager.BlockingAction.SUCCESS;
-            });
+            context.getThreadManager().runUntilResultKeepStatus(DummyNode.INSTANCE, t -> t.join(1000), javaThread);
             return true;
         }
 
