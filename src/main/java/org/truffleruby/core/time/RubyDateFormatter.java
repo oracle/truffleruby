@@ -264,7 +264,7 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static List<Token> compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
+    public static Token[] compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
         List<Token> compiledPattern = new LinkedList<>();
 
         Encoding enc = pattern.getEncoding();
@@ -352,7 +352,7 @@ public abstract class RubyDateFormatter {
             }
         }
 
-        return compiledPattern;
+        return compiledPattern.toArray(RubyDateFormatter.EMPTY_TOKEN_ARRAY);
     }
 
     enum FieldType {

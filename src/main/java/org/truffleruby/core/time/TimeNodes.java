@@ -444,10 +444,8 @@ public abstract class TimeNodes {
                     CodeRange.CR_UNKNOWN);
         }
 
-        @TruffleBoundary
         protected Token[] compilePattern(Rope format) {
-            final List<Token> tokens = RubyDateFormatter.compilePattern(format, false, getContext(), this);
-            return tokens.toArray(RubyDateFormatter.EMPTY_TOKEN_ARRAY);
+            return RubyDateFormatter.compilePattern(format, false, getContext(), this);
         }
 
         // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
