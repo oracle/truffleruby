@@ -670,31 +670,9 @@ public abstract class RubyDateFormatter {
                         assert nano >= 0;
                         assert nano < 1000000000;
 
-                        final int digits;
+                        final LazyIntRope nanoRope = new LazyIntRope(nano);
 
-                        if (nano < 10) {
-                            digits = 1;
-                        } else if (nano < 100) {
-                            digits = 2;
-                        } else if (nano < 1000) {
-                            digits = 3;
-                        } else if (nano < 10000) {
-                            digits = 4;
-                        } else if (nano < 100000) {
-                            digits = 5;
-                        } else if (nano < 1000000) {
-                            digits = 6;
-                        } else if (nano < 10000000) {
-                            digits = 7;
-                        } else if (nano < 100000000) {
-                            digits = 8;
-                        } else {
-                            digits = 9;
-                        }
-
-                        final LazyIntRope nanoRope = new LazyIntRope(nano, UTF8Encoding.INSTANCE, digits);
-
-                        final int padding = 6 - digits;
+                        final int padding = 6 - nanoRope.characterLength();
 
                         if (padding == 0) {
                             appendRope = nanoRope;
