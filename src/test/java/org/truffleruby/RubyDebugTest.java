@@ -51,7 +51,6 @@ public class RubyDebugTest {
     private final LinkedList<Runnable> run = new LinkedList<>();
     private SuspendedEvent suspendedEvent;
     private Breakpoint breakpoint;
-    private Throwable ex;
     private Context context;
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
@@ -370,13 +369,9 @@ public class RubyDebugTest {
     }
 
     private void performWork() {
-        try {
-            if (ex == null && !run.isEmpty()) {
-                Runnable c = run.removeFirst();
-                c.run();
-            }
-        } catch (Throwable e) {
-            ex = e;
+        if (!run.isEmpty()) {
+            Runnable c = run.removeFirst();
+            c.run();
         }
     }
 
@@ -423,15 +418,6 @@ public class RubyDebugTest {
 
     private void assertExecutedOK(String msg) throws Throwable {
         assertTrue(getErr(), getErr().isEmpty());
-
-        if (ex != null) {
-            if (ex instanceof AssertionError) {
-                throw ex;
-            } else {
-                throw new AssertionError(msg + ". Error during execution ", ex);
-            }
-        }
-
         assertTrue(msg + ". Assuming all requests processed: " + run, run.isEmpty());
     }
 
