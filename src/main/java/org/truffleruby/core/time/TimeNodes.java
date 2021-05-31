@@ -28,7 +28,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -424,9 +423,15 @@ public abstract class TimeNodes {
                 @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast,
-                @Cached ConditionProfile yearIsFastProfile) {
+                @Cached ConditionProfile yearIsFastProfile,
+                @Cached RopeNodes.ConcatNode concatNode,
+                @Cached RopeNodes.SubstringNode substringNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                return makeStringNode.fromRope(formatTimeFast(time, pattern));
+                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeBuilderFast(
+                        pattern,
+                        time.dateTime,
+                        concatNode,
+                        substringNode));
             } else {
                 return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
             }
@@ -456,16 +461,6 @@ public abstract class TimeNodes {
         }
 
         // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
-        private ManagedRope formatTimeFast(RubyTime time, Token[] pattern) {
-            return RubyDateFormatter.formatToRopeBuilderFast(
-                    pattern,
-                    time.dateTime,
-                    time.zone,
-                    getContext(),
-                    getLanguage(),
-                    this,
-                    errnoErrorNode);
-        }
 
         private RopeBuilder formatTime(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilder(

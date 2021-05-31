@@ -65,15 +65,13 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.rope.LeafRope;
-import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -614,12 +612,12 @@ public abstract class RubyDateFormatter {
     }
 
     @ExplodeLoop
-    public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt, Object zone,
-            RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
-        ManagedRope rope = null;
+    public static Rope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
+            RopeNodes.ConcatNode concatNode, RopeNodes.SubstringNode substringNode) {
+        Rope rope = null;
 
         for (Token token : compiledPattern) {
-            final ManagedRope appendRope;
+            final Rope appendRope;
 
             switch (token.getFormat()) {
                 case FORMAT_ENCODING:
@@ -657,36 +655,30 @@ public abstract class RubyDateFormatter {
 
                 case FORMAT_NANOSEC: {
                     final int nano = dt.getNano();
-                    assert nano >= 0;
-                    assert nano < 1000000000;
-
                     final LazyIntRope nanoRope = new LazyIntRope(nano);
 
-                    final int padding = 6 - nanoRope.characterLength();
+                    final int length = 6;
+                    final int padding = length - nanoRope.characterLength();
 
                     if (padding == 0) {
                         appendRope = nanoRope;
                     } else if (padding < 0) {
-                        appendRope = new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_7BIT);
+                        appendRope = substringNode.executeSubstring(nanoRope, 0, length);
                     } else {
-                        appendRope = new ConcatRope(
-                                nanoRope,
-                                RopeConstants.paddingZeros(padding),
-                                UTF8Encoding.INSTANCE,
-                                CodeRange.CR_7BIT);
+                        appendRope = concatNode
+                                .executeConcat(nanoRope, RopeConstants.paddingZeros(padding), UTF8Encoding.INSTANCE);
                     }
                 }
                     break;
 
                 default:
-                    CompilerDirectives.shouldNotReachHere();
-                    throw new UnsupportedOperationException();
+                    throw CompilerDirectives.shouldNotReachHere();
             }
 
             if (rope == null) {
                 rope = appendRope;
             } else {
-                rope = new ConcatRope(rope, appendRope, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                rope = concatNode.executeConcat(rope, appendRope, UTF8Encoding.INSTANCE);
             }
         }
 
