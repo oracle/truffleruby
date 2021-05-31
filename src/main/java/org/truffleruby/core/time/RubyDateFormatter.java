@@ -616,96 +616,81 @@ public abstract class RubyDateFormatter {
     @ExplodeLoop
     public static ManagedRope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt, Object zone,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
-        try {
-            ManagedRope rope = null;
+        ManagedRope rope = null;
 
-            for (Token token : compiledPattern) {
-                final ManagedRope appendRope;
+        for (Token token : compiledPattern) {
+            final ManagedRope appendRope;
 
-                switch (token.getFormat()) {
-                    case FORMAT_ENCODING:
-                    case FORMAT_OUTPUT:
-                        continue;
+            switch (token.getFormat()) {
+                case FORMAT_ENCODING:
+                case FORMAT_OUTPUT:
+                    continue;
 
-                    case FORMAT_STRING:
-                        appendRope = token.getRope();
-                        break;
-                    case FORMAT_DAY:
-                        appendRope = RopeConstants.paddedNumber(dt.getDayOfMonth());
-                        break;
-                    case FORMAT_HOUR:
-                        appendRope = RopeConstants.paddedNumber(dt.getHour());
-                        break;
-                    case FORMAT_MINUTES:
-                        appendRope = RopeConstants.paddedNumber(dt.getMinute());
-                        break;
-                    case FORMAT_MONTH:
-                        appendRope = RopeConstants.paddedNumber(dt.getMonthValue());
-                        break;
-                    case FORMAT_SECONDS:
-                        appendRope = RopeConstants.paddedNumber(dt.getSecond());
-                        break;
+                case FORMAT_STRING:
+                    appendRope = token.getRope();
+                    break;
+                case FORMAT_DAY:
+                    appendRope = RopeConstants.paddedNumber(dt.getDayOfMonth());
+                    break;
+                case FORMAT_HOUR:
+                    appendRope = RopeConstants.paddedNumber(dt.getHour());
+                    break;
+                case FORMAT_MINUTES:
+                    appendRope = RopeConstants.paddedNumber(dt.getMinute());
+                    break;
+                case FORMAT_MONTH:
+                    appendRope = RopeConstants.paddedNumber(dt.getMonthValue());
+                    break;
+                case FORMAT_SECONDS:
+                    appendRope = RopeConstants.paddedNumber(dt.getSecond());
+                    break;
 
-                    case FORMAT_YEAR_LONG: {
-                        final int value = dt.getYear();
+                case FORMAT_YEAR_LONG: {
+                    final int value = dt.getYear();
 
-                        if (value < 1000 || value > 9999) {
-                            CompilerDirectives.transferToInterpreterAndInvalidate();
-                            return formatToRopeBuilder(
-                                    compiledPattern,
-                                    dt,
-                                    zone,
-                                    context,
-                                    language,
-                                    currentNode,
-                                    errnoErrorNode).toRope();
-                        }
+                    assert value >= 1000;
+                    assert value <= 9999;
 
-                        appendRope = new LazyIntRope(value, UTF8Encoding.INSTANCE, 4);
-                    }
-                        break;
-
-                    case FORMAT_NANOSEC: {
-                        final int nano = dt.getNano();
-                        assert nano >= 0;
-                        assert nano < 1000000000;
-
-                        final LazyIntRope nanoRope = new LazyIntRope(nano);
-
-                        final int padding = 6 - nanoRope.characterLength();
-
-                        if (padding == 0) {
-                            appendRope = nanoRope;
-                        } else if (padding < 0) {
-                            appendRope = new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_7BIT);
-                        } else {
-                            appendRope = new ConcatRope(
-                                    nanoRope,
-                                    RopeConstants.paddingZeros(padding),
-                                    UTF8Encoding.INSTANCE,
-                                    CodeRange.CR_7BIT);
-                        }
-                    }
-                        break;
-
-                    default:
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        throw new UnsupportedOperationException();
+                    appendRope = new LazyIntRope(value, UTF8Encoding.INSTANCE, 4);
                 }
+                    break;
 
-                if (rope == null) {
-                    rope = appendRope;
-                } else {
-                    rope = new ConcatRope(rope, appendRope, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                case FORMAT_NANOSEC: {
+                    final int nano = dt.getNano();
+                    assert nano >= 0;
+                    assert nano < 1000000000;
+
+                    final LazyIntRope nanoRope = new LazyIntRope(nano);
+
+                    final int padding = 6 - nanoRope.characterLength();
+
+                    if (padding == 0) {
+                        appendRope = nanoRope;
+                    } else if (padding < 0) {
+                        appendRope = new SubstringRope(UTF8Encoding.INSTANCE, nanoRope, 0, 6, 6, CodeRange.CR_7BIT);
+                    } else {
+                        appendRope = new ConcatRope(
+                                nanoRope,
+                                RopeConstants.paddingZeros(padding),
+                                UTF8Encoding.INSTANCE,
+                                CodeRange.CR_7BIT);
+                    }
                 }
+                    break;
+
+                default:
+                    CompilerDirectives.shouldNotReachHere();
+                    throw new UnsupportedOperationException();
             }
 
-            return rope;
-        } catch (IndexOutOfBoundsException ioobe) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            return formatToRopeBuilder(compiledPattern, dt, zone, context, language, currentNode, errnoErrorNode)
-                    .toRope();
+            if (rope == null) {
+                rope = appendRope;
+            } else {
+                rope = new ConcatRope(rope, appendRope, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
         }
+
+        return rope;
     }
 
     private static int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {

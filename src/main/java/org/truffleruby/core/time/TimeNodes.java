@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -48,7 +49,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.List;
 
 @CoreModule(value = "Time", isClass = true)
 public abstract class TimeNodes {
@@ -423,8 +423,9 @@ public abstract class TimeNodes {
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
                 @Cached RopeNodes.EqualNode equalNode,
-                @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast) {
-            if (canUseFast) {
+                @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast,
+                @Cached ConditionProfile yearIsFastProfile) {
+            if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
                 return makeStringNode.fromRope(formatTimeFast(time, pattern));
             } else {
                 return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
@@ -433,6 +434,12 @@ public abstract class TimeNodes {
 
         protected boolean formatToRopeBuilderCanBeFast(Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilderCanBeFast(pattern);
+        }
+
+        protected boolean yearIsFast(RubyTime time) {
+            // See formatToRopeBuilderCanBeFast
+            final int year = time.dateTime.getYear();
+            return year >= 1000 && year <= 9999;
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)")
