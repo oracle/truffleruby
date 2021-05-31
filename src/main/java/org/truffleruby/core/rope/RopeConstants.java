@@ -141,6 +141,9 @@ public class RopeConstants {
         return table;
     }
 
+    /***
+     * Zero-padded numbers in the format %02d, between 00 and 99.
+     */
     public static LeafRope paddedNumber(int n) {
         return PADDED_NUMBERS[n];
     }
