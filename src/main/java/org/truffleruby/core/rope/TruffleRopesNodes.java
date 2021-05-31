@@ -76,9 +76,7 @@ public abstract class TruffleRopesNodes {
             System.err.println("CR = Code Range");
             System.err.println("O = Byte Offset (SubstringRope only)");
             System.err.println("T = Times (RepeatingRope only)");
-            System.err.println("D = Depth");
-            System.err.println("LD = Left Depth (ConcatRope only)");
-            System.err.println("RD = Right Depth (ConcatRope only)");
+            System.err.println("V = Value (LazyIntRope only)");
             System.err.println("E = Encoding");
             System.err.println("P = Native Pointer (NativeRope only)");
             System.err.println("S = Native Size (NativeRope only)");

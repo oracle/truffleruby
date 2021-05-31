@@ -828,7 +828,7 @@ public abstract class RopeNodes {
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
             System.err.println(String.format(
-                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; T: %d; D: %d; E: %s)",
+                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; T: %d; E: %s)",
                     printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
@@ -852,7 +852,7 @@ public abstract class RopeNodes {
             final boolean bytesAreNull = rope.getRawBytes() == null;
 
             System.err.println(String.format(
-                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; V: %d, D: %d; E: %s)",
+                    "%s (%s; BN: %b; BL: %d; CL: %d; CR: %s; V: %d, E: %s)",
                     printString ? RopeOperations.escape(rope) : "<skipped>",
                     rope.getClass().getSimpleName(),
                     bytesAreNull,
