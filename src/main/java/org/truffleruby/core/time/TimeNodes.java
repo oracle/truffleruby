@@ -449,7 +449,7 @@ public abstract class TimeNodes {
             return tokens.toArray(RubyDateFormatter.EMPTY_TOKEN_ARRAY);
         }
 
-        // Optimised for the default strftime, "%Y-%m-%dT%H:%M:%S.%6N "
+        // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
         private ManagedRope formatTimeFast(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilderFast(
                     pattern,
