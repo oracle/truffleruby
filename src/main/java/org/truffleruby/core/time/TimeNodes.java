@@ -438,8 +438,9 @@ public abstract class TimeNodes {
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
+            final Token[] pattern = compilePattern(libFormat.getRope(format));
             return makeStringNode.fromBuilderUnsafe(
-                    formatTime(time, compilePattern(libFormat.getRope(format))),
+                    formatTime(time, pattern),
                     CodeRange.CR_UNKNOWN);
         }
 
