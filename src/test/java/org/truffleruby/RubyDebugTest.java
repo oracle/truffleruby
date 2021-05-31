@@ -67,7 +67,7 @@ public class RubyDebugTest {
 
     // Copied from com.oracle.truffle.tck.DebuggerTester, to avoid a dependency on TCK just for this
     private static com.oracle.truffle.api.source.Source getSourceImpl(Source source) {
-        return (com.oracle.truffle.api.source.Source) getField(source, "impl");
+        return (com.oracle.truffle.api.source.Source) getField(source, "receiver");
     }
 
     private static Object getField(Object value, String name) {
