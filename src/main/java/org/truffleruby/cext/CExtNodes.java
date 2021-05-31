@@ -25,7 +25,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.cext.CExtNodesFactory.CallCWithMutexNodeFactory;
+import org.truffleruby.cext.CExtNodesFactory.CallWithCExtLockNodeFactory;
 import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.CoreLibrary;
@@ -118,16 +118,15 @@ import com.oracle.truffle.api.source.SourceSection;
 public class CExtNodes {
 
     @Primitive(name = "call_with_c_mutex_and_frame")
-    public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
+        @Child protected CallWithCExtLockNode callCextNode = CallWithCExtLockNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
-        protected Object callCWithMutex(Object receiver, RubyArray argsArray, Object block,
+        protected Object callWithCExtLockAndFrame(Object receiver, RubyArray argsArray, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
+            final ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
             extensionStack.push(block);
-
             try {
                 return callCextNode.execute(receiver, argsArray);
             } finally {
@@ -137,12 +136,12 @@ public class CExtNodes {
     }
 
     @Primitive(name = "call_with_c_mutex")
-    public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class CallWithCExtLockNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object execute(Object receiver, RubyArray argsArray);
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object callCWithMutex(Object receiver, RubyArray argsArray,
+        protected Object callWithCExtLock(Object receiver, RubyArray argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
@@ -174,14 +173,12 @@ public class CExtNodes {
         }
     }
 
-    @Primitive(name = "call_without_c_mutex")
-    public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(limit = "getCacheLimit()")
-        protected Object callCWithoutMutex(Object receiver, RubyArray argsArray,
+    @Primitive(name = "send_without_cext_lock")
+    public abstract static class SendWithoutCExtLockNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object sendWithoutCExtLock(Object receiver, RubySymbol method, RubyArray argsArray, Object block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
@@ -193,22 +190,54 @@ public class CExtNodes {
                     MutexOperations.unlockInternal(lock);
                 }
                 try {
-                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                    return dispatchNode.callWithBlock(receiver, method.getString(), block, args);
                 } finally {
                     if (owned) {
                         MutexOperations.internalLockEvenWithException(getContext(), lock, this);
                     }
                 }
             } else {
-                return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                return dispatchNode.callWithBlock(receiver, method.getString(), block, args);
             }
-
         }
+    }
 
-        protected int getCacheLimit() {
-            return getLanguage().options.DISPATCH_CACHE;
+    @Primitive(name = "public_send_without_cext_lock")
+    public abstract static class PublicSendWithoutCExtLockNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected Object publicSendWithoutLock(Object receiver, RubySymbol method, RubyArray argsArray, Object block,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
+                @Cached ConditionProfile ownedProfile) {
+            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+
+                if (owned) {
+                    MutexOperations.unlockInternal(lock);
+                }
+                try {
+                    return dispatchNode.callWithBlock(receiver, method.getString(), block, args);
+                } finally {
+                    if (owned) {
+                        MutexOperations.internalLockEvenWithException(getContext(), lock, this);
+                    }
+                }
+            } else {
+                return dispatchNode.callWithBlock(receiver, method.getString(), block, args);
+            }
         }
+    }
 
+    @CoreMethod(names = "cext_lock_owned?", onSingleton = true)
+    public abstract static class IsCExtLockOwnedNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isCExtLockOwned() {
+            final ReentrantLock lock = getContext().getCExtensionsLock();
+            return lock.isHeldByCurrentThread();
+        }
     }
 
     @CoreMethod(names = "rb_ulong2num", onSingleton = true, required = 1)

@@ -192,7 +192,7 @@ module Utilities
   def ruby_launcher
     return @ruby_launcher if defined? @ruby_launcher
 
-    @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
+    @ruby_name ||= ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
                     elsif @ruby_name.start_with?('/')
@@ -749,7 +749,8 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         ECLIPSE_EXE                                  Where to find Eclipse
         SYSTEM_RUBY                                  The Ruby interpreter to run 'jt' itself, when using 'bin/jt'
-        JT_JDK                                       The JDK version to use: 8, 11 (default) or 16
+        JT_JDK                                       The default JDK version to use: 8, 11 (default) or 16
+        JT_ENV                                       The default value for 'jt build --env JT_ENV' and for 'jt --use JT_ENV'
         JT_PROFILE_SUBCOMMANDS                       Print the time each subprocess takes on stderr
     TXT
   end
@@ -2149,7 +2150,7 @@ module Commands
             options.delete_at i
             options.delete_at i
           else
-            'jvm'
+            ENV['JT_ENV'] || 'jvm'
           end
     @mx_env = env
     raise 'Cannot use both --use and --env' if defined?(@ruby_name)
@@ -2177,16 +2178,22 @@ module Commands
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options
 
-    env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
+    process_env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
 
-    mx(env, *mx_args, 'build', *mx_build_options)
+    mx(process_env, *mx_args, 'build', *mx_build_options)
     build_dir = mx(*mx_args, 'graalvm-home', capture: :out).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     dest_ruby = "#{dest}/#{language_dir(build_dir)}/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
-    File.symlink(build_dir, dest)
+    if @ruby_name != @mx_env
+      # if `--name NAME` is passed, we want to copy so we don't end up with two symlinks
+      # to the same directory for the same --env but different names
+      FileUtils.cp_r(build_dir, dest)
+    else
+      File.symlink(build_dir, dest)
+    end
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.

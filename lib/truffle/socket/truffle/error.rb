@@ -27,17 +27,25 @@
 module Truffle
   module Socket
     module Error
+      def self.read_error(message, socket)
+        if socket.nonblock?
+          read_nonblock(message)
+        else
+          Errno.handle(message)
+        end
+      end
+
       def self.write_error(message, socket)
-        if nonblocking?(socket)
+        if socket.nonblock?
           write_nonblock(message)
         else
           Errno.handle(message)
         end
       end
 
-      def self.read_error(message, socket)
-        if nonblocking?(socket)
-          read_nonblock(message)
+      def self.connect_error(message, socket)
+        if socket.nonblock?
+          connect_nonblock(message)
         else
           Errno.handle(message)
         end
@@ -45,48 +53,34 @@ module Truffle
 
       # Handles an error for a non-blocking read operation.
       def self.read_nonblock(message)
-        wrap_read_nonblock { Errno.handle(message) }
+        errno = Errno.errno
+        if errno == Errno::EAGAIN::Errno
+          raise ::IO::EAGAINWaitReadable, message
+        else
+          Errno.handle_errno(errno, message)
+        end
       end
 
       # Handles an error for a non-blocking write operation.
       def self.write_nonblock(message)
-        wrap_write_nonblock { Errno.handle(message) }
+        errno = Errno.errno
+        if errno == Errno::EAGAIN::Errno
+          raise ::IO::EAGAINWaitWritable, message
+        else
+          Errno.handle_errno(errno, message)
+        end
       end
 
-      def self.wrap_read_nonblock
-        yield
-      rescue Errno::EAGAIN => err
-        raise_wrapped_error(err, ::IO::EAGAINWaitReadable)
-      rescue Errno::EWOULDBLOCK => err
-        raise_wrapped_error(err, ::IO::EWOULDBLOCKWaitReadable)
-      rescue Errno::EINPROGRESS => err
-        raise_wrapped_error(err, ::IO::EINPROGRESSWaitReadable)
-      end
-
-      def self.wrap_write_nonblock
-        yield
-      rescue Errno::EAGAIN => err
-        raise_wrapped_error(err, ::IO::EAGAINWaitWritable)
-      rescue Errno::EWOULDBLOCK => err
-        raise_wrapped_error(err, ::IO::EWOULDBLOCKWaitWritable)
-      rescue Errno::EINPROGRESS => err
-        raise_wrapped_error(err, ::IO::EINPROGRESSWaitWritable)
-      end
-
-      # Wraps the error given in `original` in an instance of `error_class`.
-      #
-      # This can be used to wrap e.g. an Errno::EAGAIN error in an
-      # ::IO::EAGAINWaitReadable instance.
-      def self.raise_wrapped_error(original, error_class)
-        error = error_class.new(original.message)
-
-        error.set_backtrace(original.backtrace)
-
-        raise error
-      end
-
-      def self.nonblocking?(socket)
-        socket.fcntl(::Fcntl::F_GETFL) & ::Fcntl::O_NONBLOCK > 0
+      # Handles an error for a non-blocking connect operation.
+      def self.connect_nonblock(message)
+        errno = Errno.errno
+        if errno == Errno::EAGAIN::Errno
+          raise ::IO::EAGAINWaitWritable, message
+        elsif errno == Errno::EINPROGRESS::Errno
+          raise ::IO::EINPROGRESSWaitWritable, message
+        else
+          Errno.handle_errno(errno, message)
+        end
       end
     end
   end

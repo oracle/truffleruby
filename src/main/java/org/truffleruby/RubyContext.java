@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -94,6 +95,7 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
+import sun.misc.SignalHandler;
 
 public class RubyContext {
 
@@ -132,6 +134,8 @@ public class RubyContext {
     /** (Symbol, refinements) -> Proc for Symbol#to_proc */
     public final Map<Pair<RubySymbol, Map<RubyModule, RubyModule[]>>, RootCallTarget> cachedSymbolToProcTargetsWithRefinements = new ConcurrentHashMap<>();
     private final Map<ImmutableRubyString, NativeRope> immutableNativeRopes = new ConcurrentHashMap<>();
+    /** Default signal handlers for Ruby, only SIGINT and SIGALRM, see {@code core/main.rb} */
+    public final ConcurrentMap<String, SignalHandler> defaultRubySignalHandlers = new ConcurrentHashMap<>();
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;

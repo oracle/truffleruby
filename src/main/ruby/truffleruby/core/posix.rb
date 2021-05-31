@@ -345,7 +345,11 @@ module Truffle::POSIX
     end
   end
 
-  TRY_AGAIN_ERRNOS = [Errno::EAGAIN::Errno, Errno::EWOULDBLOCK::Errno]
+  if Errno::EAGAIN::Errno == Errno::EWOULDBLOCK::Errno
+    EAGAIN_ERRNO = Errno::EAGAIN::Errno
+  else
+    raise 'TruffleRuby currently assumes EAGAIN == EWOULDBLOCK'
+  end
 
   # Used in IO#readpartial and IO::InternalBuffer#fill_read. Reads at least
   # one byte, blocking if it cannot read anything, but returning whatever it
@@ -356,7 +360,7 @@ module Truffle::POSIX
       # must call #read_string in order to properly support polyglot STDIO
       string, errno = read_string(io, count)
       return string if errno == 0
-      if TRY_AGAIN_ERRNOS.include? errno
+      if errno == EAGAIN_ERRNO
         IO.select([io])
       else
         Errno.handle_errno(errno)
@@ -371,7 +375,7 @@ module Truffle::POSIX
     string, errno = read_string(io, count)
     if errno == 0
       string
-    elsif TRY_AGAIN_ERRNOS.include? errno
+    elsif errno == EAGAIN_ERRNO
       raise IO::EAGAINWaitReadable if exception
       :wait_readable
     else
@@ -432,7 +436,7 @@ module Truffle::POSIX
         ret = Truffle::POSIX.write(fd, buffer + written, length - written)
         if ret < 0
           errno = Errno.errno
-          if TRY_AGAIN_ERRNOS.include? errno
+          if errno == EAGAIN_ERRNO
             if continue_on_eagain
               IO.select([], [io])
             else
@@ -478,7 +482,7 @@ module Truffle::POSIX
 
       if written < 0
         errno = Errno.errno
-        if TRY_AGAIN_ERRNOS.include? errno
+        if errno == EAGAIN_ERRNO
           raise IO::EAGAINWaitWritable
         else
           Errno.handle_errno(errno)

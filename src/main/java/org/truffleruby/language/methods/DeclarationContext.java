@@ -92,12 +92,17 @@ public class DeclarationContext {
         this.refinements = refinements;
     }
 
-    private static Frame lookupVisibility(Frame frame) {
-        final Visibility visibility = RubyArguments.getDeclarationContext(frame).visibility;
+    // Must not return Frame as that could allocate a VirtualFrame due to merging the VirtualFrame and MaterializedFrame
+    // branches, which results in a compiler error.
+    private static DeclarationContext lookupVisibility(Frame frame) {
+        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+        final Visibility visibility = declarationContext.visibility;
         if (visibility != null) {
-            return frame;
+            return declarationContext;
         } else {
-            return lookupVisibilityInternal(RubyArguments.getDeclarationFrame(frame));
+            final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame);
+            final MaterializedFrame visibilityFrame = lookupVisibilityInternal(declarationFrame);
+            return RubyArguments.getDeclarationContext(visibilityFrame);
         }
     }
 
@@ -110,19 +115,16 @@ public class DeclarationContext {
             }
             frame = RubyArguments.getDeclarationFrame(frame);
         }
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        throw new UnsupportedOperationException("No declaration frame with visibility found");
+        throw CompilerDirectives.shouldNotReachHere("No declaration frame with visibility found");
     }
 
     public static Visibility findVisibility(Frame frame) {
-        final Frame visibilityFrame = lookupVisibility(frame);
-        return RubyArguments.getDeclarationContext(visibilityFrame).visibility;
+        return lookupVisibility(frame).visibility;
     }
 
     /** See rb_vm_cref_in_context() in CRuby */
     public static Visibility findVisibilityCheckSelfAndDefaultDefinee(RubyModule module, Frame callerFrame) {
-        final Frame visibilityFrame = lookupVisibility(callerFrame);
-        final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
+        final DeclarationContext declarationContext = lookupVisibility(callerFrame);
         if (declarationContext == DeclarationContext.NONE) {
             // For Java core methods, e.g. method(:attr_accessor).to_proc as in spec/truffle/always_inlined_spec.rb
             // The generated Proc uses the DeclarationContext from Module#attr_accessor and knows nothing about the
@@ -139,10 +141,22 @@ public class DeclarationContext {
     }
 
     private static void changeVisibility(Frame frame, Visibility newVisibility) {
-        final Frame visibilityFrame = lookupVisibility(frame);
-        final DeclarationContext oldDeclarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
-        if (newVisibility != oldDeclarationContext.visibility) {
-            RubyArguments.setDeclarationContext(visibilityFrame, oldDeclarationContext.withVisibility(newVisibility));
+        // We must manually tail duplicate here. The first branch is potentially on a VirtualFrame and the second on a
+        // MaterializedFrame and merging would allocate a VirtualFrame, which results in a compiler error.
+        final DeclarationContext topDeclarationContext = RubyArguments.getDeclarationContext(frame);
+        final Visibility visibility = topDeclarationContext.visibility;
+        if (visibility != null) {
+            if (newVisibility != topDeclarationContext.visibility) {
+                RubyArguments.setDeclarationContext(frame, topDeclarationContext.withVisibility(newVisibility));
+            }
+        } else {
+            final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame);
+            final Frame visibilityFrame = lookupVisibilityInternal(declarationFrame);
+            final DeclarationContext oldDeclarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
+            if (newVisibility != oldDeclarationContext.visibility) {
+                RubyArguments
+                        .setDeclarationContext(visibilityFrame, oldDeclarationContext.withVisibility(newVisibility));
+            }
         }
     }
 

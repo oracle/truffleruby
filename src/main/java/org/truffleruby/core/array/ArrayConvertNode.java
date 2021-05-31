@@ -9,27 +9,34 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.cast.ArrayCastNode;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 
-/** Attempts converting its argument to an array, via {@link ArrayCastNode} (i.e. calling "to_ary"), or if that doesn't
- * work, by wrapping it inside a one-element array. */
-public final class ArrayConvertNode extends RubyContextNode {
+/** Attempts converting its argument to an array by calling #to_ary, or if that doesn't work, by wrapping it inside a
+ * one-element array. */
+public abstract class ArrayConvertNode extends RubyContextNode {
 
-    @Child ArrayCastNode arrayCast = ArrayCastNode.create();
-    @Child ArrayBuilderNode arrayBuilder = ArrayBuilderNode.create();
-    private final ConditionProfile cantCast = ConditionProfile.create();
+    public abstract RubyArray execute(Object value);
 
-    public static ArrayConvertNode create() {
-        return new ArrayConvertNode();
+    @Specialization
+    protected RubyArray castArray(RubyArray array) {
+        return array;
     }
 
-    public RubyArray execute(Object object) {
-        Object converted = arrayCast.execute(object);
-        if (cantCast.profile(converted == nil)) {
+    @Specialization(guards = "!isRubyArray(object)")
+    protected RubyArray cast(Object object,
+            @Cached ConditionProfile canCast,
+            @Cached ArrayBuilderNode arrayBuilder,
+            @Cached(parameters = "PRIVATE_RETURN_MISSING") DispatchNode toArrayNode) {
+        final Object result = toArrayNode.call(object, "to_ary");
+        if (canCast.profile(result instanceof RubyArray)) {
+            return (RubyArray) result;
+        } else {
             return ArrayHelpers.specializedRubyArrayOf(getContext(), getLanguage(), arrayBuilder, object);
         }
-        return (RubyArray) converted;
     }
+
 }

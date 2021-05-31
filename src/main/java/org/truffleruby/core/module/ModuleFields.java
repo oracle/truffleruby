@@ -12,6 +12,7 @@ package org.truffleruby.core.module;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -113,6 +115,17 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     // Concurrency: only modified during boot
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
+    /** A weak set of all classes include-ing or prepend-ing this module M, and of modules which where already prepended
+     * before to such classes. Used by method invalidation so that lookups before the include/prepend is done can be
+     * invalidated when a method is added later in M. When M is an included module, defining a method on M only needs to
+     * invalidate classes in which M is included. However, when M is a prepended module defining a method on M needs to
+     * invalidate classes and other modules which were prepended before M (since the method could be defined there, and
+     * then the assumption on M would not be checked). Not that there is no need to be transitive here, include/prepend
+     * snapshot the modules to include alongside M, and later M.include/M.prepend have no effect on classes already
+     * including M. In other words,
+     * {@code module A; end; module B; end; class C; end; C.include A; A.include B; C.ancestors.include?(B) => false} */
+    private final Set<RubyModule> includedBy;
+
     public ModuleFields(
             RubyLanguage language,
             SourceSection sourceSection,
@@ -128,6 +141,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
+        this.includedBy = rubyModule instanceof RubyClass
+                ? null
+                : Collections.newSetFromMap(Collections.synchronizedMap(new WeakHashMap<>()));
     }
 
     public RubyConstant getAdoptedByLexicalParent(
@@ -295,11 +311,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
         while (!moduleAncestors.isEmpty()) {
-            RubyModule mod = moduleAncestors.pop();
-            inclusionPoint.insertAfter(mod);
-            // Module#include only adds modules between the current class and the super class,
-            // so invalidating the current class is enough as all affected lookups would go through the current class.
-            newMethodsVersion(mod.fields.getMethodNames());
+            RubyModule toInclude = moduleAncestors.pop();
+            inclusionPoint.insertAfter(toInclude);
+            if (rubyModule instanceof RubyClass) { // M.include(N) just registers N but does nothing until C.include/prepend(M)
+                toInclude.fields.includedBy.add(rubyModule);
+                // Module#include only adds modules between the current class and the super class,
+                // so invalidating the current class is enough as all affected lookups would go through the current class.
+                newMethodsVersion(toInclude.fields.getMethodNames());
+            }
         }
     }
 
@@ -327,19 +346,27 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
-        // Previous calls on instances of the current class must have looked up through the first prepended module,
-        // so invalidate that one.
-        final ModuleFields moduleFieldsToInvalidate = getFirstModuleChain().getActualModule().fields;
+        /* We need to invalidate all prepended modules and the class, because call sites which looked up methods before
+         * only check the class or one of the prepend module (if the method is defined there). */
+        final List<RubyModule> prependedModulesAndClass = rubyModule instanceof RubyClass
+                ? getPrependedModulesAndClass()
+                : null;
 
         ModuleChain mod = module.fields.start;
         ModuleChain cur = start;
         while (mod != null &&
                 !(mod instanceof ModuleFields && ((ModuleFields) mod).rubyModule instanceof RubyClass)) {
             if (!(mod instanceof PrependMarker)) {
-                final RubyModule actualModule = mod.getActualModule();
-                if (!ModuleOperations.includesModule(rubyModule, actualModule)) {
-                    cur.insertAfter(actualModule);
-                    moduleFieldsToInvalidate.newMethodsVersion(actualModule.fields.getMethodNames());
+                final RubyModule toPrepend = mod.getActualModule();
+                if (!ModuleOperations.includesModule(rubyModule, toPrepend)) {
+                    cur.insertAfter(toPrepend);
+                    if (rubyModule instanceof RubyClass) { // M.prepend(N) just registers N but does nothing until C.prepend/include(M)
+                        final List<String> methodsToInvalidate = toPrepend.fields.getMethodNames();
+                        for (RubyModule moduleToInvalidate : prependedModulesAndClass) {
+                            toPrepend.fields.includedBy.add(moduleToInvalidate);
+                            moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
+                        }
+                    }
                     cur = cur.getParentModule();
                 }
             }
@@ -347,9 +374,20 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         // If there were already prepended modules, invalidate the first of them
-        moduleFieldsToInvalidate.newHierarchyVersion();
+        newHierarchyVersion();
 
         invalidateBuiltinsAssumptions();
+    }
+
+    private List<RubyModule> getPrependedModulesAndClass() {
+        final List<RubyModule> prependedModulesAndClass = new ArrayList<>();
+        ModuleChain chain = getFirstModuleChain();
+        while (chain != this) {
+            prependedModulesAndClass.add(chain.getActualModule());
+            chain = chain.getParentModule();
+        }
+        prependedModulesAndClass.add(rubyModule);
+        return prependedModulesAndClass;
     }
 
     /** Set the value of a constant, possibly redefining it. */
@@ -463,6 +501,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (previousMethodEntry != null) {
                 previousMethodEntry.invalidate(rubyModule, method.getName());
             }
+
+            if (includedBy != null && !includedBy.isEmpty()) {
+                invalidateIncludedBy(method.getName());
+            }
+
             // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
             if (refinedModule != null) {
@@ -733,17 +776,27 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public void newMethodsVersion(List<String> methodsToInvalidate) {
-        for (String entryToInvalidate : methodsToInvalidate) {
-            while (true) {
-                final MethodEntry methodEntry = methods.get(entryToInvalidate);
-                if (methodEntry == null) {
-                    break;
-                } else {
-                    methodEntry.invalidate(rubyModule, entryToInvalidate);
-                    if (methods.replace(entryToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
-                        break;
-                    }
+    private void invalidateIncludedBy(String method) {
+        for (RubyModule module : includedBy) {
+            module.fields.newMethodVersion(method);
+        }
+    }
+
+    public void newMethodsVersion(Collection<String> methodsToInvalidate) {
+        for (String name : methodsToInvalidate) {
+            newMethodVersion(name);
+        }
+    }
+
+    private void newMethodVersion(String methodToInvalidate) {
+        while (true) {
+            final MethodEntry methodEntry = methods.get(methodToInvalidate);
+            if (methodEntry == null) {
+                return;
+            } else {
+                if (methods.replace(methodToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
+                    methodEntry.invalidate(rubyModule, methodToInvalidate);
+                    return;
                 }
             }
         }

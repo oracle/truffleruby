@@ -866,11 +866,11 @@ module Truffle::CExt
   end
 
   def rb_funcall_with_block(recv, meth, args, block)
-    recv.public_send(meth, *args, &block)
+    Primitive.public_send_without_cext_lock(recv, meth, args, block)
   end
 
   def rb_funcallv_public(recv, meth, args)
-    recv.public_send(meth, *args)
+    Primitive.public_send_without_cext_lock(recv, meth, args, nil)
   end
 
   def rb_funcallv(recv, meth, args)
@@ -881,13 +881,15 @@ module Truffle::CExt
     # see #call_with_thread_locally_stored_block
     thread_local_block = Thread.current[:__C_BLOCK__]
     Thread.current[:__C_BLOCK__] = nil
-    recv.__send__(meth, *args, &thread_local_block)
-  ensure
-    Thread.current[:__C_BLOCK__] = thread_local_block
+    begin
+      Primitive.send_without_cext_lock(recv, meth, args, thread_local_block)
+    ensure
+      Thread.current[:__C_BLOCK__] = thread_local_block
+    end
   end
 
   def rb_apply(recv, meth, args)
-    recv.__send__(meth, *args)
+    Primitive.send_without_cext_lock(recv, meth, args, nil)
   end
 
   def rb_define_attr(klass, name, read, write)
@@ -1645,9 +1647,11 @@ module Truffle::CExt
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
-    Primitive.call_without_c_mutex(-> {
-      Primitive.call_with_unblocking_function(Thread.current, function, data1, unblock, data2)
-    }, [])
+    Primitive.send_without_cext_lock(self, :rb_thread_call_without_gvl_inner, [function, data1, unblock, data2], nil)
+  end
+
+  private def rb_thread_call_without_gvl_inner(function, data1, unblock, data2)
+    Primitive.call_with_unblocking_function(Thread.current, function, data1, unblock, data2)
   end
 
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
@@ -1672,14 +1676,14 @@ module Truffle::CExt
   def rb_thread_wait_fd(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    Primitive.call_without_c_mutex(IO.method(:select), [[io]])
+    Primitive.send_without_cext_lock(IO, :select, [[io]], nil)
     nil
   end
 
   def rb_thread_fd_writable(fd)
     io = IO.for_fd(fd)
     io.autoclose = false
-    _r, w, _e = Primitive.call_without_c_mutex(IO.method(:select), [nil, [io]])
+    _r, w, _e = Primitive.send_without_cext_lock(IO, :select, [nil, [io]], nil)
     w.size
   end
 
@@ -1698,7 +1702,7 @@ module Truffle::CExt
     if tv_secs >= 0 || tv_usecs >= 0
       timeout = tv_secs + tv_usecs/1.0e6
     end
-    r, w, e = Primitive.call_without_c_mutex(IO.method(:select), [read, write, error, *timeout])
+    r, w, e = Primitive.send_without_cext_lock(IO, :select, [read, write, error, *timeout], nil)
     if r.nil? # timeout
       0
     else

@@ -10,6 +10,8 @@ Bug fixes:
 * `Truffle::POSIX.select` was being redefined repeatedly (#2332).
 * Fix the `--backtraces-raise` and `--backtraces-rescue` options in JVM mode (#2335).
 * Fix `File.{atime, mtime, ctime}` to include nanoseconds (#2337).
+* Fix `Array#[a, b] = "frozen string literal".freeze` (#2355).
+* `rb_funcall()` now releases the C-extension lock (similar to MRI).
 
 Compatibility:
 
@@ -27,6 +29,9 @@ Compatibility:
 * Implement `Fiber#raise` (#2338).
 * Update `File.basename` to return new `String` instances (#2343).
 * Allow `Fiber#raise` after `Fiber#transfer` like Ruby 3.0 (#2342).
+* Fix `ObjectSpace._id2ref` for Symbols and frozen String literals (#2358).
+* Implemented `Enumerator::Lazy#filter_map` (#2356).
+* Fix LLVM toolchain issue on macOS 10.13 (#2352, [oracle/graal#3383](https://github.com/oracle/graal/issues/3383)).
 
 Performance:
 

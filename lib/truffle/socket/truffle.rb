@@ -131,7 +131,7 @@ module Truffle
     end
 
     def self.accept_nonblock(source, new_class, exception)
-      source.fcntl(::Fcntl::F_SETFL, ::Fcntl::O_NONBLOCK)
+      source.nonblock = true
 
       internal_accept(source, new_class, exception)
     end

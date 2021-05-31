@@ -42,20 +42,16 @@ class IO
   module WaitWritable; end
 
   class EAGAINWaitReadable < Errno::EAGAIN
-    include IO::WaitReadable
-  end
-
-  class EAGAINWaitWritable < Errno::EAGAIN
-    include IO::WaitWritable
-  end
-
-  class EWOULDBLOCKWaitReadable < Errno::EAGAIN
     include WaitReadable
   end
 
-  class EWOULDBLOCKWaitWritable < Errno::EAGAIN
+  class EAGAINWaitWritable < Errno::EAGAIN
     include WaitWritable
   end
+
+  # EAGAIN and EWOULDBLOCK are checked to to be the same in posix.rb
+  EWOULDBLOCKWaitReadable = EAGAINWaitReadable
+  EWOULDBLOCKWaitWritable = EAGAINWaitWritable
 
   class EINPROGRESSWaitReadable < Errno::EINPROGRESS
     include WaitReadable

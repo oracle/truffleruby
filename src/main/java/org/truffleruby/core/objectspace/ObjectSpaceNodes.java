@@ -25,6 +25,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -80,8 +81,8 @@ public abstract class ObjectSpaceNodes {
                 long objectID = 0L;
                 if (object instanceof RubyDynamicObject) {
                     objectID = ObjectSpaceManager.readObjectID((RubyDynamicObject) object, objectLibrary);
-                } else if (object instanceof RubySymbol) {
-                    objectID = ((RubySymbol) object).getObjectId();
+                } else if (object instanceof ImmutableRubyObject) {
+                    objectID = ((ImmutableRubyObject) object).getObjectId();
                 }
 
                 if (objectID == id) {
