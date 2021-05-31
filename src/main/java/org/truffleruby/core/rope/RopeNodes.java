@@ -24,6 +24,7 @@ import java.util.Arrays;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -280,14 +281,21 @@ public abstract class RopeNodes {
         @Specialization(
                 rewriteOn = NonAsciiCharException.class,
                 guards = { "!bytes.isEmpty()", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        protected StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, Bytes bytes)
+        protected StringAttributes calculateAttributesAsciiCompatible(Encoding encoding, Bytes bytes,
+                @Cached LoopConditionProfile loopProfile)
                 throws NonAsciiCharException {
             // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
             // fail over to a more generalized search.
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes.get(i) < 0) {
-                    throw new NonAsciiCharException();
+
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < bytes.length); i++) {
+                    if (bytes.get(i) < 0) {
+                        throw new NonAsciiCharException();
+                    }
                 }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
 
             return new StringAttributes(bytes.length, CR_7BIT);
@@ -1724,6 +1732,7 @@ public abstract class RopeNodes {
                 @Cached ConditionProfile equalProfile,
                 @Cached ConditionProfile notComparableProfile,
                 @Cached ConditionProfile encodingIndexGreaterThanProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached BytesNode firstBytesNode,
                 @Cached BytesNode secondBytesNode,
                 @Cached AreComparableRopesNode areComparableRopesNode) {
@@ -1740,7 +1749,7 @@ public abstract class RopeNodes {
             final byte[] otherBytes = secondBytesNode.execute(secondRope);
 
             final int ret;
-            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength);
+            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength, this, loopProfile);
             if (equalSubsequenceProfile.profile(cmp == 0)) {
                 if (equalLengthProfile.profile(firstRope.byteLength() == secondRope.byteLength())) {
                     ret = 0;

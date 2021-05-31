@@ -3475,7 +3475,7 @@ public class RubyLexer implements MagicCommentHandler {
             return false;
         }
 
-        return ArrayUtils.memcmp(one.getBytes(), 0, two.getBytes(), 0, length) == 0;
+        return ArrayUtils.regionEquals(one.getBytes(), 0, two.getBytes(), 0, length);
     }
 
     public void tokAdd(int first_byte, RopeBuilder buffer) {

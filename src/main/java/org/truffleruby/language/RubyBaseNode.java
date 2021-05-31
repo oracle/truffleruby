@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 
@@ -39,6 +40,18 @@ public abstract class RubyBaseNode extends Node {
 
     public static Object nullToNil(Object value) {
         return value == null ? nil : value;
+    }
+
+    /** Variants for {@link com.oracle.truffle.api.library.Library}. The node argument should typically be
+     * {@code node.getNode()} with {@code @CachedLibrary("this") ArrayStoreLibrary node} */
+    public static void profileAndReportLoopCount(Node node, LoopConditionProfile loopProfile, int count) {
+        loopProfile.profileCounted(count);
+        LoopNode.reportLoopCount(node, count);
+    }
+
+    public void profileAndReportLoopCount(LoopConditionProfile loopProfile, int count) {
+        loopProfile.profileCounted(count);
+        LoopNode.reportLoopCount(this, count);
     }
 
     protected void reportLongLoopCount(long count) {

@@ -433,7 +433,7 @@ public abstract class MatchDataNodes {
             } else if (nameEnd - nameP != byteLength) {
                 return false;
             } else {
-                return ArrayUtils.memcmp(bytes, 0, name, nameP, byteLength) == 0;
+                return ArrayUtils.regionEquals(bytes, 0, name, nameP, byteLength);
             }
         }
     }

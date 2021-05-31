@@ -26,6 +26,7 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -1574,10 +1575,16 @@ public abstract class ModuleNodes {
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached BranchProfile errorProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
             checkNotClass(module, errorProfile, contextRef);
-            for (Object name : names) {
-                setMethodVisibilityNode.execute(module, name, Visibility.MODULE_FUNCTION);
+            int i = 0;
+            try {
+                for (; loopProfile.inject(i < names.length); ++i) {
+                    setMethodVisibilityNode.execute(module, names[i], Visibility.MODULE_FUNCTION);
+                }
+            } finally {
+                profileAndReportLoopCount(loopProfile, i);
             }
             return module;
         }
