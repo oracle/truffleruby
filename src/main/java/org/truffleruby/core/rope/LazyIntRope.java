@@ -24,7 +24,7 @@ public class LazyIntRope extends ManagedRope {
         this(value, USASCIIEncoding.INSTANCE, length(value));
     }
 
-    protected LazyIntRope(int value, Encoding encoding, int length) {
+    public LazyIntRope(int value, Encoding encoding, int length) {
         super(encoding, CodeRange.CR_7BIT, length, length, null);
         this.value = value;
         assert Integer.toString(value).length() == length;

@@ -42,6 +42,7 @@ Performance:
 * Improved the performance of the exceptional case of `String#chr` (#2318, @chrisseaton).
 * Improved the performance of `IO#read_nonblock` when no data is available to be read.
 * `TruffleSafepoint` is now used instead of custom logic, which no longer invalidates JITed code for guest safepoints (e.g., `Thread#{backtrace,raise,kill}`, `ObjectSpace`, etc)
+* Significantly improved performance of `Time#strftime` for common formats (#2361, @wildmaples, @chrisseaton).
 
 Changes:
 

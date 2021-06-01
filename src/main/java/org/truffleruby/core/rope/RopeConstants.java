@@ -18,35 +18,36 @@ import org.jcodings.specific.UTF8Encoding;
 
 public class RopeConstants {
 
+    public static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
+
     public static final byte[] EMPTY_BYTES = new byte[0];
 
-    public static final LeafRope EMPTY_ASCII_8BIT_ROPE = new AsciiOnlyLeafRope(EMPTY_BYTES, ASCIIEncoding.INSTANCE)
-            .computeHashCode();
-    public static final LeafRope EMPTY_US_ASCII_ROPE = new AsciiOnlyLeafRope(EMPTY_BYTES, USASCIIEncoding.INSTANCE)
-            .computeHashCode();
-    public static final LeafRope EMPTY_UTF8_ROPE = new AsciiOnlyLeafRope(EMPTY_BYTES, UTF8Encoding.INSTANCE)
-            .computeHashCode();
+    public static final LeafRope EMPTY_ASCII_8BIT_ROPE = withHashCode(
+            new AsciiOnlyLeafRope(EMPTY_BYTES, ASCIIEncoding.INSTANCE));
+    public static final LeafRope EMPTY_US_ASCII_ROPE = withHashCode(
+            new AsciiOnlyLeafRope(EMPTY_BYTES, USASCIIEncoding.INSTANCE));
+    public static final LeafRope EMPTY_UTF8_ROPE = withHashCode(
+            new AsciiOnlyLeafRope(EMPTY_BYTES, UTF8Encoding.INSTANCE));
 
     public static final LeafRope[] UTF8_SINGLE_BYTE_ROPES = new LeafRope[256];
     public static final LeafRope[] US_ASCII_SINGLE_BYTE_ROPES = new LeafRope[256];
     public static final LeafRope[] ASCII_8BIT_SINGLE_BYTE_ROPES = new LeafRope[256];
-    static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
 
     static {
         for (int i = 0; i < 128; i++) {
             final byte[] bytes = new byte[]{ (byte) i };
 
-            UTF8_SINGLE_BYTE_ROPES[i] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE).computeHashCode();
-            US_ASCII_SINGLE_BYTE_ROPES[i] = new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
-            ASCII_8BIT_SINGLE_BYTE_ROPES[i] = new AsciiOnlyLeafRope(bytes, ASCIIEncoding.INSTANCE).computeHashCode();
+            UTF8_SINGLE_BYTE_ROPES[i] = withHashCode(new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE));
+            US_ASCII_SINGLE_BYTE_ROPES[i] = withHashCode(new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE));
+            ASCII_8BIT_SINGLE_BYTE_ROPES[i] = withHashCode(new AsciiOnlyLeafRope(bytes, ASCIIEncoding.INSTANCE));
         }
 
         for (int i = 128; i < 256; i++) {
             final byte[] bytes = new byte[]{ (byte) i };
 
-            UTF8_SINGLE_BYTE_ROPES[i] = new InvalidLeafRope(bytes, UTF8Encoding.INSTANCE, 1).computeHashCode();
-            US_ASCII_SINGLE_BYTE_ROPES[i] = new InvalidLeafRope(bytes, USASCIIEncoding.INSTANCE, 1).computeHashCode();
-            ASCII_8BIT_SINGLE_BYTE_ROPES[i] = new ValidLeafRope(bytes, ASCIIEncoding.INSTANCE, 1).computeHashCode();
+            UTF8_SINGLE_BYTE_ROPES[i] = withHashCode(new InvalidLeafRope(bytes, UTF8Encoding.INSTANCE, 1));
+            US_ASCII_SINGLE_BYTE_ROPES[i] = withHashCode(new InvalidLeafRope(bytes, USASCIIEncoding.INSTANCE, 1));
+            ASCII_8BIT_SINGLE_BYTE_ROPES[i] = withHashCode(new ValidLeafRope(bytes, ASCIIEncoding.INSTANCE, 1));
         }
     }
 
@@ -109,7 +110,7 @@ public class RopeConstants {
             return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
         } else {
             final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
-            final LeafRope rope = new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
+            final LeafRope rope = withHashCode(new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE));
             final Rope existing = ROPE_CONSTANTS.putIfAbsent(string, rope);
             if (existing != null) {
                 throw new AssertionError("Duplicate Rope in RopeConstants: " + existing);
@@ -124,6 +125,52 @@ public class RopeConstants {
         } else {
             return ROPE_CONSTANTS.get(string);
         }
+    }
+
+    private static final LeafRope[] PADDED_NUMBERS = createPaddedNumbersTable();
+
+    private static LeafRope[] createPaddedNumbersTable() {
+        final LeafRope[] table = new LeafRope[100];
+
+        for (int n = 0; n < table.length; n++) {
+            table[n] = new AsciiOnlyLeafRope(
+                    new byte[]{ (byte) ('0' + n / 10), (byte) ('0' + n % 10) },
+                    UTF8Encoding.INSTANCE);
+        }
+
+        return table;
+    }
+
+    /*** Zero-padded numbers in the format %02d, between 00 and 99. */
+    public static LeafRope paddedNumber(int n) {
+        return PADDED_NUMBERS[n];
+    }
+
+    private static final LeafRope[] PADDING_ZEROS = createPaddingZeroTable();
+
+    private static LeafRope[] createPaddingZeroTable() {
+        final LeafRope[] table = new LeafRope[6];
+
+        for (int n = 0; n < table.length; n++) {
+            final byte[] bytes = new byte[n];
+
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = '0';
+            }
+
+            table[n] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE);
+        }
+
+        return table;
+    }
+
+    public static LeafRope paddingZeros(int n) {
+        return PADDING_ZEROS[n];
+    }
+
+    private static <T> T withHashCode(T object) {
+        object.hashCode();
+        return object;
     }
 
 }

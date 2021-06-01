@@ -56,14 +56,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ErrnoErrorNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.LazyIntRope;
+import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
@@ -175,21 +182,32 @@ public abstract class RubyDateFormatter {
         }
     }
 
+    public static final Token[] EMPTY_TOKEN_ARRAY = new Token[0];
+
     public static class Token {
         private final Format format;
         private final Object data;
+        private final LeafRope rope;
 
         protected Token(Format format) {
             this(format, null);
         }
 
         protected Token(Format formatString, Object data) {
+            this(formatString, data, null);
+        }
+
+        protected Token(Format formatString, Object data, LeafRope rope) {
             this.format = formatString;
             this.data = data;
+            this.rope = rope;
         }
 
         public static Token str(String str) {
-            return new Token(Format.FORMAT_STRING, str);
+            return new Token(
+                    Format.FORMAT_STRING,
+                    str,
+                    StringOperations.encodeRope(str, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         public static Token format(char c) {
@@ -209,14 +227,18 @@ public abstract class RubyDateFormatter {
         }
 
         /** Gets the data.
-         * 
+         *
          * @return Returns a Object */
         public Object getData() {
             return data;
         }
 
+        public LeafRope getRope() {
+            return rope;
+        }
+
         /** Gets the format.
-         * 
+         *
          * @return Returns a int */
         public Format getFormat() {
             return format;
@@ -240,7 +262,7 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static List<Token> compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
+    public static Token[] compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
         List<Token> compiledPattern = new LinkedList<>();
 
         Encoding enc = pattern.getEncoding();
@@ -328,7 +350,7 @@ public abstract class RubyDateFormatter {
             }
         }
 
-        return compiledPattern;
+        return compiledPattern.toArray(RubyDateFormatter.EMPTY_TOKEN_ARRAY);
     }
 
     enum FieldType {
@@ -350,7 +372,7 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone,
+    public static RopeBuilder formatToRopeBuilder(Token[] compiledPattern, ZonedDateTime dt, Object zone,
             RubyContext context, RubyLanguage language, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
@@ -369,7 +391,7 @@ public abstract class RubyDateFormatter {
                     formatter = (RubyTimeOutputFormatter) token.getData();
                     continue; // go to next token
                 case FORMAT_STRING:
-                    output = token.getData().toString();
+                    output = (String) token.getData();
                     break;
                 case FORMAT_WEEK_LONG:
                     // This is GROSS, but Java API's aren't ISO 8601 compliant at all
@@ -542,6 +564,125 @@ public abstract class RubyDateFormatter {
         }
 
         return toAppendTo;
+    }
+
+    public static boolean formatToRopeBuilderCanBeFast(Token[] compiledPattern) {
+        for (int i = 0, compiledPatternLength = compiledPattern.length; i < compiledPatternLength; i++) {
+            Token token = compiledPattern[i];
+            Format format = token.getFormat();
+
+            switch (format) {
+                case FORMAT_ENCODING:
+                    // We only care about UTF8 encoding
+                    if (token.getData() != UTF8Encoding.INSTANCE) {
+                        return false;
+                    }
+                    break;
+                case FORMAT_OUTPUT:
+                    RubyTimeOutputFormatter formatter = (RubyTimeOutputFormatter) token.getData();
+
+                    // Check for the attributes present in the default case
+                    if (!formatter.flags.isEmpty()) {
+                        return false;
+                    }
+                    if (formatter.width != 6) {
+                        return false;
+                    }
+
+                    // FORMAT_NANOSEC should always come after FORMAT_OUTPUT
+                    if (compiledPattern[i + 1].getFormat() != Format.FORMAT_NANOSEC) {
+                        return false;
+                    }
+                    break;
+                case FORMAT_STRING:
+                case FORMAT_DAY:
+                case FORMAT_HOUR:
+                case FORMAT_MINUTES:
+                case FORMAT_MONTH:
+                case FORMAT_SECONDS:
+                case FORMAT_YEAR_LONG:
+                case FORMAT_NANOSEC:
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    @ExplodeLoop
+    public static Rope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
+            RopeNodes.ConcatNode concatNode, RopeNodes.SubstringNode substringNode) {
+        Rope rope = null;
+
+        for (Token token : compiledPattern) {
+            final Rope appendRope;
+
+            switch (token.getFormat()) {
+                case FORMAT_ENCODING:
+                case FORMAT_OUTPUT:
+                    continue;
+
+                case FORMAT_STRING:
+                    appendRope = token.getRope();
+                    break;
+                case FORMAT_DAY:
+                    appendRope = RopeConstants.paddedNumber(dt.getDayOfMonth());
+                    break;
+                case FORMAT_HOUR:
+                    appendRope = RopeConstants.paddedNumber(dt.getHour());
+                    break;
+                case FORMAT_MINUTES:
+                    appendRope = RopeConstants.paddedNumber(dt.getMinute());
+                    break;
+                case FORMAT_MONTH:
+                    appendRope = RopeConstants.paddedNumber(dt.getMonthValue());
+                    break;
+                case FORMAT_SECONDS:
+                    appendRope = RopeConstants.paddedNumber(dt.getSecond());
+                    break;
+
+                case FORMAT_YEAR_LONG: {
+                    final int value = dt.getYear();
+
+                    assert value >= 1000;
+                    assert value <= 9999;
+
+                    appendRope = new LazyIntRope(value, UTF8Encoding.INSTANCE, 4);
+                }
+                    break;
+
+                case FORMAT_NANOSEC: {
+                    final int nano = dt.getNano();
+                    final LazyIntRope nanoRope = new LazyIntRope(nano);
+
+                    final int length = 6;
+                    final int padding = length - nanoRope.characterLength();
+
+                    if (padding == 0) {
+                        appendRope = nanoRope;
+                    } else if (padding < 0) {
+                        appendRope = substringNode.executeSubstring(nanoRope, 0, length);
+                    } else {
+                        appendRope = concatNode
+                                .executeConcat(nanoRope, RopeConstants.paddingZeros(padding), UTF8Encoding.INSTANCE);
+                    }
+                }
+                    break;
+
+                default:
+                    throw CompilerDirectives.shouldNotReachHere();
+            }
+
+            if (rope == null) {
+                rope = appendRope;
+            } else {
+                rope = concatNode.executeConcat(rope, appendRope, UTF8Encoding.INSTANCE);
+            }
+        }
+
+        return rope;
     }
 
     private static int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {

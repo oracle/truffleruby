@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -47,7 +48,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.List;
 
 @CoreModule(value = "Time", isClass = true)
 public abstract class TimeNodes {
@@ -420,24 +420,49 @@ public abstract class TimeNodes {
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
-                @Cached("compilePattern(cachedFormat)") List<Token> pattern,
-                @Cached RopeNodes.EqualNode equalNode) {
-            return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+                @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
+                @Cached RopeNodes.EqualNode equalNode,
+                @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast,
+                @Cached ConditionProfile yearIsFastProfile,
+                @Cached RopeNodes.ConcatNode concatNode,
+                @Cached RopeNodes.SubstringNode substringNode) {
+            if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
+                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeBuilderFast(
+                        pattern,
+                        time.dateTime,
+                        concatNode,
+                        substringNode));
+            } else {
+                return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+            }
+        }
+
+        protected boolean formatToRopeBuilderCanBeFast(Token[] pattern) {
+            return RubyDateFormatter.formatToRopeBuilderCanBeFast(pattern);
+        }
+
+        protected boolean yearIsFast(RubyTime time) {
+            // See formatToRopeBuilderCanBeFast
+            final int year = time.dateTime.getYear();
+            return year >= 1000 && year <= 9999;
         }
 
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(VirtualFrame frame, RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat) {
-            final List<Token> pattern = compilePattern(libFormat.getRope(format));
-            return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+            final Token[] pattern = compilePattern(libFormat.getRope(format));
+            return makeStringNode.fromBuilderUnsafe(
+                    formatTime(time, pattern),
+                    CodeRange.CR_UNKNOWN);
         }
 
-        @TruffleBoundary
-        protected List<Token> compilePattern(Rope format) {
+        protected Token[] compilePattern(Rope format) {
             return RubyDateFormatter.compilePattern(format, false, getContext(), this);
         }
 
-        private RopeBuilder formatTime(RubyTime time, List<Token> pattern) {
+        // Optimised for the default Logger::Formatter time format: "%Y-%m-%dT%H:%M:%S.%6N "
+
+        private RopeBuilder formatTime(RubyTime time, Token[] pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
                     pattern,
                     time.dateTime,
