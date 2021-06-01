@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.rope;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -154,9 +155,7 @@ public class RopeConstants {
         for (int n = 0; n < table.length; n++) {
             final byte[] bytes = new byte[n];
 
-            for (int i = 0; i < bytes.length; i++) {
-                bytes[i] = '0';
-            }
+            Arrays.fill(bytes, (byte) '0');
 
             table[n] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE);
         }
