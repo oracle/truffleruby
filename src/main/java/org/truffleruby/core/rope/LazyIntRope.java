@@ -10,6 +10,7 @@
 package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -30,7 +31,7 @@ public class LazyIntRope extends ManagedRope {
         assert Integer.toString(value).length() == length : value + " " + length;
     }
 
-    private static final int[] LENGTH_TABLE = {
+    @CompilationFinal(dimensions = 1) private static final int[] LENGTH_TABLE = {
             9,
             99,
             999,
@@ -42,7 +43,8 @@ public class LazyIntRope extends ManagedRope {
             999999999,
             Integer.MAX_VALUE };
 
-    // From https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/master/2021/05/28/digitcount.java
+    // From https://lemire.me/blog/2021/05/28/computing-the-number-of-digits-of-an-integer-quickly/
+    // and https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/9d4cd21d0a/2021/05/28/digitcount.java (license: public domain)
     private static int length(int value) {
         final int sign;
         if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value < 0)) {
