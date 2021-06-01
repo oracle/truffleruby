@@ -512,7 +512,6 @@ public class RubyContext {
             consoleHolder.close();
         }
 
-        threadManager.cleanupMainThread();
         threadManager.dispose();
         threadManager.checkNoRunningThreads();
 
