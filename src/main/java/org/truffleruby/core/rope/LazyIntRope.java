@@ -40,15 +40,11 @@ public class LazyIntRope extends ManagedRope {
             9999999,
             99999999,
             999999999,
-            2147483647 };
+            Integer.MAX_VALUE };
 
+    // From https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/master/2021/05/28/digitcount.java
     private static int length(int value) {
-        if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value == 0)) {
-            return 1;
-        }
-
         final int sign;
-
         if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value < 0)) {
             sign = 1;
             value = -value;
@@ -56,8 +52,8 @@ public class LazyIntRope extends ManagedRope {
             sign = 0;
         }
 
-        final int bits = 31 - Integer.numberOfLeadingZeros(value);
-        int digits = ((77 * bits) >>> 8);
+        final int bits = 31 - Integer.numberOfLeadingZeros(value | 1);
+        int digits = ((9 * bits) >>> 5);
 
         if (value > LENGTH_TABLE[digits]) {
             digits += 1;
