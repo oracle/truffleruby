@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
@@ -141,11 +142,17 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public static RubyNode profileArgument(RubyLanguage language, RubyNode argumentNode) {
+        RubyNode node = argumentNode;
+
         if (language.options.PROFILE_ARGUMENTS) {
-            return ProfileArgumentNodeGen.create(argumentNode);
-        } else {
-            return argumentNode;
+            node = ProfileArgumentNodeGen.create(node);
         }
+
+        if (language.options.CHAOS_DATA) {
+            node = ChaosNode.create(node);
+        }
+
+        return node;
     }
 
     public static <T extends RubyNode> T withSourceSection(SourceIndexLength sourceSection, T node) {

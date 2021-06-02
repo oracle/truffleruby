@@ -1160,6 +1160,15 @@ public abstract class IntegerNodes {
             return rightShiftNode.executeRightShift(a, absoluteValue(b));
         }
 
+        @Specialization(guards = "b < 0")
+        protected Object leftShiftNeg(long a, long b) {
+            if (rightShiftNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                rightShiftNode = insert(RightShiftNodeFactory.create(null));
+            }
+            return rightShiftNode.executeRightShift(a, absoluteValue(b));
+        }
+
         @Specialization
         protected Object leftShift(RubyBignum a, int b,
                 @Cached ConditionProfile bPositive) {
@@ -1956,7 +1965,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object upto(long from, double to, RubyProc block) {
-            return upto(from, (long) Math.ceil(to), block);
+            return upto(from, (long) Math.floor(to), block);
         }
 
         @Specialization(guards = "isRubyBignum(from) || !isImplicitLongOrDouble(to)")

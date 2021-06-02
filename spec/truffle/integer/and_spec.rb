@@ -20,39 +20,41 @@ describe "Integer#&" do
     @and.call(@long, @long)
   end
 
-  it "returns an int for (int, int)" do
-    result = (1 & 3)
-    result.should == 1
-    Truffle::Debug.java_class_of(result).should == 'Integer'
+  guard -> { !Truffle::Boot.get_option('chaos-data') } do
+    it "returns an int for (int, int)" do
+      result = (1 & 3)
+      result.should == 1
+      Truffle::Debug.java_class_of(result).should == 'Integer'
 
-    result = @and.call(1, 3)
-    result.should == 1
-    Truffle::Debug.java_class_of(result).should == 'Integer'
-  end
+      result = @and.call(1, 3)
+      result.should == 1
+      Truffle::Debug.java_class_of(result).should == 'Integer'
+    end
 
-  it "returns an int for (long, int)" do
-    Truffle::Debug.java_class_of(@long).should == 'Long'
-    Truffle::Debug.java_class_of(@mask).should == 'Integer'
+    it "returns an int for (long, int)" do
+      Truffle::Debug.java_class_of(@long).should == 'Long'
+      Truffle::Debug.java_class_of(@mask).should == 'Integer'
 
-    result = (@long & @mask)
-    result.should == 1
-    Truffle::Debug.java_class_of(result).should == 'Integer'
+      result = (@long & @mask)
+      result.should == 1
+      Truffle::Debug.java_class_of(result).should == 'Integer'
 
-    result = @and.call(@long, @mask)
-    result.should == 1
-    Truffle::Debug.java_class_of(result).should == 'Integer'
-  end
+      result = @and.call(@long, @mask)
+      result.should == 1
+      Truffle::Debug.java_class_of(result).should == 'Integer'
+    end
 
-  it "returns an int for (int, long)" do
-    Truffle::Debug.java_class_of(@long).should == 'Long'
-    Truffle::Debug.java_class_of(@mask).should == 'Integer'
+    it "returns an int for (int, long)" do
+      Truffle::Debug.java_class_of(@long).should == 'Long'
+      Truffle::Debug.java_class_of(@mask).should == 'Integer'
 
-    result = (@mask & @long)
-    result.should == 1
-    Truffle::Debug.java_class_of(result).should == 'Integer'
+      result = (@mask & @long)
+      result.should == 1
+      Truffle::Debug.java_class_of(result).should == 'Integer'
 
-    result = @and.call(@mask, @long)
-    result.should == 1
-    Truffle::Debug.java_class_of(result).should == 'Integer'
+      result = @and.call(@mask, @long)
+      result.should == 1
+      Truffle::Debug.java_class_of(result).should == 'Integer'
+    end
   end
 end

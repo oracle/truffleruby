@@ -43,11 +43,13 @@ guard -> { !TruffleRuby.native? } do
       Truffle::Interop.java_instanceof?(Object.new, big_integer_class).should be_false
     end
 
-    it "handles boxing of primitives like Java does" do
-      integer_class = Truffle::Interop.java_type("java.lang.Integer")
-      Truffle::Interop.java_instanceof?(14, integer_class).should be_true
-      double_class = Truffle::Interop.java_type("java.lang.Double")
-      Truffle::Interop.java_instanceof?(14.2, double_class).should be_true
+    guard -> { !Truffle::Boot.get_option('chaos-data') } do
+      it "handles boxing of primitives like Java does" do
+        integer_class = Truffle::Interop.java_type("java.lang.Integer")
+        Truffle::Interop.java_instanceof?(14, integer_class).should be_true
+        double_class = Truffle::Interop.java_type("java.lang.Double")
+        Truffle::Interop.java_instanceof?(14.2, double_class).should be_true
+      end
     end
 
     it "raises a type error if passed something that is not a Java class" do

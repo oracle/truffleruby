@@ -50,6 +50,8 @@ public class LanguageOptions {
     public final boolean LAZY_BUILTINS;
     /** --lazy-translation-core=LAZY_CALLTARGETS */
     public final boolean LAZY_TRANSLATION_CORE;
+    /** --chaos-data=false */
+    public final boolean CHAOS_DATA;
     /** --basic-ops-inline=true */
     public final boolean BASICOPS_INLINE;
     /** --profile-arguments=true */
@@ -140,6 +142,7 @@ public class LanguageOptions {
         LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
         LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : LAZY_CALLTARGETS;
         LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : LAZY_CALLTARGETS;
+        CHAOS_DATA = options.get(OptionsCatalog.CHAOS_DATA_KEY);
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
@@ -209,6 +212,8 @@ public class LanguageOptions {
                 return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
+            case "ruby.chaos-data":
+                return CHAOS_DATA;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
             case "ruby.profile-arguments":
@@ -303,6 +308,7 @@ public class LanguageOptions {
                one.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY).equals(two.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY)) &&
                one.get(OptionsCatalog.LAZY_BUILTINS_KEY).equals(two.get(OptionsCatalog.LAZY_BUILTINS_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY)) &&
+               one.get(OptionsCatalog.CHAOS_DATA_KEY).equals(two.get(OptionsCatalog.CHAOS_DATA_KEY)) &&
                one.get(OptionsCatalog.BASICOPS_INLINE_KEY).equals(two.get(OptionsCatalog.BASICOPS_INLINE_KEY)) &&
                one.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY).equals(two.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_CACHE_KEY).equals(two.get(OptionsCatalog.DEFAULT_CACHE_KEY)) &&
@@ -441,6 +447,13 @@ public class LanguageOptions {
         newValue = newOptions.LAZY_TRANSLATION_CORE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --lazy-translation-core differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.CHAOS_DATA;
+        newValue = newOptions.CHAOS_DATA;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --chaos-data differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

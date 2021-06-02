@@ -20,25 +20,27 @@ describe ":steal_array_storage primitive" do
     @array = %i[first second third]
   end
 
-  it "should no-op when called on itself" do
-    copy = @array.dup
+  guard -> { !Truffle::Boot.get_option('chaos-data') } do
+    it "should no-op when called on itself" do
+      copy = @array.dup
 
-    Primitive.steal_array_storage(@array, @array)
+      Primitive.steal_array_storage(@array, @array)
 
-    storage(@array).should == "Object[]"
-    @array.should == copy
-  end
+      storage(@array).should == "Object[]"
+      @array.should == copy
+    end
 
-  it "should take ownership of the store" do
-    other = [1, 2, 3, 4, 5]
-    other_copy = other.dup
+    it "should take ownership of the store" do
+      other = [1, 2, 3, 4, 5]
+      other_copy = other.dup
 
-    Primitive.steal_array_storage(@array, other)
+      Primitive.steal_array_storage(@array, other)
 
-    storage(@array).should == "int[]"
-    @array.should == other_copy
+      storage(@array).should == "int[]"
+      @array.should == other_copy
 
-    storage(other).should == "null"
-    other.empty?.should == true
+      storage(other).should == "null"
+      other.empty?.should == true
+    end
   end
 end

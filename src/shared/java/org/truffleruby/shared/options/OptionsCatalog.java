@@ -102,6 +102,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_TO_NATIVE_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
+    public static final OptionKey<Boolean> CHAOS_DATA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Integer> DEFAULT_CACHE_KEY = new OptionKey<>(8);
@@ -732,6 +733,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor CHAOS_DATA = OptionDescriptor
+            .newBuilder(CHAOS_DATA_KEY, "ruby.chaos-data")
+            .help("Randomize data representations to stress specialization code paths")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor BASICOPS_INLINE = OptionDescriptor
             .newBuilder(BASICOPS_INLINE_KEY, "ruby.basic-ops-inline")
             .help("Inline basic operations (like Fixnum operators) in the AST without a call")
@@ -741,7 +749,7 @@ public class OptionsCatalog {
 
     public static final OptionDescriptor PROFILE_ARGUMENTS = OptionDescriptor
             .newBuilder(PROFILE_ARGUMENTS_KEY, "ruby.profile-arguments")
-            .help("profile the value and class of the receiver and arguments")
+            .help("Profile the value and class of the receiver and arguments")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1283,6 +1291,8 @@ public class OptionsCatalog {
                 return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
+            case "ruby.chaos-data":
+                return CHAOS_DATA;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
             case "ruby.profile-arguments":
@@ -1482,6 +1492,7 @@ public class OptionsCatalog {
             CEXTS_TO_NATIVE_STATS,
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
+            CHAOS_DATA,
             BASICOPS_INLINE,
             PROFILE_ARGUMENTS,
             DEFAULT_CACHE,
