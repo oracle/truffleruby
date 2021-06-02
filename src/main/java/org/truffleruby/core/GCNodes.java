@@ -138,26 +138,22 @@ public abstract class GCNodes {
     @Primitive(name = "gc_stat")
     public abstract static class GCStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
-        protected RubyArray stat(
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+        protected RubyArray stat() {
+            final long[] data = getGCData();
+            return createArray(data);
+        }
+
+        @TruffleBoundary
+        private long[] getGCData() {
             long time = 0;
-            int count = 0;
-            int minorCount = 0;
-            int majorCount = 0;
-            int unknownCount = 0;
-            String[] memoryPoolNames = new String[0];
-            Object[] memoryPools;
+            long count = 0;
+            long minorCount = 0;
+            long majorCount = 0;
+            long unknownCount = 0;
 
             // Get GC time and counts from GarbageCollectorMXBean
             for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
-                // Get MemoryPoolName relevant to GC
-                if (bean.getMemoryPoolNames().length > memoryPoolNames.length) {
-                    // Since old generation memory pools are a superset of young generation memory pools,
-                    // it suffices to check that we have the longer list of memory pools
-                    memoryPoolNames = bean.getMemoryPoolNames();
-                }
                 time += bean.getCollectionTime();
                 count += bean.getCollectionCount();
                 switch (bean.getName()) {
@@ -177,6 +173,43 @@ public abstract class GCNodes {
                 }
             }
 
+            final MemoryUsage total = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+
+            return new long[]{
+                    time,
+                    count,
+                    minorCount,
+                    majorCount,
+                    unknownCount,
+                    total.getUsed(),
+                    total.getCommitted(),
+                    total.getInit(),
+                    total.getMax(),
+            };
+        }
+
+    }
+
+    @Primitive(name = "gc_heap_stats")
+    public abstract static class GCHeapStatsNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected RubyArray heapStats(
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            String[] memoryPoolNames = new String[0];
+            Object[] memoryPools;
+
+            // Get GC time and counts from GarbageCollectorMXBean
+            for (GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans()) {
+                // Get MemoryPoolName relevant to GC
+                if (bean.getMemoryPoolNames().length > memoryPoolNames.length) {
+                    // Since old generation memory pools are a superset of young generation memory pools,
+                    // it suffices to check that we have the longer list of memory pools
+                    memoryPoolNames = bean.getMemoryPoolNames();
+                }
+            }
+
             // Get memory usage values from relevant memory pools (2-3 / ~8 are relevant)
             memoryPools = new Object[memoryPoolNames.length];
             // On Native Image, ManagementFactory.getMemoryPoolMXBeans() is empty
@@ -190,8 +223,6 @@ public abstract class GCNodes {
                 }
             }
 
-            MemoryUsage total = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-
             Object[] memoryPoolNamesCast = new Object[memoryPoolNames.length];
             for (int i = 0; i < memoryPoolNames.length; i++) {
                 memoryPoolNamesCast[i] = makeStringNode
@@ -199,24 +230,12 @@ public abstract class GCNodes {
             }
 
 
-            return createArray(
-                    new Object[]{
-                            time,
-                            count,
-                            minorCount,
-                            majorCount,
-                            unknownCount,
-                            createArray(new long[]{
-                                    total.getUsed(),
-                                    total.getCommitted(),
-                                    total.getInit(),
-                                    total.getMax(),
-                            }),
-                            createArray(memoryPoolNamesCast),
-                            createArray(memoryPools) });
+            return createArray(new Object[]{
+                    createArray(memoryPoolNamesCast),
+                    createArray(memoryPools) });
         }
 
-        protected RubyArray beanToArray(MemoryPoolMXBean bean) {
+        private RubyArray beanToArray(MemoryPoolMXBean bean) {
             MemoryUsage usage = bean.getUsage();
             MemoryUsage peak = bean.getPeakUsage();
             MemoryUsage last = bean.getCollectionUsage();
