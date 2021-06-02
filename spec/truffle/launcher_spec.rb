@@ -274,11 +274,11 @@ describe "The launcher" do
   end
 
   it "prints an error for an unknown option" do
-    out = ruby_exe(nil, options: "--unknown=value", args: "2>&1")
+    out = ruby_exe(nil, options: "--unknown=value", args: "2>&1", exit_status: 2)
     $?.success?.should == false
     out.should include("invalid option --unknown=value")
 
-    out = ruby_exe(nil, options: "--ruby.unknown=value", args: "2>&1")
+    out = ruby_exe(nil, options: "--ruby.unknown=value", args: "2>&1", exit_status: 2)
     $?.success?.should == false
     out.should include("invalid option --ruby.unknown=value")
   end
@@ -380,7 +380,7 @@ describe "The launcher" do
   end
 
   it "does not print a Java backtrace for an -S file that's not found" do
-    out = ruby_exe(nil, options: "-S does_not_exist", args: "2>&1")
+    out = ruby_exe(nil, options: "-S does_not_exist", args: "2>&1", exit_status: 1)
     $?.success?.should == false
     out.should include('truffleruby: No such file or directory -- does_not_exist (LoadError)')
     out.should_not include('boot.rb')

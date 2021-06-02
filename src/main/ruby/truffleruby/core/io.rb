@@ -1019,6 +1019,8 @@ class IO
     # We want to ensure newly allocated FDs never take the standard IO ones, even
     # if a STDIO stream is closed.
     Primitive.io_set_fd(self, Truffle::POSIX.fcntl(fd, F_DUPFD_CLOEXEC, 3))
+
+    self.autoclose = true
   end
 
   def advise(advice, offset = 0, len = 0)
@@ -1065,6 +1067,7 @@ class IO
   end
 
   def binmode?
+    ensure_open
     !Primitive.nil?(@binmode)
   end
 
@@ -1454,6 +1457,7 @@ class IO
   end
 
   def external_encoding
+    ensure_open
     if @mode & FMODE_WRITABLE == 0
       @external || Encoding.default_external
     else
@@ -1487,6 +1491,7 @@ class IO
   end
 
   def internal_encoding
+    ensure_open
     @internal
   end
 
@@ -1611,7 +1616,7 @@ class IO
   #  f.gets     #=> "This is line two\n"
   #  f.lineno   #=> 2
   def lineno
-    ensure_open
+    ensure_open_and_readable
     @lineno
   end
 
@@ -1628,7 +1633,7 @@ class IO
   #  f.gets                     #=> "This is line two\n"
   #  $. # lineno of last read   #=> 1001
   def lineno=(line_number)
-    ensure_open
+    ensure_open_and_readable
     @lineno = Integer(line_number)
   end
 

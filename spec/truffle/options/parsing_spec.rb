@@ -9,9 +9,7 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Options" do
-
   describe "can correctly parse" do
-
     it "booleans" do
       ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')").should_not == "true\n"
       ruby_exe("p Truffle::Boot.get_option('frozen-string-literals')", options: "--experimental-options --frozen-string-literals=true").should == "true\n"
@@ -39,23 +37,19 @@ describe "Options" do
       ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=a,b,c").should == "[\"a\", \"b\", \"c\"]\n"
       ruby_exe("p Truffle::Boot.get_option('load-paths')", options: "--load-paths=a\\\\,b,c").should == "[\"a,b\", \"c\"]\n"
     end
-
   end
 
   describe "handles parsing errors with" do
-
     it "booleans" do
-      ruby_exe("14", options: "--frozen-string-literals=foo", args: "2>&1").should include("Invalid boolean option value 'foo'")
+      ruby_exe("14", options: "--frozen-string-literals=foo", args: "2>&1", exit_status: 1).should include("Invalid boolean option value 'foo'")
     end
 
     it "integers" do
-      ruby_exe("14", options: "--default-cache=foo", args: "2>&1").should include("Invalid argument --default-cache=foo specified")
+      ruby_exe("14", options: "--default-cache=foo", args: "2>&1", exit_status: 1).should include("Invalid argument --default-cache=foo specified")
     end
 
     it "enum values" do
-      ruby_exe("14", options: "--verbose=foo", args: "2>&1").should include("Invalid argument --verbose=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO'")
+      ruby_exe("14", options: "--verbose=foo", args: "2>&1", exit_status: 1).should include("Invalid argument --verbose=foo specified. No enum constant org.truffleruby.shared.options.Verbosity.FOO'")
     end
-
   end
-
 end

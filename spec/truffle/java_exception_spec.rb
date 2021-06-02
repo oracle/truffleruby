@@ -11,7 +11,7 @@ require_relative '../ruby/spec_helper'
 describe "Internal errors reaching the top level" do
   it "show both the Java stacktrace and Ruby backtrace" do
     file = fixture(__FILE__, 'throw_java_exception.rb')
-    out = ruby_exe(file, args: "2>&1")
+    out = ruby_exe(file, args: "2>&1", exit_status: 1)
     out = out.gsub(/\.java:\d+/, '.java:LINE')
     out.should.include? <<-EOS
 truffleruby: an internal exception escaped out of the interpreter,
@@ -29,7 +29,7 @@ please report it to https://github.com/oracle/truffleruby/issues.
   end
 
   it "show the cause" do
-    out = ruby_exe("Truffle::Debug.throw_java_exception_with_cause 'message'", args: "2>&1")
+    out = ruby_exe("Truffle::Debug.throw_java_exception_with_cause 'message'", args: "2>&1", exit_status: 1)
     message = out.gsub(/:\d+/, ':LINE')
 
     message.should.include? <<-EOS
@@ -47,7 +47,7 @@ message (java.lang.RuntimeException)
     end
     sleep
     RUBY
-    out = ruby_exe(code, args: "2>&1")
+    out = ruby_exe(code, args: "2>&1", exit_status: 1)
     $?.exitstatus.should == 1
     out.should.include? "```\nRuby Thread"
     out.should.include? "terminated with internal error: (java.lang.RuntimeException)"

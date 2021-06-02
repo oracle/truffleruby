@@ -18,6 +18,6 @@ describe "The --cexts option" do
   end
 
   it "when disabled cannot use parts of the stdlib that use C extensions" do
-    ruby_exe("require 'yaml'; p YAML.load('--- foo')", options: "--experimental-options --cexts=false", args: "2>&1").should =~ /disabled/
+    ruby_exe("require 'yaml'; p YAML.load('--- foo')", options: "--experimental-options --cexts=false", args: "2>&1", exit_status: 1).should.include?("cannot load as C extensions are disabled")
   end
 end
