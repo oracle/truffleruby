@@ -1019,6 +1019,8 @@ class IO
     # We want to ensure newly allocated FDs never take the standard IO ones, even
     # if a STDIO stream is closed.
     Primitive.io_set_fd(self, Truffle::POSIX.fcntl(fd, F_DUPFD_CLOEXEC, 3))
+
+    self.autoclose = true
   end
 
   def advise(advice, offset = 0, len = 0)
