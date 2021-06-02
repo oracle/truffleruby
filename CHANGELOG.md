@@ -32,6 +32,7 @@ Compatibility:
 * Fix `ObjectSpace._id2ref` for Symbols and frozen String literals (#2358).
 * Implemented `Enumerator::Lazy#filter_map` (#2356).
 * Fix LLVM toolchain issue on macOS 10.13 (#2352, [oracle/graal#3383](https://github.com/oracle/graal/issues/3383)).
+* Implement `rb_backref_set`.
 
 Performance:
 

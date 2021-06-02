@@ -1738,6 +1738,10 @@ module Truffle::CExt
     Primitive.regexp_last_match_get(Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]))
   end
 
+  def rb_backref_set(value)
+    Truffle::RegexpOperations::LAST_MATCH_SET.call(value, Truffle::ThreadOperations.ruby_caller_special_variables([Truffle::CExt, Truffle::Interop.singleton_class]))
+  end
+
   def rb_gv_set(name, value)
     binding.eval("#{name} = value")
   end
