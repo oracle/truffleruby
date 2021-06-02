@@ -1,2 +1,0 @@
-fails:Date.valid_jd? returns false if passed symbol
-fails:Date.valid_jd? returns false if passed false

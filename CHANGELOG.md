@@ -36,6 +36,7 @@ Compatibility:
 * Implemented `Enumerator::Lazy#with_index` (#2356).
 * Implement `rb_backref_set`.
 * Fix `Float#<=>` when comparing `Infinity` to other `#infinite?` values.
+* Implement `date` library as a C extension to improve compatibility (#2344).
 
 Performance:
 

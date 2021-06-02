@@ -46,6 +46,7 @@ class MSpecScript
   # Specs that need Sulong and should be tested in the Sulong gate
   library_cext_specs = %w[
     spec/ruby/library/bigdecimal
+    spec/ruby/library/date
     spec/ruby/library/etc
     spec/ruby/library/openssl
     spec/ruby/library/rbconfig/sizeof

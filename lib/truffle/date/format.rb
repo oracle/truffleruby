@@ -1295,39 +1295,3 @@ class Date
   include t
 
 end
-
-class DateTime < Date
-
-  def strftime(fmt='%FT%T%:z')
-    super(fmt)
-  end
-
-  def self._strptime(str, fmt='%FT%T%z')
-    super(str, fmt)
-  end
-
-  def iso8601_timediv(n) # :nodoc:
-    strftime('T%T' +
-             if n < 1
-               ''
-             else
-               '.%0*d' % [n, (sec_fraction / Rational(1, 10**n)).round]
-             end +
-             '%:z')
-  end
-
-  private :iso8601_timediv
-
-  def iso8601(n=0)
-    super() + iso8601_timediv(n)
-  end
-
-  def rfc3339(n=0) iso8601(n) end
-
-  def xmlschema(n=0) iso8601(n) end # :nodoc:
-
-  def jisx0301(n=0)
-    super() + iso8601_timediv(n)
-  end
-
-end
