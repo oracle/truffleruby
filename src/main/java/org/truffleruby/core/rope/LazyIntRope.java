@@ -48,6 +48,12 @@ public class LazyIntRope extends ManagedRope {
     private static int length(int value) {
         final int sign;
         if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value < 0)) {
+            // We can't represent -Integer.MIN_VALUE (it results in Integer.MIN_VALUE), so we need to handle it explicitly
+            if (CompilerDirectives
+                    .injectBranchProbability(CompilerDirectives.SLOWPATH_PROBABILITY, value == Integer.MIN_VALUE)) {
+                return 11;
+            }
+
             sign = 1;
             value = -value;
         } else {
