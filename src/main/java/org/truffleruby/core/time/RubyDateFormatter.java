@@ -566,6 +566,7 @@ public abstract class RubyDateFormatter {
         return toAppendTo;
     }
 
+    @TruffleBoundary
     public static boolean formatToRopeBuilderCanBeFast(Token[] compiledPattern) {
         for (int i = 0, compiledPatternLength = compiledPattern.length; i < compiledPatternLength; i++) {
             Token token = compiledPattern[i];
