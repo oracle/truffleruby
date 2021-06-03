@@ -74,7 +74,6 @@ public abstract class TimeNodes {
 
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected RubyTime initializeCopy(RubyTime self, RubyTime from) {
             self.dateTime = from.dateTime;
@@ -84,7 +83,6 @@ public abstract class TimeNodes {
             self.isUtc = from.isUtc;
             return self;
         }
-
     }
 
     @Primitive(name = "time_localtime")
@@ -140,7 +138,6 @@ public abstract class TimeNodes {
 
     @Primitive(name = "time_add")
     public abstract static class TimeAddNode extends PrimitiveArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected RubyTime add(RubyTime time, long seconds, long nanoSeconds) {
@@ -229,40 +226,31 @@ public abstract class TimeNodes {
 
     @CoreMethod(names = { "to_i", "tv_sec" })
     public abstract static class TimeSecondsSinceEpochNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected long timeSeconds(RubyTime time) {
             return time.dateTime.toInstant().getEpochSecond();
         }
-
     }
 
     @CoreMethod(names = { "usec", "tv_usec" })
     public abstract static class TimeMicroSecondsNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeUSec(RubyTime time) {
             return time.dateTime.getNano() / 1000;
         }
-
     }
 
     @CoreMethod(names = { "nsec", "tv_nsec" })
     public abstract static class TimeNanoSecondsNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeNSec(RubyTime time) {
             return time.dateTime.getNano();
         }
-
     }
 
     @Primitive(name = "time_set_nseconds", lowerFixnum = 1)
     public abstract static class TimeSetNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected long timeSetNSeconds(RubyTime time, int nanoseconds) {
@@ -270,13 +258,10 @@ public abstract class TimeNodes {
             time.dateTime = dateTime.plusNanos(nanoseconds - dateTime.getNano());
             return nanoseconds;
         }
-
     }
 
     @CoreMethod(names = { "utc_offset", "gmt_offset", "gmtoff" })
     public abstract static class TimeUTCOffsetNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeUTCOffset(RubyTime time) {
             return time.dateTime.getOffset().getTotalSeconds();
@@ -285,73 +270,54 @@ public abstract class TimeNodes {
 
     @CoreMethod(names = "sec")
     public abstract static class TimeSecNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeSec(RubyTime time) {
             return time.dateTime.getSecond();
         }
-
     }
 
     @CoreMethod(names = "min")
     public abstract static class TimeMinNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeMin(RubyTime time) {
             return time.dateTime.getMinute();
         }
-
     }
 
     @CoreMethod(names = "hour")
     public abstract static class TimeHourNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeHour(RubyTime time) {
             return time.dateTime.getHour();
         }
-
     }
 
     @CoreMethod(names = { "day", "mday" })
     public abstract static class TimeDayNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeDay(RubyTime time) {
             return time.dateTime.getDayOfMonth();
         }
-
     }
 
     @CoreMethod(names = { "mon", "month" })
     public abstract static class TimeMonthNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeMonth(RubyTime time) {
             return time.dateTime.getMonthValue();
         }
-
     }
 
     @CoreMethod(names = "year")
     public abstract static class TimeYearNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
         protected int timeYear(RubyTime time) {
             return time.dateTime.getYear();
         }
-
     }
 
     @CoreMethod(names = "wday")
     public abstract static class TimeWeekDayNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected int timeWeekDay(RubyTime time) {
@@ -361,50 +327,41 @@ public abstract class TimeNodes {
             }
             return wday;
         }
-
     }
 
     @CoreMethod(names = "yday")
     public abstract static class TimeYearDayNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected int timeYeayDay(RubyTime time) {
             return time.dateTime.getDayOfYear();
         }
-
     }
 
     @CoreMethod(names = { "dst?", "isdst" })
     public abstract static class TimeIsDSTNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected boolean timeIsDST(RubyTime time) {
             final ZonedDateTime dateTime = time.dateTime;
             return dateTime.getZone().getRules().isDaylightSavings(dateTime.toInstant());
         }
-
     }
 
     @CoreMethod(names = { "utc?", "gmt?" })
     public abstract static class IsUTCNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected boolean isUTC(RubyTime time) {
             return time.isUtc;
         }
-
     }
 
     @Primitive(name = "time_zone")
     public abstract static class TimeZoneNode extends PrimitiveArrayArgumentsNode {
-
         @Specialization
         protected Object timeZone(RubyTime time) {
             return time.zone;
         }
-
     }
 
     @Primitive(name = "time_strftime")
