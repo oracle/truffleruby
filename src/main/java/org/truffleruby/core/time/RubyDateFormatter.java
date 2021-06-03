@@ -614,7 +614,7 @@ public abstract class RubyDateFormatter {
 
     @ExplodeLoop
     public static Rope formatToRopeFast(Token[] compiledPattern, ZonedDateTime dt,
-            RopeNodes.ConcatNode concatNode, RopeNodes.SubstringNode substringNode) {
+            RopeNodes.ConcatNode concatNode) {
         Rope rope = null;
 
         for (Token token : compiledPattern) {
@@ -661,6 +661,7 @@ public abstract class RubyDateFormatter {
                     // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;
                     final int padding = length - microSecondRope.characterLength();
+                    assert padding >= 0;
 
                     // `padding` is guaranteed to be >= 0 because `nano` can be at most 9 digits long before the
                     // conversion to microseconds. The division further constrains the rope to be at most 6 digits long.

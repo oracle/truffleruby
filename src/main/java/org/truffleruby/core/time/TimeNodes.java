@@ -423,14 +423,9 @@ public abstract class TimeNodes {
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
-                @Cached RopeNodes.ConcatNode concatNode,
-                @Cached RopeNodes.SubstringNode substringNode) {
+                @Cached RopeNodes.ConcatNode concatNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(
-                        pattern,
-                        time.dateTime,
-                        concatNode,
-                        substringNode));
+                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode));
             } else {
                 return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
             }
@@ -440,15 +435,10 @@ public abstract class TimeNodes {
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
-                @Cached RopeNodes.ConcatNode concatNode,
-                @Cached RopeNodes.SubstringNode substringNode) {
+                @Cached RopeNodes.ConcatNode concatNode) {
             final Token[] pattern = compilePattern(libFormat.getRope(format));
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(
-                        pattern,
-                        time.dateTime,
-                        concatNode,
-                        substringNode));
+                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode));
             } else {
                 return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
             }
