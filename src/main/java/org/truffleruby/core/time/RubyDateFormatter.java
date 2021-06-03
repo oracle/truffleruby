@@ -579,7 +579,7 @@ public abstract class RubyDateFormatter {
                         return false;
                     }
                     break;
-                case FORMAT_OUTPUT: // only %6N
+                case FORMAT_OUTPUT: // only %6N (optimizing for Logger::Formatter default format)
                     RubyTimeOutputFormatter formatter = (RubyTimeOutputFormatter) token.getData();
 
                     // Check for the attributes present in the default case
@@ -595,7 +595,7 @@ public abstract class RubyDateFormatter {
                         return false;
                     }
                     break;
-                case FORMAT_NANOSEC: // only %6N
+                case FORMAT_NANOSEC: // only %6N (optimizing for Logger::Formatter default format)
                     if (i - 1 >= 0 && compiledPattern[i - 1].getFormat() == Format.FORMAT_OUTPUT) {
                         break;
                     } else {
@@ -665,10 +665,10 @@ public abstract class RubyDateFormatter {
                     // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;
                     final int padding = length - microSecondRope.characterLength();
-                    assert padding >= 0 : microSecondRope;
 
                     // `padding` is guaranteed to be >= 0 because `nano` can be at most 9 digits long before the
                     // conversion to microseconds. The division further constrains the rope to be at most 6 digits long.
+                    assert padding >= 0 : microSecondRope;
                     if (padding == 0) {
                         appendRope = microSecondRope;
                     } else {
