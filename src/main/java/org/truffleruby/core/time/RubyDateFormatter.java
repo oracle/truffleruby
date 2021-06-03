@@ -567,7 +567,7 @@ public abstract class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public static boolean formatToRopeBuilderCanBeFast(Token[] compiledPattern) {
+    public static boolean formatCanBeFast(Token[] compiledPattern) {
         for (int i = 0, compiledPatternLength = compiledPattern.length; i < compiledPatternLength; i++) {
             Token token = compiledPattern[i];
             Format format = token.getFormat();
@@ -613,7 +613,7 @@ public abstract class RubyDateFormatter {
     }
 
     @ExplodeLoop
-    public static Rope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
+    public static Rope formatToRopeFast(Token[] compiledPattern, ZonedDateTime dt,
             RopeNodes.ConcatNode concatNode, RopeNodes.SubstringNode substringNode) {
         Rope rope = null;
 

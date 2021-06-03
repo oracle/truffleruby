@@ -421,12 +421,12 @@ public abstract class TimeNodes {
                 @Cached("libFormat.getRope(format)") Rope cachedFormat,
                 @Cached(value = "compilePattern(cachedFormat)", dimensions = 1) Token[] pattern,
                 @Cached RopeNodes.EqualNode equalNode,
-                @Cached("formatToRopeBuilderCanBeFast(pattern)") boolean canUseFast,
+                @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
                 @Cached RopeNodes.ConcatNode concatNode,
                 @Cached RopeNodes.SubstringNode substringNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeBuilderFast(
+                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(
                         pattern,
                         time.dateTime,
                         concatNode,
@@ -443,8 +443,8 @@ public abstract class TimeNodes {
                 @Cached RopeNodes.ConcatNode concatNode,
                 @Cached RopeNodes.SubstringNode substringNode) {
             final Token[] pattern = compilePattern(libFormat.getRope(format));
-            if (formatToRopeBuilderCanBeFast(pattern) && yearIsFast(time)) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeBuilderFast(
+            if (formatCanBeFast(pattern) && yearIsFast(time)) {
+                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(
                         pattern,
                         time.dateTime,
                         concatNode,
@@ -454,8 +454,8 @@ public abstract class TimeNodes {
             }
         }
 
-        protected boolean formatToRopeBuilderCanBeFast(Token[] pattern) {
-            return RubyDateFormatter.formatToRopeBuilderCanBeFast(pattern);
+        protected boolean formatCanBeFast(Token[] pattern) {
+            return RubyDateFormatter.formatCanBeFast(pattern);
         }
 
         protected boolean yearIsFast(RubyTime time) {
