@@ -1767,6 +1767,9 @@ public class BodyTranslator extends Translator {
             return ((AssignableNode) translated).toAssignableNode();
         } else if (node instanceof AttrAssignParseNode) {
             final AttrAssignParseNode attrAssignParseNode = (AttrAssignParseNode) node;
+            // The AttrAssignParseNode does not have a value yet, add a sentinel nil,
+            // so the RubyCallNode is aware of the actual number of runtime arguments.
+            setRHS(attrAssignParseNode, NilImplicitParseNode.NIL);
 
             final RubyNode translated = attrAssignParseNode.accept(this);
             return ((AssignableNode) translated).toAssignableNode();

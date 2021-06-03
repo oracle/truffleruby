@@ -87,6 +87,8 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode impl
     @Override
     public AssignableNode toAssignableNode() {
         // Cannot reassign a @NodeChild
-        return WriteGlobalVariableNodeGen.create(name, null);
+        final WriteGlobalVariableNode node = WriteGlobalVariableNodeGen.create(name, null);
+        node.copySourceSection(this);
+        return node;
     }
 }

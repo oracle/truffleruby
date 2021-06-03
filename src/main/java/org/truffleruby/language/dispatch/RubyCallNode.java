@@ -13,7 +13,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
@@ -22,6 +21,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -88,7 +88,7 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
             return nil;
         }
 
-        final Object[] executedArguments = executeArguments(frame, arguments.length);
+        final Object[] executedArguments = executeArguments(frame);
 
         final Object blockObject = executeBlock(frame);
 
@@ -99,27 +99,28 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     }
 
     @Override
-    public void assign(VirtualFrame frame, Object extraArgument) {
+    public void assign(VirtualFrame frame, Object value) {
+        assert getLastArgumentNode() instanceof NilLiteralNode &&
+                ((NilLiteralNode) getLastArgumentNode()).isImplicit() : getLastArgumentNode();
+
         final Object receiverObject = receiver.execute(frame);
         if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
             return;
         }
 
+        final Object[] executedArguments = executeArguments(frame);
+
+        final Object blockObject = executeBlock(frame);
+
         final Object[] argumentsObjects;
-        final Object blockObject;
         if (isSplatted) {
-            final Object[] executedArguments = executeArguments(frame, arguments.length);
-
-            blockObject = executeBlock(frame);
-
             // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
-            argumentsObjects = ArrayUtils.append(splat(executedArguments), extraArgument);
+            argumentsObjects = splat(executedArguments);
+            assert argumentsObjects[argumentsObjects.length - 1] == nil;
+            argumentsObjects[argumentsObjects.length - 1] = value;
         } else {
-            final Object[] executedArguments = executeArguments(frame, arguments.length + 1);
-            executedArguments[arguments.length] = extraArgument;
-
-            blockObject = executeBlock(frame);
-
+            assert executedArguments[arguments.length - 1] == nil;
+            executedArguments[arguments.length - 1] = value;
             argumentsObjects = executedArguments;
         }
 
@@ -152,8 +153,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     }
 
     @ExplodeLoop
-    private Object[] executeArguments(VirtualFrame frame, int size) {
-        final Object[] argumentsObjects = new Object[size];
+    private Object[] executeArguments(VirtualFrame frame) {
+        final Object[] argumentsObjects = new Object[arguments.length];
 
         for (int i = 0; i < arguments.length; i++) {
             argumentsObjects[i] = arguments[i].execute(frame);
@@ -191,6 +192,10 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     public boolean hasLiteralBlock() {
         return hasLiteralBlock;
+    }
+
+    private RubyNode getLastArgumentNode() {
+        return arguments[arguments.length - 1];
     }
 
     @Override
