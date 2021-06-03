@@ -655,18 +655,22 @@ public abstract class RubyDateFormatter {
 
                 case FORMAT_NANOSEC: {
                     final int nano = dt.getNano();
-                    final LazyIntRope nanoRope = new LazyIntRope(nano);
+                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000);
 
+                    // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;
-                    final int padding = length - nanoRope.characterLength();
+                    final int padding = length - microSecondRope.characterLength();
 
+                    // `padding` is guaranteed to be >= 0 because `nano` can be at most 9 digits long before the
+                    // conversion to microseconds. The division further constrains the rope to be at most 6 digits long.
                     if (padding == 0) {
-                        appendRope = nanoRope;
-                    } else if (padding < 0) {
-                        appendRope = substringNode.executeSubstring(nanoRope, 0, length);
+                        appendRope = microSecondRope;
                     } else {
                         appendRope = concatNode
-                                .executeConcat(nanoRope, RopeConstants.paddingZeros(padding), UTF8Encoding.INSTANCE);
+                                .executeConcat(
+                                        RopeConstants.paddingZeros(padding),
+                                        microSecondRope,
+                                        UTF8Encoding.INSTANCE);
                     }
                 }
                     break;
