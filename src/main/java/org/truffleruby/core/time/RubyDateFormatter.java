@@ -692,6 +692,10 @@ public abstract class RubyDateFormatter {
             }
         }
 
+        if (rope == null) {
+            rope = RopeConstants.EMPTY_UTF8_ROPE;
+        }
+
         return rope;
     }
 
