@@ -566,19 +566,20 @@ public abstract class RubyDateFormatter {
         return toAppendTo;
     }
 
-    public static boolean formatToRopeBuilderCanBeFast(Token[] compiledPattern) {
+    @TruffleBoundary
+    public static boolean formatCanBeFast(Token[] compiledPattern) {
         for (int i = 0, compiledPatternLength = compiledPattern.length; i < compiledPatternLength; i++) {
             Token token = compiledPattern[i];
             Format format = token.getFormat();
 
             switch (format) {
                 case FORMAT_ENCODING:
-                    // We only care about UTF8 encoding
+                    // Only handle UTF-8 for fast formats
                     if (token.getData() != UTF8Encoding.INSTANCE) {
                         return false;
                     }
                     break;
-                case FORMAT_OUTPUT:
+                case FORMAT_OUTPUT: // only %6N (optimizing for Logger::Formatter default format)
                     RubyTimeOutputFormatter formatter = (RubyTimeOutputFormatter) token.getData();
 
                     // Check for the attributes present in the default case
@@ -594,6 +595,12 @@ public abstract class RubyDateFormatter {
                         return false;
                     }
                     break;
+                case FORMAT_NANOSEC: // only %6N (optimizing for Logger::Formatter default format)
+                    if (i - 1 >= 0 && compiledPattern[i - 1].getFormat() == Format.FORMAT_OUTPUT) {
+                        break;
+                    } else {
+                        return false;
+                    }
                 case FORMAT_STRING:
                 case FORMAT_DAY:
                 case FORMAT_HOUR:
@@ -601,7 +608,6 @@ public abstract class RubyDateFormatter {
                 case FORMAT_MONTH:
                 case FORMAT_SECONDS:
                 case FORMAT_YEAR_LONG:
-                case FORMAT_NANOSEC:
                     break;
                 default:
                     return false;
@@ -612,8 +618,8 @@ public abstract class RubyDateFormatter {
     }
 
     @ExplodeLoop
-    public static Rope formatToRopeBuilderFast(Token[] compiledPattern, ZonedDateTime dt,
-            RopeNodes.ConcatNode concatNode, RopeNodes.SubstringNode substringNode) {
+    public static Rope formatToRopeFast(Token[] compiledPattern, ZonedDateTime dt,
+            RopeNodes.ConcatNode concatNode) {
         Rope rope = null;
 
         for (Token token : compiledPattern) {
@@ -645,7 +651,6 @@ public abstract class RubyDateFormatter {
 
                 case FORMAT_YEAR_LONG: {
                     final int value = dt.getYear();
-
                     assert value >= 1000;
                     assert value <= 9999;
 
@@ -653,20 +658,25 @@ public abstract class RubyDateFormatter {
                 }
                     break;
 
-                case FORMAT_NANOSEC: {
+                case FORMAT_NANOSEC: { // always %6N, checked by formatCanBeFast()
                     final int nano = dt.getNano();
-                    final LazyIntRope nanoRope = new LazyIntRope(nano);
+                    final LazyIntRope microSecondRope = new LazyIntRope(nano / 1000);
 
+                    // This fast-path only handles the '%6N' format, so output will always be 6 characters long.
                     final int length = 6;
-                    final int padding = length - nanoRope.characterLength();
+                    final int padding = length - microSecondRope.characterLength();
 
+                    // `padding` is guaranteed to be >= 0 because `nano` can be at most 9 digits long before the
+                    // conversion to microseconds. The division further constrains the rope to be at most 6 digits long.
+                    assert padding >= 0 : microSecondRope;
                     if (padding == 0) {
-                        appendRope = nanoRope;
-                    } else if (padding < 0) {
-                        appendRope = substringNode.executeSubstring(nanoRope, 0, length);
+                        appendRope = microSecondRope;
                     } else {
                         appendRope = concatNode
-                                .executeConcat(nanoRope, RopeConstants.paddingZeros(padding), UTF8Encoding.INSTANCE);
+                                .executeConcat(
+                                        RopeConstants.paddingZeros(padding),
+                                        microSecondRope,
+                                        UTF8Encoding.INSTANCE);
                     }
                 }
                     break;
@@ -680,6 +690,10 @@ public abstract class RubyDateFormatter {
             } else {
                 rope = concatNode.executeConcat(rope, appendRope, UTF8Encoding.INSTANCE);
             }
+        }
+
+        if (rope == null) {
+            rope = RopeConstants.EMPTY_UTF8_ROPE;
         }
 
         return rope;
