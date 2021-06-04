@@ -31,20 +31,24 @@ public class LazyIntRope extends ManagedRope {
         assert Integer.toString(value).length() == length : value + " " + length;
     }
 
-    @CompilationFinal(dimensions = 1) private static final int[] LENGTH_TABLE = {
-            9,
-            99,
-            999,
-            9999,
-            99999,
-            999999,
-            9999999,
-            99999999,
-            999999999,
-            Integer.MAX_VALUE };
+    // @formatter:off
+    @CompilationFinal(dimensions = 1) private static final long[] LENGTH_TABLE = {
+            0x100000000L, 0x1FFFFFFF6L, 0x1FFFFFFF6L,
+            0x1FFFFFFF6L, 0x2FFFFFF9CL, 0x2FFFFFF9CL,
+            0x2FFFFFF9CL, 0x3FFFFFC18L, 0x3FFFFFC18L,
+            0x3FFFFFC18L, 0x4FFFFD8F0L, 0x4FFFFD8F0L,
+            0x4FFFFD8F0L, 0x4FFFFD8F0L, 0x5FFFE7960L,
+            0x5FFFE7960L, 0x5FFFE7960L, 0x6FFF0BDC0L,
+            0x6FFF0BDC0L, 0x6FFF0BDC0L, 0x7FF676980L,
+            0x7FF676980L, 0x7FF676980L, 0x7FF676980L,
+            0x8FA0A1F00L, 0x8FA0A1F00L, 0x8FA0A1F00L,
+            0x9C4653600L, 0x9C4653600L, 0x9C4653600L,
+            0xA00000000L, 0xA00000000L
+    };
+    // @formatter:on
 
-    // From https://lemire.me/blog/2021/05/28/computing-the-number-of-digits-of-an-integer-quickly/
-    // and https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/9d4cd21d0a/2021/05/28/digitcount.java (license: public domain)
+    // From https://lemire.me/blog/2021/06/03/computing-the-number-of-digits-of-an-integer-even-faster/
+    // and https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/4e6e171a7d/2021/06/03/digitcount.c (license: public domain)
     private static int length(int value) {
         final int sign;
         if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value < 0)) {
@@ -61,13 +65,8 @@ public class LazyIntRope extends ManagedRope {
         }
 
         final int bits = 31 - Integer.numberOfLeadingZeros(value | 1);
-        int digits = ((9 * bits) >>> 5);
-
-        if (value > LENGTH_TABLE[digits]) {
-            digits += 1;
-        }
-
-        return sign + digits + 1;
+        int digits = (int) ((value + LENGTH_TABLE[bits]) >>> 32);
+        return sign + digits;
     }
 
     @Override
