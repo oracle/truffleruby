@@ -10,6 +10,7 @@
 package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -27,29 +28,45 @@ public class LazyIntRope extends ManagedRope {
     public LazyIntRope(int value, Encoding encoding, int length) {
         super(encoding, CodeRange.CR_7BIT, length, length, null);
         this.value = value;
-        assert Integer.toString(value).length() == length;
+        assert Integer.toString(value).length() == length : value + " " + length;
     }
 
+    // @formatter:off
+    @CompilationFinal(dimensions = 1) private static final long[] LENGTH_TABLE = {
+            0x100000000L, 0x1FFFFFFF6L, 0x1FFFFFFF6L,
+            0x1FFFFFFF6L, 0x2FFFFFF9CL, 0x2FFFFFF9CL,
+            0x2FFFFFF9CL, 0x3FFFFFC18L, 0x3FFFFFC18L,
+            0x3FFFFFC18L, 0x4FFFFD8F0L, 0x4FFFFD8F0L,
+            0x4FFFFD8F0L, 0x4FFFFD8F0L, 0x5FFFE7960L,
+            0x5FFFE7960L, 0x5FFFE7960L, 0x6FFF0BDC0L,
+            0x6FFF0BDC0L, 0x6FFF0BDC0L, 0x7FF676980L,
+            0x7FF676980L, 0x7FF676980L, 0x7FF676980L,
+            0x8FA0A1F00L, 0x8FA0A1F00L, 0x8FA0A1F00L,
+            0x9C4653600L, 0x9C4653600L, 0x9C4653600L,
+            0xA00000000L, 0xA00000000L
+    };
+    // @formatter:on
+
+    // From https://lemire.me/blog/2021/06/03/computing-the-number-of-digits-of-an-integer-even-faster/
+    // and https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/4e6e171a7d/2021/06/03/digitcount.c (license: public domain)
     private static int length(int value) {
         final int sign;
-
-        if (value < 0) {
-            /* We can't represent -Integer.MIN_VALUE, and we're about to multiple by 10 to add the space needed for the
-             * negative character, so handle both of those out-of-range cases. */
-
-            if (value <= -1000000000) {
+        if (CompilerDirectives.injectBranchProbability(CompilerDirectives.UNLIKELY_PROBABILITY, value < 0)) {
+            // We can't represent -Integer.MIN_VALUE (it results in Integer.MIN_VALUE), so we need to handle it explicitly
+            if (CompilerDirectives
+                    .injectBranchProbability(CompilerDirectives.SLOWPATH_PROBABILITY, value == Integer.MIN_VALUE)) {
                 return 11;
             }
 
-            value = -value;
             sign = 1;
+            value = -value;
         } else {
             sign = 0;
         }
 
-        return sign + (value < 1E5
-                ? value < 1E2 ? value < 1E1 ? 1 : 2 : value < 1E3 ? 3 : value < 1E4 ? 4 : 5
-                : value < 1E7 ? value < 1E6 ? 6 : 7 : value < 1E8 ? 8 : value < 1E9 ? 9 : 10);
+        final int bits = 31 - Integer.numberOfLeadingZeros(value | 1);
+        int digits = (int) ((value + LENGTH_TABLE[bits]) >>> 32);
+        return sign + digits;
     }
 
     @Override
