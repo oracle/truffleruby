@@ -1310,6 +1310,14 @@ paren_args      : tLPAREN2 opt_call_args rparen {
                     $$ = $2;
                     if ($$ != null) $<ParseNode>$.setPosition($1);
                 }
+                | tLPAREN2 args ',' args_forward rparen {
+                    SourceIndexLength position = support.getPosition(null);
+                    // NOTE(norswap, 02 Jun 2021): location (0) arg is unused
+                    SplatParseNode splat = support.newSplatNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_REST_VAR));
+                    BlockPassParseNode block = new BlockPassParseNode(position, new LocalVarParseNode(position, 0, ParserSupport.FORWARD_ARGS_BLOCK_VAR));
+                    $$ = support.arg_concat(support.getPosition($2), $2, splat);
+                    $$ = support.arg_blk_pass((ParseNode) $$, block);
+                }
                 | tLPAREN2 args_forward rparen {
                     SourceIndexLength position = support.getPosition(null);
                     // NOTE(norswap, 06 Nov 2020): location (0) arg is unused
@@ -2481,6 +2489,13 @@ f_args_any      : f_arg ',' f_optarg ',' f_rest_arg opt_args_tail {
                 }
                 | args_tail {
                     $$ = support.new_args($1.getPosition(), null, null, null, null, $1);
+                }
+                | f_arg ',' args_forward {
+                    SourceIndexLength position = support.getPosition(null);
+                    RestArgParseNode splat = new RestArgParseNode(position, ParserSupport.FORWARD_ARGS_REST_VAR, 0);
+                    BlockArgParseNode block = new BlockArgParseNode(position, 1, ParserSupport.FORWARD_ARGS_BLOCK_VAR);
+                    ArgsTailHolder argsTail = support.new_args_tail(position, null, null, block);
+                    $$ = support.new_args(position, $1, null, splat, null, argsTail);
                 }
                 | args_forward {
                     SourceIndexLength position = support.getPosition(null);
