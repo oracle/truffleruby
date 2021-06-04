@@ -191,6 +191,11 @@ public class ParserSupport {
         inDefinition = false;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + " @ " + lexer.getLocation();
+    }
+
     public StaticScope getCurrentScope() {
         return currentScope;
     }

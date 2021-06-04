@@ -3779,4 +3779,13 @@ public class RubyLexer implements MagicCommentHandler {
             return ropeEncoding.isUpper(firstCharacter);
         }
     }
+
+    public String getLocation() {
+        return getFile() + ":" + ruby_sourceline;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " @ " + getLocation();
+    }
 }

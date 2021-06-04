@@ -12,8 +12,10 @@ package org.truffleruby.core.inlined;
 import com.oracle.truffle.api.dsl.Bind;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayWriteNormalizedNode;
+import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.methods.LookupMethodOnSelfNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -21,13 +23,15 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode {
+public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode implements AssignableNode {
 
     protected static final String METHOD = "[]=";
 
     public InlinedIndexSetNode(RubyLanguage language, RubyCallNodeParameters callNodeParameters) {
         super(language, callNodeParameters);
     }
+
+    protected abstract Object execute(VirtualFrame frame, Object receiver, Object index, Object value);
 
     @Specialization(
             guards = {
@@ -55,4 +59,16 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode {
         return index;
     }
 
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
+        final Object receiver = getReceiver().execute(frame);
+        final Object index = getOperand1().execute(frame);
+        execute(frame, receiver, index, value);
+    }
+
+    @Override
+    public AssignableNode toAssignableNode() {
+        assert getOperand2() instanceof NilLiteralNode && ((NilLiteralNode) getOperand2()).isImplicit() : getOperand2();
+        return this;
+    }
 }
