@@ -71,4 +71,9 @@ public class FixnumParseNode extends NumericParseNode implements ILiteralNode, S
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
+
+    @Override
+    protected String toStringInternal() {
+        return "value=" + value;
+    }
 }
