@@ -397,14 +397,12 @@ public class FiberManager implements ObjectGraphNode {
         for (RubyFiber fiber : runningFibers) {
             builder.append("  fiber @");
             builder.append(ObjectIDNode.getUncached().execute(fiber));
-            builder.append(" #");
 
             final Thread thread = fiber.thread;
-
             if (thread == null) {
-                builder.append("(no Java thread)");
+                builder.append(" (no Java thread)");
             } else {
-                builder.append(thread.getId());
+                builder.append(" #").append(thread.getId()).append(' ').append(thread);
             }
 
             if (fiber == rootFiber) {

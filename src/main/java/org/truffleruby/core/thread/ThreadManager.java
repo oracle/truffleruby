@@ -677,39 +677,21 @@ public class ThreadManager {
         }
     }
 
-    private void checkCalledInMainThreadRootFiber() {
-        final RubyThread currentThread = getCurrentThread();
-        if (currentThread != rootThread) {
-            throw new UnsupportedOperationException(StringUtils.format(
-                    "ThreadManager.shutdown() must be called on the root Ruby Thread (%s) but was called on %s",
-                    rootThread,
-                    currentThread));
-        }
-
-        final FiberManager fiberManager = rootThread.fiberManager;
-
-        if (getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
-            throw new UnsupportedOperationException(
-                    "ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
-        }
-    }
-
     @TruffleBoundary
     public void killAndWaitOtherThreads() {
-        checkCalledInMainThreadRootFiber();
-
         // Disallow new Fibers to be created
         fiberPool.shutdown();
 
         // Kill all Ruby Threads and Fibers
 
         // The logic below avoids using the SafepointManager if there is
-        // only the root thread and the reference processing thread.
+        // only the current thread and the reference processing thread.
+        final RubyThread currentThread = getCurrentThread();
         boolean otherThreads = false;
         RubyThread referenceProcessingThread = null;
         for (RubyThread thread : runningRubyThreads) {
-            if (thread == rootThread) {
-                // clean up later in #cleanupMainThread
+            if (thread == currentThread) {
+                // no need to kill the current thread
             } else if (thread == context.getReferenceProcessor().getProcessingThread()) {
                 referenceProcessingThread = thread;
             } else {
@@ -727,7 +709,7 @@ public class ThreadManager {
         if (otherThreads) {
             doKillOtherThreads();
         }
-        rootThread.fiberManager.killOtherFibers();
+        currentThread.fiberManager.killOtherFibers();
 
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
@@ -756,12 +738,6 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public void cleanupMainThread() {
-        checkCalledInMainThreadRootFiber();
-        cleanup(rootThread, rootJavaThread);
-    }
-
-    @TruffleBoundary
     public Object[] getThreadList() {
         // This must not pre-allocate an array, or it could contain null's.
         return runningRubyThreads.toArray();
@@ -784,7 +760,7 @@ public class ThreadManager {
             }
 
             // cannot use getCurrentThread() as it might have been cleared
-            if (thread == currentThread.get()) {
+            if (thread == getCurrentThreadOrNull()) {
                 builder.append(" (current)");
             }
 
