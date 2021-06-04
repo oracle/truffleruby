@@ -36,8 +36,8 @@
 
 module Truffle::GCOperations
   KNOWN_KEYS = %i[
-    count
     time
+    count
     minor_gc_count
     major_gc_count
     unknown_count
@@ -51,13 +51,12 @@ module Truffle::GCOperations
   ]
 
   def self.stat_hash(key = nil)
-    time, count, minor_count, major_count, unknown_count, heap, memory_pool_names, memory_pool_info = Primitive.gc_stat
-    used, committed, init, max = heap
+    time, count, minor_count, major_count, unknown_count, used, committed, init, max = Primitive.gc_stat
 
     # Initialize stat for statistics that come from memory pools, and populate it with some final stats (ordering similar to MRI)
     stat = {
-        count: count,
         time: time,
+        count: count,
         minor_gc_count: minor_count,
         major_gc_count: major_count,
         unknown_count: unknown_count, # if nonzero, major or minor count needs to be updated for this GC case
@@ -70,34 +69,6 @@ module Truffle::GCOperations
         max: max,
     }
     stat.default = 0
-
-    unless Primitive.object_kind_of?(key, Symbol) # memory_pool_names are Strings
-      memory_pool_names.each_with_index do |memory_pool_name, i|
-        # Populate memory pool specific stats
-        info = memory_pool_info[i]
-        if info
-          stat[memory_pool_name] = data = {
-              used: info[0],
-              committed: info[1],
-              init: info[2],
-              max: info[3],
-              peak_used: info[4],
-              peak_committed: info[5],
-              peak_init: info[6],
-              peak_max: info[7],
-              last_used: info[8],
-              last_committed: info[9],
-              last_init: info[10],
-              last_max: info[11],
-          }
-
-          # Calculate stats across memory pools for peak_/last_ (we already know the values for current usage)
-          data.each_pair do |k,v|
-            stat[k] += v if k.start_with?('peak_', 'last_')
-          end
-        end
-      end
-    end
 
     if key
       stat[key]
@@ -158,6 +129,39 @@ module GC
     else
       Truffle::GCOperations.stat_hash
     end
+  end
+
+  def self.heap_stats
+    memory_pool_names, memory_pool_info = Primitive.gc_heap_stats
+
+    stat = GC.stat
+    memory_pool_names.each_with_index do |memory_pool_name, i|
+      # Populate memory pool specific stats
+      info = memory_pool_info[i]
+      if info
+        stat[memory_pool_name] = data = {
+            used: info[0],
+            committed: info[1],
+            init: info[2],
+            max: info[3],
+            peak_used: info[4],
+            peak_committed: info[5],
+            peak_init: info[6],
+            peak_max: info[7],
+            last_used: info[8],
+            last_committed: info[9],
+            last_init: info[10],
+            last_max: info[11],
+        }
+
+        # Calculate stats across memory pools for peak_/last_ (we already know the values for current usage)
+        data.each_pair do |k,v|
+          stat[k] += v if k.start_with?('peak_', 'last_')
+        end
+      end
+    end
+
+    stat
   end
 
   module Profiler
