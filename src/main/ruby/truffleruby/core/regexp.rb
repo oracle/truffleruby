@@ -363,12 +363,7 @@ end
 Truffle::KernelOperations.define_hooked_variable(
   :$~,
   -> s { Primitive.regexp_last_match_get(s) },
-  -> v, s {
-    unless Primitive.nil?(v) || Primitive.object_kind_of?(v, MatchData)
-      raise TypeError, "Wrong argument type #{v} (expected MatchData)"
-    end
-    Primitive.regexp_last_match_set(s, v)
-  })
+  Truffle::RegexpOperations::LAST_MATCH_SET)
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$`',

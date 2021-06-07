@@ -33,6 +33,7 @@ Compatibility:
 * Implemented `Enumerator::Lazy#filter_map` (#2356).
 * Fix LLVM toolchain issue on macOS 10.13 (#2352, [oracle/graal#3383](https://github.com/oracle/graal/issues/3383)).
 * Implemented `Enumerator::Lazy#with_index` (#2356).
+* Implement `rb_backref_set`.
 
 Performance:
 
