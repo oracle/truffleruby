@@ -105,20 +105,27 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(matches, parent, entry, glob_base_dir)
-        start = path_join(parent, entry)
+        start = Dir::Glob.path_join(parent, entry)
         return if !start || !Truffle::FileOperations.exist?(path_join(glob_base_dir, start))
 
         matched = @next.dup
         matched.separator = @separator
-        matched.process_entry(entry, true, matches, parent, glob_base_dir)
+        case @next
+        when Match
+          matched.process_entry('.', true, matches, start, glob_base_dir)
+        else
+          matched.process_entry(entry, true, matches, parent, glob_base_dir)
+        end
 
-        stack = [start]
+        stack = [[start, @separator || '/']]
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
         until stack.empty?
-          path = stack.pop
-          dir = Dir.allocate.send(:initialize_internal, path_join(glob_base_dir, path))
+          path, sep = *stack.pop
+          matched = @next.dup
+          matched.separator = sep
+          dir = Dir.allocate.send(:initialize_internal, Dir::Glob.path_join(glob_base_dir, path, sep))
           next unless dir
 
           while dirent = Truffle::DirOperations.readdir(dir)
@@ -127,12 +134,12 @@ class Dir
             next if ent == '.' || ent == '..'
             is_dir = type == Truffle::DirOperations::DT_DIR
 
-            full = path_join(path, ent)
+            full = Dir::Glob.path_join(path, ent, sep)
             if is_dir and (allow_dots or ent.getbyte(0) != 46) # ?.
-              stack << full
-              @next.process_entry ent, true, matches, path, glob_base_dir
+              stack << [full, '/']
+              matched.process_entry ent, true, matches, path, glob_base_dir
             elsif (allow_dots or ent.getbyte(0) != 46) # ?.
-              @next.process_entry ent, is_dir, matches, path, glob_base_dir
+              matched.process_entry ent, is_dir, matches, path, glob_base_dir
             end
           end
           dir.close

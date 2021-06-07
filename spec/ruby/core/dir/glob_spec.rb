@@ -133,6 +133,14 @@ describe "Dir.glob" do
     Dir.glob('{deeply/**/,subdir_two/*}').sort.should == expected
   end
 
+  it "preserves multiple /s before a **" do
+    expected = %w[
+      deeply//nested/directory/structure
+    ]
+
+    Dir.glob('{deeply//**/structure}').sort.should == expected
+  end
+
   it "accepts a block and yields it with each elements" do
     ary = []
     ret = Dir.glob(["file_o*", "file_t*"]) { |t| ary << t }
