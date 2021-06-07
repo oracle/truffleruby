@@ -878,7 +878,7 @@ module Truffle::CExt
   end
 
   def rb_funcall(recv, meth, n, *args)
-    Primitive.send_without_cext_lock(recv, meth, args, rb_block_proc)
+    Primitive.send_without_cext_lock(recv, meth, args, nil)
   end
 
   def rb_apply(recv, meth, args)
