@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Installing Make and GCC
+permalink: /reference-manual/ruby/InstallingLLVM/
+---
 # Installing Make and GCC
 
 Since TruffleRuby 19.3.0, TruffleRuby ships with its own LLVM toolchain.

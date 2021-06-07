@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Ruby Managers and Installers
+permalink: /reference-manual/ruby/RubyManagers/
+---
 # Ruby Managers and Installers
 
 If you have [installed GraalVM](installing-graalvm.md), it is recommended to add TruffleRuby to a Ruby manager.

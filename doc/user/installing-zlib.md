@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Installing `zlib`
+permalink: /reference-manual/ruby/Installingzlib/
+---
 # Installing `zlib`
 
 TruffleRuby provides the `zlib` module but not the native `zlib` system library that the module uses.

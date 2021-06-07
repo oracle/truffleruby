@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Migration from JRuby to Ruby
+permalink: /reference-manual/ruby/JRubyMigration/
+---
 # Migration from JRuby to TruffleRuby
 
 When trying TruffleRuby on your gems and applications, you are encouraged to [get in touch with the TruffleRuby team](../../README.md#contact) for help.
