@@ -316,9 +316,8 @@ public class FiberManager implements ObjectGraphNode {
 
         if (Thread.currentThread() == javaThread) {
             context.getThreadManager().rubyFiber.set(fiber);
-        }
-        if (!threadManager.isRubyManagedThread(javaThread)) {
-            context.getThreadManager().rubyFiberForeignMap.put(javaThread, fiber);
+        } else {
+            context.getThreadManager().javaThreadToRubyFiber.put(javaThread, fiber);
         }
 
         fiber.thread = javaThread;
@@ -345,7 +344,7 @@ public class FiberManager implements ObjectGraphNode {
         if (Thread.currentThread() == javaThread) {
             threadManager.rubyFiber.remove();
         }
-        threadManager.rubyFiberForeignMap.remove(javaThread);
+        threadManager.javaThreadToRubyFiber.remove(javaThread);
 
         fiber.finishedLatch.countDown();
     }

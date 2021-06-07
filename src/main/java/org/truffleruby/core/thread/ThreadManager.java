@@ -77,11 +77,12 @@ public class ThreadManager {
 
     private final Set<RubyThread> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
+    /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()} */
     private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public final Map<Thread, RubyFiber> rubyFiberForeignMap = new ConcurrentHashMap<>();
+    public final Map<Thread, RubyFiber> javaThreadToRubyFiber = new ConcurrentHashMap<>();
     public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
-            .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
+            .withInitial(() -> javaThreadToRubyFiber.get(Thread.currentThread()));
 
     private boolean nativeInterrupt;
     private Timer nativeInterruptTimer;
@@ -116,13 +117,11 @@ public class ThreadManager {
 
     public void initializeMainThread(Thread mainJavaThread) {
         rootJavaThread = mainJavaThread;
-        rubyManagedThreads.add(rootJavaThread);
         start(rootThread, rootJavaThread);
     }
 
     public void resetMainThread() {
         cleanup(rootThread, rootJavaThread);
-        rubyManagedThreads.remove(rootJavaThread);
         rootJavaThread = null;
     }
 
