@@ -874,14 +874,7 @@ module Truffle::CExt
   end
 
   def rb_funcallv(recv, meth, argv)
-    # see #call_with_thread_locally_stored_block
-    thread_local_block = Thread.current[:__C_BLOCK__]
-    Thread.current[:__C_BLOCK__] = nil
-    begin
-      Primitive.send_argv_without_cext_lock(recv, meth, argv, thread_local_block)
-    ensure
-      Thread.current[:__C_BLOCK__] = thread_local_block
-    end
+    Primitive.send_argv_without_cext_lock(recv, meth, argv, nil)
   end
 
   def rb_funcall(recv, meth, n, *args)
