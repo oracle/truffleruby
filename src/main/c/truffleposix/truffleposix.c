@@ -230,6 +230,7 @@ retry:
 }
 
 struct dirent *truffleposix_readdir(DIR *dirp) {
+  errno = 0;
   struct dirent *entry = readdir(dirp);
   if (entry) {
     if (entry->d_type == DT_UNKNOWN) {
@@ -251,7 +252,6 @@ struct dirent *truffleposix_readdir(DIR *dirp) {
         } else if (S_ISSOCK(native_stat.st_mode)) {
           entry->d_type = DT_SOCK;
         }
-
       }
     }
   }
@@ -259,9 +259,12 @@ struct dirent *truffleposix_readdir(DIR *dirp) {
 }
 
 char *truffleposix_readdir_name(DIR *dirp) {
+  errno = 0;
   struct dirent *entry = readdir(dirp);
   if (entry) {
     return entry->d_name;
+  } else if (errno == 0) {
+    return "";
   } else {
     return NULL;
   }

@@ -32,6 +32,7 @@ module Truffle
         type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
         [str, type]
       else
+        Errno.handle unless Errno.errno == 0
         nil
       end
     end
@@ -39,7 +40,10 @@ module Truffle
     def self.readdir_name(dir)
       dir.__send__(:ensure_open)
       dirptr = dir.instance_variable_get(:@ptr)
-      fix_entry_encoding(dir, Truffle::POSIX.truffleposix_readdir_name(dirptr))
+      entry = Truffle::POSIX.truffleposix_readdir_name(dirptr)
+      Errno.handle unless entry
+      return if entry.empty?
+      fix_entry_encoding(dir, entry)
     end
 
     def self.fix_entry_encoding(dir,str)
