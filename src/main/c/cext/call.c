@@ -24,7 +24,10 @@ int rb_respond_to(VALUE object, ID name) {
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
-  return RUBY_CEXT_INVOKE("rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_funcallv",
+    rb_tr_unwrap(object),
+    rb_tr_unwrap(ID2SYM(name)),
+    polyglot_from_VALUE_array(args, args_count)));
 }
 
 VALUE rb_funcallv_kw(VALUE object, ID name, int args_count, const VALUE *args, int kw_splat) {
@@ -33,7 +36,10 @@ VALUE rb_funcallv_kw(VALUE object, ID name, int args_count, const VALUE *args, i
 }
 
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {
-  return RUBY_CEXT_INVOKE("rb_funcallv_public", object, ID2SYM(name), rb_ary_new4(args_count, args));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_funcallv_public",
+    rb_tr_unwrap(object),
+    rb_tr_unwrap(ID2SYM(name)),
+    polyglot_from_VALUE_array(args, args_count)));
 }
 
 VALUE rb_apply(VALUE object, ID name, VALUE args) {
@@ -83,7 +89,11 @@ VALUE rb_yield(VALUE value) {
 }
 
 VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval) {
-  return RUBY_CEXT_INVOKE("rb_funcall_with_block", recv, ID2SYM(mid), rb_ary_new4(argc, argv), pass_procval);
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_funcall_with_block",
+    rb_tr_unwrap(recv),
+    rb_tr_unwrap(ID2SYM(mid)),
+    polyglot_from_VALUE_array(argv, argc),
+    rb_tr_unwrap(pass_procval)));
 }
 
 VALUE rb_yield_splat(VALUE values) {

@@ -20,7 +20,7 @@ def callback
 end
 
 def ruby_call
-  RB_FUNCALLV.call(Truffle::CExt.test_cext_wrap(self), Truffle::CExt.test_cext_wrap(:callback), 0, nil)
+  RB_FUNCALLV.call(Truffle::CExt.test_cext_wrap(self), Truffle::CExt.test_cext_wrap(:callback), 0, [])
 end
 
 def top
