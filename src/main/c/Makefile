@@ -42,7 +42,7 @@ clean_truffleposix:
 
 clean_cexts:
 	$(Q) rm -f cext/Makefile cext/*.o $(LIBTRUFFLERUBY)
-	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.$(DLEXT)
+	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.$(DLEXT) openssl/extconf.h
 	$(Q) rm -f zlib/Makefile zlib/*.o zlib/zlib.$(DLEXT)
 	$(Q) rm -f psych/Makefile psych/*.o psych/yaml/*.o psych/psych.$(DLEXT)
 	$(Q) rm -f ripper/Makefile ripper/*.o ripper/ripper.$(DLEXT)
