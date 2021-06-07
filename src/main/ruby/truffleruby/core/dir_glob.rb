@@ -51,6 +51,25 @@ class Dir
       def path_join(parent, ent)
         Dir::Glob.path_join(parent, ent, separator)
       end
+
+      def process_directory(matches, parent, entry, glob_base_dir)
+        # Process a directory. The entry is passed as the parent
+        # directory and an entry in that to make it faster to make any
+        # calls required to process entry. Any matches found should be
+        # added to matches.
+        raise 'invalid call to Node base method'
+      end
+
+      def process_entry(entry, is_dir, matches, parent, glob_base_dir)
+        # Process an entry within a directory. This differs from
+        # process_directory in that in many cases only this entry need
+        # be examined. For example a file name matching node need only
+        # check the entry (and possibly parent). Existence of the
+        # entry is checked already by the caller (often by reading
+        # entries from a directory stream and so should not be checked
+        # here by the node.
+        raise 'invalid call to Node base method'
+      end
     end
 
     class ConstantDirectory < Node
@@ -59,15 +78,15 @@ class Dir
         @dir = dir
       end
 
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         # Don't check if full exists. It just costs us time
         # and the downstream node will be able to check properly.
-        @next.call matches, path_join(parent, entry), @dir, glob_base_dir
+        @next.process_directory matches, path_join(parent, entry), @dir, glob_base_dir
       end
 
       def process_entry(entry, is_dir, matches, parent, glob_base_dir)
         #Check an entry with the guarantee that the previous node has checked it exists.
-        @next.call matches, path_join(parent, entry), @dir, glob_base_dir
+        @next.process_directory matches, path_join(parent, entry), @dir, glob_base_dir
       end
     end
 
@@ -77,7 +96,7 @@ class Dir
         @name = name
       end
 
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         parent = path_join(parent, entry)
         path = path_join(parent, @name)
 
@@ -94,17 +113,17 @@ class Dir
     end
 
     class RootDirectory < Node
-      def call(matches, parent, entry, glob_base_dir)
-        @next.call matches, nil, '/', glob_base_dir
+      def process_directory(matches, parent, entry, glob_base_dir)
+        @next.process_directory matches, nil, '/', glob_base_dir
       end
 
       def process_entry(entry, is_dir, matches, parent, glob_base_dir)
-        @next.call matches, nil, '/', glob_base_dir
+        @next.process_directory matches, nil, '/', glob_base_dir
       end
     end
 
     class RecursiveDirectories < Node
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         start = Dir::Glob.path_join(parent, entry)
         return if !start || !Truffle::FileOperations.exist?(path_join(glob_base_dir, start))
 
@@ -147,12 +166,12 @@ class Dir
       end
 
       def process_entry(entry, is_dir, matches, parent, glob_base_dir)
-        call(matches, parent, entry, glob_base_dir) if is_dir
+        process_directory(matches, parent, entry, glob_base_dir) if is_dir
       end
     end
 
     class StartRecursiveDirectories < Node
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         raise 'invalid usage' if parent || entry
 
         # Even though the recursive entry is zero width
@@ -223,7 +242,7 @@ class Dir
         @glob.gsub! '**', '*'
       end
 
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         path = path_join(parent, entry)
         return if path and !Truffle::FileOperations.exist?(path_join(glob_base_dir, "#{path}/."))
 
@@ -231,7 +250,7 @@ class Dir
         while ent = dir.read
           if match? ent
             if File.directory? path_join(glob_base_dir, path_join(path, ent))
-              @next.call matches, path, ent, glob_base_dir
+              @next.process_directory matches, path, ent, glob_base_dir
             end
           end
         end
@@ -239,12 +258,12 @@ class Dir
       end
 
       def process_entry(entry, is_dir, matches, parent, glob_base_dir)
-        @next.call matches, parent, entry, glob_base_dir if is_dir && match?(entry)
+        @next.process_directory matches, parent, entry, glob_base_dir if is_dir && match?(entry)
       end
     end
 
     class EntryMatch < Match
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         path = path_join(parent, entry)
         return if path and !Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
 
@@ -288,7 +307,7 @@ class Dir
     end
 
     class DirectoriesOnly < Node
-      def call(matches, parent, entry, glob_base_dir)
+      def process_directory(matches, parent, entry, glob_base_dir)
         path = path_join(parent, entry)
         if path and Truffle::FileOperations.exist?("#{path_join(glob_base_dir, path)}/.")
           matches << "#{path}/"
@@ -388,10 +407,10 @@ class Dir
 
     def self.run(node, all_matches, glob_base_dir)
       if ConstantEntry === node
-        node.call all_matches, nil, nil, glob_base_dir
+        node.process_directory all_matches, nil, nil, glob_base_dir
       else
         matches = []
-        node.call matches, nil, nil, glob_base_dir
+        node.process_directory matches, nil, nil, glob_base_dir
         all_matches.concat(matches)
       end
     end
