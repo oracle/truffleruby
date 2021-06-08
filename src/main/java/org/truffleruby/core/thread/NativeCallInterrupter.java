@@ -50,22 +50,39 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
         private final long threadID;
         private int executed = 0;
+        private boolean cancelled = false;
 
         Task(long threadID) {
             this.threadID = threadID;
         }
 
         @Override
+        public boolean cancel() {
+            // Ensure this task does not run later when this method returns.
+            // If it was running at the time of cancel(), wait for that.
+            synchronized (this) {
+                cancelled = true;
+                return super.cancel();
+            }
+        }
+
+        @Override
         public void run() {
-            if (executed < MAX_EXECUTIONS) {
-                executed++;
-                int result = LibRubySignal.sendSIGVTALRMToThread(threadID);
-                if (result != 0) {
-                    throw CompilerDirectives.shouldNotReachHere(
-                            String.format("pthread_kill(%x, SIGVTALRM) failed with result=%d", threadID, result));
+            synchronized (this) {
+                if (cancelled) {
+                    return;
                 }
-            } else {
-                cancel();
+
+                if (executed < MAX_EXECUTIONS) {
+                    executed++;
+                    int result = LibRubySignal.sendSIGVTALRMToThread(threadID);
+                    if (result != 0) {
+                        throw CompilerDirectives.shouldNotReachHere(
+                                String.format("pthread_kill(%x, SIGVTALRM) failed with result=%d", threadID, result));
+                    }
+                } else {
+                    cancel();
+                }
             }
         }
     }
