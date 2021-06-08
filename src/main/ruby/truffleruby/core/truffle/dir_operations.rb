@@ -13,22 +13,22 @@ module Truffle
     # We don't do this using FFI structs because directory
     # functionality is needed before them and we don't want to
     # duplicate code from the FFI gem.
-    DIRENT_SIZE = Truffle::Config['platform.dirent.sizeof']
-    DIRENT_NAME_SIZE = Truffle::Config['platform.dirent.d_name.size']
     DIRENT_NAME_OFFSET = Truffle::Config['platform.dirent.d_name.offset']
     DIRENT_TYPE_OFFSET = Truffle::Config['platform.dirent.d_type.offset']
 
     AT_SYMLINK_NOFOLLOW = Truffle::Config['platform.file.AT_SYMLINK_NOFOLLOW']
     DT_DIR = Truffle::Config['platform.file.DT_DIR']
     DT_UNKNOWN  = Truffle::Config['platform.file.DT_UNKNOWN']
-    BUFFER_SIZE = DIRENT_SIZE + Truffle::FFI::Pointer::SIZE
+
+    NAME_MAX = Truffle::Config['platform.file.NAME_MAX']
+
 
     def self.readdir(dir)
       dir.__send__(:ensure_open)
       dirptr = dir.instance_variable_get(:@ptr)
       dirent = Truffle::POSIX.truffleposix_readdir(dirptr)
       if !dirent.null?
-        str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET, DIRENT_NAME_SIZE))
+        str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET, NAME_MAX))
         type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
         [str, type]
       else
