@@ -54,7 +54,7 @@ module Truffle
           str.force_encoding Encoding::ASCII_8BIT
         else
           enc = Encoding.default_internal
-          str = enc ? str.encode(enc) : str
+          str = str.encode(enc) if enc
         end
       end
       str
