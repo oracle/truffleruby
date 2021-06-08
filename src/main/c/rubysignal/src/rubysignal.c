@@ -2,6 +2,8 @@
 #include <pthread.h>
 #include <signal.h>
 
+_Static_assert(sizeof(pthread_t) == sizeof(jlong), "Expected sizeof(pthread_t) == sizeof(jlong)");
+
 static void empty_handler(int sig) {
 }
 
