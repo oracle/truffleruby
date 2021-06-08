@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Setting up a UTF-8 Locale
+permalink: /reference-manual/ruby/UTF8Locale/
+---
 # Setting Up a UTF-8 Locale
 
 You may need a UTF-8 locale to run some Ruby applications.

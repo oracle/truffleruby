@@ -15,6 +15,10 @@ VALUE rb_backref_get(void) {
   return RUBY_CEXT_INVOKE("rb_backref_get");
 }
 
+void rb_backref_set(VALUE str) {
+  RUBY_CEXT_INVOKE("rb_backref_set", str);
+}
+
 VALUE rb_reg_match_pre(VALUE match) {
   return RUBY_CEXT_INVOKE("rb_reg_match_pre", match);
 }

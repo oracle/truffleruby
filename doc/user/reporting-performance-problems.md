@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Reporting Performance Problems
+permalink: /reference-manual/ruby/ReportingPerformanceProblems/
+---
 # Reporting Performance Problems
 
 We are interested in hearing from you if you experience lower performance with TruffleRuby than with other implementations of Ruby.

@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Polyglot Programming
+permalink: /reference-manual/ruby/Polyglot/
+---
 # Polyglot Programming
 
 TruffleRuby allows you to interface with any other Truffle language to create polyglot programs -- programs written in more than one language.

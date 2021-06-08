@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: TruffleRuby Options and Command Line
+permalink: /reference-manual/ruby/Options/
+---
 # TruffleRuby Options and Command Line
 
 TruffleRuby has the same command-line interface as our compatible MRI version.

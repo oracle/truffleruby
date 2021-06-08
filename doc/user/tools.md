@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Development Tools for Ruby
+permalink: /reference-manual/ruby/Tools/
+---
 # Development Tools for Ruby
 
 TruffleRuby ships with tools automatically provided by GraalVM. Run `--help:tools` to see a full list of options.

@@ -9,9 +9,11 @@
  */
 package org.truffleruby.core.rope;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -29,9 +31,9 @@ public class RopeConstants {
     public static final LeafRope EMPTY_UTF8_ROPE = withHashCode(
             new AsciiOnlyLeafRope(EMPTY_BYTES, UTF8Encoding.INSTANCE));
 
-    public static final LeafRope[] UTF8_SINGLE_BYTE_ROPES = new LeafRope[256];
-    public static final LeafRope[] US_ASCII_SINGLE_BYTE_ROPES = new LeafRope[256];
-    public static final LeafRope[] ASCII_8BIT_SINGLE_BYTE_ROPES = new LeafRope[256];
+    @CompilationFinal(dimensions = 1) public static final LeafRope[] UTF8_SINGLE_BYTE_ROPES = new LeafRope[256];
+    @CompilationFinal(dimensions = 1) public static final LeafRope[] US_ASCII_SINGLE_BYTE_ROPES = new LeafRope[256];
+    @CompilationFinal(dimensions = 1) public static final LeafRope[] ASCII_8BIT_SINGLE_BYTE_ROPES = new LeafRope[256];
 
     static {
         for (int i = 0; i < 128; i++) {
@@ -127,7 +129,7 @@ public class RopeConstants {
         }
     }
 
-    private static final LeafRope[] PADDED_NUMBERS = createPaddedNumbersTable();
+    @CompilationFinal(dimensions = 1) private static final LeafRope[] PADDED_NUMBERS = createPaddedNumbersTable();
 
     private static LeafRope[] createPaddedNumbersTable() {
         final LeafRope[] table = new LeafRope[100];
@@ -146,7 +148,7 @@ public class RopeConstants {
         return PADDED_NUMBERS[n];
     }
 
-    private static final LeafRope[] PADDING_ZEROS = createPaddingZeroTable();
+    @CompilationFinal(dimensions = 1) private static final LeafRope[] PADDING_ZEROS = createPaddingZeroTable();
 
     private static LeafRope[] createPaddingZeroTable() {
         final LeafRope[] table = new LeafRope[6];
@@ -154,9 +156,7 @@ public class RopeConstants {
         for (int n = 0; n < table.length; n++) {
             final byte[] bytes = new byte[n];
 
-            for (int i = 0; i < bytes.length; i++) {
-                bytes[i] = '0';
-            }
+            Arrays.fill(bytes, (byte) '0');
 
             table[n] = new AsciiOnlyLeafRope(bytes, UTF8Encoding.INSTANCE);
         }

@@ -33,6 +33,8 @@ Compatibility:
 * Implemented `Enumerator::Lazy#filter_map` (#2356).
 * Fix LLVM toolchain issue on macOS 10.13 (#2352, [oracle/graal#3383](https://github.com/oracle/graal/issues/3383)).
 * Implement `IO#set_encoding_by_bom` (#2372, pawandubey).
+* Implemented `Enumerator::Lazy#with_index` (#2356).
+* Implement `rb_backref_set`.
 
 Performance:
 
@@ -44,6 +46,7 @@ Performance:
 * Improved the performance of `IO#read_nonblock` when no data is available to be read.
 * `TruffleSafepoint` is now used instead of custom logic, which no longer invalidates JITed code for guest safepoints (e.g., `Thread#{backtrace,raise,kill}`, `ObjectSpace`, etc)
 * Significantly improved performance of `Time#strftime` for common formats (#2361, @wildmaples, @chrisseaton).
+* Faster solution for lazy integer length (#2365, @lemire, @chrisseaton).
 
 Changes:
 

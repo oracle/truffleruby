@@ -18,7 +18,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MiscTest {
@@ -112,9 +111,9 @@ public class MiscTest {
             TestingThread thread = new TestingThread(() -> {
                 // Run code that requires the Ruby Thread object to be initialized
                 Value recursiveArray = context.eval("ruby", "a = [0]; a[0] = a; a.inspect"); // Access @recursive_objects
-                Assert.assertEquals("[[...]]", recursiveArray.asString());
-                Assert.assertTrue(context.eval("ruby", "Thread.current.thread_variable_get('foo')").isNull());
-                Assert.assertTrue(context.eval("ruby", "rand").fitsInDouble());
+                assertEquals("[[...]]", recursiveArray.asString());
+                assertTrue(context.eval("ruby", "Thread.current.thread_variable_get('foo')").isNull());
+                assertTrue(context.eval("ruby", "rand").fitsInDouble());
             });
             thread.start();
             thread.join();
@@ -155,12 +154,12 @@ public class MiscTest {
         }
     }
 
-    @Ignore // TODO (eregon, 8 April 2020): not yet working
     @Test
     public void testIntegratorThreadContextClosedOnOtherThread() throws Throwable {
         try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
             TestingThread thread = new TestingThread(() -> {
-                Assert.assertEquals(42, context.eval("ruby", "6 * 7").asInt());
+                assertEquals(context.eval("ruby", "Thread.current"), context.eval("ruby", "Thread.main"));
+                assertEquals(42, context.eval("ruby", "6 * 7").asInt());
             });
             thread.start();
             thread.join();

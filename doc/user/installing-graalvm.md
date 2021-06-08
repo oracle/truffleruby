@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Using Ruby with GraalVM
+permalink: /reference-manual/ruby/InstallingGraalVM/
+---
 # Using TruffleRuby with GraalVM
 
 [GraalVM](http://graalvm.org/) is the platform on which TruffleRuby runs.
@@ -52,8 +58,7 @@ languages/ruby/lib/truffle/post_install_hook.sh
 $(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')/lib/truffle/post_install_hook.sh
 ```
 
-You can also download the Ruby component (`ruby-installable-...`) manually from
-https://github.com/oracle/truffleruby/releases/latest.
+You can also download the latest Ruby component (`ruby-installable-...`) manually from [GitHub](https://github.com/oracle/truffleruby/releases/latest).
 Then install it with `gu install --file path/to/ruby-installable-...`.
 
 If you are installing Ruby into GraalVM Enterprise, then you need to download the Ruby

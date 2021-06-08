@@ -11,6 +11,14 @@
 module Truffle
   module RegexpOperations
 
+    LAST_MATCH_SET = -> v, s {
+      unless Primitive.nil?(v) || Primitive.object_kind_of?(v, MatchData)
+        raise TypeError, "Wrong argument type #{v} (expected MatchData)"
+      end
+      Primitive.regexp_last_match_set(s, v)
+    }
+
+
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?

@@ -57,7 +57,6 @@ fails:Public methods on TracePoint should include parameters
 fails:Public methods on TracePoint should include raised_exception
 fails:Public methods on TracePoint should include return_value
 fails:Public methods on ENV.singleton_class should include freeze
-fails:Public methods on Enumerator::Lazy should include with_index
 fails:Public methods on IO should include set_encoding_by_bom
 fails:Public methods on BasicSocket should include read_nonblock
 fails:Public methods on BasicSocket should include write_nonblock

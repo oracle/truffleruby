@@ -715,6 +715,18 @@ describe "Multiple assignment" do
       x.should == [1, 2, 3, 4, 5]
     end
 
+    it "can be used to swap array elements" do
+      a = [1, 2]
+      a[0], a[1] = a[1], a[0]
+      a.should == [2, 1]
+    end
+
+    it "can be used to swap range of array elements" do
+      a = [1, 2, 3, 4]
+      a[0, 2], a[2, 2] = a[2, 2], a[0, 2]
+      a.should == [3, 4, 1, 2]
+    end
+
     it "assigns RHS values to LHS constants" do
       module VariableSpecs
         MRHS_VALUES_1, MRHS_VALUES_2 = 1, 2

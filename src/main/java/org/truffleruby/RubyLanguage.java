@@ -521,6 +521,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void initializeThread(RubyContext context, Thread thread) {
+        LOGGER.fine(() -> "initializeThread(#" + thread.getId() + " " + thread + ")");
+
         if (thread == context.getThreadManager().getOrInitializeRootJavaThread()) {
             // Already initialized when creating the context
             return;
@@ -546,14 +548,24 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public void disposeThread(RubyContext context, Thread thread) {
+        LOGGER.fine(
+                () -> "disposeThread(#" + thread.getId() + " " + thread + " " +
+                        context.getThreadManager().getCurrentThreadOrNull() + ")");
+
         if (thread == context.getThreadManager().getRootJavaThread()) {
             if (context.getEnv().isPreInitialization()) {
                 // Cannot save the root Java Thread instance in the image
                 context.getThreadManager().resetMainThread();
                 context.getThreadManager().dispose();
+                return;
+            } else if (!context.isInitialized()) {
+                // Context patching failed, we cannot cleanup the main thread as it was not initialized
+                return;
+            } else {
+                // Cleanup the main thread, this is done between finalizeContext() and disposeContext()
+                context.getThreadManager().cleanupThreadState(context.getThreadManager().getRootThread(), thread);
+                return;
             }
-            // Let the context shutdown cleanup the main thread
-            return;
         }
 
         if (context.getThreadManager().isRubyManagedThread(thread)) {
@@ -563,12 +575,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                     throw CompilerDirectives.shouldNotReachHere("Ruby threads should be disposed on their Java thread");
                 }
                 context.getThreadManager().cleanupThreadState(rubyThread, thread);
-            } else {
-                // Fiber
+            } else { // (non-root) Fiber
+                // Fibers are always cleaned up by their thread's cleanup with FiberManager#killOtherFibers()
             }
             return;
         }
 
+        // A foreign Thread, its Fibers are considered isRubyManagedThread()
         final RubyThread rubyThread = context.getThreadManager().getRubyThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }

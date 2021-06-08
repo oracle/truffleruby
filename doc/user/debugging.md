@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Debugging Ruby
+permalink: /reference-manual/ruby/Debugging/
+---
 # Debugging TruffleRuby
 
 ## Printing Exceptions

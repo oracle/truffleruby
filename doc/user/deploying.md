@@ -1,3 +1,9 @@
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Runtime Configurations
+permalink: /reference-manual/ruby/RuntimeConfigurations/
+---
 # Deploying TruffleRuby
 
 If you are attempting to experiment with deploying TruffleRuby to production we would encourage you to contact us so we can help you understand what is possible at the moment and to help solve any issues for you.
