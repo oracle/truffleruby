@@ -101,6 +101,7 @@ EXPERT:
     PATCHING: [patching, boolean, true, Use patching]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
     FIBER_LEAVE_CONTEXT: [fiber-leave-context, boolean, true, 'Leave the TruffleContext when suspending a Fiber (avoids triggering multithreading)']
+    LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created']
 
     # Options to tweak backtraces
     EXCEPTIONS_STORE_JAVA: [exceptions-store-java, boolean, false, Store the Java exception with the Ruby backtrace]
