@@ -1614,4 +1614,14 @@ public class CExtNodes {
             return sym == null ? nil : sym;
         }
     }
+
+    @CoreMethod(names = "rb_ary_new_from_values", onSingleton = true, required = 1)
+    public abstract static class RbAryNewFromValues extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected RubyArray rbAryNewFromValues(Object cArray,
+                @Cached UnwrapCArrayNode unwrapCArrayNode) {
+            final Object[] values = unwrapCArrayNode.execute(cArray);
+            return createArray(values);
+        }
+    }
 }
