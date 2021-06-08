@@ -1,8 +1,0 @@
-fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF-8 sequence
-fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF_16LE sequence
-fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF_16BE sequence
-fails:IO#set_encoding_by_bom returns nil if found BOM sequence not provided
-fails:IO#set_encoding_by_bom returns exception if io not in binary mode
-fails:IO#set_encoding_by_bom returns exception if encoding already set
-fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF_32LE sequence
-fails:IO#set_encoding_by_bom returns the result encoding if found BOM UTF_32BE sequence

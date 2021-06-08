@@ -2158,6 +2158,25 @@ class IO
     self
   end
 
+  def set_encoding_by_bom
+    unless binmode?
+      raise ArgumentError, 'ASCII incompatible encoding needs binmode'
+    end
+
+    if internal_encoding
+      raise ArgumentError, 'encoding conversion is set'
+    end
+
+    if external_encoding && external_encoding != Encoding::ASCII_8BIT
+      raise ArgumentError, "encoding is set to #{external_encoding} already"
+    end
+
+    external = strip_bom
+    if external
+      @external = Encoding.find(external)
+    end
+  end
+
   private def strip_bom
     mode = Truffle::POSIX.truffleposix_fstat_mode(Primitive.io_fd(self))
     return unless Truffle::StatOperations.file?(mode)
