@@ -17,6 +17,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
@@ -219,16 +221,19 @@ public abstract class UnwrapNode extends RubyBaseNode {
         protected Object[] unwrapCArray(Object cArray,
                 @CachedLibrary("cArray") InteropLibrary interop,
                 @Bind("getArraySize(cArray, interop)") int size,
-                @Cached UnwrapNode unwrapNode) {
+                @Cached UnwrapNode unwrapNode,
+                @Cached LoopConditionProfile loopProfile) {
             final Object[] store = new Object[size];
-            for (int i = 0; i < size; i++) {
+            loopProfile.profileCounted(size);
+            for (int i = 0; loopProfile.inject(i < size); i++) {
                 final Object cValue = readArrayElement(cArray, interop, i);
                 store[i] = unwrapNode.execute(cValue);
             }
+            LoopNode.reportLoopCount(this, size);
             return store;
         }
 
-        protected int getArraySize(Object cArray, InteropLibrary interop) {
+        protected static int getArraySize(Object cArray, InteropLibrary interop) {
             try {
                 return Math.toIntExact(interop.getArraySize(cArray));
             } catch (UnsupportedMessageException | ArithmeticException e) {
@@ -236,7 +241,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
             }
         }
 
-        private Object readArrayElement(Object cArray, InteropLibrary interop, int i) {
+        private static Object readArrayElement(Object cArray, InteropLibrary interop, int i) {
             try {
                 return interop.readArrayElement(cArray, i);
             } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
