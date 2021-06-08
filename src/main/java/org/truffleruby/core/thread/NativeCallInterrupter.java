@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.signal.LibRubySignal;
 
@@ -58,7 +59,11 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
         public void run() {
             if (executed < MAX_EXECUTIONS) {
                 executed++;
-                LibRubySignal.sendSIGVTALRMToThread(threadID);
+                int result = LibRubySignal.sendSIGVTALRMToThread(threadID);
+                if (result != 0) {
+                    throw CompilerDirectives.shouldNotReachHere(
+                            String.format("pthread_kill(%x, SIGVTALRM) failed with result=%d", threadID, result));
+                }
             } else {
                 cancel();
             }
