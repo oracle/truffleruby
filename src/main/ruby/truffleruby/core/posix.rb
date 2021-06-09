@@ -195,6 +195,9 @@ module Truffle::POSIX
   attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_mode, [:int], :mode_t, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_size, [:int], :long, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_fstatat, [:int, :string, :pointer, :int], :int, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_fstatat_mode, [:int, :string, :int], :mode_t, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_fstatat_size, [:int, :string, :int], :long, LIBTRUFFLEPOSIX
   attach_function :fsync, [:int], :int
   attach_function :ftruncate, [:int, :off_t], :int
   attach_function :getcwd, [:pointer, :size_t], :string
@@ -216,7 +219,8 @@ module Truffle::POSIX
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer
-  attach_function :truffleposix_readdir, [:pointer], :string, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_readdir, [:pointer], :pointer, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_readdir_name, [:pointer], :string, LIBTRUFFLEPOSIX
   attach_function :rename, [:string, :string], :int
   attach_function :truffleposix_rewinddir, [:pointer], :void, LIBTRUFFLEPOSIX
   attach_function :rmdir, [:string], :int

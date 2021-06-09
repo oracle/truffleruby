@@ -1012,6 +1012,7 @@ public class CoreLibrary {
             "/core/errno.rb",
             "/core/truffle/file_operations.rb",
             "/core/file.rb",
+            "/core/truffle/dir_operations.rb",
             "/core/dir.rb",
             "/core/dir_glob.rb",
             "/core/file_test.rb",

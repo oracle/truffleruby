@@ -229,10 +229,39 @@ retry:
   }
 }
 
-char* truffleposix_readdir(DIR *dirp) {
+struct dirent *truffleposix_readdir(DIR *dirp) {
   errno = 0;
   struct dirent *entry = readdir(dirp);
-  if (entry != NULL) {
+  if (entry) {
+    if (entry->d_type == DT_UNKNOWN) {
+      struct stat native_stat;
+      int result = fstatat(dirfd(dirp), entry->d_name, &native_stat, AT_SYMLINK_NOFOLLOW);
+      if (result == 0) {
+        if (S_ISREG(native_stat.st_mode)) {
+          entry->d_type = DT_REG;
+        } else if(S_ISDIR(native_stat.st_mode)) {
+          entry->d_type = DT_DIR;
+        } else if (S_ISCHR(native_stat.st_mode)) {
+          entry->d_type = DT_CHR;;
+        } else if (S_ISBLK(native_stat.st_mode)) {
+          entry->d_type = DT_BLK;
+        } else if (S_ISFIFO(native_stat.st_mode)) {
+          entry->d_type = DT_FIFO;
+        } else if (S_ISLNK(native_stat.st_mode)) {
+          entry->d_type = DT_LNK;
+        } else if (S_ISSOCK(native_stat.st_mode)) {
+          entry->d_type = DT_SOCK;
+        }
+      }
+    }
+  }
+  return entry;
+}
+
+char *truffleposix_readdir_name(DIR *dirp) {
+  errno = 0;
+  struct dirent *entry = readdir(dirp);
+  if (entry) {
     return entry->d_name;
   } else if (errno == 0) {
     return "";
@@ -365,6 +394,33 @@ mode_t truffleposix_fstat_mode(int fd) {
 int64_t truffleposix_fstat_size(int fd) {
   struct stat native_stat;
   int result = fstat(fd, &native_stat);
+  if (result == 0) {
+    return native_stat.st_size;
+  }
+  return result;
+}
+
+int truffleposix_fstatat(int dirfd, char *path, struct truffleposix_stat *buffer, int flags) {
+  struct stat native_stat;
+  int result = fstatat(dirfd, path, &native_stat, flags);
+  if (result == 0) {
+    copy_stat(&native_stat, buffer);
+  }
+  return result;
+}
+
+mode_t truffleposix_fstatat_mode(int dirfd, char *path, int flags) {
+  struct stat native_stat;
+  int result = fstatat(dirfd, path, &native_stat, flags);
+  if (result == 0) {
+    return native_stat.st_mode;
+  }
+  return 0;
+}
+
+int64_t truffleposix_fstatat_size(int dirfd, char *path, int flags) {
+  struct stat native_stat;
+  int result = fstatat(dirfd, path, &native_stat, flags);
   if (result == 0) {
     return native_stat.st_size;
   }

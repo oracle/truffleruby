@@ -98,19 +98,7 @@ class Dir
 
   def read
     ensure_open
-    entry = Truffle::POSIX.truffleposix_readdir(@ptr)
-    Errno.handle unless entry
-    return if entry.empty?
-
-    entry = entry.force_encoding(@encoding)
-
-    if Encoding.default_external == Encoding::US_ASCII && !entry.valid_encoding?
-      entry.force_encoding Encoding::ASCII_8BIT
-      return entry
-    end
-
-    enc = Encoding.default_internal
-    enc ? entry.encode(enc) : entry
+    Truffle::DirOperations.readdir_name(self)
   end
 
   def close
