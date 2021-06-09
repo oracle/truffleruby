@@ -590,7 +590,6 @@ constants 'file' do |cg|
   cg.include 'fnmatch.h'
   cg.include 'sys/stat.h'
   cg.include 'dirent.h'
-  cg.include 'limits.h'
   cg.consts %w[
     FNM_CASEFOLD FNM_DOTMATCH FNM_EXTGLOB FNM_NOESCAPE FNM_PATHNAME FNM_SYSCASE
 
@@ -606,8 +605,6 @@ constants 'file' do |cg|
     DT_BLK DT_CHR DT_DIR DT_FIFO DT_LNK DT_REG DT_SOCK DT_UNKNOWN
 
     AT_SYMLINK_NOFOLLOW
-
-    NAME_MAX
   ]
 end
 

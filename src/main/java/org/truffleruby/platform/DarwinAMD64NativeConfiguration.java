@@ -369,7 +369,6 @@ public class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.file.DT_SOCK", 12);
         configuration.config("platform.file.DT_UNKNOWN", 0);
         configuration.config("platform.file.AT_SYMLINK_NOFOLLOW", 32);
-        configuration.config("platform.file.NAME_MAX", 255);
         configuration.config("platform.io.SEEK_SET", 0);
         configuration.config("platform.io.SEEK_CUR", 1);
         configuration.config("platform.io.SEEK_END", 2);

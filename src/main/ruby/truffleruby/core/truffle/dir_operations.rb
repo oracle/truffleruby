@@ -20,15 +20,12 @@ module Truffle
     DT_DIR = Truffle::Config['platform.file.DT_DIR']
     DT_UNKNOWN  = Truffle::Config['platform.file.DT_UNKNOWN']
 
-    NAME_MAX = Truffle::Config['platform.file.NAME_MAX']
-
-
     def self.readdir(dir)
       dir.__send__(:ensure_open)
       dirptr = dir.instance_variable_get(:@ptr)
       dirent = Truffle::POSIX.truffleposix_readdir(dirptr)
       if !dirent.null?
-        str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET, NAME_MAX))
+        str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET))
         type = (dirent + DIRENT_TYPE_OFFSET).read_uchar
         [str, type]
       else
