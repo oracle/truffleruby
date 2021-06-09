@@ -319,7 +319,8 @@ public abstract class TruffleBootNodes {
             if (descriptor == null) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().nameError("option not defined", nil, optionNameString, this));
+                        coreExceptions()
+                                .nameError("option not defined: " + optionNameString, nil, optionNameString, this));
             }
 
             Object value = getContext().getOptions().fromDescriptor(descriptor);

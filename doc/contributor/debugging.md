@@ -5,6 +5,8 @@ You've got many options for debugging the implementation of TruffleRuby.
 If you want to debug an application running on TruffleRuby, and don't suspect
 any bug in TruffleRuby itself, use GraalVM [tools](../user/tools.md) as usual.
 
+Also see [user debugging docs](../user/debugging.md).
+
 ## Print Debugging
 
 `System.err.println(...);` in Java and `p` in Ruby is a great first tool to use for

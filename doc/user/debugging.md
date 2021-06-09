@@ -40,3 +40,12 @@ When debugging you may want to see this information.
 An option to show more information is `--backtraces-interleave-java=true`, which shows you the Java methods involved in executing each Ruby method.
 
 When you are interoperating with other languages, including C extensions, backtraces for Java exceptions may be missing information, as the Java frames are gone by the time Ruby has a chance to format them into a backtrace.
+
+## Printing Subprocesses
+
+You can print all subprocesses created by TruffleRuby using the option `--log-subprocess`.
+
+```bash
+$ ruby --log-subprocess -e '`ls .`'
+[ruby] INFO: spawn: ls .
+```

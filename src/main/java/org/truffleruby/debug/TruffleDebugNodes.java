@@ -330,23 +330,6 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "log_config", onSingleton = true, required = 1)
-    public abstract static class LogConfigNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object logConfig(Object value,
-                @Cached ToJavaStringNode toJavaStringNode) {
-            config(toJavaStringNode.executeToJavaString(value));
-            return nil;
-        }
-
-        @TruffleBoundary
-        static void config(String message) {
-            RubyLanguage.LOGGER.config(message);
-        }
-
-    }
-
     @CoreMethod(names = "log_warning", onSingleton = true, required = 1)
     public abstract static class LogWarningNode extends CoreMethodArrayArgumentsNode {
 
@@ -360,6 +343,40 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         static void warning(String message) {
             RubyLanguage.LOGGER.warning(message);
+        }
+
+    }
+
+    @CoreMethod(names = "log_info", onSingleton = true, required = 1)
+    public abstract static class LogInfoNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object logInfo(Object value,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            config(toJavaStringNode.executeToJavaString(value));
+            return nil;
+        }
+
+        @TruffleBoundary
+        static void config(String message) {
+            RubyLanguage.LOGGER.info(message);
+        }
+
+    }
+
+    @CoreMethod(names = "log_config", onSingleton = true, required = 1)
+    public abstract static class LogConfigNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object logConfig(Object value,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            config(toJavaStringNode.executeToJavaString(value));
+            return nil;
+        }
+
+        @TruffleBoundary
+        static void config(String message) {
+            RubyLanguage.LOGGER.config(message);
         }
 
     }

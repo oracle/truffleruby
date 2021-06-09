@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.signal.LibRubySignal;
 
@@ -19,7 +20,7 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
     private final Timer timer;
     private final long threadID;
-    private volatile Task currentTask = null;
+    private Task currentTask = null;
 
     NativeCallInterrupter(Timer timer, long threadID) {
         this.timer = timer;
@@ -28,16 +29,25 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
     @Override
     public void interrupt(Thread thread) {
-        final Task task = new Task(threadID);
-        currentTask = task;
-        timer.schedule(task, 0, Task.PERIOD);
+        synchronized (this) {
+            final Task previousTask = this.currentTask;
+            if (previousTask != null) {
+                previousTask.cancel();
+            }
+
+            final Task task = new Task(threadID);
+            this.currentTask = task;
+            timer.schedule(task, 0, Task.PERIOD);
+        }
     }
 
     @Override
     public void resetInterrupted() {
-        Task task = currentTask;
-        if (task != null) {
-            task.cancel();
+        synchronized (this) {
+            final Task task = this.currentTask;
+            if (task != null) {
+                task.cancel();
+            }
         }
     }
 
@@ -49,18 +59,39 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
         private final long threadID;
         private int executed = 0;
+        private boolean cancelled = false;
 
         Task(long threadID) {
             this.threadID = threadID;
         }
 
         @Override
+        public boolean cancel() {
+            // Ensure this task does not run later when this method returns.
+            // If it was running at the time of cancel(), wait for that.
+            synchronized (this) {
+                cancelled = true;
+                return super.cancel();
+            }
+        }
+
+        @Override
         public void run() {
-            if (executed < MAX_EXECUTIONS) {
-                executed++;
-                LibRubySignal.sendSIGVTALRMToThread(threadID);
-            } else {
-                cancel();
+            synchronized (this) {
+                if (cancelled) {
+                    return;
+                }
+
+                if (executed < MAX_EXECUTIONS) {
+                    executed++;
+                    int result = LibRubySignal.sendSIGVTALRMToThread(threadID);
+                    if (result != 0) {
+                        throw CompilerDirectives.shouldNotReachHere(
+                                String.format("pthread_kill(%x, SIGVTALRM) failed with result=%d", threadID, result));
+                    }
+                } else {
+                    cancel();
+                }
             }
         }
     }

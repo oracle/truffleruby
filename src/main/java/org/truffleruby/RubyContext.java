@@ -164,7 +164,6 @@ public class RubyContext {
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
 
-        this.logger = env.getLogger("");
         this.language = language;
         this.callStack = new CallStackManager(language, this);
         setEnv(env);
@@ -392,6 +391,7 @@ public class RubyContext {
         this.env = env;
         this.outStream = printStreamFor(env.out());
         this.errStream = printStreamFor(env.err());
+        this.logger = env.getLogger("");
         this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
         this.preInitializing = env.isPreInitialization();
     }

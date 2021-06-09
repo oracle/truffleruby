@@ -295,21 +295,23 @@ public class ThreadManager {
             final Object result = task.get();
             setThreadValue(thread, result);
             // Handlers in the same order as in FiberManager
+            // Each catch must either setThreadValue() (before rethrowing) or setException()
         } catch (KillException e) {
             setThreadValue(thread, Nil.INSTANCE);
         } catch (ThreadDeath e) { // Context#close(true)
+            setThreadValue(thread, Nil.INSTANCE);
             throw e;
         } catch (RaiseException e) {
             setException(thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {
             setException(thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } catch (ExitException e) {
-            rethrowOnMainThread(currentNode, e);
             setThreadValue(thread, Nil.INSTANCE);
+            rethrowOnMainThread(currentNode, e);
         } catch (Throwable e) {
             final RuntimeException runtimeException = printInternalError(e);
-            rethrowOnMainThread(currentNode, runtimeException);
             setThreadValue(thread, Nil.INSTANCE);
+            rethrowOnMainThread(currentNode, runtimeException);
         } finally {
             assert thread.value != null || thread.exception != null;
             cleanupKillOtherFibers(thread);
@@ -344,9 +346,6 @@ public class ThreadManager {
     }
 
     private void setException(RubyThread thread, RubyException exception, Node currentNode) {
-        // A Thread is always shared (Thread.list)
-        SharedObjects.propagate(language, thread, exception);
-
         // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
         // to capture the backtrace from this thread.
         final RaiseException truffleException = exception.backtrace.getRaiseException();
@@ -354,8 +353,11 @@ public class ThreadManager {
             TruffleStackTrace.fillIn(truffleException);
         }
 
-        final RubyThread mainThread = context.getThreadManager().getRootThread();
+        // A Thread is always shared (Thread.list)
+        SharedObjects.propagate(language, thread, exception);
+        thread.exception = exception;
 
+        final RubyThread mainThread = context.getThreadManager().getRootThread();
         if (thread != mainThread) {
             final boolean isSystemExit = exception instanceof RubySystemExit;
 
@@ -372,7 +374,6 @@ public class ThreadManager {
                         .raiseInThread(language, context, mainThread, exception, currentNode);
             }
         }
-        thread.exception = exception;
     }
 
     // Share the Ruby Thread before it can be accessed concurrently, and before it is added to Thread.list

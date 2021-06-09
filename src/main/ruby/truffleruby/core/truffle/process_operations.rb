@@ -350,7 +350,8 @@ module Truffle
 
       def spawn_setup(alter_process)
         env = @options.delete(:unsetenv_others) ? {} : ENV.to_hash
-        if add_to_env = @options.delete(:env)
+        @add_to_env = add_to_env = @options.delete(:env)
+        if add_to_env
           add_to_env.each do |key, value|
             if value
               env[key] = value
@@ -415,6 +416,7 @@ module Truffle
       end
 
       def spawn
+        log_command 'spawn'
         pid = posix_spawnp @command, @argv, @env_array, @options
         # Check if the command exists *after* invoking posix_spawn so we have a pid
         if not resolve_in_path(@command)
@@ -497,6 +499,7 @@ module Truffle
       end
 
       def exec
+        log_command('exec')
         # exec validates the command only if it searches in $PATH
         if should_search_path?(@command)
           if resolved = resolve_in_path(@command)
@@ -514,6 +517,17 @@ module Truffle
         end
 
         raise SystemCallError.new('execve() should not return', 0)
+      end
+
+      Truffle::Boot.delay do
+        LOG_SUBPROCESS = Truffle::Boot.get_option 'log-subprocess'
+      end
+
+      def log_command(type)
+        if LOG_SUBPROCESS
+          env = (@add_to_env || {}).map { |k,v| "#{k}=#{v}" }.join(' ')
+          Truffle::Debug.log_info "#{type}: #{env}#{' ' unless env.empty?}#{@argv.join(' ')}"
+        end
       end
 
       def should_use_shell?(command)
