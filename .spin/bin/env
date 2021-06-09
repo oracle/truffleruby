@@ -1,3 +1,4 @@
+# $BASH_SOURCE[0] is for Bash, ${(%):-%x} is for Zsh
 SCRIPT_PATH=$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")
 SCRIPT_PATH=$(cd "$SCRIPT_PATH" && pwd)
 TRUFFLERUBY_DIR=$SCRIPT_PATH/../..
