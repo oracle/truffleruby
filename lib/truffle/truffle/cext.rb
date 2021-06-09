@@ -865,16 +865,16 @@ module Truffle::CExt
     end
   end
 
-  def rb_funcall_with_block(recv, meth, args, block)
-    Primitive.public_send_without_cext_lock(recv, meth, args, block)
+  def rb_funcall_with_block(recv, meth, argv, block)
+    Primitive.public_send_argv_without_cext_lock(recv, meth, argv, block)
   end
 
-  def rb_funcallv_public(recv, meth, args)
-    Primitive.public_send_without_cext_lock(recv, meth, args, nil)
+  def rb_funcallv_public(recv, meth, argv)
+    Primitive.public_send_argv_without_cext_lock(recv, meth, argv, nil)
   end
 
-  def rb_funcallv(recv, meth, args)
-    rb_funcall(recv, meth, nil, *args)
+  def rb_funcallv(recv, meth, argv)
+    Primitive.send_argv_without_cext_lock(recv, meth, argv, nil)
   end
 
   def rb_funcall(recv, meth, n, *args)

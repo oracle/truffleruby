@@ -47,6 +47,7 @@ Performance:
 * `TruffleSafepoint` is now used instead of custom logic, which no longer invalidates JITed code for guest safepoints (e.g., `Thread#{backtrace,raise,kill}`, `ObjectSpace`, etc)
 * Significantly improved performance of `Time#strftime` for common formats (#2361, @wildmaples, @chrisseaton).
 * Faster solution for lazy integer length (#2365, @lemire, @chrisseaton).
+* Speedup `rb_funcallv*()` by directly unwrapping the C arguments array instead of going through a Ruby `Array` (#2089).
 
 Changes:
 

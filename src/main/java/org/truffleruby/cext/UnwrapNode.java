@@ -14,6 +14,11 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
@@ -37,12 +42,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
-@ImportStatic({ ValueWrapperManager.class })
+@ImportStatic(ValueWrapperManager.class)
 public abstract class UnwrapNode extends RubyBaseNode {
-
-    public static UnwrapNode create() {
-        return UnwrapNodeGen.create();
-    }
 
     @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
@@ -154,7 +155,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
     }
 
-    @ImportStatic({ ValueWrapperManager.class })
+    @ImportStatic(ValueWrapperManager.class)
     public abstract static class ToWrapperNode extends RubyContextNode {
 
         public abstract ValueWrapper execute(Object value);
@@ -192,6 +193,65 @@ public abstract class UnwrapNode extends RubyBaseNode {
         protected int getCacheLimit() {
             return getLanguage().options.DISPATCH_CACHE;
         }
+    }
+
+    @ImportStatic(ValueWrapperManager.class)
+    public abstract static class UnwrapCArrayNode extends RubyContextNode {
+
+        public abstract Object[] execute(Object cArray);
+
+        @ExplodeLoop
+        @Specialization(
+                guards = { "size == cachedSize", "cachedSize <= MAX_EXPLODE_SIZE" },
+                limit = "getIdentityCacheLimit()")
+        protected Object[] unwrapCArrayExplode(Object cArray,
+                @CachedLibrary("cArray") InteropLibrary interop,
+                @Bind("getArraySize(cArray, interop)") int size,
+                @Cached("size") int cachedSize,
+                @Cached UnwrapNode unwrapNode) {
+            final Object[] store = new Object[cachedSize];
+            for (int i = 0; i < cachedSize; i++) {
+                final Object cValue = readArrayElement(cArray, interop, i);
+                store[i] = unwrapNode.execute(cValue);
+            }
+            return store;
+        }
+
+        @Specialization(replaces = "unwrapCArrayExplode", limit = "getDefaultCacheLimit()")
+        protected Object[] unwrapCArray(Object cArray,
+                @CachedLibrary("cArray") InteropLibrary interop,
+                @Bind("getArraySize(cArray, interop)") int size,
+                @Cached UnwrapNode unwrapNode,
+                @Cached LoopConditionProfile loopProfile) {
+            final Object[] store = new Object[size];
+            loopProfile.profileCounted(size);
+            for (int i = 0; loopProfile.inject(i < size); i++) {
+                final Object cValue = readArrayElement(cArray, interop, i);
+                store[i] = unwrapNode.execute(cValue);
+            }
+            LoopNode.reportLoopCount(this, size);
+            return store;
+        }
+
+        protected static int getArraySize(Object cArray, InteropLibrary interop) {
+            try {
+                return Math.toIntExact(interop.getArraySize(cArray));
+            } catch (UnsupportedMessageException | ArithmeticException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+
+        private static Object readArrayElement(Object cArray, InteropLibrary interop, int i) {
+            try {
+                return interop.readArrayElement(cArray, i);
+            } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+    }
+
+    public static UnwrapNode create() {
+        return UnwrapNodeGen.create();
     }
 
     public abstract Object execute(Object value);

@@ -1,6 +1,5 @@
 Test error in Ruby => C ext support => Ruby
 /bin/backtraces:19:in `callback': Ruby callback error (RuntimeError)
-	from /lib/truffle/truffle/cext.rb:n:in `rb_funcall'
 	from /lib/truffle/truffle/cext.rb:n:in `rb_funcallv'
 	from /src/main/c/cext/call.c:n:in `rb_funcallv'
 	from /bin/backtraces:23:in `ruby_call'

@@ -51,11 +51,8 @@ VALUE rb_ary_new_from_args(long n, ...) {
 }
 
 VALUE rb_ary_new_from_values(long n, const VALUE *values) {
-  VALUE array = rb_ary_new_capa(n);
-  for (int i = 0; i < n; i++) {
-    rb_ary_store(array, i, values[i]);
-  }
-  return array;
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ary_new_from_values",
+    polyglot_from_VALUE_array(values, n)));
 }
 
 VALUE rb_assoc_new(VALUE a, VALUE b) {

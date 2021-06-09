@@ -46,6 +46,8 @@ extern "C" {
 typedef unsigned long VALUE;
 typedef unsigned long ID;
 
+POLYGLOT_DECLARE_TYPE(VALUE)
+
 // Support
 
 extern void* rb_tr_cext;
