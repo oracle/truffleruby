@@ -75,7 +75,6 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
-    @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
             boolean encodingConversion, int start, Node currentNode) {
         final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange());
@@ -86,10 +85,9 @@ public class TruffleRegexpNodes {
             regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
         }
 
-        return regex.matcher(stringBytes, start, stringBytes.length);
+        return getMatcher(regex, stringBytes, start);
     }
 
-    @TruffleBoundary
     public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange) {
         final Encoding regexEnc = regexp.regex.getEncoding();
 
@@ -103,6 +101,12 @@ public class TruffleRegexpNodes {
         return strEnc;
     }
 
+    @TruffleBoundary
+    private static Matcher getMatcher(Regex regex, byte[] stringBytes, int start) {
+        return regex.matcher(stringBytes, start, stringBytes.length);
+    }
+
+    @TruffleBoundary
     private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, Encoding enc, Node currentNode) {
         final Encoding[] fixedEnc = new Encoding[]{ null };
         final Rope sourceRope = regexp.source;
