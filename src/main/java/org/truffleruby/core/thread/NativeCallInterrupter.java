@@ -20,7 +20,7 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
     private final Timer timer;
     private final long threadID;
-    private volatile Task currentTask = null;
+    private Task currentTask = null;
 
     NativeCallInterrupter(Timer timer, long threadID) {
         this.timer = timer;
@@ -29,16 +29,25 @@ class NativeCallInterrupter implements TruffleSafepoint.Interrupter {
 
     @Override
     public void interrupt(Thread thread) {
-        final Task task = new Task(threadID);
-        currentTask = task;
-        timer.schedule(task, 0, Task.PERIOD);
+        synchronized (this) {
+            final Task previousTask = this.currentTask;
+            if (previousTask != null) {
+                previousTask.cancel();
+            }
+
+            final Task task = new Task(threadID);
+            this.currentTask = task;
+            timer.schedule(task, 0, Task.PERIOD);
+        }
     }
 
     @Override
     public void resetInterrupted() {
-        Task task = currentTask;
-        if (task != null) {
-            task.cancel();
+        synchronized (this) {
+            final Task task = this.currentTask;
+            if (task != null) {
+                task.cancel();
+            }
         }
     }
 
