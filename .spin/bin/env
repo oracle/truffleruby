@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_PATH=$(dirname "$BASH_SOURCE[0]")
+SCRIPT_PATH=$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")
 SCRIPT_PATH=$(cd "$SCRIPT_PATH" && pwd)
 TRUFFLERUBY_DIR=$SCRIPT_PATH/../..
 export JT_ENV=jvm-ce
