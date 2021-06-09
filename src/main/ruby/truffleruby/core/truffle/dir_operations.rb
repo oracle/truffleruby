@@ -22,7 +22,7 @@ module Truffle
 
     def self.readdir(dir)
       dir.__send__(:ensure_open)
-      dirptr = dir.instance_variable_get(:@ptr)
+      dirptr = Primitive.object_ivar_get(dir, :@ptr)
       dirent = Truffle::POSIX.truffleposix_readdir(dirptr)
       if !dirent.null?
         str = fix_entry_encoding(dir, dirent.get_string(DIRENT_NAME_OFFSET))
@@ -36,7 +36,7 @@ module Truffle
 
     def self.readdir_name(dir)
       dir.__send__(:ensure_open)
-      dirptr = dir.instance_variable_get(:@ptr)
+      dirptr = Primitive.object_ivar_get(dir, :@ptr)
       entry = Truffle::POSIX.truffleposix_readdir_name(dirptr)
       Errno.handle unless entry
       return if entry.empty?
@@ -45,7 +45,7 @@ module Truffle
 
     def self.fix_entry_encoding(dir,str)
       if str
-        str = str.force_encoding(dir.instance_variable_get(:@encoding))
+        str = str.force_encoding(Primitive.object_ivar_get(dir, :@encoding))
 
         if Encoding.default_external == Encoding::US_ASCII && !str.valid_encoding?
           str.force_encoding Encoding::ASCII_8BIT
