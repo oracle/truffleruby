@@ -122,12 +122,13 @@ public abstract class ModuleOperations {
     }
 
     /** NOTE: This method might return an undefined RubyConstant */
-    private static boolean constantExists(ConstantEntry constantEntry, ArrayList<Assumption> assumptions) {
-        final RubyConstant constant = constantEntry.getConstant();
+    private static boolean constantExists(RubyConstant constant, ArrayList<Assumption> assumptions) {
         if (constant != null) {
             if (constant.isAutoload() && constant.getAutoloadConstant().isAutoloading()) {
-                // Cannot cache the lookup of an autoloading constant as the result depends on the calling thread
-                assumptions.add(NeverValidAssumption.INSTANCE);
+                if (assumptions != null) {
+                    // Cannot cache the lookup of an autoloading constant as the result depends on the calling thread
+                    assumptions.add(NeverValidAssumption.INSTANCE);
+                }
                 return !constant.getAutoloadConstant().isAutoloadingThread();
             } else {
                 return true;
@@ -135,6 +136,10 @@ public abstract class ModuleOperations {
         } else {
             return false;
         }
+    }
+
+    private static boolean constantExists(ConstantEntry constantEntry, ArrayList<Assumption> assumptions) {
+        return constantExists(constantEntry.getConstant(), assumptions);
     }
 
     @TruffleBoundary
@@ -192,6 +197,27 @@ public abstract class ModuleOperations {
         }
 
         return new ConstantLookupResult(null, toArray(assumptions));
+    }
+
+    @TruffleBoundary
+    public static RubyConstant lookupConstantInObjectUncached(RubyContext context, String name) {
+        final RubyClass objectClass = context.getCoreLibrary().objectClass;
+
+        ModuleFields fields = objectClass.fields;
+        RubyConstant constant = fields.getConstant(name);
+        if (constantExists(constant, null)) {
+            return constant;
+        }
+
+        for (RubyModule ancestor : objectClass.fields.prependedAndIncludedModules()) {
+            fields = ancestor.fields;
+            constant = fields.getConstant(name);
+            if (constantExists(constant, null)) {
+                return constant;
+            }
+        }
+
+        return null;
     }
 
     @TruffleBoundary

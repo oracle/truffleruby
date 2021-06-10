@@ -9,10 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
-import java.util.ArrayList;
-
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
@@ -62,18 +59,18 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
 
     }
 
+    @TruffleBoundary
     private RubyConstant deepConstantLookup(String name, RubyModule lexicalParent) {
-        final RubyConstant constant = lexicalParent.fields.getConstant(name);
+        RubyConstant constant = lexicalParent.fields.getConstant(name);
         if (ModuleOperations.isConstantDefined(constant)) {
             return constant;
         }
 
         final RubyClass objectClass = getContext().getCoreLibrary().objectClass;
         if (lexicalParent == objectClass) {
-            final ConstantLookupResult result = ModuleOperations
-                    .lookupConstantInObject(getContext(), name, new ArrayList<>());
-            if (result.isFound()) {
-                return result.getConstant();
+            constant = ModuleOperations.lookupConstantInObjectUncached(getContext(), name);
+            if (ModuleOperations.isConstantDefined(constant)) {
+                return constant;
             }
         }
 
