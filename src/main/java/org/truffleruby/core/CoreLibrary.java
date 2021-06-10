@@ -491,7 +491,6 @@ public class CoreLibrary {
                 "UnknownKeyException");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
-        defineModule(truffleModule, "Digest");
         defineModule(truffleModule, "ObjSpace");
         defineModule(truffleModule, "Coverage");
         defineModule(truffleModule, "Graal");
