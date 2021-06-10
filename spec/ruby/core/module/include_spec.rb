@@ -379,51 +379,51 @@ describe "Module#include" do
 
   it "updates the constant when an included module is updated" do
     module ModuleSpecs::ConstUpdated
-      class A
+      module A
         FOO = 'a'
       end
 
       module M
       end
 
-      class B < A
+      module B
+        include A
         include M
-        def foo
+        def self.foo
           FOO
         end
       end
 
-      b = B.new
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       M.const_set(:FOO, 'm')
-      b.foo.should == 'm'
+      B.foo.should == 'm'
     end
   end
 
   it "updates the constant when a module included after a call is later updated" do
     module ModuleSpecs::ConstLaterUpdated
-      class A
+      module A
         FOO = 'a'
       end
 
-      class B < A
-        def foo
+      module B
+        include A
+        def self.foo
           FOO
         end
       end
 
-      b = B.new
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       module M
       end
       B.include M
 
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       M.const_set(:FOO, 'm')
-      b.foo.should == 'm'
+      B.foo.should == 'm'
     end
   end
 
@@ -455,7 +455,7 @@ describe "Module#include" do
 
   it "updates the constant when a nested included module is updated" do
     module ModuleSpecs::ConstUpdatedNestedIncludeUpdated
-      class A
+      module A
         FOO = 'a'
       end
 
@@ -466,26 +466,24 @@ describe "Module#include" do
         include N
       end
 
-      class B < A
+      module B
+        include A
         include M
-        def foo
+        def self.foo
           FOO
         end
       end
 
-      b = B.new
-
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       N.const_set(:FOO, 'n')
-
-      b.foo.should == 'n'
+      B.foo.should == 'n'
     end
   end
 
   it "updates the constant when a new module is included" do
     module ModuleSpecs::ConstUpdatedNewInclude
-      class A
+      module A
         FOO = 'a'
       end
 
@@ -493,24 +491,23 @@ describe "Module#include" do
         FOO = 'm'
       end
 
-      class B < A
-        def foo
+      module B
+        include A
+        def self.foo
           FOO
         end
       end
-      b = B.new
 
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       B.include(M)
-
-      b.foo.should == 'm'
+      B.foo.should == 'm'
     end
   end
 
   it "updates the constant when a new module with nested module is included" do
     module ModuleSpecs::ConstUpdatedNestedIncluded
-      class A
+      module A
         FOO = 'a'
       end
 
@@ -522,17 +519,17 @@ describe "Module#include" do
         include N
       end
 
-      class B < A
-        def foo
+      module B
+        include A
+        def self.foo
           FOO
         end
       end
-      b = B.new
 
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       B.include M
-      b.foo.should == 'n'
+      B.foo.should == 'n'
     end
   end
 end

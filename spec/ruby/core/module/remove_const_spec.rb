@@ -88,18 +88,18 @@ describe "Module#remove_const" do
         FOO = 'm'
       end
 
-      class A
+      module A
         include M
         FOO = 'a'
-        def foo
+        def self.foo
           FOO
         end
       end
 
-      a = A.new
-      a.foo.should == 'a'
+      A.foo.should == 'a'
+
       A.send(:remove_const,:FOO)
-      a.foo.should == 'm'
+      A.foo.should == 'm'
     end
   end
 end

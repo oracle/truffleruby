@@ -227,19 +227,19 @@ describe "Module#prepend" do
       module M
         FOO = 'm'
       end
-      class A
+      module A
         FOO = 'a'
       end
-      class B < A
-        def foo
+      module B
+        include A
+        def self.foo
           FOO
         end
       end
 
-      b = B.new
-      b.foo.should == 'a'
+      B.foo.should == 'a'
       B.prepend M
-      b.foo.should == 'm'
+      B.foo.should == 'm'
     end
   end
 
@@ -247,65 +247,63 @@ describe "Module#prepend" do
     module ModuleSpecs::ConstPrependedUpdated
       module M
       end
-      class A
+      module A
         FOO = 'a'
       end
-      class B < A
+      module B
+        include A
         prepend M
-        def foo
+        def self.foo
           FOO
         end
       end
-      b = B.new
-      b.foo.should == 'a'
+      B.foo.should == 'a'
       M.const_set(:FOO, 'm')
-      b.foo.should == 'm'
+      B.foo.should == 'm'
     end
   end
 
-  it "updates the constant when there is a base included method and the prepended module overrides it" do
+  it "updates the constant when there is a base included constant and the prepended module overrides it" do
     module ModuleSpecs::ConstIncludedPrependedOverride
       module Base
         FOO = 'a'
       end
-      class A
+      module A
         include Base
-        def foo
+        def self.foo
           FOO
         end
       end
-      a = A.new
-      a.foo.should == 'a'
+      A.foo.should == 'a'
 
       module M
         FOO = 'm'
       end
       A.prepend M
-      a.foo.should == 'm'
+      A.foo.should == 'm'
     end
   end
 
-  it "updates the constant when there is a base included method and the prepended module is later updated" do
+  it "updates the constant when there is a base included constant and the prepended module is later updated" do
     module ModuleSpecs::ConstIncludedPrependedLaterUpdated
       module Base
         FOO = 'a'
       end
-      class A
+      module A
         include Base
-        def foo
+        def self.foo
           FOO
         end
       end
-      a = A.new
-      a.foo.should == 'a'
+      A.foo.should == 'a'
 
       module M
       end
       A.prepend M
-      a.foo.should == 'a'
+      A.foo.should == 'a'
 
       M.const_set(:FOO, 'm')
-      a.foo.should == 'm'
+      A.foo.should == 'm'
     end
   end
 
@@ -313,22 +311,22 @@ describe "Module#prepend" do
     module ModuleSpecs::ConstUpdatedPrependedAfterLaterUpdated
       module M
       end
-      class A
+      module A
         FOO = 'a'
       end
-      class B < A
-        def foo
+      module B
+        include A
+        def self.foo
           FOO
         end
       end
-      b = B.new
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       B.prepend M
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       M.const_set(:FOO, 'm')
-      b.foo.should == 'm'
+      B.foo.should == 'm'
     end
   end
 
@@ -337,30 +335,29 @@ describe "Module#prepend" do
       module M
         FOO = 'm'
       end
-      class A
+      module A
         prepend M
-        def foo
+        def self.foo
           FOO
         end
       end
 
-      a = A.new
-      a.foo.should == 'm'
+      A.foo.should == 'm'
 
       module N
       end
       A.prepend N
-      a.foo.should == 'm'
+      A.foo.should == 'm'
 
       N.const_set(:FOO, 'n')
-      a.foo.should == 'n'
+      A.foo.should == 'n'
     end
   end
 
   it "updates the constant when a module is included in a prepended module and the constant is defined later" do
     module ModuleSpecs::ConstUpdatedIncludedInPrependedConstDefinedLater
-      class A
-        def foo
+      module A
+        def self.foo
           FOO
         end
       end
@@ -369,8 +366,7 @@ describe "Module#prepend" do
       end
 
       A.prepend Base
-      a = A.new
-      a.foo.should == 'a'
+      A.foo.should == 'a'
 
       module N
       end
@@ -381,17 +377,18 @@ describe "Module#prepend" do
       A.prepend M
 
       N.const_set(:FOO, 'n')
-      a.foo.should == 'n'
+      A.foo.should == 'n'
     end
   end
 
   it "updates the constant when a new module with an included module is prepended" do
     module ModuleSpecs::ConstUpdatedNewModuleIncludedPrepended
-      class A
+      module A
         FOO = 'a'
       end
-      class B < A
-        def foo
+      module B
+        include A
+        def self.foo
           FOO
         end
       end
@@ -403,11 +400,10 @@ describe "Module#prepend" do
         include N
       end
 
-      b = B.new
-      b.foo.should == 'a'
+      B.foo.should == 'a'
 
       B.prepend M
-      b.foo.should == 'n'
+      B.foo.should == 'n'
     end
   end
 
