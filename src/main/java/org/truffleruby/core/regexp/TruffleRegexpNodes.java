@@ -350,7 +350,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 6 })
+    @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 5 })
     public abstract static class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
 
         /** Matches a regular expression against a string over the specified range of characters.
@@ -366,20 +366,12 @@ public class TruffleRegexpNodes {
          * @param atStart Whether to only match at the beginning of the string, if false then the regexp can have any
          *            amount of prematch.
          *
-         * @param encodingConversion Whether to attempt encoding conversion of the regexp to match the string
-         *
          * @param startPos The position within the string which the matcher should consider the start. Setting this to
          *            the from position allows scanners to match starting partway through a string while still setting
          *            atStart and thus forcing the match to be at the specific starting position. */
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegion(
-                RubyRegexp regexp,
-                Object string,
-                int fromPos,
-                int toPos,
-                boolean atStart,
-                boolean encodingConversion,
-                int startPos,
+                RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {

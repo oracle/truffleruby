@@ -78,7 +78,7 @@ module Truffle
       elsif USE_TRUFFLE_REGEX
         match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
       else
-        Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       end
     end
 
@@ -89,7 +89,7 @@ module Truffle
         md1 = e
       end
       begin
-        md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       rescue => e
         md2 = e
       end
@@ -115,7 +115,7 @@ module Truffle
         regex_result = compiled_regex.execBytes(str_bytes, from)
       end
       if bail_out
-        return Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+        return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       elsif regex_result.isMatch
         starts = []
         ends = []
