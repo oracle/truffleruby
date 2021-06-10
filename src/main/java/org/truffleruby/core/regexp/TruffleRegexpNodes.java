@@ -75,19 +75,6 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
-    public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
-            boolean encodingConversion, int start, Node currentNode) {
-        final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange());
-        Regex regex = regexp.regex;
-
-        if (encodingConversion && regex.getEncoding() != enc) {
-            EncodingCache encodingCache = regexp.cachedEncodings;
-            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
-        }
-
-        return getMatcher(regex, stringBytes, start);
-    }
-
     public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange) {
         final Encoding regexEnc = regexp.regex.getEncoding();
 
@@ -397,14 +384,15 @@ public class TruffleRegexpNodes {
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             Rope rope = libString.getRope(string);
-            Matcher matcher = createMatcher(
-                    getContext(),
-                    regexp,
-                    rope,
-                    bytesNode.execute(rope),
-                    encodingConversion,
-                    startPos,
-                    this);
+            final Encoding enc = checkEncoding(regexp, rope.getEncoding(), rope.getCodeRange());
+            Regex regex = regexp.regex;
+
+            if (regex.getEncoding() != enc) {
+                EncodingCache encodingCache = regexp.cachedEncodings;
+                regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
+            }
+
+            Matcher matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
             return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
         }
     }
