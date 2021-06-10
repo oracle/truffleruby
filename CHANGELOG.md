@@ -35,6 +35,7 @@ Compatibility:
 * Implement `IO#set_encoding_by_bom` (#2372, pawandubey).
 * Implemented `Enumerator::Lazy#with_index` (#2356).
 * Implement `rb_backref_set`.
+* Fix `Float#<=>` when comparing `Infinity` to other `#infinite?` values.
 
 Performance:
 
