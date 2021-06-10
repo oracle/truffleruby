@@ -137,7 +137,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         // We need to notify cached lookup that we are autoloading the constant, as constant
         // lookup changes based on whether an autoload constant is loading or not (constant
         // lookup ignores being-autoloaded constants).
-        autoloadConstant.getDeclaringModule().fields.newConstantsVersion();
+        autoloadConstant.getDeclaringModule().fields.newConstantVersion(autoloadConstant.getName());
     }
 
     @TruffleBoundary

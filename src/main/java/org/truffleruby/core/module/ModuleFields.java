@@ -46,6 +46,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
@@ -63,7 +64,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
-public class ModuleFields extends ModuleChain implements ObjectGraphNode {
+public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public static void debugModuleChain(RubyModule module) {
         ModuleChain chain = module.fields;
@@ -103,26 +104,26 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private RubyModule refinementNamespace;
 
     private final ConcurrentMap<String, MethodEntry> methods = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ConstantEntry> constants = new ConcurrentHashMap<>();
     private final ClassVariableStorage classVariables;
 
     /** The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
      * map of refined classes and modules (C) to refinement modules (R). */
     private final ConcurrentMap<RubyModule, RubyModule> refinements = new ConcurrentHashMap<>();
 
-    private final CyclicAssumption constantsUnmodifiedAssumption;
+    private final CyclicAssumption hierarchyUnmodifiedAssumption;
 
     // Concurrency: only modified during boot
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
-    /** A weak set of all classes include-ing or prepend-ing this module M, and of modules which where already prepended
-     * before to such classes. Used by method invalidation so that lookups before the include/prepend is done can be
-     * invalidated when a method is added later in M. When M is an included module, defining a method on M only needs to
-     * invalidate classes in which M is included. However, when M is a prepended module defining a method on M needs to
-     * invalidate classes and other modules which were prepended before M (since the method could be defined there, and
-     * then the assumption on M would not be checked). Not that there is no need to be transitive here, include/prepend
-     * snapshot the modules to include alongside M, and later M.include/M.prepend have no effect on classes already
-     * including M. In other words,
+    /** A weak set of all classes (for methods) or modules (for constants) include-ing or prepend-ing this module M, and
+     * of modules which where already prepended before to such classes. Used by method and constant invalidation so that
+     * lookups before the include/prepend is done can be invalidated when a method is added later in M. When M is an
+     * included module, defining a method on M only needs to invalidate classes in which M is included. However, when M
+     * is a prepended module defining a method on M needs to invalidate classes and other modules which were prepended
+     * before M (since the method could be defined there, and then the assumption on M would not be checked). Not that
+     * there is no need to be transitive here, include/prepend snapshot the modules to include alongside M, and later
+     * M.include/M.prepend have no effect on classes already including M. In other words,
      * {@code module A; end; module B; end; class C; end; C.include A; A.include B; C.ancestors.include?(B) => false} */
     private final Set<RubyModule> includedBy;
 
@@ -138,7 +139,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
         this.rubyModule = rubyModule;
-        this.constantsUnmodifiedAssumption = new CyclicAssumption("constants are unmodified");
+        this.hierarchyUnmodifiedAssumption = new CyclicAssumption("hierarchy is unmodified");
         classVariables = new ClassVariableStorage(language);
         start = new PrependMarker(this);
         this.includedBy = rubyModule instanceof RubyClass
@@ -179,9 +180,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public void updateAnonymousChildrenModules(RubyContext context) {
-        for (Map.Entry<String, RubyConstant> entry : constants.entrySet()) {
-            RubyConstant constant = entry.getValue();
-            if (constant.hasValue() && constant.getValue() instanceof RubyModule) {
+        for (Map.Entry<String, ConstantEntry> entry : constants.entrySet()) {
+            ConstantEntry constantEntry = entry.getValue();
+            RubyConstant constant = constantEntry.getConstant();
+            if (constant != null && constant.hasValue() && constant.getValue() instanceof RubyModule) {
                 RubyModule module = (RubyModule) constant.getValue();
                 if (!module.fields.hasFullName()) {
                     module.fields.getAdoptedByLexicalParent(
@@ -216,8 +218,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        for (Entry<String, RubyConstant> entry : fromFields.constants.entrySet()) {
-            this.constants.put(entry.getKey(), entry.getValue());
+        for (Entry<String, ConstantEntry> entry : fromFields.constants.entrySet()) {
+            final RubyConstant constant = entry.getValue().getConstant();
+            if (constant != null) {
+                this.constants.put(entry.getKey(), new ConstantEntry(constant));
+            }
         }
 
         for (Object key : fromFields.classVariables.getShape().getKeys()) {
@@ -313,10 +318,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         while (!moduleAncestors.isEmpty()) {
             RubyModule toInclude = moduleAncestors.pop();
             inclusionPoint.insertAfter(toInclude);
-            if (rubyModule instanceof RubyClass) { // M.include(N) just registers N but does nothing until C.include/prepend(M)
-                toInclude.fields.includedBy.add(rubyModule);
-                // Module#include only adds modules between the current class and the super class,
-                // so invalidating the current class is enough as all affected lookups would go through the current class.
+
+            // Module#include only adds modules behind the current class/module,  so invalidating
+            // the current class/module is enough as all affected lookups would go through the current class/module.
+            toInclude.fields.includedBy.add(rubyModule);
+            newConstantsVersion(toInclude.fields.getConstantNames());
+            if (rubyModule instanceof RubyClass) {
+                // M.include(N) just registers N but does nothing for methods until C.include/prepend(M)
                 newMethodsVersion(toInclude.fields.getMethodNames());
             }
         }
@@ -346,11 +354,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
-        /* We need to invalidate all prepended modules and the class, because call sites which looked up methods before
-         * only check the class or one of the prepend module (if the method is defined there). */
-        final List<RubyModule> prependedModulesAndClass = rubyModule instanceof RubyClass
-                ? getPrependedModulesAndClass()
-                : null;
+        /* We need to invalidate all prepended modules and the current class/module, because call sites which looked up
+         * methods/constants before only check the current class/module *OR* one of the prepended module (if the
+         * method/constant is defined there). */
+        final List<RubyModule> prependedModulesAndSelf = getPrependedModulesAndSelf();
 
         ModuleChain mod = module.fields.start;
         ModuleChain cur = start;
@@ -360,13 +367,19 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 final RubyModule toPrepend = mod.getActualModule();
                 if (!ModuleOperations.includesModule(rubyModule, toPrepend)) {
                     cur.insertAfter(toPrepend);
-                    if (rubyModule instanceof RubyClass) { // M.prepend(N) just registers N but does nothing until C.prepend/include(M)
-                        final List<String> methodsToInvalidate = toPrepend.fields.getMethodNames();
-                        for (RubyModule moduleToInvalidate : prependedModulesAndClass) {
-                            toPrepend.fields.includedBy.add(moduleToInvalidate);
+
+                    final List<String> constantsToInvalidate = toPrepend.fields.getConstantNames();
+                    final boolean isClass = rubyModule instanceof RubyClass;
+                    final List<String> methodsToInvalidate = isClass ? toPrepend.fields.getMethodNames() : null;
+                    for (RubyModule moduleToInvalidate : prependedModulesAndSelf) {
+                        toPrepend.fields.includedBy.add(moduleToInvalidate);
+                        moduleToInvalidate.fields.newConstantsVersion(constantsToInvalidate);
+                        if (isClass) {
+                            // M.prepend(N) just registers N but does nothing for methods until C.prepend/include(M)
                             moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
                         }
                     }
+
                     cur = cur.getParentModule();
                 }
             }
@@ -379,15 +392,15 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         invalidateBuiltinsAssumptions();
     }
 
-    private List<RubyModule> getPrependedModulesAndClass() {
-        final List<RubyModule> prependedModulesAndClass = new ArrayList<>();
+    private List<RubyModule> getPrependedModulesAndSelf() {
+        final List<RubyModule> prependedModulesAndSelf = new ArrayList<>();
         ModuleChain chain = getFirstModuleChain();
         while (chain != this) {
-            prependedModulesAndClass.add(chain.getActualModule());
+            prependedModulesAndSelf.add(chain.getActualModule());
             chain = chain.getParentModule();
         }
-        prependedModulesAndClass.add(rubyModule);
-        return prependedModulesAndClass;
+        prependedModulesAndSelf.add(rubyModule);
+        return prependedModulesAndSelf;
     }
 
     /** Set the value of a constant, possibly redefining it. */
@@ -441,8 +454,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 : null;
         RubyConstant previous;
         RubyConstant newConstant;
+        ConstantEntry previousEntry;
         do {
-            previous = constants.get(name);
+            previousEntry = constants.get(name);
+            previous = previousEntry != null ? previousEntry.getConstant() : null;
             if (autoload && previous != null) {
                 if (previous.hasValue()) {
                     // abort, do not set an autoload constant, the constant already has a value
@@ -455,9 +470,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 }
             }
             newConstant = newConstant(currentNode, name, value, autoload, previous);
-        } while (!ConcurrentOperations.replace(constants, name, previous, newConstant));
+        } while (!ConcurrentOperations.replace(constants, name, previousEntry, new ConstantEntry(newConstant)));
 
-        newConstantsVersion();
+        if (previousEntry != null) {
+            previousEntry.invalidate("set", rubyModule, name);
+        }
+
+        if (includedBy != null && !includedBy.isEmpty()) {
+            invalidateConstantIncludedBy(name);
+        }
+
         return autoload ? newConstant : previous;
     }
 
@@ -472,9 +494,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public RubyConstant removeConstant(RubyContext context, Node currentNode, String name) {
         checkFrozen(context, currentNode);
-        final RubyConstant oldConstant = constants.remove(name);
-        newConstantsVersion();
-        return oldConstant;
+        final ConstantEntry oldConstant = constants.remove(name);
+        if (oldConstant != null) {
+            oldConstant.invalidate("remove", rubyModule, name);
+            return oldConstant.getConstant();
+        } else {
+            return null;
+        }
     }
 
     @TruffleBoundary
@@ -503,7 +529,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
 
             if (includedBy != null && !includedBy.isEmpty()) {
-                invalidateIncludedBy(method.getName());
+                invalidateMethodIncludedBy(method.getName());
             }
 
             // invalidate assumptions to not use an AST-inlined methods
@@ -602,7 +628,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             final boolean isPrivate) {
 
         while (true) {
-            final RubyConstant previous = constants.get(name);
+            final ConstantEntry previousEntry = constants.get(name);
+            final RubyConstant previous = previousEntry != null ? previousEntry.getConstant() : null;
 
             if (previous == null) {
                 throw new RaiseException(
@@ -613,8 +640,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                                 currentNode));
             }
 
-            if (constants.replace(name, previous, previous.withPrivate(isPrivate))) {
-                newConstantsVersion();
+            if (constants.replace(name, previousEntry, new ConstantEntry(previous.withPrivate(isPrivate)))) {
+                previousEntry.invalidate("change visibility", rubyModule, name);
                 break;
             }
         }
@@ -623,7 +650,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public void deprecateConstant(RubyContext context, Node currentNode, String name) {
         while (true) {
-            final RubyConstant previous = constants.get(name);
+            final ConstantEntry previousEntry = constants.get(name);
+            final RubyConstant previous = previousEntry != null ? previousEntry.getConstant() : null;
 
             if (previous == null) {
                 throw new RaiseException(
@@ -634,8 +662,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                                 currentNode));
             }
 
-            if (constants.replace(name, previous, previous.withDeprecated())) {
-                newConstantsVersion();
+            if (constants.replace(name, previousEntry, new ConstantEntry(previous.withDeprecated()))) {
+                if (previousEntry != null) {
+                    previousEntry.invalidate("deprecate", rubyModule, name);
+                }
                 break;
             }
         }
@@ -643,8 +673,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
-        if (constants.replace(autoloadConstant.getName(), autoloadConstant, autoloadConstant.undefined())) {
-            newConstantsVersion();
+        final ConstantEntry constantEntry = constants.get(autoloadConstant.getName());
+        final boolean replace = constantEntry != null && constantEntry.getConstant() == autoloadConstant;
+        if (replace &&
+                constants.replace(
+                        autoloadConstant.getName(),
+                        constantEntry,
+                        new ConstantEntry(autoloadConstant.undefined()))) {
+            constantEntry.invalidate("undefine if still autoload", rubyModule, autoloadConstant.getName());
             return true;
         } else {
             return false;
@@ -764,21 +800,43 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    public void newConstantsVersion() {
-        constantsUnmodifiedAssumption.invalidate(givenBaseName);
-    }
-
     public void newHierarchyVersion() {
-        newConstantsVersion();
+        hierarchyUnmodifiedAssumption.invalidate(getName());
 
         if (isRefinement()) {
             getRefinedModule().fields.invalidateBuiltinsAssumptions();
         }
     }
 
-    private void invalidateIncludedBy(String method) {
+    private void invalidateMethodIncludedBy(String method) {
         for (RubyModule module : includedBy) {
             module.fields.newMethodVersion(method);
+        }
+    }
+
+    private void invalidateConstantIncludedBy(String constantName) {
+        for (RubyModule module : includedBy) {
+            module.fields.newConstantVersion(constantName);
+        }
+    }
+
+    public void newConstantsVersion(Collection<String> constantsToInvalidate) {
+        for (String name : constantsToInvalidate) {
+            newConstantVersion(name);
+        }
+    }
+
+    public void newConstantVersion(String constantToInvalidate) {
+        while (true) {
+            final ConstantEntry constantEntry = constants.get(constantToInvalidate);
+            if (constantEntry == null) {
+                return;
+            } else {
+                if (constants.replace(constantToInvalidate, constantEntry, constantEntry.withNewAssumption())) {
+                    constantEntry.invalidate("newConstantVersion", rubyModule, constantToInvalidate);
+                    return;
+                }
+            }
         }
     }
 
@@ -802,22 +860,23 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public Assumption getConstantsUnmodifiedAssumption() {
-        return constantsUnmodifiedAssumption.getAssumption();
-    }
-
     public Assumption getHierarchyUnmodifiedAssumption() {
-        // Both assumptions are invalidated on hierarchy changes, just pick one of them.
-        return getConstantsUnmodifiedAssumption();
+        return hierarchyUnmodifiedAssumption.getAssumption();
     }
 
-    public Iterable<Entry<String, RubyConstant>> getConstants() {
+    public Iterable<Entry<String, ConstantEntry>> getConstants() {
         return constants.entrySet();
     }
 
     @TruffleBoundary
+    public ConstantEntry getOrComputeConstantEntry(String name) {
+        return ConcurrentOperations.getOrCompute(constants, name, (n) -> new ConstantEntry());
+    }
+
+    @TruffleBoundary
     public RubyConstant getConstant(String name) {
-        return constants.get(name);
+        final ConstantEntry constantEntry = constants.get(name);
+        return constantEntry != null ? constantEntry.getConstant() : null;
     }
 
     private static final class MethodsIterator implements Iterator<InternalMethod> {
@@ -859,6 +918,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public Iterable<InternalMethod> getMethods() {
         return () -> new MethodsIterator(methods.values());
+    }
+
+    public List<String> getConstantNames() {
+        List<String> results = new ArrayList<>();
+        for (Entry<String, ConstantEntry> entry : constants.entrySet()) {
+            if (entry.getValue().getConstant() != null) {
+                results.add(entry.getKey());
+            }
+        }
+        return results;
     }
 
     public List<String> getMethodNames() {
@@ -907,6 +976,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         assert rubyModule instanceof RubyClass;
         this.parentModule = superclass.fields.start;
         newMethodsVersion(new ArrayList<>(methods.keySet()));
+        newConstantsVersion(new ArrayList<>(constants.keySet()));
         newHierarchyVersion();
     }
 
@@ -1006,8 +1076,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             ObjectGraph.addProperty(adjacent, superClass);
         }
 
-        for (RubyConstant constant : constants.values()) {
-            ObjectGraph.addProperty(adjacent, constant);
+        for (ConstantEntry constant : constants.values()) {
+            if (constant.getConstant() != null) {
+                ObjectGraph.addProperty(adjacent, constant.getConstant());
+            }
         }
 
         for (Object key : classVariables.getShape().getKeys()) {

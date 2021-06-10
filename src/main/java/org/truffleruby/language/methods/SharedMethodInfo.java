@@ -147,6 +147,12 @@ public class SharedMethodInfo {
         return parseName;
     }
 
+    /** See also {@link org.truffleruby.core.module.ModuleOperations#constantName}. Version without context which
+     * returns "Object::A" for top-level constant A. */
+    public static String moduleAndConstantName(RubyModule module, String constantName) {
+        return module.fields.getName() + "::" + constantName;
+    }
+
     public static String moduleAndMethodName(RubyModule module, String methodName) {
         assert module != null && methodName != null;
         if (RubyGuards.isMetaClass(module)) {
