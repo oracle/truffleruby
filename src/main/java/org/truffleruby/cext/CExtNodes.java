@@ -19,7 +19,6 @@ import org.jcodings.IntHolder;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -175,64 +174,66 @@ public class CExtNodes {
         }
     }
 
-    public static Object sendWithoutCExtLock(RubyContext context, Object receiver, RubySymbol method, Object block,
-            DispatchNode dispatchNode, ConditionProfile ownedProfile, Object[] args, Node currentNode) {
-        if (context.getOptions().CEXT_LOCK) {
-            final ReentrantLock lock = context.getCExtensionsLock();
-            boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
+    public abstract static class SendWithoutCExtLockBaseNode extends PrimitiveArrayArgumentsNode {
+        public Object sendWithoutCExtLock(VirtualFrame frame, Object receiver, RubySymbol method, Object block,
+                DispatchNode dispatchNode, ConditionProfile ownedProfile, Object[] args) {
+            if (getContext().getOptions().CEXT_LOCK) {
+                final ReentrantLock lock = getContext().getCExtensionsLock();
+                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
 
-            if (owned) {
-                MutexOperations.unlockInternal(lock);
-            }
-            try {
-                return dispatchNode.callWithBlock(receiver, method.getString(), block, args);
-            } finally {
                 if (owned) {
-                    MutexOperations.internalLockEvenWithException(context, lock, currentNode);
+                    MutexOperations.unlockInternal(lock);
                 }
+                try {
+                    return dispatchNode.dispatch(frame, receiver, method.getString(), block, args);
+                } finally {
+                    if (owned) {
+                        MutexOperations.internalLockEvenWithException(getContext(), lock, this);
+                    }
+                }
+            } else {
+                return dispatchNode.dispatch(frame, receiver, method.getString(), block, args);
             }
-        } else {
-            return dispatchNode.callWithBlock(receiver, method.getString(), block, args);
         }
     }
 
     @Primitive(name = "send_without_cext_lock")
-    public abstract static class SendWithoutCExtLockNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class SendWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object sendWithoutCExtLock(Object receiver, RubySymbol method, RubyArray argsArray, Object block,
+        protected Object sendWithoutCExtLock(
+                VirtualFrame frame, Object receiver, RubySymbol method, RubyArray argsArray, Object block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
-            return CExtNodes
-                    .sendWithoutCExtLock(getContext(), receiver, method, block, dispatchNode, ownedProfile, args, this);
+            return sendWithoutCExtLock(frame, receiver, method, block, dispatchNode, ownedProfile, args);
         }
 
     }
 
     @Primitive(name = "send_argv_without_cext_lock")
-    public abstract static class SendARGVWithoutCExtLockNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class SendARGVWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object sendWithoutCExtLock(Object receiver, RubySymbol method, Object argv, Object block,
+        protected Object sendWithoutCExtLock(
+                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
-            return CExtNodes
-                    .sendWithoutCExtLock(getContext(), receiver, method, block, dispatchNode, ownedProfile, args, this);
+            return sendWithoutCExtLock(frame, receiver, method, block, dispatchNode, ownedProfile, args);
         }
     }
 
     @Primitive(name = "public_send_argv_without_cext_lock", lowerFixnum = 2)
-    public abstract static class PublicSendARGVWithoutCExtLockNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class PublicSendARGVWithoutCExtLockNode extends SendWithoutCExtLockBaseNode {
         @Specialization
-        protected Object publicSendWithoutLock(Object receiver, RubySymbol method, Object argv, Object block,
+        protected Object publicSendWithoutLock(
+                VirtualFrame frame, Object receiver, RubySymbol method, Object argv, Object block,
                 @Cached UnwrapCArrayNode unwrapCArrayNode,
                 @Cached(parameters = "PUBLIC") DispatchNode dispatchNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
-            return CExtNodes
-                    .sendWithoutCExtLock(getContext(), receiver, method, block, dispatchNode, ownedProfile, args, this);
+            return sendWithoutCExtLock(frame, receiver, method, block, dispatchNode, ownedProfile, args);
         }
     }
 
