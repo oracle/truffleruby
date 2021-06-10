@@ -304,11 +304,6 @@ public abstract class ModuleOperations {
     }
 
     public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, RubyModule module, String name,
-            boolean inherit, Node currentNode) {
-        return lookupConstantWithInherit(context, module, name, inherit, currentNode, false);
-    }
-
-    public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, RubyModule module, String name,
             boolean inherit, Node currentNode, boolean checkName) {
         return lookupConstantWithInherit(context, module, name, inherit, currentNode, checkName, true);
     }
