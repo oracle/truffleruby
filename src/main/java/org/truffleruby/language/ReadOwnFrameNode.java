@@ -14,7 +14,7 @@ import com.oracle.truffle.api.frame.Frame;
 public class ReadOwnFrameNode extends RubyBaseNode implements FrameOrVariablesReadingNode {
 
     public Object execute(Frame frame) {
-        return frame != null ? frame.materialize() : null;
+        return frame.materialize();
     }
 
     @Override
