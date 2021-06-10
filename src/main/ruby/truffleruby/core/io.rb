@@ -923,7 +923,7 @@ class IO
   #
   # The +sync+ attribute will also be set.
   #
-  def self.setup(io, fd, mode=nil, sync=false)
+  def self.setup(io, fd, mode, sync)
     if !Truffle::Boot.preinitializing? && Truffle::POSIX::NATIVE
       cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
       Errno.handle if cur_mode < 0
@@ -946,21 +946,11 @@ class IO
 
     Primitive.io_set_fd(io, fd)
     io.instance_variable_set :@mode, Truffle::IOOperations.translate_omode_to_fmode(mode)
-    io.sync = Primitive.as_boolean(sync)
+    io.sync = sync
     io.autoclose  = true
     ibuffer = mode != WRONLY ? IO::InternalBuffer.new : nil
     io.instance_variable_set :@ibuffer, ibuffer
     io.instance_variable_set :@lineno, 0
-
-    # Truffle: STDOUT isn't defined by the time this call is made during bootstrap, so we need to guard it.
-    if defined? STDOUT and STDOUT.respond_to?(:fileno) and not STDOUT.closed?
-      io.sync ||= STDOUT.fileno == fd
-    end
-
-    # Truffle: STDERR isn't defined by the time this call is made during bootstrap, so we need to guard it.
-    if defined? STDERR and STDERR.respond_to?(:fileno) and not STDERR.closed?
-      io.sync ||= STDERR.fileno == fd
-    end
   end
 
   #
@@ -977,7 +967,9 @@ class IO
 
     mode, binary, external, internal, autoclose_tmp, _perm = IO.normalize_options(mode, nil, options)
 
-    IO.setup self, Truffle::Type.coerce_to(fd, Integer, :to_int), mode
+    fd = Truffle::Type.coerce_to(fd, Integer, :to_int)
+    sync = fd == 2 # stderr is always unbuffered, see setvbuf(3)
+    IO.setup(self, fd, mode, sync)
 
     binmode if binary
     set_encoding external, internal
