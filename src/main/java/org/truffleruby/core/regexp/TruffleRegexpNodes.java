@@ -75,17 +75,67 @@ import org.truffleruby.parser.RubyDeferredWarnings;
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
-    public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange) {
-        final Encoding regexEnc = regexp.regex.getEncoding();
+    // rb_reg_prepare_enc ... mostly. Some of the error checks are performed by callers of this method.
+    public abstract static class CheckEncodingNode extends RubyContextNode {
 
-        if (strEnc == regexEnc) {
-            return regexEnc;
-        } else if (regexEnc == USASCIIEncoding.INSTANCE && codeRange == CodeRange.CR_7BIT) {
-            return regexEnc;
-        } else if (strEnc.isAsciiCompatible() && regexp.options.isFixed()) {
-            return regexEnc;
+        @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
+        @Child RubyStringLibrary stringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
+
+        public static CheckEncodingNode create() {
+            return TruffleRegexpNodesFactory.CheckEncodingNodeGen.create();
         }
-        return strEnc;
+
+        public abstract Encoding executeCheckEncoding(RubyRegexp regexp, Object str);
+
+        @Specialization(guards = {
+                "!isSameEncoding(regexp, string)",
+                "isUSASCII(regexp, string)"
+        })
+        protected Encoding checkEncodingAsciiOnly(RubyRegexp regexp, Object string) {
+            return USASCIIEncoding.INSTANCE;
+        }
+
+        @Specialization(guards = {
+                "isSameEncoding(regexp, string)"
+        })
+        protected Encoding checkEncodingSameEncoding(RubyRegexp regexp, Object string) {
+            return regexp.regex.getEncoding();
+        }
+
+        @Specialization(guards = {
+                "!isSameEncoding(regexp, string)",
+                "!isUSASCII(regexp, string)",
+                "isFixedEncoding(regexp, string)",
+        })
+        protected Encoding checkEncodingFixedEncoding(RubyRegexp regexp, Object string) {
+            return regexp.regex.getEncoding();
+        }
+
+        @Specialization(guards = {
+                "!isSameEncoding(regexp, string)",
+                "!isUSASCII(regexp, string)",
+                "!isFixedEncoding(regexp, string)"
+        })
+        protected Encoding fallback(RubyRegexp regexp, Object string) {
+            return stringEncoding(string);
+        }
+
+        protected boolean isUSASCII(RubyRegexp regexp, Object string) {
+            return regexp.regex.getEncoding() == USASCIIEncoding.INSTANCE &&
+                    codeRangeNode.execute(stringLibrary.getRope(string)) == CodeRange.CR_7BIT;
+        }
+
+        protected boolean isFixedEncoding(RubyRegexp regexp, Object string) {
+            return regexp.options.isFixed() && stringLibrary.getRope(string).getEncoding().isAsciiCompatible();
+        }
+
+        protected boolean isSameEncoding(RubyRegexp regexp, Object string) {
+            return regexp.regex.getEncoding() == stringLibrary.getRope(string).getEncoding();
+        }
+
+        protected Encoding stringEncoding(Object string) {
+            return stringLibrary.getRope(string).getEncoding();
+        }
     }
 
     @TruffleBoundary
@@ -191,19 +241,20 @@ public class TruffleRegexpNodes {
     @CoreMethod(names = "select_encoding", onSingleton = true, required = 3)
     public abstract static class SelectEncodingNode extends CoreMethodArrayArgumentsNode {
 
-        @Child RopeNodes.CodeRangeNode codeRangeNode;
+        @Child CheckEncodingNode checkEncodingNode;
 
         @Specialization(guards = "libString.isRubyString(str)")
         protected RubyEncoding selectEncoding(RubyRegexp re, Object str, boolean encodingConversion,
+                @Cached TruffleRegexpNodes.CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             Encoding encoding;
             if (encodingConversion) {
-                Rope stringRope = libString.getRope(str);
-                if (codeRangeNode == null) {
+                if (checkEncodingNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
+                    checkEncodingNode = insert(CheckEncodingNode.create());
                 }
-                encoding = checkEncoding(re, stringRope.getEncoding(), codeRangeNode.execute(stringRope));
+
+                encoding = checkEncodingNode.executeCheckEncoding(re, str);
             } else {
                 encoding = re.regex.getEncoding();
             }
@@ -374,17 +425,18 @@ public class TruffleRegexpNodes {
                 RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
+                @Cached TruffleRegexpNodes.CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            Rope rope = libString.getRope(string);
-            final Encoding enc = checkEncoding(regexp, rope.getEncoding(), rope.getCodeRange());
+            final Rope rope = libString.getRope(string);
+            final Encoding enc = checkEncodingNode.executeCheckEncoding(regexp, string);
             Regex regex = regexp.regex;
 
             if (regex.getEncoding() != enc) {
-                EncodingCache encodingCache = regexp.cachedEncodings;
+                final EncodingCache encodingCache = regexp.cachedEncodings;
                 regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
             }
 
-            Matcher matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
+            final Matcher matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
             return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
         }
     }
