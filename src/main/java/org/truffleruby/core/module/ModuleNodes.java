@@ -944,10 +944,10 @@ public abstract class ModuleNodes {
                 constants = module.fields.getConstants();
             }
 
-            for (Entry<String, ConstantEntry> constant : constants) {
-                if (constant.getValue().getConstant() != null &&
-                        !constant.getValue().getConstant().isPrivate()) {
-                    constantsArray.add(getSymbol(constant.getKey()));
+            for (Entry<String, ConstantEntry> entry : constants) {
+                final RubyConstant constant = entry.getValue().getConstant();
+                if (constant != null && !constant.isPrivate()) {
+                    constantsArray.add(getSymbol(entry.getKey()));
                 }
             }
 

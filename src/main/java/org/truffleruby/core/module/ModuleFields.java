@@ -64,7 +64,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
-public class ModuleFields extends ModuleChain implements ObjectGraphNode {
+public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     public static void debugModuleChain(RubyModule module) {
         ModuleChain chain = module.fields;
@@ -497,8 +497,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         final ConstantEntry oldConstant = constants.remove(name);
         if (oldConstant != null) {
             oldConstant.invalidate("remove", rubyModule, name);
+            return oldConstant.getConstant();
+        } else {
+            return null;
         }
-        return oldConstant != null ? oldConstant.getConstant() : null;
     }
 
     @TruffleBoundary
@@ -672,7 +674,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
         final ConstantEntry constantEntry = constants.get(autoloadConstant.getName());
-        final boolean replace = autoloadConstant == constantEntry.getConstant();
+        final boolean replace = constantEntry != null && constantEntry.getConstant() == autoloadConstant;
         if (replace &&
                 constants.replace(
                         autoloadConstant.getName(),
@@ -859,7 +861,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public Assumption getHierarchyUnmodifiedAssumption() {
-        // Both assumptions are invalidated on hierarchy changes, just pick one of them.
         return hierarchyUnmodifiedAssumption.getAssumption();
     }
 
@@ -871,12 +872,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public ConstantEntry getOrComputeConstantEntry(String name) {
         return ConcurrentOperations.getOrCompute(constants, name, (n) -> new ConstantEntry());
     }
-
-    @TruffleBoundary
-    public ConstantEntry getConstantEntry(String name) {
-        return constants.get(name);
-    }
-
 
     @TruffleBoundary
     public RubyConstant getConstant(String name) {
