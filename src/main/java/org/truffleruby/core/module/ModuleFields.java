@@ -116,14 +116,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     // Concurrency: only modified during boot
     private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
-    /** A weak set of all classes include-ing or prepend-ing this module M, and of modules which where already prepended
-     * before to such classes. Used by method invalidation so that lookups before the include/prepend is done can be
-     * invalidated when a method is added later in M. When M is an included module, defining a method on M only needs to
-     * invalidate classes in which M is included. However, when M is a prepended module defining a method on M needs to
-     * invalidate classes and other modules which were prepended before M (since the method could be defined there, and
-     * then the assumption on M would not be checked). Not that there is no need to be transitive here, include/prepend
-     * snapshot the modules to include alongside M, and later M.include/M.prepend have no effect on classes already
-     * including M. In other words,
+    /** A weak set of all classes (for methods) or modules (for constants) include-ing or prepend-ing this module M, and
+     * of modules which where already prepended before to such classes. Used by method and constant invalidation so that
+     * lookups before the include/prepend is done can be invalidated when a method is added later in M. When M is an
+     * included module, defining a method on M only needs to invalidate classes in which M is included. However, when M
+     * is a prepended module defining a method on M needs to invalidate classes and other modules which were prepended
+     * before M (since the method could be defined there, and then the assumption on M would not be checked). Not that
+     * there is no need to be transitive here, include/prepend snapshot the modules to include alongside M, and later
+     * M.include/M.prepend have no effect on classes already including M. In other words,
      * {@code module A; end; module B; end; class C; end; C.include A; A.include B; C.ancestors.include?(B) => false} */
     private final Set<RubyModule> includedBy;
 
@@ -318,14 +318,15 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         while (!moduleAncestors.isEmpty()) {
             RubyModule toInclude = moduleAncestors.pop();
             inclusionPoint.insertAfter(toInclude);
-            // M.include(N) just registers N but does nothing until C.include/prepend(M)
+
+            // Module#include only adds modules behind the current class/module,  so invalidating
+            // the current class/module is enough as all affected lookups would go through the current class/module.
             toInclude.fields.includedBy.add(rubyModule);
-            // Module#include only adds modules between the current class and the super class,
-            // so invalidating the current class is enough as all affected lookups would go through the current class.
+            newConstantsVersion(toInclude.fields.getConstantNames());
             if (rubyModule instanceof RubyClass) {
+                // M.include(N) just registers N but does nothing for methods until C.include/prepend(M)
                 newMethodsVersion(toInclude.fields.getMethodNames());
             }
-            newConstantsVersion(toInclude.fields.getConstantNames());
         }
     }
 
@@ -353,11 +354,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, module);
 
-        /* We need to invalidate all prepended modules and the class, because call sites which looked up methods before
-         * only check the class or one of the prepend module (if the method is defined there). */
-        final List<RubyModule> prependedModulesAndClass = rubyModule instanceof RubyClass
-                ? getPrependedModulesAndClass()
-                : null;
+        /* We need to invalidate all prepended modules and the current class/module, because call sites which looked up
+         * methods/constants before only check the current class/module *OR* one of the prepended module (if the
+         * method/constant is defined there). */
+        final List<RubyModule> prependedModulesAndSelf = getPrependedModulesAndSelf();
 
         ModuleChain mod = module.fields.start;
         ModuleChain cur = start;
@@ -367,15 +367,19 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 final RubyModule toPrepend = mod.getActualModule();
                 if (!ModuleOperations.includesModule(rubyModule, toPrepend)) {
                     cur.insertAfter(toPrepend);
-                    if (rubyModule instanceof RubyClass) { // M.prepend(N) just registers N but does nothing until C.prepend/include(M)
-                        final List<String> methodsToInvalidate = toPrepend.fields.getMethodNames();
-                        final List<String> constantsToInvalidate = toPrepend.fields.getConstantNames();
-                        for (RubyModule moduleToInvalidate : prependedModulesAndClass) {
-                            toPrepend.fields.includedBy.add(moduleToInvalidate);
+
+                    final List<String> constantsToInvalidate = toPrepend.fields.getConstantNames();
+                    final boolean isClass = rubyModule instanceof RubyClass;
+                    final List<String> methodsToInvalidate = isClass ? toPrepend.fields.getMethodNames() : null;
+                    for (RubyModule moduleToInvalidate : prependedModulesAndSelf) {
+                        toPrepend.fields.includedBy.add(moduleToInvalidate);
+                        moduleToInvalidate.fields.newConstantsVersion(constantsToInvalidate);
+                        if (isClass) {
+                            // M.prepend(N) just registers N but does nothing for methods until C.prepend/include(M)
                             moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
-                            moduleToInvalidate.fields.newConstantsVersion(constantsToInvalidate);
                         }
                     }
+
                     cur = cur.getParentModule();
                 }
             }
@@ -388,15 +392,15 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         invalidateBuiltinsAssumptions();
     }
 
-    private List<RubyModule> getPrependedModulesAndClass() {
-        final List<RubyModule> prependedModulesAndClass = new ArrayList<>();
+    private List<RubyModule> getPrependedModulesAndSelf() {
+        final List<RubyModule> prependedModulesAndSelf = new ArrayList<>();
         ModuleChain chain = getFirstModuleChain();
         while (chain != this) {
-            prependedModulesAndClass.add(chain.getActualModule());
+            prependedModulesAndSelf.add(chain.getActualModule());
             chain = chain.getParentModule();
         }
-        prependedModulesAndClass.add(rubyModule);
-        return prependedModulesAndClass;
+        prependedModulesAndSelf.add(rubyModule);
+        return prependedModulesAndSelf;
     }
 
     /** Set the value of a constant, possibly redefining it. */
@@ -523,7 +527,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
 
             if (includedBy != null && !includedBy.isEmpty()) {
-                invalidateIncludedBy(method.getName());
+                invalidateMethodIncludedBy(method.getName());
             }
 
             // invalidate assumptions to not use an AST-inlined methods
@@ -802,7 +806,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    private void invalidateIncludedBy(String method) {
+    private void invalidateMethodIncludedBy(String method) {
         for (RubyModule module : includedBy) {
             module.fields.newMethodVersion(method);
         }
@@ -826,8 +830,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (constantEntry == null) {
                 return;
             } else {
-                constantEntry.invalidate("newConstantsVersion", rubyModule, constantToInvalidate);
                 if (constants.replace(constantToInvalidate, constantEntry, constantEntry.withNewAssumption())) {
+                    constantEntry.invalidate("newConstantVersion", rubyModule, constantToInvalidate);
                     return;
                 }
             }
