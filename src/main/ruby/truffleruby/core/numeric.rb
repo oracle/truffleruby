@@ -236,7 +236,17 @@ class Numeric
     a <=> b
   end
 
+  # only used by Float#<=>
   private def redo_compare_bad_coerce_return_error(right)
+    if self.infinite? and !Primitive.undefined?(val = Truffle::Type.check_funcall(right, :infinite?))
+      if val
+        cmp = val <=> 0
+        return self > 0.0 ? (cmp > 0 ? 0 : 1) : (cmp < 0 ? 0 : -1)
+      else
+        # right.infinite? returned false or nil, which means right is finite
+        return self > 0.0 ? 1 : -1
+      end
+    end
     b, a = math_coerce(right, :bad_coerce_return_error)
     return nil unless b
     a <=> b
