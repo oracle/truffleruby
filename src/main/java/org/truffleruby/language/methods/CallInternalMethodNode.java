@@ -14,6 +14,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -115,27 +116,40 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
                 self,
                 block,
                 args,
-                contextRef);
+                contextRef,
+                isAdoptable());
     }
 
     @TruffleBoundary // getUncachedAlwaysInlinedMethodNode(method) and arity are not PE constants
     private Object alwaysInlinedBoundary(
             MaterializedFrame frame, Object callerData, InternalMethod method, Object self, Object block, Object[] args,
-            ContextReference<RubyContext> contextRef) {
-        return alwaysInlined(
-                frame,
-                callerData,
-                method,
-                self,
-                block,
-                args,
-                method.getCallTarget(),
-                method,
-                getUncachedAlwaysInlinedMethodNode(method),
-                method.getSharedMethodInfo().getArity(),
-                BranchProfile.getUncached(),
-                BranchProfile.getUncached(),
-                contextRef);
+            ContextReference<RubyContext> contextRef, boolean cachedToUncached) {
+        EncapsulatingNodeReference encapsulating = null;
+        Node prev = null;
+        if (cachedToUncached) {
+            encapsulating = EncapsulatingNodeReference.getCurrent();
+            prev = encapsulating.set(this);
+        }
+        try {
+            return alwaysInlined(
+                    frame,
+                    callerData,
+                    method,
+                    self,
+                    block,
+                    args,
+                    method.getCallTarget(),
+                    method,
+                    getUncachedAlwaysInlinedMethodNode(method),
+                    method.getSharedMethodInfo().getArity(),
+                    BranchProfile.getUncached(),
+                    BranchProfile.getUncached(),
+                    contextRef);
+        } finally {
+            if (cachedToUncached) {
+                encapsulating.set(prev);
+            }
+        }
     }
 
     protected AlwaysInlinedMethodNode createAlwaysInlinedMethodNode(InternalMethod method) {
