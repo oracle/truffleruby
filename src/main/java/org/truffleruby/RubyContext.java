@@ -524,7 +524,7 @@ public class RubyContext {
             RubyLanguage.LOGGER.info("total ropes interned: " + language.ropeCache.totalRopes());
         }
 
-        if (options.CEXTS_TONATIVE_STATS) {
+        if (options.CEXTS_TO_NATIVE_STATS) {
             RubyLanguage.LOGGER.info(
                     "Total VALUE object to native conversions: " + getValueWrapperManager().totalHandleAllocations());
         }
