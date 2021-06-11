@@ -11,8 +11,10 @@ require_relative '../ruby/spec_helper'
 
 guard -> { TruffleRuby.native? } do
   describe "The pre-initialized context" do
-    it "can be used to run specs, as otherwise this spec run will not have tested pre-initialization" do
-      Truffle::Boot.was_preinitialized?.should == true
+    guard -> { ENV["TRUFFLERUBY_CHECK_PREINITIALIZED_SPEC"] != "false" } do
+      it "can be used to run specs, as otherwise this spec run will not have tested pre-initialization" do
+        Truffle::Boot.was_preinitialized?.should == true
+      end
     end
 
     it "is not used if --engine.UsePreInitializedContext=false is passed" do
