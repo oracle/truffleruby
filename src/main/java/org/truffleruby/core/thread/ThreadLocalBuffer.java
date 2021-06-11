@@ -16,77 +16,70 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public final class ThreadLocalBuffer {
 
-    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(true, Pointer.NULL, 0, 0, null);
+    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(Pointer.NULL, 0, null);
 
-    final boolean ownsBuffer;
     public final Pointer start;
-    final long used;
-    final long remaining;
+    long remaining;
     final ThreadLocalBuffer parent;
 
     private ThreadLocalBuffer(
-            boolean isBlockStart,
             Pointer start,
-            long used,
             long remaining,
             ThreadLocalBuffer parent) {
-        this.ownsBuffer = isBlockStart;
         this.start = start;
-        this.used = used;
         this.remaining = remaining;
         this.parent = parent;
     }
 
-    public ThreadLocalBuffer free(ConditionProfile freeProfile) {
-        if (freeProfile.profile(ownsBuffer)) {
+    public void free(RubyThread thread, Pointer ptr, ConditionProfile freeProfile) {
+        remaining += ptr.getSize();
+        if (freeProfile.profile(parent != null && remaining == start.getSize())) {
             start.freeNoAutorelease();
+            thread.ioBuffer = parent;
         }
-        return parent;
     }
 
-    public void freeAll() {
+    public void freeAll(RubyThread thread) {
         ThreadLocalBuffer current = this;
         while (current != null) {
-            current.free(ConditionProfile.getUncached());
+            current.start.freeNoAutorelease();
             current = current.parent;
         }
+        thread.ioBuffer = NULL_BUFFER;
     }
 
-    public ThreadLocalBuffer allocate(long size, ConditionProfile allocationProfile) {
-        if (allocationProfile.profile(remaining >= size)) {
-            return new ThreadLocalBuffer(
-                    false,
-                    new Pointer(this.start.getAddress() + this.used, size),
-                    size,
-                    remaining - size,
-                    this);
+    public Pointer allocate(long size, RubyThread thread, ConditionProfile allocationProfile) {
+        /* If there is space in the thread's existing buffer then we will return a pointer to that and reduce the
+         * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
+         * used in the existing buffer) replace it with a larger one. */
+        if (allocationProfile.profile(start.getAddress() != 0 && remaining >= size)) {
+            Pointer res = new Pointer(this.start.getAddress() + this.start.getSize() - this.remaining, size);
+            remaining -= size;
+            return res;
         } else {
-            return allocateNewBlock(size);
+            ThreadLocalBuffer newBuffer = allocateNewBlock(size, thread);
+            Pointer res = new Pointer(
+                    newBuffer.start.getAddress() + newBuffer.start.getSize() - newBuffer.remaining,
+                    size);
+            newBuffer.remaining -= size;
+            return res;
         }
     }
 
     @TruffleBoundary
-    private ThreadLocalBuffer allocateNewBlock(long size) {
+    private ThreadLocalBuffer allocateNewBlock(long size, RubyThread thread) {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
         final long blockSize = Math.max(size, 1024);
-        if (this.parent != null) {
-            return new ThreadLocalBuffer(true, Pointer.malloc(blockSize), size, blockSize - size, this);
+        ThreadLocalBuffer buffer;
+        if (this.parent != null && remaining == start.getSize()) {
+            buffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), blockSize, this);
         } else {
             // Free the old block
-            this.free(ConditionProfile.getUncached());
+            this.free(thread, start, ConditionProfile.getUncached());
             // Create new bigger block
-            final ThreadLocalBuffer newParent = new ThreadLocalBuffer(
-                    true,
-                    Pointer.malloc(blockSize),
-                    0,
-                    blockSize,
-                    null);
-            return new ThreadLocalBuffer(
-                    false,
-                    new Pointer(newParent.start.getAddress(), size),
-                    size,
-                    blockSize - size,
-                    newParent);
+            buffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), blockSize, null);
         }
+        thread.ioBuffer = buffer;
+        return buffer;
     }
 }

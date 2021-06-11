@@ -81,7 +81,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.core.thread.ThreadLocalBuffer;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.RubyPointer;
@@ -517,12 +516,8 @@ public abstract class IONodes {
         }
 
         public static Pointer getBuffer(RubyThread rubyThread, long size, ConditionProfile sizeProfile) {
-            final ThreadLocalBuffer buffer = rubyThread.ioBuffer;
-            final ThreadLocalBuffer newBuffer = buffer.allocate(size, sizeProfile);
-            rubyThread.ioBuffer = newBuffer;
-            return newBuffer.start;
+            return rubyThread.ioBuffer.allocate(size, rubyThread, sizeProfile);
         }
-
     }
 
     @Primitive(name = "io_thread_buffer_free")
@@ -533,9 +528,7 @@ public abstract class IONodes {
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached ConditionProfile freeProfile) {
             RubyThread thread = currentThreadNode.execute();
-            final ThreadLocalBuffer threadBuffer = thread.ioBuffer;
-            assert threadBuffer.start.getAddress() == pointer.pointer.getAddress();
-            thread.ioBuffer = threadBuffer.free(freeProfile);
+            thread.ioBuffer.free(thread, pointer.pointer, freeProfile);
             return nil;
         }
     }
