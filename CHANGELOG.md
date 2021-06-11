@@ -51,6 +51,7 @@ Performance:
 
 Changes:
 
+* `rb_iterate()` (deprecated since 1.9) no longer magically passes the block to `rb_funcall()`, use `rb_block_call()` instead.
 
 Security:
 

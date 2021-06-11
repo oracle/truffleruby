@@ -50,31 +50,4 @@ module Truffle::CExt
     method_body_with_arity = Primitive.proc_specify_arity(method_body, arity)
     mod.define_method(name, method_body_with_arity)
   end
-
-  private
-
-  def rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-    Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(callback, [
-        Primitive.cext_wrap(block_arg),
-        Primitive.cext_wrap(callback_arg),
-        0, # argc
-        nil, # argv
-        nil, # blockarg
-    ], block))
-  end
-
-  def call_with_thread_locally_stored_block(function, *args, &block)
-    # MRI puts the block to a thread local th->passed_block and later rb_funcall reads it,
-    # we have to do the same
-    # TODO (pitr-ch 14-Dec-2017): This is fixed just for rb_iterate with a rb_funcall in it combination
-
-    previous_block = Thread.current[:__C_BLOCK__]
-    begin
-      Thread.current[:__C_BLOCK__] = block
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(function, args.map! { |arg| Primitive.cext_wrap(arg) }, block))
-    ensure
-      Thread.current[:__C_BLOCK__] = previous_block
-    end
-  end
-
 end

@@ -878,14 +878,7 @@ module Truffle::CExt
   end
 
   def rb_funcall(recv, meth, n, *args)
-    # see #call_with_thread_locally_stored_block
-    thread_local_block = Thread.current[:__C_BLOCK__]
-    Thread.current[:__C_BLOCK__] = nil
-    begin
-      Primitive.send_without_cext_lock(recv, meth, args, thread_local_block)
-    ensure
-      Thread.current[:__C_BLOCK__] = thread_local_block
-    end
+    Primitive.send_without_cext_lock(recv, meth, args, nil)
   end
 
   def rb_apply(recv, meth, args)
@@ -1656,21 +1649,17 @@ module Truffle::CExt
 
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
     block = rb_block_proc
-    if block
-      call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
-        rb_iterate_call_block(callback, block_arg, callback_arg, &block)
-      end
-    else
-      call_with_thread_locally_stored_block iteration, iterated_object do |block_arg|
-        Primitive.cext_unwrap(Primitive.call_with_c_mutex(callback, [
-            Primitive.cext_wrap(block_arg),
-            Primitive.cext_wrap(callback_arg),
-            0, # argc
-            nil, # argv
-            nil, # blockarg
-        ]))
-      end
+    wrapped_callback = proc do |block_arg|
+      Primitive.cext_unwrap(Primitive.call_with_c_mutex_and_frame(callback, [
+        Primitive.cext_wrap(block_arg),
+        Primitive.cext_wrap(callback_arg),
+        0, # argc
+        nil, # argv
+        nil, # blockarg
+      ], block))
     end
+    Primitive.cext_unwrap(
+      Primitive.call_with_c_mutex_and_frame(iteration, [Primitive.cext_wrap(iterated_object)], wrapped_callback))
   end
 
   def rb_thread_wait_fd(fd)
