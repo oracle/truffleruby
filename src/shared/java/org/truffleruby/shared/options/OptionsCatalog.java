@@ -97,7 +97,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> CEXTS_TONATIVE_STATS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> CEXTS_TO_NATIVE_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
@@ -694,8 +694,8 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor CEXTS_TONATIVE_STATS = OptionDescriptor
-            .newBuilder(CEXTS_TONATIVE_STATS_KEY, "ruby.cexts-tonative-stats")
+    public static final OptionDescriptor CEXTS_TO_NATIVE_STATS = OptionDescriptor
+            .newBuilder(CEXTS_TO_NATIVE_STATS_KEY, "ruby.cexts-to-native-stats")
             .help("Track the number of conversions of VALUEs to native and print the stats at application exit")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
@@ -1249,8 +1249,8 @@ public class OptionsCatalog {
                 return LOG_PENDING_INTERRUPTS;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
-            case "ruby.cexts-tonative-stats":
-                return CEXTS_TONATIVE_STATS;
+            case "ruby.cexts-to-native-stats":
+                return CEXTS_TO_NATIVE_STATS;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
@@ -1447,7 +1447,7 @@ public class OptionsCatalog {
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             LOG_PENDING_INTERRUPTS,
             ROPE_PRINT_INTERN_STATS,
-            CEXTS_TONATIVE_STATS,
+            CEXTS_TO_NATIVE_STATS,
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             BASICOPS_INLINE,

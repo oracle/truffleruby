@@ -318,7 +318,7 @@ public class ValueWrapperManager {
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
             HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
             HandleBlock block = threadData.holder.handleBlock;
-            if (context.getOptions().CEXTS_TONATIVE_STATS) {
+            if (context.getOptions().CEXTS_TO_NATIVE_STATS) {
                 context.getValueWrapperManager().recordHandleAllocation();
             }
 
