@@ -166,6 +166,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     LOG_DYNAMIC_CONSTANT_LOOKUP: [constant-dynamic-lookup-log, boolean, false, Log source code positions where dynamic constant lookup is performed]
     LOG_PENDING_INTERRUPTS: [log-pending-interrupts, boolean, false, Log when executing pending interrupts]
     ROPE_PRINT_INTERN_STATS: [rope-print-intern-stats, boolean, false, Print interned rope stats at application exit]
+    CEXTS_TONATIVE_STATS: [cexts-tonative-stats, boolean, false, Track the number of conversions of VALUEs to native and print the stats at application exit]
 
     # Options to debug the implementation
     LAZY_BUILTINS: [lazy-builtins, boolean, LAZY_CALLTARGETS, Load builtin classes (core methods & primitives) lazily on first use]
@@ -200,8 +201,8 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Inline caches with a non-default size
     THREAD_CACHE: [thread-cache, integer, ['!singleContext ? 0 : ', 1], Cache size of operations that depend on a particular thread]
-    CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, ['!singleContext ? 0 : ', 1], Cache size for inline caches comparing by identity for context-specific objects]
     IDENTITY_CACHE: [identity-cache, integer, 1, Cache size for inline caches comparing by identity for context-independent objects]
+    CONTEXT_SPECIFIC_IDENTITY_CACHE: [context-identity-cache, integer, ['!singleContext ? 0 : ', IDENTITY_CACHE], Cache size for inline caches comparing by identity for context-specific objects]
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
     ARRAY_DUP_CACHE: [array-dup-cache, integer, 3, Cache size for copying small arrays]
     ARRAY_STRATEGY_CACHE: [array-strategy-cache, integer, 4, Cache size for array strategies]
@@ -213,7 +214,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     PACK_UNROLL_LIMIT: [pack-unroll, integer, 4, 'If a pack or unpack expression has a loop less than this many iterations, unroll it']
     PACK_RECOVER_LOOP_MIN: [pack-recover, integer, 32, 'If a pack or unpack expression is longer than this, attempt to recover loops']
     CEXTS_MARKING_CACHE: [cexts-marking-cache, integer, 100, 'Number of objects converted to native handles before the marking service is run']
-    CEXTS_TONATIVE_STATS: [cexts-tonative-stats, boolean, false, Track the number of conversions of VALUEs to native and print the stats at application exit]
     GLOBAL_VARIABLE_MAX_INVALIDATIONS: [global-variable-max-invalidations, integer, 1, Maximum number of times a global variable can be changed to be considered constant]
 
     # Splitting and cloning, useful for debugging cloning

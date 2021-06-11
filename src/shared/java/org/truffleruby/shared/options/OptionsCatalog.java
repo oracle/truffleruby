@@ -97,6 +97,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_PENDING_INTERRUPTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> CEXTS_TONATIVE_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
@@ -122,8 +123,8 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> THREAD_CACHE_KEY = new OptionKey<>(1);
-    public static final OptionKey<Integer> CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
+    public static final OptionKey<Integer> CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY = new OptionKey<>(IDENTITY_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_DUP_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_STRATEGY_CACHE_KEY = new OptionKey<>(4);
@@ -133,7 +134,6 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> PACK_UNROLL_LIMIT_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> PACK_RECOVER_LOOP_MIN_KEY = new OptionKey<>(32);
     public static final OptionKey<Integer> CEXTS_MARKING_CACHE_KEY = new OptionKey<>(100);
-    public static final OptionKey<Boolean> CEXTS_TONATIVE_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Integer> GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY = new OptionKey<>(1);
     public static final OptionKey<Boolean> CLONE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> INLINE_DEFAULT_KEY = new OptionKey<>(true);
@@ -694,6 +694,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor CEXTS_TONATIVE_STATS = OptionDescriptor
+            .newBuilder(CEXTS_TONATIVE_STATS_KEY, "ruby.cexts-tonative-stats")
+            .help("Track the number of conversions of VALUEs to native and print the stats at application exit")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor LAZY_BUILTINS = OptionDescriptor
             .newBuilder(LAZY_BUILTINS_KEY, "ruby.lazy-builtins")
             .help("Load builtin classes (core methods & primitives) lazily on first use")
@@ -869,16 +876,16 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor CONTEXT_SPECIFIC_IDENTITY_CACHE = OptionDescriptor
-            .newBuilder(CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY, "ruby.context-identity-cache")
-            .help("Cache size for inline caches comparing by identity for context-specific objects")
+    public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
+            .newBuilder(IDENTITY_CACHE_KEY, "ruby.identity-cache")
+            .help("Cache size for inline caches comparing by identity for context-independent objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor IDENTITY_CACHE = OptionDescriptor
-            .newBuilder(IDENTITY_CACHE_KEY, "ruby.identity-cache")
-            .help("Cache size for inline caches comparing by identity for context-independent objects")
+    public static final OptionDescriptor CONTEXT_SPECIFIC_IDENTITY_CACHE = OptionDescriptor
+            .newBuilder(CONTEXT_SPECIFIC_IDENTITY_CACHE_KEY, "ruby.context-identity-cache")
+            .help("Cache size for inline caches comparing by identity for context-specific objects")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -942,13 +949,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor CEXTS_MARKING_CACHE = OptionDescriptor
             .newBuilder(CEXTS_MARKING_CACHE_KEY, "ruby.cexts-marking-cache")
             .help("Number of objects converted to native handles before the marking service is run")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor CEXTS_TONATIVE_STATS = OptionDescriptor
-            .newBuilder(CEXTS_TONATIVE_STATS_KEY, "ruby.cexts-tonative-stats")
-            .help("Track the number of conversions of VALUEs to native and print the stats at application exit")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1249,6 +1249,8 @@ public class OptionsCatalog {
                 return LOG_PENDING_INTERRUPTS;
             case "ruby.rope-print-intern-stats":
                 return ROPE_PRINT_INTERN_STATS;
+            case "ruby.cexts-tonative-stats":
+                return CEXTS_TONATIVE_STATS;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
             case "ruby.lazy-translation-core":
@@ -1299,10 +1301,10 @@ public class OptionsCatalog {
                 return RUBY_LIBRARY_CACHE;
             case "ruby.thread-cache":
                 return THREAD_CACHE;
-            case "ruby.context-identity-cache":
-                return CONTEXT_SPECIFIC_IDENTITY_CACHE;
             case "ruby.identity-cache":
                 return IDENTITY_CACHE;
+            case "ruby.context-identity-cache":
+                return CONTEXT_SPECIFIC_IDENTITY_CACHE;
             case "ruby.class-cache":
                 return CLASS_CACHE;
             case "ruby.array-dup-cache":
@@ -1321,8 +1323,6 @@ public class OptionsCatalog {
                 return PACK_RECOVER_LOOP_MIN;
             case "ruby.cexts-marking-cache":
                 return CEXTS_MARKING_CACHE;
-            case "ruby.cexts-tonative-stats":
-                return CEXTS_TONATIVE_STATS;
             case "ruby.global-variable-max-invalidations":
                 return GLOBAL_VARIABLE_MAX_INVALIDATIONS;
             case "ruby.clone-default":
@@ -1447,6 +1447,7 @@ public class OptionsCatalog {
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             LOG_PENDING_INTERRUPTS,
             ROPE_PRINT_INTERN_STATS,
+            CEXTS_TONATIVE_STATS,
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             BASICOPS_INLINE,
@@ -1472,8 +1473,8 @@ public class OptionsCatalog {
             POW_CACHE,
             RUBY_LIBRARY_CACHE,
             THREAD_CACHE,
-            CONTEXT_SPECIFIC_IDENTITY_CACHE,
             IDENTITY_CACHE,
+            CONTEXT_SPECIFIC_IDENTITY_CACHE,
             CLASS_CACHE,
             ARRAY_DUP_CACHE,
             ARRAY_STRATEGY_CACHE,
@@ -1483,7 +1484,6 @@ public class OptionsCatalog {
             PACK_UNROLL_LIMIT,
             PACK_RECOVER_LOOP_MIN,
             CEXTS_MARKING_CACHE,
-            CEXTS_TONATIVE_STATS,
             GLOBAL_VARIABLE_MAX_INVALIDATIONS,
             CLONE_DEFAULT,
             INLINE_DEFAULT,
