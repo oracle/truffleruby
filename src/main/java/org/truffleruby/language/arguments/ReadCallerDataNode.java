@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -19,9 +20,11 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.FrameAndVariablesSendingNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.control.RaiseException;
 
 public abstract class ReadCallerDataNode extends RubyContextNode {
 
@@ -47,10 +50,20 @@ public abstract class ReadCallerDataNode extends RubyContextNode {
             // we don't want to deoptimize this CallTarget on every call.
             getNotOptimizedNode().warn("Unoptimized reading of caller data.");
         }
-        MaterializedFrame callerFrame = getContext()
-                .getCallStack()
-                .getCallerFrame(FrameAccess.MATERIALIZE)
+
+        final MaterializedFrame callerFrame = Truffle
+                .getRuntime()
+                .getCallerFrame()
+                .getFrame(FrameAccess.MATERIALIZE)
                 .materialize();
+        if (!CallStackManager.isRubyFrame(callerFrame)) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().runtimeError(
+                            "Cannot call Ruby method which needs caller data directly in a foreign language",
+                            this));
+        }
+
         return getDataFromFrame(callerFrame);
     }
 

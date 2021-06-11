@@ -192,7 +192,7 @@ public class CallStackManager {
         }
     }
 
-    private boolean isRubyFrame(Frame frame) {
+    public static boolean isRubyFrame(Frame frame) {
         return tryGetMethod(frame) != null;
     }
 
