@@ -341,7 +341,7 @@ public abstract class ThreadNodes {
             try {
                 if (newInterruptMode == InterruptMode.IMMEDIATE) {
                     beforeProfile.enter();
-                    runPendingSafepointActions(safepoint, "before");
+                    runPendingSafepointActions("before");
                 }
 
                 return callBlock(block);
@@ -351,20 +351,17 @@ public abstract class ThreadNodes {
 
                 if (oldInterruptMode != InterruptMode.NEVER) {
                     afterProfile.enter();
-                    runPendingSafepointActions(safepoint, "after");
+                    runPendingSafepointActions("after");
                 }
             }
         }
 
         @TruffleBoundary
-        private void runPendingSafepointActions(TruffleSafepoint safepoint, String when) {
-            if (safepoint.hasPendingSideEffectingActions()) {
-                if (getContext().getOptions().LOG_PENDING_INTERRUPTS) {
-                    RubyLanguage.LOGGER
-                            .info("Running pending interrupts " + when + " Thread.handle_interrupt");
-                }
-                TruffleSafepoint.pollHere(this);
+        private void runPendingSafepointActions(String when) {
+            if (getContext().getOptions().LOG_PENDING_INTERRUPTS) {
+                RubyLanguage.LOGGER.info("Running pending interrupts " + when + " Thread.handle_interrupt");
             }
+            TruffleSafepoint.pollHere(this);
         }
 
         private InterruptMode symbolToInterruptMode(RubyLanguage language, RubySymbol symbol) {
