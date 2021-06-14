@@ -75,7 +75,7 @@ public final class ThreadLocalBuffer {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
         final long blockSize = Math.max(size, 1024);
         ThreadLocalBuffer buffer;
-        if (this.parent != null && remaining == start.getSize()) {
+        if (this.parent != null || remaining != start.getSize()) {
             buffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), blockSize, this);
         } else {
             // Free the old block
