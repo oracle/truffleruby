@@ -144,6 +144,7 @@ EXPERT:
 
     # Controlling the regular expression engines
     USE_TRUFFLE_REGEX: [use-truffle-regex, boolean, false, 'Use the Truffle regular expression engine for Regexp objects']
+    USE_TRUFFLE_REGEX_WITH_WARN: [use-truffle-regex-with-warn, boolean, false, 'Use the Truffle regular expression engine for Regexp objects and warn when falling back to Joni']
 
 INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:

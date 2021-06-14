@@ -83,6 +83,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_WITH_WARN_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
@@ -592,6 +593,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor USE_TRUFFLE_REGEX = OptionDescriptor
             .newBuilder(USE_TRUFFLE_REGEX_KEY, "ruby.use-truffle-regex")
             .help("Use the Truffle regular expression engine for Regexp objects")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor USE_TRUFFLE_REGEX_WITH_WARN = OptionDescriptor
+            .newBuilder(USE_TRUFFLE_REGEX_WITH_WARN_KEY, "ruby.use-truffle-regex-with-warn")
+            .help("Use the Truffle regular expression engine for Regexp objects and warn when falling back to Joni")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1221,6 +1229,8 @@ public class OptionsCatalog {
                 return WARN_EXPERIMENTAL;
             case "ruby.use-truffle-regex":
                 return USE_TRUFFLE_REGEX;
+            case "ruby.use-truffle-regex-with-warn":
+                return USE_TRUFFLE_REGEX_WITH_WARN;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -1433,6 +1443,7 @@ public class OptionsCatalog {
             WARN_DEPRECATED,
             WARN_EXPERIMENTAL,
             USE_TRUFFLE_REGEX,
+            USE_TRUFFLE_REGEX_WITH_WARN,
             ARGV_GLOBALS,
             CHOMP_LOOP,
             GETS_LOOP,
