@@ -16,7 +16,7 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public final class ThreadLocalBuffer {
 
-    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0,0), 0, null);
+    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0, 0), 0, null);
 
     public final Pointer start;
     long remaining;
@@ -57,16 +57,16 @@ public final class ThreadLocalBuffer {
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
         if (allocationProfile.profile(remaining >= size)) {
-            Pointer res = new Pointer(this.getEndAddress() - this.remaining, size);
+            Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, size);
             remaining -= size;
-            return res;
+            return pointer;
         } else {
             ThreadLocalBuffer newBuffer = allocateNewBlock(thread, size);
-            Pointer res = new Pointer(
-                    newBuffer.getEndAddress() - newBuffer.remaining,
+            Pointer pointer = new Pointer(
+                    newBuffer.start.getAddress(),
                     size);
             newBuffer.remaining -= size;
-            return res;
+            return pointer;
         }
     }
 
