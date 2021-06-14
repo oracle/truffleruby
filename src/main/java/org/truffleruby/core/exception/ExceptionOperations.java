@@ -89,17 +89,18 @@ public abstract class ExceptionOperations {
 
     @TruffleBoundary
     public static String messageToString(RubyException exception) {
+        Object messageObject = null;
         try {
-            final Object messageObject = RubyContext.send(exception, "message");
-
-            final RubyStringLibrary libString = RubyStringLibrary.getUncached();
-            if (libString.isRubyString(messageObject)) {
-                return libString.getJavaString(messageObject);
-            }
+            messageObject = RubyContext.send(exception, "message");
         } catch (Throwable e) {
             // Fall back to the internal message field
         }
-        return messageFieldToString(exception);
+        final RubyStringLibrary libString = RubyStringLibrary.getUncached();
+        if (messageObject != null && libString.isRubyString(messageObject)) {
+            return libString.getJavaString(messageObject);
+        } else {
+            return messageFieldToString(exception);
+        }
     }
 
     public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
