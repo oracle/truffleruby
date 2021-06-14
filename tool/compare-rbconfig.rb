@@ -17,7 +17,23 @@ require 'rbconfig'
 
 File.open("#{RUBY_ENGINE}.txt", "w") do |f|
   f.puts RUBY_VERSION
-  [RbConfig::CONFIG, RbConfig::MAKEFILE_CONFIG].each do |h|
-    h.keys.sort.each { |k| f.puts "#{k} = #{h[k]}" }
+
+  prefix = RbConfig::CONFIG['prefix']
+  toolchain_path = RbConfig::CONFIG['toolchain_path']
+
+  {
+    # 'RbConfig::CONFIG' => RbConfig::CONFIG,
+    'RbConfig::MAKEFILE_CONFIG' => RbConfig::MAKEFILE_CONFIG
+  }.each do |name, h|
+    f.puts
+    f.puts name
+    h.keys.sort.each { |k|
+      value = h[k]
+
+      value = value.gsub(prefix, '$(prefix)')
+      value = value.gsub(toolchain_path, '$(toolchain_path)') if toolchain_path
+
+      f.puts "#{k} = #{value}"
+    }
   end
 end
