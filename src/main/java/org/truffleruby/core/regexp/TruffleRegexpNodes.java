@@ -423,6 +423,7 @@ public class TruffleRegexpNodes {
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegion(
                 RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
+                @Cached ConditionProfile encodingMismatchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached TruffleRegexpNodes.MatchNode matchNode,
                 @Cached TruffleRegexpNodes.CheckEncodingNode checkEncodingNode,
@@ -431,7 +432,7 @@ public class TruffleRegexpNodes {
             final Encoding enc = checkEncodingNode.executeCheckEncoding(regexp, string);
             Regex regex = regexp.regex;
 
-            if (regex.getEncoding() != enc) {
+            if (encodingMismatchProfile.profile(regex.getEncoding() != enc)) {
                 final EncodingCache encodingCache = regexp.cachedEncodings;
                 regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(getContext(), regexp, e, this));
             }
