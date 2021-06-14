@@ -16,7 +16,7 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public final class ThreadLocalBuffer {
 
-    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(Pointer.NULL, 0, null);
+    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0,0), 0, null);
 
     public final Pointer start;
     long remaining;
@@ -29,6 +29,10 @@ public final class ThreadLocalBuffer {
         this.start = start;
         this.remaining = remaining;
         this.parent = parent;
+    }
+
+    private long getEndAddress() {
+        return start.getAddress() + start.getSize();
     }
 
     public void free(RubyThread thread, Pointer ptr, ConditionProfile freeProfile) {
@@ -48,18 +52,18 @@ public final class ThreadLocalBuffer {
         thread.ioBuffer = NULL_BUFFER;
     }
 
-    public Pointer allocate(long size, RubyThread thread, ConditionProfile allocationProfile) {
+    public Pointer allocate(RubyThread thread, long size, ConditionProfile allocationProfile) {
         /* If there is space in the thread's existing buffer then we will return a pointer to that and reduce the
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
-        if (allocationProfile.profile(start.getAddress() != 0 && remaining >= size)) {
-            Pointer res = new Pointer(this.start.getAddress() + this.start.getSize() - this.remaining, size);
+        if (allocationProfile.profile(remaining >= size)) {
+            Pointer res = new Pointer(this.getEndAddress() - this.remaining, size);
             remaining -= size;
             return res;
         } else {
-            ThreadLocalBuffer newBuffer = allocateNewBlock(size, thread);
+            ThreadLocalBuffer newBuffer = allocateNewBlock(thread, size);
             Pointer res = new Pointer(
-                    newBuffer.start.getAddress() + newBuffer.start.getSize() - newBuffer.remaining,
+                    newBuffer.getEndAddress() - newBuffer.remaining,
                     size);
             newBuffer.remaining -= size;
             return res;
@@ -67,7 +71,7 @@ public final class ThreadLocalBuffer {
     }
 
     @TruffleBoundary
-    private ThreadLocalBuffer allocateNewBlock(long size, RubyThread thread) {
+    private ThreadLocalBuffer allocateNewBlock(RubyThread thread, long size) {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
         final long blockSize = Math.max(size, 1024);
         ThreadLocalBuffer buffer;

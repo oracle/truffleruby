@@ -516,7 +516,7 @@ public abstract class IONodes {
         }
 
         public static Pointer getBuffer(RubyThread rubyThread, long size, ConditionProfile sizeProfile) {
-            return rubyThread.ioBuffer.allocate(size, rubyThread, sizeProfile);
+            return rubyThread.ioBuffer.allocate(rubyThread, size, sizeProfile);
         }
     }
 
