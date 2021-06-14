@@ -191,7 +191,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, :int], :int
-  attach_function :truffleposix_flock, [:int, :int], :int, LIBTRUFFLEPOSIX, true
+  attach_function :flock, [:int, :int], :int, LIBC, true
   attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_mode, [:int], :mode_t, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_size, [:int], :long, LIBTRUFFLEPOSIX
@@ -309,8 +309,6 @@ module Truffle::POSIX
     attach_function :__errno_location, [], :pointer, LIBC, false, :errno_address
   elsif Truffle::Platform.darwin?
     attach_function :__error, [], :pointer, LIBC, false, :errno_address
-  elsif Truffle::Platform.solaris?
-    attach_function :___errno, [], :pointer, LIBC, false, :errno_address
   else
     raise 'Unsupported platform'
   end

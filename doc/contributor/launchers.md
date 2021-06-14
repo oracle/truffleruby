@@ -29,7 +29,7 @@ This file explains the requirements and architecture of the second category of t
         option behaviour). This is the behaviour of MRI and Truffleruby implements it as well.
 6.  Any executable has to work when pwd is `bin` directory.
     -   Works.
-7.  Works on Linux, Solaris, macOS.
+7.  Works on Linux, macOS.
     -   Works.
 8.  Works with Ruby managers. (Stacked shebangs cause problems, since the `execve` can 
     resolve only one level)

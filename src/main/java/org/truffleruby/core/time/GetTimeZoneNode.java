@@ -82,9 +82,6 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         if (tz == nil) {
             // $TZ is not set, use the system timezone
             return new TimeZoneAndName(getSystemTimeZone());
-        } else if (tzString.equalsIgnoreCase("localtime")) {
-            // On Solaris, $TZ is "localtime", so get it from Java
-            return new TimeZoneAndName(getSystemTimeZone());
         } else if (libString.isRubyString(tz)) {
             return parse(tzString);
         } else {
