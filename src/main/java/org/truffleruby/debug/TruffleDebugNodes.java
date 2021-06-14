@@ -103,8 +103,16 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object debugPrint(Object string) {
-            System.err.println(string.toString());
+        protected Object debugPrint(Object string,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
+            final String javaString;
+            if (strings.isRubyString(string)) {
+                javaString = strings.getJavaString(string);
+            } else {
+                javaString = string.toString();
+            }
+
+            System.err.println(javaString);
             return nil;
         }
 
