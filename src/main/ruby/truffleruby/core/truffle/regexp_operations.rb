@@ -117,7 +117,7 @@ module Truffle
       end
       if bail_out
         if WARN_TRUFFLE_REGEX_FALLBACK
-          warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni"
+          warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni", uplevel: 1
         end
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       elsif regex_result.isMatch
