@@ -97,10 +97,10 @@ module Truffle
       if self.results_match?(md1, md2)
         return self.return_match_data(md1)
       else
-        $stderr.puts "match_in_region(/#{re}/, \"#{str}\"@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) gate"
-        self.print_match_data(md1)
+        $stderr.puts "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) gave"
+        print_match_data(md1)
         $stderr.puts 'but we expected'
-        self.print_match_data(md2)
+        print_match_data(md2)
         return self.return_match_data(md2)
       end
     end
