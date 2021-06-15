@@ -85,56 +85,56 @@ public class TruffleRegexpNodes {
             return TruffleRegexpNodesFactory.CheckEncodingNodeGen.create();
         }
 
-        public abstract Encoding executeCheckEncoding(RubyRegexp regexp, Object str);
+        public final Encoding executeCheckEncoding(RubyRegexp regexp, Object string) {
+            return executeInternal(regexp, stringLibrary.getRope(string));
+        }
+
+        public abstract Encoding executeInternal(RubyRegexp regexp, Rope rope);
 
         @Specialization(guards = {
-                "!isSameEncoding(regexp, string)",
-                "isUSASCII(regexp, string)"
+                "!isSameEncoding(regexp, rope)",
+                "isUSASCII(regexp, rope)"
         })
-        protected Encoding checkEncodingAsciiOnly(RubyRegexp regexp, Object string) {
+        protected Encoding checkEncodingAsciiOnly(RubyRegexp regexp, Rope rope) {
             return USASCIIEncoding.INSTANCE;
         }
 
         @Specialization(guards = {
-                "isSameEncoding(regexp, string)"
+                "isSameEncoding(regexp, rope)"
         })
-        protected Encoding checkEncodingSameEncoding(RubyRegexp regexp, Object string) {
+        protected Encoding checkEncodingSameEncoding(RubyRegexp regexp, Rope rope) {
             return regexp.regex.getEncoding();
         }
 
         @Specialization(guards = {
-                "!isSameEncoding(regexp, string)",
-                "!isUSASCII(regexp, string)",
-                "isFixedEncoding(regexp, string)",
+                "!isSameEncoding(regexp, rope)",
+                "!isUSASCII(regexp, rope)",
+                "isFixedEncoding(regexp, rope)",
         })
-        protected Encoding checkEncodingFixedEncoding(RubyRegexp regexp, Object string) {
+        protected Encoding checkEncodingFixedEncoding(RubyRegexp regexp, Rope rope) {
             return regexp.regex.getEncoding();
         }
 
         @Specialization(guards = {
-                "!isSameEncoding(regexp, string)",
-                "!isUSASCII(regexp, string)",
-                "!isFixedEncoding(regexp, string)"
+                "!isSameEncoding(regexp, rope)",
+                "!isUSASCII(regexp, rope)",
+                "!isFixedEncoding(regexp, rope)"
         })
-        protected Encoding fallback(RubyRegexp regexp, Object string) {
-            return stringEncoding(string);
+        protected Encoding fallback(RubyRegexp regexp, Rope rope) {
+            return rope.encoding;
         }
 
-        protected boolean isUSASCII(RubyRegexp regexp, Object string) {
+        protected boolean isSameEncoding(RubyRegexp regexp, Rope rope) {
+            return regexp.regex.getEncoding() == rope.encoding;
+        }
+
+        protected boolean isUSASCII(RubyRegexp regexp, Rope rope) {
             return regexp.regex.getEncoding() == USASCIIEncoding.INSTANCE &&
-                    codeRangeNode.execute(stringLibrary.getRope(string)) == CodeRange.CR_7BIT;
+                    codeRangeNode.execute(rope) == CodeRange.CR_7BIT;
         }
 
-        protected boolean isFixedEncoding(RubyRegexp regexp, Object string) {
-            return regexp.options.isFixed() && stringEncoding(string).isAsciiCompatible();
-        }
-
-        protected boolean isSameEncoding(RubyRegexp regexp, Object string) {
-            return regexp.regex.getEncoding() == stringEncoding(string);
-        }
-
-        protected Encoding stringEncoding(Object string) {
-            return stringLibrary.getRope(string).getEncoding();
+        protected boolean isFixedEncoding(RubyRegexp regexp, Rope rope) {
+            return regexp.options.isFixed() && rope.encoding.isAsciiCompatible();
         }
 
     }
