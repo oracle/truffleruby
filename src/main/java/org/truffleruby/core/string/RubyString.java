@@ -11,6 +11,7 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -30,11 +31,17 @@ public class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
     public Rope rope;
+    public RubyEncoding encoding;
 
-    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope) {
+    public RubyString(RubyClass rubyClass, Shape shape, boolean frozen, Rope rope, RubyEncoding rubyEncoding) {
         super(rubyClass, shape);
         this.frozen = frozen;
         this.rope = rope;
+        this.encoding = rubyEncoding;
+    }
+
+    public void setEncoding(RubyEncoding encoding) {
+        this.encoding = encoding;
     }
 
     public void setRope(Rope rope) {
@@ -48,6 +55,11 @@ public class RubyString extends RubyDynamicObject {
     }
 
     // region RubyStringLibrary messages
+    @ExportMessage
+    public RubyEncoding getEncoding() {
+        return encoding;
+    }
+
     @ExportMessage
     protected boolean isRubyString() {
         return true;

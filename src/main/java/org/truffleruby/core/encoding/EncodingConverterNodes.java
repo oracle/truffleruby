@@ -56,6 +56,7 @@ import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -209,7 +210,8 @@ public abstract class EncodingConverterNodes {
                 RubyString target,
                 int offset,
                 int size,
-                int options) {
+                int options,
+                @Cached DispatchNode destinationEncodingNode) {
             return primitiveConvertHelper(
                     encodingConverter,
                     source,
@@ -217,7 +219,8 @@ public abstract class EncodingConverterNodes {
                     target,
                     offset,
                     size,
-                    options);
+                    options,
+                    destinationEncodingNode);
         }
 
         @Specialization(guards = "stringsSource.isRubyString(source)")
@@ -228,7 +231,8 @@ public abstract class EncodingConverterNodes {
                 int offset,
                 int size,
                 int options,
-                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource) {
+                @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
+                @Cached DispatchNode destinationEncodingNode) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
@@ -239,12 +243,13 @@ public abstract class EncodingConverterNodes {
                     target,
                     offset,
                     size,
-                    options);
+                    options,
+                    destinationEncodingNode);
         }
 
         @TruffleBoundary
         private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source, Rope sourceRope,
-                RubyString target, int offset, int size, int options) {
+                RubyString target, int offset, int size, int options, DispatchNode destinationEncodingNode) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             Rope targetRope = target.rope;
@@ -327,6 +332,8 @@ public abstract class EncodingConverterNodes {
                 }
 
                 target.setRope(RopeOperations.ropeFromRopeBuilder(outBytes));
+                target.setEncoding(
+                        (RubyEncoding) destinationEncodingNode.call(encodingConverter, "destination_encoding"));
 
                 return getSymbol(res.symbolicName());
             }

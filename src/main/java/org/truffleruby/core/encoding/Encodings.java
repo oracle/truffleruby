@@ -45,13 +45,18 @@ public class Encodings {
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
-            final RubyEncoding rubyEncoding = newRubyEncoding(encodingEntry.getEncoding(), e.bytes, e.p, e.end);
+            final RubyEncoding rubyEncoding = newRubyEncoding(
+                    encodingEntry.getEncoding(),
+                    encodingEntry.getEncoding().getIndex(),
+                    e.bytes,
+                    e.p,
+                    e.end);
             BUILT_IN_ENCODINGS[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
         }
     }
 
     @TruffleBoundary
-    public RubyEncoding newRubyEncoding(Encoding encoding, byte[] name, int p, int end) {
+    public RubyEncoding newRubyEncoding(Encoding encoding, int index, byte[] name, int p, int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
                 "; name.length = " + name.length + ")";
@@ -59,7 +64,7 @@ public class Encodings {
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
 
-        return new RubyEncoding(encoding, string);
+        return new RubyEncoding(encoding, string, index);
     }
 
     public RubyEncoding getBuiltInEncoding(int index) {

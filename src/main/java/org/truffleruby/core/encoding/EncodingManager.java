@@ -74,7 +74,7 @@ public class EncodingManager {
 
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
-            final RubyEncoding rubyEncoding = defineEncoding(e.value, e.bytes, e.p, e.end);
+            final RubyEncoding rubyEncoding = defineBuiltInEncoding(e.value, e.bytes, e.p, e.end);
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
@@ -232,12 +232,35 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
+    public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p,
+            int end) {
+        final int encodingIndex = encodingEntry.getEncoding().getIndex();
+        final RubyEncoding rubyEncoding = language.encodings.getBuiltInEncoding(encodingIndex);
+
+        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
+                ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
+
+        if (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length) {
+            ENCODING_LIST_BY_ENCODING_INDEX = Arrays
+                    .copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
+        }
+        ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
+
+        LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
+        return rubyEncoding;
+
+    }
+
+    @TruffleBoundary
     public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
-        final Encoding encoding = encodingEntry.getEncoding();
-        final int encodingIndex = encoding.getIndex();
-        final RubyEncoding rubyEncoding = encodingIndex < language.encodings.BUILT_IN_ENCODINGS.length
-                ? language.encodings.getBuiltInEncoding(encodingIndex)
-                : language.encodings.newRubyEncoding(encoding, name, p, end);
+        final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
+
+        final RubyEncoding rubyEncoding = language.encodings.newRubyEncoding(
+                encodingEntry.getEncoding(),
+                encodingIndex,
+                name,
+                p,
+                end);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
                 ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
@@ -266,9 +289,9 @@ public class EncodingManager {
             return null;
         }
 
-        byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        EncodingDB.dummy(nameBytes);
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
+        final EncodingDB.Entry entry = EncodingDB.getEncodings().get("US-ASCII".getBytes());
+
+        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
     }
 
@@ -278,9 +301,8 @@ public class EncodingManager {
             return null;
         }
 
-        EncodingDB.replicate(name, encoding.toString());
-        byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
+        final EncodingDB.Entry entry = EncodingDB.getEncodings().get(encoding.getName());
+        final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
         return defineEncoding(entry, nameBytes, 0, nameBytes.length);
     }
 

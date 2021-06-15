@@ -264,7 +264,8 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                    RopeConstants.EMPTY_ASCII_8BIT_ROPE,
+                    getContext().getEncodingManager().getRubyEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE.encoding));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -282,7 +283,8 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    rope);
+                    rope,
+                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -300,7 +302,8 @@ public abstract class PointerNodes {
                     coreLibrary().stringClass,
                     getLanguage().stringShape,
                     false,
-                    rope);
+                    rope,
+                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -321,7 +324,10 @@ public abstract class PointerNodes {
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
                         false,
-                        RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                        RopeConstants.EMPTY_ASCII_8BIT_ROPE,
+                        getContext()
+                                .getEncodingManager()
+                                .getRubyEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE.encoding));
                 AllocationTracing.trace(instance, this);
                 return instance;
             } else {
@@ -334,7 +340,8 @@ public abstract class PointerNodes {
                         coreLibrary().stringClass,
                         getLanguage().stringShape,
                         false,
-                        rope);
+                        rope,
+                        getContext().getEncodingManager().getRubyEncoding(rope.encoding));
                 AllocationTracing.trace(instance, this);
                 return instance;
             }

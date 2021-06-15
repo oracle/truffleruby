@@ -49,7 +49,8 @@ public abstract class StringOperations {
                 node.getContext().getCoreLibrary().stringClass,
                 node.getLanguage().stringShape,
                 false,
-                rope);
+                rope,
+                node.getContext().getEncodingManager().getRubyEncoding(rope.encoding));
         AllocationTracing.trace(instance, node);
         return instance;
     }
@@ -60,7 +61,8 @@ public abstract class StringOperations {
                 context.getCoreLibrary().stringClass,
                 language.stringShape,
                 false,
-                rope);
+                rope,
+                context.getEncodingManager().getRubyEncoding(rope.encoding));
         return instance;
     }
 

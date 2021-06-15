@@ -422,6 +422,7 @@ public abstract class EncodingNodes {
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isDummy(RubyEncoding encoding) {
+            // TODO add dummy to RubyEncoding
             return encoding.encoding.isDummy();
         }
     }
@@ -640,11 +641,12 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected RubyEncoding encodingGetObjectEncodingString(RubyString object) {
-            return getRubyEncodingNode.executeGetRubyEncoding(object.rope.getEncoding());
+            return object.encoding;
         }
 
         @Specialization
         protected RubyEncoding encodingGetObjectEncodingImmutableString(ImmutableRubyString object) {
+            //            return object.encoding;
             return getRubyEncodingNode.executeGetRubyEncoding(object.rope.getEncoding());
         }
 

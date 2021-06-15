@@ -33,10 +33,12 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
 
     public final Encoding encoding;
     public final ImmutableRubyString name;
+    public final int index;
 
-    public RubyEncoding(Encoding encoding, ImmutableRubyString name) {
+    public RubyEncoding(Encoding encoding, ImmutableRubyString name, int index) {
         this.encoding = encoding;
         this.name = name;
+        this.index = index;
     }
 
     @Override

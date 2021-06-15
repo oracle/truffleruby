@@ -254,7 +254,12 @@ public abstract class StringNodes {
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLanguage RubyLanguage language) {
             final RubyClass stringClass = context.getCoreLibrary().stringClass;
-            final RubyString string = new RubyString(stringClass, language.stringShape, false, rope);
+            final RubyString string = new RubyString(
+                    stringClass,
+                    language.stringShape,
+                    false,
+                    rope,
+                    context.getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(language, context, string, this);
             return string;
         }
@@ -266,7 +271,12 @@ public abstract class StringNodes {
                 @CachedLanguage RubyLanguage language) {
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
             final RubyClass stringClass = context.getCoreLibrary().stringClass;
-            final RubyString string = new RubyString(stringClass, language.stringShape, false, rope);
+            final RubyString string = new RubyString(
+                    stringClass,
+                    language.stringShape,
+                    false,
+                    rope,
+                    context.getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(language, context, string, this);
             return string;
         }
@@ -311,7 +321,8 @@ public abstract class StringNodes {
                     logicalClass,
                     getLanguage().stringShape,
                     false,
-                    substringNode.executeSubstring(rope, offset, byteLength));
+                    substringNode.executeSubstring(rope, offset, byteLength),
+                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(string, this);
             return string;
         }
@@ -324,7 +335,12 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().stringShape;
-            final RubyString string = new RubyString(rubyClass, shape, false, EMPTY_ASCII_8BIT_ROPE);
+            final RubyString string = new RubyString(
+                    rubyClass,
+                    shape,
+                    false,
+                    EMPTY_ASCII_8BIT_ROPE,
+                    getContext().getEncodingManager().getRubyEncoding(EMPTY_ASCII_8BIT_ROPE.encoding));
             AllocationTracing.trace(string, this);
             return string;
         }
@@ -348,7 +364,12 @@ public abstract class StringNodes {
             final Rope concatRope = stringAppendNode.executeStringAppend(string, other);
             final RubyClass rubyClass = coreLibrary().stringClass;
             final Shape shape = getLanguage().stringShape;
-            final RubyString ret = new RubyString(rubyClass, shape, false, concatRope);
+            final RubyString ret = new RubyString(
+                    rubyClass,
+                    shape,
+                    false,
+                    concatRope,
+                    getContext().getEncodingManager().getRubyEncoding(concatRope.encoding));
             AllocationTracing.trace(ret, this);
             return ret;
         }
@@ -377,7 +398,9 @@ public abstract class StringNodes {
                     logicalClass,
                     getLanguage().stringShape,
                     false,
-                    RopeOperations.emptyRope(libString.getRope(string).getEncoding()));
+                    RopeOperations.emptyRope(libString.getRope(string).getEncoding()),
+                    getContext().getEncodingManager().getRubyEncoding(
+                            RopeOperations.emptyRope(libString.getRope(string).getEncoding()).encoding));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -402,7 +425,12 @@ public abstract class StringNodes {
 
             final Rope repeated = repeatNode.executeRepeat(stringRope, times);
             final RubyClass logicalClass = logicalClassNode.execute(string);
-            final RubyString instance = new RubyString(logicalClass, getLanguage().stringShape, false, repeated);
+            final RubyString instance = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    repeated,
+                    getContext().getEncodingManager().getRubyEncoding(repeated.encoding));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -415,7 +443,12 @@ public abstract class StringNodes {
             final Rope repeated = repeatNode.executeRepeat(libString.getRope(string), 0);
 
             final RubyClass logicalClass = logicalClassNode.execute(string);
-            final RubyString instance = new RubyString(logicalClass, getLanguage().stringShape, false, repeated);
+            final RubyString instance = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    repeated,
+                    getContext().getEncodingManager().getRubyEncoding(repeated.encoding));
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -1413,7 +1446,12 @@ public abstract class StringNodes {
 
             int end = Math.min(length, beg + len);
             final Rope substringRope = substringNode.executeSubstring(rope, beg, end - beg);
-            final RubyString ret = new RubyString(logicalClass, getLanguage().stringShape, false, substringRope);
+            final RubyString ret = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    substringRope,
+                    getContext().getEncodingManager().getRubyEncoding(substringRope.encoding));
             AllocationTracing.trace(ret, this);
             return ret;
         }
@@ -1450,11 +1488,12 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString forceEncodingEncoding(RubyString string, RubyEncoding encoding) {
-            final Encoding javaEncoding = encoding.encoding;
-            final Rope rope = string.rope;
 
-            if (differentEncodingProfile.profile(rope.getEncoding() != javaEncoding)) {
+            if (differentEncodingProfile.profile(string.encoding != encoding)) {
+                final Encoding javaEncoding = encoding.encoding;
+                final Rope rope = string.rope;
                 final Rope newRope = withEncodingNode.executeWithEncoding(rope, javaEncoding);
+                string.setEncoding(encoding);
                 string.setRope(newRope);
             }
 
@@ -1537,6 +1576,7 @@ public abstract class StringNodes {
         @Specialization
         protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding) {
             string.setRope(StringOperations.encodeRope(from, encoding.encoding));
+            string.setEncoding(encoding);
             return string;
         }
 
@@ -1553,6 +1593,7 @@ public abstract class StringNodes {
         protected RubyString initialize(RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom) {
             string.setRope(stringsFrom.getRope(from));
+            string.setEncoding(stringsFrom.getEncoding(from));
             return string;
         }
 
@@ -1560,7 +1601,9 @@ public abstract class StringNodes {
         protected RubyString initialize(VirtualFrame frame, RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached ToStrNode toStrNode) {
-            string.setRope(stringLibrary.getRope(toStrNode.execute(from)));
+            final Object stringFrom = toStrNode.execute(from);
+            string.setRope(stringLibrary.getRope(stringFrom));
+            string.setEncoding(stringLibrary.getEncoding(stringFrom));
             return string;
         }
 
@@ -1628,6 +1671,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(stringsFrom.getRope(from));
+            self.setEncoding(stringsFrom.getEncoding(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;
@@ -1643,6 +1687,7 @@ public abstract class StringNodes {
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(
                     ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext()));
+            self.setEncoding(stringsFrom.getEncoding(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;
@@ -1781,12 +1826,14 @@ public abstract class StringNodes {
         @Specialization(guards = { "string != other" })
         protected RubyString replace(RubyString string, RubyString other) {
             string.setRope(other.rope);
+            string.setEncoding(other.encoding);
             return string;
         }
 
         @Specialization
         protected RubyString replace(RubyString string, ImmutableRubyString other) {
             string.setRope(other.rope);
+            string.setEncoding(other.getEncoding(getContext()));
             return string;
         }
 
@@ -2138,7 +2185,12 @@ public abstract class StringNodes {
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
             final RubyClass logicalClass = logicalClassNode.execute(string);
-            final RubyString result = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+            final RubyString result = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    rope,
+                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -2168,7 +2220,12 @@ public abstract class StringNodes {
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
             final RubyClass logicalClass = logicalClassNode.execute(string);
-            final RubyString result = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+            final RubyString result = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    rope,
+                    getContext().getEncodingManager().getRubyEncoding(rope.encoding));
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -2684,7 +2741,12 @@ public abstract class StringNodes {
         @Specialization(guards = "isStringSubclass(string)")
         protected RubyString toSOnSubclass(RubyString string) {
             final Shape shape = getLanguage().stringShape;
-            final RubyString result = new RubyString(coreLibrary().stringClass, shape, false, string.rope);
+            final RubyString result = new RubyString(
+                    coreLibrary().stringClass,
+                    shape,
+                    false,
+                    string.rope,
+                    getContext().getEncodingManager().getRubyEncoding(string.rope.encoding));
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -3423,9 +3485,12 @@ public abstract class StringNodes {
 
         public abstract RubyString executeStringAppend(RubyString string, Object other);
 
-        @Specialization
-        protected RubyString stringAppend(RubyString string, Object other) {
-            string.setRope(stringAppendNode.executeStringAppend(string, other));
+        @Specialization(limit = "2")
+        protected RubyString stringAppend(RubyString string, Object other,
+                @CachedLibrary("other") RubyStringLibrary otherStringLibrary) {
+            final Rope result = stringAppendNode.executeStringAppend(string, other);
+            string.setRope(result);
+            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(result.getEncoding()));
             return string;
         }
 
@@ -4963,7 +5028,12 @@ public abstract class StringNodes {
             final Rope repeatingRope = repeatNode
                     .executeRepeat(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[pattern], size);
 
-            final RubyString result = new RubyString(stringClass, getLanguage().stringShape, false, repeatingRope);
+            final RubyString result = new RubyString(
+                    stringClass,
+                    getLanguage().stringShape,
+                    false,
+                    repeatingRope,
+                    getContext().getEncodingManager().getRubyEncoding(repeatingRope.encoding));
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -4974,7 +5044,12 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
             final Rope rope = libPattern.getRope(pattern);
             final Rope repeatingRope = repeatNode.executeRepeat(rope, size / rope.byteLength());
-            final RubyString result = new RubyString(stringClass, getLanguage().stringShape, false, repeatingRope);
+            final RubyString result = new RubyString(
+                    stringClass,
+                    getLanguage().stringShape,
+                    false,
+                    repeatingRope,
+                    getContext().getEncodingManager().getRubyEncoding(repeatingRope.encoding));
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -5006,7 +5081,12 @@ public abstract class StringNodes {
             LeafRope leafRope = makeLeafRopeNode
                     .executeMake(bytes, libPattern.getRope(pattern).getEncoding(), codeRange, characterLength);
 
-            final RubyString result = new RubyString(stringClass, getLanguage().stringShape, false, leafRope);
+            final RubyString result = new RubyString(
+                    stringClass,
+                    getLanguage().stringShape,
+                    false,
+                    leafRope,
+                    getContext().getEncodingManager().getRubyEncoding(leafRope.encoding));
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -5035,7 +5115,9 @@ public abstract class StringNodes {
             final Rope right = prependSubstringNode
                     .executeSubstring(original, byteCountToReplace, original.byteLength() - byteCountToReplace);
 
-            string.setRope(prependConcatNode.executeConcat(left, right, encoding));
+            final Rope prependResult = prependConcatNode.executeConcat(left, right, encoding);
+            string.setRope(prependResult);
+            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(prependResult.getEncoding()));
 
             return string;
         }
@@ -5049,7 +5131,9 @@ public abstract class StringNodes {
             final Rope left = string.rope;
             final Rope right = libOther.getRope(other);
 
-            string.setRope(appendConcatNode.executeConcat(left, right, encoding));
+            final Rope concatResult = appendConcatNode.executeConcat(left, right, encoding);
+            string.setRope(concatResult);
+            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(concatResult.getEncoding()));
 
             return string;
         }
@@ -5088,6 +5172,7 @@ public abstract class StringNodes {
             }
 
             string.setRope(joinedRight);
+            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(joinedRight.getEncoding()));
             return string;
         }
 
@@ -5357,7 +5442,12 @@ public abstract class StringNodes {
 
             final RubyClass logicalClass = logicalClassNode.execute(string);
             final Rope substringRope = substringNode.executeSubstring(rope, beg, byteLength);
-            final RubyString ret = new RubyString(logicalClass, getLanguage().stringShape, false, substringRope);
+            final RubyString ret = new RubyString(
+                    logicalClass,
+                    getLanguage().stringShape,
+                    false,
+                    substringRope,
+                    getContext().getEncodingManager().getRubyEncoding(substringRope.encoding));
             AllocationTracing.trace(ret, this);
             return ret;
         }
