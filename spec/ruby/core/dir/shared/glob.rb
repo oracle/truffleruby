@@ -205,6 +205,14 @@ describe :dir_glob, shared: true do
     Dir.send(@method, '**/').sort.should == expected
   end
 
+  it "recursively matches any subdirectories except './' or '../' with '**/' from the base directory if that is specified" do
+    expected = %w[
+      nested/directory
+    ]
+
+    Dir.send(@method, '**/*ory', base: 'deeply').sort.should == expected
+  end
+
   ruby_version_is ''...'3.1' do
     it "recursively matches any subdirectories including ./ and ../ with '.**/'" do
       Dir.chdir("#{DirSpecs.mock_dir}/subdir_one") do

@@ -181,7 +181,7 @@ class Dir
           switched = @next.dup
           switched.separator = @separator
         else
-          @next.process_entry entry, true, matches, parent, glob_base_dir if glob_base_dir
+          @next.process_entry '', true, matches, parent, glob_base_dir if glob_base_dir
         end
 
         stack = [nil]
