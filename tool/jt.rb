@@ -915,9 +915,14 @@ module Commands
       end
     end
 
-    if core_load_path && truffleruby? && !truffleruby_native?
-      add_experimental_options.call
-      vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
+    if truffleruby? && !truffleruby_native?
+      if core_load_path
+        add_experimental_options.call
+        vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
+      end
+      if ci?
+        vm_args << '--vm.Xlog:os+thread=off' # GR-23507: prevent thread warnings on stdout to break specs/tests
+      end
     end
 
     [vm_args, ruby_args + args, options]
