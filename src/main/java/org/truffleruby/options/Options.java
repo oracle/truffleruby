@@ -129,6 +129,8 @@ public class Options {
     public final boolean WARN_EXPERIMENTAL;
     /** --use-truffle-regex=false */
     public final boolean USE_TRUFFLE_REGEX;
+    /** --warn-truffle-regex-fallback=false */
+    public final boolean WARN_TRUFFLE_REGEX_FALLBACK;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
     /** --chomp-loop=false */
@@ -246,6 +248,7 @@ public class Options {
         WARN_DEPRECATED = options.get(OptionsCatalog.WARN_DEPRECATED_KEY);
         WARN_EXPERIMENTAL = options.get(OptionsCatalog.WARN_EXPERIMENTAL_KEY);
         USE_TRUFFLE_REGEX = options.get(OptionsCatalog.USE_TRUFFLE_REGEX_KEY);
+        WARN_TRUFFLE_REGEX_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_FALLBACK_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         CHOMP_LOOP = options.get(OptionsCatalog.CHOMP_LOOP_KEY);
         GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
@@ -387,6 +390,8 @@ public class Options {
                 return WARN_EXPERIMENTAL;
             case "ruby.use-truffle-regex":
                 return USE_TRUFFLE_REGEX;
+            case "ruby.warn-truffle-regex-fallback":
+                return WARN_TRUFFLE_REGEX_FALLBACK;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
