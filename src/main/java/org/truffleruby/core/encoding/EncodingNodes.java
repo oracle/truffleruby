@@ -734,9 +734,21 @@ public abstract class EncodingNodes {
 
     @Primitive(name = "encoding_get_encoding_by_index", lowerFixnum = 0)
     public abstract static class GetEncodingObjectByIndexNode extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        protected RubyEncoding getEncoding(int index) {
+
+        @Specialization(guards = { "isSingleContext()", "index == cachedIndex" }, limit = "getCacheLimit()")
+        protected RubyEncoding getEncoding(int index,
+                @Cached("index") int cachedIndex,
+                @Cached("getContext().getEncodingManager().getRubyEncoding(index)") RubyEncoding cachedEncoding) {
+            return cachedEncoding;
+        }
+
+        @Specialization(replaces = "getEncoding")
+        protected RubyEncoding getEncodingUncached(int index) {
             return getContext().getEncodingManager().getRubyEncoding(index);
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
         }
     }
 
