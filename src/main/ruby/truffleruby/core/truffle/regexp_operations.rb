@@ -64,7 +64,7 @@ module Truffle
     Truffle::Boot.delay do
       COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
       USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
-      USE_TRUFFLE_REGEX_WITH_WARN = Truffle::Boot.get_option('use-truffle-regex-with-warn')
+      WARN_TRUFFLE_REGEX_FALLBACK = Truffle::Boot.get_option('warn-truffle-regex-fallback')
 
       if Truffle::Boot.get_option('regexp-instrument-creation') or Truffle::Boot.get_option('regexp-instrument-match')
         at_exit do
@@ -76,7 +76,7 @@ module Truffle
     def self.match_in_region(re, str, from, to, at_start, start)
       if COMPARE_ENGINES
         match_in_region_compare_engines(re, str, from, to, at_start, start)
-      elsif USE_TRUFFLE_REGEX || USE_TRUFFLE_REGEX_WITH_WARN
+      elsif USE_TRUFFLE_REGEX
         match_in_region_tregex(re, str, from, to, at_start, start)
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
@@ -116,8 +116,8 @@ module Truffle
         regex_result = compiled_regex.execBytes(str_bytes, from)
       end
       if bail_out
-        if USE_TRUFFLE_REGEX_WITH_WARN
-          warn "match_in_region_tregex(/#{re}/, \"#{str}\"@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can’t be run as a Truffle regexp and fell back to Joni"
+        if WARN_TRUFFLE_REGEX_FALLBACK
+          warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni"
         end
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       elsif regex_result.isMatch

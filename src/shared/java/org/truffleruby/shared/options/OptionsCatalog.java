@@ -83,7 +83,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> WARN_DEPRECATED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_EXPERIMENTAL_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> USE_TRUFFLE_REGEX_WITH_WARN_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
@@ -597,9 +597,9 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor USE_TRUFFLE_REGEX_WITH_WARN = OptionDescriptor
-            .newBuilder(USE_TRUFFLE_REGEX_WITH_WARN_KEY, "ruby.use-truffle-regex-with-warn")
-            .help("Use the Truffle regular expression engine for Regexp objects and warn when falling back to Joni")
+    public static final OptionDescriptor WARN_TRUFFLE_REGEX_FALLBACK = OptionDescriptor
+            .newBuilder(WARN_TRUFFLE_REGEX_FALLBACK_KEY, "ruby.warn-truffle-regex-fallback")
+            .help("Warn when Truffle Regex could not be used for a Regexp and instead Joni is used")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1229,8 +1229,8 @@ public class OptionsCatalog {
                 return WARN_EXPERIMENTAL;
             case "ruby.use-truffle-regex":
                 return USE_TRUFFLE_REGEX;
-            case "ruby.use-truffle-regex-with-warn":
-                return USE_TRUFFLE_REGEX_WITH_WARN;
+            case "ruby.warn-truffle-regex-fallback":
+                return WARN_TRUFFLE_REGEX_FALLBACK;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -1443,7 +1443,7 @@ public class OptionsCatalog {
             WARN_DEPRECATED,
             WARN_EXPERIMENTAL,
             USE_TRUFFLE_REGEX,
-            USE_TRUFFLE_REGEX_WITH_WARN,
+            WARN_TRUFFLE_REGEX_FALLBACK,
             ARGV_GLOBALS,
             CHOMP_LOOP,
             GETS_LOOP,
