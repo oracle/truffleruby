@@ -41,6 +41,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
@@ -245,6 +246,7 @@ public class TruffleRegexpNodes {
 
         @Specialization(guards = "libString.isRubyString(str)")
         protected RubyEncoding selectEncoding(RubyRegexp re, Object str, boolean encodingConversion,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @Cached TruffleRegexpNodes.CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             Encoding encoding;
@@ -258,7 +260,8 @@ public class TruffleRegexpNodes {
             } else {
                 encoding = re.regex.getEncoding();
             }
-            return getContext().getEncodingManager().getRubyEncoding(encoding);
+
+            return getRubyEncodingNode.executeGetRubyEncoding(encoding);
         }
     }
 
