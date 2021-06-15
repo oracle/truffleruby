@@ -127,16 +127,17 @@ public class TruffleRegexpNodes {
         }
 
         protected boolean isFixedEncoding(RubyRegexp regexp, Object string) {
-            return regexp.options.isFixed() && stringLibrary.getRope(string).getEncoding().isAsciiCompatible();
+            return regexp.options.isFixed() && stringEncoding(string).isAsciiCompatible();
         }
 
         protected boolean isSameEncoding(RubyRegexp regexp, Object string) {
-            return regexp.regex.getEncoding() == stringLibrary.getRope(string).getEncoding();
+            return regexp.regex.getEncoding() == stringEncoding(string);
         }
 
         protected Encoding stringEncoding(Object string) {
             return stringLibrary.getRope(string).getEncoding();
         }
+
     }
 
     @TruffleBoundary
