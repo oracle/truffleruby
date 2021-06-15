@@ -30,20 +30,20 @@ describe "Dir.glob" do
   end
 
   it 'returns matching file paths when supplied :base keyword argument' do
-    dir = tmp('temp') + '/'
-    file_1 = dir + 'lib/bloop.rb'
-    file_2 = dir + 'lib/soup.rb'
-    file_3 = dir + 'lib/mismatched_file_type.txt'
-    file_4 = dir + 'mismatched_directory.rb'
+    dir = tmp('dir_glob_base')
+    file_1 = "#{dir}/lib/bloop.rb"
+    file_2 = "#{dir}/lib/soup.rb"
+    file_3 = "#{dir}/lib/mismatched_file_type.txt"
+    file_4 = "#{dir}/mismatched_directory.rb"
 
     touch file_1
     touch file_2
     touch file_3
     touch file_4
 
-    Dir.glob('**/*.rb', base: dir + 'lib').sort.should == ["bloop.rb", "soup.rb"].sort
-
-    rm_r dir[0...-1]
+    Dir.glob('**/*.rb', base: "#{dir}/lib").sort.should == ["bloop.rb", "soup.rb"].sort
+  ensure
+    rm_r dir
   end
 
   it "calls #to_path to convert multiple patterns" do
