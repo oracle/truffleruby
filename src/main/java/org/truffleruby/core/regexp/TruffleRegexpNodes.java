@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
@@ -240,28 +239,15 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "select_encoding", onSingleton = true, required = 3)
+    @CoreMethod(names = "select_encoding", onSingleton = true, required = 2)
     public abstract static class SelectEncodingNode extends CoreMethodArrayArgumentsNode {
 
-        @Child CheckEncodingNode checkEncodingNode;
-
         @Specialization(guards = "libString.isRubyString(str)")
-        protected RubyEncoding selectEncoding(RubyRegexp re, Object str, boolean encodingConversion,
+        protected RubyEncoding selectEncoding(RubyRegexp re, Object str,
                 @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
-                @Cached TruffleRegexpNodes.CheckEncodingNode checkEncodingNode,
+                @Cached CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            Encoding encoding;
-            if (encodingConversion) {
-                if (checkEncodingNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    checkEncodingNode = insert(CheckEncodingNode.create());
-                }
-
-                encoding = checkEncodingNode.executeCheckEncoding(re, str);
-            } else {
-                encoding = re.regex.getEncoding();
-            }
-
+            final Encoding encoding = checkEncodingNode.executeCheckEncoding(re, str);
             return getRubyEncodingNode.executeGetRubyEncoding(encoding);
         }
     }
@@ -429,8 +415,8 @@ public class TruffleRegexpNodes {
                 RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
                 @Cached ConditionProfile encodingMismatchProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached TruffleRegexpNodes.MatchNode matchNode,
-                @Cached TruffleRegexpNodes.CheckEncodingNode checkEncodingNode,
+                @Cached MatchNode matchNode,
+                @Cached CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
             final Encoding enc = checkEncodingNode.executeCheckEncoding(regexp, string);

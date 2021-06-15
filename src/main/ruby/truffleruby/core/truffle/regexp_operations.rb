@@ -31,7 +31,7 @@ module Truffle
         from = end_index
         to = start_index
       end
-      match_in_region(re, str, from, to, false, true, 0)
+      match_in_region(re, str, from, to, false, 0)
     end
 
     # This path is used by some string and scanner methods and allows
@@ -39,7 +39,7 @@ module Truffle
     # possible to refactor search region to offer the ability to
     # specify at start, we should investigate this at some point.
     def self.match_onwards(re, str, from, at_start)
-      md = match_in_region(re, str, from, str.bytesize, at_start, true, from)
+      md = match_in_region(re, str, from, str.bytesize, at_start, from)
       Primitive.matchdata_fixup_positions(md, from) if md
       md
     end
@@ -72,19 +72,19 @@ module Truffle
       end
     end
 
-    def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+    def self.match_in_region(re, str, from, to, at_start, start)
       if COMPARE_ENGINES
-        match_in_region_compare_engines(re, str, from, to, at_start, encoding_conversion, start)
+        match_in_region_compare_engines(re, str, from, to, at_start, start)
       elsif USE_TRUFFLE_REGEX
-        match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+        match_in_region_tregex(re, str, from, to, at_start, start)
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       end
     end
 
-    def self.match_in_region_compare_engines(re, str, from, to, at_start, encoding_conversion, start)
+    def self.match_in_region_compare_engines(re, str, from, to, at_start, start)
       begin
-        md1 = match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+        md1 = match_in_region_tregex(re, str, from, to, at_start, start)
       rescue => e
         md1 = e
       end
@@ -96,7 +96,7 @@ module Truffle
       if self.results_match?(md1, md2)
         return self.return_match_data(md1)
       else
-        $stderr.puts "match_in_region(/#{re}/, \"#{str}\"@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) gate"
+        $stderr.puts "match_in_region(/#{re}/, \"#{str}\"@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) gate"
         self.print_match_data(md1)
         $stderr.puts 'but we expected'
         self.print_match_data(md2)
@@ -104,10 +104,10 @@ module Truffle
       end
     end
 
-    def self.match_in_region_tregex(re, str, from, to, at_start, encoding_conversion, start)
+    def self.match_in_region_tregex(re, str, from, to, at_start, start)
       bail_out = to < from || to != str.bytesize || start != 0 || from < 0
       if !bail_out
-        compiled_regex = tregex_compile(re, at_start, select_encoding(re, str, encoding_conversion))
+        compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))
         bail_out = compiled_regex.nil?
       end
       if !bail_out
