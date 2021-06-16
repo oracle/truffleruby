@@ -282,6 +282,10 @@ module Utilities
     truffleruby? and !truffleruby_native?
   end
 
+  def jdk8?
+    graalvm_home and !Dir.exist?("#{graalvm_home}/jmods")
+  end
+
   def truffleruby_launcher_path
     require_ruby_launcher!
     @truffleruby_launcher_path ||= File.expand_path('../truffleruby', @ruby_launcher_realpath)
@@ -924,7 +928,7 @@ module Commands
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
     end
 
-    if ci? and truffleruby_jvm?
+    if ci? and truffleruby_jvm? and !jdk8?
       vm_args << '--vm.Xlog:os+thread=off' # GR-23507: prevent thread warnings on stdout to break specs/tests
     end
 
