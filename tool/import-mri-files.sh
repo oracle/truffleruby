@@ -46,6 +46,7 @@ cp ../ruby/st.c src/main/c/cext/st.c
 # Copy Ruby files in ext/, sorted alphabetically
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 mkdir lib/mri/digest
+cp ../ruby/ext/date/lib/date.rb lib/mri
 cp -r ../ruby/ext/digest/sha2/lib/* lib/mri/digest
 cp -r ../ruby/ext/fiddle/lib/fiddle lib/mri
 cp -r ../ruby/ext/fiddle/lib/fiddle.rb lib/mri
@@ -60,9 +61,10 @@ cp ../ruby/ext/socket/lib/socket.rb lib/truffle/socket/mri.rb
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
-rm -r src/main/c/{bigdecimal,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
-mkdir src/main/c/{bigdecimal,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
+rm -r src/main/c/{bigdecimal,date,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
+mkdir src/main/c/{bigdecimal,date,etc,io-console,nkf,openssl,psych,rbconfig-sizeof,ripper,syslog,zlib}
 cp ../ruby/ext/bigdecimal/*.{c,gemspec,h,rb} src/main/c/bigdecimal
+cp ../ruby/ext/date/*.{c,gemspec,h,rb} src/main/c/date
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 cp ../ruby/ext/io/console/*.{c,rb} src/main/c/io-console
 cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf

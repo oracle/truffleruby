@@ -8,8 +8,10 @@
  * GNU Lesser General Public License version 2.1.
  */
 
+#include "ruby/ruby.h"
 #include <sys/types.h>
 #include "string.h"
+#include <errno.h>
 
 const char ruby_hexdigits[] = "0123456789abcdef0123456789ABCDEF";
 #define hexdigit ruby_hexdigits
@@ -102,4 +104,68 @@ unsigned long ruby_scan_oct(const char *start, size_t len, size_t *retlen) {
   }
   *retlen = (int)(s - start); /* less than len */
   return retval;
+}
+
+unsigned long ruby_strtoul(const char *str, char **endptr, int base) {
+  int c, b, overflow;
+  int sign = 0;
+  size_t len;
+  unsigned long ret;
+  const char *subject_found = str;
+
+  if (base == 1 || 36 < base) {
+    errno = EINVAL;
+    return 0;
+  }
+
+  while ((c = *str) && ISSPACE(c))
+    str++;
+
+  if (c == '+') {
+    sign = 1;
+    str++;
+  } else if (c == '-') {
+    sign = -1;
+    str++;
+  }
+
+  if (str[0] == '0') {
+    subject_found = str+1;
+    if (base == 0 || base == 16) {
+      if (str[1] == 'x' || str[1] == 'X') {
+        b = 16;
+        str += 2;
+      } else {
+        b = base == 0 ? 8 : 16;
+        str++;
+      }
+    } else {
+      b = base;
+      str++;
+    }
+  } else {
+    b = base == 0 ? 10 : base;
+  }
+
+  ret = ruby_scan_digits(str, -1, b, &len, &overflow);
+
+  if (0 < len) {
+    subject_found = str+len;
+  }
+
+  if (endptr) {
+    *endptr = (char*)subject_found;
+  }
+
+  if (overflow) {
+    errno = ERANGE;
+    return ULONG_MAX;
+  }
+
+  if (sign < 0) {
+    ret = (unsigned long)(-(long)ret);
+    return ret;
+  } else {
+    return ret;
+  }
 }

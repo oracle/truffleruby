@@ -51,3 +51,9 @@ VALUE rb_reg_regcomp(VALUE str) {
 VALUE rb_reg_match(VALUE re, VALUE str) {
   return RUBY_CEXT_INVOKE("rb_reg_match", re, str);
 }
+
+void rb_match_busy(VALUE match) {
+// Unclear what this does on MRI
+// - https://github.com/ruby/ruby/commit/f1b76ea63ce40670071a857f408a4747c571f1e9
+// - https://bugs.ruby-lang.org/issues/16024
+}
