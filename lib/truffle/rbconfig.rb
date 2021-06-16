@@ -73,7 +73,7 @@ module RbConfig
 
   # Determine the various flags for native compilation
   optflags = ''
-  debugflags = ''
+  debugflags = "-DTRUFFLERUBY_ABI_VERSION=#{ruby_abi_version}"
   warnflags = [
     '-Wimplicit-function-declaration', # To make missing C ext functions clear
     '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*

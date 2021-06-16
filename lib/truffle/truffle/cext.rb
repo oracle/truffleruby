@@ -118,6 +118,16 @@ module Truffle::CExt
     Interop.mime_type_supported?('application/x-sulong-library')
   end
 
+  def check_abi_version(embedded_abi_version, extension_path)
+    runtime_abi_version = Truffle::GemUtil.abi_version
+    if embedded_abi_version != runtime_abi_version
+      message = "The native extension at #{extension_path} has a different ABI version: #{embedded_abi_version.inspect} " \
+        "than the running TruffleRuby: #{runtime_abi_version.inspect}"
+      warn message, uplevel: 1
+      raise LoadError, message
+    end
+  end
+
   def rb_stdin
     $stdin
   end

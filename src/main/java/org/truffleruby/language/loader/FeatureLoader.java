@@ -20,12 +20,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.module.RubyModule;
@@ -35,7 +38,9 @@ import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -434,8 +439,7 @@ public class FeatureLoader {
                 final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
                 final Object library = loadCExtLibRuby(rubyLibPath, feature, requireNode);
 
-                final Object initFunction = requireNode
-                        .findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
+                final Object initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
 
                 final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
                 try {
@@ -479,12 +483,63 @@ public class FeatureLoader {
             final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(context, path);
             FileLoader.ensureReadable(context, truffleFile, currentNode);
 
-            final Source source = Source.newBuilder("llvm", truffleFile).build();
-            return context.getEnv().parseInternal(source).call();
-        } catch (IOException e) {
-            throw new RaiseException(context, context.getCoreExceptions().loadError(e, path, currentNode));
+            final Source source;
+            try {
+                source = Source.newBuilder("llvm", truffleFile).build();
+            } catch (IOException e) {
+                throw new RaiseException(context, context.getCoreExceptions().loadError(e, path, currentNode));
+            }
+
+            final Object library = context.getEnv().parseInternal(source).call();
+
+            final Object embeddedABIVersion = getEmbeddedABIVersion(path, library);
+            RubyContext.send(context.getCoreLibrary().truffleCExtModule, "check_abi_version", embeddedABIVersion, path);
+
+            return library;
         } finally {
             Metrics.printTime("after-load-cext-" + feature);
         }
+    }
+
+    private Object getEmbeddedABIVersion(String expandedPath, Object library) {
+        if (!InteropLibrary.getFactory().getUncached(library).isMemberReadable(library, "rb_tr_abi_version")) {
+            return Nil.INSTANCE;
+        }
+
+        final Object abiVersionFunction = findFunctionInLibrary(library, "rb_tr_abi_version", expandedPath);
+        final InteropLibrary abiFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(abiVersionFunction);
+        final String abiVersion = (String) InteropNodes.execute(
+                abiVersionFunction,
+                ArrayUtils.EMPTY_ARRAY,
+                abiFunctionInteropLibrary,
+                TranslateInteropExceptionNode.getUncached());
+        return StringOperations.createString(
+                context,
+                language,
+                StringOperations.encodeRope(abiVersion, UTF8Encoding.INSTANCE));
+    }
+
+    Object findFunctionInLibrary(Object library, String functionName, String path) {
+        final Object function;
+        try {
+            function = InteropLibrary.getFactory().getUncached(library).readMember(library, functionName);
+        } catch (UnknownIdentifierException e) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError(String.format("%s() not found", functionName), path, null));
+        } catch (UnsupportedMessageException e) {
+            throw TranslateInteropExceptionNode.getUncached().execute(e);
+        }
+
+        if (function == null) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().loadError(
+                            String.format("%s() not found (READ returned null)", functionName),
+                            path,
+                            null));
+        }
+
+        return function;
     }
 }
