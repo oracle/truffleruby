@@ -278,6 +278,14 @@ module Utilities
     @truffleruby ||= File.executable?(truffleruby_launcher_path)
   end
 
+  def truffleruby_jvm?
+    truffleruby? and !truffleruby_native?
+  end
+
+  def jdk8?
+    graalvm_home and !Dir.exist?("#{graalvm_home}/jmods")
+  end
+
   def truffleruby_launcher_path
     require_ruby_launcher!
     @truffleruby_launcher_path ||= File.expand_path('../truffleruby', @ruby_launcher_realpath)
@@ -869,7 +877,7 @@ module Commands
       when '--no-core-load-path'
         core_load_path = false
       when '--reveal'
-        vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
+        vm_args += %w[--vm.ea --vm.esa] if truffleruby_jvm?
       when '--check-compilation'
         add_experimental_options.call
         vm_args << '--engine.CompilationFailureAction=ExitVM'
@@ -889,7 +897,7 @@ module Commands
         add_experimental_options.call
         vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
-        unless truffleruby_native?
+        if truffleruby_jvm?
           vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
         end
         vm_args << '--engine.NodeSourcePositions=true'
@@ -915,9 +923,13 @@ module Commands
       end
     end
 
-    if core_load_path && truffleruby? && !truffleruby_native?
+    if core_load_path and truffleruby_jvm?
       add_experimental_options.call
       vm_args << "--core-load-path=#{TRUFFLERUBY_DIR}/src/main/ruby/truffleruby"
+    end
+
+    if ci? and truffleruby_jvm? and !jdk8?
+      vm_args << '--vm.Xlog:os+thread=off' # GR-23507: prevent thread warnings on stdout to break specs/tests
     end
 
     [vm_args, ruby_args + args, options]
@@ -1509,7 +1521,7 @@ module Commands
 
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
     vm_args << (truffleruby_native? ? '--vm.Xmx3G' : '--vm.Xmx2G')
-    vm_args << '--polyglot' unless truffleruby_native?
+    vm_args << '--polyglot' if truffleruby_jvm?
     # Until pattern matching is complete, we enable it in specs but not globally
     vm_args << '--experimental-options' << '--pattern-matching'
 
