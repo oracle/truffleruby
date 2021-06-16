@@ -38,18 +38,19 @@ public final class ThreadLocalBuffer {
     public void free(RubyThread thread, Pointer ptr, ConditionProfile freeProfile) {
         remaining += ptr.getSize();
         if (freeProfile.profile(parent != null && remaining == start.getSize())) {
-            start.freeNoAutorelease();
             thread.ioBuffer = parent;
+            start.freeNoAutorelease();
         }
     }
 
     public void freeAll(RubyThread thread) {
         ThreadLocalBuffer current = this;
+        thread.ioBuffer = NULL_BUFFER;
         while (current != null) {
+            current.remaining = 0;
             current.start.freeNoAutorelease();
             current = current.parent;
         }
-        thread.ioBuffer = NULL_BUFFER;
     }
 
     public Pointer allocate(RubyThread thread, long size, ConditionProfile allocationProfile) {
