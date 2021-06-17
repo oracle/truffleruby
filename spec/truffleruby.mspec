@@ -95,6 +95,7 @@ class MSpecScript
   set :next, %w[
     spec/ruby/core/mutex/owned_spec.rb
     spec/ruby/core/fiber/raise_spec.rb
+    spec/ruby/core/process/status/wait_spec.rb
   ]
 
   set :tags_patterns, [

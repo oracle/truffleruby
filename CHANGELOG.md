@@ -8,6 +8,7 @@ Bug fixes:
 
 Compatibility:
 
+* Implement `Process::Status.wait` (#2378).
 
 Performance:
 
