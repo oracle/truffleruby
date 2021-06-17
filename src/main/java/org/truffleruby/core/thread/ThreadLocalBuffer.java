@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -58,11 +59,17 @@ public final class ThreadLocalBuffer {
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
         if (allocationProfile.profile(remaining >= size)) {
+            if (start.isNull()) {
+                CompilerDirectives.shouldNotReachHere("Allocating buffer space on null pointer.");
+            }
             Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, size);
             remaining -= size;
             return pointer;
         } else {
             ThreadLocalBuffer newBuffer = allocateNewBlock(thread, size);
+            if (newBuffer.start.isNull()) {
+                CompilerDirectives.shouldNotReachHere("Allocating buffer space on null pointer.");
+            }
             Pointer pointer = new Pointer(
                     newBuffer.start.getAddress(),
                     size);
