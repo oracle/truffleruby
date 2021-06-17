@@ -62,10 +62,7 @@ public final class ThreadLocalBuffer {
         if (allocationProfile.profile(remaining >= allocationSize)) {
             if (start.isNull()) {
                 throw CompilerDirectives.shouldNotReachHere(
-                        String.format(
-                                "Allocating %d bytes buffer space (%d remaining) on null pointer.",
-                                allocationSize,
-                                remaining));
+                        reportNullAllocation(allocationSize));
             }
             Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, allocationSize);
             remaining -= allocationSize;
@@ -74,10 +71,7 @@ public final class ThreadLocalBuffer {
             ThreadLocalBuffer newBuffer = allocateNewBlock(thread, allocationSize);
             if (newBuffer.start.isNull()) {
                 throw CompilerDirectives.shouldNotReachHere(
-                        String.format(
-                                "Allocating %d bytes buffer space (%d remaining) on null pointer.",
-                                allocationSize,
-                                remaining));
+                        reportNullAllocation(allocationSize));
             }
             Pointer pointer = new Pointer(
                     newBuffer.start.getAddress(),
@@ -85,6 +79,14 @@ public final class ThreadLocalBuffer {
             newBuffer.remaining -= allocationSize;
             return pointer;
         }
+    }
+
+    @TruffleBoundary
+    private String reportNullAllocation(final long allocationSize) {
+        return String.format(
+                "Allocating %d bytes buffer space (%d remaining) on null pointer.",
+                allocationSize,
+                remaining);
     }
 
     @TruffleBoundary
