@@ -58,22 +58,31 @@ public final class ThreadLocalBuffer {
         /* If there is space in the thread's existing buffer then we will return a pointer to that and reduce the
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
-        if (allocationProfile.profile(remaining >= size)) {
+        final long allocationSize = Math.max(size, 4);
+        if (allocationProfile.profile(remaining >= allocationSize)) {
             if (start.isNull()) {
-                CompilerDirectives.shouldNotReachHere("Allocating buffer space on null pointer.");
+                throw CompilerDirectives.shouldNotReachHere(
+                        String.format(
+                                "Allocating %d bytes buffer space (%d remaining) on null pointer.",
+                                allocationSize,
+                                remaining));
             }
-            Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, size);
-            remaining -= size;
+            Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, allocationSize);
+            remaining -= allocationSize;
             return pointer;
         } else {
-            ThreadLocalBuffer newBuffer = allocateNewBlock(thread, size);
+            ThreadLocalBuffer newBuffer = allocateNewBlock(thread, allocationSize);
             if (newBuffer.start.isNull()) {
-                CompilerDirectives.shouldNotReachHere("Allocating buffer space on null pointer.");
+                throw CompilerDirectives.shouldNotReachHere(
+                        String.format(
+                                "Allocating %d bytes buffer space (%d remaining) on null pointer.",
+                                allocationSize,
+                                remaining));
             }
             Pointer pointer = new Pointer(
                     newBuffer.start.getAddress(),
-                    size);
-            newBuffer.remaining -= size;
+                    allocationSize);
+            newBuffer.remaining -= allocationSize;
             return pointer;
         }
     }
