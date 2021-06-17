@@ -409,6 +409,11 @@ describe "The launcher" do
     end
   end
 
+  it "warns if the locale is not set properly" do
+    ruby_exe("Encoding.find('locale')", args: "2>&1", env: { "LC_ALL" => "C" }).should.include? \
+      "[ruby] WARNING: Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly"
+  end
+
   ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
     it "should recognize ruby --vm options in #{var}" do
       out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" }, args: @redirect)

@@ -14,6 +14,10 @@ end
 
 module EnvUtil
   def rubybin
+    if defined?(::TruffleRuby) # always be correct and do not search some random files on disk
+      return RbConfig.ruby
+    end
+
     if ruby = ENV["RUBY"]
       return ruby
     end
@@ -132,6 +136,9 @@ module EnvUtil
     c = "C"
     child_env = {}
     LANG_ENVS.each {|lc| child_env[lc] = c}
+    if defined?(::TruffleRuby) # Disable warning for LANG=C LC_ALL=C LC_CTYPE=C
+      child_env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], ''].join(' --experimental-options --warn-locale=false')
+    end
     if Array === args and Hash === args.first
       child_env.update(args.shift)
     end
