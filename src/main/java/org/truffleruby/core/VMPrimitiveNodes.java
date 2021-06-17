@@ -119,6 +119,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_exit", lowerFixnum = 0)
     public abstract static class VMExitNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         protected Object vmExit(int status) {
             throw new ExitException(status);
