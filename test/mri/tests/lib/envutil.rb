@@ -14,6 +14,10 @@ end
 
 module EnvUtil
   def rubybin
+    if defined?(::TruffleRuby) # always be correct and do not search some random files on disk
+      return RbConfig.ruby
+    end
+
     if ruby = ENV["RUBY"]
       return ruby
     end
