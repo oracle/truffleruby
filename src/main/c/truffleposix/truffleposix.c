@@ -497,7 +497,6 @@ static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer
 #endif
 }
 
-#ifndef NO_CLOCK_GETTIME
 int64_t truffleposix_clock_gettime(int clock) {
   struct timespec timespec;
   int ret = clock_gettime((clockid_t) clock, &timespec);
@@ -515,7 +514,6 @@ int64_t truffleposix_clock_getres(int clock) {
   }
   return ((int64_t) timespec.tv_sec * 1000000000) + (int64_t) timespec.tv_nsec;
 }
-#endif
 
 #define CHECK(call, label) if ((error = call) != 0) { perror(#call); goto label; }
 
