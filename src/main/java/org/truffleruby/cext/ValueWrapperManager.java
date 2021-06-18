@@ -74,6 +74,7 @@ public class ValueWrapperManager {
         HandleThreadData threadData = new HandleThreadData();
         HandleBlockHolder holder = threadData.holder;
         context.getFinalizationService().addFinalizer(
+                context,
                 threadData,
                 ValueWrapperManager.class,
                 () -> context.getMarkingService().queueForMarking(holder.handleBlock),
@@ -119,7 +120,7 @@ public class ValueWrapperManager {
             blockMap = map;
         }
 
-        context.getFinalizationService().addFinalizer(block, ValueWrapperManager.class, () -> {
+        context.getFinalizationService().addFinalizer(context, block, ValueWrapperManager.class, () -> {
             this.blockMap[blockIndex] = null;
             allocator.addFreeBlock(blockBase);
         }, null);

@@ -12,7 +12,7 @@ package org.truffleruby.core;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
@@ -192,7 +192,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                                 }
                             });
 
-                    reference.service().processReference(reference);
+                    reference.service().processReference(context, reference);
                 }
             });
         }
@@ -227,7 +227,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                     break;
                 }
 
-                reference.service().processReference(reference);
+                reference.service().processReference(context, reference);
             }
         }
 
@@ -236,22 +236,20 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
     private R first = null;
 
-    protected final ReferenceProcessor referenceProcessor;
-    protected final RubyContext context;
+    protected final ReferenceQueue<Object> processingQueue;
 
-    public ReferenceProcessingService(RubyContext context, ReferenceProcessor referenceProcessor) {
-        this.context = context;
-        this.referenceProcessor = referenceProcessor;
+    public ReferenceProcessingService(ReferenceQueue<Object> processingQueue) {
+        this.processingQueue = processingQueue;
     }
 
     @SuppressWarnings("unchecked")
-    protected void processReference(ProcessingReference<?> reference) {
+    protected void processReference(RubyContext context, ProcessingReference<?> reference) {
         remove((R) reference);
     }
 
-    protected void runCatchingErrors(Consumer<R> action, R reference) {
+    protected void runCatchingErrors(RubyContext context, BiConsumer<RubyContext, R> action, R reference) {
         try {
-            action.accept(reference);
+            action.accept(context, reference);
         } catch (TerminationException e) {
             throw e;
         } catch (RaiseException e) {

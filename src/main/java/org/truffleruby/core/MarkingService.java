@@ -57,18 +57,17 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final MarkingService markingService;
 
         public MarkRunnerService(
-                RubyContext context,
-                ReferenceProcessor referenceProcessor,
+                ReferenceQueue<Object> processingQueue,
                 MarkingService markingService) {
-            super(context, referenceProcessor);
+            super(processingQueue);
             this.markingService = markingService;
         }
 
         @Override
-        protected void processReference(ProcessingReference<?> reference) {
+        protected void processReference(RubyContext context, ProcessingReference<?> reference) {
             /* We need to keep all the objects that might be marked alive during the marking process itself, so we add
              * the arrays to a list to achieve this. */
-            super.processReference(reference);
+            super.processReference(context, reference);
             ArrayList<ValueWrapperManager.HandleBlock> keptObjectLists = new ArrayList<>();
             ValueWrapperManager.HandleBlock block;
             while (true) {
@@ -80,13 +79,13 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
                 }
             }
             if (!keptObjectLists.isEmpty()) {
-                runAllMarkers();
+                runAllMarkers(context);
             }
             keptObjectLists.clear();
         }
 
         @TruffleBoundary
-        public void runAllMarkers() {
+        public void runAllMarkers(RubyContext context) {
             ExtensionCallStack stack = markingService.getThreadLocalData().getExtensionCallStack();
             stack.push(stack.getBlock());
             try {
@@ -96,7 +95,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
                 MarkerReference nextMarker;
                 while (currentMarker != null) {
                     nextMarker = currentMarker.getNext();
-                    markingService.runMarker(currentMarker);
+                    markingService.runMarker(context, currentMarker);
                     if (nextMarker == currentMarker) {
                         throw new Error("The MarkerReference linked list structure has become broken.");
                     }
@@ -171,10 +170,14 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         threadLocalData.remove();
     }
 
-    public MarkingService(RubyContext context, ReferenceProcessor referenceProcessor) {
-        super(context, referenceProcessor);
+    public MarkingService(ReferenceProcessor referenceprocessor) {
+        this(referenceprocessor.processingQueue);
+    }
+
+    public MarkingService(ReferenceQueue<Object> processingQueue) {
+        super(processingQueue);
         threadLocalData = ThreadLocal.withInitial(this::makeThreadLocalData);
-        runnerService = new MarkRunnerService(context, referenceProcessor, this);
+        runnerService = new MarkRunnerService(processingQueue, this);
     }
 
     @TruffleBoundary
@@ -192,7 +195,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     public void queueForMarking(ValueWrapperManager.HandleBlock objects) {
         if (objects != null) {
             keptObjectQueue.add(objects);
-            runnerService.add(new MarkRunnerReference(new Object(), referenceProcessor.processingQueue, runnerService));
+            runnerService.add(new MarkRunnerReference(new Object(), processingQueue, runnerService));
         }
     }
 
@@ -203,14 +206,14 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
     @TruffleBoundary
     public void addMarker(Object object, MarkerAction action) {
-        add(new MarkerReference(object, referenceProcessor.processingQueue, action, this));
+        add(new MarkerReference(object, processingQueue, action, this));
     }
 
-    private void runMarker(MarkerReference markerReference) {
-        runCatchingErrors(this::runMarkerInternal, markerReference);
+    private void runMarker(RubyContext context, MarkerReference markerReference) {
+        runCatchingErrors(context, this::runMarkerInternal, markerReference);
     }
 
-    private void runMarkerInternal(MarkerReference markerReference) {
+    private void runMarkerInternal(RubyContext context, MarkerReference markerReference) {
         if (!context.isFinalizing()) {
             Object owner = markerReference.get();
             if (owner != null) {

@@ -2313,7 +2313,7 @@ public abstract class ArrayNodes {
             int size = array.size;
             Object oldStore = array.store;
             Pointer pointer = Pointer.malloc(size * Pointer.SIZE);
-            pointer.enableAutorelease(getContext().getFinalizationService());
+            pointer.enableAutorelease(getContext());
             NativeArrayStorage newStore = new NativeArrayStorage(pointer, size);
             oldStores.copyContents(oldStore, 0, newStore, 0, size);
             getContext().getMarkingService().addMarker(

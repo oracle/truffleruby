@@ -597,7 +597,7 @@ public class CExtNodes {
         @Specialization
         protected RubyString rbStrNewNul(int byteLength,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength, byteLength);
+            final Rope rope = NativeRope.newBuffer(getContext(), byteLength, byteLength);
 
             return makeStringNode.fromRope(rope);
         }
@@ -655,7 +655,7 @@ public class CExtNodes {
                 nativeRope.clearCodeRange();
                 return string;
             } else {
-                final NativeRope newRope = nativeRope.resize(getContext().getFinalizationService(), newByteLength);
+                final NativeRope newRope = nativeRope.resize(getContext(), newByteLength);
 
                 // Like MRI's rb_str_resize()
                 newRope.clearCodeRange();
@@ -1016,7 +1016,7 @@ public class CExtNodes {
                 nativeRope = (NativeRope) currentRope;
             } else {
                 nativeRope = new NativeRope(
-                        getContext().getFinalizationService(),
+                        getContext(),
                         bytesNode.execute(currentRope),
                         currentRope.getEncoding(),
                         characterLengthNode.execute(currentRope),
@@ -1033,7 +1033,7 @@ public class CExtNodes {
             return ConcurrentOperations.getOrCompute(getContext().getImmutableNativeRopes(), string, s -> {
                 final LeafRope currentRope = s.rope;
                 return new NativeRope(
-                        getContext().getFinalizationService(),
+                        getContext(),
                         currentRope.getBytes(),
                         currentRope.getEncoding(),
                         currentRope.characterLength(),

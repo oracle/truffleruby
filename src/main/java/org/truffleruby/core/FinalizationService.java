@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core;
 
+import java.lang.ref.ReferenceQueue;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -46,46 +47,51 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         }
     }
 
-    /** The finalizer Ruby thread, spawned lazily. */
-    public FinalizationService(RubyContext context, ReferenceProcessor referenceProcessor) {
-        super(context, referenceProcessor);
+    public FinalizationService(ReferenceQueue<Object> processingQueue) {
+        super(processingQueue);
+    }
+
+    public FinalizationService(ReferenceProcessor referenceProcessor) {
+        this(referenceProcessor.processingQueue);
     }
 
     @TruffleBoundary
-    public FinalizerReference addFinalizer(Object object, Class<?> owner, Runnable action, RubyDynamicObject root) {
-        final FinalizerReference newRef = new FinalizerReference(object, referenceProcessor.processingQueue, this);
+    public FinalizerReference addFinalizer(RubyContext context, Object object, Class<?> owner, Runnable action,
+            RubyDynamicObject root) {
+        final FinalizerReference newRef = new FinalizerReference(object, processingQueue, this);
         // No need to synchronize since called on a new private object
         newRef.addFinalizer(owner, action, root);
 
         add(newRef);
-        referenceProcessor.processReferenceQueue(owner);
+        context.getReferenceProcessor().processReferenceQueue(owner);
 
         return newRef;
     }
 
     @TruffleBoundary
-    public void addAdditionalFinalizer(FinalizerReference existingRef, Object object, Class<?> owner, Runnable action,
+    public void addAdditionalFinalizer(RubyContext context, FinalizerReference existingRef, Object object,
+            Class<?> owner, Runnable action,
             RubyDynamicObject root) {
         Objects.requireNonNull(existingRef);
 
         assert Thread.holdsLock(object) : "caller must synchronize access to the FinalizerReference";
         existingRef.addFinalizer(owner, action, root);
 
-        referenceProcessor.processReferenceQueue(owner);
+        context.getReferenceProcessor().processReferenceQueue(owner);
     }
 
-    public final void drainFinalizationQueue() {
-        referenceProcessor.drainReferenceQueue();
+    public final void drainFinalizationQueue(RubyContext context) {
+        context.getReferenceProcessor().drainReferenceQueue();
     }
 
     @Override
-    protected void processReference(ProcessingReference<?> finalizerReference) {
-        super.processReference(finalizerReference);
+    protected void processReference(RubyContext context, ProcessingReference<?> finalizerReference) {
+        super.processReference(context, finalizerReference);
 
-        runCatchingErrors(this::processReferenceInternal, (FinalizerReference) finalizerReference);
+        runCatchingErrors(context, this::processReferenceInternal, (FinalizerReference) finalizerReference);
     }
 
-    protected void processReferenceInternal(FinalizerReference finalizerReference) {
+    protected void processReferenceInternal(RubyContext context, FinalizerReference finalizerReference) {
         ExtensionCallStack stack = context.getMarkingService().getThreadLocalData().getExtensionCallStack();
         stack.push(stack.getBlock());
         try {

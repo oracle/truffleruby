@@ -183,8 +183,8 @@ public class RubyContext {
         codeLoader = new CodeLoader(language, this);
         featureLoader = new FeatureLoader(this, language);
         referenceProcessor = new ReferenceProcessor(this);
-        finalizationService = new FinalizationService(this, referenceProcessor);
-        markingService = new MarkingService(this, referenceProcessor);
+        finalizationService = new FinalizationService(referenceProcessor);
+        markingService = new MarkingService(referenceProcessor);
 
         // We need to construct this at runtime
         random = createRandomInstance();

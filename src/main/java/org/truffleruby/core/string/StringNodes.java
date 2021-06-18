@@ -1642,7 +1642,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(
-                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext().getFinalizationService()));
+                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext()));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;

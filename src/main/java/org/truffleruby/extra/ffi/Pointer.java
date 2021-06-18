@@ -266,14 +266,19 @@ public final class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public synchronized void enableAutorelease(FinalizationService finalizationService) {
+    public synchronized void enableAutorelease(RubyContext context) {
         if (finalizerRef != null) {
             return;
         }
 
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        finalizerRef = finalizationService.addFinalizer(this, Pointer.class, new FreeAddressFinalizer(address), null);
+        finalizerRef = context.getFinalizationService().addFinalizer(
+                context,
+                this,
+                Pointer.class,
+                new FreeAddressFinalizer(address),
+                null);
     }
 
     private static class FreeAddressFinalizer implements Runnable {

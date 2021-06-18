@@ -880,8 +880,9 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object drainFinalizationQueue() {
-            getContext().getFinalizationService().drainFinalizationQueue();
+        protected Object drainFinalizationQueue(
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            getContext().getFinalizationService().drainFinalizationQueue(context);
             return nil;
         }
 

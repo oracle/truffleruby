@@ -231,12 +231,12 @@ public abstract class ObjectSpaceNodes {
                 if (ref == null) {
                     final FinalizerReference newRef = getContext()
                             .getFinalizationService()
-                            .addFinalizer(object, ObjectSpaceManager.class, action, root);
+                            .addFinalizer(getContext(), object, ObjectSpaceManager.class, action, root);
                     objectLibrary.put(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
                 } else {
                     getContext()
                             .getFinalizationService()
-                            .addAdditionalFinalizer(ref, object, ObjectSpaceManager.class, action, root);
+                            .addAdditionalFinalizer(getContext(), ref, object, ObjectSpaceManager.class, action, root);
                 }
             }
         }
