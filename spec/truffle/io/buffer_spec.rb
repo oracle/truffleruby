@@ -16,12 +16,16 @@ describe "IO buffers" do
 
   before do
     @mem_check = Proc.new do |*ptrs|
-      bytes = "\xde\xad\xbe\xef\x53"
+      sequence = "\xde\xad\xbe\xef\x53"
       ptrs.each do |ptr|
-        ptr.write_bytes(bytes * ((ptr.size + bytes.bytesize - 1) / bytes.bytesize) , 0, ptr.size)
+        # We want to repeat the byte sequence enough times to be just larger than the size of the buffer.
+        bytes = sequence * ((ptr.size + sequence.bytesize - 1) / sequence.bytesize)
+        ptr.write_bytes(bytes , 0, ptr.size)
       end
       ptrs.each do |ptr|
-        ptr.read_bytes(ptr.size).bytes.should == (bytes * ((ptr.size + bytes.bytesize - 1) / bytes.bytesize)).bytes[0...ptr.size]
+        # We want to repeat the byte sequence enough times to be just larger than the size of the buffer.
+        bytes = sequence * ((ptr.size + sequence.bytesize - 1) / sequence.bytesize)
+        ptr.read_bytes(ptr.size).bytes.should == bytes.bytes[0...ptr.size]
       end
     end
   end
