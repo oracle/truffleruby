@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -58,21 +57,16 @@ public final class ThreadLocalBuffer {
         /* If there is space in the thread's existing buffer then we will return a pointer to that and reduce the
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
+
+        /* We esnure we allocate a non-zero number of bytes so we can track the allocation. This avoids returning a null
+         * or reallocating a buffer that we technically have a pointer to. */
         final long allocationSize = Math.max(size, 4);
         if (allocationProfile.profile(remaining >= allocationSize)) {
-            if (start.isNull()) {
-                throw CompilerDirectives.shouldNotReachHere(
-                        reportNullAllocation(allocationSize));
-            }
             Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, allocationSize);
             remaining -= allocationSize;
             return pointer;
         } else {
             ThreadLocalBuffer newBuffer = allocateNewBlock(thread, allocationSize);
-            if (newBuffer.start.isNull()) {
-                throw CompilerDirectives.shouldNotReachHere(
-                        reportNullAllocation(allocationSize));
-            }
             Pointer pointer = new Pointer(
                     newBuffer.start.getAddress(),
                     allocationSize);
