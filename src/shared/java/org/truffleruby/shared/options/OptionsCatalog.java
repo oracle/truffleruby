@@ -155,6 +155,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SHARED_OBJECTS_DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_FORCE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> TESTING_RUBYGEMS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
@@ -1102,6 +1103,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor EXPERIMENTAL_ENGINE_CACHING = OptionDescriptor
+            .newBuilder(EXPERIMENTAL_ENGINE_CACHING_KEY, "ruby.experimental-engine-caching")
+            .help("Enables experimental support for engine caching for TruffleRuby")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor COMPARE_REGEX_ENGINES = OptionDescriptor
             .newBuilder(COMPARE_REGEX_ENGINES_KEY, "ruby.compare-regex-engines")
             .help("Uses both Joni and the TRegex engine and compares their results")
@@ -1381,6 +1389,8 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_FORCE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
+            case "ruby.experimental-engine-caching":
+                return EXPERIMENTAL_ENGINE_CACHING;
             case "ruby.compare-regex-engines":
                 return COMPARE_REGEX_ENGINES;
             default:
@@ -1525,6 +1535,7 @@ public class OptionsCatalog {
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,
             TESTING_RUBYGEMS,
+            EXPERIMENTAL_ENGINE_CACHING,
             COMPARE_REGEX_ENGINES,
         };
     }
