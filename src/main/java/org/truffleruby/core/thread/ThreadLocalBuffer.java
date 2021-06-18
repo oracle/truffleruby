@@ -76,14 +76,6 @@ public final class ThreadLocalBuffer {
     }
 
     @TruffleBoundary
-    private String reportNullAllocation(final long allocationSize) {
-        return String.format(
-                "Allocating %d bytes buffer space (%d remaining) on null pointer.",
-                allocationSize,
-                remaining);
-    }
-
-    @TruffleBoundary
     private ThreadLocalBuffer allocateNewBlock(RubyThread thread, long size) {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
         final long blockSize = Math.max(size, 1024);
