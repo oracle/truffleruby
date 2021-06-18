@@ -58,7 +58,7 @@ public final class ThreadLocalBuffer {
          * remaining space count. Otherwise we will either allocate a new buffer, or (if no space is currently being
          * used in the existing buffer) replace it with a larger one. */
 
-        /* We esnure we allocate a non-zero number of bytes so we can track the allocation. This avoids returning a null
+        /* We ensure we allocate a non-zero number of bytes so we can track the allocation. This avoids returning null
          * or reallocating a buffer that we technically have a pointer to. */
         final long allocationSize = Math.max(size, 4);
         if (allocationProfile.profile(remaining >= allocationSize)) {
