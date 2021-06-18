@@ -601,26 +601,8 @@ module Process
   # TODO: Support other options such as WUNTRACED? --rue
   #
   def self.wait2(input_pid=-1, flags=nil)
-    input_pid = Truffle::Type.coerce_to input_pid, Integer, :to_int
-    flags ||= 0
-
-    FFI::MemoryPointer.new(:int, 4) do |ptr|
-      pid = Truffle::POSIX.truffleposix_waitpid(input_pid, flags, ptr)
-      if pid == 0
-        return nil
-      elsif pid == -1
-        Errno.handle "No child process: #{input_pid}"
-      else
-        ints = ptr.read_array_of_int(4)
-        exitcode, termsig, stopsig, = ints.map { |e| e == -1000 ? nil : e }
-        raw_status = ints.last
-
-        status = Process::Status.new(pid, exitcode, termsig, stopsig, raw_status)
-        Primitive.thread_set_return_code status
-
-        [pid, status]
-      end
-    end
+    status = Truffle::ProcessOperations.wait(input_pid, flags, true, true)
+    [status.pid, status]
   end
 
   #
@@ -650,8 +632,7 @@ module Process
   end
 
   def self.wait(pid=-1, flags=nil)
-    pid, _status = Process.wait2(pid, flags)
-    pid
+    Truffle::ProcessOperations.wait(pid, flags, true, true)&.pid
   end
 
   class << self
@@ -780,6 +761,10 @@ module Process
 
     def inspect
       "#<Process::Status: #{self}>"
+    end
+
+    def self.wait(pid=-1, flags=nil)
+      Truffle::ProcessOperations.wait(pid, flags, false, false)
     end
   end
 

@@ -87,6 +87,29 @@ module Truffle
       end
     end
 
+    def self.wait(input_pid, flags, set_status, raise_on_error)
+      input_pid = Truffle::Type.coerce_to input_pid, Integer, :to_int
+      flags ||= 0
+
+      FFI::MemoryPointer.new(:int, 4) do |ptr|
+        pid = Truffle::POSIX.truffleposix_waitpid(input_pid, flags, ptr)
+        if pid == 0
+          return nil
+        elsif raise_on_error && pid == -1
+          Errno.handle "No child process: #{input_pid}"
+        else
+          ints = ptr.read_array_of_int(4)
+          exitcode, termsig, stopsig, = ints.map { |e| e == -1000 ? nil : e }
+          raw_status = ints.last
+
+          status = Process::Status.new(pid, exitcode, termsig, stopsig, raw_status)
+          Primitive.thread_set_return_code status if set_status
+
+          status
+        end
+      end
+    end
+
     class Execute
       def initialize
         @options = {}
