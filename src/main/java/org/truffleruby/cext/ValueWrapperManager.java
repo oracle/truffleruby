@@ -37,7 +37,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 public class ValueWrapperManager {
 
     static final long UNSET_HANDLE = -2L;
-    static final HandleBlockAllocator allocator = new HandleBlockAllocator();
 
     /* These constants are taken from ruby.h, and are based on us not tagging doubles. */
 
@@ -107,7 +106,7 @@ public class ValueWrapperManager {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = ValueWrapperManager.allocator;
+        HandleBlockAllocator allocator = context.getLanguageSlow().allocator;
         boolean grow = false;
         if (blockIndex + 1 > map.length) {
             final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
@@ -172,7 +171,7 @@ public class ValueWrapperManager {
     private static final long OFFSET_MASK = ~BLOCK_MASK;
     public static final long ALLOCATION_BASE = 0x0badL << 48;
 
-    protected static class HandleBlockAllocator {
+    public static class HandleBlockAllocator {
 
         private long nextBlock = ALLOCATION_BASE;
         private FreeHandleBlock firstFreeBlock = null;
@@ -205,7 +204,7 @@ public class ValueWrapperManager {
         private int count;
 
         public HandleBlock(RubyContext context) {
-            this(context, allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
+            this(context, context.getLanguageSlow().allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
         }
 
         private HandleBlock(RubyContext context, long base, ValueWrapper[] wrappers) {
@@ -252,7 +251,7 @@ public class ValueWrapperManager {
         }
     }
 
-    protected static final class HandleBlockWeakReference extends WeakReference<HandleBlock> {
+    public static final class HandleBlockWeakReference extends WeakReference<HandleBlock> {
         HandleBlockWeakReference(HandleBlock referent) {
             super(referent);
         }

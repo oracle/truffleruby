@@ -27,6 +27,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptors;
 import org.jcodings.Encoding;
 import org.truffleruby.builtins.PrimitiveManager;
+import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.collections.SharedIndicesMap.LanguageArray;
 import org.truffleruby.core.RubyHandle;
@@ -186,6 +187,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final SymbolTable symbolTable;
     public final FrozenStringLiterals frozenStringLiterals;
     public final Encodings encodings;
+    public volatile ValueWrapperManager.HandleBlockWeakReference[] sharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
+    public final ValueWrapperManager.HandleBlockAllocator allocator = new ValueWrapperManager.HandleBlockAllocator();
+
     @CompilationFinal public LanguageOptions options;
 
     @CompilationFinal private AllocationReporter allocationReporter;
