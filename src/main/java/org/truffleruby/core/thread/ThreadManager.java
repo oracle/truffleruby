@@ -416,8 +416,7 @@ public class ThreadManager {
         final FiberManager fiberManager = thread.fiberManager;
         fiberManager.cleanup(fiberManager.getRootFiber(), javaThread);
 
-        thread.ioBuffer.freeAll();
-        thread.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
+        thread.ioBuffer.freeAll(thread);
 
         unregisterThread(thread);
         thread.thread = null;
