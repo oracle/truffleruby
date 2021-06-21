@@ -484,6 +484,7 @@ public class RubyContext {
 
         atExitManager.runSystemExitHooks();
         threadManager.killAndWaitOtherThreads();
+        valueWrapperManager.freeAllBlocksInMap();
     }
 
     private final ReentrantLock disposeLock = new ReentrantLock();

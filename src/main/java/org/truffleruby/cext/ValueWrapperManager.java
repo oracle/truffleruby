@@ -144,6 +144,18 @@ public class ValueWrapperManager {
         return block.getWrapper(handle);
     }
 
+    public void freeAllBlocksInMap() {
+        HandleBlockWeakReference[] map = blockMap;
+        HandleBlockAllocator allocator = context.getLanguageSlow().allocator;
+
+        for (int i = 0; i < map.length; i++) {
+            HandleBlock block = map[i].get();
+            if (block != null) {
+                allocator.addFreeBlock(block.base);
+            }
+        }
+    }
+
     protected static class FreeHandleBlock {
         public final long start;
         public final FreeHandleBlock next;
