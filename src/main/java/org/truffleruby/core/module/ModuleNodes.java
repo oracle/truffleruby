@@ -98,7 +98,7 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
@@ -682,7 +682,6 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
     public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
         @Child private ToStrNode toStrNode;
         @Child private ReadCallerFrameNode readCallerFrameNode = ReadCallerFrameNode.create();
 
@@ -759,12 +758,13 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private CodeLoader.DeferredCall classEvalSourceInternal(RubyModule module, Object rubySource,
                 String file, int line, MaterializedFrame callerFrame) {
-            final RubySource source = createEvalSourceNode
-                    .createEvalSource(
-                            RubyStringLibrary.getUncached().getRope(rubySource),
-                            "class/module_eval",
-                            file,
-                            line);
+            final RubySource source = EvalLoader.createEvalSource(
+                    getContext(),
+                    RubyStringLibrary.getUncached().getRope(rubySource),
+                    "class/module_eval",
+                    file,
+                    line,
+                    this);
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,

@@ -111,7 +111,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
-import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -722,8 +722,6 @@ public abstract class KernelNodes {
     @ReportPolymorphism
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
-
         public abstract Object execute(VirtualFrame frame, Object target, Object source, RubyBinding binding,
                 Object file, int line);
 
@@ -841,7 +839,8 @@ public abstract class KernelNodes {
                 boolean ownScopeForAssignments) {
             //intern() to improve footprint
             final String sourceFile = RopeOperations.decodeRope(file).intern();
-            final RubySource source = createEvalSourceNode.createEvalSource(sourceText, "eval", sourceFile, line);
+            final RubySource source = EvalLoader
+                    .createEvalSource(getContext(), sourceText, "eval", sourceFile, line, this);
             return getContext()
                     .getCodeLoader()
                     .parse(source, ParserContext.EVAL, parentFrame, null, ownScopeForAssignments, this);
