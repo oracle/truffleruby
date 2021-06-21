@@ -81,7 +81,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
     }
 
     public final void drainFinalizationQueue(RubyContext context) {
-        context.getReferenceProcessor().drainReferenceQueue();
+        context.getReferenceProcessor().drainReferenceQueues();
     }
 
     @Override

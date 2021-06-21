@@ -11,6 +11,7 @@ package org.truffleruby;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.ReferenceQueue;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap;
 import org.truffleruby.collections.SharedIndicesMap.LanguageArray;
+import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
@@ -187,6 +189,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final SymbolTable symbolTable;
     public final FrozenStringLiterals frozenStringLiterals;
     public final Encodings encodings;
+
+    public final ReferenceQueue<Object> sharedReferenceQueue = new ReferenceQueue<>();
+    public final FinalizationService sharedFinzationService = new FinalizationService(sharedReferenceQueue);
     public volatile ValueWrapperManager.HandleBlockWeakReference[] sharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
     public final ValueWrapperManager.HandleBlockAllocator allocator = new ValueWrapperManager.HandleBlockAllocator();
 
