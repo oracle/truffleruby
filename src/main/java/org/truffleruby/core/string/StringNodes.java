@@ -76,6 +76,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -100,6 +102,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
+import org.truffleruby.core.cast.ToRopeNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingLeftCharHeadNode;
@@ -4461,41 +4464,87 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_byte_index", lowerFixnum = 2)
-    public abstract static class StringByteIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "pattern", type = RubyNode.class)
+    @NodeChild(value = "offset", type = RubyNode.class)
+    public abstract static class StringByteIndexPrimitiveNode extends PrimitiveNode {
 
-        @TruffleBoundary
-        @Specialization
-        protected Object stringCharacterIndex(Object string, Object pattern, int offset,
-                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @CachedLibrary(limit = "2") RubyStringLibrary libPattern) {
-            if (offset < 0) {
-                return nil;
-            }
+        @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
 
-            final Rope stringRope = libString.getRope(string);
-            final Rope patternRope = libPattern.getRope(pattern);
+        @CreateCast("string")
+        protected RubyNode coerceStringToRope(RubyNode string) {
+            return ToRopeNodeGen.create(string);
+        }
 
-            final int total = stringRope.byteLength();
-            int p = 0;
-            final int e = p + total;
+        @CreateCast("pattern")
+        protected RubyNode coercePatternToRope(RubyNode pattern) {
+            return ToRopeNodeGen.create(pattern);
+        }
+
+        @Specialization(guards = "offset < 0")
+        protected Object stringByteIndexNegativeOffset(Rope stringRope, Rope patternRope, int offset) {
+            return nil;
+        }
+
+        @Specialization(
+                guards = {
+                        "offset >= 0",
+                        "singleByteOptimizableNode.execute(stringRope)",
+                        "patternRope.byteLength() > stringRope.byteLength()" })
+        protected Object stringByteIndexPatternTooLarge(Rope stringRope, Rope patternRope, int offset) {
+            return nil;
+        }
+
+        @Specialization(
+                guards = {
+                        "offset >= 0",
+                        "singleByteOptimizableNode.execute(stringRope)",
+                        "patternRope.byteLength() <= stringRope.byteLength()" })
+        protected Object stringCharacterIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
+                @Cached RopeNodes.BytesNode stringBytesNode,
+                @Cached RopeNodes.BytesNode patternBytesNode,
+                @Cached LoopConditionProfile loopProfile,
+                @Cached("createCountingProfile()") ConditionProfile matchProfile) {
+
+            int p = offset;
+            final int e = stringRope.byteLength();
             final int pe = patternRope.byteLength();
             final int l = e - pe + 1;
 
-            final byte[] stringBytes = stringRope.getBytes();
-            final byte[] patternBytes = patternRope.getBytes();
+            final byte[] stringBytes = stringBytesNode.execute(stringRope);
+            final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
-            p += offset;
-
-            if (stringRope.isSingleByteOptimizable()) {
-                for (; p < l; p++) {
-                    if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+            try {
+                for (; loopProfile.profile(p < l); p++) {
+                    if (matchProfile.profile(ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0)) {
                         return p;
                     }
                 }
-
-                return nil;
+            } finally {
+                LoopNode.reportLoopCount(this, p - offset);
             }
+
+            return nil;
+        }
+
+        @TruffleBoundary
+        @Specialization(
+                guards = {
+                        "offset >= 0",
+                        "!singleByteOptimizableNode.execute(stringRope)",
+                        "patternRope.byteLength() <= stringRope.byteLength()" })
+        protected Object stringCharacterIndex(Rope stringRope, Rope patternRope, int offset,
+                @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
+                @Cached RopeNodes.BytesNode stringBytesNode,
+                @Cached RopeNodes.BytesNode patternBytesNode) {
+
+            int p = offset;
+            final int e = stringRope.byteLength();
+            final int pe = patternRope.byteLength();
+            final int l = e - pe + 1;
+
+            final byte[] stringBytes = stringBytesNode.execute(stringRope);
+            final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             final Encoding enc = stringRope.getEncoding();
             final CodeRange cr = stringRope.getCodeRange();
