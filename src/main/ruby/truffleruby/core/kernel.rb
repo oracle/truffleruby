@@ -202,7 +202,7 @@ module Kernel
   module_function :abort
 
   def autoload(name, file)
-    nesting = Primitive.caller_binding.eval('Module.nesting')
+    nesting = Primitive.caller_nesting
     mod = nesting.first || (Kernel.equal?(self) ? Kernel : Object)
     if mod.equal?(self)
       super(name, file) # Avoid recursion

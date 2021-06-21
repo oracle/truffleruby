@@ -36,6 +36,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -1610,8 +1611,19 @@ public abstract class ModuleNodes {
         }
     }
 
+    @Primitive(name = "caller_nesting")
+    public abstract static class CallerNestingNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyArray nesting(
+                @Cached NestingNode nestingNode) {
+            return nestingNode.execute();
+        }
+    }
+
     @CoreMethod(names = "nesting", onSingleton = true)
-    public abstract static class NestingNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class NestingNode extends CoreMethodNode {
+
+        public abstract RubyArray execute();
 
         @TruffleBoundary
         @Specialization
