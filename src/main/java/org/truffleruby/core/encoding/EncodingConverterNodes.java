@@ -35,6 +35,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.RubyClass;
@@ -51,6 +52,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -506,11 +508,11 @@ public abstract class EncodingConverterNodes {
 
     @CoreMethod(names = "replacement=", required = 1)
     @NodeChild(value = "encodingConverter", type = RubyNode.class)
-    @NodeChild(value = "replacement", type = RubyNode.class)
+    @NodeChild(value = "replacement", type = RubyBaseNodeWithExecute.class)
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
         @CreateCast("replacement")
-        protected RubyNode coerceReplacementToString(RubyNode replacement) {
+        protected ToStrNode coerceReplacementToString(RubyBaseNodeWithExecute replacement) {
             return ToStrNodeGen.create(replacement);
         }
 

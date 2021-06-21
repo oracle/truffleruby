@@ -157,6 +157,11 @@ public class CoreModuleChecks {
             n--; // Ignore block argument.
         }
 
+        if (coreMethod.alwaysInlined()) {
+            // All other arguments are packed as Object[]
+            return;
+        }
+
         if (coreMethod.rest()) {
             if (n < 0) {
                 processor.error("missing rest method parameter", specializationMethod);

@@ -43,7 +43,7 @@ public abstract class ToStringObjectNode extends FormatNode {
     protected Object toString(VirtualFrame frame, Object object,
             @Cached ConditionProfile notStringProfile,
             @Cached ToStrNode toStrNode) {
-        final Object value = toStrNode.executeToStr(object);
+        final Object value = toStrNode.execute(object);
 
         if (notStringProfile.profile(RubyGuards.isNotRubyString(value))) {
             throw new NoImplicitConversionException(object, "String");

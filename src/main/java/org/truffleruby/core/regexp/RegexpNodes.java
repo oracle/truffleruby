@@ -117,7 +117,7 @@ public abstract class RegexpNodes {
                 toStrNode = insert(ToStrNode.create());
             }
 
-            return doQuoteString(toStrNode.executeToStr(raw));
+            return doQuoteString(toStrNode.execute(raw));
         }
 
         private RubyString doQuoteString(Object raw) {

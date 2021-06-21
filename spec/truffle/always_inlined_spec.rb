@@ -35,6 +35,12 @@ describe "Always-inlined core methods" do
       }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'binding' }
     end
 
+    it "for #eval" do
+      -> {
+        eval(Object.new)
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'eval' }
+    end
+
     it "for #local_variables" do
       -> {
         local_variables(:wrong)
