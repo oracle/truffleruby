@@ -4501,11 +4501,10 @@ public abstract class StringNodes {
                         "singleByteOptimizableNode.execute(stringRope)",
                         "patternRope.byteLength() <= stringRope.byteLength()" })
         protected Object stringCharacterIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
-                @Cached BranchProfile matchProfile,
-                @Cached BranchProfile noMatchProfile,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached LoopConditionProfile loopProfile,
+                @Cached("createCountingProfile()") ConditionProfile matchProfile) {
 
             int p = offset;
             final int e = stringRope.byteLength();
@@ -4516,11 +4515,8 @@ public abstract class StringNodes {
             final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             try {
-                loopProfile.profileCounted(l - p);
-
-                for (; p < l; p++) {
-                    if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
-                        matchProfile.enter();
+                for (; loopProfile.profile(p < l); p++) {
+                    if (matchProfile.profile(ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0)) {
                         return p;
                     }
                 }
@@ -4528,7 +4524,6 @@ public abstract class StringNodes {
                 LoopNode.reportLoopCount(this, p - offset);
             }
 
-            noMatchProfile.enter();
             return nil;
         }
 
