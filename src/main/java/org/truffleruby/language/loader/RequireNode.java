@@ -44,8 +44,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
@@ -251,7 +249,6 @@ public abstract class RequireNode extends RubyContextNode {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
         final Object library;
-
         try {
             featureLoader.ensureCExtImplementationLoaded(feature, this);
 
@@ -267,10 +264,9 @@ public abstract class RequireNode extends RubyContextNode {
         }
 
         final String initFunctionName = "Init_" + getBaseName(expandedPath);
+        final Object initFunction = featureLoader.findFunctionInLibrary(library, initFunctionName, expandedPath);
 
-        final Object initFunction = findFunctionInLibrary(library, initFunctionName, expandedPath);
-
-        InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
+        final InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
         if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
             throw new RaiseException(
                     getContext(),
@@ -288,28 +284,6 @@ public abstract class RequireNode extends RubyContextNode {
         } finally {
             requireMetric("after-execute-" + feature);
         }
-    }
-
-    Object findFunctionInLibrary(Object library, String functionName, String path) {
-        final Object function;
-        try {
-            function = InteropLibrary.getFactory().getUncached(library).readMember(library, functionName);
-        } catch (UnknownIdentifierException e) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
-        } catch (UnsupportedMessageException e) {
-            throw TranslateInteropExceptionNode.getUncached().execute(e);
-        }
-
-        if (function == null) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions()
-                            .loadError(String.format("%s() not found (READ returned null)", functionName), path, null));
-        }
-
-        return function;
     }
 
     @TruffleBoundary

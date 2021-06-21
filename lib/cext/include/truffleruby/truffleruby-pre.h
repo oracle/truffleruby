@@ -53,6 +53,12 @@ POLYGLOT_DECLARE_TYPE(VALUE)
 extern void* rb_tr_cext;
 #define RUBY_CEXT rb_tr_cext
 
+void* rb_tr_abi_version(void) __attribute__((weak));
+void* rb_tr_abi_version(void) {
+  char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
+  return polyglot_from_string(abi_version, "US-ASCII");
+}
+
 // Wrapping and unwrapping of values.
 
 extern void* (*rb_tr_unwrap)(VALUE obj);

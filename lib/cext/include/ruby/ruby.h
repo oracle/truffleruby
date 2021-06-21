@@ -24,13 +24,14 @@ extern "C" {
 // Must be first, as it defines feature test macros like _GNU_SOURCE,
 // which influences the definitions exposed by system header files.
 #include "ruby/config.h"
-#include <truffleruby/truffleruby-pre.h>
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
 #endif
 
 #include "defines.h"
 #include "ruby/assert.h"
+
+#include <truffleruby/truffleruby-pre.h>
 
 /* For MinGW, we need __declspec(dllimport) for RUBY_EXTERN on MJIT.
    mswin's RUBY_EXTERN already has that. See also: win32/Makefile.sub */

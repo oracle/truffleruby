@@ -184,6 +184,7 @@ public class CoreLibrary {
     public final RubyClass truffleFFINullPointerErrorClass;
     public final RubyModule truffleTypeModule;
     public final RubyModule truffleModule;
+    public final RubyModule truffleCExtModule;
     public final RubyModule truffleInternalModule;
     public final RubyModule truffleBootModule;
     public final RubyModule truffleExceptionOperationsModule;
@@ -489,7 +490,7 @@ public class CoreLibrary {
                 truffleInteropModule,
                 interopExceptionClass,
                 "UnknownKeyException");
-        defineModule(truffleModule, "CExt");
+        truffleCExtModule = defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "ObjSpace");
         defineModule(truffleModule, "Coverage");
