@@ -20,6 +20,7 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -125,23 +126,56 @@ public class ValueWrapperManager {
         }, null);
     }
 
+    @TruffleBoundary
+    public void addToSharedBlockMap(HandleBlock block) {
+        RubyLanguage language = context.getLanguageSlow();
+        synchronized (language) {
+            int blockIndex = block.getIndex();
+            long blockBase = block.getBase();
+            HandleBlockWeakReference[] map = language.sharedMap;
+            HandleBlockAllocator allocator = language.allocator;
+            boolean grow = false;
+            if (blockIndex + 1 > map.length) {
+                final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
+                System.arraycopy(map, 0, copy, 0, map.length);
+                map = copy;
+                grow = true;
+            }
+            map[blockIndex] = new HandleBlockWeakReference(block);
+            if (grow) {
+                language.sharedMap = map;
+            }
+
+            language.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
+                language.sharedMap[blockIndex] = null;
+                allocator.addFreeBlock(blockBase);
+            }, null);
+        }
+    }
+
     public ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);
-        final HandleBlockWeakReference[] blockMap = this.blockMap;
-        final HandleBlockWeakReference ref;
-        if (index >= 0 && index < blockMap.length) {
-            ref = blockMap[index];
-        } else {
-            return null;
-        }
-        if (ref == null) {
-            return null;
-        }
-        final HandleBlock block = ref.get();
+        final HandleBlock block = getBlockFromMap(index);
         if (block == null) {
             return null;
         }
         return block.getWrapper(handle);
+    }
+
+    private HandleBlock getBlockFromMap(int index) {
+        final HandleBlockWeakReference[] blockMap = this.blockMap;
+        final HandleBlockWeakReference[] sharedMap = context.getLanguageSlow().sharedMap;
+        HandleBlockWeakReference ref = null;
+        if (index >= 0 && index < blockMap.length) {
+            ref = blockMap[index];
+        }
+        if (ref == null && index >= 0 && index < sharedMap.length) {
+            ref = sharedMap[index];
+        }
+        if (ref == null) {
+            return null;
+        }
+        return ref.get();
     }
 
     public void freeAllBlocksInMap() {
@@ -149,7 +183,11 @@ public class ValueWrapperManager {
         HandleBlockAllocator allocator = context.getLanguageSlow().allocator;
 
         for (int i = 0; i < map.length; i++) {
-            HandleBlock block = map[i].get();
+            HandleBlockWeakReference ref = map[i];
+            if (ref == null) {
+                continue;
+            }
+            HandleBlock block = ref.get();
             if (block != null) {
                 allocator.addFreeBlock(block.base);
             }
@@ -271,6 +309,7 @@ public class ValueWrapperManager {
 
     protected static class HandleBlockHolder {
         protected HandleBlock handleBlock = null;
+        protected HandleBlock sharedHandleBlock = null;
     }
 
     protected static class HandleThreadData {
@@ -281,8 +320,16 @@ public class ValueWrapperManager {
             return holder.handleBlock;
         }
 
+        public HandleBlock currentSharedBlock() {
+            return holder.sharedHandleBlock;
+        }
+
         public HandleBlock makeNewBlock(RubyContext context) {
             return (holder.handleBlock = new HandleBlock(context));
+        }
+
+        public HandleBlock makeNewSharedBlock(RubyContext context) {
+            return (holder.sharedHandleBlock = new HandleBlock(context));
         }
     }
 
@@ -323,7 +370,7 @@ public class ValueWrapperManager {
 
         public abstract long execute(ValueWrapper wrapper);
 
-        @Specialization
+        @Specialization(guards = "!isSharedObject(wrapper)")
         protected long allocateHandleOnKnownThread(ValueWrapper wrapper,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
@@ -341,6 +388,30 @@ public class ValueWrapperManager {
                 context.getValueWrapperManager().addToBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);
+        }
+
+        @Specialization(guards = "isSharedObject(wrapper)")
+        protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached GetHandleBlockHolderNode getBlockHolderNode) {
+            HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
+            HandleBlock block = threadData.holder.sharedHandleBlock;
+            if (context.getOptions().CEXTS_TO_NATIVE_STATS) {
+                context.getValueWrapperManager().recordHandleAllocation();
+            }
+
+            if (block == null || block.isFull()) {
+                if (block != null) {
+                    context.getMarkingService().queueForMarking(block);
+                }
+                block = threadData.makeNewSharedBlock(context);
+                context.getValueWrapperManager().addToSharedBlockMap(block);
+            }
+            return block.setHandleOnWrapper(wrapper);
+        }
+
+        protected static boolean isSharedObject(ValueWrapper wrapper) {
+            return wrapper.getObject() instanceof ImmutableRubyObject;
         }
 
         public static AllocateHandleNode create() {
