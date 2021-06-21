@@ -9,8 +9,10 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyLanguage;
@@ -27,11 +29,6 @@ public abstract class RubyBaseNode extends Node {
 
     public static final int MAX_EXPLODE_SIZE = 16;
 
-    public void reportLongLoopCount(long count) {
-        assert count >= 0L;
-        LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
-    }
-
     public static boolean isSingleContext() {
         return RubyLanguage.getCurrentLanguage().singleContext;
     }
@@ -43,4 +40,20 @@ public abstract class RubyBaseNode extends Node {
     public static Object nullToNil(Object value) {
         return value == null ? nil : value;
     }
+
+    protected void reportLongLoopCount(long count) {
+        assert count >= 0L;
+        LoopNode.reportLoopCount(this, count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count);
+    }
+
+    protected Node getNode() {
+        boolean adoptable = this.isAdoptable();
+        CompilerAsserts.partialEvaluationConstant(adoptable);
+        if (adoptable) {
+            return this;
+        } else {
+            return EncapsulatingNodeReference.getCurrent().get();
+        }
+    }
+
 }

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.jcodings.specific.UTF8Encoding;
@@ -352,24 +353,19 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "binding", isModuleFunction = true)
-    public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
-
+    @GenerateUncached
+    @CoreMethod(names = "binding", isModuleFunction = true, alwaysInlined = true)
+    public abstract static class BindingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyBinding binding(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-            final SourceSection sourceSection = getCallerSourceSection();
-
-            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame, sourceSection);
+        protected RubyBinding binding(
+                Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached(
+                        value = "getNode().getEncapsulatingSourceSection()",
+                        allowUncached = true) SourceSection sourceSection) {
+            return BindingNodes.createBinding(context, language, callerFrame.materialize(), sourceSection);
         }
-
-        @TruffleBoundary
-        protected SourceSection getCallerSourceSection() {
-            return getContext().getCallStack().getCallerNode().getEncapsulatingSourceSection();
-        }
-
     }
 
     @GenerateUncached
