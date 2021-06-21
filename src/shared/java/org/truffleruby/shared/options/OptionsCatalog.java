@@ -137,6 +137,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> PACK_RECOVER_LOOP_MIN_KEY = new OptionKey<>(32);
     public static final OptionKey<Integer> CEXTS_MARKING_CACHE_KEY = new OptionKey<>(100);
     public static final OptionKey<Integer> GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY = new OptionKey<>(1);
+    public static final OptionKey<Integer> REFERENCE_PROCESSOR_QUEUE_TIMEOUT_KEY = new OptionKey<>(1000);
     public static final OptionKey<Boolean> CLONE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> INLINE_DEFAULT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CORE_ALWAYS_CLONE_KEY = new OptionKey<>(false);
@@ -977,6 +978,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor REFERENCE_PROCESSOR_QUEUE_TIMEOUT = OptionDescriptor
+            .newBuilder(REFERENCE_PROCESSOR_QUEUE_TIMEOUT_KEY, "ruby.reference-processor-queue-timeout")
+            .help("Time to wait on the reference processing queue (in milliseconds) before checking the shared queue")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor CLONE_DEFAULT = OptionDescriptor
             .newBuilder(CLONE_DEFAULT_KEY, "ruby.clone-default")
             .help("Default option for cloning")
@@ -1353,6 +1361,8 @@ public class OptionsCatalog {
                 return CEXTS_MARKING_CACHE;
             case "ruby.global-variable-max-invalidations":
                 return GLOBAL_VARIABLE_MAX_INVALIDATIONS;
+            case "ruby.reference-processor-queue-timeout":
+                return REFERENCE_PROCESSOR_QUEUE_TIMEOUT;
             case "ruby.clone-default":
                 return CLONE_DEFAULT;
             case "ruby.inline-default":
@@ -1517,6 +1527,7 @@ public class OptionsCatalog {
             PACK_RECOVER_LOOP_MIN,
             CEXTS_MARKING_CACHE,
             GLOBAL_VARIABLE_MAX_INVALIDATIONS,
+            REFERENCE_PROCESSOR_QUEUE_TIMEOUT,
             CLONE_DEFAULT,
             INLINE_DEFAULT,
             CORE_ALWAYS_CLONE,
