@@ -372,16 +372,13 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true)
-    public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
-
+    @GenerateUncached
+    @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true, alwaysInlined = true)
+    public abstract static class BlockGivenNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean blockGiven(VirtualFrame frame,
+        protected boolean blockGiven(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ConditionProfile blockProfile) {
-            MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             return blockProfile
                     .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }

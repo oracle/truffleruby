@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.locals;
 
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameUtil;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class DeclarationFlipFlopStateNode extends FlipFlopStateNode {
@@ -28,18 +28,13 @@ public class DeclarationFlipFlopStateNode extends FlipFlopStateNode {
 
     @Override
     public boolean getState(VirtualFrame frame) {
-        final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameLevel);
-
-        try {
-            return declarationFrame.getBoolean(frameSlot);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException();
-        }
+        final Frame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameLevel);
+        return FrameUtil.getBooleanSafe(declarationFrame, frameSlot);
     }
 
     @Override
     public void setState(VirtualFrame frame, boolean state) {
-        final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameLevel);
+        final Frame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameLevel);
         declarationFrame.setBoolean(frameSlot, state);
     }
 
