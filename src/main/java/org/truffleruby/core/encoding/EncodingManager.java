@@ -13,8 +13,7 @@
 package org.truffleruby.core.encoding;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +28,7 @@ import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -47,7 +47,7 @@ import static org.truffleruby.core.encoding.Encodings.INITIAL_NUMBER_OF_ENCODING
  * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
 public class EncodingManager {
 
-    private final List<RubyEncoding> ENCODING_LIST_BY_ENCODING_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
+    private RubyEncoding[] ENCODING_LIST_BY_ENCODING_INDEX = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
     private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();
     private final RubyContext context;
     private final RubyLanguage language;
@@ -190,9 +190,8 @@ public class EncodingManager {
         return null;
     }
 
-    @TruffleBoundary
     public Object[] getEncodingList() {
-        return new ArrayList<>(ENCODING_LIST_BY_ENCODING_INDEX).toArray();
+        return ArrayUtils.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, ENCODING_LIST_BY_ENCODING_INDEX.length);
     }
 
     @TruffleBoundary
@@ -216,14 +215,12 @@ public class EncodingManager {
         }
     }
 
-    @TruffleBoundary
     public RubyEncoding getRubyEncoding(int encodingIndex) {
-        return ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex);
+        return ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex];
     }
 
-    @TruffleBoundary
     public RubyEncoding getRubyEncoding(Encoding encoding) {
-        return ENCODING_LIST_BY_ENCODING_INDEX.get(encoding.getIndex());
+        return ENCODING_LIST_BY_ENCODING_INDEX[encoding.getIndex()];
     }
 
     @TruffleBoundary
@@ -234,19 +231,19 @@ public class EncodingManager {
                 ? language.encodings.getBuiltInEncoding(encodingIndex)
                 : language.encodings.newRubyEncoding(encoding, name, p, end);
 
-        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() ||
-                ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
+        assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
+                ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
 
-        while (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size()) {
-            ENCODING_LIST_BY_ENCODING_INDEX.add(null);
+        if (encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length) {
+            ENCODING_LIST_BY_ENCODING_INDEX = Arrays
+                    .copyOf(ENCODING_LIST_BY_ENCODING_INDEX, encodingIndex + 1);
         }
-        ENCODING_LIST_BY_ENCODING_INDEX.set(encodingIndex, rubyEncoding);
+        ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
         LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
 
     }
-
 
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
