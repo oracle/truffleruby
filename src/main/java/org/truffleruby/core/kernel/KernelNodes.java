@@ -1249,6 +1249,20 @@ public abstract class KernelNodes {
         }
     }
 
+    @GenerateUncached
+    @CoreMethod(names = "local_variables", isModuleFunction = true, alwaysInlined = true)
+    public abstract static class KernelLocalVariablesNode extends AlwaysInlinedMethodNode {
+        @Specialization
+        protected Object localVariables(
+                Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached DispatchNode callLocalVariables) {
+            final RubyBinding binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
+            return callLocalVariables.call(binding, "local_variables");
+        }
+    }
+
     @CoreMethod(names = "__method__", isModuleFunction = true)
     public abstract static class MethodNameNode extends CoreMethodArrayArgumentsNode {
 

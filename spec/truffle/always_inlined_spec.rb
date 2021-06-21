@@ -35,6 +35,12 @@ describe "Always-inlined core methods" do
       }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'binding' }
     end
 
+    it "for #local_variables" do
+      -> {
+        local_variables(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'local_variables' }
+    end
+
     guard -> { RUBY_ENGINE != "ruby" } do
       it "for #send" do
         -> {
