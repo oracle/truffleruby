@@ -324,7 +324,7 @@ class IO
   def self.binwrite(file, string, *args)
     offset, opts = args
     opts ||= {}
-    if offset.is_a?(Hash)
+    if Primitive.object_kind_of?(offset, Hash)
       offset, opts = nil, offset
     end
 
@@ -523,7 +523,7 @@ class IO
 
     offset, opts = args
     opts ||= {}
-    if offset.is_a?(Hash)
+    if Primitive.object_kind_of?(offset, Hash)
       offset, opts = nil, offset
     end
 

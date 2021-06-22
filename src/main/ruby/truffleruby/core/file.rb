@@ -384,7 +384,7 @@ class File < IO
   def self.directory?(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    mode = if io.is_a? IO
+    mode = if Primitive.object_kind_of?(io, IO)
              Truffle::POSIX.truffleposix_fstat_mode(io.fileno)
            else
              path = Truffle::Type.coerce_to_path(io_or_path)
@@ -961,7 +961,7 @@ class File < IO
   def self.size(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    if io.is_a? IO
+    if Primitive.object_kind_of?(io, IO)
       s = Truffle::POSIX.truffleposix_fstat_size(io.fileno)
       if s >= 0
         s
@@ -985,7 +985,7 @@ class File < IO
   def self.size?(io_or_path)
     io = Truffle::Type.try_convert io_or_path, IO, :to_io
 
-    s = if io.is_a? IO
+    s = if Primitive.object_kind_of?(io, IO)
           Truffle::POSIX.truffleposix_fstat_size(io.fileno)
         else
           path = Truffle::Type.coerce_to_path(io_or_path)

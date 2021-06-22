@@ -353,7 +353,7 @@ class Complex < Numeric
   end
 
   def fdiv(other)
-    raise TypeError, "#{other.class} can't be coerced into Complex" unless other.is_a?(Numeric)
+    raise TypeError, "#{other.class} can't be coerced into Complex" unless Primitive.object_kind_of?(other, Numeric)
 
     # FIXME
     self / other

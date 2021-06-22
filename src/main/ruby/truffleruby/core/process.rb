@@ -138,7 +138,7 @@ module Process
   end
 
   def self.clock_gettime(id, unit=:float_second)
-    if id.is_a?(Symbol)
+    if Primitive.object_kind_of?(id, Symbol)
       id = case id
            when :GETTIMEOFDAY_BASED_CLOCK_REALTIME,
                 :TIME_BASED_CLOCK_REALTIME

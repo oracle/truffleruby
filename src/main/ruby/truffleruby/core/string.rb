@@ -1432,7 +1432,7 @@ class String
   end
 
   def %(args)
-    if args.is_a? Hash
+    if Primitive.object_kind_of?(args, Hash)
       sprintf(self, args)
     else
       result = Truffle::Type.rb_check_convert_type args, Array, :to_ary

@@ -47,7 +47,7 @@ module Enumerable
       end
       each do |val|
         key = block.yield(val)
-        if Primitive.nil?(key) || (key.is_a?(Symbol) && key.to_s[0, 1] == '_')
+        if Primitive.nil?(key) || (Primitive.object_kind_of?(key, Symbol) && key.to_s[0, 1] == '_')
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
           previous = nil

@@ -48,11 +48,11 @@ class Integer < Numeric
       return pow
     end
 
-    if (o.is_a?(Float) || o.is_a?(Rational)) && self < 0 && o != o.round
+    if (Primitive.object_kind_of?(o, Float) || Primitive.object_kind_of?(o, Rational)) && self < 0 && o != o.round
       return Complex.new(self, 0) ** o
-    elsif o.is_a?(Integer) && o < 0
+    elsif Primitive.object_kind_of?(o, Integer) && o < 0
       return Rational.new(self, 1) ** o
-    elsif o.is_a?(Integer) && o > 0
+    elsif Primitive.object_kind_of?(o, Integer) && o > 0
       return self ** o.to_f
     end
 

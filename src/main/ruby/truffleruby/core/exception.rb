@@ -455,7 +455,7 @@ class SignalException < Exception
     signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
     if Primitive.nil? signo
       raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless Primitive.undefined?(message)
-      if sig.is_a?(Symbol)
+      if Primitive.object_kind_of?(sig, Symbol)
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str

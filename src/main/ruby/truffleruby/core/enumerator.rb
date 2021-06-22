@@ -761,10 +761,10 @@ class Enumerator::Chain < Enumerator
     total = 0
     @enums.each do |e|
       size = e.size
-      if Primitive.nil?(size) || (size.is_a?(Float) && size.infinite?)
+      if Primitive.nil?(size) || (Primitive.object_kind_of?(size, Float) && size.infinite?)
         return size
       end
-      unless size.is_a?(Integer)
+      unless Primitive.object_kind_of?(size, Integer)
         return nil
       end
       total += size

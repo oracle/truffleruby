@@ -67,12 +67,12 @@ module Truffle::Internal
         return array
       end
 
-      raise TypeError, "can't convert #{last_arg.class} to Hash (#{last_arg.class}#to_hash gives #{kwargs.class})" unless kwargs.is_a?(Hash)
+      raise TypeError, "can't convert #{last_arg.class} to Hash (#{last_arg.class}#to_hash gives #{kwargs.class})" unless Primitive.object_kind_of?(kwargs, Hash)
 
-      return array + [kwargs] unless kwargs.keys.any? { |k| k.is_a? Symbol }
+      return array + [kwargs] unless kwargs.keys.any? { |k| Primitive.object_kind_of?(k, Symbol) }
 
       kwargs.select! do |key, value|
-        symbol = key.is_a? Symbol
+        symbol = Primitive.object_kind_of?(key, Symbol)
         array.push({key => value}) unless symbol
         symbol
       end

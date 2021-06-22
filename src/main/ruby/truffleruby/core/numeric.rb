@@ -210,7 +210,7 @@ class Numeric
 
   def bit_coerce(other)
     values = math_coerce(other)
-    unless values[0].is_a?(Integer) && values[1].is_a?(Integer)
+    unless Primitive.object_kind_of?(values[0], Integer) && Primitive.object_kind_of?(values[1], Integer)
       raise TypeError, "#{values[1].class} can't be coerced into #{self.class}"
     end
     values

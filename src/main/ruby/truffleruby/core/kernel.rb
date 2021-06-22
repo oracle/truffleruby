@@ -311,7 +311,7 @@ module Kernel
     line = 1 unless line
     str = str.to_str unless str.class == String
     file = file.to_str unless file.class == String
-    line = line.to_i unless line.is_a?(Integer)
+    line = line.to_i unless Primitive.object_kind_of?(line, Integer)
     if a_binding
       unless a_binding.class == Binding
         raise TypeError, "Wrong argument type #{a_binding.class} (expected binding)"
@@ -738,7 +738,7 @@ module Kernel
   end
 
   def caller(start = 1, limit = nil)
-    args =  if start.is_a? Range
+    args =  if Primitive.object_kind_of?(start, Range)
               if Primitive.nil?(start.begin) and Primitive.nil?(start.end)
                 [1]
               elsif Primitive.nil? start.begin

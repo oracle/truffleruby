@@ -12,7 +12,7 @@ module Warning
   extend self
 
   def warn(message)
-    unless message.is_a?(String)
+    unless Primitive.object_kind_of?(message, String)
       raise TypeError, "wrong argument type #{message.class} (expected String)"
     end
     unless message.encoding.ascii_compatible?

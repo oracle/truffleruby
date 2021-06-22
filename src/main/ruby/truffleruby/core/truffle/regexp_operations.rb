@@ -47,7 +47,7 @@ module Truffle
     def self.match(re, str, pos=0)
       return nil unless str
 
-      str = str.to_s if str.is_a?(Symbol)
+      str = str.to_s if Primitive.object_kind_of?(str, Symbol)
       str = StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
