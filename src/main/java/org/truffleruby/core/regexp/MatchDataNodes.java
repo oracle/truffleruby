@@ -60,22 +60,6 @@ import org.truffleruby.language.objects.LogicalClassNode;
 public abstract class MatchDataNodes {
 
     @TruffleBoundary
-    public static Object end(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
-        // Taken from org.jruby.RubyMatchData
-        int e = matchData.region.end[index];
-
-        if (e < 0) {
-            return Nil.INSTANCE;
-        }
-
-        if (!matchDataSourceRope.isSingleByteOptimizable()) {
-            e = getCharOffsets(matchData, matchDataSourceRope).end[index];
-        }
-
-        return e;
-    }
-
-    @TruffleBoundary
     private static void updatePairs(Rope source, Encoding encoding, Pair[] pairs) {
         // Taken from org.jruby.RubyMatchData
         Arrays.sort(pairs);
@@ -504,8 +488,24 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object end(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeEndProfile,
+                @Cached ConditionProfile multiByteCharacterProfile,
+                @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return MatchDataNodes.end(matchData, index, strings.getRope(matchData.source));
+            // Taken from org.jruby.RubyMatchData.
+
+            final Rope matchDataSourceRope = strings.getRope(matchData.source);
+            final int end = matchData.region.end[index];
+
+            if (negativeEndProfile.profile(end < 0)) {
+                return nil;
+            }
+
+            if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
+                return getCharOffsets(matchData, matchDataSourceRope).end[index];
+            }
+
+            return end;
         }
 
         @TruffleBoundary
