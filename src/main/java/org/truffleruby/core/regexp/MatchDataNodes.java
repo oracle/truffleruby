@@ -39,7 +39,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -59,22 +58,6 @@ import org.truffleruby.language.objects.LogicalClassNode;
 
 @CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
-
-    @TruffleBoundary
-    public static Object begin(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
-        // Taken from org.jruby.RubyMatchData
-        int b = matchData.region.beg[index];
-
-        if (b < 0) {
-            return Nil.INSTANCE;
-        }
-
-        if (!matchDataSourceRope.isSingleByteOptimizable()) {
-            b = getCharOffsets(matchData, matchDataSourceRope).beg[index];
-        }
-
-        return b;
-    }
 
     @TruffleBoundary
     public static Object end(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
@@ -159,7 +142,8 @@ public abstract class MatchDataNodes {
 
     public static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
         // Taken from org.jruby.RubyMatchData
-        Region charOffsets = matchData.charOffsets;
+        final Region charOffsets = matchData.charOffsets;
+
         if (charOffsets != null) {
             return charOffsets;
         } else {
@@ -426,8 +410,24 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object begin(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeBeginProfile,
+                @Cached ConditionProfile multiByteCharacterProfile,
+                @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return MatchDataNodes.begin(matchData, index, strings.getRope(matchData.source));
+            // Taken from org.jruby.RubyMatchData.
+
+            final Rope matchDataSourceRope = strings.getRope(matchData.source);
+            final int begin = matchData.region.beg[index];
+
+            if (negativeBeginProfile.profile(begin < 0)) {
+                return nil;
+            }
+
+            if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
+                return getCharOffsets(matchData, matchDataSourceRope).beg[index];
+            }
+
+            return begin;
         }
 
         @TruffleBoundary
