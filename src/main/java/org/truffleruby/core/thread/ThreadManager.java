@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -75,10 +74,10 @@ public class ThreadManager {
     private final ThreadLocal<RubyThread> currentThread = ThreadLocal
             .withInitial(() -> javaThreadToRubyThread.get(Thread.currentThread()));
 
-    private final Set<RubyThread> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<RubyThread> runningRubyThreads = ConcurrentHashMap.newKeySet();
 
     /** The set of Java threads TruffleRuby created, and is responsible to exit in {@link #killAndWaitOtherThreads()} */
-    private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<Thread> rubyManagedThreads = ConcurrentHashMap.newKeySet();
 
     public final Map<Thread, RubyFiber> javaThreadToRubyFiber = new ConcurrentHashMap<>();
     public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal

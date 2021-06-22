@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -84,5 +83,5 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     }
 
     // The remembered set of displayed warnings is global to the VM
-    private static final Set<String> DISPLAYED_WARNINGS = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<String> DISPLAYED_WARNINGS = ConcurrentHashMap.newKeySet();
 }

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.fiber;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -67,7 +66,7 @@ public class FiberManager implements ObjectGraphNode {
 
     @TruffleBoundary
     private static Set<RubyFiber> newFiberSet() {
-        return Collections.newSetFromMap(new ConcurrentHashMap<>());
+        return ConcurrentHashMap.newKeySet();
     }
 
     public RubyFiber getRootFiber() {
