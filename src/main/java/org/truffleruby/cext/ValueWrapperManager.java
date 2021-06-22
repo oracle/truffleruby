@@ -64,9 +64,11 @@ public class ValueWrapperManager {
     private final ThreadLocal<HandleThreadData> threadBlocks;
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
+        this.language = context.getLanguageSlow();
         this.threadBlocks = ThreadLocal.withInitial(this::makeThreadData);
     }
 
@@ -107,7 +109,7 @@ public class ValueWrapperManager {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = context.getLanguageSlow().allocator;
+        HandleBlockAllocator allocator = language.allocator;
         boolean grow = false;
         if (blockIndex + 1 > map.length) {
             final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
@@ -128,7 +130,6 @@ public class ValueWrapperManager {
 
     @TruffleBoundary
     public void addToSharedBlockMap(HandleBlock block) {
-        RubyLanguage language = context.getLanguageSlow();
         synchronized (language) {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
@@ -164,7 +165,7 @@ public class ValueWrapperManager {
 
     private HandleBlock getBlockFromMap(int index) {
         final HandleBlockWeakReference[] blockMap = this.blockMap;
-        final HandleBlockWeakReference[] sharedMap = context.getLanguageSlow().sharedMap;
+        final HandleBlockWeakReference[] sharedMap = language.sharedMap;
         HandleBlockWeakReference ref = null;
         if (index >= 0 && index < blockMap.length) {
             ref = blockMap[index];
@@ -180,7 +181,7 @@ public class ValueWrapperManager {
 
     public void freeAllBlocksInMap() {
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = context.getLanguageSlow().allocator;
+        HandleBlockAllocator allocator = language.allocator;
 
         for (int i = 0; i < map.length; i++) {
             HandleBlockWeakReference ref = map[i];
@@ -253,8 +254,8 @@ public class ValueWrapperManager {
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
         private int count;
 
-        public HandleBlock(RubyContext context) {
-            this(context, context.getLanguageSlow().allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
+        public HandleBlock(RubyContext context, HandleBlockAllocator allocator) {
+            this(context, allocator.getFreeBlock(), new ValueWrapper[BLOCK_SIZE]);
         }
 
         private HandleBlock(RubyContext context, long base, ValueWrapper[] wrappers) {
@@ -324,12 +325,12 @@ public class ValueWrapperManager {
             return holder.sharedHandleBlock;
         }
 
-        public HandleBlock makeNewBlock(RubyContext context) {
-            return (holder.handleBlock = new HandleBlock(context));
+        public HandleBlock makeNewBlock(RubyContext context, HandleBlockAllocator allocator) {
+            return (holder.handleBlock = new HandleBlock(context, allocator));
         }
 
-        public HandleBlock makeNewSharedBlock(RubyContext context) {
-            return (holder.sharedHandleBlock = new HandleBlock(context));
+        public HandleBlock makeNewSharedBlock(RubyContext context, HandleBlockAllocator allocator) {
+            return (holder.sharedHandleBlock = new HandleBlock(context, allocator));
         }
     }
 
@@ -384,7 +385,7 @@ public class ValueWrapperManager {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);
                 }
-                block = threadData.makeNewBlock(context);
+                block = threadData.makeNewBlock(context, context.getValueWrapperManager().language.allocator);
                 context.getValueWrapperManager().addToBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);
@@ -404,7 +405,7 @@ public class ValueWrapperManager {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);
                 }
-                block = threadData.makeNewSharedBlock(context);
+                block = threadData.makeNewSharedBlock(context, context.getValueWrapperManager().language.allocator);
                 context.getValueWrapperManager().addToSharedBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);
