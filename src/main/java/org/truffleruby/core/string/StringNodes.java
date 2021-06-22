@@ -950,7 +950,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsOther) {
             // Taken from org.jruby.RubyString#casecmp19.
 
-            final Encoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
+            final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
             if (incompatibleEncodingProfile.profile(encoding == null)) {
                 return nil;
             }
@@ -964,13 +964,14 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsOther) {
             // Taken from org.jruby.RubyString#casecmp19 and
 
-            final Encoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
+            final RubyEncoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
 
             if (incompatibleEncodingProfile.profile(encoding == null)) {
                 return nil;
             }
 
-            return StringSupport.multiByteCasecmp(encoding, strings.getRope(string), stringsOther.getRope(other));
+            return StringSupport
+                    .multiByteCasecmp(encoding.encoding, strings.getRope(string), stringsOther.getRope(other));
         }
 
         protected boolean bothSingleByteOptimizable(Rope stringRope, Rope otherRope) {
@@ -1097,14 +1098,14 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("libString.getRope(string).encoding") Encoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(libString.getRope(string), cachedArgs)") Encoding compatEncoding,
+                @Cached("findEncoding(libString.getRope(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables) {
             return processStr(libString.getRope(string), squeeze, compatEncoding, tables);
         }
 
         @TruffleBoundary
-        private int processStr(Rope rope, boolean[] squeeze, Encoding compatEncoding, TrTables tables) {
-            return StringSupport.strCount(rope, squeeze, tables, compatEncoding);
+        private int processStr(Rope rope, boolean[] squeeze, RubyEncoding compatEncoding, TrTables tables) {
+            return StringSupport.strCount(rope, squeeze, tables, compatEncoding.encoding);
         }
 
         @Specialization(guards = "!isEmpty(libString.getRope(string))")
@@ -1116,12 +1117,12 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            Encoding enc = findEncoding(libString.getRope(string), ropes);
+            RubyEncoding enc = findEncoding(libString.getRope(string), ropes);
             return countSlow(libString.getRope(string), ropes, enc);
         }
 
         @TruffleBoundary
-        private int countSlow(Rope stringRope, Rope[] ropes, Encoding enc) {
+        private int countSlow(Rope stringRope, Rope[] ropes, RubyEncoding enc) {
             final boolean[] table = squeeze();
             final StringSupport.TrTables tables = makeTables(ropes, table, enc);
             return processStr(stringRope, table, enc, tables);
@@ -1136,24 +1137,24 @@ public abstract class StringNodes {
             return new boolean[StringSupport.TRANS_SIZE + 1];
         }
 
-        protected Encoding findEncoding(Rope rope, Rope[] ropes) {
-            Encoding enc = checkEncodingNode.executeCheckEncoding(rope, ropes[0]);
+        protected RubyEncoding findEncoding(Rope rope, Rope[] ropes) {
+            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(rope, ropes[0]);
             for (int i = 1; i < ropes.length; i++) {
                 enc = checkEncodingNode.executeCheckEncoding(rope, ropes[i]);
             }
             return enc;
         }
 
-        protected TrTables makeTables(Rope[] ropes, boolean[] squeeze, Encoding enc) {
+        protected TrTables makeTables(Rope[] ropes, boolean[] squeeze, RubyEncoding enc) {
             // The trSetupTable method will consume the bytes from the rope one encoded character at a time and
             // build a TrTable from this. Previously we started with the encoding of rope zero, and at each
             // stage found a compatible encoding to build that TrTable with. Although we now calculate a single
             // encoding with which to build the tables it must be compatible with all ropes, so will not
             // affect the consumption of characters from those ropes.
-            StringSupport.TrTables tables = StringSupport.trSetupTable(ropes[0], squeeze, null, true, enc);
+            StringSupport.TrTables tables = StringSupport.trSetupTable(ropes[0], squeeze, null, true, enc.encoding);
 
             for (int i = 1; i < ropes.length; i++) {
-                tables = StringSupport.trSetupTable(ropes[i], squeeze, tables, false, enc);
+                tables = StringSupport.trSetupTable(ropes[i], squeeze, tables, false, enc.encoding);
             }
             return tables;
         }
@@ -1244,7 +1245,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("libString.getRope(string).encoding") Encoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(libString.getRope(string), cachedArgs)") Encoding compatEncoding,
+                @Cached("findEncoding(libString.getRope(string), cachedArgs)") RubyEncoding compatEncoding,
                 @Cached("makeTables(cachedArgs, squeeze, compatEncoding)") TrTables tables,
                 @Cached BranchProfile nullProfile) {
             final Rope processedRope = processStr(string, squeeze, compatEncoding, tables);
@@ -1265,13 +1266,13 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorEmptyVarargs(this));
             }
 
-            Encoding enc = findEncoding(string.rope, args);
+            RubyEncoding enc = findEncoding(string.rope, args);
 
             return deleteBangSlow(string, args, enc);
         }
 
         @TruffleBoundary
-        private Object deleteBangSlow(RubyString string, Rope[] ropes, Encoding enc) {
+        private Object deleteBangSlow(RubyString string, Rope[] ropes, RubyEncoding enc) {
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE + 1];
 
             final StringSupport.TrTables tables = makeTables(ropes, squeeze, enc);
@@ -1282,13 +1283,14 @@ public abstract class StringNodes {
             }
 
             string.setRope(processedRope);
+            // REVIEW encoding set
 
             return string;
         }
 
         @TruffleBoundary
-        private Rope processStr(RubyString string, boolean[] squeeze, Encoding enc, StringSupport.TrTables tables) {
-            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc);
+        private Rope processStr(RubyString string, boolean[] squeeze, RubyEncoding enc, StringSupport.TrTables tables) {
+            return StringSupport.delete_bangCommon19(string.rope, squeeze, tables, enc.encoding);
         }
     }
 
@@ -2582,7 +2584,7 @@ public abstract class StringNodes {
 
             Object otherStr = otherStrings[0];
             Rope otherRope = RubyStringLibrary.getUncached().getRope(otherStr);
-            Encoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
+            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE + 1];
 
             boolean singlebyte = rope.isSingleByteOptimizable() && otherRope.isSingleByteOptimizable();
@@ -2597,14 +2599,14 @@ public abstract class StringNodes {
                 }
             }
 
-            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc);
+            StringSupport.TrTables tables = StringSupport.trSetupTable(otherRope, squeeze, null, true, enc.encoding);
 
             for (int i = 1; i < otherStrings.length; i++) {
                 otherStr = otherStrings[i];
                 otherRope = RubyStringLibrary.getUncached().getRope(otherStr);
                 enc = checkEncodingNode.executeCheckEncoding(string, otherStr);
                 singlebyte = singlebyte && otherRope.isSingleByteOptimizable();
-                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc);
+                tables = StringSupport.trSetupTable(otherRope, squeeze, tables, false, enc.encoding);
             }
 
             if (singleByteOptimizableProfile.profile(singlebyte)) {
@@ -2614,7 +2616,7 @@ public abstract class StringNodes {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
-                if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc, true)) {
+                if (!StringSupport.multiByteSqueeze(buffer, rope.getCodeRange(), squeeze, tables, enc.encoding, true)) {
                     return nil;
                 } else {
                     string.setRope(RopeOperations.ropeFromRopeBuilder(buffer));
@@ -3434,16 +3436,18 @@ public abstract class StringNodes {
         private static Object trTransHelper(CheckEncodingNode checkEncodingNode, RubyString self, Rope selfRope,
                 Object fromStr, Rope fromStrRope,
                 Object toStr, Rope toStrRope, boolean sFlag) {
-            final Encoding e1 = checkEncodingNode.executeCheckEncoding(self, fromStr);
-            final Encoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
-            final Encoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
+            final RubyEncoding e1 = checkEncodingNode.executeCheckEncoding(self, fromStr);
+            final RubyEncoding e2 = checkEncodingNode.executeCheckEncoding(self, toStr);
+            final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.executeCheckEncoding(fromStr, toStr);
 
-            final Rope ret = StringSupport.trTransHelper(selfRope, fromStrRope, toStrRope, e1, enc, sFlag);
+            final Rope ret = StringSupport
+                    .trTransHelper(selfRope, fromStrRope, toStrRope, e1.encoding, enc.encoding, sFlag);
             if (ret == null) {
                 return Nil.INSTANCE;
             }
 
             self.setRope(ret);
+            // REVIEW set encoding?
             return self;
         }
     }
@@ -5511,20 +5515,20 @@ public abstract class StringNodes {
             final Rope left = libString.getRope(string);
             final Rope right = libOther.getRope(other);
 
-            final Encoding compatibleEncoding = executeCheckEncoding(string, other);
+            final RubyEncoding compatibleEncoding = executeCheckEncoding(string, other);
 
             return executeConcat(left, right, compatibleEncoding);
         }
 
-        private Rope executeConcat(Rope left, Rope right, Encoding compatibleEncoding) {
+        private Rope executeConcat(Rope left, Rope right, RubyEncoding compatibleEncoding) {
             if (concatNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 concatNode = insert(RopeNodes.ConcatNode.create());
             }
-            return concatNode.executeConcat(left, right, compatibleEncoding);
+            return concatNode.executeConcat(left, right, compatibleEncoding.encoding); // REVIEW
         }
 
-        private Encoding executeCheckEncoding(Object string, Object other) {
+        private RubyEncoding executeCheckEncoding(Object string, Object other) {
             if (checkEncodingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 checkEncodingNode = insert(CheckEncodingNode.create());
