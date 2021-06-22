@@ -4500,7 +4500,7 @@ public abstract class StringNodes {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
                         "patternRope.byteLength() <= stringRope.byteLength()" })
-        protected Object stringCharacterIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
+        protected Object stringByteIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
                 @Cached LoopConditionProfile loopProfile,
@@ -4533,7 +4533,7 @@ public abstract class StringNodes {
                         "offset >= 0",
                         "!singleByteOptimizableNode.execute(stringRope)",
                         "patternRope.byteLength() <= stringRope.byteLength()" })
-        protected Object stringCharacterIndex(Rope stringRope, Rope patternRope, int offset,
+        protected Object stringByteIndex(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
