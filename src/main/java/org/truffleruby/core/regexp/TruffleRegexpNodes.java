@@ -9,19 +9,17 @@
  */
 package org.truffleruby.core.regexp;
 
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.ISO8859_1Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
@@ -42,10 +40,10 @@ import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
-import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -63,7 +61,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -251,93 +248,60 @@ public class TruffleRegexpNodes {
         }
     }
 
+    @ImportStatic(StandardEncodings.class)
     @CoreMethod(names = "tregex_compile", onSingleton = true, required = 3)
     public abstract static class TRegexCompileNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        @TruffleBoundary
-        protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding) {
-            return re.tregexCache.getOrCreate(
-                    atStart,
-                    encoding.encoding,
-                    (atStart_, enc) -> compileTRegex(re, atStart_, enc));
-        }
-
-        @TruffleBoundary
-        private Object compileTRegex(RubyRegexp re, boolean atStart, Encoding enc) {
-            String processedRegexpSource;
-            Encoding[] fixedEnc = new Encoding[]{ null };
-            final RopeBuilder ropeBuilder;
-            try {
-                ropeBuilder = ClassicRegexp
-                        .preprocess(
-                                re.source,
-                                enc,
-                                fixedEnc,
-                                RegexpSupport.ErrorMode.RAISE);
-            } catch (DeferredRaiseException dre) {
-                throw dre.getException(getContext());
-            }
-            Rope rope = ropeBuilder.toRope();
-            try {
-                processedRegexpSource = RopeOperations.decodeRope(rope);
-            } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
-                // Some strings cannot be converted to Java strings, e.g. strings with the
-                // BINARY encoding containing characters higher than 127.
-                // Also, some charsets might not be supported on the JVM and therefore
-                // a conversion to j.l.String might be impossible.
-                return nil;
-            }
-
-            String flags = optionsToFlags(re.options, atStart);
-
-            String tRegexEncoding = toTRegexEncoding(enc);
-            if (tRegexEncoding == null) {
-                return nil;
-            }
-
-            String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
-            Source regexSource = Source
-                    .newBuilder("regex", regex, "Regexp")
-                    .mimeType("application/tregex")
-                    .internal(true)
-                    .build();
-            Object compiledRegex = getContext().getEnv().parseInternal(regexSource).call();
-            if (InteropLibrary.getUncached().isNull(compiledRegex)) {
-                return nil;
+        @Specialization(guards = "encoding.encoding == US_ASCII")
+        protected Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+            final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
+            if (tregex != null) {
+                return tregex;
             } else {
-                return compiledRegex;
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
             }
         }
 
-        private String optionsToFlags(RegexpOptions options, boolean atStart) {
-            StringBuilder flags = new StringBuilder(4);
-            if (options.isMultiline()) {
-                flags.append('m');
-            }
-            if (options.isIgnorecase()) {
-                flags.append('i');
-            }
-            if (options.isExtended()) {
-                flags.append('x');
-            }
-            if (atStart) {
-                flags.append('y');
-            }
-            return flags.toString();
-        }
-
-        private String toTRegexEncoding(Encoding encoding) {
-            if (encoding == UTF8Encoding.INSTANCE) {
-                return "UTF-8";
-            } else if (encoding == USASCIIEncoding.INSTANCE || encoding == ISO8859_1Encoding.INSTANCE) {
-                return "LATIN-1";
-            } else if (encoding == ASCIIEncoding.INSTANCE) {
-                return "BYTES";
+        @Specialization(guards = "encoding.encoding == ISO_8859_1")
+        protected Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+            final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
+            if (tregex != null) {
+                return tregex;
             } else {
-                return null;
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
             }
         }
+
+        @Specialization(guards = "encoding.encoding == UTF_8")
+        protected Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+            final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
+            if (tregex != null) {
+                return tregex;
+            } else {
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+            }
+        }
+
+        @Specialization(guards = "encoding.encoding == BINARY")
+        protected Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+            final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
+            if (tregex != null) {
+                return tregex;
+            } else {
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+            }
+        }
+
+        @Specialization(
+                guards = {
+                        "encoding.encoding != US_ASCII",
+                        "encoding.encoding != ISO_8859_1",
+                        "encoding.encoding != UTF_8",
+                        "encoding.encoding != BINARY" })
+        protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+            return nil;
+        }
+
     }
 
     public abstract static class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
