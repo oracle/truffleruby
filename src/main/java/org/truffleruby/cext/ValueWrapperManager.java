@@ -10,7 +10,6 @@
 package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -198,7 +197,7 @@ public class ValueWrapperManager {
 
         public static final HandleBlock DUMMY_BLOCK = new HandleBlock(null, 0, null);
 
-        private static final Set<HandleBlock> keepAlive = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        private static final Set<HandleBlock> keepAlive = ConcurrentHashMap.newKeySet();
 
         private final long base;
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
