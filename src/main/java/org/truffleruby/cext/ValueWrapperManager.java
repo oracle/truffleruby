@@ -130,11 +130,12 @@ public class ValueWrapperManager {
 
     @TruffleBoundary
     public void addToSharedBlockMap(HandleBlock block) {
-        synchronized (language) {
+        RubyLanguage rubyLanguage = this.language;
+        synchronized (rubyLanguage) {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
-            HandleBlockWeakReference[] map = language.sharedMap;
-            HandleBlockAllocator allocator = language.allocator;
+            HandleBlockWeakReference[] map = rubyLanguage.sharedMap;
+            HandleBlockAllocator allocator = rubyLanguage.allocator;
             boolean grow = false;
             if (blockIndex + 1 > map.length) {
                 final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
@@ -144,11 +145,11 @@ public class ValueWrapperManager {
             }
             map[blockIndex] = new HandleBlockWeakReference(block);
             if (grow) {
-                language.sharedMap = map;
+                rubyLanguage.sharedMap = map;
             }
 
-            language.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
-                language.sharedMap[blockIndex] = null;
+            rubyLanguage.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
+                rubyLanguage.sharedMap[blockIndex] = null;
                 allocator.addFreeBlock(blockBase);
             }, null);
         }
