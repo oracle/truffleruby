@@ -631,7 +631,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected RubyArray toA(RubyMatchData matchData) {
-            Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
+            Object[] objects = valuesNode.execute(matchData);
             return createArray(objects);
         }
     }
