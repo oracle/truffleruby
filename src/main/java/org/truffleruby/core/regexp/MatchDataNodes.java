@@ -477,21 +477,6 @@ public abstract class MatchDataNodes {
 
     }
 
-    @CoreMethod(names = "captures")
-    public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private ValuesNode valuesNode = ValuesNode.create();
-
-        @Specialization
-        protected RubyArray toA(RubyMatchData matchData) {
-            return createArray(getCaptures(valuesNode.execute(matchData)));
-        }
-
-        private static Object[] getCaptures(Object[] values) {
-            return ArrayUtils.extractRange(values, 1, values.length);
-        }
-    }
-
     @Primitive(name = "match_data_end", lowerFixnum = 1)
     public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 

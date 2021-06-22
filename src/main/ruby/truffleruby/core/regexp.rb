@@ -306,6 +306,10 @@ class MatchData
     Primitive.match_data_get_source(self).dup.freeze
   end
 
+  def captures
+    to_a[1..-1]
+  end
+
   def names
     regexp.names
   end
