@@ -12,6 +12,8 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -438,29 +440,36 @@ public abstract class MatchDataNodes {
 
         public abstract Object[] execute(RubyMatchData matchData);
 
-        @TruffleBoundary
         @Specialization
-        protected Object[] getValuesSlow(RubyMatchData matchData,
+        protected Object[] getValues(RubyMatchData matchData,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached ConditionProfile hasValueProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached LogicalClassNode logicalClassNode) {
             final Object source = matchData.source;
             final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
 
-            for (int n = 0; n < region.numRegs; n++) {
-                final int start = region.beg[n];
-                final int end = region.end[n];
+            try {
+                loopProfile.profileCounted(region.numRegs);
 
-                if (start > -1 && end > -1) {
-                    Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = logicalClassNode.execute(source);
-                    final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
-                    AllocationTracing.trace(string, this);
-                    values[n] = string;
-                } else {
-                    values[n] = nil;
+                for (int n = 0; loopProfile.inject(n < region.numRegs); n++) {
+                    final int start = region.beg[n];
+                    final int end = region.end[n];
+
+                    if (hasValueProfile.profile(start > -1 && end > -1)) {
+                        final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
+                        final RubyClass logicalClass = logicalClassNode.execute(source);
+                        final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+                        AllocationTracing.trace(string, this);
+                        values[n] = string;
+                    } else {
+                        values[n] = nil;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, region.numRegs);
             }
 
             return values;
