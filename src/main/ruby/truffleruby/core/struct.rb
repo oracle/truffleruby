@@ -35,7 +35,7 @@ class Struct
 
   def self.new(klass_name, *attrs, keyword_init: false, &block)
     if klass_name
-      if klass_name.kind_of? Symbol # Truffle: added to avoid exception and match MRI
+      if Primitive.object_kind_of?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
         klass_name = nil
       else
@@ -54,7 +54,7 @@ class Struct
         a
       when String
         sym = a.to_sym
-        unless sym.kind_of? Symbol
+        unless Primitive.object_kind_of?(sym, Symbol)
           raise TypeError, "#to_sym didn't return a symbol"
         end
         sym

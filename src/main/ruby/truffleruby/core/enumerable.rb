@@ -151,7 +151,7 @@ module Enumerable
 
       value = Truffle::Type.try_convert(result, Array, :to_ary) || result
 
-      if value.kind_of? Array
+      if Primitive.object_kind_of?(value, Array)
         array.concat value
       else
         array.push value

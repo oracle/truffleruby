@@ -54,7 +54,7 @@ class Rational < Numeric
   end
 
   def **(other)
-    if other.kind_of?(Rational) && other.denominator == 1
+    if Primitive.object_kind_of?(other, Rational) && other.denominator == 1
       other = other.numerator
     end
 
@@ -419,7 +419,7 @@ class Rational < Numeric
   private :marshal_load
 
   def with_precision(method, n, **kwargs)
-    raise TypeError, 'not an Integer' unless n.kind_of?(Integer)
+    raise TypeError, 'not an Integer' unless Primitive.object_kind_of?(n, Integer)
 
     p = 10 ** n
     s = self * p

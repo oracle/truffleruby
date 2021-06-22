@@ -68,7 +68,7 @@ class Exception
   def set_backtrace(bt)
     case bt
     when Array
-      if bt.all? { |s| s.kind_of? String }
+      if bt.all? { |s| Primitive.object_kind_of?(s, String) }
         Primitive.exception_set_custom_backtrace(self, bt)
       else
         raise TypeError, 'backtrace must be Array of String'
@@ -367,7 +367,7 @@ class SystemCallError < StandardError
     if self.equal? SystemCallError
       case args.size
       when 1
-        if args.first.kind_of?(Integer)
+        if Primitive.object_kind_of?(args.first, Integer)
           errno = args.first
           message = nil
         else
@@ -406,7 +406,7 @@ class SystemCallError < StandardError
         raise ArgumentError, "wrong number of arguments (#{args.size} for 0..2)"
       end
 
-      if defined?(self::Errno) && self::Errno.kind_of?(Integer)
+      if defined?(self::Errno) && Primitive.object_kind_of?(self::Errno, Integer)
         error = SystemCallError.errno_error(message, self::Errno, location)
         if error && error.class.equal?(self)
           return error

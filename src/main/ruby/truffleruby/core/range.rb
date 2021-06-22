@@ -35,7 +35,7 @@ class Range
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if self.begin
 
-    unless first.kind_of?(Integer) && last.kind_of?(Integer)
+    unless Primitive.object_kind_of?(first, Integer) && Primitive.object_kind_of?(last, Integer)
       begin
         raise ArgumentError, 'bad value for range' unless first <=> last
       rescue
@@ -50,7 +50,7 @@ class Range
   def ==(other)
     return true if equal? other
 
-    other.kind_of?(Range) and
+    Primitive.object_kind_of?(other, Range) and
       self.begin == other.begin and
       self.end == other.end and
       self.exclude_end? == other.exclude_end?
@@ -59,7 +59,7 @@ class Range
   def eql?(other)
     return true if equal? other
 
-    other.kind_of?(Range) and
+    Primitive.object_kind_of?(other, Range) and
         self.begin.eql?(other.begin) and
         self.end.eql?(other.end) and
         self.exclude_end? == other.exclude_end?
@@ -137,7 +137,7 @@ class Range
       result = yield min
       # Find-minimum mode: It's not going to get any smaller than negative infinity.
       return min if result == true || result == 0
-      return nil if result.kind_of?(Numeric) && result < 0
+      return nil if Primitive.object_kind_of?(result, Numeric) && result < 0
       min = normalized_begin = -Float::MAX # guaranteed to be <= max
     end
 
@@ -229,7 +229,7 @@ class Range
   private def bsearch_integer(&block)
     min = self.begin
     max = self.end
-    max -= 1 if max.kind_of? Integer and exclude_end?
+    max -= 1 if Primitive.object_kind_of?(max, Integer) and exclude_end?
     return nil if max < min
     last_admissible = nil
     stop = false
@@ -274,7 +274,7 @@ class Range
     return to_enum { size } unless block_given?
     first, last = self.begin, self.end
 
-    unless first.respond_to?(:succ) && !first.kind_of?(Time)
+    unless first.respond_to?(:succ) && !Primitive.object_kind_of?(first, Time)
       raise TypeError, "can't iterate from #{first.class}"
     end
 
@@ -358,10 +358,10 @@ class Range
   def include?(value)
     if self.begin.respond_to?(:to_int) ||
         self.end.respond_to?(:to_int) ||
-        self.begin.kind_of?(Numeric) ||
-        self.end.kind_of?(Numeric) ||
-        self.begin.kind_of?(Time) ||
-        self.end.kind_of?(Time)
+        Primitive.object_kind_of?(self.begin, Numeric) ||
+        Primitive.object_kind_of?(self.end, Numeric) ||
+        Primitive.object_kind_of?(self.begin, Time) ||
+        Primitive.object_kind_of?(self.end, Time)
       cover? value
     else
       super
@@ -396,16 +396,16 @@ class Range
       raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' if block_given?
       return exclude_end? ? self.end - 1 : self.end
     end
-    return super if block_given? || (exclude_end? && !self.end.kind_of?(Numeric))
+    return super if block_given? || (exclude_end? && !Primitive.object_kind_of?(self.end, Numeric))
     return nil if Comparable.compare_int(self.end <=> self.begin) < 0
     return nil if exclude_end? && Comparable.compare_int(self.end <=> self.begin) == 0
     return self.end unless exclude_end?
 
-    unless self.end.kind_of?(Integer)
+    unless Primitive.object_kind_of?(self.end, Integer)
       raise TypeError, 'cannot exclude non Integer end value'
     end
 
-    unless self.begin.kind_of?(Integer)
+    unless Primitive.object_kind_of?(self.begin, Integer)
       raise TypeError, 'cannot exclude end value with non Integer begin value'
     end
 
@@ -509,7 +509,7 @@ class Range
   end
 
   def cover?(value)
-    if value.kind_of?(Range)
+    if Primitive.object_kind_of?(value, Range)
       Truffle::RangeOperations.range_cover?(self, value)
     else
       Truffle::RangeOperations.cover?(self, value)
@@ -518,13 +518,13 @@ class Range
 
   def size
     return Float::INFINITY if Primitive.nil? self.begin
-    return nil unless self.begin.kind_of?(Numeric)
+    return nil unless Primitive.object_kind_of?(self.begin, Numeric)
     return Float::INFINITY if Primitive.nil? self.end
 
     delta = self.end - self.begin
     return 0 if delta < 0
 
-    if self.begin.kind_of?(Float) || self.end.kind_of?(Float)
+    if Primitive.object_kind_of?(self.begin, Float) || Primitive.object_kind_of?(self.end, Float)
       return delta if delta == Float::INFINITY
 
       err = (self.begin.abs + self.end.abs + delta.abs) * Float::EPSILON
@@ -548,7 +548,7 @@ class Range
   alias_method :collect, :map
 
   private def to_a_internal # MODIFIED called from java to_a
-    return to_a_from_enumerable unless self.begin.kind_of? Integer and self.end.kind_of? Integer
+    return to_a_from_enumerable unless Primitive.object_kind_of?(self.begin, Integer) and Primitive.object_kind_of?(self.end, Integer)
 
     fin = self.end
     fin += 1 unless exclude_end?

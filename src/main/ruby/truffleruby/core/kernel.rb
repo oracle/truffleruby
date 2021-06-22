@@ -173,7 +173,7 @@ module Kernel
   module_function :StringValue
 
   def `(str) #`
-    str = StringValue(str) unless str.kind_of?(String)
+    str = StringValue(str) unless Primitive.object_kind_of?(str, String)
 
     output = IO.popen(str) { |io| io.read }
 
@@ -349,7 +349,7 @@ module Kernel
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if modules.empty?
 
     modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
@@ -455,7 +455,7 @@ module Kernel
 
     path = Truffle::Type.coerce_to_path obj
 
-    if path.kind_of? String and path.start_with? '|'
+    if Primitive.object_kind_of?(path, String) and path.start_with? '|'
       return IO.popen(path[1..-1], *rest, &block)
     end
 

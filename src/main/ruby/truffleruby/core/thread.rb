@@ -162,7 +162,7 @@ class Thread
   end
 
   def priority=(priority)
-    Kernel.raise TypeError, 'priority must be an Integer' unless priority.kind_of? Integer
+    Kernel.raise TypeError, 'priority must be an Integer' unless Primitive.object_kind_of?(priority, Integer)
     priority = -3 if priority < -3
     priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority+3]
@@ -349,13 +349,13 @@ class ConditionVariable
       timeout = Primitive.rb_num2long(timeout)
     end
 
-    if defined?(::Mutex_m) && mutex.kind_of?(::Mutex_m)
+    if defined?(::Mutex_m) && Primitive.object_kind_of?(mutex, ::Mutex_m)
       raw_mutex = mutex.instance_variable_get(:@_mutex)
     else
       raw_mutex = mutex
     end
 
-    raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless raw_mutex.kind_of? Mutex
+    raise ArgumentError, "#{mutex} must be a Mutex or Mutex_m" unless Primitive.object_kind_of?(raw_mutex, Mutex)
 
     Primitive.condition_variable_wait(self, raw_mutex, timeout)
   end

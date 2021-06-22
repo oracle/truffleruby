@@ -29,7 +29,7 @@ module Truffle
         args.each do |arg|
           if arg.equal? nil
             str = ''
-          elsif arg.kind_of?(String)
+          elsif Primitive.object_kind_of?(arg, String)
             # might be a Foreign String we need to convert
             str = arg.to_str
           elsif (ary = Truffle::Type.rb_check_convert_type(arg, Array, :to_ary))

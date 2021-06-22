@@ -248,7 +248,7 @@ class Float < Numeric
   end
 
   def coerce(other)
-    other = Float(other) unless other.kind_of? Float
+    other = Float(other) unless Primitive.object_kind_of?(other, Float)
     [other, self]
   end
 

@@ -224,7 +224,7 @@ class Dir
     end
 
     def glob(pattern, flags=0, base: nil, &block)
-      if pattern.kind_of? Array
+      if Primitive.object_kind_of?(pattern, Array)
         patterns = pattern
       else
         pattern = Truffle::Type.coerce_to_path(pattern, false)

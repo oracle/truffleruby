@@ -138,9 +138,9 @@ module Truffle
         md2 == nil
       elsif md2 == nil
         false
-      elsif md1.kind_of?(Exception)
+      elsif Primitive.object_kind_of?(md1, Exception)
         md1.class == md2.class
-      elsif md2.kind_of?(Exception)
+      elsif Primitive.object_kind_of?(md2, Exception)
         false
       else
         if md1.size != md2.size
@@ -158,7 +158,7 @@ module Truffle
     def self.print_match_data(md)
       if md == nil
         $stderr.puts '    NO MATCH'
-      elsif md.kind_of?(Exception)
+      elsif Primitive.object_kind_of?(md, Exception)
         $stderr.puts "    EXCEPTION - #{md}"
       else
         md.size.times do |x|
@@ -171,7 +171,7 @@ module Truffle
     end
 
     def self.return_match_data(md)
-      if md.kind_of?(Exception)
+      if Primitive.object_kind_of?(md, Exception)
         raise md
       else
         md

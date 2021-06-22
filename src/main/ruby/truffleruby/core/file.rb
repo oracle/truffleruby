@@ -1107,8 +1107,8 @@ class File < IO
       atime ||= now
       mtime ||= now
     end
-    atime = Time.at(atime) unless atime.kind_of?(Time)
-    mtime = Time.at(mtime) unless mtime.kind_of?(Time)
+    atime = Time.at(atime) unless Primitive.object_kind_of?(atime, Time)
+    mtime = Time.at(mtime) unless Primitive.object_kind_of?(mtime, Time)
     paths.each do |path|
       path = Truffle::Type.coerce_to_path(path)
       n = POSIX.truffleposix_utimes(path, atime.to_i, atime.usec,
@@ -1188,7 +1188,7 @@ class File < IO
   end
 
   def initialize(path_or_fd, mode=nil, perm=undefined, options=undefined)
-    if path_or_fd.kind_of? Integer
+    if Primitive.object_kind_of?(path_or_fd, Integer)
       super(path_or_fd, mode, options)
       @path = nil
     else

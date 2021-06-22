@@ -89,7 +89,7 @@ class Integer < Numeric
   end
 
   def coerce(other)
-    if other.kind_of? Integer
+    if Primitive.object_kind_of?(other, Integer)
       return [other, self]
     end
 
@@ -110,7 +110,7 @@ class Integer < Numeric
   end
 
   def fdiv(n)
-    if n.kind_of?(Integer)
+    if Primitive.object_kind_of?(n, Integer)
       to_f / n
     else
       redo_coerced :fdiv, n
@@ -208,7 +208,7 @@ class Integer < Numeric
 
       f = 10 ** ndigits
 
-      if kind_of? Integer and f.kind_of? Integer
+      if kind_of? Integer and Primitive.object_kind_of?(f, Integer)
         x = self < 0 ? -self : self
         case half
         when :up, nil
@@ -226,7 +226,7 @@ class Integer < Numeric
         return x
       end
 
-      return 0 if f.kind_of? Float
+      return 0 if Primitive.object_kind_of?(f, Float)
 
       h = f / 2
       r = self % f
@@ -241,7 +241,7 @@ class Integer < Numeric
   end
 
   def gcd(other)
-    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
+    raise TypeError, "Expected Integer but got #{other.class}" unless Primitive.object_kind_of?(other, Integer)
     min = self.abs
     max = other.abs
     while min > 0
@@ -269,7 +269,7 @@ class Integer < Numeric
   end
 
   def lcm(other)
-    raise TypeError, "Expected Integer but got #{other.class}" unless other.kind_of?(Integer)
+    raise TypeError, "Expected Integer but got #{other.class}" unless Primitive.object_kind_of?(other, Integer)
     if self.zero? or other.zero?
       0
     else

@@ -59,9 +59,9 @@ module Signal
   @handlers = {}
 
   def self.trap(signal, handler=nil, &block)
-    signal = signal.to_s if signal.kind_of?(Symbol)
+    signal = signal.to_s if Primitive.object_kind_of?(signal, Symbol)
 
-    if signal.kind_of?(String)
+    if Primitive.object_kind_of?(signal, String)
       original_signal = signal
 
       if signal.start_with? 'SIG'
@@ -83,7 +83,7 @@ module Signal
     end
 
     handler ||= block
-    handler = handler.to_s if handler.kind_of?(Symbol)
+    handler = handler.to_s if Primitive.object_kind_of?(handler, Symbol)
 
     case handler
     when 'DEFAULT', 'SIG_DFL'
