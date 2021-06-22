@@ -73,7 +73,7 @@ module RbConfig
 
   # Determine the various flags for native compilation
   optflags = ''
-  debugflags = "-DTRUFFLERUBY_ABI_VERSION=#{ruby_abi_version}"
+  debugflags = ''
   warnflags = [
     '-Wimplicit-function-declaration', # To make missing C ext functions clear
     '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
@@ -84,7 +84,7 @@ module RbConfig
     '-ferror-limit=500'
   ]
 
-  defs = ''
+  defs = "-DTRUFFLERUBY_ABI_VERSION=#{ruby_abi_version}"
   cppflags = ''
   ldflags = ''
   dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress' : ''
@@ -110,7 +110,7 @@ module RbConfig
   if Truffle::Boot.get_option 'building-core-cexts'
     libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
 
-    relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
+    relative_debug_paths = " -fdebug-prefix-map=#{ruby_home}=."
     cppflags << relative_debug_paths
 
     warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions

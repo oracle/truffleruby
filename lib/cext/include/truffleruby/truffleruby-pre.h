@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+RUBY_SYMBOL_EXPORT_BEGIN
+
 #define TRUFFLERUBY
 
 #include <graalvm/llvm/polyglot.h>
@@ -53,6 +55,9 @@ POLYGLOT_DECLARE_TYPE(VALUE)
 extern void* rb_tr_cext;
 #define RUBY_CEXT rb_tr_cext
 
+#ifndef TRUFFLERUBY_ABI_VERSION
+#error "TRUFFLERUBY_ABI_VERSION must be defined when compiling native extensions. Does the extension override CPPFLAGS or DEFS?"
+#endif
 void* rb_tr_abi_version(void) __attribute__((weak));
 void* rb_tr_abi_version(void) {
   char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
@@ -74,6 +79,8 @@ extern ID (*rb_tr_sym2id)(VALUE sym);
 #ifndef offsetof
 #define offsetof(p_type,field) ((size_t)&(((p_type *)0)->field))
 #endif
+
+RUBY_SYMBOL_EXPORT_END
 
 #if defined(__cplusplus)
 }
