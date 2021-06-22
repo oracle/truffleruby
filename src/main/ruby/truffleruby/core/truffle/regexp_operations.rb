@@ -106,21 +106,18 @@ module Truffle
     end
 
     def self.match_in_region_tregex(re, str, from, to, at_start, start)
-      bail_out = to < from || to != str.bytesize || start != 0 || from < 0
-      if !bail_out
-        compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))
-        bail_out = compiled_regex.nil?
-      end
-      if !bail_out
-        str_bytes = StringOperations.raw_bytes(str)
-        regex_result = compiled_regex.execBytes(str_bytes, from)
-      end
-      if bail_out
+      if to < from || to != str.bytesize || start != 0 || from < 0 ||
+          Primitive.nil?((compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))))
         if WARN_TRUFFLE_REGEX_FALLBACK
           warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni", uplevel: 1
         end
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
-      elsif regex_result.isMatch
+      end
+
+      str_bytes = StringOperations.raw_bytes(str)
+      regex_result = compiled_regex.execBytes(str_bytes, from)
+
+      if regex_result.isMatch
         starts = []
         ends = []
         compiled_regex.groupCount.times do |pos|
