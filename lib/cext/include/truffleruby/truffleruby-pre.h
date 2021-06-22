@@ -55,6 +55,9 @@ POLYGLOT_DECLARE_TYPE(VALUE)
 extern void* rb_tr_cext;
 #define RUBY_CEXT rb_tr_cext
 
+#ifndef TRUFFLERUBY_ABI_VERSION
+#error "TRUFFLERUBY_ABI_VERSION must be defined when compiling native extensions. Does the extension override CPPFLAGS or DEFS?"
+#endif
 void* rb_tr_abi_version(void) __attribute__((weak));
 void* rb_tr_abi_version(void) {
   char* abi_version = STRINGIZE(TRUFFLERUBY_ABI_VERSION);
