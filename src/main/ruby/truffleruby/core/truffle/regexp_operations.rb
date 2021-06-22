@@ -97,7 +97,7 @@ module Truffle
       if self.results_match?(md1, md2)
         return self.return_match_data(md1)
       else
-        $stderr.puts "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) gave"
+        $stderr.puts match_args_to_string(re, str, from, to, at_start, start, 'gave')
         print_match_data(md1)
         $stderr.puts 'but we expected'
         print_match_data(md2)
@@ -129,7 +129,11 @@ module Truffle
     end
 
     def self.warn_fallback(re, str, from, to, at_start, start)
-      warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni", uplevel: 1
+      warn match_args_to_string(re, str, from, to, at_start, start, 'cannot be run as a Truffle regexp and fell back to Joni'), uplevel: 1
+    end
+
+    def self.match_args_to_string(re, str, from, to, at_start, start, suffix)
+      "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) #{suffix}"
     end
 
     def self.results_match?(md1, md2)
