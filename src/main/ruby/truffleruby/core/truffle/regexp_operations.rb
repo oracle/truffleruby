@@ -108,9 +108,7 @@ module Truffle
     def self.match_in_region_tregex(re, str, from, to, at_start, start)
       if to < from || to != str.bytesize || start != 0 || from < 0 ||
           Primitive.nil?((compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))))
-        if WARN_TRUFFLE_REGEX_FALLBACK
-          warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni", uplevel: 1
-        end
+        warn_fallback(re, str, from, to, at_start, start) if WARN_TRUFFLE_REGEX_FALLBACK
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       end
 
@@ -128,6 +126,10 @@ module Truffle
       else
         nil
       end
+    end
+
+    def self.warn_fallback(re, str, from, to, at_start, start)
+      warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni", uplevel: 1
     end
 
     def self.results_match?(md1, md2)
