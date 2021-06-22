@@ -289,10 +289,7 @@ class MatchData
   end
 
   def offset(idx)
-    out = []
-    out << self.begin(idx)
-    out << self.end(idx)
-    out
+    [self.begin(idx), self.end(idx)]
   end
 
   def ==(other)
