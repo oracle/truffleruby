@@ -55,7 +55,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -257,56 +256,61 @@ public class TruffleRegexpNodes {
 
         @Specialization
         @TruffleBoundary
-        protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding,
-                @CachedLibrary(limit = "2") InteropLibrary libInterop) {
-            return re.tregexCache.getOrCreate(atStart, encoding.encoding, (sticky, enc) -> {
-                String processedRegexpSource;
-                Encoding[] fixedEnc = new Encoding[]{ null };
-                RopeBuilder ropeBuilder = null;
-                try {
-                    ropeBuilder = ClassicRegexp
-                            .preprocess(
-                                    re.source,
-                                    enc,
-                                    fixedEnc,
-                                    RegexpSupport.ErrorMode.RAISE);
-                } catch (DeferredRaiseException dre) {
-                    throw dre.getException(getContext());
-                }
-                Rope rope = ropeBuilder.toRope();
-                try {
-                    processedRegexpSource = RopeOperations.decodeRope(rope);
-                } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
-                    // Some strings cannot be converted to Java strings, e.g. strings with the
-                    // BINARY encoding containing characters higher than 127.
-                    // Also, some charsets might not be supported on the JVM and therefore
-                    // a conversion to j.l.String might be impossible.
-                    return nil;
-                }
-
-                String flags = optionsToFlags(re.options, sticky);
-
-                String tRegexEncoding = toTRegexEncoding(enc);
-                if (tRegexEncoding == null) {
-                    return Nil.INSTANCE;
-                }
-
-                String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
-                Source regexSource = Source
-                        .newBuilder("regex", regex, "Regexp")
-                        .mimeType("application/tregex")
-                        .internal(true)
-                        .build();
-                Object compiledRegex = getContext().getEnv().parseInternal(regexSource).call();
-                if (libInterop.isNull(compiledRegex)) {
-                    return nil;
-                } else {
-                    return compiledRegex;
-                }
-            });
+        protected Object tRegexCompile(RubyRegexp re, boolean atStart, RubyEncoding encoding) {
+            return re.tregexCache.getOrCreate(
+                    atStart,
+                    encoding.encoding,
+                    (atStart_, enc) -> compileTRegex(re, atStart_, enc));
         }
 
-        private String optionsToFlags(RegexpOptions options, boolean sticky) {
+        @TruffleBoundary
+        private Object compileTRegex(RubyRegexp re, boolean atStart, Encoding enc) {
+            String processedRegexpSource;
+            Encoding[] fixedEnc = new Encoding[]{ null };
+            final RopeBuilder ropeBuilder;
+            try {
+                ropeBuilder = ClassicRegexp
+                        .preprocess(
+                                re.source,
+                                enc,
+                                fixedEnc,
+                                RegexpSupport.ErrorMode.RAISE);
+            } catch (DeferredRaiseException dre) {
+                throw dre.getException(getContext());
+            }
+            Rope rope = ropeBuilder.toRope();
+            try {
+                processedRegexpSource = RopeOperations.decodeRope(rope);
+            } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
+                // Some strings cannot be converted to Java strings, e.g. strings with the
+                // BINARY encoding containing characters higher than 127.
+                // Also, some charsets might not be supported on the JVM and therefore
+                // a conversion to j.l.String might be impossible.
+                return nil;
+            }
+
+            String flags = optionsToFlags(re.options, atStart);
+
+            String tRegexEncoding = toTRegexEncoding(enc);
+            if (tRegexEncoding == null) {
+                return nil;
+            }
+
+            String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
+            Source regexSource = Source
+                    .newBuilder("regex", regex, "Regexp")
+                    .mimeType("application/tregex")
+                    .internal(true)
+                    .build();
+            Object compiledRegex = getContext().getEnv().parseInternal(regexSource).call();
+            if (InteropLibrary.getUncached().isNull(compiledRegex)) {
+                return nil;
+            } else {
+                return compiledRegex;
+            }
+        }
+
+        private String optionsToFlags(RegexpOptions options, boolean atStart) {
             StringBuilder flags = new StringBuilder(4);
             if (options.isMultiline()) {
                 flags.append('m');
@@ -317,7 +321,7 @@ public class TruffleRegexpNodes {
             if (options.isExtended()) {
                 flags.append('x');
             }
-            if (sticky) {
+            if (atStart) {
                 flags.append('y');
             }
             return flags.toString();

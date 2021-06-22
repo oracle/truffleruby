@@ -27,10 +27,10 @@ public class TRegexCache {
         this.compiledRegexCache = new ConcurrentHashMap<>();
     }
 
-    public Object getOrCreate(boolean sticky, Encoding encoding, BiFunction<Boolean, Encoding, Object> function) {
+    public Object getOrCreate(boolean atStart, Encoding encoding, BiFunction<Boolean, Encoding, Object> function) {
         return ConcurrentOperations.getOrCompute(
                 compiledRegexCache,
-                Pair.create(sticky, encoding),
+                Pair.create(atStart, encoding),
                 (key) -> function.apply(key.getLeft(), key.getRight()));
     }
 }
