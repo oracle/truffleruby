@@ -2019,6 +2019,7 @@ module Commands
          '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
          '--java-distribution', jdk_name,
          '--to', CACHE_EXTRA_DIR,
+         '--alias', java_home, # ensure the JDK ends up in the path we expect
          **options
     end
 
