@@ -215,8 +215,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile hasValueProfile,
                 @Cached LogicalClassNode logicalClassNode) {
-            final Object source = matchData.source;
-            final Rope sourceRope = strings.getRope(source);
+
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(index < 0)) {
                 index += region.beg.length;
@@ -225,8 +224,11 @@ public abstract class MatchDataNodes {
             if (indexOutOfBoundsProfile.profile((index < 0) || (index >= region.beg.length))) {
                 return nil;
             } else {
+                final Object source = matchData.source;
+                final Rope sourceRope = strings.getRope(source);
                 final int start = region.beg[index];
                 final int end = region.end[index];
+
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
@@ -317,10 +319,13 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         protected static NameEntry findNameEntry(RubyRegexp regexp, RubySymbol symbol) {
             Regex regex = regexp.regex;
-            Rope rope = symbol.getRope();
+
             if (regex.numberOfNames() > 0) {
+                Rope rope = symbol.getRope();
+
                 for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
                     final NameEntry e = i.next();
+
                     if (bytesEqual(rope.getBytes(), rope.byteLength(), e.name, e.nameP, e.nameEnd)) {
                         return e;
                     }
@@ -402,13 +407,12 @@ public abstract class MatchDataNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyMatchData.
 
-            final Rope matchDataSourceRope = strings.getRope(matchData.source);
             final int begin = matchData.region.beg[index];
-
             if (negativeBeginProfile.profile(begin < 0)) {
                 return nil;
             }
 
+            final Rope matchDataSourceRope = strings.getRope(matchData.source);
             if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
                 return getCharOffsets(matchData, matchDataSourceRope).beg[index];
             }
@@ -488,13 +492,12 @@ public abstract class MatchDataNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyMatchData.
 
-            final Rope matchDataSourceRope = strings.getRope(matchData.source);
             final int end = matchData.region.end[index];
-
             if (negativeEndProfile.profile(end < 0)) {
                 return nil;
             }
 
+            final Rope matchDataSourceRope = strings.getRope(matchData.source);
             if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
                 return getCharOffsets(matchData, matchDataSourceRope).end[index];
             }
