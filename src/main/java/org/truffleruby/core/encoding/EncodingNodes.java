@@ -113,8 +113,8 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "firstEncoding == secondEncoding")
-        protected RubyEncoding negotiateSameEncodingUncached(Rope first, RubyEncoding firstEncoding, Rope second,
-                RubyEncoding secondEncoding) {
+        protected RubyEncoding negotiateSameEncodingUncached(
+                Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding) {
             assert first.encoding == firstEncoding.encoding && second.encoding == secondEncoding.encoding;
             return firstEncoding;
         }
@@ -129,8 +129,8 @@ public abstract class EncodingNodes {
                         "codeRangeNode.execute(first) == firstCodeRange",
                         "codeRangeNode.execute(second) == secondCodeRange" },
                 limit = "getCacheLimit()")
-        protected RubyEncoding negotiateRopeRopeCached(Rope first, RubyEncoding firstEncoding, Rope second,
-                RubyEncoding secondEncoding,
+        protected RubyEncoding negotiateRopeRopeCached(
+                Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding,
                 @Cached("first.isEmpty()") boolean isFirstEmpty,
                 @Cached("second.isEmpty()") boolean isSecondEmpty,
                 @Cached("first.getCodeRange()") CodeRange firstCodeRange,
@@ -144,8 +144,8 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "firstEncoding != secondEncoding", replaces = "negotiateRopeRopeCached")
-        protected RubyEncoding negotiateRopeRopeUncached(Rope first, RubyEncoding firstEncoding, Rope second,
-                RubyEncoding secondEncoding) {
+        protected RubyEncoding negotiateRopeRopeUncached(
+                Rope first, RubyEncoding firstEncoding, Rope second, RubyEncoding secondEncoding) {
             assert first.encoding == firstEncoding.encoding && second.encoding == secondEncoding.encoding;
             return compatibleEncodingForRopes(first, firstEncoding, second, secondEncoding);
         }
@@ -828,16 +828,6 @@ public abstract class EncodingNodes {
         protected RubyEncoding checkEncoding(Object first, Object second,
                 @Cached BranchProfile errorProfile) {
             final RubyEncoding negotiatedEncoding = executeNegotiate(first, second);
-            if (negotiatedEncoding == null && first instanceof RubyString && second instanceof RubyString) {
-                RubyString str1 = (RubyString) first;
-                RubyString str2 = (RubyString) second;
-                if (str1.encoding == str2.encoding) {
-                    System.out.println("here");
-                }
-
-            }
-
-            final RubyEncoding negotiatedEncodingAgain = executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();

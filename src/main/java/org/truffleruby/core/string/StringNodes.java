@@ -3489,9 +3489,9 @@ public abstract class StringNodes {
 
         public abstract RubyString executeStringAppend(RubyString string, Object other);
 
-        @Specialization(limit = "2")
+        @Specialization
         protected RubyString stringAppend(RubyString string, Object other,
-                @CachedLibrary("other") RubyStringLibrary otherStringLibrary) {
+                @CachedLibrary(limit = "2") RubyStringLibrary otherStringLibrary) {
             final Rope result = stringAppendNode.executeStringAppend(string, other);
             string.setRope(result);
             string.setEncoding(getContext().getEncodingManager().getRubyEncoding(result.getEncoding()));
