@@ -9,14 +9,10 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
-import org.truffleruby.core.array.library.ObjectArrayStore;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -32,7 +28,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
  * <li>The element(s) added do not match the strategy.
  * <li>The being-built storage no longer matches the strategy, due to the node having been replaced by another thread or
  * by another usage (e.g. recursive) of this ArrayBuilderNode. */
-public abstract class ArrayBuilderNode extends RubyBaseNode {
+public abstract class ArrayBuilderNode extends RubyContextNode {
 
     public static class BuilderState {
         protected int capacity;
@@ -45,17 +41,8 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
-    private static ArrayBuilderUncachedNode UNCACHED;
-
     public static ArrayBuilderNode create() {
         return new ArrayBuilderProxyNode();
-    }
-
-    public static ArrayBuilderNode getUncached() {
-        if (UNCACHED == null) {
-            UNCACHED = new ArrayBuilderUncachedNode();
-        }
-        return UNCACHED;
     }
 
     public abstract BuilderState start();
@@ -67,73 +54,6 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
     public abstract void appendValue(BuilderState state, int index, Object value);
 
     public abstract Object finish(BuilderState state, int length);
-
-    public static class ArrayBuilderUncachedNode extends ArrayBuilderNode {
-
-        @Override
-        public BuilderState start() {
-            return new BuilderState(ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(0), 0);
-        }
-
-        @Override
-        public BuilderState start(int length) {
-            return new BuilderState(ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length), length);
-        }
-
-        @TruffleBoundary
-        @Override
-        public void appendArray(BuilderState state, int index, RubyArray other) {
-            assert state.nextIndex == index;
-            final int otherSize = other.size;
-            if (otherSize == 0) {
-                return;
-            }
-
-            final ArrayStoreLibrary library = ArrayStoreLibrary.getFactory().getUncached(state.store);
-            final int neededSize = index + otherSize;
-
-            final int currentCapacity = state.capacity;
-            final int neededCapacity = neededSize > currentCapacity
-                    ? ArrayUtils.capacity(RubyLanguage.getCurrentLanguage(), currentCapacity, neededSize)
-                    : currentCapacity;
-
-            final Object newStore = ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(neededCapacity);
-            library.copyContents(state.store, 0, newStore, 0, index);
-
-            final Object otherStore = other.store;
-            library.copyContents(otherStore, 0, newStore, index, otherSize);
-
-            state.store = newStore;
-            state.capacity = neededCapacity;
-            state.nextIndex = state.nextIndex + otherSize;
-        }
-
-        @TruffleBoundary
-        @Override
-        public void appendValue(BuilderState state, int index, Object value) {
-            assert state.nextIndex == index;
-            final ArrayStoreLibrary library = ArrayStoreLibrary.getFactory().getUncached(state.store);
-
-            final int currentCapacity = state.capacity;
-            final int neededCapacity = index > currentCapacity
-                    ? ArrayUtils.capacityForOneMore(RubyLanguage.getCurrentLanguage(), currentCapacity)
-                    : currentCapacity;
-
-            final Object newStore = ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(neededCapacity);
-            library.copyContents(state.store, 0, newStore, 0, index);
-            library.write(newStore, index, value);
-
-            state.store = newStore;
-            state.capacity = neededCapacity;
-            state.nextIndex++;
-        }
-
-        @Override
-        public Object finish(BuilderState state, int length) {
-            assert length == state.nextIndex;
-            return state.store;
-        }
-    }
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
