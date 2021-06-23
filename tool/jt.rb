@@ -2017,18 +2017,16 @@ module Commands
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
-        mx_env = 'jvm-ee'
-        options = { java_home: install_jvmci('Downloading OpenJDK11 JVMCI to bootstrap', false, jdk_version: 11) }
-      else
-        mx_env = 'jvm'
-        options = { java_home: :none }
+        clone_enterprise
+        jdk_binaries = File.expand_path '../graal-enterprise/jdk-binaries.json', TRUFFLERUBY_DIR
       end
-      mx '--env', mx_env, '-y', 'fetch-jdk',
+      mx '-y', 'fetch-jdk',
          '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
+         *(['--jdk-binaries', jdk_binaries] if jdk_binaries),
          '--java-distribution', jdk_name,
          '--to', CACHE_EXTRA_DIR,
          '--alias', java_home, # ensure the JDK ends up in the path we expect
-         **options
+         java_home: :none # avoid recursion
     end
 
     java_home = "#{java_home}/Contents/Home" if darwin?
