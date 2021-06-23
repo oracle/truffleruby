@@ -97,7 +97,7 @@ module Truffle
       if self.results_match?(md1, md2)
         return self.return_match_data(md1)
       else
-        $stderr.puts "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) gave"
+        $stderr.puts match_args_to_string(re, str, from, to, at_start, start, 'gave')
         print_match_data(md1)
         $stderr.puts 'but we expected'
         print_match_data(md2)
@@ -106,21 +106,16 @@ module Truffle
     end
 
     def self.match_in_region_tregex(re, str, from, to, at_start, start)
-      bail_out = to < from || to != str.bytesize || start != 0 || from < 0
-      if !bail_out
-        compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))
-        bail_out = compiled_regex.nil?
-      end
-      if !bail_out
-        str_bytes = StringOperations.raw_bytes(str)
-        regex_result = compiled_regex.execBytes(str_bytes, from)
-      end
-      if bail_out
-        if WARN_TRUFFLE_REGEX_FALLBACK
-          warn "match_in_region_tregex(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{encoding_conversion}, #{start}) can't be run as a Truffle regexp and fell back to Joni", uplevel: 1
-        end
+      if to < from || to != str.bytesize || start != 0 || from < 0 ||
+          Primitive.nil?((compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))))
+        warn_fallback(re, str, from, to, at_start, start) if WARN_TRUFFLE_REGEX_FALLBACK
         return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
-      elsif regex_result.isMatch
+      end
+
+      str_bytes = StringOperations.raw_bytes(str)
+      regex_result = compiled_regex.execBytes(str_bytes, from)
+
+      if regex_result.isMatch
         starts = []
         ends = []
         compiled_regex.groupCount.times do |pos|
@@ -131,6 +126,14 @@ module Truffle
       else
         nil
       end
+    end
+
+    def self.warn_fallback(re, str, from, to, at_start, start)
+      warn match_args_to_string(re, str, from, to, at_start, start, 'cannot be run as a Truffle regexp and fell back to Joni'), uplevel: 1
+    end
+
+    def self.match_args_to_string(re, str, from, to, at_start, start, suffix)
+      "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) #{suffix}"
     end
 
     def self.results_match?(md1, md2)
