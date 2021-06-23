@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.RubyHash;
@@ -98,7 +99,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
 
         @Override
-        public void accept(VirtualFrame frame, int index, Object key, Object value, Object state) {
+        public void accept(Frame frame, int index, Object key, Object value, Object state) {
             if (isSymbolProfile.profile(key instanceof RubySymbol)) {
                 if (!keywordAllowed(key)) {
                     unknownKeywordProfile.enter();

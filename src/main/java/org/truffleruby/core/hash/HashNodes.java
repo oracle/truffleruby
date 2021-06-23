@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
@@ -304,7 +305,7 @@ public abstract class HashNodes {
         }
 
         @Override
-        public void accept(VirtualFrame frame, int index, Object key, Object value, Object state) {
+        public void accept(Frame frame, int index, Object key, Object value, Object state) {
             yieldPair.execute((RubyProc) state, key, value);
         }
     }
@@ -428,7 +429,7 @@ public abstract class HashNodes {
         }
 
         @Override
-        public void accept(VirtualFrame frame, int index, Object key, Object value, Object state) {
+        public void accept(Frame frame, int index, Object key, Object value, Object state) {
             final MapState mapState = (MapState) state;
             arrayBuilder.appendValue(mapState.builderState, index, yieldPair.execute(mapState.block, key, value));
         }

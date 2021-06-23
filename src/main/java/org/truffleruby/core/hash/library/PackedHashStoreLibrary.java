@@ -309,7 +309,7 @@ public class PackedHashStoreLibrary {
             int i = 0;
             try {
                 for (; loopProfile.inject(i < cachedSize); i++) {
-                    callback.accept((VirtualFrame) frame, i, getKey(store, i), getValue(store, i), state);
+                    callback.accept(frame, i, getKey(store, i), getValue(store, i), state);
                 }
             } finally {
                 // The node is used to get the root node, so fine to use a cached node here.

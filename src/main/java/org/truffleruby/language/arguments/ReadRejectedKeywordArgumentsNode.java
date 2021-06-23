@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
@@ -32,7 +33,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
     }
 
     @Override
-    public void accept(VirtualFrame frame, int index, Object key, Object value, Object rejectedKwargs) {
+    public void accept(Frame frame, int index, Object key, Object value, Object rejectedKwargs) {
         if (!isSymbolProfile.profile(key instanceof RubySymbol)) {
             final RubyHash hash = (RubyHash) rejectedKwargs;
             hashes.set(hash.store, hash, key, value, false);

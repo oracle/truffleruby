@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
@@ -54,7 +55,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     }
 
     @Override
-    public void accept(VirtualFrame frame, int index, Object key, Object value, Object kwRest) {
+    public void accept(Frame frame, int index, Object key, Object value, Object kwRest) {
         if (!keywordExcluded(key)) {
             final RubyHash hash = (RubyHash) kwRest;
             hashes.set(hash.store, hash, key, value, false);

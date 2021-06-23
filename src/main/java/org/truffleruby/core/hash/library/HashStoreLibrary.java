@@ -15,7 +15,6 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
@@ -112,7 +111,7 @@ public abstract class HashStoreLibrary extends Library {
     public abstract boolean verify(Object store, RubyHash hash);
 
     public interface EachEntryCallback {
-        void accept(VirtualFrame frame, int index, Object key, Object value, Object state);
+        void accept(Frame frame, int index, Object key, Object value, Object state);
     }
 
     /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,

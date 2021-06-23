@@ -324,8 +324,7 @@ public class BucketsHashStore {
     protected Object eachEntry(Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
             // We only use this to get hold of the root node. No memory overhead because it's shared.
             @Cached @Shared("lookup") LookupEntryNode witness,
-            @Cached LoopConditionProfile loopProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached LoopConditionProfile loopProfile) {
 
         assert verify(hash);
         loopProfile.profileCounted(hash.size);
@@ -333,7 +332,7 @@ public class BucketsHashStore {
         Entry entry = hash.firstInSequence;
         try {
             while (loopProfile.inject(entry != null)) {
-                callback.accept((VirtualFrame) frame, i++, entry.getKey(), entry.getValue(), state);
+                callback.accept(frame, i++, entry.getKey(), entry.getValue(), state);
                 entry = entry.getNextInSequence();
             }
         } finally {
