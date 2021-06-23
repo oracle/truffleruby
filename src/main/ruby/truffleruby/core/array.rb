@@ -125,7 +125,7 @@ class Array
     end
 
     return true if equal?(other)
-    unless other.kind_of? Array
+    unless Primitive.object_kind_of?(other, Array)
       return false unless other.respond_to? :to_ary
       return other == self
     end
@@ -147,7 +147,7 @@ class Array
 
   def assoc(obj)
     each do |x|
-      if x.kind_of? Array and x.first == obj
+      if Primitive.object_kind_of?(x, Array) and x.first == obj
         return x
       end
     end
@@ -325,7 +325,7 @@ class Array
     end
 
     return true if equal? other
-    return false unless other.kind_of?(Array)
+    return false unless Primitive.object_kind_of?(other, Array)
     return false if size != other.size
 
     Truffle::ThreadOperations.detect_pair_recursion self, other do
@@ -385,7 +385,7 @@ class Array
     if Primitive.undefined?(index) || !index
       left = 0
       right = size
-    elsif index.kind_of? Range
+    elsif Primitive.object_kind_of?(index, Range)
       raise TypeError, 'length invalid with range' unless Primitive.undefined?(length)
 
       left, length = Primitive.range_normalized_start_length(index, size)
@@ -797,7 +797,7 @@ class Array
 
   def rassoc(obj)
     each do |elem|
-      if elem.kind_of? Array and elem.at(1) == obj
+      if Primitive.object_kind_of?(elem, Array) and elem.at(1) == obj
         return elem
       end
     end
@@ -1242,7 +1242,7 @@ class Array
 
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
-      if elem.kind_of? Range
+      if Primitive.object_kind_of?(elem, Range)
         start, length = Primitive.range_normalized_start_length(elem, size)
         finish = start + length - 1
         next if start < 0
@@ -1522,7 +1522,7 @@ class Array
     Primitive.check_frozen self
 
     if Primitive.undefined? length
-      if start.kind_of? Range
+      if Primitive.object_kind_of?(start, Range)
         range = start
         out = self[range]
 

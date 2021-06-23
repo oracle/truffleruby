@@ -59,7 +59,7 @@ class File
     attr_reader :path
 
     def initialize(path_or_buffer)
-      if path_or_buffer.is_a?(Truffle::FFI::MemoryPointer)
+      if Primitive.object_kind_of?(path_or_buffer, Truffle::FFI::MemoryPointer)
         @buffer = path_or_buffer.read_array_of_uint64(UINT64_BUFFER_ELEMENTS)
         @buffer.concat(path_or_buffer.get_array_of_uint32(UINT64_BUFFER_ELEMENTS * 8, UINT32_BUFFER_ELEMENTS))
       else
@@ -233,7 +233,7 @@ class File
     end
 
     def <=>(other)
-      return nil unless other.is_a?(File::Stat)
+      return nil unless Primitive.object_kind_of?(other, File::Stat)
       self.mtime <=> other.mtime
     end
 

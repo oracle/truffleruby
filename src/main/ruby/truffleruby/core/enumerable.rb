@@ -47,7 +47,7 @@ module Enumerable
       end
       each do |val|
         key = block.yield(val)
-        if Primitive.nil?(key) || (key.is_a?(Symbol) && key.to_s[0, 1] == '_')
+        if Primitive.nil?(key) || (Primitive.object_kind_of?(key, Symbol) && key.to_s[0, 1] == '_')
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
           previous = nil
@@ -151,7 +151,7 @@ module Enumerable
 
       value = Truffle::Type.try_convert(result, Array, :to_ary) || result
 
-      if value.kind_of? Array
+      if Primitive.object_kind_of?(value, Array)
         array.concat value
       else
         array.push value

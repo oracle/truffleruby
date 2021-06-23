@@ -307,7 +307,7 @@ module Truffle
           when 2
             if obj[0] == :child
               fd = convert_to_fd obj[1], target
-              fd.kind_of?(Integer) ?  -(fd + 1) : fd
+              Primitive.object_kind_of?(fd, Integer) ?  -(fd + 1) : fd
             else
               open_file_for_child(obj[0], convert_file_mode(obj[1]), 0644)
             end

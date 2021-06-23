@@ -134,7 +134,7 @@ class Hash
 
   def eql_op(op, other)
     return true if self.equal? other
-    unless other.kind_of? Hash
+    unless Primitive.object_kind_of?(other, Hash)
       return false unless other.respond_to? :to_hash
       return other.send(op, self)
     end

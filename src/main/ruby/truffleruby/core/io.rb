@@ -137,7 +137,7 @@ class IO
     end
 
     def fill(io, max = DEFAULT_READ_SIZE)
-      io = io.to_io unless io.kind_of? IO
+      io = io.to_io unless Primitive.object_kind_of?(io, IO)
 
       count = Primitive.min(unused, max)
 
@@ -324,7 +324,7 @@ class IO
   def self.binwrite(file, string, *args)
     offset, opts = args
     opts ||= {}
-    if offset.is_a?(Hash)
+    if Primitive.object_kind_of?(offset, Hash)
       offset, opts = nil, offset
     end
 
@@ -351,13 +351,13 @@ class IO
     end
 
     def to_io(obj, mode)
-      if obj.kind_of? IO
+      if Primitive.object_kind_of?(obj, IO)
         flag = true
         io = obj
       else
         flag = false
 
-        if obj.kind_of? String
+        if Primitive.object_kind_of?(obj, String)
           io = File.open obj, mode
         elsif obj.respond_to? :to_path
           path = Truffle::Type.coerce_to obj, String, :to_path
@@ -379,8 +379,8 @@ class IO
     end
 
     def run
-      @from.__send__ :ensure_open_and_readable if @from.kind_of? IO
-      @to.__send__ :ensure_open_and_writable if @to.kind_of? IO
+      @from.__send__ :ensure_open_and_readable if Primitive.object_kind_of?(@from, IO)
+      @to.__send__ :ensure_open_and_writable if Primitive.object_kind_of?(@to, IO)
 
       if @offset
         if @from_io && !@from.instance_variable_get(:@pipe)
@@ -399,7 +399,7 @@ class IO
         # Use the buffer form here like MRI, since read/readpartial might be defined by the user
         while data = @from.__send__(@method, size, +'')
           @to.write data
-          @to.flush if @to.kind_of? IO
+          @to.flush if Primitive.object_kind_of?(@to, IO)
           bytes += data.bytesize
 
           break if @length && bytes >= @length
@@ -408,16 +408,16 @@ class IO
         nil # done reading
       end
 
-      @to.flush if @to.kind_of? IO
+      @to.flush if Primitive.object_kind_of?(@to, IO)
       bytes
     ensure
       if @from_io
         @from.pos = saved_pos if @offset
       else
-        @from.close if @from.kind_of? IO
+        @from.close if Primitive.object_kind_of?(@from, IO)
       end
 
-      @to.close if !@to_io and @to.kind_of?(IO)
+      @to.close if !@to_io and Primitive.object_kind_of?(@to, IO)
     end
   end
 
@@ -523,7 +523,7 @@ class IO
 
     offset, opts = args
     opts ||= {}
-    if offset.is_a?(Hash)
+    if Primitive.object_kind_of?(offset, Hash)
       offset, opts = nil, offset
     end
 
@@ -643,7 +643,7 @@ class IO
       autoclose = Primitive.as_boolean(options[:autoclose]) if options.key?(:autoclose)
     end
 
-    if mode.kind_of?(String)
+    if Primitive.object_kind_of?(mode, String)
       mode, external, internal = mode.split(':')
       raise ArgumentError, 'invalid access mode' unless mode
 
@@ -674,7 +674,7 @@ class IO
       if !external and !internal
         encoding = options[:encoding]
 
-        if encoding.kind_of? Encoding
+        if Primitive.object_kind_of?(encoding, Encoding)
           external = encoding
         elsif !Primitive.nil?(encoding)
           encoding = StringValue(encoding)
@@ -733,7 +733,7 @@ class IO
     cmd, mode = args
     mode ||= 'r'
 
-    if cmd.kind_of? Array
+    if Primitive.object_kind_of?(cmd, Array)
       if sub_env = Truffle::Type.try_convert(cmd.first, Hash, :to_hash)
         env = sub_env unless env
         cmd.shift
@@ -1017,7 +1017,7 @@ class IO
 
   def advise(advice, offset = 0, len = 0)
     raise IOError, 'stream is closed' if closed?
-    raise TypeError, 'advice must be a Symbol' unless advice.kind_of?(Symbol)
+    raise TypeError, 'advice must be a Symbol' unless Primitive.object_kind_of?(advice, Symbol)
 
     Truffle::Type.check_long(offset)
     Truffle::Type.check_long(len)
@@ -1472,7 +1472,7 @@ class IO
       arg = 0
     elsif arg == true
       arg = 1
-    elsif arg.kind_of? String
+    elsif Primitive.object_kind_of?(arg, String)
       raise NotImplementedError, 'cannot handle String'
     else
       arg = Primitive.rb_to_int arg
@@ -1502,7 +1502,7 @@ class IO
       real_arg = 0
     elsif arg == true
       real_arg = 1
-    elsif arg.kind_of? String
+    elsif Primitive.object_kind_of?(arg, String)
       # This could be faster.
       buffer_size = arg.bytesize
       # On BSD and Linux, we could read the buffer size out of the ioctl value.
@@ -1520,7 +1520,7 @@ class IO
     ret = Truffle::POSIX.ioctl(Primitive.io_fd(self), command, real_arg)
     Errno.handle if ret < 0
 
-    if arg.kind_of?(String)
+    if Primitive.object_kind_of?(arg, String)
       arg.replace buffer.read_string(buffer_size)
       buffer.free
     end
@@ -1978,11 +1978,11 @@ class IO
     if other.respond_to?(:to_io) # reopen(IO)
       flush
 
-      if other.kind_of? IO
+      if Primitive.object_kind_of?(other, IO)
         io = other
       else
         io = other.to_io
-        unless io.kind_of? IO
+        unless Primitive.object_kind_of?(io, IO)
           raise TypeError, '#to_io must return an instance of IO'
         end
       end
@@ -2124,7 +2124,7 @@ class IO
 
     unless Primitive.undefined? options
       # TODO: set the encoding options on the IO instance
-      if options and not options.kind_of? Hash
+      if options and not Primitive.object_kind_of?(options, Hash)
         _options = Truffle::Type.coerce_to options, Hash, :to_hash
       end
     end
@@ -2140,7 +2140,7 @@ class IO
       internal = StringValue(internal)
     end
 
-    if internal.kind_of? String
+    if Primitive.object_kind_of?(internal, String)
       return self if internal == '-'
       internal = Encoding.find internal
     end

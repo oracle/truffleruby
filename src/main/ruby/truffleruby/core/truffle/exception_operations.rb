@@ -22,7 +22,7 @@ module Truffle
 
         exception_class_object_expected! unless Primitive.object_kind_of?(exc, ::Exception)
         exc
-      elsif exc.kind_of? ::String
+      elsif Primitive.object_kind_of?(exc, ::String)
         ::RuntimeError.exception exc
       else
         exception_class_object_expected!

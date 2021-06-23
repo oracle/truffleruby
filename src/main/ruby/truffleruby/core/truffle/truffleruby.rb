@@ -17,11 +17,11 @@ module TruffleRuby
   class AtomicReference
 
     def compare_and_set(expected_value, new_value)
-      if expected_value.is_a?(Numeric)
+      if Primitive.object_kind_of?(expected_value, Numeric)
         loop do
           current_value = get
 
-          if current_value.is_a?(Numeric) && current_value == expected_value
+          if Primitive.object_kind_of?(current_value, Numeric) && current_value == expected_value
             if compare_and_set_reference(current_value, new_value)
               return true
             end

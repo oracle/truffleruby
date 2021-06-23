@@ -179,7 +179,7 @@ class String
   def partition(pattern=nil)
     return super() if Primitive.nil?(pattern) && block_given?
 
-    if pattern.kind_of? Regexp
+    if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.match(pattern, self)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m.to_s, m.post_match]
@@ -202,7 +202,7 @@ class String
   end
 
   def rpartition(pattern)
-    if pattern.kind_of? Regexp
+    if Primitive.object_kind_of?(pattern, Regexp)
       if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m[0], m.post_match]
@@ -439,7 +439,7 @@ class String
     end
 
     # TODO: replace this hack with transcoders
-    if options.kind_of? Hash
+    if Primitive.object_kind_of?(options, Hash)
       case options[:invalid]
       when :replace
         self.scrub!
@@ -679,14 +679,14 @@ class String
     else
       Primitive.check_frozen self
 
-      unless replacement.kind_of?(String)
+      unless Primitive.object_kind_of?(replacement, String)
         hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
       end
       use_yield = false
     end
 
-    pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+    pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless Primitive.object_kind_of?(pattern, Regexp)
     match = Truffle::RegexpOperations.match_from(pattern, self, 0)
 
     Primitive.regexp_last_match_set(Primitive.proc_special_variables(block), match) if block
@@ -705,7 +705,7 @@ class String
         if duped != self
           raise RuntimeError, 'string modified'
         end
-        val = val.to_s unless val.kind_of?(String)
+        val = val.to_s unless Primitive.object_kind_of?(val, String)
 
         Primitive.string_append(ret, val)
       else
@@ -729,7 +729,7 @@ class String
     if Primitive.undefined?(two)
       result = slice(one)
 
-      if one.kind_of? Regexp
+      if Primitive.object_kind_of?(one, Regexp)
         lm = $~
         self[one] = '' if result
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, lm)
@@ -739,7 +739,7 @@ class String
     else
       result = slice(one, two)
 
-      if one.kind_of? Regexp
+      if Primitive.object_kind_of?(one, Regexp)
         lm = $~
         self[one, two] = '' if result
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, lm)
@@ -970,7 +970,7 @@ class String
   end
 
   def match(pattern, pos=0)
-    pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
 
     result = if block_given?
                pattern.match self, pos do |match|
@@ -984,7 +984,7 @@ class String
   end
 
   def match?(pattern, pos=0)
-    pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
     pattern.match? self, pos
   end
 
@@ -1289,12 +1289,12 @@ class String
 
       start += size if start < 0
       if start < 0 or start > size
-        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if str.kind_of? Regexp
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.object_kind_of?(str, Regexp)
         return
       end
     end
 
-    if str.kind_of? Regexp
+    if Primitive.object_kind_of?(str, Regexp)
       Primitive.encoding_ensure_compatible self, str
 
       start = Primitive.string_byte_index_from_char_index(self, start)
@@ -1432,7 +1432,7 @@ class String
   end
 
   def %(args)
-    if args.is_a? Hash
+    if Primitive.object_kind_of?(args, Hash)
       sprintf(self, args)
     else
       result = Truffle::Type.rb_check_convert_type args, Array, :to_ary

@@ -137,11 +137,11 @@ class Time
   end
 
   def eql?(other)
-    other.kind_of?(Time) and tv_sec == other.tv_sec and tv_nsec == other.tv_nsec
+    Primitive.object_kind_of?(other, Time) and tv_sec == other.tv_sec and tv_nsec == other.tv_nsec
   end
 
   def <=>(other)
-    if other.kind_of? Time
+    if Primitive.object_kind_of?(other, Time)
       (tv_sec <=> other.tv_sec).nonzero? || (tv_nsec <=> other.tv_nsec)
     else
       r = (other <=> self)
@@ -184,7 +184,7 @@ class Time
   end
 
   def +(other)
-    raise TypeError, 'time + time?' if other.kind_of?(Time)
+    raise TypeError, 'time + time?' if Primitive.object_kind_of?(other, Time)
 
     case other = Truffle::Type.coerce_to_exact_num(other)
     when Integer
@@ -201,7 +201,7 @@ class Time
   end
 
   def -(other)
-    if other.kind_of?(Time)
+    if Primitive.object_kind_of?(other, Time)
       return (tv_sec - other.tv_sec) + ((tv_nsec - other.tv_nsec) * 0.000_000_001)
     end
 
@@ -355,7 +355,7 @@ class Time
       time = Primitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
       return time unless Primitive.undefined?(time)
 
-      if sec.kind_of?(String)
+      if Primitive.object_kind_of?(sec, String)
         sec = sec.to_i
       elsif nsec
         sec = Truffle::Type.coerce_to(sec || 0, Integer, :to_int)
@@ -406,7 +406,7 @@ class Time
         is_dst = is_dst ? 1 : 0
       end
 
-      if m.kind_of?(String) or m.respond_to?(:to_str)
+      if Primitive.object_kind_of?(m, String) or m.respond_to?(:to_str)
         m = StringValue(m)
         m = MonthValue[m.upcase] || m.to_i
 
@@ -415,13 +415,13 @@ class Time
         m = Truffle::Type.coerce_to(m || 1, Integer, :to_int)
       end
 
-      y   = y.kind_of?(String)   ? y.to_i   : Truffle::Type.coerce_to(y,        Integer, :to_int)
-      d   = d.kind_of?(String)   ? d.to_i   : Truffle::Type.coerce_to(d   || 1, Integer, :to_int)
-      hr  = hr.kind_of?(String)  ? hr.to_i  : Truffle::Type.coerce_to(hr  || 0, Integer, :to_int)
-      min = min.kind_of?(String) ? min.to_i : Truffle::Type.coerce_to(min || 0, Integer, :to_int)
+      y   = Primitive.object_kind_of?(y, String)   ? y.to_i   : Truffle::Type.coerce_to(y,        Integer, :to_int)
+      d   = Primitive.object_kind_of?(d, String)   ? d.to_i   : Truffle::Type.coerce_to(d   || 1, Integer, :to_int)
+      hr  = Primitive.object_kind_of?(hr, String)  ? hr.to_i  : Truffle::Type.coerce_to(hr  || 0, Integer, :to_int)
+      min = Primitive.object_kind_of?(min, String) ? min.to_i : Truffle::Type.coerce_to(min || 0, Integer, :to_int)
 
       nsec = nil
-      if usec.kind_of?(String)
+      if Primitive.object_kind_of?(usec, String)
         nsec = usec.to_i * 1000
       elsif usec
         nsec = (usec * 1000).to_i

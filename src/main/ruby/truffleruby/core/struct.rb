@@ -35,7 +35,7 @@ class Struct
 
   def self.new(klass_name, *attrs, keyword_init: false, &block)
     if klass_name
-      if klass_name.kind_of? Symbol # Truffle: added to avoid exception and match MRI
+      if Primitive.object_kind_of?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
         klass_name = nil
       else
@@ -54,7 +54,7 @@ class Struct
         a
       when String
         sym = a.to_sym
-        unless sym.kind_of? Symbol
+        unless Primitive.object_kind_of?(sym, Symbol)
           raise TypeError, "#to_sym didn't return a symbol"
         end
         sym
@@ -162,7 +162,7 @@ class Struct
     if self.class::KEYWORD_INIT
       return if args.empty?
 
-      if args.length > 1 || !args.first.is_a?(Hash)
+      if args.length > 1 || !Primitive.object_kind_of?(args.first, Hash)
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
       end
       kw_args = args.first
@@ -343,7 +343,7 @@ class Struct
 
   def deconstruct_keys(keys)
     return to_h if Primitive.nil?(keys)
-    raise TypeError, "wrong argument type #{Truffle::Type.object_class(keys)} (expected Array or nil)" unless keys.is_a?(Array)
+    raise TypeError, "wrong argument type #{Truffle::Type.object_class(keys)} (expected Array or nil)" unless Primitive.object_kind_of?(keys, Array)
     return {} if self.length < keys.length
 
     h = {}

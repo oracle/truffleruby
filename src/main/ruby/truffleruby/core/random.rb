@@ -101,7 +101,7 @@ class Random
   private :state
 
   def ==(other)
-    return false unless other.kind_of?(Random)
+    return false unless Primitive.object_kind_of?(other, Random)
     seed == other.seed
   end
 

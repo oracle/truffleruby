@@ -30,7 +30,7 @@ class Symbol
   include Comparable
 
   def <=>(other)
-    return unless other.kind_of? Symbol
+    return unless Primitive.object_kind_of?(other, Symbol)
 
     to_s <=> other.to_s
   end
@@ -40,13 +40,13 @@ class Symbol
   end
 
   def casecmp(other)
-    return unless other.kind_of? Symbol
+    return unless Primitive.object_kind_of?(other, Symbol)
 
     to_s.casecmp(other.to_s)
   end
 
   def casecmp?(other)
-    return unless other.kind_of? Symbol
+    return unless Primitive.object_kind_of?(other, Symbol)
 
     to_s.casecmp?(other.to_s)
   end
@@ -105,7 +105,7 @@ class Symbol
   end
 
   def match?(pattern, pos=0)
-    pattern = Truffle::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.object_kind_of?(pattern, Regexp)
     pattern.match? to_s, pos
   end
 
@@ -136,7 +136,7 @@ class Symbol
   end
 
   def [](index, other = undefined)
-    if index.kind_of?(Regexp)
+    if Primitive.object_kind_of?(index, Regexp)
       unless Primitive.undefined?(other)
         match, str = to_s.send(:subpattern, index, other)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)

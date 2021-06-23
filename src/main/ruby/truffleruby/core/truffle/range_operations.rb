@@ -47,7 +47,7 @@ module Truffle
     end
 
     def self.validate_step_size(first, last, step_size)
-      if step_size.kind_of? Float or first.kind_of? Float or last.kind_of? Float
+      if Primitive.object_kind_of?(step_size, Float) or Primitive.object_kind_of?(first, Float) or Primitive.object_kind_of?(last, Float)
         # if any are floats they all must be
         begin
           step_size = Float(from = step_size)
@@ -59,7 +59,7 @@ module Truffle
       else
         step_size = Integer(from = step_size)
 
-        unless step_size.kind_of? Integer
+        unless Primitive.object_kind_of?(step_size, Integer)
           raise TypeError, "can't convert #{from.class} to Integer (#{from.class}#to_int gives #{step_size.class})"
         end
       end

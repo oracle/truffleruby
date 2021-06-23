@@ -53,7 +53,7 @@ class Module
   alias_method :freeze, :freeze
 
   def include?(mod)
-    if !mod.kind_of?(Module) or mod.kind_of?(Class)
+    if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
     end
 
@@ -76,7 +76,7 @@ class Module
   def include(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
     modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
@@ -89,7 +89,7 @@ class Module
   def prepend(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
     modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      if !Primitive.object_kind_of?(mod, Module) or Primitive.object_kind_of?(mod, Class)
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
@@ -116,7 +116,7 @@ class Module
     raise NameError, "wrong constant name #{name}" if names.empty? || names.include?('')
     res = self
     names.each do |s|
-      if res.kind_of?(Module)
+      if Primitive.object_kind_of?(res, Module)
         res = res.const_get(s, inherit)
       else
         raise TypeError, "#{name} does not refer to a class/module"

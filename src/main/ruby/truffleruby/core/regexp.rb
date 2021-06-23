@@ -60,8 +60,8 @@ class Regexp
   end
 
   def self.convert(pattern)
-    return pattern if pattern.kind_of? Regexp
-    if pattern.kind_of? Array
+    return pattern if Primitive.object_kind_of?(pattern, Regexp)
+    if Primitive.object_kind_of?(pattern, Array)
       return union(*pattern)
     else
       return Regexp.quote(pattern.to_s)
@@ -123,7 +123,7 @@ class Regexp
     str = ''.encode(enc)
 
     patterns = patterns.map do |pat|
-      if pat.kind_of? Regexp
+      if Primitive.object_kind_of?(pat, Regexp)
         pat
       else
         StringValue(pat)
@@ -135,12 +135,12 @@ class Regexp
   Truffle::Graal.always_split(method(:union))
 
   def initialize(pattern, opts=nil, lang=nil)
-    if pattern.kind_of?(Regexp)
+    if Primitive.object_kind_of?(pattern, Regexp)
       opts = pattern.options
       pattern = pattern.source
-    elsif pattern.kind_of?(Integer) or pattern.kind_of?(Float)
+    elsif Primitive.object_kind_of?(pattern, Integer) or Primitive.object_kind_of?(pattern, Float)
       raise TypeError, "can't convert #{pattern.class} into String"
-    elsif opts.kind_of?(Integer)
+    elsif Primitive.object_kind_of?(opts, Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif opts
       opts = IGNORECASE
@@ -181,9 +181,9 @@ class Regexp
   end
 
   def ===(other)
-    if other.kind_of? Symbol
+    if Primitive.object_kind_of?(other, Symbol)
       other = other.to_s
-    elsif !other.kind_of? String
+    elsif !Primitive.object_kind_of?(other, String)
       other = Truffle::Type.rb_check_convert_type other, String, :to_str
       unless other
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
@@ -201,7 +201,7 @@ class Regexp
   end
 
   def eql?(other)
-    return false unless other.kind_of?(Regexp)
+    return false unless Primitive.object_kind_of?(other, Regexp)
     return false unless source == other.source
     (options & ~NOENCODING) == (other.options & ~NOENCODING)
   end
@@ -223,7 +223,7 @@ class Regexp
   def ~
     line = Primitive.io_last_line_get(Primitive.caller_special_variables)
 
-    unless line.kind_of?(String)
+    unless Primitive.object_kind_of?(line, String)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil)
       return nil
     end
@@ -298,7 +298,7 @@ class MatchData
   def ==(other)
     return true if equal?(other)
 
-    other.kind_of?(MatchData) &&
+    Primitive.object_kind_of?(other, MatchData) &&
       string == other.string  &&
       regexp == other.regexp  &&
       captures == other.captures

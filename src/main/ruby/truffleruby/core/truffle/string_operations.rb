@@ -43,7 +43,7 @@ module Truffle
     end
 
     def self.gsub_internal(orig, pattern, replacement)
-      unless replacement.kind_of?(String)
+      unless Primitive.object_kind_of?(replacement, String)
         hash = Truffle::Type.rb_check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
       end
@@ -76,7 +76,7 @@ module Truffle
         index = byte_index(orig, pattern, 0)
         match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
       else
-        pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+        pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless Primitive.object_kind_of?(pattern, Regexp)
         match = Truffle::RegexpOperations.search_region(pattern, orig, 0, orig.bytesize, true)
       end
 
@@ -126,8 +126,8 @@ module Truffle
     def self.concat_internal(string, other)
       Primitive.check_frozen string
 
-      unless other.kind_of? String
-        if other.kind_of? Integer
+      unless Primitive.object_kind_of?(other, String)
+        if Primitive.object_kind_of?(other, Integer)
           if string.encoding == Encoding::US_ASCII and other >= 128 and other < 256
             string.force_encoding(Encoding::ASCII_8BIT)
           end
@@ -273,7 +273,7 @@ module Truffle
     def self.byte_index(src, str, start=0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize
-        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if str.kind_of? Regexp
+        Primitive.regexp_last_match_set(Primitive.caller_special_variables, nil) if Primitive.object_kind_of?(str, Regexp)
         return nil
       end
 

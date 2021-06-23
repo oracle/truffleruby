@@ -332,7 +332,7 @@ class Enumerator
       raise ArgumentError, 'attempt to take negative size' if n < 0
 
       current_size = enumerator_size
-      if current_size.kind_of?(Numeric)
+      if Primitive.object_kind_of?(current_size, Numeric)
         # Not Primitive.min since current_size is not always an Integer
         set_size = n < current_size ? n : current_size
       else
@@ -358,7 +358,7 @@ class Enumerator
       raise ArgumentError, 'attempt to drop negative size' if n < 0
 
       current_size = enumerator_size
-      if current_size.kind_of?(Integer)
+      if Primitive.object_kind_of?(current_size, Integer)
         set_size = n < current_size ? current_size - n : 0
       else
         set_size = current_size
@@ -761,10 +761,10 @@ class Enumerator::Chain < Enumerator
     total = 0
     @enums.each do |e|
       size = e.size
-      if Primitive.nil?(size) || (size.is_a?(Float) && size.infinite?)
+      if Primitive.nil?(size) || (Primitive.object_kind_of?(size, Float) && size.infinite?)
         return size
       end
-      unless size.is_a?(Integer)
+      unless Primitive.object_kind_of?(size, Integer)
         return nil
       end
       total += size
