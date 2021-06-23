@@ -4472,7 +4472,7 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode) {
 
-            int p = offset;
+            int p = 0;
             final int e = stringRope.byteLength();
             final int pe = patternRope.byteLength();
             final int l = e - pe + 1;
