@@ -8,7 +8,6 @@
 
 # Benchmarks the scenario where a packed hash (default limit = 3 items) is promoted to a bucket hash.
 benchmark 'core-hash-promote-packed-hash' do
-  hash = {a: 1, b: 2, c: 3}
+  hash = { a: 1, b: 2, c: 3 }
   hash[:key] = :value
 end
-

@@ -9,12 +9,12 @@
 # Benchmarks repeatedly growing a bucket hash store.
 
 max = 400_000 # > 0.75*(524288 + 21) (cf. BucketsHashStore)
-hash = { a: 1, b: 2, c: 3, d: 4} # big enough to start as a bucket hash
+hash = { a: 1, b: 2, c: 3, d: 4 } # big enough to start as a bucket hash
 i = 0
 benchmark 'core-hash-buckets-grow' do
   hash[i += 1] = i
   if i >= max
-    hash = { a: 1, b: 2, c: 3, d: 4}
+    hash = { a: 1, b: 2, c: 3, d: 4 }
     i = 0
   end
 end

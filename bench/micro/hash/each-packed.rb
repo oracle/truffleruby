@@ -10,7 +10,7 @@
 
 # Benchmarks Hash#each for packed hashes.
 
-hash = {a: 1, b: 2, c: 3}
+hash = { a: 1, b: 2, c: 3 }
 benchmark 'core-hash-each-packed' do
   hash.each { |k, v| Primitive.blackhole(v) }
 end

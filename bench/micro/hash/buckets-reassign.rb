@@ -8,7 +8,7 @@
 
 # Benchmarks repeatedly reassigning various entries in a bucket hash.
 
-hash = { 1 => 1, 2 => 2, 3 => 3, 4 => 4} # big enough to start as a bucket hash
+hash = { 1 => 1, 2 => 2, 3 => 3, 4 => 4 } # big enough to start as a bucket hash
 i = 0
 size = hash.size
 benchmark 'core-hash-buckets-reassign' do
