@@ -29,6 +29,8 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
+JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
+
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
@@ -593,9 +595,21 @@ module Utilities
     end
   end
 
+  def bitbucket_url(repo)
+    unless Remotes.bitbucket
+      raise 'Need a git remote in truffleruby with the internal repository URL'
+    end
+    Remotes.url(Remotes.bitbucket).sub('truffleruby', repo)
+  end
+
   def git_clone(url, path)
-    # Unset $JAVA_HOME, mx sclone should not use it, and $JAVA_HOME might be set to the standalone home in graalvm tests
-    mx('sclone', '--kind', 'git', url, path, java_home: :none)
+    if ci?
+      # Use mx sclone to use the git cache in CI
+      # Unset $JAVA_HOME, mx sclone should not use it, and $JAVA_HOME might be set to the standalone home in graalvm tests
+      mx('sclone', '--kind', 'git', url, path, java_home: :none)
+    else
+      raw_sh 'git', 'clone', url, path
+    end
   end
 
   def run_mspec(env_vars, command = 'run', *args)
@@ -635,6 +649,36 @@ module Utilities
   # https://misc.flogisoft.com/bash/tip_colors_and_formatting
   TERM_COLOR_RED = "\e[31m"
   TERM_COLOR_DEFAULT = "\e[39m"
+end
+
+module Remotes
+  include Utilities
+  extend self
+
+  def bitbucket(dir = TRUFFLERUBY_DIR)
+    candidate = remote_urls(dir).find { |_r, u| u.include? 'ol-bitbucket' }
+    candidate.first if candidate
+  end
+
+  def github(dir = TRUFFLERUBY_DIR)
+    candidate = remote_urls(dir).find { |_r, u| u.match %r(github.com[:/]oracle) }
+    candidate.first if candidate
+  end
+
+  def remote_urls(dir = TRUFFLERUBY_DIR)
+    @remote_urls ||= Hash.new
+    @remote_urls[dir] ||= begin
+      out = raw_sh 'git', '-C', dir, 'remote', capture: :out, no_print_cmd: true
+      out.split.map do |remote|
+        url = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: :out, no_print_cmd: true
+        [remote, url.chomp]
+      end
+    end
+  end
+
+  def url(remote_name, dir = TRUFFLERUBY_DIR)
+    remote_urls(dir).find { |r, _u| r == remote_name }.last
+  end
 end
 
 module Commands
@@ -993,36 +1037,6 @@ module Commands
       else
         STDERR.puts "Makefile not found in #{ext_dir}, skipping make."
       end
-    end
-  end
-
-  module Remotes
-    include Utilities
-    extend self
-
-    def bitbucket(dir = TRUFFLERUBY_DIR)
-      candidate = remote_urls(dir).find { |_r, u| u.include? 'ol-bitbucket' }
-      candidate.first if candidate
-    end
-
-    def github(dir = TRUFFLERUBY_DIR)
-      candidate = remote_urls(dir).find { |_r, u| u.match %r(github.com[:/]oracle) }
-      candidate.first if candidate
-    end
-
-    def remote_urls(dir = TRUFFLERUBY_DIR)
-      @remote_urls ||= Hash.new
-      @remote_urls[dir] ||= begin
-        out = raw_sh 'git', '-C', dir, 'remote', capture: :out, no_print_cmd: true
-        out.split.map do |remote|
-          url = raw_sh 'git', '-C', dir, 'config', '--get', "remote.#{remote}.url", capture: :out, no_print_cmd: true
-          [remote, url.chomp]
-        end
-      end
-    end
-
-    def url(remote_name, dir = TRUFFLERUBY_DIR)
-      remote_urls(dir).find { |r, _u| r == remote_name }.last
     end
   end
 
@@ -1542,11 +1556,7 @@ module Commands
 
     unless Dir.exist?(gem_test_pack)
       STDERR.puts 'Cloning the truffleruby-gem-test-pack repository'
-      unless Remotes.bitbucket
-        abort 'Need a git remote in truffleruby with the internal repository URL'
-      end
-      url = Remotes.url(Remotes.bitbucket).sub('truffleruby', name)
-      git_clone(url, gem_test_pack)
+      git_clone(bitbucket_url(name), gem_test_pack)
     end
 
     # Unset variable set by the pre-commit hook which confuses git
@@ -2005,21 +2015,20 @@ module Commands
       raise "Unknown JDK version: #{jdk_version}"
     end
 
-    java_home = "#{CACHE_EXTRA_DIR}/#{jdk_name}-#{jvmci_version}"
+    java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
-        mx_env = 'jvm-ee'
-        options = { java_home: install_jvmci('Downloading OpenJDK11 JVMCI to bootstrap', false, jdk_version: 11) }
-      else
-        mx_env = 'jvm'
-        options = { chdir: CACHE_EXTRA_DIR, java_home: :none } # chdir to not try to load a suite (which would need a JAVA_HOME)
+        clone_enterprise
+        jdk_binaries = File.expand_path '../graal-enterprise/jdk-binaries.json', TRUFFLERUBY_DIR
       end
-      mx '--env', mx_env, '-y', 'fetch-jdk',
+      mx '-y', 'fetch-jdk',
          '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
+         *(['--jdk-binaries', jdk_binaries] if jdk_binaries),
          '--java-distribution', jdk_name,
-         '--to', CACHE_EXTRA_DIR,
-         **options
+         '--to', JDKS_CACHE_DIR,
+         '--alias', java_home, # ensure the JDK ends up in the path we expect
+         java_home: :none # avoid recursion
     end
 
     java_home = "#{java_home}/Contents/Home" if darwin?
@@ -2071,12 +2080,7 @@ module Commands
     if File.directory?(ee_path)
       false
     else
-      github_ee_url = 'https://github.com/graalvm/graal-enterprise.git'
-      bitbucket_ee_url = raw_sh('mx', 'urlrewrite', github_ee_url, capture: :out).chomp
-      if bitbucket_ee_url == github_ee_url
-        raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
-      end
-      git_clone(bitbucket_ee_url, ee_path)
+      git_clone(bitbucket_url('graal-enterprise'), ee_path)
       true
     end
   end
