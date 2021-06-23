@@ -21,7 +21,6 @@ module Truffle::Platform
   HOST_OS = Truffle::System.host_os
 
   IS_LINUX = HOST_OS == 'linux'
-  IS_SOLARIS = HOST_OS == 'solaris'
   IS_DARWIN = HOST_OS == 'darwin'
   IS_BSD = HOST_OS == 'freebsd' || HOST_OS == 'netbsd' || HOST_OS == 'openbsd'
   IS_WINDOWS = HOST_OS == 'mswin32'
@@ -35,10 +34,6 @@ module Truffle::Platform
 
   def self.darwin?
     IS_DARWIN
-  end
-
-  def self.solaris?
-    IS_SOLARIS
   end
 
   def self.bsd?

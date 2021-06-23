@@ -147,7 +147,7 @@ public class EncodingManager {
             final int codeset = (int) nativeConfiguration.get("platform.langinfo.CODESET");
 
             // char *nl_langinfo(nl_item item);
-            // nl_item is int on at least Linux, macOS & Solaris
+            // nl_item is int on at least Linux and macOS
             final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
 
             final long address = nfi.asPointer(nl_langinfo.call(codeset));

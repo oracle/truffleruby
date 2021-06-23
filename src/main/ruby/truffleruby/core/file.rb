@@ -1237,7 +1237,7 @@ class File < IO
   def flock(const)
     const = Truffle::Type.coerce_to const, Integer, :to_int
 
-    result = POSIX.truffleposix_flock Primitive.io_fd(self), const
+    result = POSIX.flock Primitive.io_fd(self), const
     if result == -1
       begin
         Errno.handle

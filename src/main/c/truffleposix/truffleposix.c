@@ -69,11 +69,6 @@ SUCH DAMAGE.
 #include <sys/sysmacros.h>
 #endif
 
-/* For minor()/major() on Solaris */
-#ifdef __sun
-#include <sys/mkdev.h>
-#endif
-
 #include <trufflenfi.h>
 
 struct truffleposix_stat {
@@ -279,7 +274,7 @@ int truffleposix_getpriority(int which, id_t who) {
   errno = 0;
   int r = getpriority(which, who);
   if (r == -1 && errno != 0) {
-    /* getpriority() is between -20 and 19 on Linux and -20 and 20 on macOS and Solaris */
+    /* getpriority() is between -20 and 19 on Linux and -20 and 20 on macOS */
     return -100 - errno;
   }
   return r;
@@ -307,44 +302,6 @@ pid_t truffleposix_waitpid(pid_t pid, int options, int result[4]) {
   result[3] = status;
   return r;
 }
-
-/* flock() is not available on Solaris */
-#ifdef __sun
-#define LOCK_SH 1
-#define LOCK_EX 2
-#define LOCK_NB 4
-#define LOCK_UN 8
-
-int truffleposix_flock(int fd, int operation) {
-  struct flock lock;
-  switch (operation & ~LOCK_NB) {
-  case LOCK_SH:
-    lock.l_type = F_RDLCK;
-    break;
-  case LOCK_EX:
-    lock.l_type = F_WRLCK;
-    break;
-  case LOCK_UN:
-    lock.l_type = F_UNLCK;
-    break;
-  default:
-    errno = EINVAL;
-    return -1;
-  }
-  lock.l_whence = SEEK_SET;
-  lock.l_start = 0L;
-  lock.l_len = 0L;
-  int r = fcntl(fd, (operation & LOCK_NB) ? F_SETLK : F_SETLKW, &lock);
-  if (r == -1 && errno == EAGAIN) {
-    errno = EWOULDBLOCK;
-  }
-  return r;
-}
-#else
-int truffleposix_flock(int fd, int operation) {
-  return flock(fd, operation);
-}
-#endif
 
 int truffleposix_stat(const char *path, struct truffleposix_stat *buffer) {
   struct stat native_stat;
