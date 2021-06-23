@@ -9,12 +9,14 @@
  */
 package org.truffleruby.language.arguments;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.collections.PEBiFunction;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -58,16 +60,17 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
         return hashes.lookupOrDefault(hash.store, frame, hash, name, this);
     }
 
-    private static final Object OBJECT = new Object();
-
     // Workaround for Truffle where the library expression is tried before the guard, resulting in a NPE if
-    // hash is null. Return a dummy object instead, causing the library accepts(receiver) method to fail.
+    // hash is null. The guard will fail afterwards anyway, so return a valid store in that case.
     protected Object getHashStore(RubyHash hash) {
-        return hash == null ? OBJECT : hash.store;
+        return hash == null ? EmptyHashStore.NULL_HASH_STORE : hash.store;
     }
 
     @Override
-    public Object accept(VirtualFrame frame, Object hash, Object key) {
-        return defaultValue.execute(frame);
+    public Object accept(Frame frame, Object hash, Object key) {
+        // This only works if the library is always cached and does not reach the limit.
+        // Since this node is never uncached, and the limit is >= number of strategies, it should hold.
+        final VirtualFrame virtualFrame = (VirtualFrame) frame;
+        return defaultValue.execute(virtualFrame);
     }
 }

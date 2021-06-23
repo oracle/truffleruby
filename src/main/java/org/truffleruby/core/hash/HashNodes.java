@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
@@ -43,7 +44,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -164,16 +164,14 @@ public abstract class HashNodes {
 
         @Child private DispatchNode callDefaultNode;
 
-        public abstract Object executeGet(VirtualFrame frame, RubyHash hash, Object key);
-
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object get(VirtualFrame frame, RubyHash hash, Object key,
+        protected Object get(RubyHash hash, Object key,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
-            return hashes.lookupOrDefault(hash.store, frame, hash, key, this);
+            return hashes.lookupOrDefault(hash.store, null, hash, key, this);
         }
 
         @Override
-        public Object accept(VirtualFrame frame, Object hash, Object key) {
+        public Object accept(Frame frame, Object hash, Object key) {
             if (callDefaultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 callDefaultNode = insert(DispatchNode.create());
@@ -187,12 +185,13 @@ public abstract class HashNodes {
     public abstract static class GetOrUndefinedNode extends PrimitiveArrayArgumentsNode implements PEBiFunction {
 
         @Specialization(limit = "hashStrategyLimit()")
-        protected Object getOrUndefined(VirtualFrame frame, RubyHash hash, Object key,
+        protected Object getOrUndefined(RubyHash hash, Object key,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
-            return hashes.lookupOrDefault(hash.store, frame, hash, key, this);
+            return hashes.lookupOrDefault(hash.store, null, hash, key, this);
         }
 
-        public Object accept(VirtualFrame frame, Object hash, Object key) {
+        @Override
+        public Object accept(Frame frame, Object hash, Object key) {
             return NotProvided.INSTANCE;
         }
     }

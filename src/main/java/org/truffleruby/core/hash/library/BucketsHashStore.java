@@ -202,7 +202,7 @@ public class BucketsHashStore {
         }
 
         notInHash.enter();
-        return defaultNode.accept((VirtualFrame) frame, hash, key);
+        return defaultNode.accept(frame, hash, key);
     }
 
     @ExportMessage

@@ -11,9 +11,9 @@ package org.truffleruby.collections;
 
 import java.util.function.BiFunction;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 
 /** A {@link BiFunction} that can be partially evaluated. */
 public interface PEBiFunction {
-    Object accept(VirtualFrame frame, Object hash, Object key);
+    Object accept(Frame frame, Object hash, Object key);
 }

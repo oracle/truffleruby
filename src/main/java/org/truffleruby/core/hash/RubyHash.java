@@ -16,7 +16,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownKeyException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -103,14 +103,14 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
     }
 
     private static final class DefaultProvider implements PEBiFunction {
-        final Object defaultValue;
+        private final Object defaultValue;
 
         private DefaultProvider(Object defaultValue) {
             this.defaultValue = defaultValue;
         }
 
         @Override
-        public Object accept(VirtualFrame frame, Object hash, Object key) {
+        public Object accept(Frame frame, Object hash, Object key) {
             return defaultValue;
         }
     }

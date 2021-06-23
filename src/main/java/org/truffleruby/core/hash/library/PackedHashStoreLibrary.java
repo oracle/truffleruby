@@ -507,7 +507,7 @@ public class PackedHashStoreLibrary {
             }
             notInHashProfile.enter();
             // frame should be virtual or null
-            return defaultValueNode.accept((VirtualFrame) frame, hash, key);
+            return defaultValueNode.accept(frame, hash, key);
         }
 
         protected boolean equalKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key,
