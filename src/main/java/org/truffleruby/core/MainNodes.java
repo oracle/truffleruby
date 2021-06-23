@@ -62,6 +62,7 @@ public abstract class MainNodes {
         protected Object mainUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile) {
+            needCallerFrame(callerFrame, target);
             final Object refinementModule = args[0];
             final InternalMethod callerMethod = RubyArguments.getMethod(callerFrame);
             if (!isCalledFromTopLevel(callerMethod)) {

@@ -366,6 +366,7 @@ public abstract class KernelNodes {
                 @Cached(
                         value = "getNode().getEncapsulatingSourceSection()",
                         allowUncached = true) SourceSection sourceSection) {
+            needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(context, language, callerFrame.materialize(), sourceSection);
         }
     }
@@ -377,6 +378,7 @@ public abstract class KernelNodes {
         protected boolean blockGiven(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ConditionProfile blockProfile) {
+            needCallerFrame(callerFrame, target);
             return blockProfile
                     .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }
@@ -747,6 +749,7 @@ public abstract class KernelNodes {
                 binding = (RubyBinding) bindingArg;
                 self = RubyArguments.getSelf(binding.getFrame());
             } else {
+                needCallerFrame(callerFrame, "Kernel#eval with no Binding argument");
                 binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
                 self = callerSelf;
             }
@@ -1314,6 +1317,7 @@ public abstract class KernelNodes {
                 @CachedLanguage RubyLanguage language,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached DispatchNode callLocalVariables) {
+            needCallerFrame(callerFrame, target);
             final RubyBinding binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
             return callLocalVariables.call(binding, "local_variables");
         }
