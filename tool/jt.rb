@@ -29,6 +29,8 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
+JDKS_CACHE_DIR = File.expand_path('~/.mx/jdks')
+
 CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
 FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
@@ -2013,7 +2015,7 @@ module Commands
       raise "Unknown JDK version: #{jdk_version}"
     end
 
-    java_home = "#{CACHE_EXTRA_DIR}/#{jdk_name}-#{jvmci_version}"
+    java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
       if ee
@@ -2024,7 +2026,7 @@ module Commands
          '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
          *(['--jdk-binaries', jdk_binaries] if jdk_binaries),
          '--java-distribution', jdk_name,
-         '--to', CACHE_EXTRA_DIR,
+         '--to', JDKS_CACHE_DIR,
          '--alias', java_home, # ensure the JDK ends up in the path we expect
          java_home: :none # avoid recursion
     end
