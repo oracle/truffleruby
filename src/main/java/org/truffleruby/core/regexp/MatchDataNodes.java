@@ -522,12 +522,14 @@ public abstract class MatchDataNodes {
     public abstract static class ByteBeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteBegin(RubyMatchData matchData, int index) {
-            int b = matchData.region.beg[index];
-            if (b < 0) {
+        protected Object byteBegin(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeBeginProfile) {
+            final int begin = matchData.region.beg[index];
+
+            if (negativeBeginProfile.profile(begin < 0)) {
                 return nil;
             } else {
-                return b;
+                return begin;
             }
         }
 
@@ -540,12 +542,14 @@ public abstract class MatchDataNodes {
     public abstract static class ByteEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteEnd(RubyMatchData matchData, int index) {
-            int e = matchData.region.end[index];
-            if (e < 0) {
+        protected Object byteEnd(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeEndProfile) {
+            final int end = matchData.region.end[index];
+
+            if (negativeEndProfile.profile(end < 0)) {
                 return nil;
             } else {
-                return e;
+                return end;
             }
         }
 
@@ -673,8 +677,9 @@ public abstract class MatchDataNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from) {
-            if (self == from) {
+        protected RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from,
+                @Cached ConditionProfile copyFromSelfProfile) {
+            if (copyFromSelfProfile.profile(self == from)) {
                 return self;
             }
 
