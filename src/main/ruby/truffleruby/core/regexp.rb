@@ -289,10 +289,7 @@ class MatchData
   end
 
   def offset(idx)
-    out = []
-    out << self.begin(idx)
-    out << self.end(idx)
-    out
+    [self.begin(idx), self.end(idx)]
   end
 
   def ==(other)
@@ -307,6 +304,10 @@ class MatchData
 
   def string
     Primitive.match_data_get_source(self).dup.freeze
+  end
+
+  def captures
+    to_a[1..-1]
   end
 
   def names

@@ -12,6 +12,8 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -39,7 +41,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -59,38 +60,6 @@ import org.truffleruby.language.objects.LogicalClassNode;
 
 @CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
-
-    @TruffleBoundary
-    public static Object begin(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
-        // Taken from org.jruby.RubyMatchData
-        int b = matchData.region.beg[index];
-
-        if (b < 0) {
-            return Nil.INSTANCE;
-        }
-
-        if (!matchDataSourceRope.isSingleByteOptimizable()) {
-            b = getCharOffsets(matchData, matchDataSourceRope).beg[index];
-        }
-
-        return b;
-    }
-
-    @TruffleBoundary
-    public static Object end(RubyMatchData matchData, int index, Rope matchDataSourceRope) {
-        // Taken from org.jruby.RubyMatchData
-        int e = matchData.region.end[index];
-
-        if (e < 0) {
-            return Nil.INSTANCE;
-        }
-
-        if (!matchDataSourceRope.isSingleByteOptimizable()) {
-            e = getCharOffsets(matchData, matchDataSourceRope).end[index];
-        }
-
-        return e;
-    }
 
     @TruffleBoundary
     private static void updatePairs(Rope source, Encoding encoding, Pair[] pairs) {
@@ -159,7 +128,8 @@ public abstract class MatchDataNodes {
 
     public static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
         // Taken from org.jruby.RubyMatchData
-        Region charOffsets = matchData.charOffsets;
+        final Region charOffsets = matchData.charOffsets;
+
         if (charOffsets != null) {
             return charOffsets;
         } else {
@@ -245,8 +215,7 @@ public abstract class MatchDataNodes {
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile hasValueProfile,
                 @Cached LogicalClassNode logicalClassNode) {
-            final Object source = matchData.source;
-            final Rope sourceRope = strings.getRope(source);
+
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(index < 0)) {
                 index += region.beg.length;
@@ -255,8 +224,11 @@ public abstract class MatchDataNodes {
             if (indexOutOfBoundsProfile.profile((index < 0) || (index >= region.beg.length))) {
                 return nil;
             } else {
+                final Object source = matchData.source;
+                final Rope sourceRope = strings.getRope(source);
                 final int start = region.beg[index];
                 final int end = region.end[index];
+
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
@@ -347,10 +319,13 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         protected static NameEntry findNameEntry(RubyRegexp regexp, RubySymbol symbol) {
             Regex regex = regexp.regex;
-            Rope rope = symbol.getRope();
+
             if (regex.numberOfNames() > 0) {
+                Rope rope = symbol.getRope();
+
                 for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
                     final NameEntry e = i.next();
+
                     if (bytesEqual(rope.getBytes(), rope.byteLength(), e.name, e.nameP, e.nameEnd)) {
                         return e;
                     }
@@ -426,8 +401,23 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object begin(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeBeginProfile,
+                @Cached ConditionProfile multiByteCharacterProfile,
+                @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return MatchDataNodes.begin(matchData, index, strings.getRope(matchData.source));
+            // Taken from org.jruby.RubyMatchData.
+
+            final int begin = matchData.region.beg[index];
+            if (negativeBeginProfile.profile(begin < 0)) {
+                return nil;
+            }
+
+            final Rope matchDataSourceRope = strings.getRope(matchData.source);
+            if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
+                return getCharOffsets(matchData, matchDataSourceRope).beg[index];
+            }
+
+            return begin;
         }
 
         @TruffleBoundary
@@ -454,29 +444,36 @@ public abstract class MatchDataNodes {
 
         public abstract Object[] execute(RubyMatchData matchData);
 
-        @TruffleBoundary
         @Specialization
-        protected Object[] getValuesSlow(RubyMatchData matchData,
+        protected Object[] getValues(RubyMatchData matchData,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached ConditionProfile hasValueProfile,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached LogicalClassNode logicalClassNode) {
             final Object source = matchData.source;
             final Rope sourceRope = strings.getRope(source);
             final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
 
-            for (int n = 0; n < region.numRegs; n++) {
-                final int start = region.beg[n];
-                final int end = region.end[n];
+            try {
+                loopProfile.profileCounted(region.numRegs);
 
-                if (start > -1 && end > -1) {
-                    Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final RubyClass logicalClass = logicalClassNode.execute(source);
-                    final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
-                    AllocationTracing.trace(string, this);
-                    values[n] = string;
-                } else {
-                    values[n] = nil;
+                for (int n = 0; loopProfile.inject(n < region.numRegs); n++) {
+                    final int start = region.beg[n];
+                    final int end = region.end[n];
+
+                    if (hasValueProfile.profile(start > -1 && end > -1)) {
+                        final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
+                        final RubyClass logicalClass = logicalClassNode.execute(source);
+                        final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
+                        AllocationTracing.trace(string, this);
+                        values[n] = string;
+                    } else {
+                        values[n] = nil;
+                    }
                 }
+            } finally {
+                LoopNode.reportLoopCount(this, region.numRegs);
             }
 
             return values;
@@ -484,28 +481,28 @@ public abstract class MatchDataNodes {
 
     }
 
-    @CoreMethod(names = "captures")
-    public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private ValuesNode valuesNode = ValuesNode.create();
-
-        @Specialization
-        protected RubyArray toA(RubyMatchData matchData) {
-            return createArray(getCaptures(valuesNode.execute(matchData)));
-        }
-
-        private static Object[] getCaptures(Object[] values) {
-            return ArrayUtils.extractRange(values, 1, values.length);
-        }
-    }
-
     @Primitive(name = "match_data_end", lowerFixnum = 1)
     public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object end(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeEndProfile,
+                @Cached ConditionProfile multiByteCharacterProfile,
+                @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            return MatchDataNodes.end(matchData, index, strings.getRope(matchData.source));
+            // Taken from org.jruby.RubyMatchData.
+
+            final int end = matchData.region.end[index];
+            if (negativeEndProfile.profile(end < 0)) {
+                return nil;
+            }
+
+            final Rope matchDataSourceRope = strings.getRope(matchData.source);
+            if (multiByteCharacterProfile.profile(!singleByteOptimizableNode.execute(matchDataSourceRope))) {
+                return getCharOffsets(matchData, matchDataSourceRope).end[index];
+            }
+
+            return end;
         }
 
         @TruffleBoundary
@@ -525,12 +522,14 @@ public abstract class MatchDataNodes {
     public abstract static class ByteBeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteBegin(RubyMatchData matchData, int index) {
-            int b = matchData.region.beg[index];
-            if (b < 0) {
+        protected Object byteBegin(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeBeginProfile) {
+            final int begin = matchData.region.beg[index];
+
+            if (negativeBeginProfile.profile(begin < 0)) {
                 return nil;
             } else {
-                return b;
+                return begin;
             }
         }
 
@@ -543,12 +542,14 @@ public abstract class MatchDataNodes {
     public abstract static class ByteEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteEnd(RubyMatchData matchData, int index) {
-            int e = matchData.region.end[index];
-            if (e < 0) {
+        protected Object byteEnd(RubyMatchData matchData, int index,
+                @Cached ConditionProfile negativeEndProfile) {
+            final int end = matchData.region.end[index];
+
+            if (negativeEndProfile.profile(end < 0)) {
                 return nil;
             } else {
-                return e;
+                return end;
             }
         }
 
@@ -622,7 +623,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected RubyArray toA(RubyMatchData matchData) {
-            Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
+            Object[] objects = valuesNode.execute(matchData);
             return createArray(objects);
         }
     }
@@ -676,8 +677,9 @@ public abstract class MatchDataNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from) {
-            if (self == from) {
+        protected RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from,
+                @Cached ConditionProfile copyFromSelfProfile) {
+            if (copyFromSelfProfile.profile(self == from)) {
                 return self;
             }
 
