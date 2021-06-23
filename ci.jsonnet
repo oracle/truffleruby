@@ -67,7 +67,11 @@ local part_definitions = {
         ["ruby", "--version"],
       ],
 
-      catch_files +: [
+      logs+: [
+        "*.log",
+      ],
+
+      catch_files+: [
         "Graal diagnostic output saved in (?P<filename>.+\\.zip)",
       ],
 
