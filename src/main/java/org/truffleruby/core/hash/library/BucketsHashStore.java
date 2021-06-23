@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -24,7 +25,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.truffleruby.RubyContext;
@@ -121,8 +121,7 @@ public class BucketsHashStore {
     }
 
     @TruffleBoundary
-    private static void resize(RubyContext context, RubyHash hash) {
-
+    private static void resize(RubyHash hash) {
         final int bucketsCount = capacityGreaterThan(hash.size) * OVERALLOCATE_FACTOR;
         final Entry[] newEntries = new Entry[bucketsCount];
 
@@ -193,15 +192,14 @@ public class BucketsHashStore {
     @ExportMessage
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached @Shared("lookup") LookupEntryNode lookup,
-            @Cached BranchProfile notInHash) {
+            @Cached @Exclusive ConditionProfile found) {
 
-        final HashLookupResult hashLookupResult = lookup.lookup(hash, key);
+        final HashLookupResult hashLookupResult = lookup.execute(hash, key);
 
-        if (hashLookupResult.getEntry() != null) {
+        if (found.profile(hashLookupResult.getEntry() != null)) {
             return hashLookupResult.getEntry().getValue();
         }
 
-        notInHash.enter();
         return defaultNode.accept(frame, hash, key);
     }
 
@@ -211,11 +209,10 @@ public class BucketsHashStore {
             @Cached @Exclusive PropagateSharingNode propagateSharingKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingValue,
             @Cached @Shared("lookup") LookupEntryNode lookup,
-            @Cached @Exclusive ConditionProfile found,
+            @Cached @Exclusive ConditionProfile missing,
             @Cached @Exclusive ConditionProfile bucketCollision,
             @Cached @Exclusive ConditionProfile appending,
-            @Cached @Exclusive ConditionProfile resize,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached @Exclusive ConditionProfile resize) {
 
         assert verify(hash);
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
@@ -223,11 +220,10 @@ public class BucketsHashStore {
         propagateSharingKey.executePropagate(hash, key2);
         propagateSharingValue.executePropagate(hash, value);
 
-        final HashLookupResult result = lookup.lookup(hash, key2);
+        final HashLookupResult result = lookup.execute(hash, key2);
         final Entry entry = result.getEntry();
 
-        if (found.profile(entry == null)) {
-
+        if (missing.profile(entry == null)) {
             final Entry newEntry = new Entry(result.getHashed(), key2, value);
 
             if (bucketCollision.profile(result.getPreviousEntry() == null)) {
@@ -237,20 +233,19 @@ public class BucketsHashStore {
             }
 
             final Entry lastInSequence = hash.lastInSequence;
-
             if (appending.profile(lastInSequence == null)) {
                 hash.firstInSequence = newEntry;
             } else {
                 lastInSequence.setNextInSequence(newEntry);
                 newEntry.setPreviousInSequence(lastInSequence);
             }
-
             hash.lastInSequence = newEntry;
+
             final int newSize = (hash.size += 1);
             assert verify(hash);
 
             if (resize.profile(newSize / (double) entries.length > LOAD_FACTOR)) {
-                resize(context, hash);
+                resize(hash);
                 assert ((BucketsHashStore) hash.store).verify(hash); // store changed!
             }
             return true;
@@ -264,13 +259,13 @@ public class BucketsHashStore {
     @ExportMessage
     protected Object delete(RubyHash hash, Object key,
             @Cached @Shared("lookup") LookupEntryNode lookup,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached @Exclusive ConditionProfile missing) {
 
         assert verify(hash);
-        final HashLookupResult lookupResult = lookup.lookup(hash, key);
+        final HashLookupResult lookupResult = lookup.execute(hash, key);
         final Entry entry = lookupResult.getEntry();
 
-        if (entry == null) {
+        if (missing.profile(entry == null)) {
             return null;
         }
 
@@ -283,8 +278,7 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected Object deleteLast(RubyHash hash, Object key,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-
+            @Cached @Exclusive ConditionProfile singleEntry) {
         assert verify(hash);
         final Entry lastEntry = hash.lastInSequence;
         if (key != lastEntry.getKey()) {
@@ -303,7 +297,7 @@ public class BucketsHashStore {
         }
         assert entry.getNextInSequence() == null;
 
-        if (hash.firstInSequence == entry) {
+        if (singleEntry.profile(hash.firstInSequence == entry)) {
             assert entry.getPreviousInSequence() == null;
             hash.firstInSequence = null;
             hash.lastInSequence = null;
@@ -322,8 +316,7 @@ public class BucketsHashStore {
 
     @ExportMessage
     protected Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
-            // We only use this to get hold of the root node. No memory overhead because it's shared.
-            @Cached @Shared("lookup") LookupEntryNode witness,
+            @CachedLibrary("this") HashStoreLibrary hashStoreLibrary,
             @Cached LoopConditionProfile loopProfile) {
 
         assert verify(hash);
@@ -336,9 +329,7 @@ public class BucketsHashStore {
                 entry = entry.getNextInSequence();
             }
         } finally {
-            // The node is used to get the root node, so fine to use a cached node here.
-            assert CompilerDirectives.isCompilationConstant(witness);
-            LoopNode.reportLoopCount(witness, i);
+            LoopNode.reportLoopCount(hashStoreLibrary.getNode(), i);
         }
         return state;
     }
@@ -352,9 +343,7 @@ public class BucketsHashStore {
     @TruffleBoundary
     @ExportMessage
     protected void replace(RubyHash hash, RubyHash dest,
-            @Cached @Exclusive PropagateSharingNode propagateSharing,
-            @CachedLanguage RubyLanguage language,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached @Exclusive PropagateSharingNode propagateSharing) {
         if (hash == dest) {
             return;
         }
@@ -505,8 +494,7 @@ public class BucketsHashStore {
         Entry foundFirst = null;
         Entry foundLast = null;
         int foundSizeBuckets = 0;
-        for (int n = 0; n < entries.length; n++) {
-            Entry entry = entries[n];
+        for (Entry entry : entries) {
             while (entry != null) {
                 assert SharedObjects.assertPropagateSharing(
                         hash,
@@ -550,36 +538,16 @@ public class BucketsHashStore {
     // endregion
     // region Nodes
 
-    public static class LookupEntryNode extends RubyBaseNode {
+    @GenerateUncached
+    abstract static class LookupEntryNode extends RubyBaseNode {
 
-        public static LookupEntryNode create() {
-            return new LookupEntryNode(
-                    HashingNodes.ToHash.create(),
-                    CompareHashKeysNode.create(),
-                    ConditionProfile.create());
-        }
+        public abstract HashLookupResult execute(RubyHash hash, Object key);
 
-        public static LookupEntryNode getUncached() {
-            return new LookupEntryNode(
-                    HashingNodes.ToHash.getUncached(),
-                    CompareHashKeysNode.getUncached(),
-                    ConditionProfile.getUncached());
-        }
-
-        @Child HashingNodes.ToHash hashNode;
-        @Child CompareHashKeysNode compareHashKeysNode;
-        private final ConditionProfile byIdentityProfile;
-
-        public LookupEntryNode(
-                HashingNodes.ToHash hashNode,
-                CompareHashKeysNode compareHashKeysNode,
-                ConditionProfile byIdentityProfile) {
-            this.hashNode = hashNode;
-            this.compareHashKeysNode = compareHashKeysNode;
-            this.byIdentityProfile = byIdentityProfile;
-        }
-
-        public HashLookupResult lookup(RubyHash hash, Object key) {
+        @Specialization
+        protected HashLookupResult lookup(RubyHash hash, Object key,
+                @Cached HashingNodes.ToHash hashNode,
+                @Cached CompareHashKeysNode compareHashKeysNode,
+                @Cached ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
             int hashed = hashNode.execute(key, compareByIdentity);
 
@@ -590,7 +558,7 @@ public class BucketsHashStore {
             Entry previousEntry = null;
 
             while (entry != null) {
-                if (equalKeys(compareByIdentity, key, hashed, entry.getKey(), entry.getHashed())) {
+                if (compareHashKeysNode.execute(compareByIdentity, key, hashed, entry.getKey(), entry.getHashed())) {
                     return new HashLookupResult(hashed, index, previousEntry, entry);
                 }
 
@@ -601,10 +569,6 @@ public class BucketsHashStore {
             return new HashLookupResult(hashed, index, previousEntry, null);
         }
 
-        protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
-                int otherHashed) {
-            return compareHashKeysNode.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
-        }
     }
 
     public static class GenericHashLiteralNode extends HashLiteralNode {
@@ -614,8 +578,7 @@ public class BucketsHashStore {
 
         public GenericHashLiteralNode(RubyLanguage language, RubyNode[] keyValues) {
             super(language, keyValues);
-            bucketsCount = capacityGreaterThan(keyValues.length / 2) *
-                    OVERALLOCATE_FACTOR;
+            bucketsCount = capacityGreaterThan(keyValues.length / 2) * OVERALLOCATE_FACTOR;
         }
 
         @ExplodeLoop

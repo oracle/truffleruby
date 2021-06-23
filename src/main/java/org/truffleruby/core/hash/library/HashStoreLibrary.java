@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash.library;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
@@ -20,6 +21,8 @@ import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -136,6 +139,16 @@ public abstract class HashStoreLibrary extends Library {
             } else {
                 return yieldNode.yield(block, ArrayHelpers.createArray(context, language, new Object[]{ key, value }));
             }
+        }
+    }
+
+    public final Node getNode() {
+        boolean adoptable = this.isAdoptable();
+        CompilerAsserts.partialEvaluationConstant(adoptable);
+        if (adoptable) {
+            return this;
+        } else {
+            return EncapsulatingNodeReference.getCurrent().get();
         }
     }
 }
