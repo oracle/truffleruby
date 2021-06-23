@@ -4416,16 +4416,11 @@ public abstract class StringNodes {
             return ToRopeNodeGen.create(pattern);
         }
 
-        @Specialization(guards = "offset < 0")
-        protected Object stringCharacterIndexNegativeOffset(Rope stringRope, Rope patternRope, int offset) {
-            return nil;
-        }
-
         @Specialization(
                 guards = {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
-                        "patternRope.byteLength() > stringRope.byteLength()" })
+                        "!patternFits(stringRope, patternRope, offset)" })
         protected Object stringCharacterIndexPatternTooLarge(Rope stringRope, Rope patternRope, int offset) {
             return nil;
         }
@@ -4434,7 +4429,7 @@ public abstract class StringNodes {
                 guards = {
                         "offset >= 0",
                         "singleByteOptimizableNode.execute(stringRope)",
-                        "patternRope.byteLength() <= stringRope.byteLength()" })
+                        "patternFits(stringRope, patternRope, offset)" })
         protected Object stringCharacterIndexSingleByteOptimizable(Rope stringRope, Rope patternRope, int offset,
                 @Cached RopeNodes.BytesNode stringBytesNode,
                 @Cached RopeNodes.BytesNode patternBytesNode,
@@ -4506,6 +4501,10 @@ public abstract class StringNodes {
             }
 
             return nil;
+        }
+
+        protected boolean patternFits(Rope stringRope, Rope patternRope, int offset) {
+            return patternRope.byteLength() + offset <= stringRope.byteLength();
         }
     }
 
