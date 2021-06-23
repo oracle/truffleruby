@@ -81,15 +81,13 @@ public abstract class HashStoreLibrary extends Library {
 
     /** Calls {@code callback} on every entry in the hash, returning the state object. */
     @Abstract
-    public abstract Object eachEntry(Object store, Frame frame, RubyHash hash, EachEntryCallback callback,
-            Object state);
+    public abstract Object eachEntry(Object store, RubyHash hash, EachEntryCallback callback, Object state);
 
-    /** Same as {@link #eachEntry(Object, Frame, RubyHash, EachEntryCallback, Object)} but guaranteed to be safe to use
-     * if the hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed
+    /** Same as {@link #eachEntry(Object, RubyHash, EachEntryCallback, Object)} but guaranteed to be safe to use if the
+     * hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed
      * twice. */
     @Abstract
-    public abstract Object eachEntrySafe(Object store, Frame frame, RubyHash hash, EachEntryCallback callback,
-            Object state);
+    public abstract Object eachEntrySafe(Object store, RubyHash hash, EachEntryCallback callback, Object state);
 
     /** Replaces the contents of {@code dest} with a copy of {@code hash}. */
     @Abstract
@@ -111,7 +109,7 @@ public abstract class HashStoreLibrary extends Library {
     public abstract boolean verify(Object store, RubyHash hash);
 
     public interface EachEntryCallback {
-        void accept(Frame frame, int index, Object key, Object value, Object state);
+        void accept(int index, Object key, Object value, Object state);
     }
 
     /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
@@ -17,7 +16,6 @@ import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
@@ -26,14 +24,14 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
 
     private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
-    public RubyHash extractRejectedKwargs(VirtualFrame frame, RubyHash kwargsHash) {
+    public RubyHash extractRejectedKwargs(RubyHash kwargsHash) {
         final RubyHash rejectedKwargs = HashOperations.newEmptyHash(getContext(), getLanguage());
-        hashes.eachEntry(kwargsHash.store, frame, kwargsHash, this, rejectedKwargs);
+        hashes.eachEntry(kwargsHash.store, kwargsHash, this, rejectedKwargs);
         return rejectedKwargs;
     }
 
     @Override
-    public void accept(Frame frame, int index, Object key, Object value, Object rejectedKwargs) {
+    public void accept(int index, Object key, Object value, Object rejectedKwargs) {
         if (!isSymbolProfile.profile(key instanceof RubySymbol)) {
             final RubyHash hash = (RubyHash) rejectedKwargs;
             hashes.set(hash.store, hash, key, value, false);

@@ -69,12 +69,12 @@ public class EmptyHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(Frame frame, RubyHash hash, EachEntryCallback callback, Object state) {
+    protected Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state) {
         return state;
     }
 
     @ExportMessage
-    protected Object eachEntrySafe(Frame frame, RubyHash hash, EachEntryCallback callback, Object state) {
+    protected Object eachEntrySafe(RubyHash hash, EachEntryCallback callback, Object state) {
         return state;
     }
 

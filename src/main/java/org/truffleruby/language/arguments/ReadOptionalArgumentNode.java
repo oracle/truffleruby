@@ -79,8 +79,7 @@ public class ReadOptionalArgumentNode extends RubyContextSourceNode {
                     readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
                 }
 
-                final RubyHash rejectedKwargs = readRejectedKeywordArgumentsNode
-                        .extractRejectedKwargs(frame, kwargsHash);
+                final RubyHash rejectedKwargs = readRejectedKeywordArgumentsNode.extractRejectedKwargs(kwargsHash);
                 if (hasRejectedKwargs.profile(rejectedKwargs.size > 0)) {
                     return rejectedKwargs;
                 }

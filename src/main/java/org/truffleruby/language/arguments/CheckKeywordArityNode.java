@@ -12,7 +12,6 @@ package org.truffleruby.language.arguments;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.RubyHash;
@@ -50,7 +49,8 @@ public class CheckKeywordArityNode extends RubyBaseNode {
 
         final RubyHash keywordArguments = readUserKeywordsHashNode.execute(frame);
 
-        int given = RubyArguments.getArgumentsCount(frame);
+        final int argumentsCount = RubyArguments.getArgumentsCount(frame);
+        int given = argumentsCount;
 
         if (keywordArguments != null) {
             receivedKeywordsProfile.enter();
@@ -65,11 +65,11 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
 
         if (!arity.hasKeywordsRest() && keywordArguments != null) {
-            checkKeywordArguments(frame, keywordArguments, arity, language);
+            checkKeywordArguments(argumentsCount, keywordArguments, arity, language);
         }
     }
 
-    void checkKeywordArguments(VirtualFrame frame, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
+    void checkKeywordArguments(int argumentsCount, RubyHash keywordArguments, Arity arity, RubyLanguage language) {
         if (hashes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             hashes = insert(HashStoreLibrary.createDispatched());
@@ -78,7 +78,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             checkKeywordArgumentsNode = insert(new CheckKeywordArgumentsNode(language, arity));
         }
-        hashes.eachEntry(keywordArguments.store, frame, keywordArguments, checkKeywordArgumentsNode, null);
+        hashes.eachEntry(keywordArguments.store, keywordArguments, checkKeywordArgumentsNode, argumentsCount);
     }
 
     private static class CheckKeywordArgumentsNode extends RubyContextNode implements EachEntryCallback {
@@ -99,7 +99,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
         }
 
         @Override
-        public void accept(Frame frame, int index, Object key, Object value, Object state) {
+        public void accept(int index, Object key, Object value, Object argumentsCount) {
             if (isSymbolProfile.profile(key instanceof RubySymbol)) {
                 if (!keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
@@ -110,7 +110,7 @@ public class CheckKeywordArityNode extends RubyBaseNode {
             } else {
                 // the Hash would be split and a reject Hash be created to hold non-Symbols when there is no **kwrest parameter,
                 // so we need to check if an extra argument is allowed
-                final int given = RubyArguments.getArgumentsCount(frame); // -1 for keyword hash, +1 for reject Hash with non-Symbol keys
+                final int given = (int) argumentsCount; // -1 for keyword hash, +1 for reject Hash with non-Symbol keys
                 if (doesNotAcceptExtraArguments && given > required) {
                     tooManyKeywordsProfile.enter();
                     throw new RaiseException(getContext(), coreExceptions().argumentError(given, required, this));

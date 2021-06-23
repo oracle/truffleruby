@@ -321,7 +321,7 @@ public class BucketsHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntry(Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
+    protected Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             // We only use this to get hold of the root node. No memory overhead because it's shared.
             @Cached @Shared("lookup") LookupEntryNode witness,
             @Cached LoopConditionProfile loopProfile) {
@@ -332,7 +332,7 @@ public class BucketsHashStore {
         Entry entry = hash.firstInSequence;
         try {
             while (loopProfile.inject(entry != null)) {
-                callback.accept(frame, i++, entry.getKey(), entry.getValue(), state);
+                callback.accept(i++, entry.getKey(), entry.getValue(), state);
                 entry = entry.getNextInSequence();
             }
         } finally {
@@ -344,9 +344,9 @@ public class BucketsHashStore {
     }
 
     @ExportMessage
-    protected Object eachEntrySafe(Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
+    protected Object eachEntrySafe(RubyHash hash, EachEntryCallback callback, Object state,
             @CachedLibrary("this") HashStoreLibrary self) {
-        return self.eachEntry(this, frame, hash, callback, state);
+        return self.eachEntry(this, hash, callback, state);
     }
 
     @TruffleBoundary

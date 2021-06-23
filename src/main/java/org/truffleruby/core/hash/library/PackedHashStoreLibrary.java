@@ -296,8 +296,7 @@ public class PackedHashStoreLibrary {
 
         @Specialization(guards = "hash.size == cachedSize", limit = "packedHashLimit()")
         @ExplodeLoop
-        protected static Object eachEntry(
-                Object[] store, Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
+        protected static Object eachEntry(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
                 // We only use this to get hold of the root node.
                 @Cached YieldPairNode witness,
                 @Cached(value = "hash.size", allowUncached = true) int cachedSize,
@@ -309,7 +308,7 @@ public class PackedHashStoreLibrary {
             int i = 0;
             try {
                 for (; loopProfile.inject(i < cachedSize); i++) {
-                    callback.accept(frame, i, getKey(store, i), getValue(store, i), state);
+                    callback.accept(i, getKey(store, i), getValue(store, i), state);
                 }
             } finally {
                 // The node is used to get the root node, so fine to use a cached node here.
@@ -321,12 +320,11 @@ public class PackedHashStoreLibrary {
     }
 
     @ExportMessage
-    protected static Object eachEntrySafe(
-            Object[] store, Frame frame, RubyHash hash, EachEntryCallback callback, Object state,
+    protected static Object eachEntrySafe(Object[] store, RubyHash hash, EachEntryCallback callback, Object state,
             @CachedLibrary("store") HashStoreLibrary self,
             @CachedLanguage RubyLanguage language) {
 
-        return self.eachEntry(copyStore(language, store), frame, hash, callback, state);
+        return self.eachEntry(copyStore(language, store), hash, callback, state);
     }
 
     @ExportMessage

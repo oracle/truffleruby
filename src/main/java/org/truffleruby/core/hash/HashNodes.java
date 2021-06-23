@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
@@ -300,12 +299,12 @@ public abstract class HashNodes {
         @Specialization(limit = "hashStrategyLimit()")
         protected RubyHash each(RubyHash hash, RubyProc block,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
-            hashes.eachEntrySafe(hash.store, null, hash, this, block);
+            hashes.eachEntrySafe(hash.store, hash, this, block);
             return hash;
         }
 
         @Override
-        public void accept(Frame frame, int index, Object key, Object value, Object state) {
+        public void accept(int index, Object key, Object value, Object state) {
             yieldPair.execute((RubyProc) state, key, value);
         }
     }
@@ -424,12 +423,12 @@ public abstract class HashNodes {
                 @CachedLibrary("hash.store") HashStoreLibrary hashes) {
             final int size = hash.size;
             final BuilderState state = arrayBuilder.start(size);
-            hashes.eachEntrySafe(hash.store, null, hash, this, new MapState(state, block));
+            hashes.eachEntrySafe(hash.store, hash, this, new MapState(state, block));
             return ArrayHelpers.createArray(getContext(), getLanguage(), arrayBuilder.finish(state, size), size);
         }
 
         @Override
-        public void accept(Frame frame, int index, Object key, Object value, Object state) {
+        public void accept(int index, Object key, Object value, Object state) {
             final MapState mapState = (MapState) state;
             arrayBuilder.appendValue(mapState.builderState, index, yieldPair.execute(mapState.block, key, value));
         }

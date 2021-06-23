@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
@@ -50,12 +49,12 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
             return HashOperations.newEmptyHash(getContext(), getLanguage());
         } else {
             final RubyHash kwRest = HashOperations.newEmptyHash(getContext(), getLanguage());
-            return hashes.eachEntry(hash.store, frame, hash, this, kwRest);
+            return hashes.eachEntry(hash.store, hash, this, kwRest);
         }
     }
 
     @Override
-    public void accept(Frame frame, int index, Object key, Object value, Object kwRest) {
+    public void accept(int index, Object key, Object value, Object kwRest) {
         if (!keywordExcluded(key)) {
             final RubyHash hash = (RubyHash) kwRest;
             hashes.set(hash.store, hash, key, value, false);
