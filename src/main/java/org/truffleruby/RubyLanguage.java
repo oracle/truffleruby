@@ -336,6 +336,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void initializeMultipleContexts() {
+        LOGGER.fine("initializeMultipleContexts()");
+
         // TODO Make Symbol.all_symbols per context, by having a SymbolTable per context and creating new symbols with
         //  the per-language SymbolTable.
 
@@ -633,6 +635,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
+        final boolean compatible = checkAreOptionsCompatible(firstOptions, newOptions);
+        LOGGER.fine(compatible ? "areOptionsCompatible() -> true" : "areOptionsCompatible() -> false");
+        return compatible;
+    }
+
+    private boolean checkAreOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
         if (singleContext) {
             return false;
         }
