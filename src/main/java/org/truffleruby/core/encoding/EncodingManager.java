@@ -271,7 +271,7 @@ public class EncodingManager {
         }
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
-        LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
+        LOOKUP.put(RopeOperations.decodeRope(rubyEncoding.name.rope).toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
 
     }

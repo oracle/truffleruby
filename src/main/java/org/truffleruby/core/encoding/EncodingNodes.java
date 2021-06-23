@@ -124,6 +124,8 @@ public abstract class EncodingNodes {
                         "firstEncoding != secondEncoding",
                         "first.isEmpty() == isFirstEmpty",
                         "second.isEmpty() == isSecondEmpty",
+                        "cachedFirstEncoding == firstEncoding",
+                        "cachedSecondEncoding == secondEncoding",
                         "codeRangeNode.execute(first) == firstCodeRange",
                         "codeRangeNode.execute(second) == secondCodeRange" },
                 limit = "getCacheLimit()")
@@ -133,6 +135,8 @@ public abstract class EncodingNodes {
                 @Cached("second.isEmpty()") boolean isSecondEmpty,
                 @Cached("first.getCodeRange()") CodeRange firstCodeRange,
                 @Cached("second.getCodeRange()") CodeRange secondCodeRange,
+                @Cached("firstEncoding") RubyEncoding cachedFirstEncoding,
+                @Cached("secondEncoding") RubyEncoding cachedSecondEncoding,
                 @Cached("negotiateRopeRopeUncached(first, firstEncoding, second, secondEncoding)") RubyEncoding negotiatedEncoding,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode) {
             assert first.encoding == firstEncoding.encoding && second.encoding == secondEncoding.encoding;
@@ -824,6 +828,16 @@ public abstract class EncodingNodes {
         protected RubyEncoding checkEncoding(Object first, Object second,
                 @Cached BranchProfile errorProfile) {
             final RubyEncoding negotiatedEncoding = executeNegotiate(first, second);
+            if (negotiatedEncoding == null && first instanceof RubyString && second instanceof RubyString) {
+                RubyString str1 = (RubyString) first;
+                RubyString str2 = (RubyString) second;
+                if (str1.encoding == str2.encoding) {
+                    System.out.println("here");
+                }
+
+            }
+
+            final RubyEncoding negotiatedEncodingAgain = executeNegotiate(first, second);
 
             if (negotiatedEncoding == null) {
                 errorProfile.enter();
