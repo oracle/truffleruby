@@ -22,6 +22,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
@@ -265,7 +266,7 @@ public abstract class PointerNodes {
                     getLanguage().stringShape,
                     false,
                     RopeConstants.EMPTY_ASCII_8BIT_ROPE,
-                    getContext().getEncodingManager().getRubyEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE.encoding));
+                    Encodings.BINARY);
             AllocationTracing.trace(instance, this);
             return instance;
         }
@@ -325,9 +326,7 @@ public abstract class PointerNodes {
                         getLanguage().stringShape,
                         false,
                         RopeConstants.EMPTY_ASCII_8BIT_ROPE,
-                        getContext()
-                                .getEncodingManager()
-                                .getRubyEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE.encoding));
+                        Encodings.BINARY);
                 AllocationTracing.trace(instance, this);
                 return instance;
             } else {
