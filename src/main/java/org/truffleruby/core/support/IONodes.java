@@ -67,7 +67,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -75,6 +74,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -456,7 +456,7 @@ public abstract class IONodes {
                 bytes = Arrays.copyOf(buffer, bytesRead);
             }
 
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
         }
 
     }

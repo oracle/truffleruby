@@ -48,7 +48,7 @@ package org.truffleruby.core.format.read.bytes;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.read.SourceNode;
@@ -80,7 +80,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(result, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        return makeStringNode.executeMake(result, Encodings.BINARY, CodeRange.CR_UNKNOWN);
     }
 
     @TruffleBoundary

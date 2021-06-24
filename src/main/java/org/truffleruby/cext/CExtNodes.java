@@ -17,7 +17,6 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -35,6 +34,7 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -827,7 +827,7 @@ public class CExtNodes {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = getLanguage().getSourcePath(sourceSection.getSource());
 
-            return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(file, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary

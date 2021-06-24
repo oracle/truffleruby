@@ -42,8 +42,6 @@ import java.util.Map.Entry;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
@@ -52,6 +50,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
@@ -388,7 +387,7 @@ public abstract class VMPrimitiveNodes {
                     .getNativeConfiguration()
                     .getSection(libSection.getJavaString(section))) {
                 final RubyString key = makeStringNode
-                        .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
+                        .executeMake(entry.getKey(), Encodings.UTF_8, CodeRange.CR_7BIT);
                 yieldNode.yield(block, key, entry.getValue());
             }
 
@@ -420,7 +419,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, Encodings.BINARY, CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "count < 0")

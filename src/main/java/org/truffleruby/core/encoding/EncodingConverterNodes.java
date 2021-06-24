@@ -381,8 +381,8 @@ public abstract class EncodingConverterNodes {
             ec.putback(bytes, 0, n);
 
             final Encoding encoding = ec.sourceEncoding != null ? ec.sourceEncoding : ASCIIEncoding.INSTANCE;
-
-            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
+            final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(encoding);
+            return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -407,18 +407,18 @@ public abstract class EncodingConverterNodes {
             final Object[] store = new Object[size];
 
             store[0] = eConvResultToSymbol(lastError.getResult());
-            store[1] = makeStringNode.executeMake(lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
-            store[2] = makeStringNode.executeMake(lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+            store[1] = makeStringNode.executeMake(lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
+            store[2] = makeStringNode.executeMake(lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
             store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
                     lastError.getErrorBytes(),
                     lastError.getErrorBytesP(),
-                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN);
+                    lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN, Encodings.BINARY);
 
             if (readAgain) {
                 store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(
                         lastError.getErrorBytes(),
                         lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                        lastError.getReadAgainLength()), CR_UNKNOWN);
+                        lastError.getReadAgainLength()), CR_UNKNOWN, Encodings.BINARY);
             }
 
             return createArray(store);
@@ -459,11 +459,11 @@ public abstract class EncodingConverterNodes {
             final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
             if (ec.lastError.getSource() != null) {
-                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), Encodings.BINARY, CR_UNKNOWN);
             }
 
             if (ec.lastError.getDestination() != null) {
-                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), Encodings.BINARY, CR_UNKNOWN);
             }
 
             if (ec.lastError.getErrorBytes() != null) {
@@ -473,13 +473,15 @@ public abstract class EncodingConverterNodes {
                                         ec.lastError.getErrorBytes(),
                                         ec.lastError.getErrorBytesP(),
                                         ec.lastError.getErrorBytesLength()),
-                                CR_UNKNOWN);
+                                CR_UNKNOWN,
+                                Encodings.BINARY);
                 ret[4] = makeStringNode.fromBuilderUnsafe(
                         RopeBuilder.createRopeBuilder(
                                 ec.lastError.getErrorBytes(),
                                 ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(),
                                 ec.lastError.getReadAgainLength()),
-                        CR_UNKNOWN);
+                        CR_UNKNOWN,
+                        Encodings.BINARY);
             }
 
             return createArray(ret);
@@ -508,7 +510,7 @@ public abstract class EncodingConverterNodes {
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
             final RubyEncoding encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return makeStringNode.executeMake(bytes, encoding.encoding, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
         }
 
     }

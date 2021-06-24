@@ -46,7 +46,6 @@ import java.util.logging.Level;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -55,6 +54,8 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -88,10 +89,11 @@ public abstract class TruffleSystemNodes {
             final Set<String> variables = System.getenv().keySet();
             final int size = variables.size();
             final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
+            final RubyEncoding localeRubyEncoding = getContext().getEncodingManager().getRubyEncoding(localeEncoding);
             final Object[] store = new Object[size];
             int i = 0;
             for (String variable : variables) {
-                store[i++] = makeStringNode.executeMake(variable, localeEncoding, CodeRange.CR_UNKNOWN);
+                store[i++] = makeStringNode.executeMake(variable, localeRubyEncoding, CodeRange.CR_UNKNOWN);
             }
             return createArray(store);
         }
@@ -155,7 +157,10 @@ public abstract class TruffleSystemNodes {
                 @Cached MakeStringNode makeStringNode) {
             final String cwd = getContext().getFeatureLoader().getWorkingDirectory();
             final Encoding externalEncoding = getContext().getEncodingManager().getDefaultExternalEncoding();
-            return makeStringNode.executeMake(cwd, externalEncoding, CodeRange.CR_UNKNOWN);
+            final RubyEncoding externalRubyEncoding = getContext()
+                    .getEncodingManager()
+                    .getRubyEncoding(externalEncoding);
+            return makeStringNode.executeMake(cwd, externalRubyEncoding, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -167,7 +172,7 @@ public abstract class TruffleSystemNodes {
             String[] properties = getProperties();
             Object[] array = new Object[properties.length];
             for (int i = 0; i < properties.length; i++) {
-                array[i] = makeStringNode.executeMake(properties[i], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                array[i] = makeStringNode.executeMake(properties[i], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
             return createArray(array);
         }
@@ -190,7 +195,7 @@ public abstract class TruffleSystemNodes {
             if (value == null) {
                 return nil;
             } else {
-                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -207,7 +212,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         protected RubyString hostCPU() {
-            return makeStringNode.executeMake(BasicPlatform.getArchName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(BasicPlatform.getArchName(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -219,7 +224,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         protected RubyString hostOS() {
-            return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(Platform.getOSName(), Encodings.UTF_8, CodeRange.CR_7BIT);
         }
 
     }

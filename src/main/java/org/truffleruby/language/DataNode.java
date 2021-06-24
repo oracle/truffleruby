@@ -10,6 +10,7 @@
 package org.truffleruby.language;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -44,7 +45,8 @@ public class DataNode extends RubyContextSourceNode {
 
         final String path = getPath();
         final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
-        final RubyString pathString = makeStringNode.executeMake(path, localeEncoding, CodeRange.CR_UNKNOWN);
+        final RubyEncoding rubyLocaleEncoding = getContext().getEncodingManager().getRubyEncoding(localeEncoding);
+        final RubyString pathString = makeStringNode.executeMake(path, rubyLocaleEncoding, CodeRange.CR_UNKNOWN);
         final Object data = callHelperNode
                 .call(coreLibrary().truffleInternalModule, "get_data", pathString, endPosition);
 

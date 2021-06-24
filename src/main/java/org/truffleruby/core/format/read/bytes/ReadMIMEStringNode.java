@@ -38,7 +38,7 @@ package org.truffleruby.core.format.read.bytes;
 import java.util.Arrays;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -65,7 +65,7 @@ public abstract class ReadMIMEStringNode extends FormatNode {
         setSourcePosition(frame, sourceLength);
 
         return makeStringNode
-                .executeMake(Arrays.copyOfRange(store, 0, storeIndex), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                .executeMake(Arrays.copyOfRange(store, 0, storeIndex), Encodings.BINARY, CodeRange.CR_UNKNOWN);
     }
 
     // Logic from MRI pack.c pack_unpack_internal

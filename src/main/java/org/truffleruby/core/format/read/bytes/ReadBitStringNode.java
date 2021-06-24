@@ -48,7 +48,7 @@ package org.truffleruby.core.format.read.bytes;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -113,7 +113,7 @@ public abstract class ReadBitStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return makeStringNode.executeMake(lElem, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        return makeStringNode.executeMake(lElem, Encodings.US_ASCII, CodeRange.CR_7BIT);
     }
 
 }

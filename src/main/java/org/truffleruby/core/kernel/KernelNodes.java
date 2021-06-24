@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.utilities.AssumedValue;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -48,6 +47,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
@@ -278,7 +278,7 @@ public abstract class KernelNodes {
                 return nil;
             }
             return makeStringNode
-                    .executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                    .executeMake(expandedPath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -320,7 +320,7 @@ public abstract class KernelNodes {
             return makeStringNode
                     .executeMake(
                             Paths.get(featurePath).normalize().toString(),
-                            UTF8Encoding.INSTANCE,
+                            Encodings.UTF_8,
                             CodeRange.CR_UNKNOWN);
         }
 
@@ -407,7 +407,7 @@ public abstract class KernelNodes {
             final String expandedPath = getContext()
                     .getFeatureLoader()
                     .canonicalize(strings.getJavaString(string));
-            return makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(expandedPath, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -1859,7 +1859,8 @@ public abstract class KernelNodes {
 
             return makeStringNode.executeMake(
                     bytes,
-                    result.getEncoding().getEncodingForLength(formatLength),
+                    getContext().getEncodingManager().getRubyEncoding(
+                            result.getEncoding().getEncodingForLength(formatLength)),
                     result.getStringCodeRange());
         }
 
@@ -2020,7 +2021,7 @@ public abstract class KernelNodes {
 
             return makeStringNode.executeMake(
                     javaString,
-                    UTF8Encoding.INSTANCE,
+                    Encodings.UTF_8,
                     CodeRange.CR_UNKNOWN);
         }
 

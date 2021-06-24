@@ -19,7 +19,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -28,6 +27,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.Rope;
@@ -73,7 +73,7 @@ public abstract class TruffleBootNodes {
                 return nil;
             } else {
                 return makeStringNode
-                        .executeMake(getContext().getRubyHome(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        .executeMake(getContext().getRubyHome(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -208,7 +208,7 @@ public abstract class TruffleBootNodes {
         }
 
         private RubyString utf8(String string) {
-            return makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(string, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -227,7 +227,8 @@ public abstract class TruffleBootNodes {
             for (int n = 0; n < array.length; n++) {
                 array[n] = makeStringNode.executeMake(
                         argv[n],
-                        getContext().getEncodingManager().getDefaultExternalEncoding(),
+                        getContext().getEncodingManager().getRubyEncoding(
+                                getContext().getEncodingManager().getDefaultExternalEncoding()),
                         CodeRange.CR_UNKNOWN);
             }
 
@@ -248,7 +249,7 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[paths.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = makeStringNode.executeMake(paths[n], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                array[n] = makeStringNode.executeMake(paths[n], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
 
             return createArray(array);
@@ -280,7 +281,7 @@ public abstract class TruffleBootNodes {
             }
 
             return makeStringNode
-                    .executeMake(getLanguage().getSourcePath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                    .executeMake(getLanguage().getSourcePath(source), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -342,7 +343,7 @@ public abstract class TruffleBootNodes {
             } else if (value instanceof Enum) {
                 return getSymbol(((Enum<?>) value).name());
             } else if (value instanceof String) {
-                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(value, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             } else if (value instanceof String[]) {
                 return toRubyArray((String[]) value);
             } else {
@@ -354,7 +355,7 @@ public abstract class TruffleBootNodes {
         private RubyArray toRubyArray(String[] strings) {
             final Object[] objects = new Object[strings.length];
             for (int n = 0; n < strings.length; n++) {
-                objects[n] = makeStringNode.executeMake(strings[n], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                objects[n] = makeStringNode.executeMake(strings[n], Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             }
             return createArray(objects);
         }
@@ -394,7 +395,7 @@ public abstract class TruffleBootNodes {
             final Toolchain toolchain = getToolchain(getContext(), this);
             final TruffleFile path = toolchain.getToolPath(name);
             if (path != null) {
-                return makeStringNode.executeMake(path.getPath(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(path.getPath(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             } else {
                 throw new RaiseException(
                         getContext(),
@@ -419,7 +420,7 @@ public abstract class TruffleBootNodes {
                         .stream()
                         .map(file -> file.getPath())
                         .collect(Collectors.joining(File.pathSeparator));
-                return makeStringNode.executeMake(path, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(path, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
             } else {
                 throw new RaiseException(
                         getContext(),
@@ -465,7 +466,7 @@ public abstract class TruffleBootNodes {
             }
 
             String basicVersion = RopeOperations.decodeAscii(bytes).trim();
-            return makeStringNode.executeMake(basicVersion, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(basicVersion, Encodings.UTF_8, CodeRange.CR_7BIT);
         }
 
     }

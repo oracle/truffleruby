@@ -17,6 +17,7 @@ import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
@@ -31,7 +32,7 @@ public class Encodings {
     public static final RubyEncoding US_ASCII = initializeUsAscii();
     public static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
     public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
-
+    public static final RubyEncoding UTF_8 = BUILT_IN_ENCODINGS[UTF8Encoding.INSTANCE.getIndex()];
 
     public Encodings() {
         initializeRubyEncodings();

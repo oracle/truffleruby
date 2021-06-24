@@ -25,6 +25,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
@@ -106,7 +107,7 @@ public abstract class RegexpNodes {
         protected RubyString quoteSymbol(RubySymbol raw) {
             return doQuoteString(
                     getMakeStringNode()
-                            .executeMake(raw.getString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                            .executeMake(raw.getString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN));
         }
 
         @Fallback

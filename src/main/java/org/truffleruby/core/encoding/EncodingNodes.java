@@ -470,7 +470,7 @@ public abstract class EncodingNodes {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final RubyString aliasName = makeStringNode.executeMake(
                         ArrayUtils.extractRange(e.bytes, e.p, e.end),
-                        USASCIIEncoding.INSTANCE,
+                        Encodings.US_ASCII,
                         CodeRange.CR_7BIT);
                 yieldNode.yield(
                         block,

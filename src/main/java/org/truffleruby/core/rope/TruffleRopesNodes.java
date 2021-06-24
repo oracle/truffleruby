@@ -15,6 +15,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.cext.CExtNodes;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -47,7 +48,7 @@ public abstract class TruffleRopesNodes {
                 builder.append(StringUtils.format("\\x%02x", rope.get(i)));
             }
 
-            return makeStringNode.executeMake(builder.toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(builder.toString(), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -99,7 +100,10 @@ public abstract class TruffleRopesNodes {
             Rope rope = strings.getRope(string);
             String result = getStructure(rope);
             byte[] bytes = StringOperations.encodeBytes(result, UTF8Encoding.INSTANCE);
-            return makeStringNode.executeMake(bytes, rope.getEncoding(), CodeRange.CR_7BIT);
+            return makeStringNode.executeMake(
+                    bytes,
+                    getContext().getEncodingManager().getRubyEncoding(rope.getEncoding()),
+                    CodeRange.CR_7BIT);
         }
 
         protected static String getStructure(Rope rope) {

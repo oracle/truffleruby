@@ -26,7 +26,6 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -47,6 +46,7 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
@@ -1152,7 +1152,7 @@ public abstract class ModuleNodes {
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        UTF8Encoding.INSTANCE,
+                        Encodings.UTF_8,
                         CodeRange.CR_UNKNOWN);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
@@ -2105,7 +2105,7 @@ public abstract class ModuleNodes {
             } else {
                 moduleName = module.fields.getName();
             }
-            return makeStringNode.executeMake(moduleName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(moduleName, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 

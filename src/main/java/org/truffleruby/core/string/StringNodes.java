@@ -211,19 +211,23 @@ public abstract class StringNodes {
     @GenerateUncached
     public abstract static class MakeStringNode extends RubyBaseNode {
 
-        public abstract RubyString executeMake(Object payload, Object encoding, Object codeRange);
+        public abstract RubyString executeMake(Object payload, RubyEncoding encoding, Object codeRange);
 
         public RubyString fromRope(Rope rope) {
-            return executeMake(rope, NotProvided.INSTANCE, NotProvided.INSTANCE);
+            final RubyEncoding rubyEncoding = RubyLanguage
+                    .getCurrentContext()
+                    .getEncodingManager()
+                    .getRubyEncoding(rope.encoding);
+            return executeMake(rope, rubyEncoding, NotProvided.INSTANCE);
         }
 
-        public RubyString fromBuilder(RopeBuilder builder, CodeRange codeRange) {
-            return executeMake(builder.getBytes(), builder.getEncoding(), codeRange);
+        public RubyString fromBuilder(RopeBuilder builder, CodeRange codeRange, RubyEncoding encoding) {
+            return executeMake(builder.getBytes(), encoding, codeRange);
         }
 
         /** All callers of this factory method must guarantee that the builder's byte array cannot change after this
          * call, otherwise the rope built from the builder will end up in an inconsistent state. */
-        public RubyString fromBuilderUnsafe(RopeBuilder builder, CodeRange codeRange) {
+        public RubyString fromBuilderUnsafe(RopeBuilder builder, CodeRange codeRange, RubyEncoding encoding) {
             final byte[] unsafeBytes = builder.getUnsafeBytes();
             final byte[] ropeBytes;
 
@@ -238,7 +242,7 @@ public abstract class StringNodes {
                 ropeBytes = builder.getBytes();
             }
 
-            return executeMake(ropeBytes, builder.getEncoding(), codeRange);
+            return executeMake(ropeBytes, encoding, codeRange);
         }
 
         public static MakeStringNode create() {
@@ -250,7 +254,7 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange,
+        protected RubyString makeStringFromRope(Rope rope, RubyEncoding encoding, NotProvided codeRange,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLanguage RubyLanguage language) {
             final RubyClass stringClass = context.getCoreLibrary().stringClass;
@@ -265,11 +269,12 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected RubyString makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected RubyString makeStringFromBytes(byte[] bytes, RubyEncoding encoding, CodeRange codeRange,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLanguage RubyLanguage language) {
-            final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
+            final LeafRope rope = makeLeafRopeNode
+                    .executeMake(bytes, encoding.encoding, codeRange, NotProvided.INSTANCE);
             final RubyClass stringClass = context.getCoreLibrary().stringClass;
             final RubyString string = new RubyString(
                     stringClass,
@@ -282,15 +287,15 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "is7Bit(codeRange)")
-        protected RubyString makeAsciiStringFromString(String string, Encoding encoding, CodeRange codeRange) {
+        protected RubyString makeAsciiStringFromString(String string, RubyEncoding encoding, CodeRange codeRange) {
             final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
 
             return executeMake(bytes, encoding, codeRange);
         }
 
         @Specialization(guards = "!is7Bit(codeRange)")
-        protected RubyString makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
-            final byte[] bytes = StringOperations.encodeBytes(string, encoding);
+        protected RubyString makeStringFromString(String string, RubyEncoding encoding, CodeRange codeRange) {
+            final byte[] bytes = StringOperations.encodeBytes(string, encoding.encoding);
 
             return executeMake(bytes, encoding, codeRange);
         }
@@ -2379,7 +2384,10 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             // Taken from org.jruby.RubyString#undump
             RopeBuilder outputBytes = StringSupport.undump(libString.getRope(string), getContext(), this);
-            return makeStringNode.fromBuilder(outputBytes, CR_UNKNOWN);
+            final RubyEncoding rubyEncoding = getContext()
+                    .getEncodingManager()
+                    .getRubyEncoding(outputBytes.getEncoding());
+            return makeStringNode.fromBuilder(outputBytes, CR_UNKNOWN, rubyEncoding);
         }
 
         @Specialization(guards = "!isAsciiCompatible(libString.getRope(string))")
@@ -3776,9 +3784,10 @@ public abstract class StringNodes {
                 return nil;
             }
 
+            final RubyEncoding rubyEncoding = strings.getEncoding(string);
             return makeStringNode.executeMake(
                     ArrayUtils.extractRange(bytes, byteIndex, byteIndex + c),
-                    encoding,
+                    rubyEncoding,
                     CR_UNKNOWN);
         }
 
@@ -4094,7 +4103,7 @@ public abstract class StringNodes {
                 throw new RaiseException(getContext(), coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
-            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_VALID);
+            return makeStringNode.executeMake(bytes, rubyEncoding, CodeRange.CR_VALID);
         }
 
         protected boolean isCodepoint(long code) {
@@ -5480,9 +5489,8 @@ public abstract class StringNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final byte[] bytes = byteArray.bytes;
             final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);
-            final Encoding encoding = rubyEncoding.encoding;
 
-            return makeStringNode.executeMake(array, encoding, CR_UNKNOWN);
+            return makeStringNode.executeMake(array, rubyEncoding, CR_UNKNOWN);
         }
 
     }

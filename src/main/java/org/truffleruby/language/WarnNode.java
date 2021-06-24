@@ -10,9 +10,9 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.nodes.NodeCost;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -65,7 +65,7 @@ public class WarnNode extends RubyContextNode {
         final String warningMessage = buildWarningMessage(sourceSection, message);
 
         final RubyString warningString = makeStringNode
-                .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                .executeMake(warningMessage, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
 
         callWarnNode.call(context.getCoreLibrary().kernelModule, "warn", warningString);
     }

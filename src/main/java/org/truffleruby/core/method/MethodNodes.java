@@ -11,7 +11,6 @@ package org.truffleruby.core.method;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -21,6 +20,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -216,7 +216,7 @@ public abstract class MethodNodes {
             } else {
                 RubyString file = makeStringNode.executeMake(
                         getLanguage().getSourcePath(sourceSection.getSource()),
-                        UTF8Encoding.INSTANCE,
+                        Encodings.UTF_8,
                         CodeRange.CR_UNKNOWN);
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }

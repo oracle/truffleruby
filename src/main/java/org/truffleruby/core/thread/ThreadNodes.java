@@ -49,8 +49,6 @@ import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.graalvm.collections.Pair;
-import org.jcodings.specific.USASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -69,6 +67,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.RubyBasicObject;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
@@ -549,7 +548,7 @@ public abstract class ThreadNodes {
                 }
             }
             return makeStringNode
-                    .executeMake(StringUtils.toLowerCase(status.name()), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                    .executeMake(StringUtils.toLowerCase(status.name()), Encodings.US_ASCII, CodeRange.CR_7BIT);
         }
 
     }
@@ -851,7 +850,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected RubyString sourceLocation(RubyThread thread) {
             return makeStringNode
-                    .executeMake(thread.sourceLocation, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                    .executeMake(thread.sourceLocation, Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
     }
 

@@ -35,6 +35,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -920,7 +921,7 @@ public abstract class InteropNodes {
         @TruffleBoundary
         @Specialization
         protected RubyString toString(Object value) {
-            return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(String.valueOf(value), Encodings.UTF_8, CodeRange.CR_UNKNOWN);
         }
 
     }

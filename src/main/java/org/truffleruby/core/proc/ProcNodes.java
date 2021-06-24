@@ -12,7 +12,6 @@ package org.truffleruby.core.proc;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.frame.Frame;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -23,6 +22,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
@@ -247,7 +247,7 @@ public abstract class ProcNodes {
             } else {
                 final RubyString file = makeStringNode.executeMake(
                         sourcePath,
-                        UTF8Encoding.INSTANCE,
+                        Encodings.UTF_8,
                         CodeRange.CR_UNKNOWN);
 
                 return createArray(new Object[]{ file, sourceSection.getStartLine() });
