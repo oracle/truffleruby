@@ -40,12 +40,15 @@ public class RubyString extends RubyDynamicObject {
         this.encoding = rubyEncoding;
     }
 
-    public void setEncoding(RubyEncoding encoding) {
-        this.encoding = encoding;
+    public void setRope(Rope rope) {
+        assert rope.encoding == encoding.encoding;
+        this.rope = rope;
     }
 
-    public void setRope(Rope rope) {
+    public void setRope(Rope rope, RubyEncoding encoding) {
+        assert rope.encoding == encoding.encoding;
         this.rope = rope;
+        this.encoding = encoding;
     }
 
     /** should only be used for debugging */

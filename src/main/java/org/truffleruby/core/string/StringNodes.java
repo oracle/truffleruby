@@ -1495,8 +1495,7 @@ public abstract class StringNodes {
                 final Encoding javaEncoding = encoding.encoding;
                 final Rope rope = string.rope;
                 final Rope newRope = withEncodingNode.executeWithEncoding(rope, javaEncoding);
-                string.setEncoding(encoding);
-                string.setRope(newRope);
+                string.setRope(newRope, encoding);
             }
 
             return string;
@@ -1577,8 +1576,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString initializeJavaString(RubyString string, String from, RubyEncoding encoding) {
-            string.setRope(StringOperations.encodeRope(from, encoding.encoding));
-            string.setEncoding(encoding);
+            string.setRope(StringOperations.encodeRope(from, encoding.encoding), encoding);
             return string;
         }
 
@@ -1594,8 +1592,7 @@ public abstract class StringNodes {
         @Specialization(guards = "stringsFrom.isRubyString(from)")
         protected RubyString initialize(RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom) {
-            string.setRope(stringsFrom.getRope(from));
-            string.setEncoding(stringsFrom.getEncoding(from));
+            string.setRope(stringsFrom.getRope(from), stringsFrom.getEncoding(from));
             return string;
         }
 
@@ -1604,8 +1601,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached ToStrNode toStrNode) {
             final Object stringFrom = toStrNode.execute(from);
-            string.setRope(stringLibrary.getRope(stringFrom));
-            string.setEncoding(stringLibrary.getEncoding(stringFrom));
+            string.setRope(stringLibrary.getRope(stringFrom), stringLibrary.getEncoding(stringFrom));
             return string;
         }
 
@@ -1672,8 +1668,7 @@ public abstract class StringNodes {
         protected Object initializeCopy(RubyString self, Object from,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
-            self.setRope(stringsFrom.getRope(from));
-            self.setEncoding(stringsFrom.getEncoding(from));
+            self.setRope(stringsFrom.getRope(from), stringsFrom.getEncoding(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;
@@ -1688,8 +1683,7 @@ public abstract class StringNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsFrom,
                 @Cached StringGetAssociatedNode stringGetAssociatedNode) {
             self.setRope(
-                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext()));
-            self.setEncoding(stringsFrom.getEncoding(from));
+                    ((NativeRope) stringsFrom.getRope(from)).makeCopy(getContext()), stringsFrom.getEncoding(from));
             final Object associated = stringGetAssociatedNode.execute(from);
             copyAssociated(self, associated);
             return self;
@@ -1827,15 +1821,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "string != other" })
         protected RubyString replace(RubyString string, RubyString other) {
-            string.setRope(other.rope);
-            string.setEncoding(other.encoding);
+            string.setRope(other.rope, other.encoding);
             return string;
         }
 
         @Specialization
         protected RubyString replace(RubyString string, ImmutableRubyString other) {
-            string.setRope(other.rope);
-            string.setEncoding(other.getEncoding(getContext()));
+            string.setRope(other.rope, other.getEncoding(getContext()));
             return string;
         }
 
@@ -3493,8 +3485,7 @@ public abstract class StringNodes {
         protected RubyString stringAppend(RubyString string, Object other,
                 @CachedLibrary(limit = "2") RubyStringLibrary otherStringLibrary) {
             final Rope result = stringAppendNode.executeStringAppend(string, other);
-            string.setRope(result);
-            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(result.getEncoding()));
+            string.setRope(result, getContext().getEncodingManager().getRubyEncoding(result.getEncoding()));
             return string;
         }
 
@@ -5120,8 +5111,9 @@ public abstract class StringNodes {
                     .executeSubstring(original, byteCountToReplace, original.byteLength() - byteCountToReplace);
 
             final Rope prependResult = prependConcatNode.executeConcat(left, right, encoding);
-            string.setRope(prependResult);
-            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(prependResult.getEncoding()));
+            string.setRope(
+                    prependResult,
+                    getContext().getEncodingManager().getRubyEncoding(prependResult.getEncoding()));
 
             return string;
         }
@@ -5136,8 +5128,7 @@ public abstract class StringNodes {
             final Rope right = libOther.getRope(other);
 
             final Rope concatResult = appendConcatNode.executeConcat(left, right, encoding);
-            string.setRope(concatResult);
-            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(concatResult.getEncoding()));
+            string.setRope(concatResult, getContext().getEncodingManager().getRubyEncoding(concatResult.getEncoding()));
 
             return string;
         }
@@ -5175,8 +5166,7 @@ public abstract class StringNodes {
                 joinedRight = rightConcatNode.executeConcat(joinedLeft, splitRight, encoding);
             }
 
-            string.setRope(joinedRight);
-            string.setEncoding(getContext().getEncodingManager().getRubyEncoding(joinedRight.getEncoding()));
+            string.setRope(joinedRight, getContext().getEncodingManager().getRubyEncoding(joinedRight.getEncoding()));
             return string;
         }
 

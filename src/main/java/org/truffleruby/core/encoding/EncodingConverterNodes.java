@@ -331,8 +331,8 @@ public abstract class EncodingConverterNodes {
                     outBytes.setEncoding(ec.destinationEncoding);
                 }
 
-                target.setRope(RopeOperations.ropeFromRopeBuilder(outBytes));
-                target.setEncoding(
+                target.setRope(
+                        RopeOperations.ropeFromRopeBuilder(outBytes),
                         (RubyEncoding) destinationEncodingNode.call(encodingConverter, "destination_encoding"));
 
                 return getSymbol(res.symbolicName());
