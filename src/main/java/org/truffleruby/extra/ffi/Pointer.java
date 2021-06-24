@@ -22,7 +22,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import sun.misc.Unsafe;
 
 @SuppressFBWarnings("Nm")
-public class Pointer implements AutoCloseable {
+public final class Pointer implements AutoCloseable {
 
     public static final Pointer NULL = new Pointer(0);
     public static final long SIZE = Long.BYTES;
@@ -56,6 +56,27 @@ public class Pointer implements AutoCloseable {
     public Pointer(long address, long size) {
         this.address = address;
         this.size = size;
+    }
+
+    public boolean isNull() {
+        return address == 0;
+    }
+
+    public long getAddress() {
+        return address;
+    }
+
+    public long getEndAddress() {
+        assert isBounded();
+        return address + size;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public boolean isBounded() {
+        return size != UNBOUNDED;
     }
 
     public void writeByte(long offset, byte b) {
@@ -240,18 +261,6 @@ public class Pointer implements AutoCloseable {
         freeNoAutorelease();
     }
 
-    public long getAddress() {
-        return address;
-    }
-
-    public boolean isNull() {
-        return address == 0;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
     public synchronized boolean isAutorelease() {
         return finalizerRef != null;
     }
@@ -318,7 +327,7 @@ public class Pointer implements AutoCloseable {
     @TruffleBoundary
     @Override
     public String toString() {
-        return "Pointer@0x" + Long.toHexString(address);
+        return "Pointer@0x" + Long.toHexString(address) + "(size=" + (isBounded() ? size : "UNBOUNDED") + ")";
     }
 
     public static long rawMalloc(long size) {
