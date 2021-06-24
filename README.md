@@ -20,7 +20,7 @@ There are four ways to install TruffleRuby releases and nightly builds:
   download. It is meant for users who only want a Ruby implementation and are already
   using a Ruby manager.
 
-* Via Docker: [Oracle Linux-based images](https://github.com/orgs/graalvm/packages/container/package/truffleruby)
+* Via Docker: [Oracle Linux-based images](https://github.com/graalvm/container/pkgs/container/truffleruby)
   and [Debian-based images](https://hub.docker.com/r/flavorjones/truffleruby).
 
 * Via the [standalone distribution](doc/user/standalone-distribution.md)
@@ -132,7 +132,7 @@ so there is a higher chance of hitting an area of TruffleRuby which has not been
 ## Releases
 
 TruffleRuby has the same version, and is released at the same time as GraalVM.
-There is a release every 3 months. See the [release roadmap](https://www.graalvm.org/docs/release-notes/version-roadmap/).
+There is a release every 3 months. See the [release roadmap](https://www.graalvm.org/release-notes/version-roadmap/).
 
 ## Migration from MRI
 

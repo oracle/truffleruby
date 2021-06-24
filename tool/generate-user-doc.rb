@@ -9,6 +9,15 @@ contents = contents.gsub(%r{\]\(doc/user/([^)]+)\)}, '](\1)')
 contents = contents.sub(/^## Documentation\n.+?\n##/m, '##')
 
 # Add top-level title as expected by the website
-contents = "# TruffleRuby\n\n#{contents}"
+contents = <<HEADER + contents
+---
+layout: docs-experimental
+toc_group: ruby
+link_title: Ruby Reference
+permalink: /reference-manual/ruby/
+---
+# TruffleRuby
+
+HEADER
 
 File.write("#{root}/doc/user/README.md", contents)
