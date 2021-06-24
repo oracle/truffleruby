@@ -15,10 +15,12 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.jcodings.Encoding;
+import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -38,6 +40,14 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
     public RubyEncoding(Encoding encoding, ImmutableRubyString name, int index) {
         this.encoding = encoding;
         this.name = name;
+        this.index = index;
+    }
+
+    // Special constructor to define US-ASCII encoding which is used for RubyEncoding names
+    public RubyEncoding(Encoding encoding, String name, int index) {
+        assert encoding == USASCIIEncoding.INSTANCE;
+        this.encoding = encoding;
+        this.name = new ImmutableRubyString(RopeConstants.ROPE_CONSTANTS.get(name), this);
         this.index = index;
     }
 

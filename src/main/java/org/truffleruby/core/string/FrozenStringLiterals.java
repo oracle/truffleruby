@@ -12,6 +12,8 @@ package org.truffleruby.core.string;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.Rope;
@@ -47,7 +49,8 @@ public class FrozenStringLiterals {
         if (string != null) {
             return string;
         } else {
-            return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope));
+            final RubyEncoding rubyEncoding = Encodings.BUILT_IN_ENCODINGS[encoding.getIndex()];
+            return values.addInCacheIfAbsent(cachedRope, new ImmutableRubyString(cachedRope, rubyEncoding));
         }
     }
 

@@ -1827,7 +1827,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected RubyString replace(RubyString string, ImmutableRubyString other) {
-            string.setRope(other.rope, other.getEncoding(getContext()));
+            string.setRope(other.rope, other.getEncoding());
             return string;
         }
 

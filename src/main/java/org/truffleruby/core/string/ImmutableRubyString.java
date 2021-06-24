@@ -35,11 +35,12 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public class ImmutableRubyString extends ImmutableRubyObject implements TruffleObject {
 
     public final LeafRope rope;
-    //    public RubyEncoding encoding;
+    public final RubyEncoding encoding;
 
-    public ImmutableRubyString(LeafRope rope) {
+    public ImmutableRubyString(LeafRope rope, RubyEncoding encoding) {
         this.rope = rope;
-        //        this.encoding = null;
+        assert encoding != null;
+        this.encoding = encoding;
     }
 
     /** should only be used for debugging */
@@ -50,10 +51,8 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
 
     // region RubyStringLibrary messages
     @ExportMessage
-    public RubyEncoding getEncoding(
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        // TODO
-        return context.getEncodingManager().getRubyEncoding(rope.encoding);
+    public RubyEncoding getEncoding() {
+        return encoding;
     }
 
     @ExportMessage

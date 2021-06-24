@@ -28,12 +28,18 @@ import org.truffleruby.core.string.ImmutableRubyString;
 public class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
+    public static final RubyEncoding US_ASCII = initializeUsAscii();
     public static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
+    public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
 
-    public static RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
 
     public Encodings() {
         initializeRubyEncodings();
+    }
+
+    private static RubyEncoding initializeUsAscii() {
+        final Encoding encoding = USASCIIEncoding.INSTANCE;
+        return new RubyEncoding(encoding, new String(encoding.getName()), encoding.getIndex());
     }
 
     private static RubyEncoding[] initializeRubyEncodings() {
@@ -44,11 +50,16 @@ public class Encodings {
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
+            if (encodingEntry.getEncoding() == USASCIIEncoding.INSTANCE) {
+                encodings[encodingEntry.getEncoding().getIndex()] = US_ASCII;
+                continue;
+            }
             assert e.p == 0 : "Ropes can't be created with non-zero offset: " + e.p;
             assert e.end == e.bytes.length : "Ropes must have the same exact length as the name array (len = " + e.end +
                     "; name.length = " + e.bytes.length + ")";
             final ImmutableRubyString name = new ImmutableRubyString(
-                    RopeConstants.ROPE_CONSTANTS.get(new String(e.bytes)));
+                    RopeConstants.ROPE_CONSTANTS.get(new String(e.bytes)),
+                    US_ASCII);
             final RubyEncoding rubyEncoding = newRubyEncoding(
                     name,
                     encodingEntry.getEncoding(),
