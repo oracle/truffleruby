@@ -40,6 +40,7 @@ import org.truffleruby.core.cast.StringToSymbolNodeGen;
 import org.truffleruby.core.cast.ToProcNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
@@ -1517,7 +1518,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitEncodingNode(EncodingParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
         final RubyNode ret = new ObjectLiteralNode(
-                language.encodings.getBuiltInEncoding(node.getEncoding().getIndex()));
+                Encodings.getBuiltInEncoding(node.getEncoding().getIndex()));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

@@ -37,7 +37,7 @@ public class ImmutableRubyString extends ImmutableRubyObject implements TruffleO
     public final LeafRope rope;
     //    public RubyEncoding encoding;
 
-    ImmutableRubyString(LeafRope rope) {
+    public ImmutableRubyString(LeafRope rope) {
         this.rope = rope;
         //        this.encoding = null;
     }

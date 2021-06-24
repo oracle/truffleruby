@@ -235,7 +235,7 @@ public class EncodingManager {
     public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p,
             int end) {
         final int encodingIndex = encodingEntry.getEncoding().getIndex();
-        final RubyEncoding rubyEncoding = language.encodings.getBuiltInEncoding(encodingIndex);
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingIndex);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
                 ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
@@ -255,7 +255,8 @@ public class EncodingManager {
     public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
         final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
 
-        final RubyEncoding rubyEncoding = language.encodings.newRubyEncoding(
+        final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(
+                language,
                 encodingEntry.getEncoding(),
                 encodingIndex,
                 name,

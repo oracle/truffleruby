@@ -12,7 +12,6 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
@@ -21,42 +20,44 @@ import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ImmutableRubyString;
 
 public class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
-    @CompilationFinal(dimensions = 1) public final RubyEncoding[] BUILT_IN_ENCODINGS = //
-            new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
+    public static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
 
-    private final RubyLanguage language;
-
-    public Encodings(RubyLanguage language) {
-        this.language = language;
+    public Encodings() {
         initializeRubyEncodings();
-
     }
 
-    private void initializeRubyEncodings() {
+    private static RubyEncoding[] initializeRubyEncodings() {
+        final RubyEncoding[] encodings = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
         final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
                 .getEncodings()
                 .entryIterator();
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
+            assert e.p == 0 : "Ropes can't be created with non-zero offset: " + e.p;
+            assert e.end == e.bytes.length : "Ropes must have the same exact length as the name array (len = " + e.end +
+                    "; name.length = " + e.bytes.length + ")";
+            final ImmutableRubyString name = new ImmutableRubyString(
+                    RopeConstants.ROPE_CONSTANTS.get(new String(e.bytes)));
             final RubyEncoding rubyEncoding = newRubyEncoding(
+                    name,
                     encodingEntry.getEncoding(),
-                    encodingEntry.getEncoding().getIndex(),
-                    e.bytes,
-                    e.p,
-                    e.end);
-            BUILT_IN_ENCODINGS[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
+                    encodingEntry.getEncoding().getIndex());
+            encodings[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
         }
+        return encodings;
     }
 
     @TruffleBoundary
-    public RubyEncoding newRubyEncoding(Encoding encoding, int index, byte[] name, int p, int end) {
+    public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name, int p,
+            int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
                 "; name.length = " + name.length + ")";
@@ -64,10 +65,15 @@ public class Encodings {
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
 
-        return new RubyEncoding(encoding, string, index);
+        return newRubyEncoding(string, encoding, index);
     }
 
-    public RubyEncoding getBuiltInEncoding(int index) {
+    @TruffleBoundary
+    private static RubyEncoding newRubyEncoding(ImmutableRubyString name, Encoding encoding, int index) {
+        return new RubyEncoding(encoding, name, index);
+    }
+
+    public static RubyEncoding getBuiltInEncoding(int index) {
         return BUILT_IN_ENCODINGS[index];
     }
 

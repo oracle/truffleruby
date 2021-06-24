@@ -19,6 +19,8 @@ import org.truffleruby.core.rope.RopeCache;
 
 import java.util.Collection;
 
+import static org.truffleruby.core.rope.RopeConstants.ENCODING_NAMES;
+
 public class FrozenStringLiterals {
 
     private final RopeCache ropeCache;
@@ -26,6 +28,9 @@ public class FrozenStringLiterals {
 
     public FrozenStringLiterals(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
+        for (Rope name : ENCODING_NAMES) {
+            getFrozenStringLiteral(name);
+        }
     }
 
     @TruffleBoundary
