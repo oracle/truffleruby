@@ -1152,14 +1152,15 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      truffle_args += %w(--reveal --vm.Xmx2G)
+      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--vm.Xmx2G --reveal --experimental-options --testing-rubygems])
+      truffle_args = vm_args + ruby_args
     end
 
     env_vars = {
       'EXCLUDES' => 'test/mri/excludes',
       'RUBYGEMS_TEST_PATH' => "#{MRI_TEST_PREFIX}/rubygems",
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
-      'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--testing-rubygems'].join(' '),
+      'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], *truffle_args].join(' '),
     }
     compile_env = {
       # MRI C-ext tests expect to be built with $extmk = true.
@@ -1203,7 +1204,7 @@ module Commands
 
     command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
-    run_ruby(env_vars, *truffle_args, *extra_args, *command, *test_files, *runner_args, run_options)
+    run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
   end
 
   def retag(*args)
