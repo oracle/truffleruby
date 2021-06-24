@@ -40,12 +40,9 @@ VALUE rb_ary_new_capa(long capacity) {
 }
 
 VALUE rb_ary_new_from_args(long n, ...) {
-  VALUE array = rb_ary_new_capa(n);
   va_list args;
   va_start(args, n);
-  for (int i = 0; i < n; i++) {
-    rb_ary_store(array, i, va_arg(args, VALUE));
-  }
+  VALUE array = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ary_new_from_values", &args));
   va_end(args);
   return array;
 }
