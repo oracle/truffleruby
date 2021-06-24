@@ -169,12 +169,20 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object create(Object regexp, Object string, RubyArray starts, RubyArray ends,
+                @Cached LoopConditionProfile loopProfile,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
             final Region region = new Region(starts.size);
-            for (int i = 0; i < region.numRegs; i++) {
-                region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
-                region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
+
+            try {
+                loopProfile.profileCounted(region.numRegs);
+
+                for (int i = 0; loopProfile.inject(i < region.numRegs); i++) {
+                    region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
+                    region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, region.numRegs);
             }
 
             RubyMatchData matchData = new RubyMatchData(
