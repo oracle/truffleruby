@@ -122,6 +122,8 @@ public class LanguageOptions {
     public final boolean SHARED_OBJECTS_DEBUG;
     /** --shared-objects-force=false */
     public final boolean SHARED_OBJECTS_FORCE;
+    /** --experimental-engine-caching=false */
+    public final boolean EXPERIMENTAL_ENGINE_CACHING;
 
     public LanguageOptions(Env env, OptionValues options, boolean singleContext) {
         NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
@@ -174,6 +176,7 @@ public class LanguageOptions {
         SHARED_OBJECTS_ENABLED = options.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY);
         SHARED_OBJECTS_DEBUG = options.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY);
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
+        EXPERIMENTAL_ENGINE_CACHING = options.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -278,6 +281,8 @@ public class LanguageOptions {
                 return SHARED_OBJECTS_DEBUG;
             case "ruby.shared-objects-force":
                 return SHARED_OBJECTS_FORCE;
+            case "ruby.experimental-engine-caching":
+                return EXPERIMENTAL_ENGINE_CACHING;
             default:
                 return null;
         }
@@ -333,7 +338,8 @@ public class LanguageOptions {
                one.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY).equals(two.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_ENABLED_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
-               one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY));
+               one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY)) &&
+               one.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY).equals(two.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY));
     }
 
     public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
@@ -687,6 +693,13 @@ public class LanguageOptions {
         newValue = newOptions.SHARED_OBJECTS_FORCE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --shared-objects-force differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.EXPERIMENTAL_ENGINE_CACHING;
+        newValue = newOptions.EXPERIMENTAL_ENGINE_CACHING;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --experimental-engine-caching differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

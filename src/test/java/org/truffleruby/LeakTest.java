@@ -230,7 +230,7 @@ public class LeakTest extends AbstractLanguageLauncher {
     @Override
     protected void launch(Builder contextBuilder) {
         if (sharedEngine) {
-            engine = Engine.newBuilder().build();
+            engine = Engine.newBuilder().option("engine.WarnInterpreterOnly", "false").build();
             contextBuilder.engine(engine);
         }
         contextBuilder.allowExperimentalOptions(true).allowAllAccess(true);

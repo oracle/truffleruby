@@ -119,7 +119,7 @@ import org.truffleruby.stdlib.digest.RubyDigest;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
-        contextPolicy = ContextPolicy.EXCLUSIVE,
+        contextPolicy = ContextPolicy.SHARED,
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
         version = TruffleRuby.LANGUAGE_VERSION,
@@ -336,6 +336,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected void initializeMultipleContexts() {
+        LOGGER.fine("initializeMultipleContexts()");
+
         // TODO Make Symbol.all_symbols per context, by having a SymbolTable per context and creating new symbols with
         //  the per-language SymbolTable.
 
@@ -633,7 +635,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean areOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
+        final boolean compatible = checkAreOptionsCompatible(firstOptions, newOptions);
+        LOGGER.fine(compatible ? "areOptionsCompatible() -> true" : "areOptionsCompatible() -> false");
+        return compatible;
+    }
+
+    private boolean checkAreOptionsCompatible(OptionValues firstOptions, OptionValues newOptions) {
         if (singleContext) {
+            return false;
+        }
+        if (!firstOptions.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) ||
+                !newOptions.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY)) {
             return false;
         }
         return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
