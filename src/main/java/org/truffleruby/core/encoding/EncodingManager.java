@@ -163,8 +163,16 @@ public class EncodingManager {
         }
 
         if (context.getOptions().WARN_LOCALE && rubyEncoding.encoding == USASCIIEncoding.INSTANCE) {
-            RubyLanguage.LOGGER.warning(
-                    "Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly");
+            if ("C".equals(System.getenv("LANG")) && "C".equals(System.getenv("LC_ALL"))) {
+                // The parent process seems to explicitly want a C locale (e.g. EnvUtil#invoke_ruby in the MRI test harness), so only warn at config level in this case.
+                RubyLanguage.LOGGER.config(
+                        "Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly. " +
+                                "Warning at level=CONFIG because LANG=C and LC_ALL=C are set.");
+            } else {
+                RubyLanguage.LOGGER.warning(
+                        "Encoding.find('locale') is US-ASCII, this often indicates that the system locale is not set properly. " +
+                                "Set LANG=C and LC_ALL=C to suppress this warning (but some things might break).");
+            }
         }
 
         localeEncoding = rubyEncoding.encoding;
