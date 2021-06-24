@@ -136,9 +136,8 @@ module Truffle
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
       end
 
-      readables_pointer, writables_pointer, errorables_pointer =
+      buffer, readables_pointer, writables_pointer, errorables_pointer =
           Truffle::FFI::Pool.stack_alloc(readables.size * SIZEOF_INT, writables.size * SIZEOF_INT, errorables.size * SIZEOF_INT)
-
       begin
         to_fds(readable_ios, readables_pointer)
         to_fds(writable_ios, writables_pointer)
@@ -185,7 +184,7 @@ module Truffle
            mark_ready(errorables, errorables_pointer)]
         end
       ensure
-        Truffle::FFI::Pool.stack_free(readables_pointer)
+        Truffle::FFI::Pool.stack_free(buffer)
       end
 
     end

@@ -267,7 +267,9 @@ module Truffle::FFI
 
   class Pool
     # Use Primitive.io_thread_buffer_allocate(Primitive.pointer_find_type_size(:type) * n)
-    # instead for a single pointer. This method always returns an Array of FFI::Pointer.
+    # instead for a single pointer.
+    # This method always returns an Array of 1 + args.size FFI::Pointer, the first pointer is the full buffer to pass to #stack_free,
+    # followed by args.size pointers, one for each argument.
     def self.stack_alloc(*args)
       total_length = 0
       offsets = []
@@ -279,12 +281,13 @@ module Truffle::FFI
         total_length += length
       end
       buffer = Primitive.io_thread_buffer_allocate(total_length)
-      offsets.map { |offset, length| buffer.slice(offset, length) }
+      [buffer, *offsets.map { |offset, length| buffer.slice(offset, length) }]
     end
 
-    # The argument is the first pointer returned by #stack_alloc
-    def self.stack_free(pointer)
-      Primitive.io_thread_buffer_free(pointer)
+    # The argument is the first pointer (typically named buffer) returned by #stack_alloc.
+    # It needs to be a FFI::Pointer with the full allocated size, so the primitive knows how much to free.
+    def self.stack_free(buffer)
+      Primitive.io_thread_buffer_free(buffer)
     end
   end
 end

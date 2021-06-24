@@ -120,8 +120,7 @@ module Truffle
       end
 
       def self.getsockopt(descriptor, level, optname)
-        val, length = Truffle::FFI::Pool.stack_alloc(256, Primitive.pointer_find_type_size(:socklen_t))
-
+        buffer, val, length = Truffle::FFI::Pool.stack_alloc(256, Primitive.pointer_find_type_size(:socklen_t))
         begin
           length.write_int(256)
 
@@ -131,7 +130,7 @@ module Truffle
 
           val.read_string(length.read_int)
         ensure
-          Truffle::FFI::Pool.stack_free(val)
+          Truffle::FFI::Pool.stack_free(buffer)
         end
       end
 
@@ -198,9 +197,8 @@ module Truffle
                            reverse_lookup = !BasicSocket.do_not_reverse_lookup)
         name_info = []
 
-        sockaddr_p, node, service = Truffle::FFI::Pool.stack_alloc(
+        buffer, sockaddr_p, node, service = Truffle::FFI::Pool.stack_alloc(
           sockaddr.bytesize, ::Socket::NI_MAXHOST, ::Socket::NI_MAXSERV)
-
         begin
           sockaddr_p.write_bytes(sockaddr)
 
@@ -227,12 +225,12 @@ module Truffle
 
           name_info
         ensure
-          Truffle::FFI::Pool.stack_free(sockaddr_p)
+          Truffle::FFI::Pool.stack_free(buffer)
         end
       end
 
       def self.getpeername(descriptor)
-        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
+        buffer, sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
         begin
           len_p.write_int(128)
 
@@ -242,13 +240,12 @@ module Truffle
 
           sockaddr_storage_p.read_string(len_p.read_int)
         ensure
-          Truffle::FFI::Pool.stack_free(sockaddr_storage_p)
+          Truffle::FFI::Pool.stack_free(buffer)
         end
       end
 
       def self.getsockname(descriptor)
-        sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
-
+        buffer, sockaddr_storage_p, len_p = Truffle::FFI::Pool.stack_alloc(128, Primitive.pointer_find_type_size(:socklen_t))
         begin
           len_p.write_int(128)
           err = _getsockname(descriptor, sockaddr_storage_p, len_p)
@@ -257,7 +254,7 @@ module Truffle
 
           sockaddr_storage_p.read_string(len_p.read_int)
         ensure
-          Truffle::FFI::Pool.stack_free(sockaddr_storage_p)
+          Truffle::FFI::Pool.stack_free(buffer)
         end
       end
 
