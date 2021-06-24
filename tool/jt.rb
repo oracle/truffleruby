@@ -1292,7 +1292,7 @@ module Commands
       case test_name
       when 'tools'
         # Test tools
-        run_ruby 'test/truffle/cexts/test-preprocess.rb'
+        run_ruby 'test/truffle/cexts/test_preprocess.rb'
 
       when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'
         # Test that we can compile and run some very basic C extensions
