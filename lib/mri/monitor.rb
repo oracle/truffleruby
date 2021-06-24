@@ -1,3 +1,4 @@
+# truffleruby_primitives: true
 # frozen_string_literal: false
 # = monitor.rb
 #
@@ -87,38 +88,14 @@
 # MonitorMixin module.
 #
 module MonitorMixin
-  EXCEPTION_NEVER = {Exception => :never}.freeze
-  EXCEPTION_IMMEDIATE = {Exception => :immediate}.freeze
-
   #
   # FIXME: This isn't documented in Nutshell.
   #
   # Since MonitorMixin.new_cond returns a ConditionVariable, and the example
   # above calls while_wait and signal, this class should be documented.
   #
-  class ConditionVariable
+  class ConditionVariable < ::ConditionVariable
     class Timeout < Exception; end
-
-    #
-    # Releases the lock held in the associated monitor and waits; reacquires the lock on wakeup.
-    #
-    # If +timeout+ is given, this method returns after +timeout+ seconds passed,
-    # even if no other thread doesn't signal.
-    #
-    def wait(timeout = nil)
-      Thread.handle_interrupt(EXCEPTION_NEVER) do
-        @monitor.__send__(:mon_check_owner)
-        count = @monitor.__send__(:mon_exit_for_cond)
-        begin
-          Thread.handle_interrupt(EXCEPTION_IMMEDIATE) do
-            @cond.wait(@monitor.instance_variable_get(:@mon_mutex), timeout)
-          end
-          return true
-        ensure
-          @monitor.__send__(:mon_enter_for_cond, count)
-        end
-      end
-    end
 
     #
     # Calls wait repeatedly while the given block yields a truthy value.
@@ -137,29 +114,6 @@ module MonitorMixin
         wait
       end
     end
-
-    #
-    # Wakes up the first thread in line waiting for this lock.
-    #
-    def signal
-      @monitor.__send__(:mon_check_owner)
-      @cond.signal
-    end
-
-    #
-    # Wakes up all threads waiting for this lock.
-    #
-    def broadcast
-      @monitor.__send__(:mon_check_owner)
-      @cond.broadcast
-    end
-
-    private
-
-    def initialize(monitor)
-      @monitor = monitor
-      @cond = Thread::ConditionVariable.new
-    end
   end
 
   def self.extend_object(obj)
@@ -171,15 +125,7 @@ module MonitorMixin
   # Attempts to enter exclusive section.  Returns +false+ if lock fails.
   #
   def mon_try_enter
-    if @mon_owner != Thread.current
-      unless @mon_mutex.try_lock
-        return false
-      end
-      @mon_owner = Thread.current
-      @mon_count = 0
-    end
-    @mon_count += 1
-    return true
+    Truffle::MonitorOperations.mon_try_mutex(@mon_mutex)
   end
   # For backward compatibility
   alias try_mon_enter mon_try_enter
@@ -188,24 +134,14 @@ module MonitorMixin
   # Enters exclusive section.
   #
   def mon_enter
-    if @mon_owner != Thread.current
-      @mon_mutex.lock
-      @mon_owner = Thread.current
-      @mon_count = 0
-    end
-    @mon_count += 1
+    Truffle::MonitorOperations.mon_mutex(@mon_mutex)
   end
 
   #
   # Leaves exclusive section.
   #
   def mon_exit
-    mon_check_owner
-    @mon_count -=1
-    if @mon_count == 0
-      @mon_owner = nil
-      @mon_mutex.unlock
-    end
+    Truffle::MonitorOperations.mon_exit(@mon_mutex)
   end
 
   #
@@ -219,7 +155,7 @@ module MonitorMixin
   # Returns true if this monitor is locked by current thread.
   #
   def mon_owned?
-    @mon_mutex.locked? && @mon_owner == Thread.current
+    @mon_mutex.owned?
   end
 
   #
@@ -227,19 +163,8 @@ module MonitorMixin
   # section automatically when the block exits.  See example under
   # +MonitorMixin+.
   #
-  def mon_synchronize
-    # Prevent interrupt on handling interrupts; for example timeout errors
-    # it may break locking state.
-    Thread.handle_interrupt(EXCEPTION_NEVER) do
-      mon_enter
-      begin
-        Thread.handle_interrupt(EXCEPTION_IMMEDIATE) do
-          yield
-        end
-      ensure
-        mon_exit
-      end
-    end
+  def mon_synchronize(&block)
+    Truffle::MonitorOperations.synchronize_on_mutex(@mon_mutex, &block)
   end
   alias synchronize mon_synchronize
 
@@ -248,10 +173,8 @@ module MonitorMixin
   # receiver.
   #
   def new_cond
-    return ConditionVariable.new(self)
+    return Truffle::MonitorOperations.condition_var_for_mutex(ConditionVariable, @mon_mutex)
   end
-
-  private
 
   # Use <tt>extend MonitorMixin</tt> or <tt>include MonitorMixin</tt> instead
   # of this constructor.  Have look at the examples above to understand how to
@@ -264,32 +187,13 @@ module MonitorMixin
   # Initializes the MonitorMixin after being included in a class or when an
   # object has been extended with the MonitorMixin
   def mon_initialize
-    if defined?(@mon_mutex) && @mon_mutex_owner_object_id == object_id
+    if defined?(@mon_mutex) && Primitive.object_same_or_equal(@mon_mutex_owner_object, self)
       raise ThreadError, "already initialized"
     end
     @mon_mutex = Thread::Mutex.new
-    @mon_mutex_owner_object_id = object_id
-    @mon_owner = nil
-    @mon_count = 0
+    @mon_mutex_owner_object = self
   end
 
-  def mon_check_owner
-    if @mon_owner != Thread.current
-      raise ThreadError, "current thread not owner"
-    end
-  end
-
-  def mon_enter_for_cond(count)
-    @mon_owner = Thread.current
-    @mon_count = count
-  end
-
-  def mon_exit_for_cond
-    count = @mon_count
-    @mon_owner = nil
-    @mon_count = 0
-    return count
-  end
 end
 
 # Use the Monitor class when you want to have a lock object for blocks with

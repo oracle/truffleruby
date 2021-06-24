@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -41,7 +41,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
     public InterruptMode interruptMode = InterruptMode.IMMEDIATE; // only accessed by this Ruby Thread and its Fibers
     public volatile ThreadStatus status = ThreadStatus.RUN;
-    public final List<Lock> ownedLocks = new ArrayList<>();
+    public final List<ReentrantLock> ownedLocks = new ArrayList<>();
     public final FiberManager fiberManager;
     CountDownLatch finishedLatch = new CountDownLatch(1);
     final RubyHash threadLocalVariables;
