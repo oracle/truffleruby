@@ -96,7 +96,9 @@ EOF
             # preprocessor macro which _must_ end with a newline and
             # so requires that we preserve the trailing whitespace.
             patched_file[:patches].each do |patch|
-              last_line = patch[:replacement].rstrip.lines.last.lstrip
+              replacement = patch[:replacement].rstrip
+              last_line = replacement.lines.last || replacement # .lines returns an empty Array if String#empty?
+              last_line = last_line.lstrip
               contents = contents.gsub(patch[:match],
                                        if last_line && last_line.start_with?('#')
                                          patch[:replacement]

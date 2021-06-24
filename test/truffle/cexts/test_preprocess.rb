@@ -56,7 +56,22 @@ rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));
 }
 EOF
 
+json_original = <<-EOF
+# else
+rb_str_resize(*result, RSTRING_LEN(*result));
+# endif
+EOF
+
+json_patched = <<-EOF
+# else
+
+# endif
+EOF
+
 test_patch 'xml_sax_parser.c', 'ext/nokogiri', original, modified
 # Should not patch other files or other gems
 test_patch 'other_file.c', 'ext/nokogiri', original, original
 test_patch 'xml_sax_parser.c', 'ext/other_gem', original, original
+
+# Tests an empty replacement
+test_patch 'parser.c', 'ext/json/ext/parser', json_original, json_patched
