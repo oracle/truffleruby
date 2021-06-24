@@ -16,30 +16,44 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public final class ThreadLocalBuffer {
 
-    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0, 0), 0, null);
+    public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(new Pointer(0, 0), null);
 
     public final Pointer start;
     long remaining;
-    final ThreadLocalBuffer parent;
+    private final ThreadLocalBuffer parent;
 
-    private ThreadLocalBuffer(
-            Pointer start,
-            long remaining,
-            ThreadLocalBuffer parent) {
+    private ThreadLocalBuffer(Pointer start, ThreadLocalBuffer parent) {
         this.start = start;
-        this.remaining = remaining;
+        this.remaining = start.getSize();
         this.parent = parent;
     }
 
-    private long getEndAddress() {
-        return start.getAddress() + start.getSize();
+    private boolean invariants() {
+        assert remaining >= 0 && remaining <= start.getSize();
+        return true;
+    }
+
+    private boolean isEmpty() {
+        return remaining == start.getSize();
+    }
+
+    private long cursor() {
+        return start.getEndAddress() - remaining;
+    }
+
+    private void freeMemory() {
+        remaining = 0;
+        start.freeNoAutorelease();
     }
 
     public void free(RubyThread thread, Pointer ptr, ConditionProfile freeProfile) {
+        assert ptr.getEndAddress() == cursor() : "free(" + Long.toHexString(ptr.getEndAddress()) +
+                ") but expected " + Long.toHexString(cursor()) + " to be free'd first";
         remaining += ptr.getSize();
-        if (freeProfile.profile(parent != null && remaining == start.getSize())) {
+        assert invariants();
+        if (freeProfile.profile(parent != null && isEmpty())) {
             thread.ioBuffer = parent;
-            start.freeNoAutorelease();
+            freeMemory();
         }
     }
 
@@ -47,8 +61,7 @@ public final class ThreadLocalBuffer {
         ThreadLocalBuffer current = this;
         thread.ioBuffer = NULL_BUFFER;
         while (current != null) {
-            current.remaining = 0;
-            current.start.freeNoAutorelease();
+            current.freeMemory();
             current = current.parent;
         }
     }
@@ -62,15 +75,15 @@ public final class ThreadLocalBuffer {
          * or reallocating a buffer that we technically have a pointer to. */
         final long allocationSize = Math.max(size, 4);
         if (allocationProfile.profile(remaining >= allocationSize)) {
-            Pointer pointer = new Pointer(this.getEndAddress() - this.remaining, allocationSize);
+            final Pointer pointer = new Pointer(cursor(), allocationSize);
             remaining -= allocationSize;
+            assert invariants();
             return pointer;
         } else {
-            ThreadLocalBuffer newBuffer = allocateNewBlock(thread, allocationSize);
-            Pointer pointer = new Pointer(
-                    newBuffer.start.getAddress(),
-                    allocationSize);
+            final ThreadLocalBuffer newBuffer = allocateNewBlock(thread, allocationSize);
+            final Pointer pointer = new Pointer(newBuffer.start.getAddress(), allocationSize);
             newBuffer.remaining -= allocationSize;
+            assert newBuffer.invariants();
             return pointer;
         }
     }
@@ -79,16 +92,16 @@ public final class ThreadLocalBuffer {
     private ThreadLocalBuffer allocateNewBlock(RubyThread thread, long size) {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
         final long blockSize = Math.max(size, 1024);
-        ThreadLocalBuffer buffer;
-        if (this.parent != null || remaining != start.getSize()) {
-            buffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), blockSize, this);
-        } else {
+        final ThreadLocalBuffer newBuffer;
+        if (this.parent == null && this.isEmpty()) {
             // Free the old block
-            this.free(thread, start, ConditionProfile.getUncached());
+            freeMemory();
             // Create new bigger block
-            buffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), blockSize, null);
+            newBuffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), null);
+        } else {
+            newBuffer = new ThreadLocalBuffer(Pointer.malloc(blockSize), this);
         }
-        thread.ioBuffer = buffer;
-        return buffer;
+        thread.ioBuffer = newBuffer;
+        return newBuffer;
     }
 }
