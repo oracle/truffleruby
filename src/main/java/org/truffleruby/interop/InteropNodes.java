@@ -82,24 +82,6 @@ import com.oracle.truffle.api.source.Source;
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
-    private abstract static class InteropCoreMethodNode extends CoreMethodNode {
-        protected int getCacheLimit() {
-            return getLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-    }
-
-    private abstract static class InteropCoreMethodArrayArgumentsNode extends CoreMethodArrayArgumentsNode {
-        protected int getCacheLimit() {
-            return getLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-    }
-
-    private abstract static class InteropPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
-        protected int getCacheLimit() {
-            return getLanguage().options.METHOD_LOOKUP_CACHE;
-        }
-    }
-
     public static Object execute(Object receiver, Object[] args, InteropLibrary receivers,
             TranslateInteropExceptionNode translateInteropExceptionNode) {
         try {
@@ -159,8 +141,8 @@ public abstract class InteropNodes {
     }
 
     @Primitive(name = "interop_execute")
-    public abstract static class InteropExecuteNode extends InteropPrimitiveArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class InteropExecuteNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object executeWithoutConversion(Object receiver, RubyArray argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
@@ -255,7 +237,7 @@ public abstract class InteropNodes {
                         "stringsSource.isRubyString(source)",
                         "mimeTypeEqualNode.execute(stringsMimeType.getRope(mimeType), cachedMimeType)",
                         "sourceEqualNode.execute(stringsSource.getRope(source), cachedSource)" },
-                limit = "getCacheLimit()")
+                limit = "getEvalCacheLimit()")
         protected Object evalCached(Object mimeType, Object source,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsMimeType,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringsSource,
@@ -295,7 +277,7 @@ public abstract class InteropNodes {
             }
         }
 
-        protected int getCacheLimit() {
+        protected int getEvalCacheLimit() {
             return getLanguage().options.EVAL_CACHE;
         }
 
@@ -338,9 +320,9 @@ public abstract class InteropNodes {
 
     // region Exception
     @CoreMethod(names = "exception?", onSingleton = true, required = 1)
-    public abstract static class IsExceptionNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsExceptionNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isException(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isException(receiver);
@@ -348,9 +330,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_exception_cause?", onSingleton = true, required = 1)
-    public abstract static class HasExceptionCauseNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasExceptionCauseNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasExceptionCause(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasExceptionCause(receiver);
@@ -358,9 +340,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "exception_cause", onSingleton = true, required = 1)
-    public abstract static class ExceptionCauseNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExceptionCauseNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getExceptionCause(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -373,9 +355,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "exception_exit_status", onSingleton = true, required = 1)
-    public abstract static class ExceptionExitStatusSourceNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExceptionExitStatusSourceNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected int getExceptionExitStatus(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -388,9 +370,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "exception_incomplete_source?", onSingleton = true, required = 1)
-    public abstract static class IsExceptionIncompleteSourceNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsExceptionIncompleteSourceNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isExceptionIncompleteSource(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -403,9 +385,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_exception_message?", onSingleton = true, required = 1)
-    public abstract static class HasExceptionMessageNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasExceptionMessageNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasExceptionMessage(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasExceptionMessage(receiver);
@@ -413,9 +395,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "exception_message", onSingleton = true, required = 1)
-    public abstract static class ExceptionMessageNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExceptionMessageNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected RubyString getExceptionMessage(Object receiver,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -433,9 +415,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_exception_stack_trace?", onSingleton = true, required = 1)
-    public abstract static class HasExceptionStackTraceNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasExceptionStackTraceNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasExceptionStackTrace(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasExceptionStackTrace(receiver);
@@ -443,9 +425,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "exception_stack_trace", onSingleton = true, required = 1)
-    public abstract static class ExceptionStackTraceNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExceptionStackTraceNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getExceptionStackTrace(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -458,9 +440,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "exception_type", onSingleton = true, required = 1)
-    public abstract static class ExceptionTypeNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExceptionTypeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected RubySymbol getExceptionType(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -474,9 +456,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "throw_exception", onSingleton = true, required = 1)
-    public abstract static class ThrowExceptionNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ThrowExceptionNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object throwException(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -492,9 +474,9 @@ public abstract class InteropNodes {
 
     // region Executable
     @CoreMethod(names = "executable?", onSingleton = true, required = 1)
-    public abstract static class IsExecutableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsExecutableNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isExecutable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isExecutable(receiver);
@@ -503,9 +485,9 @@ public abstract class InteropNodes {
 
 
     @CoreMethod(names = "has_executable_name?", onSingleton = true, required = 1)
-    public abstract static class HasExecutableNameNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasExecutableNameNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasExecutableName(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasExecutableName(receiver);
@@ -513,9 +495,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "executable_name", onSingleton = true, required = 1)
-    public abstract static class ExecutableNameNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExecutableNameNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected RubyString getExecutableName(Object receiver,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -544,7 +526,7 @@ public abstract class InteropNodes {
             return InteropNodesFactory.ExecuteNodeFactory.create(null);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object executeForeignCached(Object receiver, Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -555,15 +537,15 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
     @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true)
-    public abstract static class ExecuteWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ExecuteWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object executeWithoutConversionForeignCached(Object receiver, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -574,9 +556,9 @@ public abstract class InteropNodes {
 
     // region Instantiable
     @CoreMethod(names = "instantiable?", onSingleton = true, required = 1)
-    public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class InstantiableNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isInstantiable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isInstantiable(receiver);
@@ -595,7 +577,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object[] args);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object newCached(Object receiver, Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -612,7 +594,7 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
@@ -620,9 +602,9 @@ public abstract class InteropNodes {
 
     // region Array elements
     @CoreMethod(names = "has_array_elements?", onSingleton = true, required = 1)
-    public abstract static class HasArrayElementsNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasArrayElementsNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasArrayElements(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasArrayElements(receiver);
@@ -631,9 +613,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "array_size", onSingleton = true, required = 1)
-    public abstract static class ArraySizeNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ArraySizeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object arraySize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -659,7 +641,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
@@ -674,7 +656,7 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
@@ -691,7 +673,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -702,7 +684,7 @@ public abstract class InteropNodes {
             }
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
@@ -719,7 +701,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier, Object value);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached RubyToForeignNode valueToForeignNode,
@@ -733,7 +715,7 @@ public abstract class InteropNodes {
             return value;
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
@@ -750,7 +732,7 @@ public abstract class InteropNodes {
 
         abstract Nil execute(Object receiver, Object identifier);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Nil readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -763,17 +745,17 @@ public abstract class InteropNodes {
             return Nil.INSTANCE;
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
     @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsArrayElementReadableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isArrayElementReadable(Object receiver, long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementReadable(receiver, index);
@@ -781,11 +763,11 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsArrayElementModifiableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isArrayElementModifiable(Object receiver, long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementModifiable(receiver, index);
@@ -793,11 +775,11 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsArrayElementInsertableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isArrayElementInsertable(Object receiver, long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementInsertable(receiver, index);
@@ -805,11 +787,11 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsArrayElementRemovableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isArrayElementRemovable(Object receiver, long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementRemovable(receiver, index);
@@ -817,11 +799,11 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsArrayElementWritableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isArrayElementWritable(Object receiver, long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementWritable(receiver, index);
@@ -829,11 +811,11 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
-    public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsArrayElementExistingNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isArrayElementExisting(Object receiver, long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementExisting(receiver, index);
@@ -843,8 +825,8 @@ public abstract class InteropNodes {
 
     // region SourceLocation
     @CoreMethod(names = "has_source_location?", onSingleton = true, required = 1)
-    public abstract static class HasSourceLocationNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasSourceLocationNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasSourceLocation(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasSourceLocation(receiver);
@@ -852,8 +834,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "source_location", onSingleton = true, required = 1)
-    public abstract static class GetSourceLocationNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class GetSourceLocationNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getSourceLocation(Object receiver,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -869,8 +851,8 @@ public abstract class InteropNodes {
 
     // region String
     @CoreMethod(names = "string?", onSingleton = true, required = 1)
-    public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsStringNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isString(receiver);
@@ -878,8 +860,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_string", onSingleton = true, required = 1)
-    public abstract static class AsStringNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsStringNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected RubyString asString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached FromJavaStringNode fromJavaStringNode,
@@ -895,9 +877,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_string_without_conversion", onSingleton = true, required = 1)
-    public abstract static class AsStringWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class AsStringWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected String asString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -911,9 +893,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "to_display_string", onSingleton = true, required = 1)
-    public abstract static class ToDisplayStringNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ToDisplayStringNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected RubyString toDisplayString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedLibrary(limit = "1") InteropLibrary asStrings,
@@ -946,8 +928,8 @@ public abstract class InteropNodes {
 
     // region Boolean
     @CoreMethod(names = "boolean?", onSingleton = true, required = 1)
-    public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsBooleanNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isBoolean(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isBoolean(receiver);
@@ -955,8 +937,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_boolean", onSingleton = true, required = 1)
-    public abstract static class AsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsBooleanNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean asBoolean(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -972,8 +954,8 @@ public abstract class InteropNodes {
 
     // region DateTime
     @CoreMethod(names = "date?", onSingleton = true, required = 1)
-    public abstract static class IsDateNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsDateNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isDate(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isDate(receiver);
@@ -981,8 +963,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_date", onSingleton = true, required = 1)
-    public abstract static class AsDateNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsDateNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object asDate(Object receiver,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -996,8 +978,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "duration?", onSingleton = true, required = 1)
-    public abstract static class IsDurationNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsDurationNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isDuration(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isDuration(receiver);
@@ -1005,8 +987,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_duration", onSingleton = true, required = 1)
-    public abstract static class AsDurationNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsDurationNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object asDuration(Object receiver,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -1020,8 +1002,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "instant?", onSingleton = true, required = 1)
-    public abstract static class IsInstantNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsInstantNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isInstant(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isInstant(receiver);
@@ -1029,8 +1011,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_instant", onSingleton = true, required = 1)
-    public abstract static class AsInstantNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsInstantNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object asInstant(Object receiver,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -1044,8 +1026,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "time?", onSingleton = true, required = 1)
-    public abstract static class IsTimeNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsTimeNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isTime(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isTime(receiver);
@@ -1053,8 +1035,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_time", onSingleton = true, required = 1)
-    public abstract static class AsTimeNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsTimeNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object asTime(Object receiver,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -1068,8 +1050,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "time_zone?", onSingleton = true, required = 1)
-    public abstract static class IsTimeZoneNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsTimeZoneNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isTimeZone(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isTimeZone(receiver);
@@ -1077,8 +1059,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_time_zone", onSingleton = true, required = 1)
-    public abstract static class AsTimeZoneNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsTimeZoneNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object asTimeZone(Object receiver,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -1094,8 +1076,8 @@ public abstract class InteropNodes {
 
     // region Number
     @CoreMethod(names = "number?", onSingleton = true, required = 1)
-    public abstract static class IsNumberNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsNumberNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isNumber(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNumber(receiver);
@@ -1103,8 +1085,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "fits_in_byte?", onSingleton = true, required = 1)
-    public abstract static class FitsInByteNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class FitsInByteNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInByte(receiver);
@@ -1112,8 +1094,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "fits_in_short?", onSingleton = true, required = 1)
-    public abstract static class FitsInShortNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class FitsInShortNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInShort(receiver);
@@ -1121,8 +1103,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "fits_in_int?", onSingleton = true, required = 1)
-    public abstract static class FitsInIntNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class FitsInIntNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInInt(receiver);
@@ -1130,8 +1112,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "fits_in_long?", onSingleton = true, required = 1)
-    public abstract static class FitsInLongNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class FitsInLongNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInLong(receiver);
@@ -1139,8 +1121,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "fits_in_float?", onSingleton = true, required = 1)
-    public abstract static class FitsInFloatNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class FitsInFloatNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInFloat(receiver);
@@ -1148,8 +1130,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "fits_in_double?", onSingleton = true, required = 1)
-    public abstract static class FitsInDoubleNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class FitsInDoubleNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean fits(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.fitsInDouble(receiver);
@@ -1157,8 +1139,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_byte", onSingleton = true, required = 1)
-    public abstract static class AsByteNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsByteNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1171,8 +1153,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_short", onSingleton = true, required = 1)
-    public abstract static class AsShortNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsShortNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1185,8 +1167,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_int", onSingleton = true, required = 1)
-    public abstract static class AsIntNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsIntNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1199,8 +1181,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_long", onSingleton = true, required = 1)
-    public abstract static class AsLongNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsLongNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected long as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1213,8 +1195,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_float", onSingleton = true, required = 1)
-    public abstract static class AsFloatNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsFloatNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected double as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1227,8 +1209,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_double", onSingleton = true, required = 1)
-    public abstract static class AsDoubleNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class AsDoubleNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected double as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1254,13 +1236,13 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isNull(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isNull(receiver);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
@@ -1269,9 +1251,9 @@ public abstract class InteropNodes {
 
     // region Pointer
     @CoreMethod(names = "pointer?", onSingleton = true, required = 1)
-    public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class PointerNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isPointer(receiver);
@@ -1280,9 +1262,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "as_pointer", onSingleton = true, required = 1)
-    public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class AsPointerNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected long asPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1295,9 +1277,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "to_native", onSingleton = true, required = 1)
-    public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ToNativeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Nil toNative(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             receivers.toNative(receiver);
@@ -1309,9 +1291,9 @@ public abstract class InteropNodes {
 
     // region Members
     @CoreMethod(names = "has_members?", onSingleton = true, required = 1)
-    public abstract static class HasMembersNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasMembersNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasMembers(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMembers(receiver);
@@ -1319,7 +1301,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
-    public abstract static class GetMembersNode extends InteropPrimitiveArrayArgumentsNode {
+    public abstract static class GetMembersNode extends PrimitiveArrayArgumentsNode {
 
         protected abstract Object executeMembers(Object receiver, boolean internal);
 
@@ -1328,7 +1310,7 @@ public abstract class InteropNodes {
             return executeMembers(receiver, false);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object members(Object receiver, boolean internal,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1353,7 +1335,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getCacheLimit()")
+        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -1364,7 +1346,7 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
@@ -1382,7 +1364,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getCacheLimit()")
+        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -1391,7 +1373,7 @@ public abstract class InteropNodes {
             return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
 
@@ -1411,7 +1393,7 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = "isRubySymbolOrString(identifier)",
-                limit = "getCacheLimit()")
+                limit = "getInteropCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1427,15 +1409,15 @@ public abstract class InteropNodes {
             return value;
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
     @CoreMethod(names = "remove_member", onSingleton = true, required = 2)
-    public abstract static class RemoveMemberNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class RemoveMemberNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getCacheLimit()")
+        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
         protected Nil remove(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -1463,7 +1445,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier, Object[] args);
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object invokeCached(Object receiver, Object identifier, Object[] args,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
@@ -1476,14 +1458,14 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
-        protected static int getCacheLimit() {
+        protected static int getInteropCacheLimit() {
             return RubyLanguage.getCurrentLanguage().options.METHOD_LOOKUP_CACHE;
         }
     }
 
     @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
-    public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberReadableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberReadable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1492,8 +1474,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_modifiable?", onSingleton = true, required = 2)
-    public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberModifiableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberModifiable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1502,8 +1484,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_insertable?", onSingleton = true, required = 2)
-    public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberInsertableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberInsertable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1512,8 +1494,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_removable?", onSingleton = true, required = 2)
-    public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberRemovableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberRemovable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1522,8 +1504,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_invocable?", onSingleton = true, required = 2)
-    public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberInvocableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberInvocable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1532,8 +1514,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_internal?", onSingleton = true, required = 2)
-    public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberInternalNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberInternal(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1542,8 +1524,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_writable?", onSingleton = true, required = 2)
-    public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberWritableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberWritable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1552,8 +1534,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "member_existing?", onSingleton = true, required = 2)
-    public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMemberExistingNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMemberExisting(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1562,8 +1544,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2)
-    public abstract static class HasMemberReadSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasMemberReadSideEffectsNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasMemberReadSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1572,8 +1554,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2)
-    public abstract static class HasMemberWriteSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasMemberWriteSideEffectsNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasMemberWriteSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
@@ -1633,8 +1615,8 @@ public abstract class InteropNodes {
 
     // region Language
     @CoreMethod(names = "has_language?", onSingleton = true, required = 1)
-    public abstract static class HasLanguageNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasLanguageNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasLanguage(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasLanguage(receiver);
@@ -1642,9 +1624,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "language", onSingleton = true, required = 1)
-    public abstract static class GetLanguageNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class GetLanguageNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getLanguage(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached FromJavaStringNode fromJavaStringNode) {
@@ -1888,8 +1870,8 @@ public abstract class InteropNodes {
 
     // region MetaObject
     @CoreMethod(names = "meta_object?", onSingleton = true, required = 1)
-    public abstract static class IsMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMetaObjectNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMetaObject(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isMetaObject(receiver);
@@ -1897,8 +1879,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_meta_object?", onSingleton = true, required = 1)
-    public abstract static class HasMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasMetaObjectNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasMetaObject(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasMetaObject(receiver);
@@ -1906,8 +1888,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
-    public abstract static class InteropMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object metaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached BranchProfile errorProfile,
@@ -1926,8 +1908,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_declaring_meta_object?", onSingleton = true, required = 1)
-    public abstract static class HasDeclaringMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasDeclaringMetaObjectNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasDeclaringMetaObject(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasDeclaringMetaObject(receiver);
@@ -1935,8 +1917,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "declaring_meta_object", onSingleton = true, required = 1)
-    public abstract static class DeclaringMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class DeclaringMetaObjectNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object declaringMetaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1949,8 +1931,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "meta_instance?", onSingleton = true, required = 2)
-    public abstract static class IsMetaInstanceNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsMetaInstanceNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isMetaInstance(Object metaObject, Object instance,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1963,8 +1945,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "meta_simple_name", onSingleton = true, required = 1)
-    public abstract static class GetMetaSimpleNameNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class GetMetaSimpleNameNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getMetaSimpleName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @CachedLibrary(limit = "1") InteropLibrary asStrings,
@@ -1981,8 +1963,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "meta_qualified_name", onSingleton = true, required = 1)
-    public abstract static class GetMetaQualifiedNameNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class GetMetaQualifiedNameNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getMetaQualifiedName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @CachedLibrary(limit = "1") InteropLibrary asStrings,
@@ -2001,8 +1983,8 @@ public abstract class InteropNodes {
 
     // region Hash entries
     @CoreMethod(names = "has_hash_entries?", onSingleton = true, required = 1)
-    public abstract static class HasHashEntriesNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasHashEntriesNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasHashEntriesNode(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasHashEntries(receiver);
@@ -2011,8 +1993,8 @@ public abstract class InteropNodes {
 
 
     @CoreMethod(names = "hash_entries_iterator", onSingleton = true, required = 1)
-    public abstract static class HashEntriesIteratorNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntriesIteratorNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object hashEntriesIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2025,8 +2007,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_entry_existing?", onSingleton = true, required = 2)
-    public abstract static class HashEntryExistingNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntryExistingNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hashEntryExisting(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isHashEntryExisting(receiver, key);
@@ -2034,8 +2016,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_entry_insertable?", onSingleton = true, required = 2)
-    public abstract static class HashEntryInsertableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntryInsertableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hashEntryInsertable(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isHashEntryInsertable(receiver, key);
@@ -2043,8 +2025,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_entry_modifiable?", onSingleton = true, required = 2)
-    public abstract static class HashEntryModifiableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntryModifiableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hashEntryModifiable(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isHashEntryModifiable(receiver, key);
@@ -2052,8 +2034,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_entry_readable?", onSingleton = true, required = 2)
-    public abstract static class HashEntryReadableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntryReadableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hashEntryReadable(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isHashEntryReadable(receiver, key);
@@ -2061,8 +2043,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_entry_removable?", onSingleton = true, required = 2)
-    public abstract static class HashEntryRemovableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntryRemovableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hashEntryRemovable(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isHashEntryRemovable(receiver, key);
@@ -2071,8 +2053,8 @@ public abstract class InteropNodes {
 
 
     @CoreMethod(names = "hash_entry_writable?", onSingleton = true, required = 2)
-    public abstract static class HashEntryWritableNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashEntryWritableNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hashEntryWritable(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isHashEntryWritable(receiver, key);
@@ -2080,8 +2062,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_keys_iterator", onSingleton = true, required = 1)
-    public abstract static class HashKeysIteratorNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashKeysIteratorNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object hashKeysIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2094,8 +2076,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_size", onSingleton = true, required = 1)
-    public abstract static class HashSizeNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashSizeNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected long hashSize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2108,8 +2090,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "hash_values_iterator", onSingleton = true, required = 1)
-    public abstract static class HashValuesIteratorNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HashValuesIteratorNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object hashValuesIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2123,8 +2105,8 @@ public abstract class InteropNodes {
 
 
     @CoreMethod(names = "read_hash_value", onSingleton = true, required = 2)
-    public abstract static class ReadHashValueNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class ReadHashValueNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readHashValue(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2137,8 +2119,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_hash_value_or_default", onSingleton = true, required = 3)
-    public abstract static class ReadHashValueOrDefaultNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class ReadHashValueOrDefaultNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object readHashValueOrDefault(Object receiver, Object key, Object defaultValue,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2151,8 +2133,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "remove_hash_entry", onSingleton = true, required = 2)
-    public abstract static class RemoveHashEntryNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class RemoveHashEntryNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object removeHashEntry(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2166,8 +2148,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_hash_entry", onSingleton = true, required = 3)
-    public abstract static class WriteHashEntryNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class WriteHashEntryNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object writeHashEntry(Object receiver, Object key, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2183,8 +2165,8 @@ public abstract class InteropNodes {
 
     // region Identity
     @CoreMethod(names = "identical?", onSingleton = true, required = 2)
-    public abstract static class IsIdenticalNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsIdenticalNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isIdentical(Object receiver, Object other,
                 @CachedLibrary("receiver") InteropLibrary lhsInterop,
                 @CachedLibrary("other") InteropLibrary rhsInterop) {
@@ -2193,8 +2175,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_identity?", onSingleton = true, required = 1)
-    public abstract static class HasIdentityNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasIdentityNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasIdentity(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasIdentity(receiver);
@@ -2202,8 +2184,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1)
-    public abstract static class InteropIdentityHashCodeNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected int identityHashCode(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2222,8 +2204,8 @@ public abstract class InteropNodes {
 
     // region Scope
     @CoreMethod(names = "scope?", onSingleton = true, required = 1)
-    public abstract static class IsScopeNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsScopeNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isScope(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isScope(receiver);
@@ -2231,8 +2213,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_scope_parent?", onSingleton = true, required = 1)
-    public abstract static class HasScopeParentNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasScopeParentNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasScopeParent(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasScopeParent(receiver);
@@ -2240,9 +2222,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "scope_parent", onSingleton = true, required = 1)
-    public abstract static class GetScopeParentNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class GetScopeParentNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getScope(Object scope,
                 @CachedLibrary("scope") InteropLibrary interopLibrary,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2284,9 +2266,9 @@ public abstract class InteropNodes {
 
     // region Buffer Messages
     @CoreMethod(names = "has_buffer_elements?", onSingleton = true, required = 1)
-    public abstract static class HasBufferElementsNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class HasBufferElementsNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasBufferElements(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasBufferElements(receiver);
@@ -2295,9 +2277,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "buffer_writable?", onSingleton = true, required = 1)
-    public abstract static class IsBufferWritableNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class IsBufferWritableNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isBufferWritable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2311,9 +2293,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "buffer_size", onSingleton = true, required = 1)
-    public abstract static class GetBufferSizeNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class GetBufferSizeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected long getBufferSize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2327,9 +2309,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read_buffer_byte", onSingleton = true, required = 2)
-    public abstract static class ReadBufferByteNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class ReadBufferByteNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected byte readBufferByte(Object receiver, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2343,9 +2325,9 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write_buffer_byte", onSingleton = true, required = 3)
-    public abstract static class WriteBufferByteNode extends InteropCoreMethodArrayArgumentsNode {
+    public abstract static class WriteBufferByteNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInByte(value)")
+        @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInByte(value)")
         protected Object writeBufferByte(Object receiver, long byteOffset, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
@@ -2365,14 +2347,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "receiver", type = RubyNode.class)
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferShortNode extends InteropCoreMethodNode {
+    public abstract static class ReadBufferShortNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected short readBufferShort(Object receiver, ByteOrder byteOrder, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2390,14 +2372,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferShortNode extends InteropCoreMethodNode {
+    public abstract static class WriteBufferShortNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInShort(value)")
+        @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInShort(value)")
         protected Object writeBufferShort(Object receiver, ByteOrder byteOrder, long byteOffset, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
@@ -2417,14 +2399,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "receiver", type = RubyNode.class)
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferIntNode extends InteropCoreMethodNode {
+    public abstract static class ReadBufferIntNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected int readBufferInt(Object receiver, ByteOrder byteOrder, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2442,14 +2424,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferIntNode extends InteropCoreMethodNode {
+    public abstract static class WriteBufferIntNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInInt(value)")
+        @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInInt(value)")
         protected Object writeBufferInt(Object receiver, ByteOrder order, long byteOffset, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
@@ -2469,14 +2451,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "receiver", type = RubyNode.class)
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferLongNode extends InteropCoreMethodNode {
+    public abstract static class ReadBufferLongNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected long readBufferLong(Object receiver, ByteOrder byteOrder, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2494,14 +2476,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferLongNode extends InteropCoreMethodNode {
+    public abstract static class WriteBufferLongNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInLong(value)")
+        @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInLong(value)")
         protected Object writeBufferLong(Object receiver, ByteOrder order, long byteOffset, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
@@ -2521,14 +2503,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "receiver", type = RubyNode.class)
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferFloatNode extends InteropCoreMethodNode {
+    public abstract static class ReadBufferFloatNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected float readBufferFloat(Object receiver, ByteOrder byteOrder, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2546,14 +2528,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferFloatNode extends InteropCoreMethodNode {
+    public abstract static class WriteBufferFloatNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInDouble(value)")
+        @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
         protected Object writeBufferFloat(Object receiver, ByteOrder order, long byteOffset, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
@@ -2573,14 +2555,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "receiver", type = RubyNode.class)
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
-    public abstract static class ReadBufferDoubleNode extends InteropCoreMethodNode {
+    public abstract static class ReadBufferDoubleNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         protected double readBufferDouble(Object receiver, ByteOrder byteOrder, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2598,14 +2580,14 @@ public abstract class InteropNodes {
     @NodeChild(value = "byteOrder", type = RubyNode.class)
     @NodeChild(value = "byteOffset", type = RubyNode.class)
     @NodeChild(value = "value", type = RubyNode.class)
-    public abstract static class WriteBufferDoubleNode extends InteropCoreMethodNode {
+    public abstract static class WriteBufferDoubleNode extends CoreMethodNode {
 
         @CreateCast("byteOrder")
         protected RubyNode coerceSymbolToByteOrder(RubyNode byteOrder) {
             return SymbolToByteOrderNode.create(byteOrder);
         }
 
-        @Specialization(limit = "getCacheLimit()", guards = "interopValue.fitsInDouble(value)")
+        @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
         protected Object writeBufferDouble(Object receiver, ByteOrder order, long byteOffset, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
@@ -2624,8 +2606,8 @@ public abstract class InteropNodes {
 
     // region Iterator
     @CoreMethod(names = "has_iterator?", onSingleton = true, required = 1)
-    public abstract static class HasIteratorNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasIteratorNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.hasIterator(receiver);
@@ -2633,8 +2615,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "iterator?", onSingleton = true, required = 1)
-    public abstract static class IsIteratorNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class IsIteratorNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean isIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop) {
             return interop.isIterator(receiver);
@@ -2642,8 +2624,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "iterator", onSingleton = true, required = 1)
-    public abstract static class GetIteratorNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class GetIteratorNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2656,8 +2638,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "has_iterator_next_element?", onSingleton = true, required = 1)
-    public abstract static class HasIteratorNextElementNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class HasIteratorNextElementNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected boolean hasIteratorNextElement(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -2670,8 +2652,8 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "iterator_next_element", onSingleton = true, required = 1)
-    public abstract static class GetIteratorNextElementNode extends InteropCoreMethodArrayArgumentsNode {
-        @Specialization(limit = "getCacheLimit()")
+    public abstract static class GetIteratorNextElementNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(limit = "getInteropCacheLimit()")
         protected Object getIteratorNextElement(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
