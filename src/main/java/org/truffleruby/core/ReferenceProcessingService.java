@@ -146,7 +146,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public ReferenceProcessor(RubyContext context) {
             this.context = context;
-            sharedQueue = context.getLanguageSlow().sharedReferenceQueue;
+            this.sharedQueue = context.getLanguageSlow().sharedReferenceQueue;
         }
 
         @TruffleBoundary
