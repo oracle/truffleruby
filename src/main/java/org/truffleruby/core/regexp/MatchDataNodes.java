@@ -25,11 +25,9 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
@@ -42,6 +40,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -164,46 +163,17 @@ public abstract class MatchDataNodes {
 
     }
 
-    @Primitive(name = "matchdata_create")
-    public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class MatchDataCreateNode extends RubyContextNode {
 
-        public static MatchDataCreateNode create() {
-            return MatchDataNodesFactory.MatchDataCreateNodeFactory.create(null);
-        }
-
-        public abstract Object executeMatchDataCreate(RubyRegexp regexp, Object string, Object starts, Object ends);
-
-        @Specialization
-        protected Object matchDataCreate(RubyRegexp regexp, Object string, RubyArray starts, RubyArray ends,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
-                @Cached IntegerCastNode integerCastNode) {
-            final Region region = new Region(starts.size);
-
-            try {
-                loopProfile.profileCounted(region.numRegs);
-
-                for (int i = 0; loopProfile.inject(i < region.numRegs); i++) {
-                    region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
-                    region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
-                }
-            } finally {
-                LoopNode.reportLoopCount(this, region.numRegs);
-            }
-
-            return createMatchData(regexp, string, region);
-        }
+        public abstract Object execute(RubyRegexp regexp, Object string, int[] starts, int[] ends);
 
         @Specialization
         protected Object create(RubyRegexp regexp, Object string, int[] starts, int[] ends,
-                @Cached LoopConditionProfile loopProfile,
-                @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
-                @Cached IntegerCastNode integerCastNode) {
+                @Cached LoopConditionProfile loopProfile) {
             final Region region = new Region(starts.length);
 
+            loopProfile.profileCounted(region.numRegs);
             try {
-                loopProfile.profileCounted(region.numRegs);
-
                 for (int i = 0; loopProfile.inject(i < region.numRegs); i++) {
                     region.beg[i] = starts[i];
                     region.end[i] = ends[i];

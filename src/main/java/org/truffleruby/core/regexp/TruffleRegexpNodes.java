@@ -45,6 +45,7 @@ import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.core.regexp.MatchDataNodes.MatchDataCreateNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -443,7 +444,7 @@ public class TruffleRegexpNodes {
                 @Cached DispatchNode tRegexExecBytesNode,
                 @Cached DispatchNode tRegexIsMatchNode,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached MatchDataNodes.MatchDataCreateNode matchDataCreateNode,
+                @Cached MatchDataCreateNode matchDataCreateNode,
                 @Cached SelectEncodingNode selectEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
@@ -482,8 +483,7 @@ public class TruffleRegexpNodes {
                         LoopNode.reportLoopCount(this, groupCount);
                     }
 
-                    return matchDataCreateNode
-                            .executeMatchDataCreate(regexp, dupString(string), starts, ends);
+                    return matchDataCreateNode.execute(regexp, dupString(string), starts, ends);
                 } else {
                     return nil;
                 }

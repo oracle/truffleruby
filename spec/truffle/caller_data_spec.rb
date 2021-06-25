@@ -39,7 +39,7 @@ describe "A caller" do
 
   it "can have its special variables read and modified" do
     last_line = "Hello!"
-    md = Primitive.matchdata_create(/o/, "Hello", [4], [5])
+    md = Primitive.matchdata_create_single_group(/o/, "Hello", 4, 5)
     TruffleCallerSpecFixtures.last_line_set(last_line)
     TruffleCallerSpecFixtures.last_match_set(md)
     $_.should == last_line
@@ -48,7 +48,7 @@ describe "A caller" do
 
   it "can have its special variables read and modified through an intermediate #send" do
     last_line = "Hello!"
-    md = Primitive.matchdata_create(/o/, "Hello", [4], [5])
+    md = Primitive.matchdata_create_single_group(/o/, "Hello", 4, 5)
     TruffleCallerSpecFixtures.send(:last_line_set, last_line)
     TruffleCallerSpecFixtures.send(:last_match_set, md)
     $_.should == last_line
@@ -57,7 +57,7 @@ describe "A caller" do
 
   it "can have its special variables and frame read by the same method" do
     last_line = "Hello!"
-    md = Primitive.matchdata_create(/o/, "Hello", [4], [5])
+    md = Primitive.matchdata_create_single_group(/o/, "Hello", 4, 5)
     b = TruffleCallerSpecFixtures.caller_binding_and_variables(last_line, md)
     $_.should == last_line
     $~.should == md
@@ -66,7 +66,7 @@ describe "A caller" do
 
   it "can have its special variables and frame read by the same method through an intermediate #send" do
     last_line = "Hello!"
-    md = Primitive.matchdata_create(/o/, "Hello", [4], [5])
+    md = Primitive.matchdata_create_single_group(/o/, "Hello", 4, 5)
     b = TruffleCallerSpecFixtures.send(:caller_binding_and_variables, last_line, md)
     $_.should == last_line
     $~.should == md
