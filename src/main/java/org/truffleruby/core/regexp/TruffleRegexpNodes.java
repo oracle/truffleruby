@@ -15,9 +15,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -238,12 +241,18 @@ public class TruffleRegexpNodes {
     @CoreMethod(names = "select_encoding", onSingleton = true, required = 2)
     public abstract static class SelectEncodingNode extends CoreMethodArrayArgumentsNode {
 
+        public static SelectEncodingNode create() {
+            return TruffleRegexpNodesFactory.SelectEncodingNodeFactory.create(null);
+        }
+
+        public abstract RubyEncoding executeSelectEncoding(RubyRegexp regexp, Object str);
+
         @Specialization(guards = "libString.isRubyString(str)")
-        protected RubyEncoding selectEncoding(RubyRegexp re, Object str,
+        protected RubyEncoding selectEncoding(RubyRegexp regexp, Object str,
                 @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            final Encoding encoding = checkEncodingNode.executeCheckEncoding(re, str);
+            final Encoding encoding = checkEncodingNode.executeCheckEncoding(regexp, str);
             return getRubyEncodingNode.executeGetRubyEncoding(encoding);
         }
     }
@@ -251,6 +260,12 @@ public class TruffleRegexpNodes {
     @ImportStatic(StandardEncodings.class)
     @CoreMethod(names = "tregex_compile", onSingleton = true, required = 3)
     public abstract static class TRegexCompileNode extends CoreMethodArrayArgumentsNode {
+
+        public static TRegexCompileNode create() {
+            return TruffleRegexpNodesFactory.TRegexCompileNodeFactory.create(null);
+        }
+
+        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, RubyEncoding encoding);
 
         @Specialization(guards = "encoding.encoding == US_ASCII")
         protected Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
@@ -362,13 +377,20 @@ public class TruffleRegexpNodes {
     @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 5 })
     public abstract static class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
 
+        public static MatchInRegionNode create() {
+            return TruffleRegexpNodesFactory.MatchInRegionNodeFactory.create(null);
+        }
+
+        public abstract Object executeMatchInRegion(RubyRegexp regexp, Object string, int fromPos, int toPos,
+                boolean atStart, int startPos);
+
         /** Matches a regular expression against a string over the specified range of characters.
          *
          * @param regexp The regexp to match
          *
          * @param string The string to match against
          *
-         * @param fromPos The poistion to search from
+         * @param fromPos The position to search from
          *
          * @param toPos The position to search to (if less than from pos then this means search backwards)
          *
@@ -376,7 +398,7 @@ public class TruffleRegexpNodes {
          *            amount of prematch.
          *
          * @param startPos The position within the string which the matcher should consider the start. Setting this to
-         *            the from position allows scanners to match starting partway through a string while still setting
+         *            the from position allows scanners to match starting part-way through a string while still setting
          *            atStart and thus forcing the match to be at the specific starting position. */
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegion(
@@ -397,6 +419,138 @@ public class TruffleRegexpNodes {
 
             final Matcher matcher = getMatcher(regex, bytesNode.execute(rope), startPos);
             return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
+        }
+    }
+
+    @Primitive(name = "regexp_match_in_region_tregex", lowerFixnum = { 2, 3, 5 })
+    public abstract static class MatchInRegionTRegexNode extends PrimitiveArrayArgumentsNode {
+
+        @Child MatchInRegionNode fallbackMatchInRegionNode;
+        @Child DispatchNode warnOnFallbackNode;
+
+        @Child DispatchNode stringDupNode;
+        @Child DispatchNode tRegexGroupCountNode;
+        @Child DispatchNode tRegexGetStartNode;
+        @Child DispatchNode tRegexGetEndNode;
+
+        @Specialization(guards = "libString.isRubyString(string)")
+        protected Object matchInRegionTRegex(
+                RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart, int startPos,
+                @Cached ConditionProfile matchFoundProfile,
+                @Cached ConditionProfile tRegexCouldNotCompileProfile,
+                @Cached ConditionProfile tRegexIncompatibleProfile,
+                @Cached LoopConditionProfile loopProfile,
+                @Cached DispatchNode tRegexExecBytesNode,
+                @Cached DispatchNode tRegexIsMatchNode,
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached MatchDataNodes.MatchDataCreateNode matchDataCreateNode,
+                @Cached SelectEncodingNode selectEncodingNode,
+                @Cached TRegexCompileNode tRegexCompileNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+            final Rope rope = libString.getRope(string);
+
+            if (tRegexIncompatibleProfile
+                    .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0)) {
+                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
+            } else {
+                final RubyEncoding encoding = selectEncodingNode.executeSelectEncoding(regexp, string);
+                final Object compiledRegex = tRegexCompileNode.executeTRegexCompile(regexp, atStart, encoding);
+
+                if (tRegexCouldNotCompileProfile.profile(compiledRegex == nil)) {
+                    return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
+                }
+
+                final byte[] bytes = bytesNode.execute(rope);
+                final Object regexResult = tRegexExecBytesNode
+                        .call(compiledRegex, "execBytes", getContext().getEnv().asGuestValue(bytes), fromPos);
+
+                final boolean isMatch = (boolean) tRegexIsMatchNode.call(regexResult, "isMatch");
+
+                if (matchFoundProfile.profile(isMatch)) {
+                    final int groupCount = tRegexGroupCount(compiledRegex);
+                    final int[] starts = new int[groupCount];
+                    final int[] ends = new int[groupCount];
+
+                    try {
+                        loopProfile.profileCounted(groupCount);
+
+                        for (int pos = 0; loopProfile.inject(pos < groupCount); pos++) {
+                            starts[pos] = tRegexGetStart(regexResult, pos);
+                            ends[pos] = tRegexGetEnd(regexResult, pos);
+                        }
+                    } finally {
+                        LoopNode.reportLoopCount(this, groupCount);
+                    }
+
+                    return matchDataCreateNode
+                            .executeMatchDataCreate(regexp, dupString(string), starts, ends);
+                } else {
+                    return nil;
+                }
+            }
+        }
+
+        private Object fallbackToJoni(RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart,
+                int startPos) {
+            if (getContext().getOptions().WARN_TRUFFLE_REGEX_FALLBACK) {
+                if (warnOnFallbackNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    warnOnFallbackNode = insert(DispatchNode.create());
+                }
+
+                warnOnFallbackNode.call(
+                        getContext().getCoreLibrary().truffleRegexpOperationsModule,
+                        "warn_fallback",
+                        regexp,
+                        string,
+                        fromPos,
+                        toPos,
+                        atStart,
+                        startPos);
+            }
+
+            if (fallbackMatchInRegionNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                fallbackMatchInRegionNode = insert(MatchInRegionNode.create());
+            }
+
+            return fallbackMatchInRegionNode.executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos);
+        }
+
+        private int tRegexGroupCount(Object compiledRegex) {
+            if (tRegexGroupCountNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                tRegexGroupCountNode = insert(DispatchNode.create());
+            }
+
+            return (int) tRegexGroupCountNode.call(compiledRegex, "groupCount");
+        }
+
+        private int tRegexGetStart(Object regexResult, int pos) {
+            if (tRegexGetStartNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                tRegexGetStartNode = insert(DispatchNode.create());
+            }
+
+            return (int) tRegexGetStartNode.call(regexResult, "getStart", pos);
+        }
+
+        private int tRegexGetEnd(Object regexResult, int pos) {
+            if (tRegexGetEndNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                tRegexGetEndNode = insert(DispatchNode.create());
+            }
+
+            return (int) tRegexGetEndNode.call(regexResult, "getEnd", pos);
+        }
+
+        private Object dupString(Object string) {
+            if (stringDupNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                stringDupNode = insert(DispatchNode.create());
+            }
+
+            return stringDupNode.call(string, "dup");
         }
     }
 

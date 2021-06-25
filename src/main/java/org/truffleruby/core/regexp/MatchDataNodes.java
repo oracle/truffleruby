@@ -167,8 +167,14 @@ public abstract class MatchDataNodes {
     @Primitive(name = "matchdata_create")
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
+        public static MatchDataCreateNode create() {
+            return MatchDataNodesFactory.MatchDataCreateNodeFactory.create(null);
+        }
+
+        public abstract Object executeMatchDataCreate(RubyRegexp regexp, Object string, Object starts, Object ends);
+
         @Specialization
-        protected Object create(Object regexp, Object string, RubyArray starts, RubyArray ends,
+        protected Object matchDataCreate(RubyRegexp regexp, Object string, RubyArray starts, RubyArray ends,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
@@ -185,7 +191,32 @@ public abstract class MatchDataNodes {
                 LoopNode.reportLoopCount(this, region.numRegs);
             }
 
-            RubyMatchData matchData = new RubyMatchData(
+            return createMatchData(regexp, string, region);
+        }
+
+        @Specialization
+        protected Object create(RubyRegexp regexp, Object string, int[] starts, int[] ends,
+                @Cached LoopConditionProfile loopProfile,
+                @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
+                @Cached IntegerCastNode integerCastNode) {
+            final Region region = new Region(starts.length);
+
+            try {
+                loopProfile.profileCounted(region.numRegs);
+
+                for (int i = 0; loopProfile.inject(i < region.numRegs); i++) {
+                    region.beg[i] = starts[i];
+                    region.end[i] = ends[i];
+                }
+            } finally {
+                LoopNode.reportLoopCount(this, region.numRegs);
+            }
+
+            return createMatchData(regexp, string, region);
+        }
+
+        private Object createMatchData(RubyRegexp regexp, Object string, Region region) {
+            final RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
                     regexp,
