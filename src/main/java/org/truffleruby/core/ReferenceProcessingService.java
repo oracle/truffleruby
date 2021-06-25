@@ -185,7 +185,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
                                     return processingQueue.remove();
                                 } catch (InterruptedException interrupted) {
                                     if (shutdown) {
-                                        throw new KillException();
+                                        throw new KillException(DummyNode.INSTANCE);
                                     } else {
                                         throw interrupted;
                                     }

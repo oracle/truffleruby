@@ -292,7 +292,7 @@ public abstract class ThreadNodes {
                                 throw new RaiseException(getContext(), coreExceptions().systemExit(0, currentNode));
                             } else {
                                 rubyThread.status = ThreadStatus.ABORTING;
-                                throw new KillException();
+                                throw new KillException(currentNode);
                             }
                         }
                     });

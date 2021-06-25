@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.control;
 
+import com.oracle.truffle.api.nodes.Node;
+
 /** Exception sent by the hard Kernel#exit! */
 public final class ExitException extends TerminationException {
 
@@ -16,7 +18,8 @@ public final class ExitException extends TerminationException {
 
     private final int code;
 
-    public ExitException(int code) {
+    public ExitException(int code, Node location) {
+        super("Kernel#exit!", location);
         this.code = code;
     }
 

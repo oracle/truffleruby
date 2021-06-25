@@ -730,7 +730,7 @@ public class ThreadManager {
                     @Override
                     public void run(RubyThread rubyThread, Node currentNode) {
                         rubyThread.status = ThreadStatus.ABORTING;
-                        throw new KillException();
+                        throw new KillException(currentNode);
                     }
                 });
     }
