@@ -325,6 +325,7 @@ public abstract class BuiltinsClasses {
         TruffleDebugNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleGraalNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleKernelNodesBuiltins.setupPrimitives(primitiveManager);
+        TruffleMonitorNodesBuiltins.setupPrimitives(primitiveManager);
         TrufflePosixNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleRegexpNodesBuiltins.setupPrimitives(primitiveManager);
         TruffleRopesNodesBuiltins.setupPrimitives(primitiveManager);

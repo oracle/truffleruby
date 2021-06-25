@@ -16,10 +16,9 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 
-import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.mutex.RubyConditionVariable;
@@ -29,11 +28,12 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.yield.CallBlockNode;
 
 @CoreModule("Truffle::MonitorOperations")
 public abstract class TruffleMonitorNodes {
 
-    @CoreMethod(names = "condition_var_for_mutex", onSingleton = true, required = 2)
+    @Primitive(name = "mutex_linked_condition_variable")
     public abstract static class LinkedConditionVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -47,8 +47,10 @@ public abstract class TruffleMonitorNodes {
         }
     }
 
-    @CoreMethod(names = "synchronize_on_mutex", onSingleton = true, required = 1, needsBlock = true)
-    public abstract static class SynchronizeNode extends YieldingCoreMethodNode {
+    @Primitive(name = "monitor_synchronize")
+    public abstract static class SynchronizeNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization(guards = "isRubyProc(maybeBlock)")
         protected Object synchronizeOnMutex(RubyMutex mutex, Object maybeBlock,
@@ -56,7 +58,7 @@ public abstract class TruffleMonitorNodes {
             final RubyThread thread = getCurrentRubyThreadNode.execute();
             MutexOperations.lock(getContext(), mutex.lock, thread, this);
             try {
-                return callBlock((RubyProc) maybeBlock);
+                return yieldNode.yield((RubyProc) maybeBlock);
             } finally {
                 MutexOperations.unlock(mutex.lock, thread);
             }
@@ -75,7 +77,7 @@ public abstract class TruffleMonitorNodes {
         }
     }
 
-    @CoreMethod(names = "mon_try_enter", onSingleton = true, required = 1)
+    @Primitive(name = "monitor_try_enter")
     public static abstract class MonitorTryEnter extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -86,7 +88,7 @@ public abstract class TruffleMonitorNodes {
         }
     }
 
-    @CoreMethod(names = "mon_enter", onSingleton = true, required = 1)
+    @Primitive(name = "monitor_enter")
     public static abstract class MonitorEnter extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -98,7 +100,7 @@ public abstract class TruffleMonitorNodes {
         }
     }
 
-    @CoreMethod(names = "mon_exit", onSingleton = true, required = 1)
+    @Primitive(name = "monitor_exit")
     public static abstract class MonitorExit extends CoreMethodArrayArgumentsNode {
 
         @Specialization

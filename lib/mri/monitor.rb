@@ -125,7 +125,7 @@ module MonitorMixin
   # Attempts to enter exclusive section.  Returns +false+ if lock fails.
   #
   def mon_try_enter
-    Truffle::MonitorOperations.mon_try_mutex(@mon_mutex)
+    Primitive.monitor_try_enter(@mon_mutex)
   end
   # For backward compatibility
   alias try_mon_enter mon_try_enter
@@ -134,14 +134,14 @@ module MonitorMixin
   # Enters exclusive section.
   #
   def mon_enter
-    Truffle::MonitorOperations.mon_mutex(@mon_mutex)
+    Primitive.monitor_enter(@mon_mutex)
   end
 
   #
   # Leaves exclusive section.
   #
   def mon_exit
-    Truffle::MonitorOperations.mon_exit(@mon_mutex)
+    Primitive.monitor_exit(@mon_mutex)
   end
 
   #
@@ -164,7 +164,7 @@ module MonitorMixin
   # +MonitorMixin+.
   #
   def mon_synchronize(&block)
-    Truffle::MonitorOperations.synchronize_on_mutex(@mon_mutex, &block)
+    Primitive.monitor_synchronize(@mon_mutex, block)
   end
   alias synchronize mon_synchronize
 
@@ -173,7 +173,7 @@ module MonitorMixin
   # receiver.
   #
   def new_cond
-    return Truffle::MonitorOperations.condition_var_for_mutex(ConditionVariable, @mon_mutex)
+    return Primitive.mutex_linked_condition_variable(ConditionVariable, @mon_mutex)
   end
 
   # Use <tt>extend MonitorMixin</tt> or <tt>include MonitorMixin</tt> instead
