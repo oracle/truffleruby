@@ -21,7 +21,6 @@ import org.jcodings.specific.ISO8859_1Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -60,8 +59,7 @@ public final class TRegexCache {
     }
 
     @TruffleBoundary
-    public Object compile(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding rubyEncoding) {
-        final Encoding encoding = rubyEncoding.encoding;
+    public Object compile(RubyContext context, RubyRegexp regexp, boolean atStart, Encoding encoding) {
         final Object tregex = compileTRegex(context, regexp, atStart, encoding);
         if (tregex == null) {
             return Nil.INSTANCE;

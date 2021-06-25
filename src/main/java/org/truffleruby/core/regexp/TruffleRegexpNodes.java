@@ -43,8 +43,6 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.encoding.EncodingNodes;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
@@ -242,25 +240,6 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "select_encoding", onSingleton = true, required = 2)
-    public abstract static class SelectEncodingNode extends CoreMethodArrayArgumentsNode {
-
-        public static SelectEncodingNode create() {
-            return TruffleRegexpNodesFactory.SelectEncodingNodeFactory.create(null);
-        }
-
-        public abstract RubyEncoding executeSelectEncoding(RubyRegexp regexp, Object str);
-
-        @Specialization(guards = "libString.isRubyString(str)")
-        protected RubyEncoding selectEncoding(RubyRegexp regexp, Object str,
-                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
-                @Cached CheckEncodingNode checkEncodingNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
-            final Encoding encoding = checkEncodingNode.executeCheckEncoding(regexp, str);
-            return getRubyEncodingNode.executeGetRubyEncoding(encoding);
-        }
-    }
-
     @ImportStatic(StandardEncodings.class)
     @CoreMethod(names = "tregex_compile", onSingleton = true, required = 3)
     public abstract static class TRegexCompileNode extends CoreMethodArrayArgumentsNode {
@@ -269,10 +248,10 @@ public class TruffleRegexpNodes {
             return TruffleRegexpNodesFactory.TRegexCompileNodeFactory.create(null);
         }
 
-        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, RubyEncoding encoding);
+        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, Encoding encoding);
 
-        @Specialization(guards = "encoding.encoding == US_ASCII")
-        protected Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        @Specialization(guards = "encoding == US_ASCII")
+        protected Object usASCII(RubyRegexp regexp, boolean atStart, Encoding encoding) {
             final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -281,8 +260,8 @@ public class TruffleRegexpNodes {
             }
         }
 
-        @Specialization(guards = "encoding.encoding == ISO_8859_1")
-        protected Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        @Specialization(guards = "encoding == ISO_8859_1")
+        protected Object latin1(RubyRegexp regexp, boolean atStart, Encoding encoding) {
             final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -291,8 +270,8 @@ public class TruffleRegexpNodes {
             }
         }
 
-        @Specialization(guards = "encoding.encoding == UTF_8")
-        protected Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        @Specialization(guards = "encoding == UTF_8")
+        protected Object utf8(RubyRegexp regexp, boolean atStart, Encoding encoding) {
             final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -301,8 +280,8 @@ public class TruffleRegexpNodes {
             }
         }
 
-        @Specialization(guards = "encoding.encoding == BINARY")
-        protected Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        @Specialization(guards = "encoding == BINARY")
+        protected Object binary(RubyRegexp regexp, boolean atStart, Encoding encoding) {
             final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
             if (tregex != null) {
                 return tregex;
@@ -313,11 +292,11 @@ public class TruffleRegexpNodes {
 
         @Specialization(
                 guards = {
-                        "encoding.encoding != US_ASCII",
-                        "encoding.encoding != ISO_8859_1",
-                        "encoding.encoding != UTF_8",
-                        "encoding.encoding != BINARY" })
-        protected Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+                        "encoding != US_ASCII",
+                        "encoding != ISO_8859_1",
+                        "encoding != UTF_8",
+                        "encoding != BINARY" })
+        protected Object other(RubyRegexp regexp, boolean atStart, Encoding encoding) {
             return nil;
         }
 
@@ -445,7 +424,7 @@ public class TruffleRegexpNodes {
                 @CachedLibrary(limit = "1") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "2") InteropLibrary resultInterop,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached SelectEncodingNode selectEncodingNode,
+                @Cached CheckEncodingNode checkEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
@@ -454,7 +433,7 @@ public class TruffleRegexpNodes {
                     .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0)) {
                 return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
             } else {
-                final RubyEncoding encoding = selectEncodingNode.executeSelectEncoding(regexp, string);
+                final Encoding encoding = checkEncodingNode.executeCheckEncoding(regexp, string);
                 final Object tRegex = tRegexCompileNode.executeTRegexCompile(regexp, atStart, encoding);
 
                 if (tRegexCouldNotCompileProfile.profile(tRegex == nil)) {
