@@ -109,6 +109,24 @@ public abstract class InteropNodes {
         }
     }
 
+    public static Object invoke(InteropLibrary receivers, Object receiver, String member, Object[] args,
+            TranslateInteropExceptionNode translateInteropExceptionNode) {
+        try {
+            return receivers.invokeMember(receiver, member, args);
+        } catch (InteropException e) {
+            throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
+        }
+    }
+
+    public static Object readMember(InteropLibrary interop, Object receiver, String name,
+            TranslateInteropExceptionNode translateInteropException) {
+        try {
+            return interop.readMember(receiver, name);
+        } catch (InteropException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
     // region Misc
     @Primitive(name = "interop_library_all_methods")
     public abstract static class AllMethodsOfInteropLibrary extends PrimitiveArrayArgumentsNode {
@@ -1342,13 +1360,7 @@ public abstract class InteropNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final String name = toJavaStringNode.executeToJavaString(identifier);
-            final Object foreign;
-            try {
-                foreign = receivers.readMember(receiver, name);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-
+            final Object foreign = InteropNodes.readMember(receivers, receiver, name, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
 
@@ -1376,11 +1388,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode) {
             final String name = toJavaStringNode.executeToJavaString(identifier);
-            try {
-                return receivers.readMember(receiver, name);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
+            return InteropNodes.readMember(receivers, receiver, name, translateInteropException);
         }
 
         protected static int getCacheLimit() {
@@ -1464,14 +1472,7 @@ public abstract class InteropNodes {
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.executeToJavaString(identifier);
             final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(args);
-
-            final Object foreign;
-            try {
-                foreign = receivers.invokeMember(receiver, name, arguments);
-            } catch (InteropException e) {
-                throw translateInteropException.executeInInvokeMember(e, receiver, args);
-            }
-
+            final Object foreign = invoke(receivers, receiver, name, arguments, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
 

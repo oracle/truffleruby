@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -57,6 +59,8 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -430,9 +434,7 @@ public class TruffleRegexpNodes {
         @Child DispatchNode warnOnFallbackNode;
 
         @Child DispatchNode stringDupNode;
-        @Child DispatchNode tRegexGroupCountNode;
-        @Child DispatchNode tRegexGetStartNode;
-        @Child DispatchNode tRegexGetEndNode;
+        @Child TranslateInteropExceptionNode translateInteropExceptionNode;
 
         @Specialization(guards = "libString.isRubyString(string)")
         protected Object matchInRegionTRegex(
@@ -441,8 +443,8 @@ public class TruffleRegexpNodes {
                 @Cached ConditionProfile tRegexCouldNotCompileProfile,
                 @Cached ConditionProfile tRegexIncompatibleProfile,
                 @Cached LoopConditionProfile loopProfile,
-                @Cached DispatchNode tRegexExecBytesNode,
-                @Cached DispatchNode tRegexIsMatchNode,
+                @CachedLibrary(limit = "1") InteropLibrary regexInterop,
+                @CachedLibrary(limit = "2") InteropLibrary resultInterop,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached MatchDataCreateNode matchDataCreateNode,
                 @Cached SelectEncodingNode selectEncodingNode,
@@ -455,29 +457,28 @@ public class TruffleRegexpNodes {
                 return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
             } else {
                 final RubyEncoding encoding = selectEncodingNode.executeSelectEncoding(regexp, string);
-                final Object compiledRegex = tRegexCompileNode.executeTRegexCompile(regexp, atStart, encoding);
+                final Object tRegex = tRegexCompileNode.executeTRegexCompile(regexp, atStart, encoding);
 
-                if (tRegexCouldNotCompileProfile.profile(compiledRegex == nil)) {
+                if (tRegexCouldNotCompileProfile.profile(tRegex == nil)) {
                     return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
                 }
 
                 final byte[] bytes = bytesNode.execute(rope);
-                final Object regexResult = tRegexExecBytesNode
-                        .call(compiledRegex, "execBytes", getContext().getEnv().asGuestValue(bytes), fromPos);
+                final Object interopByteArray = getContext().getEnv().asGuestValue(bytes);
+                final Object result = invoke(regexInterop, tRegex, "execBytes", interopByteArray, fromPos);
 
-                final boolean isMatch = (boolean) tRegexIsMatchNode.call(regexResult, "isMatch");
+                final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
 
                 if (matchFoundProfile.profile(isMatch)) {
-                    final int groupCount = tRegexGroupCount(compiledRegex);
+                    final int groupCount = (int) readMember(regexInterop, tRegex, "groupCount");
                     final int[] starts = new int[groupCount];
                     final int[] ends = new int[groupCount];
 
+                    loopProfile.profileCounted(groupCount);
                     try {
-                        loopProfile.profileCounted(groupCount);
-
-                        for (int pos = 0; loopProfile.inject(pos < groupCount); pos++) {
-                            starts[pos] = tRegexGetStart(regexResult, pos);
-                            ends[pos] = tRegexGetEnd(regexResult, pos);
+                        for (int group = 0; loopProfile.inject(group < groupCount); group++) {
+                            starts[group] = (int) invoke(resultInterop, result, "getStart", new Object[]{ group });
+                            ends[group] = (int) invoke(resultInterop, result, "getEnd", new Object[]{ group });
                         }
                     } finally {
                         LoopNode.reportLoopCount(this, groupCount);
@@ -517,31 +518,28 @@ public class TruffleRegexpNodes {
             return fallbackMatchInRegionNode.executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos);
         }
 
-        private int tRegexGroupCount(Object compiledRegex) {
-            if (tRegexGroupCountNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                tRegexGroupCountNode = insert(DispatchNode.create());
+        private Object readMember(InteropLibrary interop, Object receiver, String name) {
+            try {
+                return interop.readMember(receiver, name);
+            } catch (InteropException e) {
+                if (translateInteropExceptionNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    translateInteropExceptionNode = insert(TranslateInteropExceptionNodeGen.create());
+                }
+                throw translateInteropExceptionNode.execute(e);
             }
-
-            return (int) tRegexGroupCountNode.call(compiledRegex, "groupCount");
         }
 
-        private int tRegexGetStart(Object regexResult, int pos) {
-            if (tRegexGetStartNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                tRegexGetStartNode = insert(DispatchNode.create());
+        private Object invoke(InteropLibrary interop, Object receiver, String member, Object... args) {
+            try {
+                return interop.invokeMember(receiver, member, args);
+            } catch (InteropException e) {
+                if (translateInteropExceptionNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    translateInteropExceptionNode = insert(TranslateInteropExceptionNodeGen.create());
+                }
+                throw translateInteropExceptionNode.executeInInvokeMember(e, receiver, args);
             }
-
-            return (int) tRegexGetStartNode.call(regexResult, "getStart", pos);
-        }
-
-        private int tRegexGetEnd(Object regexResult, int pos) {
-            if (tRegexGetEndNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                tRegexGetEndNode = insert(DispatchNode.create());
-            }
-
-            return (int) tRegexGetEndNode.call(regexResult, "getEnd", pos);
         }
 
         private Object dupString(Object string) {
