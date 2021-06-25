@@ -109,7 +109,7 @@ public class ValueWrapperManager {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = language.allocator;
+        HandleBlockAllocator allocator = language.handleBlockAllocator;
         boolean grow = false;
         if (blockIndex + 1 > map.length) {
             final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
@@ -134,8 +134,8 @@ public class ValueWrapperManager {
         synchronized (rubyLanguage) {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
-            HandleBlockWeakReference[] map = rubyLanguage.sharedMap;
-            HandleBlockAllocator allocator = rubyLanguage.allocator;
+            HandleBlockWeakReference[] map = rubyLanguage.handleBlockSharedMap;
+            HandleBlockAllocator allocator = rubyLanguage.handleBlockAllocator;
             boolean grow = false;
             if (blockIndex + 1 > map.length) {
                 final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
@@ -145,11 +145,11 @@ public class ValueWrapperManager {
             }
             map[blockIndex] = new HandleBlockWeakReference(block);
             if (grow) {
-                rubyLanguage.sharedMap = map;
+                rubyLanguage.handleBlockSharedMap = map;
             }
 
             rubyLanguage.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
-                rubyLanguage.sharedMap[blockIndex] = null;
+                rubyLanguage.handleBlockSharedMap[blockIndex] = null;
                 allocator.addFreeBlock(blockBase);
             }, null);
         }
@@ -166,7 +166,7 @@ public class ValueWrapperManager {
 
     private HandleBlock getBlockFromMap(int index) {
         final HandleBlockWeakReference[] blockMap = this.blockMap;
-        final HandleBlockWeakReference[] sharedMap = language.sharedMap;
+        final HandleBlockWeakReference[] sharedMap = language.handleBlockSharedMap;
         HandleBlockWeakReference ref = null;
         if (index >= 0 && index < blockMap.length) {
             ref = blockMap[index];
@@ -182,7 +182,7 @@ public class ValueWrapperManager {
 
     public void freeAllBlocksInMap() {
         HandleBlockWeakReference[] map = blockMap;
-        HandleBlockAllocator allocator = language.allocator;
+        HandleBlockAllocator allocator = language.handleBlockAllocator;
 
         for (int i = 0; i < map.length; i++) {
             HandleBlockWeakReference ref = map[i];
@@ -386,7 +386,8 @@ public class ValueWrapperManager {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);
                 }
-                block = threadData.makeNewBlock(context, context.getValueWrapperManager().language.allocator);
+                block = threadData
+                        .makeNewBlock(context, context.getValueWrapperManager().language.handleBlockAllocator);
                 context.getValueWrapperManager().addToBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);
@@ -406,7 +407,8 @@ public class ValueWrapperManager {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);
                 }
-                block = threadData.makeNewSharedBlock(context, context.getValueWrapperManager().language.allocator);
+                block = threadData
+                        .makeNewSharedBlock(context, context.getValueWrapperManager().language.handleBlockAllocator);
                 context.getValueWrapperManager().addToSharedBlockMap(block);
             }
             return block.setHandleOnWrapper(wrapper);

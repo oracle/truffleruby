@@ -192,8 +192,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public final ReferenceQueue<Object> sharedReferenceQueue = new ReferenceQueue<>();
     public final FinalizationService sharedFinzationService = new FinalizationService(sharedReferenceQueue);
-    public volatile ValueWrapperManager.HandleBlockWeakReference[] sharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
-    public final ValueWrapperManager.HandleBlockAllocator allocator = new ValueWrapperManager.HandleBlockAllocator();
+    public volatile ValueWrapperManager.HandleBlockWeakReference[] handleBlockSharedMap = new ValueWrapperManager.HandleBlockWeakReference[0];
+    public final ValueWrapperManager.HandleBlockAllocator handleBlockAllocator = new ValueWrapperManager.HandleBlockAllocator();
 
     @CompilationFinal public LanguageOptions options;
 
