@@ -53,26 +53,22 @@ public abstract class TruffleMonitorNodes {
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
         @Specialization(guards = "isRubyProc(maybeBlock)")
-        protected Object synchronizeOnMutex(RubyMutex mutex, Object maybeBlock,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
-            MutexOperations.lock(getContext(), mutex.lock, thread, this);
+        protected Object synchronizeOnMutex(RubyMutex mutex, Object maybeBlock) {
+            MutexOperations.lockInternal(getContext(), mutex.lock, this);
             try {
                 return yieldNode.yield((RubyProc) maybeBlock);
             } finally {
-                MutexOperations.unlock(mutex.lock, thread);
+                MutexOperations.unlockInternal(mutex.lock);
             }
         }
 
         @Specialization(guards = "!isRubyProc(maybeBlock)")
-        protected Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object maybeBlock,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final RubyThread thread = getCurrentRubyThreadNode.execute();
-            MutexOperations.lock(getContext(), mutex.lock, thread, this);
+        protected Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object maybeBlock) {
+            MutexOperations.lockInternal(getContext(), mutex.lock, this);
             try {
                 return nil;
             } finally {
-                MutexOperations.unlock(mutex.lock, thread);
+                MutexOperations.unlockInternal(mutex.lock);
             }
         }
     }
