@@ -428,42 +428,40 @@ public class TruffleRegexpNodes {
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
+            final Object tRegex;
 
             if (tRegexIncompatibleProfile
-                    .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0)) {
+                    .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0) ||
+                    tRegexCouldNotCompileProfile.profile((tRegex = tRegexCompileNode.executeTRegexCompile(
+                            regexp,
+                            atStart,
+                            checkEncodingNode.executeCheckEncoding(regexp, string))) == nil)) {
                 return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
-            } else {
-                final Encoding encoding = checkEncodingNode.executeCheckEncoding(regexp, string);
-                final Object tRegex = tRegexCompileNode.executeTRegexCompile(regexp, atStart, encoding);
+            }
 
-                if (tRegexCouldNotCompileProfile.profile(tRegex == nil)) {
-                    return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
-                }
+            final byte[] bytes = bytesNode.execute(rope);
+            final Object interopByteArray = getContext().getEnv().asGuestValue(bytes);
+            final Object result = invoke(regexInterop, tRegex, "execBytes", interopByteArray, fromPos);
 
-                final byte[] bytes = bytesNode.execute(rope);
-                final Object interopByteArray = getContext().getEnv().asGuestValue(bytes);
-                final Object result = invoke(regexInterop, tRegex, "execBytes", interopByteArray, fromPos);
+            final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
 
-                final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
+            if (matchFoundProfile.profile(isMatch)) {
+                final int groupCount = (int) readMember(regexInterop, tRegex, "groupCount");
+                final Region region = new Region(groupCount);
 
-                if (matchFoundProfile.profile(isMatch)) {
-                    final int groupCount = (int) readMember(regexInterop, tRegex, "groupCount");
-                    final Region region = new Region(groupCount);
-
-                    loopProfile.profileCounted(groupCount);
-                    try {
-                        for (int group = 0; loopProfile.inject(group < groupCount); group++) {
-                            region.beg[group] = (int) invoke(resultInterop, result, "getStart", new Object[]{ group });
-                            region.end[group] = (int) invoke(resultInterop, result, "getEnd", new Object[]{ group });
-                        }
-                    } finally {
-                        LoopNode.reportLoopCount(this, groupCount);
+                loopProfile.profileCounted(groupCount);
+                try {
+                    for (int group = 0; loopProfile.inject(group < groupCount); group++) {
+                        region.beg[group] = (int) invoke(resultInterop, result, "getStart", new Object[]{ group });
+                        region.end[group] = (int) invoke(resultInterop, result, "getEnd", new Object[]{ group });
                     }
-
-                    return createMatchData(regexp, dupString(string), region);
-                } else {
-                    return nil;
+                } finally {
+                    LoopNode.reportLoopCount(this, groupCount);
                 }
+
+                return createMatchData(regexp, dupString(string), region);
+            } else {
+                return nil;
             }
         }
 
