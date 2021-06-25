@@ -22,6 +22,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.IntValueProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -426,7 +427,8 @@ public class TruffleRegexpNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached CheckEncodingNode checkEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString) {
+                @CachedLibrary(limit = "2") RubyStringLibrary libString,
+                @Cached("createIdentityProfile()") IntValueProfile groupCountProfile) {
             final Rope rope = libString.getRope(string);
             final Object tRegex;
 
@@ -446,7 +448,7 @@ public class TruffleRegexpNodes {
             final boolean isMatch = (boolean) readMember(resultInterop, result, "isMatch");
 
             if (matchFoundProfile.profile(isMatch)) {
-                final int groupCount = (int) readMember(regexInterop, tRegex, "groupCount");
+                final int groupCount = groupCountProfile.profile((int) readMember(regexInterop, tRegex, "groupCount"));
                 final Region region = new Region(groupCount);
 
                 loopProfile.profileCounted(groupCount);
