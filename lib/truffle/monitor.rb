@@ -1,14 +1,17 @@
 # truffleruby_primitives: true
-# frozen_string_literal: false
-# = monitor.rb
-#
-# Copyright (C) 2001  Shugo Maeda <shugo@ruby-lang.org>
-#
-# This library is distributed under the terms of the Ruby license.
-# You can freely distribute/modify this library.
-#
 
+# Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
 #
+# Eclipse Public License version 2.0, or
+# GNU General Public License version 2, or
+# GNU Lesser General Public License version 2.1.
+
+# Original version licensed under LICENSE.RUBY as it is derived from
+# lib/ruby/stdlib/digest.rb and is Copyright (C) 2001 Shugo Maeda
+# <shugo@ruby-lang.org>
+
 # In concurrent programming, a monitor is an object or module intended to be
 # used safely by more than one thread.  The defining characteristic of a
 # monitor is that its methods are executed with mutual exclusion.  That is, at
@@ -94,8 +97,8 @@ module MonitorMixin
   # Since MonitorMixin.new_cond returns a ConditionVariable, and the example
   # above calls while_wait and signal, this class should be documented.
   #
+
   class ConditionVariable < ::ConditionVariable
-    class Timeout < Exception; end
 
     #
     # Calls wait repeatedly while the given block yields a truthy value.
@@ -173,7 +176,7 @@ module MonitorMixin
   # receiver.
   #
   def new_cond
-    return Primitive.mutex_linked_condition_variable(ConditionVariable, @mon_mutex)
+    Primitive.mutex_linked_condition_variable(ConditionVariable, @mon_mutex)
   end
 
   # Use <tt>extend MonitorMixin</tt> or <tt>include MonitorMixin</tt> instead
