@@ -47,7 +47,6 @@ import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
-import org.truffleruby.core.regexp.MatchDataNodes.MatchDataCreateNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -446,7 +445,6 @@ public class TruffleRegexpNodes {
                 @CachedLibrary(limit = "1") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "2") InteropLibrary resultInterop,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached MatchDataCreateNode matchDataCreateNode,
                 @Cached SelectEncodingNode selectEncodingNode,
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
@@ -471,20 +469,19 @@ public class TruffleRegexpNodes {
 
                 if (matchFoundProfile.profile(isMatch)) {
                     final int groupCount = (int) readMember(regexInterop, tRegex, "groupCount");
-                    final int[] starts = new int[groupCount];
-                    final int[] ends = new int[groupCount];
+                    final Region region = new Region(groupCount);
 
                     loopProfile.profileCounted(groupCount);
                     try {
                         for (int group = 0; loopProfile.inject(group < groupCount); group++) {
-                            starts[group] = (int) invoke(resultInterop, result, "getStart", new Object[]{ group });
-                            ends[group] = (int) invoke(resultInterop, result, "getEnd", new Object[]{ group });
+                            region.beg[group] = (int) invoke(resultInterop, result, "getStart", new Object[]{ group });
+                            region.end[group] = (int) invoke(resultInterop, result, "getEnd", new Object[]{ group });
                         }
                     } finally {
                         LoopNode.reportLoopCount(this, groupCount);
                     }
 
-                    return matchDataCreateNode.execute(regexp, dupString(string), starts, ends);
+                    return createMatchData(regexp, dupString(string), region);
                 } else {
                     return nil;
                 }
@@ -516,6 +513,18 @@ public class TruffleRegexpNodes {
             }
 
             return fallbackMatchInRegionNode.executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos);
+        }
+
+        private Object createMatchData(RubyRegexp regexp, Object string, Region region) {
+            final RubyMatchData matchData = new RubyMatchData(
+                    coreLibrary().matchDataClass,
+                    getLanguage().matchDataShape,
+                    regexp,
+                    string,
+                    region,
+                    null);
+            AllocationTracing.trace(matchData, this);
+            return matchData;
         }
 
         private Object readMember(InteropLibrary interop, Object receiver, String name) {

@@ -40,7 +40,6 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -151,42 +150,6 @@ public abstract class MatchDataNodes {
         protected Object create(Object regexp, Object string, int start, int end) {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(
-                    coreLibrary().matchDataClass,
-                    getLanguage().matchDataShape,
-                    regexp,
-                    string,
-                    region,
-                    null);
-            AllocationTracing.trace(matchData, this);
-            return matchData;
-        }
-
-    }
-
-    public abstract static class MatchDataCreateNode extends RubyContextNode {
-
-        public abstract Object execute(RubyRegexp regexp, Object string, int[] starts, int[] ends);
-
-        @Specialization
-        protected Object create(RubyRegexp regexp, Object string, int[] starts, int[] ends,
-                @Cached LoopConditionProfile loopProfile) {
-            final Region region = new Region(starts.length);
-
-            loopProfile.profileCounted(region.numRegs);
-            try {
-                for (int i = 0; loopProfile.inject(i < region.numRegs); i++) {
-                    region.beg[i] = starts[i];
-                    region.end[i] = ends[i];
-                }
-            } finally {
-                LoopNode.reportLoopCount(this, region.numRegs);
-            }
-
-            return createMatchData(regexp, string, region);
-        }
-
-        private Object createMatchData(RubyRegexp regexp, Object string, Region region) {
-            final RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
                     regexp,
