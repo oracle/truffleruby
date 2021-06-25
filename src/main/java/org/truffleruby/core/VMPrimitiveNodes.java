@@ -122,7 +122,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         protected Object vmExit(int status) {
-            throw new ExitException(status);
+            throw new ExitException(status, this);
         }
 
     }

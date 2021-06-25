@@ -174,7 +174,7 @@ public class FiberManager implements ObjectGraphNode {
         try {
             final Object result;
             try {
-                final Object[] args = handleMessage(fiber, message);
+                final Object[] args = handleMessage(fiber, message, currentNode);
                 fiber.resumed = true;
                 result = ProcOperations.rootCall(block, args);
             } finally {
@@ -266,11 +266,11 @@ public class FiberManager implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    private Object[] handleMessage(RubyFiber fiber, FiberMessage message) {
+    private Object[] handleMessage(RubyFiber fiber, FiberMessage message, Node currentNode) {
         setCurrentFiber(fiber);
 
         if (message instanceof FiberShutdownMessage) {
-            throw new FiberShutdownException();
+            throw new FiberShutdownException(currentNode);
         } else if (message instanceof FiberExceptionMessage) {
             throw ((FiberExceptionMessage) message).getException();
         } else if (message instanceof FiberResumeMessage) {
@@ -302,12 +302,12 @@ public class FiberManager implements ObjectGraphNode {
 
         final FiberMessage message = context
                 .getThreadManager()
-                .leaveAndEnter(truffleContext, DummyNode.INSTANCE, () -> {
+                .leaveAndEnter(truffleContext, currentNode, () -> {
                     resume(fromFiber, fiber, operation, args);
                     return waitMessage(fromFiber, currentNode);
                 });
 
-        return handleMessage(fromFiber, message);
+        return handleMessage(fromFiber, message, currentNode);
     }
 
     public void start(RubyFiber fiber, Thread javaThread) {
@@ -453,6 +453,10 @@ public class FiberManager implements ObjectGraphNode {
     /** Used to cleanup and terminate Fibers when the parent Thread dies. */
     private static class FiberShutdownException extends TerminationException {
         private static final long serialVersionUID = 1522270454305076317L;
+
+        public FiberShutdownException(Node location) {
+            super("terminate Fiber", location);
+        }
     }
 
     private static class FiberShutdownMessage implements FiberMessage {

@@ -40,6 +40,7 @@ import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.control.TerminationException;
 
 @GenerateUncached
 public abstract class TranslateExceptionNode extends RubyBaseNode {
@@ -75,6 +76,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     protected RuntimeException translate(Throwable throwable,
             @Cached BranchProfile controlProfile,
             @Cached BranchProfile raiseProfile,
+            @Cached BranchProfile terminationProfile,
             @Cached BranchProfile arithmeticProfile,
             @Cached BranchProfile unsupportedProfile,
             @Cached BranchProfile errorProfile,
@@ -88,6 +90,9 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             return exception;
         } catch (RaiseException exception) {
             raiseProfile.enter();
+            return exception;
+        } catch (TerminationException exception) {
+            terminationProfile.enter();
             return exception;
         } catch (ArithmeticException exception) {
             arithmeticProfile.enter();
