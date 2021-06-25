@@ -156,6 +156,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SHARED_OBJECTS_FORCE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> TESTING_RUBYGEMS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> RUN_TWICE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
@@ -1110,6 +1111,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor RUN_TWICE = OptionDescriptor
+            .newBuilder(RUN_TWICE_KEY, "ruby.run-twice")
+            .help("Run a workload twice using a shared engine in the same process")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor COMPARE_REGEX_ENGINES = OptionDescriptor
             .newBuilder(COMPARE_REGEX_ENGINES_KEY, "ruby.compare-regex-engines")
             .help("Uses both Joni and the TRegex engine and compares their results")
@@ -1391,6 +1399,8 @@ public class OptionsCatalog {
                 return TESTING_RUBYGEMS;
             case "ruby.experimental-engine-caching":
                 return EXPERIMENTAL_ENGINE_CACHING;
+            case "ruby.run-twice":
+                return RUN_TWICE;
             case "ruby.compare-regex-engines":
                 return COMPARE_REGEX_ENGINES;
             default:
@@ -1536,6 +1546,7 @@ public class OptionsCatalog {
             SHARED_OBJECTS_FORCE,
             TESTING_RUBYGEMS,
             EXPERIMENTAL_ENGINE_CACHING,
+            RUN_TWICE,
             COMPARE_REGEX_ENGINES,
         };
     }

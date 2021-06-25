@@ -193,6 +193,8 @@ public class Options {
     public final boolean METRICS_TIME_REQUIRE;
     /** --testing-rubygems=false */
     public final boolean TESTING_RUBYGEMS;
+    /** --run-twice=false */
+    public final boolean RUN_TWICE;
     /** --compare-regex-engines=false */
     public final boolean COMPARE_REGEX_ENGINES;
 
@@ -282,6 +284,7 @@ public class Options {
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
+        RUN_TWICE = options.get(OptionsCatalog.RUN_TWICE_KEY);
         COMPARE_REGEX_ENGINES = options.get(OptionsCatalog.COMPARE_REGEX_ENGINES_KEY);
     }
 
@@ -457,6 +460,8 @@ public class Options {
                 return METRICS_TIME_REQUIRE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
+            case "ruby.run-twice":
+                return RUN_TWICE;
             case "ruby.compare-regex-engines":
                 return COMPARE_REGEX_ENGINES;
             default:

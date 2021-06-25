@@ -247,6 +247,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Options for testing
     TESTING_RUBYGEMS: [testing-rubygems, boolean, false, 'Indicates rubygems is being tested']
     EXPERIMENTAL_ENGINE_CACHING: [experimental-engine-caching, boolean, false, 'Enables experimental support for engine caching for TruffleRuby']
+    RUN_TWICE: [run-twice, boolean, false, 'Run a workload twice using a shared engine in the same process']
 
     # Options for the regular expression engines
     COMPARE_REGEX_ENGINES: [compare-regex-engines, boolean, false, 'Uses both Joni and the TRegex engine and compares their results']
