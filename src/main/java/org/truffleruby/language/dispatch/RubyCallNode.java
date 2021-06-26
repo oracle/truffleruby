@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayAppendOneNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.AssignableNode;
@@ -100,8 +101,8 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
 
     @Override
     public void assign(VirtualFrame frame, Object value) {
-        assert getLastArgumentNode() instanceof NilLiteralNode &&
-                ((NilLiteralNode) getLastArgumentNode()).isImplicit() : getLastArgumentNode();
+        assert (getLastArgumentNode() instanceof NilLiteralNode &&
+                ((NilLiteralNode) getLastArgumentNode()).isImplicit()) : getLastArgumentNode();
 
         final Object receiverObject = receiver.execute(frame);
         if (isSafeNavigation && nilProfile.profile(receiverObject == nil)) {
@@ -195,7 +196,11 @@ public class RubyCallNode extends RubyContextSourceNode implements AssignableNod
     }
 
     private RubyNode getLastArgumentNode() {
-        return arguments[arguments.length - 1];
+        final RubyNode lastArg = arguments[arguments.length - 1];
+        if (isSplatted && lastArg instanceof ArrayAppendOneNode) {
+            return ((ArrayAppendOneNode) lastArg).getValueNode();
+        }
+        return lastArg;
     }
 
     @Override

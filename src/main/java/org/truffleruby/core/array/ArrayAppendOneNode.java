@@ -25,7 +25,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "array", type = RubyNode.class)
-@NodeChild(value = "value", type = RubyNode.class)
+@NodeChild(value = "valueNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
@@ -36,6 +36,8 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     }
 
     public abstract RubyArray executeAppendOne(RubyArray array, Object value);
+
+    public abstract RubyNode getValueNode();
 
     // Append of the correct type
 
