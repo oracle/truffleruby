@@ -132,7 +132,7 @@ class StringScanner
     end
 
     # We need to match one byte, regardless of the string encoding
-    @match = Primitive.matchdata_create(/./mn, @string, [pos], [pos+1])
+    @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos+1)
 
     @prev_pos = @pos
     @pos += 1

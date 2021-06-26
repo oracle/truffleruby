@@ -15,12 +15,10 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
 
 @CoreModule("Truffle::StringOperations")
 public class TruffleStringNodes {
@@ -70,16 +68,5 @@ public class TruffleStringNodes {
                     .format("Invalid byte count: %d exceeds string size of %d bytes", count, rope.byteLength());
         }
 
-    }
-
-    @CoreMethod(names = "raw_bytes", onSingleton = true, required = 1)
-    public abstract static class RawBytesNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = "libString.isRubyString(string)")
-        protected Object rawBytes(Object string,
-                @CachedLibrary(limit = "2") RubyStringLibrary libString,
-                @Cached RopeNodes.BytesNode bytesNode) {
-            byte[] bytes = bytesNode.execute(libString.getRope(string));
-            return getContext().getEnv().asGuestValue(bytes);
-        }
     }
 }

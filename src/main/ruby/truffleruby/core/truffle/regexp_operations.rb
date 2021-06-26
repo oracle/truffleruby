@@ -77,7 +77,7 @@ module Truffle
       if COMPARE_ENGINES
         match_in_region_compare_engines(re, str, from, to, at_start, start)
       elsif USE_TRUFFLE_REGEX
-        match_in_region_tregex(re, str, from, to, at_start, start)
+        Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start)
       else
         Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
       end
@@ -85,7 +85,7 @@ module Truffle
 
     def self.match_in_region_compare_engines(re, str, from, to, at_start, start)
       begin
-        md1 = match_in_region_tregex(re, str, from, to, at_start, start)
+        md1 = Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start)
       rescue => e
         md1 = e
       end
@@ -102,29 +102,6 @@ module Truffle
         $stderr.puts 'but we expected'
         print_match_data(md2)
         return self.return_match_data(md2)
-      end
-    end
-
-    def self.match_in_region_tregex(re, str, from, to, at_start, start)
-      if to < from || to != str.bytesize || start != 0 || from < 0 ||
-          Primitive.nil?((compiled_regex = tregex_compile(re, at_start, select_encoding(re, str))))
-        warn_fallback(re, str, from, to, at_start, start) if WARN_TRUFFLE_REGEX_FALLBACK
-        return Primitive.regexp_match_in_region(re, str, from, to, at_start, start)
-      end
-
-      str_bytes = StringOperations.raw_bytes(str)
-      regex_result = compiled_regex.execBytes(str_bytes, from)
-
-      if regex_result.isMatch
-        starts = []
-        ends = []
-        compiled_regex.groupCount.times do |pos|
-          starts << regex_result.getStart(pos)
-          ends << regex_result.getEnd(pos)
-        end
-        Primitive.matchdata_create(re, str.dup, starts, ends)
-      else
-        nil
       end
     end
 

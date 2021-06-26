@@ -25,11 +25,9 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
@@ -151,32 +149,6 @@ public abstract class MatchDataNodes {
         @Specialization
         protected Object create(Object regexp, Object string, int start, int end) {
             final Region region = new Region(start, end);
-            RubyMatchData matchData = new RubyMatchData(
-                    coreLibrary().matchDataClass,
-                    getLanguage().matchDataShape,
-                    regexp,
-                    string,
-                    region,
-                    null);
-            AllocationTracing.trace(matchData, this);
-            return matchData;
-        }
-
-    }
-
-    @Primitive(name = "matchdata_create")
-    public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected Object create(Object regexp, Object string, RubyArray starts, RubyArray ends,
-                @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
-                @Cached IntegerCastNode integerCastNode) {
-            final Region region = new Region(starts.size);
-            for (int i = 0; i < region.numRegs; i++) {
-                region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
-                region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
-            }
-
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
