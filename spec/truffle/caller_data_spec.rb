@@ -11,7 +11,6 @@
 require_relative '../ruby/spec_helper'
 
 module TruffleCallerSpecFixtures
-
   def self.last_line_set(last_line)
     Primitive.io_last_line_set(Primitive.caller_special_variables, last_line)
     last_line
@@ -22,17 +21,12 @@ module TruffleCallerSpecFixtures
     match
   end
 
-  def self.caller_binding
-    Primitive.caller_binding
-  end
-
   def self.caller_binding_and_variables(last_line, last_match)
     b = Primitive.caller_binding
     Primitive.io_last_line_set(Primitive.caller_special_variables, last_line)
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, last_match)
     b
   end
-
 end
 
 describe "A caller" do

@@ -10,11 +10,14 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.library.CachedLibrary;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -24,14 +27,15 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-@NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToStrNode extends RubyContextSourceNode {
-
-    public abstract Object executeToStr(Object object);
+@GenerateUncached
+@NodeChild(value = "child", type = RubyBaseNodeWithExecute.class)
+public abstract class ToStrNode extends RubyBaseNodeWithExecute {
 
     public static ToStrNode create() {
         return ToStrNodeGen.create(null);
     }
+
+    public abstract Object execute(Object object);
 
     @Specialization
     protected RubyString coerceRubyString(RubyString string) {
@@ -45,6 +49,7 @@ public abstract class ToStrNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isNotRubyString(object)")
     protected Object coerceObject(Object object,
+            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
             @Cached DispatchNode toStrNode,
             @CachedLibrary(limit = "2") RubyStringLibrary libString) {
@@ -53,10 +58,10 @@ public abstract class ToStrNode extends RubyContextSourceNode {
             coerced = toStrNode.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == context.getCoreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
+                        context,
+                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", this));
             } else {
                 throw e;
             }
@@ -67,8 +72,8 @@ public abstract class ToStrNode extends RubyContextSourceNode {
         } else {
             errorProfile.enter();
             throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
+                    context,
+                    context.getCoreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
         }
     }
 

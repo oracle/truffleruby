@@ -33,6 +33,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
@@ -43,6 +44,7 @@ import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
+import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -70,11 +72,11 @@ public abstract class ReadlineNodes {
     }
 
     @CoreMethod(names = "basic_word_break_characters=", onSingleton = true, required = 1)
-    @NodeChild(value = "characters", type = RubyNode.class)
+    @NodeChild(value = "characters", type = RubyBaseNodeWithExecute.class)
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
         @CreateCast("characters")
-        protected RubyNode coerceCharactersToString(RubyNode characters) {
+        protected ToStrNode coerceCharactersToString(RubyBaseNodeWithExecute characters) {
             return ToStrNodeGen.create(characters);
         }
 

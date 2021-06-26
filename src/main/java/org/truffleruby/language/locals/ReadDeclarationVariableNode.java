@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
+import com.oracle.truffle.api.frame.Frame;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadDeclarationVariableNode extends ReadLocalNode {
@@ -46,7 +46,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
             readFrameSlotNode = insert(ReadFrameSlotNodeGen.create(frameSlot));
         }
 
-        final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameDepth);
+        final Frame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameDepth);
         return readFrameSlotNode.executeRead(declarationFrame);
     }
 

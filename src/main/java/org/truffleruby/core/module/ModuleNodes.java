@@ -24,7 +24,6 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
@@ -36,6 +35,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.ReRaiseInlinedExceptionNode;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -97,7 +97,7 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
@@ -454,18 +454,16 @@ public abstract class ModuleNodes {
         }
 
         protected void generateAccessor(Frame callerFrame, RubyModule module, Object[] names, Accessor accessor,
-                Node currentNode) {
+                RootCallTarget target) {
+            needCallerFrame(callerFrame, target);
             final Visibility visibility = DeclarationContext
                     .findVisibilityCheckSelfAndDefaultDefinee(module, callerFrame);
-            createAccessors(module, names, accessor, visibility, currentNode);
+            createAccessors(module, names, accessor, visibility);
         }
 
         @TruffleBoundary
-        private void createAccessors(RubyModule module, Object[] names, Accessor accessor, Visibility visibility,
-                Node currentNode) {
-            if (!currentNode.isAdoptable()) {
-                currentNode = EncapsulatingNodeReference.getCurrent().get();
-            }
+        private void createAccessors(RubyModule module, Object[] names, Accessor accessor, Visibility visibility) {
+            final Node currentNode = getNode();
             final SourceSection sourceSection;
             if (currentNode != null) {
                 sourceSection = currentNode.getEncapsulatingSourceSection();
@@ -552,7 +550,7 @@ public abstract class ModuleNodes {
                 setter = false;
             }
 
-            generateAccessor(callerFrame, module, names, setter ? BOTH : READER, this);
+            generateAccessor(callerFrame, module, names, setter ? BOTH : READER, target);
             return nil;
         }
 
@@ -575,7 +573,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrAccessor(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            generateAccessor(callerFrame, module, names, BOTH, this);
+            generateAccessor(callerFrame, module, names, BOTH, target);
             return nil;
         }
     }
@@ -586,7 +584,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrReader(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            generateAccessor(callerFrame, module, names, READER, this);
+            generateAccessor(callerFrame, module, names, READER, target);
             return nil;
         }
     }
@@ -597,7 +595,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected Object attrWriter(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
-            generateAccessor(callerFrame, module, names, WRITER, this);
+            generateAccessor(callerFrame, module, names, WRITER, target);
             return nil;
         }
     }
@@ -681,7 +679,6 @@ public abstract class ModuleNodes {
     @CoreMethod(names = { "class_eval", "module_eval" }, optional = 3, lowerFixnum = 3, needsBlock = true)
     public abstract static class ClassEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
         @Child private ToStrNode toStrNode;
         @Child private ReadCallerFrameNode readCallerFrameNode = ReadCallerFrameNode.create();
 
@@ -690,7 +687,7 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNode.create());
             }
-            return toStrNode.executeToStr(object);
+            return toStrNode.execute(object);
         }
 
         @Specialization(guards = { "libCode.isRubyString(code)" })
@@ -758,12 +755,13 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         private CodeLoader.DeferredCall classEvalSourceInternal(RubyModule module, Object rubySource,
                 String file, int line, MaterializedFrame callerFrame) {
-            final RubySource source = createEvalSourceNode
-                    .createEvalSource(
-                            RubyStringLibrary.getUncached().getRope(rubySource),
-                            "class/module_eval",
-                            file,
-                            line);
+            final RubySource source = EvalLoader.createEvalSource(
+                    getContext(),
+                    RubyStringLibrary.getUncached().getRope(rubySource),
+                    "class/module_eval",
+                    file,
+                    line,
+                    this);
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,
@@ -1573,6 +1571,7 @@ public abstract class ModuleNodes {
                 @Cached BranchProfile errorProfile,
                 @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextRef) {
             checkNotClass(module, errorProfile, contextRef);
+            needCallerFrame(callerFrame, "Module#module_function with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
             return module;
         }
@@ -1610,8 +1609,19 @@ public abstract class ModuleNodes {
         }
     }
 
+    @Primitive(name = "caller_nesting")
+    public abstract static class CallerNestingNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        protected RubyArray nesting(
+                @Cached NestingNode nestingNode) {
+            return nestingNode.execute();
+        }
+    }
+
     @CoreMethod(names = "nesting", onSingleton = true)
-    public abstract static class NestingNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class NestingNode extends CoreMethodNode {
+
+        public abstract RubyArray execute();
 
         @TruffleBoundary
         @Specialization
@@ -1641,6 +1651,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            needCallerFrame(callerFrame, "Module#public with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PUBLIC);
             return module;
         }
@@ -1680,6 +1691,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            needCallerFrame(callerFrame, "Module#private with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PRIVATE);
             return module;
         }
@@ -1986,6 +1998,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = "names.length == 0")
         protected RubyModule frame(
                 Frame callerFrame, RubyModule module, Object[] names, Object block, RootCallTarget target) {
+            needCallerFrame(callerFrame, "Module#protected with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.PROTECTED);
             return module;
         }
@@ -2278,6 +2291,7 @@ public abstract class ModuleNodes {
         protected Object moduleUsing(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile errorProfile) {
+            needCallerFrame(callerFrame, target);
             final Object refinementModule = args[0];
             if (self != RubyArguments.getSelf(callerFrame)) {
                 errorProfile.enter();

@@ -333,12 +333,12 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "+", required = 1)
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class AddNode extends CoreMethodNode {
 
         @CreateCast("other")
-        protected RubyNode coerceOtherToString(RubyNode other) {
+        protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
 
@@ -897,7 +897,7 @@ public abstract class StringNodes {
 
     @Primitive(name = "string_casecmp")
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     public abstract static class CaseCmpNode extends PrimitiveNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode
@@ -907,7 +907,7 @@ public abstract class StringNodes {
         private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.create();
 
         @CreateCast("other")
-        protected RubyNode coerceOtherToString(RubyNode other) {
+        protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
 
@@ -1023,7 +1023,7 @@ public abstract class StringNodes {
         protected Rope[] argRopes(VirtualFrame frame, Object[] args, int size) {
             final Rope[] strs = new Rope[args.length];
             for (int i = 0; i < size; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.executeToStr(args[i]));
+                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
             }
             return strs;
         }
@@ -1031,7 +1031,7 @@ public abstract class StringNodes {
         protected Rope[] argRopesSlow(VirtualFrame frame, Object[] args) {
             final Rope[] strs = new Rope[args.length];
             for (int i = 0; i < args.length; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.executeToStr(args[i]));
+                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
             }
             return strs;
         }
@@ -1171,7 +1171,7 @@ public abstract class StringNodes {
         protected Rope[] argRopes(Object[] args, int size) {
             final Rope[] strs = new Rope[size];
             for (int i = 0; i < size; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.executeToStr(args[i]));
+                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
             }
             return strs;
         }
@@ -1179,7 +1179,7 @@ public abstract class StringNodes {
         protected Rope[] argRopesSlow(Object[] args) {
             final Rope[] strs = new Rope[args.length];
             for (int i = 0; i < args.length; i++) {
-                strs[i] = rubyStringLibrary.getRope(toStr.executeToStr(args[i]));
+                strs[i] = rubyStringLibrary.getRope(toStr.execute(args[i]));
             }
             return strs;
         }
@@ -1465,7 +1465,7 @@ public abstract class StringNodes {
         protected RubyString forceEncoding(RubyString string, Object encoding,
                 @Cached ToStrNode toStrNode,
                 @Cached ForceEncodingNode forceEncodingNode) {
-            return forceEncodingNode.execute(string, toStrNode.executeToStr(encoding));
+            return forceEncodingNode.execute(string, toStrNode.execute(encoding));
         }
 
     }
@@ -1560,7 +1560,7 @@ public abstract class StringNodes {
         protected RubyString initialize(VirtualFrame frame, RubyString string, Object from, Object encoding,
                 @CachedLibrary(limit = "2") RubyStringLibrary stringLibrary,
                 @Cached ToStrNode toStrNode) {
-            string.setRope(stringLibrary.getRope(toStrNode.executeToStr(from)));
+            string.setRope(stringLibrary.getRope(toStrNode.execute(from)));
             return string;
         }
 
@@ -1764,11 +1764,11 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "other", type = RubyNode.class)
+    @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         @CreateCast("other")
-        protected RubyNode coerceOtherToString(RubyNode other) {
+        protected ToStrNode coerceOtherToString(RubyBaseNodeWithExecute other) {
             return ToStrNodeGen.create(other);
         }
 
@@ -2507,7 +2507,7 @@ public abstract class StringNodes {
             final Object[] otherStrings = new Object[args.length];
 
             for (int i = 0; i < args.length; i++) {
-                otherStrings[i] = toStrNode.executeToStr(args[i]);
+                otherStrings[i] = toStrNode.execute(args[i]);
             }
 
             return performSqueezeBang(string, otherStrings);
@@ -2816,8 +2816,8 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "tr!", required = 2, raiseIfFrozenSelf = true)
     @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "fromStr", type = RubyNode.class)
-    @NodeChild(value = "toStr", type = RubyNode.class)
+    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "toStr", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrBangNode extends CoreMethodNode {
 
@@ -2825,12 +2825,12 @@ public abstract class StringNodes {
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr")
-        protected RubyNode coerceFromStrToString(RubyNode fromStr) {
+        protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
             return ToStrNodeGen.create(fromStr);
         }
 
         @CreateCast("toStr")
-        protected RubyNode coerceToStrToString(RubyNode toStr) {
+        protected ToStrNode coerceToStrToString(RubyBaseNodeWithExecute toStr) {
             return ToStrNodeGen.create(toStr);
         }
 
@@ -2880,8 +2880,8 @@ public abstract class StringNodes {
 
     @CoreMethod(names = "tr_s!", required = 2, raiseIfFrozenSelf = true)
     @NodeChild(value = "self", type = RubyNode.class)
-    @NodeChild(value = "fromStr", type = RubyNode.class)
-    @NodeChild(value = "toStrNode", type = RubyNode.class)
+    @NodeChild(value = "fromStr", type = RubyBaseNodeWithExecute.class)
+    @NodeChild(value = "toStrNode", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(StringGuards.class)
     public abstract static class TrSBangNode extends CoreMethodNode {
 
@@ -2889,12 +2889,12 @@ public abstract class StringNodes {
         @Child private DeleteBangNode deleteBangNode;
 
         @CreateCast("fromStr")
-        protected RubyNode coerceFromStrToString(RubyNode fromStr) {
+        protected ToStrNode coerceFromStrToString(RubyBaseNodeWithExecute fromStr) {
             return ToStrNodeGen.create(fromStr);
         }
 
         @CreateCast("toStrNode")
-        protected RubyNode coerceToStrToString(RubyNode toStr) {
+        protected ToStrNode coerceToStrToString(RubyBaseNodeWithExecute toStr) {
             return ToStrNodeGen.create(toStr);
         }
 
@@ -2936,7 +2936,7 @@ public abstract class StringNodes {
     }
 
     @NodeChild(value = "string", type = RubyNode.class)
-    @NodeChild(value = "format", type = RubyNode.class)
+    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "unpack", required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
@@ -2945,7 +2945,7 @@ public abstract class StringNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
         @CreateCast("format")
-        protected RubyNode coerceFormat(RubyNode format) {
+        protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
             return ToStrNodeGen.create(format);
         }
 

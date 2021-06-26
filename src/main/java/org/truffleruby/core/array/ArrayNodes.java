@@ -45,6 +45,7 @@ import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
+import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -1486,7 +1487,7 @@ public abstract class ArrayNodes {
     }
 
     @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "format", type = RubyNode.class)
+    @NodeChild(value = "format", type = RubyBaseNodeWithExecute.class)
     @CoreMethod(names = "pack", required = 1)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
@@ -1500,7 +1501,7 @@ public abstract class ArrayNodes {
         private final ConditionProfile resizeProfile = ConditionProfile.create();
 
         @CreateCast("format")
-        protected RubyNode coerceFormat(RubyNode format) {
+        protected ToStrNode coerceFormat(RubyBaseNodeWithExecute format) {
             return ToStrNodeGen.create(format);
         }
 

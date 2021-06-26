@@ -51,8 +51,6 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
@@ -900,12 +898,4 @@ public abstract class RubyDynamicObject extends DynamicObject {
     }
     // endregion
     // endregion
-
-    public static Node getNode(RubyLibrary node) {
-        if (!node.isAdoptable()) {
-            return EncapsulatingNodeReference.getCurrent().get();
-        }
-        return node;
-    }
-
 }

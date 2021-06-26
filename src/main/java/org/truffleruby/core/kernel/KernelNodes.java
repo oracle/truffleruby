@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.jcodings.specific.UTF8Encoding;
@@ -42,6 +43,8 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -110,7 +113,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DispatchingNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
-import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -352,36 +355,30 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "binding", isModuleFunction = true)
-    public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
-
+    @GenerateUncached
+    @CoreMethod(names = "binding", isModuleFunction = true, alwaysInlined = true)
+    public abstract static class BindingNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected RubyBinding binding(VirtualFrame frame) {
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
-            final SourceSection sourceSection = getCallerSourceSection();
-
-            return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame, sourceSection);
+        protected RubyBinding binding(
+                Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached(
+                        value = "getNode().getEncapsulatingSourceSection()",
+                        allowUncached = true) SourceSection sourceSection) {
+            needCallerFrame(callerFrame, target);
+            return BindingNodes.createBinding(context, language, callerFrame.materialize(), sourceSection);
         }
-
-        @TruffleBoundary
-        protected SourceSection getCallerSourceSection() {
-            return getContext().getCallStack().getCallerNode().getEncapsulatingSourceSection();
-        }
-
     }
 
-    @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true)
-    public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
-
+    @GenerateUncached
+    @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true, alwaysInlined = true)
+    public abstract static class BlockGivenNode extends AlwaysInlinedMethodNode {
         @Specialization
-        protected boolean blockGiven(VirtualFrame frame,
+        protected boolean blockGiven(Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
                 @Cached FindAndReadDeclarationVariableNode readNode,
                 @Cached ConditionProfile blockProfile) {
-            MaterializedFrame callerFrame = callerFrameNode.execute(frame);
+            needCallerFrame(callerFrame, target);
             return blockProfile
                     .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME, nil) != nil);
         }
@@ -724,15 +721,55 @@ public abstract class KernelNodes {
         }
     }
 
-    @Primitive(name = "kernel_eval", lowerFixnum = 4)
-    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    @GenerateUncached
+    @CoreMethod(names = "eval", isModuleFunction = true, required = 1, optional = 3, alwaysInlined = true)
+    public abstract static class EvalPrepareArgsNode extends AlwaysInlinedMethodNode {
+        @Specialization
+        protected Object eval(Frame callerFrame, Object callerSelf, Object[] args, Object block, RootCallTarget target,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached ToStrNode toStrNode,
+                @Cached ToIntNode toIntNode,
+                @Cached BranchProfile errorProfile,
+                @Cached ConditionProfile hasBindingArgument,
+                @Cached EvalInternalNode evalInternalNode) {
+
+            final Object source = toStrNode.execute(args[0]);
+
+            final RubyBinding binding;
+            final Object self;
+            if (hasBindingArgument.profile(args.length > 1 && args[1] != nil)) {
+                final Object bindingArg = args[1];
+                if (!(bindingArg instanceof RubyBinding)) {
+                    errorProfile.enter();
+                    throw new RaiseException(
+                            context,
+                            context.getCoreExceptions().typeErrorWrongArgumentType(bindingArg, "binding", getNode()));
+                }
+                binding = (RubyBinding) bindingArg;
+                self = RubyArguments.getSelf(binding.getFrame());
+            } else {
+                needCallerFrame(callerFrame, "Kernel#eval with no Binding argument");
+                binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
+                self = callerSelf;
+            }
+
+            final Object file = args.length > 2 && args[2] != nil
+                    ? toStrNode.execute(args[2])
+                    : language.coreStrings.EVAL_FILENAME_STRING.createInstance(context);
+
+            final int line = args.length > 3 && args[3] != nil ? toIntNode.execute(args[3]) : 1;
+
+            return evalInternalNode.execute(self, source, binding, file, line);
+        }
+    }
+
     @ReportPolymorphism
-    public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
+    @GenerateUncached
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
+    public abstract static class EvalInternalNode extends RubyBaseNode {
 
-        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
-
-        public abstract Object execute(VirtualFrame frame, Object target, Object source, RubyBinding binding,
-                Object file, int line);
+        public abstract Object execute(Object self, Object source, RubyBinding binding, Object file, int line);
 
         // If the source defines new local variables, those should be set in the Binding.
         // So we have 2 specializations for whether or not the code defines new local variables.
@@ -748,18 +785,19 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
-                Object target, Object source, RubyBinding binding, Object file, int line,
+                Object self, Object source, RubyBinding binding, Object file, int line,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
+                @Cached("compileSource(context, cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = binding.getFrame();
-            return eval(target, cachedCallTarget, callNode, parentFrame);
+            return eval(context, self, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(
@@ -774,29 +812,34 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
-                Object target, Object source, RubyBinding binding, Object file, int line,
+                Object self, Object source, RubyBinding binding, Object file, int line,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @Cached("libSource.getRope(source)") Rope cachedSource,
                 @Cached("libFile.getRope(file)") Rope cachedFile,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget firstCallTarget,
+                @Cached("compileSource(context, cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootCallTarget firstCallTarget,
                 @Cached("getDescriptor(firstCallTarget).copy()") FrameDescriptor newBindingDescriptor,
-                @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
+                @Cached("compileSource(context, cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newFrame(binding, newBindingDescriptor);
-            return eval(target, cachedCallTarget, callNode, parentFrame);
+            return eval(context, self, cachedCallTarget, callNode, parentFrame);
         }
 
-        @Specialization(guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" })
-        protected Object evalBindingUncached(Object target, Object source, RubyBinding binding, Object file, int line,
+        @Specialization(
+                guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
+                replaces = { "evalBindingNoAddsVarsCached", "evalBindingAddsVarsCached" })
+        protected Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
+                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached IndirectCallNode callNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFile,
                 @CachedLibrary(limit = "2") RubyStringLibrary libSource) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
-                    target,
+                    context,
+                    self,
                     libSource.getRope(source),
                     binding,
                     libFile.getRope(file),
@@ -804,11 +847,11 @@ public abstract class KernelNodes {
             return deferredCall.call(callNode);
         }
 
-        private Object eval(Object target, RootCallTarget callTarget, DirectCallNode callNode,
+        private Object eval(RubyContext context, Object self, RootCallTarget callTarget, DirectCallNode callNode,
                 MaterializedFrame parentFrame) {
             final SharedMethodInfo sharedMethodInfo = RubyRootNode.of(callTarget).getSharedMethodInfo();
             final InternalMethod method = new InternalMethod(
-                    getContext(),
+                    context,
                     sharedMethodInfo,
                     RubyArguments.getMethod(parentFrame).getLexicalScope(),
                     RubyArguments.getDeclarationContext(parentFrame),
@@ -822,45 +865,54 @@ public abstract class KernelNodes {
                     null,
                     method,
                     null,
-                    target,
+                    self,
                     nil,
                     EMPTY_ARGUMENTS));
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(Object target, Rope source, RubyBinding binding, Rope file, int line) {
+        private CodeLoader.DeferredCall doEvalX(RubyContext context, Object self, Rope source, RubyBinding binding,
+                Rope file, int line) {
             final MaterializedFrame frame = BindingNodes.newFrame(binding.getFrame());
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
-            RootCallTarget callTarget = parse(source, frame, file, line, false);
+            RootCallTarget callTarget = parse(context, source, frame, file, line, false);
             if (assignsNewUserVariables(descriptor)) {
                 binding.setFrame(frame);
             }
-            return getContext().getCodeLoader().prepareExecute(
+            return context.getCodeLoader().prepareExecute(
                     callTarget,
                     ParserContext.EVAL,
                     declarationContext,
                     frame,
-                    target);
+                    self);
         }
 
-        protected RootCallTarget parse(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
+        protected RootCallTarget parse(RubyContext context, Rope sourceText, MaterializedFrame parentFrame, Rope file,
+                int line,
                 boolean ownScopeForAssignments) {
             //intern() to improve footprint
             final String sourceFile = RopeOperations.decodeRope(file).intern();
-            final RubySource source = createEvalSourceNode.createEvalSource(sourceText, "eval", sourceFile, line);
-            return getContext()
+            final RubySource source = EvalLoader
+                    .createEvalSource(context, sourceText, "eval", sourceFile, line, this);
+            return context
                     .getCodeLoader()
                     .parse(source, ParserContext.EVAL, parentFrame, null, ownScopeForAssignments, this);
         }
 
-        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
-            return parse(sourceText, parentFrame, file, line, true);
+        protected RootCallTarget compileSource(RubyContext context, Rope sourceText, MaterializedFrame parentFrame,
+                Rope file, int line) {
+            return parse(context, sourceText, parentFrame, file, line, true);
         }
 
-        protected RootCallTarget compileSource(Rope sourceText, MaterializedFrame parentFrame,
+        protected RootCallTarget compileSource(RubyContext context, Rope sourceText, MaterializedFrame parentFrame,
                 FrameDescriptor additionalVariables, Rope file, int line) {
-            return compileSource(sourceText, BindingNodes.newFrame(parentFrame, additionalVariables), file, line);
+            return compileSource(
+                    context,
+                    sourceText,
+                    BindingNodes.newFrame(parentFrame, additionalVariables),
+                    file,
+                    line);
         }
 
         protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {
@@ -885,7 +937,7 @@ public abstract class KernelNodes {
         }
 
         protected int getCacheLimit() {
-            return getLanguage().options.EVAL_CACHE;
+            return RubyLanguage.getCurrentLanguage().options.EVAL_CACHE;
         }
     }
 
@@ -1253,6 +1305,21 @@ public abstract class KernelNodes {
             Node callNode = getContext().getCallStack().getCallerNode();
             RubyCallNode rubyCallNode = NodeUtil.findParent(callNode, RubyCallNode.class);
             return rubyCallNode != null && rubyCallNode.hasLiteralBlock();
+        }
+    }
+
+    @GenerateUncached
+    @CoreMethod(names = "local_variables", isModuleFunction = true, alwaysInlined = true)
+    public abstract static class KernelLocalVariablesNode extends AlwaysInlinedMethodNode {
+        @Specialization
+        protected Object localVariables(
+                Frame callerFrame, Object self, Object[] args, Object block, RootCallTarget target,
+                @CachedLanguage RubyLanguage language,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached DispatchNode callLocalVariables) {
+            needCallerFrame(callerFrame, target);
+            final RubyBinding binding = BindingNodes.createBinding(context, language, callerFrame.materialize());
+            return callLocalVariables.call(binding, "local_variables");
         }
     }
 

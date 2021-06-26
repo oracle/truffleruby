@@ -228,7 +228,7 @@ public class CoreExceptions {
     public RubyException argumentErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
         String badClassName = LogicalClassNode.getUncached().execute(object).fields.getName();
         return argumentError(
-                StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
+                StringUtils.format("wrong argument type %s (should be %s)", badClassName, expectedType),
                 currentNode);
     }
 

@@ -52,7 +52,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
-import org.truffleruby.language.eval.CreateEvalSourceNode;
+import org.truffleruby.language.loader.EvalLoader;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -312,8 +312,6 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "instance_eval", needsBlock = true, optional = 3, lowerFixnum = 3)
     public abstract static class InstanceEvalNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
-
         @Specialization(guards = { "strings.isRubyString(string)", "stringsFileName.isRubyString(fileName)" })
         protected Object instanceEval(
                 VirtualFrame frame, Object receiver, Object string, Object fileName, int line, Nil block,
@@ -392,8 +390,8 @@ public abstract class BasicObjectNodes {
                 Rope fileNameRope, int line, IndirectCallNode callNode) {
             final String fileNameString = RopeOperations.decodeRope(fileNameRope);
 
-            final RubySource source = createEvalSourceNode
-                    .createEvalSource(stringRope, "instance_eval", fileNameString, line);
+            final RubySource source = EvalLoader
+                    .createEvalSource(getContext(), stringRope, "instance_eval", fileNameString, line, this);
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     source,

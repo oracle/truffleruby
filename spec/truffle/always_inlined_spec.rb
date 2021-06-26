@@ -20,6 +20,33 @@ describe "Always-inlined core methods" do
       }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'public_send' }
     end
 
+    it "for #block_given?" do
+      -> {
+        block_given?(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'block_given?' }
+      -> {
+        iterator?(:wrong) # rubocop:disable Lint/DeprecatedClassMethods
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'iterator?' }
+    end
+
+    it "for #binding" do
+      -> {
+        binding(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'binding' }
+    end
+
+    it "for #eval" do
+      -> {
+        eval(Object.new)
+      }.should raise_error(TypeError) { |e| e.backtrace_locations[0].label.should == 'eval' }
+    end
+
+    it "for #local_variables" do
+      -> {
+        local_variables(:wrong)
+      }.should raise_error(ArgumentError) { |e| e.backtrace_locations[0].label.should == 'local_variables' }
+    end
+
     guard -> { RUBY_ENGINE != "ruby" } do
       it "for #send" do
         -> {

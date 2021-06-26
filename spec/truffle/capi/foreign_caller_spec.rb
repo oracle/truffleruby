@@ -18,7 +18,7 @@ describe "Calling a method needing the caller frame" do
   it "directly from C code raises a RuntimeError" do
     -> {
       @s.call_binding
-    }.should raise_error(RuntimeError, 'Cannot call Ruby method which needs caller data directly in a foreign language')
+    }.should raise_error(RuntimeError, 'Kernel#binding needs the caller frame but it was not passed (cannot be called directly from a foreign language)')
   end
 
   it "using rb_funcall() yields the Binding of rb_funcall()" do

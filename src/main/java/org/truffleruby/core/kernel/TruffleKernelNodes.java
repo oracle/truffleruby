@@ -214,11 +214,7 @@ public abstract class TruffleKernelNodes {
     }
 
     public static FrameDescriptor declarationDescriptor(Frame topFrame, int depth) {
-        if (depth == 0) {
-            return topFrame.getFrameDescriptor();
-        } else {
-            return RubyArguments.getDeclarationFrame(topFrame, depth).getFrameDescriptor();
-        }
+        return RubyArguments.getDeclarationFrame(topFrame, depth).getFrameDescriptor();
     }
 
     @TruffleBoundary
@@ -255,7 +251,7 @@ public abstract class TruffleKernelNodes {
                     frame.setObject(declarationFrameSlot, variables);
                 }
             } else {
-                MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+                Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
 
                 if (storageFrame == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -398,13 +394,8 @@ public abstract class TruffleKernelNodes {
                 @Cached("declarationDescriptor(frame, declarationFrameDepth)") FrameDescriptor declarationFrameDescriptor,
                 @Cached("declarationSlot(declarationFrameDescriptor)") FrameSlot declarationFrameSlot,
                 @Cached("declarationFrameDescriptor.getVersion()") Assumption frameAssumption) {
-            if (declarationFrameDepth == 0) {
-                frame.setObject(declarationFrameSlot, storage);
-            } else {
-                MaterializedFrame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
-
-                storageFrame.setObject(declarationFrameSlot, storage);
-            }
+            final Frame storageFrame = RubyArguments.getDeclarationFrame(frame, declarationFrameDepth);
+            storageFrame.setObject(declarationFrameSlot, storage);
             return nil;
         }
 

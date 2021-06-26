@@ -189,9 +189,16 @@ public final class RubyArguments {
 
     // Getters for the declaration frame that let you reach up several levels
 
-    public static MaterializedFrame getDeclarationFrame(Frame topFrame, int level) {
-        assert level > 0;
-        return getDeclarationFrame(RubyArguments.getDeclarationFrame(topFrame), level - 1);
+    public static Frame getDeclarationFrame(Frame topFrame, int level) {
+        assert topFrame != null;
+        assert level >= 0;
+
+        CompilerAsserts.partialEvaluationConstant(level);
+        if (level == 0) {
+            return topFrame;
+        } else {
+            return getDeclarationFrame(RubyArguments.getDeclarationFrame(topFrame), level - 1);
+        }
     }
 
 

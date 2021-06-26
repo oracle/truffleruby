@@ -28,7 +28,7 @@ import com.oracle.truffle.api.source.Source;
 /*
  * Loads source files that have been stored as resources (in the Java jar file sense.)
  */
-public class ResourceLoader {
+public abstract class ResourceLoader {
 
     public static Source loadResource(String path, boolean internal) throws IOException {
         assert path.startsWith(RubyLanguage.RESOURCE_SCHEME);

@@ -192,16 +192,6 @@ public class CoreMethodAssumptions {
                     return InlinedNotNodeGen.create(language, callParameters, self);
                 case "-@":
                     return InlinedNegNodeGen.create(language, callParameters, self);
-                case "binding":
-                    if (callParameters.isIgnoreVisibility()) {
-                        return InlinedBindingNodeGen.create(language, callParameters, self);
-                    }
-                    break;
-                case "block_given?":
-                    if (callParameters.isIgnoreVisibility()) {
-                        return InlinedBlockGivenNodeGen.create(language, callParameters, environment, self);
-                    }
-                    break;
                 case "nil?":
                     return InlinedIsNilNodeGen.create(language, callParameters, self);
                 case "bytesize":
