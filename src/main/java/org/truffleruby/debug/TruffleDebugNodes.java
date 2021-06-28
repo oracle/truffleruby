@@ -832,17 +832,17 @@ public abstract class TruffleDebugNodes {
     public abstract static class FloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected float foreignBoxedNumber(long value) {
+        protected float asFloat(long value) {
             return value;
         }
 
         @Specialization
-        protected float foreignBoxedNumber(RubyBignum value) {
+        protected float asFloat(RubyBignum value) {
             return (float) BigIntegerOps.doubleValue(value);
         }
 
         @Specialization
-        protected float foreignBoxedNumber(double value) {
+        protected float asFloat(double value) {
             return (float) value;
         }
 
