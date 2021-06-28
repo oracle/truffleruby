@@ -22,19 +22,26 @@ import com.oracle.truffle.api.object.Shape;
 
 public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode {
 
+    /** A group which was not matched */
+    public static final int MISSING = -1;
+    /** A group for which the offsets were not computed yet */
+    public static final int LAZY = -2;
+
     /** Either a Regexp or a String for the case of String#gsub(String) */
     public Object regexp;
     public Object source;
+    /** Group bounds as byte offsets */
     public Region region;
-    public Region charOffsets;
+    /** Group bounds as character offsets */
+    public Region charOffsets = null;
+    public Object tRegexResult = null;
 
     public RubyMatchData(
             RubyClass rubyClass,
             Shape shape,
             Object regexp,
             Object source,
-            Region region,
-            Region charOffsets) {
+            Region region) {
         super(rubyClass, shape);
         assert regexp instanceof RubyRegexp || regexp instanceof RubyString || regexp instanceof ImmutableRubyString ||
                 regexp == null;
@@ -42,7 +49,6 @@ public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode 
         assert source == null || source instanceof RubyString || source instanceof ImmutableRubyString;
         this.source = source;
         this.region = region;
-        this.charOffsets = charOffsets;
     }
 
     public void getAdjacentObjects(Set<Object> reachable) {
