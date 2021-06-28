@@ -828,6 +828,21 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "long", onSingleton = true, required = 1)
+    public abstract static class LongNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected long asLong(int value) {
+            return value;
+        }
+
+        @Specialization
+        protected long asLong(long value) {
+            return value;
+        }
+
+    }
+
     @CoreMethod(names = "float", onSingleton = true, required = 1)
     public abstract static class FloatNode extends CoreMethodArrayArgumentsNode {
 
