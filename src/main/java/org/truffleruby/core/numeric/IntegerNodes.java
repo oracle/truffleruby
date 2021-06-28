@@ -1263,6 +1263,15 @@ public abstract class IntegerNodes {
             return leftShiftNode.executeLeftShift(a, -b);
         }
 
+        @Specialization(guards = "b < 0")
+        protected Object rightShiftNeg(long a, long b) {
+            if (leftShiftNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                leftShiftNode = insert(LeftShiftNodeFactory.create(null));
+            }
+            return leftShiftNode.executeLeftShift(a, -b);
+        }
+
         @Specialization(guards = "b >= 0")
         protected int rightShift(long a, long b) {
             // b is not in int range due to lowerFixnumParameters
