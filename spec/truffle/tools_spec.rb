@@ -53,4 +53,26 @@ describe "Tools" do
       $?.should.success?
     end
   end
+
+  describe "--cpusampler" do
+    it "works if Thread#kill is used" do
+      code = <<~RUBY
+      def foo
+        n = 0
+        loop { itself { n += 1 } }
+        n
+      end
+      t = Thread.new { foo }
+      sleep 1
+      p :kill
+      t.kill
+      t.join
+      RUBY
+      out = ruby_exe(code, options: "--cpusampler --cpusampler.Mode=roots")
+      out.should.include?(":kill")
+      out.should.include?("block in Object#foo")
+      out.should_not.include?('KillException')
+      $?.should.success?
+    end
+  end
 end
