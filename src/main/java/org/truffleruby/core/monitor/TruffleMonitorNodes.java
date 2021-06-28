@@ -22,7 +22,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.mutex.RubyConditionVariable;
-import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
@@ -74,7 +73,7 @@ public abstract class TruffleMonitorNodes {
     }
 
     @Primitive(name = "monitor_try_enter")
-    public static abstract class MonitorTryEnter extends CoreMethodArrayArgumentsNode {
+    public abstract static class MonitorTryEnter extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object tryEnter(RubyMutex mutex,
@@ -85,7 +84,7 @@ public abstract class TruffleMonitorNodes {
     }
 
     @Primitive(name = "monitor_enter")
-    public static abstract class MonitorEnter extends CoreMethodArrayArgumentsNode {
+    public abstract static class MonitorEnter extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object enter(RubyMutex mutex,
@@ -97,7 +96,7 @@ public abstract class TruffleMonitorNodes {
     }
 
     @Primitive(name = "monitor_exit")
-    public static abstract class MonitorExit extends CoreMethodArrayArgumentsNode {
+    public abstract static class MonitorExit extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object exit(RubyMutex mutex,
