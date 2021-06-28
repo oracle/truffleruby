@@ -12,6 +12,8 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.jcodings.Encoding;
@@ -59,79 +61,101 @@ import org.truffleruby.language.objects.LogicalClassNode;
 @CoreModule(value = "MatchData", isClass = true)
 public abstract class MatchDataNodes {
 
-    @TruffleBoundary
-    private static void updatePairs(Rope source, Encoding encoding, Pair[] pairs) {
-        // Taken from org.jruby.RubyMatchData
-        Arrays.sort(pairs);
-
-        int length = pairs.length;
-        byte[] bytes = source.getBytes();
-        int p = 0;
-        int s = p;
-        int c = 0;
-
-        for (int i = 0; i < length; i++) {
-            int q = s + pairs[i].bytePos;
-            c += StringSupport.strLength(encoding, bytes, p, q);
-            pairs[i].charPos = c;
-            p = q;
+    private static int getGroupBound(InteropLibrary interop, RubyMatchData matchData, String member, int group) {
+        try {
+            final int offset = (int) interop.invokeMember(matchData.tRegexResult, member, group);
+            assert offset >= 0 || offset == RubyMatchData.MISSING;
+            return offset;
+        } catch (InteropException e) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
 
+    private static int getStart(RubyMatchData matchData, int index, ConditionProfile lazyProfile,
+            InteropLibrary interop) {
+        int start = matchData.region.beg[index];
+        if (lazyProfile.profile(start == RubyMatchData.LAZY)) {
+            return matchData.region.beg[index] = getGroupBound(interop, matchData, "getStart", index);
+        } else {
+            return start;
+        }
+    }
+
+    private static int getEnd(RubyMatchData matchData, int index, ConditionProfile lazyProfile,
+            InteropLibrary interop) {
+        int end = matchData.region.end[index];
+        if (lazyProfile.profile(end == RubyMatchData.LAZY)) {
+            return matchData.region.end[index] = getGroupBound(interop, matchData, "getEnd", index);
+        } else {
+            return end;
+        }
+    }
+
+    @TruffleBoundary
     private static Region getCharOffsetsManyRegs(RubyMatchData matchData, Rope source, Encoding encoding) {
         // Taken from org.jruby.RubyMatchData
+
+        assert !encoding.isSingleByte() : "Should be checked by callers";
+
         final Region regs = matchData.region;
         int numRegs = regs.numRegs;
 
-        final Region charOffsets = new Region(numRegs);
-
-        if (encoding.maxLength() == 1) {
+        if (matchData.tRegexResult != null) {
+            InteropLibrary interop = InteropLibrary.getUncached(matchData.tRegexResult);
             for (int i = 0; i < numRegs; i++) {
-                charOffsets.beg[i] = regs.beg[i];
-                charOffsets.end[i] = regs.end[i];
+                getStart(matchData, i, ConditionProfile.getUncached(), interop);
+                getEnd(matchData, i, ConditionProfile.getUncached(), interop);
             }
-            return charOffsets;
         }
 
-        Pair[] pairs = new Pair[numRegs * 2];
+        final Region charOffsets = new Region(numRegs);
+
+        final Pair[] pairs = new Pair[numRegs * 2];
         for (int i = 0; i < pairs.length; i++) {
             pairs[i] = new Pair();
         }
 
         int numPos = 0;
         for (int i = 0; i < numRegs; i++) {
-            if (regs.beg[i] < 0) {
-                continue;
+            if (regs.beg[i] != RubyMatchData.MISSING) {
+                pairs[numPos++].bytePos = regs.beg[i];
+                pairs[numPos++].bytePos = regs.end[i];
             }
-            pairs[numPos++].bytePos = regs.beg[i];
-            pairs[numPos++].bytePos = regs.end[i];
         }
 
         updatePairs(source, encoding, pairs);
 
         Pair key = new Pair();
         for (int i = 0; i < regs.numRegs; i++) {
-            if (regs.beg[i] < 0) {
-                charOffsets.beg[i] = charOffsets.end[i] = -1;
-                continue;
+            if (regs.beg[i] == RubyMatchData.MISSING) {
+                charOffsets.beg[i] = charOffsets.end[i] = RubyMatchData.MISSING;
+            } else {
+                key.bytePos = regs.beg[i];
+                charOffsets.beg[i] = pairs[Arrays.binarySearch(pairs, key)].charPos;
+                key.bytePos = regs.end[i];
+                charOffsets.end[i] = pairs[Arrays.binarySearch(pairs, key)].charPos;
             }
-            key.bytePos = regs.beg[i];
-            charOffsets.beg[i] = pairs[Arrays.binarySearch(pairs, key)].charPos;
-            key.bytePos = regs.end[i];
-            charOffsets.end[i] = pairs[Arrays.binarySearch(pairs, key)].charPos;
         }
 
         return charOffsets;
     }
 
-    public static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
+    @TruffleBoundary
+    private static void updatePairs(Rope source, Encoding encoding, Pair[] pairs) {
         // Taken from org.jruby.RubyMatchData
-        final Region charOffsets = matchData.charOffsets;
+        Arrays.sort(pairs);
 
-        if (charOffsets != null) {
-            return charOffsets;
-        } else {
-            return createCharOffsets(matchData, sourceRope);
+        byte[] bytes = source.getBytes();
+        int p = 0;
+        int s = p;
+        int c = 0;
+
+        for (Pair pair : pairs) {
+            int q = s + pair.bytePos;
+            c += StringSupport.strLength(encoding, bytes, p, q);
+            pair.charPos = c;
+            p = q;
         }
     }
 
@@ -141,6 +165,15 @@ public abstract class MatchDataNodes {
         final Region charOffsets = getCharOffsetsManyRegs(matchData, source, enc);
         matchData.charOffsets = charOffsets;
         return charOffsets;
+    }
+
+    public static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
+        final Region charOffsets = matchData.charOffsets;
+        if (charOffsets != null) {
+            return charOffsets;
+        } else {
+            return createCharOffsets(matchData, sourceRope);
+        }
     }
 
     @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
@@ -154,8 +187,7 @@ public abstract class MatchDataNodes {
                     getLanguage().matchDataShape,
                     regexp,
                     string,
-                    region,
-                    null);
+                    region);
             AllocationTracing.trace(matchData, this);
             return matchData;
         }
@@ -185,24 +217,26 @@ public abstract class MatchDataNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached ConditionProfile normalizedIndexProfile,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached ConditionProfile hasValueProfile,
                 @Cached LogicalClassNode logicalClassNode) {
 
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(index < 0)) {
-                index += region.beg.length;
+                index += region.numRegs;
             }
 
-            if (indexOutOfBoundsProfile.profile((index < 0) || (index >= region.beg.length))) {
+            if (indexOutOfBoundsProfile.profile(index < 0 || index >= region.numRegs)) {
                 return nil;
             } else {
-                final Object source = matchData.source;
-                final Rope sourceRope = strings.getRope(source);
-                final int start = region.beg[index];
-                final int end = region.end[index];
+                final int start = getStart(matchData, index, lazyProfile, interop);
+                final int end = getEnd(matchData, index, lazyProfile, interop);
 
-                if (hasValueProfile.profile(start > -1 && end > -1)) {
-                    Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
+                if (hasValueProfile.profile(start >= 0 && end >= 0)) {
+                    final Object source = matchData.source;
+                    final Rope sourceRope = strings.getRope(source);
+                    final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                     final RubyClass logicalClass = logicalClassNode.execute(source);
                     final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
                     AllocationTracing.trace(string, this);
@@ -339,11 +373,7 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         private int getBackRef(RubyMatchData matchData, RubyRegexp regexp, NameEntry name) {
-            return regexp.regex.nameToBackrefNumber(
-                    name.name,
-                    name.nameP,
-                    name.nameEnd,
-                    matchData.region);
+            return regexp.regex.nameToBackrefNumber(name.name, name.nameP, name.nameEnd, matchData.region);
         }
 
         @TruffleBoundary
@@ -373,13 +403,14 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object begin(RubyMatchData matchData, int index,
+                @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeBeginProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            // Taken from org.jruby.RubyMatchData.
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
+            final int begin = getStart(matchData, index, lazyProfile, interop);
 
-            final int begin = matchData.region.beg[index];
             if (negativeBeginProfile.profile(begin < 0)) {
                 return nil;
             }
@@ -419,6 +450,8 @@ public abstract class MatchDataNodes {
         @Specialization
         protected Object[] getValues(RubyMatchData matchData,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @Cached ConditionProfile hasValueProfile,
                 @Cached LoopConditionProfile loopProfile,
                 @Cached LogicalClassNode logicalClassNode) {
@@ -431,10 +464,10 @@ public abstract class MatchDataNodes {
                 loopProfile.profileCounted(region.numRegs);
 
                 for (int n = 0; loopProfile.inject(n < region.numRegs); n++) {
-                    final int start = region.beg[n];
-                    final int end = region.end[n];
+                    final int start = getStart(matchData, n, lazyProfile, interop);
+                    final int end = getEnd(matchData, n, lazyProfile, interop);
 
-                    if (hasValueProfile.profile(start > -1 && end > -1)) {
+                    if (hasValueProfile.profile(start >= 0 && end >= 0)) {
                         final Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
                         final RubyClass logicalClass = logicalClassNode.execute(source);
                         final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
@@ -458,13 +491,14 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object end(RubyMatchData matchData, int index,
+                @Cached ConditionProfile lazyProfile,
                 @Cached ConditionProfile negativeEndProfile,
                 @Cached ConditionProfile multiByteCharacterProfile,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
-                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
-            // Taken from org.jruby.RubyMatchData.
+                @CachedLibrary(limit = "2") RubyStringLibrary strings,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
+            final int end = getEnd(matchData, index, lazyProfile, interop);
 
-            final int end = matchData.region.end[index];
             if (negativeEndProfile.profile(end < 0)) {
                 return nil;
             }
@@ -495,8 +529,10 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object byteBegin(RubyMatchData matchData, int index,
-                @Cached ConditionProfile negativeBeginProfile) {
-            final int begin = matchData.region.beg[index];
+                @Cached ConditionProfile lazyProfile,
+                @Cached ConditionProfile negativeBeginProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
+            final int begin = getStart(matchData, index, lazyProfile, interop);
 
             if (negativeBeginProfile.profile(begin < 0)) {
                 return nil;
@@ -515,8 +551,10 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object byteEnd(RubyMatchData matchData, int index,
-                @Cached ConditionProfile negativeEndProfile) {
-            final int end = matchData.region.end[index];
+                @Cached ConditionProfile lazyProfile,
+                @Cached ConditionProfile negativeEndProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
+            final int end = getEnd(matchData, index, lazyProfile, interop);
 
             if (negativeEndProfile.profile(end < 0)) {
                 return nil;
@@ -549,14 +587,14 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected RubyString preMatch(RubyMatchData matchData,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached LogicalClassNode logicalClassNode) {
             Object source = matchData.source;
             Rope sourceRope = strings.getRope(source);
-            Region region = matchData.region;
-            int start = 0;
-            int length = region.beg[0];
-            Rope rope = substringNode.executeSubstring(sourceRope, start, length);
+            final int length = getStart(matchData, 0, lazyProfile, interop);
+            final Rope rope = substringNode.executeSubstring(sourceRope, 0, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
             final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
             AllocationTracing.trace(string, this);
@@ -573,13 +611,14 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected RubyString postMatch(RubyMatchData matchData,
+                @Cached ConditionProfile lazyProfile,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop,
                 @CachedLibrary(limit = "2") RubyStringLibrary strings,
                 @Cached LogicalClassNode logicalClassNode) {
             Object source = matchData.source;
             Rope sourceRope = strings.getRope(source);
-            Region region = matchData.region;
-            int start = region.end[0];
-            int length = sourceRope.byteLength() - region.end[0];
+            final int start = getEnd(matchData, 0, lazyProfile, interop);
+            int length = sourceRope.byteLength() - start;
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
             final RubyClass logicalClass = logicalClassNode.execute(source);
             final RubyString string = new RubyString(logicalClass, getLanguage().stringShape, false, rope);
@@ -638,7 +677,7 @@ public abstract class MatchDataNodes {
         @Specialization
         protected RubyMatchData allocate(RubyClass rubyClass) {
             final Shape shape = getLanguage().matchDataShape;
-            RubyMatchData matchData = new RubyMatchData(rubyClass, shape, null, null, null, null);
+            RubyMatchData matchData = new RubyMatchData(rubyClass, shape, null, null, null);
             AllocationTracing.trace(matchData, this);
             return matchData;
         }
@@ -659,6 +698,7 @@ public abstract class MatchDataNodes {
             self.regexp = from.regexp;
             self.region = from.region;
             self.charOffsets = from.charOffsets;
+            self.tRegexResult = from.tRegexResult;
             return self;
         }
 

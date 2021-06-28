@@ -454,14 +454,14 @@ public class TruffleRegexpNodes {
                 loopProfile.profileCounted(groupCount);
                 try {
                     for (int group = 0; loopProfile.inject(group < groupCount); group++) {
-                        region.beg[group] = (int) invoke(resultInterop, result, "getStart", new Object[]{ group });
-                        region.end[group] = (int) invoke(resultInterop, result, "getEnd", new Object[]{ group });
+                        region.beg[group] = RubyMatchData.LAZY;
+                        region.end[group] = RubyMatchData.LAZY;
                     }
                 } finally {
                     LoopNode.reportLoopCount(this, groupCount);
                 }
 
-                return createMatchData(regexp, dupString(string), region);
+                return createMatchData(regexp, dupString(string), region, result);
             } else {
                 return nil;
             }
@@ -494,14 +494,14 @@ public class TruffleRegexpNodes {
             return fallbackMatchInRegionNode.executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos);
         }
 
-        private Object createMatchData(RubyRegexp regexp, Object string, Region region) {
+        private Object createMatchData(RubyRegexp regexp, Object string, Region region, Object tRegexResult) {
             final RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
                     regexp,
                     string,
-                    region,
-                    null);
+                    region);
+            matchData.tRegexResult = tRegexResult;
             AllocationTracing.trace(matchData, this);
             return matchData;
         }
@@ -579,14 +579,14 @@ public class TruffleRegexpNodes {
             assert match >= 0;
 
             final Region region = matcher.getEagerRegion();
+            assert assertValidRegion(region);
             final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
             RubyMatchData result = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
                     regexp,
                     dupedString,
-                    region,
-                    null);
+                    region);
             AllocationTracing.trace(result, this);
             return result;
         }
@@ -618,6 +618,14 @@ public class TruffleRegexpNodes {
                     new RegexpCacheKey(source, enc, options.toJoniOptions(), Hashing.NO_SEED),
                     fromStart);
             ConcurrentOperations.getOrCompute(MATCHED_REGEXPS, matchInfo, x -> new AtomicInteger()).incrementAndGet();
+        }
+
+        private boolean assertValidRegion(Region region) {
+            for (int i = 0; i < region.numRegs; i++) {
+                assert region.beg[i] >= 0 || region.beg[i] == RubyMatchData.MISSING;
+                assert region.end[i] >= 0 || region.end[i] == RubyMatchData.MISSING;
+            }
+            return true;
         }
     }
 

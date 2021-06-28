@@ -143,7 +143,8 @@ public abstract class RegexpNodes {
         Region regs = matchData.region;
         if (startPos != 0) {
             for (int i = 0; i < regs.beg.length; i++) {
-                if (regs.beg[i] != -1) {
+                assert regs.beg[i] != RubyMatchData.LAZY : "startPos != 0 not yet supported for TRegex";
+                if (regs.beg[i] >= 0) {
                     regs.beg[i] += startPos;
                     regs.end[i] += startPos;
                 }
