@@ -339,16 +339,6 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @Primitive(name = "matchdata_fixup_positions", lowerFixnum = { 1 })
-    public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos) {
-            RegexpNodes.fixupMatchDataForStart(matchData, startPos);
-            return matchData;
-        }
-    }
-
     @Primitive(name = "regexp_initialized?")
     public abstract static class InitializedNode extends CoreMethodArrayArgumentsNode {
 

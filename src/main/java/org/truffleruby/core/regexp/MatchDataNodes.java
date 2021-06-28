@@ -167,12 +167,39 @@ public abstract class MatchDataNodes {
         return charOffsets;
     }
 
-    public static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
+    private static Region getCharOffsets(RubyMatchData matchData, Rope sourceRope) {
         final Region charOffsets = matchData.charOffsets;
         if (charOffsets != null) {
             return charOffsets;
         } else {
             return createCharOffsets(matchData, sourceRope);
+        }
+    }
+
+    @TruffleBoundary
+    private static void fixupMatchDataForStart(RubyMatchData matchData, int startPos) {
+        assert startPos != 0;
+        Region regs = matchData.region;
+        for (int i = 0; i < regs.beg.length; i++) {
+            assert regs.beg[i] != RubyMatchData.LAZY &&
+                    regs.end[i] != RubyMatchData.LAZY : "startPos != 0 not yet supported for TRegex";
+            if (regs.beg[i] >= 0) {
+                regs.beg[i] += startPos;
+                regs.end[i] += startPos;
+            }
+        }
+    }
+
+    @Primitive(name = "matchdata_fixup_positions", lowerFixnum = { 1 })
+    public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos,
+                @Cached ConditionProfile nonZeroPos) {
+            if (nonZeroPos.profile(startPos != 0)) {
+                fixupMatchDataForStart(matchData, startPos);
+            }
+            return matchData;
         }
     }
 

@@ -17,7 +17,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
-import org.joni.Region;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -135,20 +134,6 @@ public abstract class RegexpNodes {
             }
 
             return makeStringNode;
-        }
-    }
-
-    @TruffleBoundary
-    public static void fixupMatchDataForStart(RubyMatchData matchData, int startPos) {
-        Region regs = matchData.region;
-        if (startPos != 0) {
-            for (int i = 0; i < regs.beg.length; i++) {
-                assert regs.beg[i] != RubyMatchData.LAZY : "startPos != 0 not yet supported for TRegex";
-                if (regs.beg[i] >= 0) {
-                    regs.beg[i] += startPos;
-                    regs.end[i] += startPos;
-                }
-            }
         }
     }
 
