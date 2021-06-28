@@ -17,12 +17,10 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyBaseNodeWithExecute;
 import org.truffleruby.language.RubyContextSourceNode;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @NodeChild(value = "value", type = RubyBaseNodeWithExecute.class)
 public abstract class ChaosNode extends RubyContextSourceNode {
-
-    private static final Random RANDOM = new Random(0);
 
     public static ChaosNode create() {
         return ChaosNodeGen.create(null);
@@ -66,7 +64,7 @@ public abstract class ChaosNode extends RubyContextSourceNode {
 
     @TruffleBoundary
     private boolean randomBoolean() {
-        return RANDOM.nextBoolean();
+        return ThreadLocalRandom.current().nextBoolean();
     }
 
 }
