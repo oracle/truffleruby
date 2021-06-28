@@ -68,6 +68,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final String launcher = ProcessProperties.getExecutableName();
             polyglotOptions.put(OptionsCatalog.LAUNCHER.getName(), launcher);
         }
+
+        // Instrumentation should not swallow exceptions, especially exceptions from Truffle safepoints (GR-32154)
+        polyglotOptions.put("engine.InstrumentExceptionsAreThrown", "true");
+        // TruffleRuby is never distributed without the GraalVM compiler, so this warning is not necessary
         polyglotOptions.put("engine.WarnInterpreterOnly", "false");
 
         config = new CommandLineOptions();
