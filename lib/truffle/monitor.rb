@@ -191,7 +191,7 @@ module MonitorMixin
   # object has been extended with the MonitorMixin
   def mon_initialize
     if defined?(@mon_mutex) && Primitive.object_same_or_equal(@mon_mutex_owner_object, self)
-      raise ThreadError, "already initialized"
+      raise ThreadError, 'already initialized'
     end
     @mon_mutex = Thread::Mutex.new
     @mon_mutex_owner_object = self
