@@ -90,7 +90,7 @@ public abstract class EncodingNodes {
 
         @Specialization(replaces = "getRubyEncodingCached")
         protected RubyEncoding getRubyEncodingUncached(Encoding encoding) {
-            return getContext().getEncodingManager().getRubyEncoding(encoding);
+            return Encodings.getBuiltInEncoding(encoding.getIndex());
         }
 
         protected boolean isSameEncoding(Encoding encoding, RubyEncoding rubyEncoding) {
@@ -98,7 +98,8 @@ public abstract class EncodingNodes {
         }
 
         protected int getCacheLimit() {
-            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
+            return 8;
+            //            return getLanguage().options.ENCODING_LOADED_CLASSES_CACHE;
         }
 
     }

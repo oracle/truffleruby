@@ -44,6 +44,8 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.StandardEncodings;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
@@ -169,6 +171,8 @@ public class TruffleRegexpNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.getFactory().createDispatched(2);
+        @Child private EncodingNodes.GetRubyEncodingNode getRubyEncodingNode = EncodingNodes.GetRubyEncodingNode
+                .create();
 
         @Specialization(
                 guards = "argsMatch(frame, cachedArgs, args)",
@@ -207,7 +211,9 @@ public class TruffleRegexpNodes {
         public Object string(Object obj) {
             if (rubyStringLibrary.isRubyString(obj)) {
                 final Rope rope = rubyStringLibrary.getRope(obj);
-                return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
+                final Rope quotedRope = ClassicRegexp.quote19(rope);
+                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(quotedRope.encoding);
+                return makeStringNode.fromRope(quotedRope, rubyEncoding);
             } else {
                 return toSNode.execute((RubyRegexp) obj);
             }

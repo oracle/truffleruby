@@ -35,6 +35,7 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -1417,7 +1418,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected RubyString toS(int n, NotProvided base) {
-            return makeStringNode.fromRope(new LazyIntRope(n));
+            final Rope rope = new LazyIntRope(n);
+            return makeStringNode.fromRope(rope, Encodings.US_ASCII);
         }
 
         @TruffleBoundary

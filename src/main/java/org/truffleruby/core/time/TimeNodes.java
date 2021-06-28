@@ -23,6 +23,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
@@ -381,9 +382,12 @@ public abstract class TimeNodes {
                 @Cached RopeNodes.EqualNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
                 @Cached ConditionProfile yearIsFastProfile,
-                @Cached RopeNodes.ConcatNode concatNode) {
+                @Cached RopeNodes.ConcatNode concatNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
             if (canUseFast && yearIsFastProfile.profile(yearIsFast(time))) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode));
+                final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
+                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
+                return makeStringNode.fromRope(rope, rubyEncoding);
             } else {
                 final RopeBuilder ropeBuilder = formatTime(time, pattern);
                 final RubyEncoding rubyEncoding = getContext()
@@ -397,10 +401,13 @@ public abstract class TimeNodes {
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected RubyString timeStrftime(RubyTime time, Object format,
                 @CachedLibrary(limit = "2") RubyStringLibrary libFormat,
-                @Cached RopeNodes.ConcatNode concatNode) {
+                @Cached RopeNodes.ConcatNode concatNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
             final Token[] pattern = compilePattern(libFormat.getRope(format));
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
-                return makeStringNode.fromRope(RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode));
+                final Rope rope = RubyDateFormatter.formatToRopeFast(pattern, time.dateTime, concatNode);
+                final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(rope.encoding);
+                return makeStringNode.fromRope(rope, rubyEncoding);
             } else {
                 final RopeBuilder ropeBuilder = formatTime(time, pattern);
                 final RubyEncoding rubyEncoding = getContext()

@@ -15,7 +15,9 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.cext.CExtNodes;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.ConcatRope.ConcatState;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -162,9 +164,11 @@ public abstract class TruffleRopesNodes {
         protected RubyString flattenRope(Object string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final LeafRope flattened = flattenNode.executeFlatten(libString.getRope(string));
-            return makeStringNode.fromRope(flattened);
+            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(flattened.encoding);
+            return makeStringNode.fromRope(flattened, rubyEncoding);
         }
 
     }
@@ -192,7 +196,9 @@ public abstract class TruffleRopesNodes {
         protected RubyString createSimpleString(
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode
-                    .fromRope(new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE));
+                    .fromRope(
+                            new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE),
+                            Encodings.UTF_8);
         }
 
     }

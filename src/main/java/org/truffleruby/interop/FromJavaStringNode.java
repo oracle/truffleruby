@@ -11,7 +11,9 @@ package org.truffleruby.interop;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
@@ -39,8 +41,10 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
-        return makeStringNode.fromRope(cachedRope);
+            @Cached StringNodes.MakeStringNode makeStringNode,
+            @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
+        final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(cachedRope.encoding);
+        return makeStringNode.fromRope(cachedRope, rubyEncoding);
     }
 
     @Specialization(replaces = "doCached")

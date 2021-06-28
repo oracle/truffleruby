@@ -19,6 +19,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import org.graalvm.collections.EconomicSet;
 import org.graalvm.collections.Equivalence;
+import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
@@ -47,6 +48,8 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -1495,6 +1498,7 @@ public abstract class ArrayNodes {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private EncodingNodes.GetRubyEncodingNode getRubyEncodingNode;
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1565,11 +1569,20 @@ public abstract class ArrayNodes {
                 makeStringNode = insert(StringNodes.MakeStringNode.create());
             }
 
-            final RubyString string = makeStringNode.fromRope(makeLeafRopeNode.executeMake(
-                    bytes,
-                    result.getEncoding().getEncodingForLength(formatLength),
-                    result.getStringCodeRange(),
-                    result.getStringLength()));
+            if (getRubyEncodingNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                getRubyEncodingNode = insert(EncodingNodes.GetRubyEncodingNode.create());
+            }
+
+            final Encoding encoding = result.getEncoding().getEncodingForLength(formatLength);
+            final RubyEncoding rubyEncoding = getRubyEncodingNode.executeGetRubyEncoding(encoding);
+            final RubyString string = makeStringNode.fromRope(
+                    makeLeafRopeNode.executeMake(
+                            bytes,
+                            encoding,
+                            result.getStringCodeRange(),
+                            result.getStringLength()),
+                    rubyEncoding);
 
             if (result.getAssociated() != null) {
                 if (writeAssociatedNode == null) {

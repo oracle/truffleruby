@@ -599,7 +599,7 @@ public class CExtNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final Rope rope = NativeRope.newBuffer(getContext(), byteLength, byteLength);
 
-            return makeStringNode.fromRope(rope);
+            return makeStringNode.fromRope(rope, Encodings.BINARY);
         }
 
     }
