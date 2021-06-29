@@ -640,7 +640,7 @@ public abstract class EncodingNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             final String name = strings.getJavaString(nameObject);
             final RubyEncoding encodingObject = getContext().getEncodingManager().getRubyEncoding(name);
-            return encodingObject != null ? encodingObject.encoding.getIndex() : -1;
+            return encodingObject != null ? encodingObject.index : -1;
         }
 
     }
@@ -700,7 +700,7 @@ public abstract class EncodingNodes {
                         coreExceptions().argumentErrorEncodingAlreadyRegistered(name, this));
             }
 
-            final int index = newEncoding.encoding.getIndex();
+            final int index = newEncoding.index;
             return createArray(new Object[]{ newEncoding, index });
         }
 
@@ -769,7 +769,7 @@ public abstract class EncodingNodes {
     public abstract static class GetEncodingIndexNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected int getIndex(RubyEncoding encoding) {
-            return encoding.encoding.getIndex();
+            return encoding.index;
         }
     }
 

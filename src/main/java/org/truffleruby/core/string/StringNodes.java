@@ -110,7 +110,6 @@ import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -1992,7 +1991,8 @@ public abstract class StringNodes {
                         }
                     }
                     final Rope subStringRope = substringNode.executeSubstring(rope, p, clen);
-                    final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(subStringRope.encoding.getIndex());
+                    final RubyEncoding rubyEncoding = getRubyEncodingNode
+                            .executeGetRubyEncoding(subStringRope.encoding);
                     Object repl = yieldNode
                             .yield(block, makeStringNode.fromRope(subStringRope, rubyEncoding));
                     buf = concatNode.executeConcat(buf, strings.getRope(repl), enc);
