@@ -985,7 +985,6 @@ public abstract class KernelNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-
         public static HashNode create() {
             return KernelNodesFactory.HashNodeFactory.create(null);
         }
@@ -1013,23 +1012,20 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected long hashBignum(RubyBignum value) {
+        protected long hash(RubyBignum value) {
             return HashOperations.hashBignum(value, getContext(), this);
         }
 
-        @TruffleBoundary
         @Specialization
         protected int hash(Nil self) {
             return System.identityHashCode(self);
         }
 
-        @TruffleBoundary
         @Specialization
-        protected int hashEncoding(RubyEncoding self) {
+        protected int hash(RubyEncoding self) {
             return System.identityHashCode(self);
         }
 
-        @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
         protected int hash(RubyDynamicObject self) {
             return System.identityHashCode(self);

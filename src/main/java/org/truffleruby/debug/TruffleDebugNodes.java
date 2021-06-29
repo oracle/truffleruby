@@ -555,7 +555,6 @@ public abstract class TruffleDebugNodes {
                 return other instanceof ForeignObject ? TriState.valueOf(this == other) : TriState.UNDEFINED;
             }
 
-            @TruffleBoundary
             @ExportMessage
             protected int identityHashCode() {
                 return System.identityHashCode(this);
