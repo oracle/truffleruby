@@ -1113,6 +1113,7 @@ public abstract class RopeNodes {
                 @Cached GetBytesObjectNode getBytes,
                 @Cached CodeRangeNode codeRangeNode,
                 @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @Cached ConditionProfile singleByteCharProfile,
                 @Cached BranchProfile errorProfile) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
@@ -1120,7 +1121,14 @@ public abstract class RopeNodes {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(rope, index, errorProfile, getBytes, codeRangeNode, getActualEncodingNode);
+            return getCodePointMultiByte(
+                    rope,
+                    index,
+                    errorProfile,
+                    getBytes,
+                    codeRangeNode,
+                    getActualEncodingNode,
+                    getRubyEncodingNode);
         }
 
         @Specialization(guards = { "!singleByteOptimizableNode.execute(rope)", "!rope.getEncoding().isUTF8()" })
@@ -1128,10 +1136,12 @@ public abstract class RopeNodes {
                 @Cached BranchProfile errorProfile,
                 @Cached GetBytesObjectNode getBytesObject,
                 @Cached CodeRangeNode codeRangeNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
+                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode) {
             final Bytes bytes = getBytesObject.getRange(rope, index, rope.byteLength());
             final Encoding encoding = rope.getEncoding();
-            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
+            final Encoding actualEncoding = getActualEncodingNode
+                    .execute(rope, getRubyEncodingNode.executeGetRubyEncoding(encoding));
             final CodeRange codeRange = codeRangeNode.execute(rope);
 
             final int characterLength = characterLength(actualEncoding, codeRange, bytes);

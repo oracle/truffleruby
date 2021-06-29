@@ -252,7 +252,8 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
+    public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end,
+            boolean dummy) {
         final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
 
         final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(
@@ -261,7 +262,8 @@ public class EncodingManager {
                 encodingIndex,
                 name,
                 p,
-                end);
+                end,
+                dummy);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.length ||
                 ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
@@ -293,7 +295,7 @@ public class EncodingManager {
         final EncodingDB.Entry entry = EncodingDB.getEncodings().get("US-ASCII".getBytes());
 
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineEncoding(entry, nameBytes, 0, nameBytes.length);
+        return defineEncoding(entry, nameBytes, 0, nameBytes.length, true);
     }
 
     @TruffleBoundary
@@ -304,7 +306,7 @@ public class EncodingManager {
 
         final EncodingDB.Entry entry = EncodingDB.getEncodings().get(encoding.getName());
         final byte[] nameBytes = RopeOperations.encodeAsciiBytes(name);
-        return defineEncoding(entry, nameBytes, 0, nameBytes.length);
+        return defineEncoding(entry, nameBytes, 0, nameBytes.length, entry.getEncoding().isDummy());
     }
 
     @TruffleBoundary

@@ -434,8 +434,7 @@ public abstract class EncodingNodes {
     public abstract static class DummyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         protected boolean isDummy(RubyEncoding encoding) {
-            // TODO add dummy to RubyEncoding
-            return encoding.encoding.isDummy();
+            return encoding.dummy;
         }
     }
 
@@ -499,7 +498,7 @@ public abstract class EncodingNodes {
                 @Cached GetRubyEncodingNode getRubyEncodingNode,
                 @CachedLibrary(limit = "2") RubyStringLibrary libString) {
             final Rope rope = libString.getRope(string);
-            final Encoding actualEncoding = getActualEncodingNode.execute(rope);
+            final Encoding actualEncoding = getActualEncodingNode.execute(rope, libString.getEncoding(string));
 
             return getRubyEncodingNode.executeGetRubyEncoding(actualEncoding);
         }
@@ -522,16 +521,16 @@ public abstract class EncodingNodes {
             return EncodingNodesFactory.GetActualEncodingNodeGen.create();
         }
 
-        public abstract Encoding execute(Rope rope);
+        public abstract Encoding execute(Rope rope, RubyEncoding rubyEncoding);
 
-        @Specialization(guards = "!rope.getEncoding().isDummy()")
-        protected Encoding getActualEncoding(Rope rope) {
+        @Specialization(guards = "!rubyEncoding.dummy")
+        protected Encoding getActualEncoding(Rope rope, RubyEncoding rubyEncoding) {
             return rope.getEncoding();
         }
 
         @TruffleBoundary
-        @Specialization(guards = "rope.getEncoding().isDummy()")
-        protected Encoding getActualEncodingDummy(Rope rope) {
+        @Specialization(guards = "rubyEncoding.dummy")
+        protected Encoding getActualEncodingDummy(Rope rope, RubyEncoding rubyEncoding) {
             final Encoding encoding = rope.getEncoding();
 
             if (encoding instanceof UnicodeEncoding) {

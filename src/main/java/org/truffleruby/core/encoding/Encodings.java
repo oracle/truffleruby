@@ -64,7 +64,8 @@ public class Encodings {
             final RubyEncoding rubyEncoding = newRubyEncoding(
                     name,
                     encodingEntry.getEncoding(),
-                    encodingEntry.getEncoding().getIndex());
+                    encodingEntry.getEncoding().getIndex(),
+                    encodingEntry.getEncoding().isDummy());
             encodings[encodingEntry.getEncoding().getIndex()] = rubyEncoding;
         }
         return encodings;
@@ -72,7 +73,7 @@ public class Encodings {
 
     @TruffleBoundary
     public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name, int p,
-            int end) {
+            int end, boolean dummy) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
                 "; name.length = " + name.length + ")";
@@ -80,12 +81,12 @@ public class Encodings {
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final ImmutableRubyString string = language.getFrozenStringLiteral(rope);
 
-        return newRubyEncoding(string, encoding, index);
+        return newRubyEncoding(string, encoding, index, dummy);
     }
 
     @TruffleBoundary
-    private static RubyEncoding newRubyEncoding(ImmutableRubyString name, Encoding encoding, int index) {
-        return new RubyEncoding(encoding, name, index);
+    private static RubyEncoding newRubyEncoding(ImmutableRubyString name, Encoding encoding, int index, boolean dummy) {
+        return new RubyEncoding(encoding, name, index, dummy);
     }
 
     public static RubyEncoding getBuiltInEncoding(int index) {

@@ -1760,11 +1760,12 @@ public abstract class StringNodes {
                 guards = { "!isEmpty(string.rope)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object lstripBang(RubyString string,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode) {
+                @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#multiByteLStrip.
 
             final Rope rope = string.rope;
-            final Encoding enc = getActualEncodingNode.execute(rope);
+            final Encoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
             final int s = 0;
             final int end = s + rope.byteLength();
 
@@ -1886,11 +1887,12 @@ public abstract class StringNodes {
                 guards = { "!isEmpty(string.rope)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBang(RubyString string,
                 @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
-                @Cached ConditionProfile dummyEncodingProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @CachedLibrary(limit = "2") RubyStringLibrary strings) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
             final Rope rope = string.rope;
-            final Encoding enc = getActualEncodingNode.execute(rope);
+            final Encoding enc = getActualEncodingNode.execute(rope, strings.getEncoding(string));
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(
@@ -3775,9 +3777,10 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
+                @Cached EncodingNodes.GetRubyEncodingNode getRubyEncodingNode,
                 @Cached MakeStringNode makeStringNode) {
             final Rope rope = strings.getRope(string);
-            final Encoding encoding = getActualEncodingNode.execute(rope);
+            final Encoding encoding = getActualEncodingNode.execute(rope, strings.getEncoding(string));
             final int end = rope.byteLength();
             final byte[] bytes = bytesNode.execute(rope);
             final int c = calculateCharacterLengthNode.characterLength(
@@ -3793,10 +3796,9 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            final RubyEncoding rubyEncoding = strings.getEncoding(string);
             return makeStringNode.executeMake(
                     ArrayUtils.extractRange(bytes, byteIndex, byteIndex + c),
-                    rubyEncoding,
+                    getRubyEncodingNode.executeGetRubyEncoding(encoding),
                     CR_UNKNOWN);
         }
 
