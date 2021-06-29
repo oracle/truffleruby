@@ -8,7 +8,7 @@
 
 require 'monitor'
 
-benchmark 'core-create-join-thread' do
+benchmark 'monitor-synchronize' do
   m = Monitor.new
   m.synchronize do
   end
