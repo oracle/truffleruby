@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.RubyContext;
@@ -25,7 +26,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DispatchNode;
 
 public abstract class HashingNodes {
@@ -58,6 +58,7 @@ public abstract class HashingNodes {
     }
 
     // MRI: any_hash
+    /** Keep consistent with {@link org.truffleruby.core.kernel.KernelNodes.HashNode} */
     @GenerateUncached
     public abstract static class ToHashByHashCode extends RubyBaseNode {
 
@@ -109,23 +110,17 @@ public abstract class HashingNodes {
             return (int) stringHashNode.execute(value);
         }
 
-
         @Specialization
         protected int hashSymbol(RubySymbol value,
                 @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
             return (int) symbolHashNode.execute(value);
         }
 
-        @Specialization(guards = "!isSpecialized(value)")
-        protected int hash(Object value,
+        @Fallback
+        protected int hashOther(Object value,
                 @Cached DispatchNode callHash,
                 @Cached HashCastResultNode cast) {
             return cast.execute(callHash.call(value, "hash"));
-        }
-
-        protected static boolean isSpecialized(Object value) {
-            return RubyGuards.isPrimitive(value) || value instanceof RubyBignum || value instanceof RubyString ||
-                    value instanceof ImmutableRubyString || value instanceof RubySymbol;
         }
     }
 

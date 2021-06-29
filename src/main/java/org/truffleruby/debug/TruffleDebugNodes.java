@@ -549,13 +549,11 @@ public abstract class TruffleDebugNodes {
 
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignObject implements TruffleObject {
-            @TruffleBoundary
             @ExportMessage
             protected TriState isIdenticalOrUndefined(Object other) {
                 return other instanceof ForeignObject ? TriState.valueOf(this == other) : TriState.UNDEFINED;
             }
 
-            @TruffleBoundary
             @ExportMessage
             protected int identityHashCode() {
                 return System.identityHashCode(this);
@@ -567,7 +565,6 @@ public abstract class TruffleDebugNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization
         protected Object foreignObject() {
             return new ForeignObject();
