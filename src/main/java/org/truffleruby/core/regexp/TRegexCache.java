@@ -60,9 +60,9 @@ public final class TRegexCache {
 
     @TruffleBoundary
     public Object compile(RubyContext context, RubyRegexp regexp, boolean atStart, Encoding encoding) {
-        final Object tregex = compileTRegex(context, regexp, atStart, encoding);
+        Object tregex = compileTRegex(context, regexp, atStart, encoding);
         if (tregex == null) {
-            return Nil.INSTANCE;
+            tregex = Nil.INSTANCE;
         }
 
         if (encoding == USASCIIEncoding.INSTANCE) {
