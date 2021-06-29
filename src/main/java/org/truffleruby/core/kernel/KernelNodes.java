@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CachedLanguage;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.jcodings.specific.UTF8Encoding;
@@ -86,6 +87,7 @@ import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -982,6 +984,7 @@ public abstract class KernelNodes {
 
     }
 
+    /** Keep consistent with {@link org.truffleruby.core.hash.HashingNodes.ToHashByHashCode} */
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
@@ -992,23 +995,23 @@ public abstract class KernelNodes {
         public abstract Object execute(Object value);
 
         @Specialization
-        protected long hash(int value) {
-            return HashOperations.hashLong(value, getContext(), this);
-        }
-
-        @Specialization
-        protected long hash(long value) {
-            return HashOperations.hashLong(value, getContext(), this);
-        }
-
-        @Specialization
-        protected long hash(double value) {
-            return HashOperations.hashDouble(value, getContext(), this);
-        }
-
-        @Specialization
-        protected long hash(boolean value) {
+        protected long hashBoolean(boolean value) {
             return HashOperations.hashBoolean(value, getContext(), this);
+        }
+
+        @Specialization
+        protected long hashInt(int value) {
+            return HashOperations.hashLong(value, getContext(), this);
+        }
+
+        @Specialization
+        protected long hashLong(long value) {
+            return HashOperations.hashLong(value, getContext(), this);
+        }
+
+        @Specialization
+        protected long hashDouble(double value) {
+            return HashOperations.hashDouble(value, getContext(), this);
         }
 
         @Specialization
@@ -1016,13 +1019,26 @@ public abstract class KernelNodes {
             return HashOperations.hashBignum(value, getContext(), this);
         }
 
-        @Specialization(guards = "!isRubyBignum(self)")
-        protected int hash(ImmutableRubyObject self) {
-            return System.identityHashCode(self);
+        @Specialization
+        protected long hashString(RubyString value,
+                @Cached StringNodes.HashStringNode stringHashNode) {
+            return stringHashNode.execute(value);
         }
 
         @Specialization
-        protected int hash(RubyDynamicObject self) {
+        protected long hashImmutableString(ImmutableRubyString value,
+                @Cached StringNodes.HashStringNode stringHashNode) {
+            return stringHashNode.execute(value);
+        }
+
+        @Specialization
+        protected long hashSymbol(RubySymbol value,
+                @Cached SymbolNodes.HashSymbolNode symbolHashNode) {
+            return symbolHashNode.execute(value);
+        }
+
+        @Fallback
+        protected int hashOtherUsingIdentity(Object self) {
             return System.identityHashCode(self);
         }
     }
