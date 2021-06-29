@@ -965,19 +965,16 @@ public abstract class KernelNodes {
             return HashOperations.hashBignum(value, getContext(), this);
         }
 
-        @TruffleBoundary
         @Specialization
         protected int hash(Nil self) {
             return System.identityHashCode(self);
         }
 
-        @TruffleBoundary
         @Specialization
         protected int hashEncoding(RubyEncoding self) {
             return System.identityHashCode(self);
         }
 
-        @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
         protected int hash(RubyDynamicObject self) {
             return System.identityHashCode(self);
