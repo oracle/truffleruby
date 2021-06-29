@@ -58,6 +58,7 @@ public abstract class HashingNodes {
     }
 
     // MRI: any_hash
+    /** Keep consistent with {@link org.truffleruby.core.kernel.KernelNodes.HashNode} */
     @GenerateUncached
     public abstract static class ToHashByHashCode extends RubyBaseNode {
 
@@ -116,7 +117,7 @@ public abstract class HashingNodes {
         }
 
         @Fallback
-        protected int hash(Object value,
+        protected int hashOther(Object value,
                 @Cached DispatchNode callHash,
                 @Cached HashCastResultNode cast) {
             return cast.execute(callHash.call(value, "hash"));
