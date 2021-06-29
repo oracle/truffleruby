@@ -259,7 +259,7 @@ public abstract class StringNodes {
                     language.stringShape,
                     false,
                     rope,
-                    context.getEncodingManager().getRubyEncoding(rope.encoding));
+                    encoding);
             AllocationTracing.trace(language, context, string, this);
             return string;
         }
@@ -277,7 +277,7 @@ public abstract class StringNodes {
                     language.stringShape,
                     false,
                     rope,
-                    context.getEncodingManager().getRubyEncoding(rope.encoding));
+                    encoding);
             AllocationTracing.trace(language, context, string, this);
             return string;
         }
