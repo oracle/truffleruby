@@ -213,9 +213,9 @@ module Utilities
     unless @silent
       shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/(ruby|truffleruby)$], '')
       shortened_path = shortened_path.sub(%r[/#{language_dir(graalvm_home)}/ruby$], '') if graalvm_home
-      tags = [*('Native' if truffleruby_native?),
-              *('Interpreted' if truffleruby? && !truffleruby_compiler?),
+      tags = [*('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
+              *('with Native' if truffleruby_native_built?),
               *('with Graal' if truffleruby_compiler?)]
       STDERR.puts "Using #{tags.join(' ')}: #{shortened_path}"
     end
@@ -244,9 +244,13 @@ module Utilities
     File.expand_path((['..'] * up).join('/'), ruby_home)
   end
 
+  def truffleruby!
+    raise 'This command requires TruffleRuby.' unless truffleruby?
+  end
+
   def truffleruby_native!
     unless truffleruby_native?
-      raise "The ruby executable #{ruby_launcher} is not native."
+      raise "The ruby executable #{ruby_launcher} is not native or --jvm was passed"
     end
   end
 
@@ -256,32 +260,42 @@ module Utilities
     end
   end
 
-  def truffleruby_native?
-    return @truffleruby_native if defined?(@truffleruby_native)
+  def truffleruby?
+    return @truffleruby if defined?(@truffleruby)
+    # only truffleruby has sibling truffleruby executable
+    @truffleruby = File.executable?(truffleruby_launcher_path)
+  end
+
+  def truffleruby_native_built?
+    return @truffleruby_native_built if defined?(@truffleruby_native_built)
     # the truffleruby executable is bigger than 10MB if it is a native executable
     # the executable delegator for mac has less than 1MB
-    @truffleruby_native = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
+    @truffleruby_native_built = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
+  end
+
+  def truffleruby_native?
+    truffleruby? && truffleruby_native_built? && !truffleruby_jvm_selected_at_runtime?
+  end
+
+  def truffleruby_jvm?
+    truffleruby? && (!truffleruby_native_built? || truffleruby_jvm_selected_at_runtime?)
+  end
+
+  def truffleruby_jvm_selected_at_runtime?
+    ENV['TRUFFLERUBYOPT'].to_s =~ /--jvm\b/ or
+      (defined?(@truffleruby_jvm_arg) and @truffleruby_jvm_arg)
   end
 
   def truffleruby_compiler?
     return @truffleruby_compiler if defined?(@truffleruby_compiler)
 
     return @truffleruby_compiler = false unless truffleruby?
-    return @truffleruby_compiler = true if truffleruby_native?
+    return @truffleruby_compiler = true if truffleruby_native_built?
 
     # Detect if the compiler is present by reading the $graalvm_home/release file
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
-  end
-
-  def truffleruby?
-    # only truffleruby has sibling truffleruby executable
-    @truffleruby ||= File.executable?(truffleruby_launcher_path)
-  end
-
-  def truffleruby_jvm?
-    truffleruby? and !truffleruby_native?
   end
 
   def jdk8?
@@ -291,10 +305,6 @@ module Utilities
   def truffleruby_launcher_path
     require_ruby_launcher!
     @truffleruby_launcher_path ||= File.expand_path('../truffleruby', @ruby_launcher_realpath)
-  end
-
-  def truffleruby!
-    raise 'This command requires TruffleRuby.' unless truffleruby?
   end
 
   def find_or_clone_repo(url, commit=nil)
@@ -918,6 +928,9 @@ module Commands
 
     while (arg = args.shift)
       case arg
+      when '--jvm'
+        @truffleruby_jvm_arg ||= true
+        vm_args << arg
       when '--no-core-load-path'
         core_load_path = false
       when '--reveal'
