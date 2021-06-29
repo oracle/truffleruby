@@ -27,4 +27,8 @@ describe "Monitor#synchronize" do
       thread.value.should == :ok
     end
   end
+
+  it "raises a LocalJumpError if not passed a block" do
+    -> {Monitor.new.synchronize }.should raise_error(LocalJumpError)
+  end
 end

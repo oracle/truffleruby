@@ -26,6 +26,7 @@ import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -63,12 +64,7 @@ public abstract class TruffleMonitorNodes {
 
         @Specialization(guards = "!isRubyProc(maybeBlock)")
         protected Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object maybeBlock) {
-            MutexOperations.lockInternal(getContext(), mutex.lock, this);
-            try {
-                return nil;
-            } finally {
-                MutexOperations.unlockInternal(mutex.lock);
-            }
+            throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
     }
 
