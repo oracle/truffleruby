@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -54,7 +55,8 @@ public abstract class TruffleMonitorNodes {
 
         @Specialization(guards = "isRubyProc(block)")
         protected Object synchronizeOnMutex(RubyMutex mutex, Object block,
-                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
             /* Like Mutex#synchronize we must maintain the owned locks
              * list here as the monitor might be exited inside
              * synchronize block and then re-entered again before the
@@ -66,6 +68,7 @@ public abstract class TruffleMonitorNodes {
             try {
                 return yieldNode.yield((RubyProc) block);
             } finally {
+                MutexOperations.checkOwnedMutex(getContext(), mutex.lock, this, errorProfile);
                 MutexOperations.unlock(mutex.lock, thread);
             }
         }
