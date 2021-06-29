@@ -109,6 +109,10 @@ module Truffle
       warn match_args_to_string(re, str, from, to, at_start, start, 'cannot be run as a Truffle regexp and fell back to Joni'), uplevel: 1
     end
 
+    def self.warn_fallback_regex(re, at_start, encoding)
+      warn "Regexp #{re.inspect} at_start=#{at_start} encoding=#{encoding} cannot be compiled to a Truffle regexp and fell back to Joni", uplevel: 1
+    end
+
     def self.match_args_to_string(re, str, from, to, at_start, start, suffix)
       "match_in_region(#{re.inspect}, #{str.inspect}@#{str.encoding}, #{from}, #{to}, #{at_start}, #{start}) #{suffix}"
     end
