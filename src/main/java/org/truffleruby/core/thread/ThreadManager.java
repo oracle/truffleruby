@@ -422,8 +422,7 @@ public class ThreadManager {
 
         if (Thread.currentThread() == javaThread) {
             for (ReentrantLock lock : thread.ownedLocks) {
-                int count = lock.getHoldCount();
-                for (int i = 0; i < count; i++) {
+                while (lock.isHeldByCurrentThread()) {
                     lock.unlock();
                 }
             }

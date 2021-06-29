@@ -102,20 +102,9 @@ public abstract class MutexNodes {
             if (heldByCurrentThreadProfile.profile(lock.isHeldByCurrentThread())) {
                 return false;
             } else {
-                return doTryLock(thread, lock);
+                return MutexOperations.tryLock(lock, thread);
             }
         }
-
-        @TruffleBoundary
-        private boolean doTryLock(RubyThread thread, ReentrantLock lock) {
-            if (lock.tryLock()) {
-                thread.ownedLocks.add(lock);
-                return true;
-            } else {
-                return false;
-            }
-        }
-
     }
 
     @CoreMethod(names = "unlock")
