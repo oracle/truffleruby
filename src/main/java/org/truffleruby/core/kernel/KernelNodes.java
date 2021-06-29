@@ -1026,7 +1026,7 @@ public abstract class KernelNodes {
             return System.identityHashCode(self);
         }
 
-        @Specialization(guards = "!isRubyBignum(self)")
+        @Specialization
         protected int hash(RubyDynamicObject self) {
             return System.identityHashCode(self);
         }
