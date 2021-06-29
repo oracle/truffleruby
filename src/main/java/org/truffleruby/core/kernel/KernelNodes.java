@@ -933,7 +933,6 @@ public abstract class KernelNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-
         public static HashNode create() {
             return KernelNodesFactory.HashNodeFactory.create(null);
         }
@@ -965,17 +964,12 @@ public abstract class KernelNodes {
             return HashOperations.hashBignum(value, getContext(), this);
         }
 
-        @Specialization
-        protected int hash(Nil self) {
-            return System.identityHashCode(self);
-        }
-
-        @Specialization
-        protected int hashEncoding(RubyEncoding self) {
-            return System.identityHashCode(self);
-        }
-
         @Specialization(guards = "!isRubyBignum(self)")
+        protected int hash(ImmutableRubyObject self) {
+            return System.identityHashCode(self);
+        }
+
+        @Specialization
         protected int hash(RubyDynamicObject self) {
             return System.identityHashCode(self);
         }
