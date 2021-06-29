@@ -27,6 +27,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.DeferredRaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 
 public final class TRegexCache {
 
@@ -63,6 +64,14 @@ public final class TRegexCache {
         Object tregex = compileTRegex(context, regexp, atStart, encoding);
         if (tregex == null) {
             tregex = Nil.INSTANCE;
+            if (context.getOptions().WARN_TRUFFLE_REGEX_FALLBACK) {
+                DispatchNode.getUncached().call(
+                        context.getCoreLibrary().truffleRegexpOperationsModule,
+                        "warn_fallback_regex",
+                        regexp,
+                        atStart,
+                        context.getEncodingManager().getRubyEncoding(encoding));
+            }
         }
 
         if (encoding == USASCIIEncoding.INSTANCE) {

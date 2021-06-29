@@ -242,14 +242,11 @@ public class TruffleRegexpNodes {
     }
 
     @ImportStatic(StandardEncodings.class)
-    @CoreMethod(names = "tregex_compile", onSingleton = true, required = 3)
-    public abstract static class TRegexCompileNode extends CoreMethodArrayArgumentsNode {
-
-        public static TRegexCompileNode create() {
-            return TruffleRegexpNodesFactory.TRegexCompileNodeFactory.create(null);
-        }
+    public abstract static class TRegexCompileNode extends RubyContextNode {
 
         public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, Encoding encoding);
+
+        @Child DispatchNode warnOnFallbackNode;
 
         @Specialization(guards = "encoding == US_ASCII")
         protected Object usASCII(RubyRegexp regexp, boolean atStart, Encoding encoding) {
@@ -420,7 +417,7 @@ public class TruffleRegexpNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("createIdentityProfile()") IntValueProfile groupCountProfile) {
             final Rope rope = libString.getRope(string);
-            final Object tRegex;
+            Object tRegex = null;
 
             if (tRegexIncompatibleProfile
                     .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0) ||
@@ -428,7 +425,7 @@ public class TruffleRegexpNodes {
                             regexp,
                             atStart,
                             checkEncodingNode.executeCheckEncoding(regexp, string))) == nil)) {
-                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
+                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos, tRegex);
             }
 
             final byte[] bytes = bytesNode.execute(rope);
@@ -458,8 +455,9 @@ public class TruffleRegexpNodes {
         }
 
         private Object fallbackToJoni(RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart,
-                int startPos) {
-            if (getContext().getOptions().WARN_TRUFFLE_REGEX_FALLBACK) {
+                int startPos, Object tRegex) {
+            if (getContext().getOptions().WARN_TRUFFLE_REGEX_FALLBACK &&
+                    tRegex == null /* fallback due to arguments */) {
                 if (warnOnFallbackNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     warnOnFallbackNode = insert(DispatchNode.create());
