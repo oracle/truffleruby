@@ -150,6 +150,12 @@ public abstract class MutexNodes {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
+            /* This code uses lock/unlock because the list of owned
+             * locks must be maintained. Use code can unlock a mutex
+             * inside a synchronize block, and then relock it before
+             * exiting the block, and we need the owned locks list to
+             * be in consistent state at the end.
+             */
             MutexOperations.lock(getContext(), lock, thread, this);
             try {
                 return callBlock(block);

@@ -52,18 +52,26 @@ public abstract class TruffleMonitorNodes {
 
         @Child private CallBlockNode yieldNode = CallBlockNode.create();
 
-        @Specialization(guards = "isRubyProc(maybeBlock)")
-        protected Object synchronizeOnMutex(RubyMutex mutex, Object maybeBlock) {
-            MutexOperations.lockInternal(getContext(), mutex.lock, this);
+        @Specialization(guards = "isRubyProc(block)")
+        protected Object synchronizeOnMutex(RubyMutex mutex, Object block,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+            /* Like Mutex#synchronize we must maintain the owned locks
+             * list here as the monitor might be exited inside
+             * synchronize block and then re-entered again before the
+             * end, and we have to make sure the list of owned locks
+             * remains consistent.
+             */
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
+            MutexOperations.lock(getContext(), mutex.lock, thread, this);
             try {
-                return yieldNode.yield((RubyProc) maybeBlock);
+                return yieldNode.yield((RubyProc) block);
             } finally {
-                MutexOperations.unlockInternal(mutex.lock);
+                MutexOperations.unlock(mutex.lock, thread);
             }
         }
 
-        @Specialization(guards = "!isRubyProc(maybeBlock)")
-        protected Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object maybeBlock) {
+        @Specialization(guards = "!isRubyProc(block)")
+        protected Object synchronizeOnMutexNoBlock(RubyMutex mutex, Object block) {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
     }
