@@ -108,19 +108,10 @@ public class ValueWrapperManager {
     public synchronized void addToBlockMap(HandleBlock block) {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
-        HandleBlockWeakReference[] map = blockMap;
         HandleBlockAllocator allocator = language.handleBlockAllocator;
-        boolean grow = false;
-        if (blockIndex + 1 > map.length) {
-            final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
-            System.arraycopy(map, 0, copy, 0, map.length);
-            map = copy;
-            grow = true;
-        }
+        HandleBlockWeakReference[] map = growMapIfRequired(blockMap, allocator, blockIndex);
+        blockMap = map;
         map[blockIndex] = new HandleBlockWeakReference(block);
-        if (grow) {
-            blockMap = map;
-        }
 
         context.getFinalizationService().addFinalizer(context, block, ValueWrapperManager.class, () -> {
             this.blockMap[blockIndex] = null;
@@ -134,25 +125,29 @@ public class ValueWrapperManager {
         synchronized (rubyLanguage) {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
-            HandleBlockWeakReference[] map = rubyLanguage.handleBlockSharedMap;
-            HandleBlockAllocator allocator = rubyLanguage.handleBlockAllocator;
-            boolean grow = false;
-            if (blockIndex + 1 > map.length) {
-                final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
-                System.arraycopy(map, 0, copy, 0, map.length);
-                map = copy;
-                grow = true;
-            }
+            HandleBlockAllocator allocator = language.handleBlockAllocator;
+            HandleBlockWeakReference[] map = growMapIfRequired(
+                    rubyLanguage.handleBlockSharedMap,
+                    allocator,
+                    blockIndex);
+            rubyLanguage.handleBlockSharedMap = map;
             map[blockIndex] = new HandleBlockWeakReference(block);
-            if (grow) {
-                rubyLanguage.handleBlockSharedMap = map;
-            }
 
             rubyLanguage.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
                 rubyLanguage.handleBlockSharedMap[blockIndex] = null;
                 allocator.addFreeBlock(blockBase);
             }, null);
         }
+    }
+
+    private static HandleBlockWeakReference[] growMapIfRequired(HandleBlockWeakReference[] map,
+            HandleBlockAllocator allocator, int blockIndex) {
+        if (blockIndex + 1 > map.length) {
+            final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
+            System.arraycopy(map, 0, copy, 0, map.length);
+            map = copy;
+        }
+        return map;
     }
 
     public ValueWrapper getWrapperFromHandleMap(long handle) {
