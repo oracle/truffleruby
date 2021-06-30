@@ -254,7 +254,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -264,7 +264,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -274,7 +274,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -284,7 +284,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -298,6 +298,13 @@ public class TruffleRegexpNodes {
             return nil;
         }
 
+        DispatchNode getWarnOnFallbackNode() {
+            if (warnOnFallbackNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                warnOnFallbackNode = insert(DispatchNode.create());
+            }
+            return warnOnFallbackNode;
+        }
     }
 
     public abstract static class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
@@ -417,7 +424,7 @@ public class TruffleRegexpNodes {
                 @CachedLibrary(limit = "2") RubyStringLibrary libString,
                 @Cached("createIdentityProfile()") IntValueProfile groupCountProfile) {
             final Rope rope = libString.getRope(string);
-            Object tRegex = null;
+            final Object tRegex;
 
             if (tRegexIncompatibleProfile
                     .profile(toPos < fromPos || toPos != rope.byteLength() || startPos != 0 || fromPos < 0) ||
@@ -425,7 +432,7 @@ public class TruffleRegexpNodes {
                             regexp,
                             atStart,
                             checkEncodingNode.executeCheckEncoding(regexp, string))) == nil)) {
-                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos, tRegex);
+                return fallbackToJoni(regexp, string, fromPos, toPos, atStart, startPos);
             }
 
             final byte[] bytes = bytesNode.execute(rope);
@@ -455,9 +462,8 @@ public class TruffleRegexpNodes {
         }
 
         private Object fallbackToJoni(RubyRegexp regexp, Object string, int fromPos, int toPos, boolean atStart,
-                int startPos, Object tRegex) {
-            if (getContext().getOptions().WARN_TRUFFLE_REGEX_FALLBACK &&
-                    tRegex == null /* fallback due to arguments */) {
+                int startPos) {
+            if (getContext().getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
                 if (warnOnFallbackNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     warnOnFallbackNode = insert(DispatchNode.create());
