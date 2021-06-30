@@ -63,7 +63,7 @@ public abstract class TruffleMonitorNodes {
             final RubyThread thread = getCurrentRubyThreadNode.execute();
             MutexOperations.lock(getContext(), mutex.lock, thread, this);
             try {
-                return yieldNode.yield((RubyProc) block);
+                return yieldNode.yield(block);
             } finally {
                 MutexOperations.checkOwnedMutex(getContext(), mutex.lock, this, errorProfile);
                 MutexOperations.unlock(mutex.lock, thread);
