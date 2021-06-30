@@ -64,7 +64,7 @@ public final class TRegexCache {
         Object tregex = compileTRegex(context, regexp, atStart, encoding);
         if (tregex == null) {
             tregex = Nil.INSTANCE;
-            if (context.getOptions().WARN_TRUFFLE_REGEX_FALLBACK) {
+            if (context.getOptions().WARN_TRUFFLE_REGEX_COMPILE_FALLBACK) {
                 DispatchNode.getUncached().call(
                         context.getCoreLibrary().truffleRegexpOperationsModule,
                         "warn_fallback_regex",

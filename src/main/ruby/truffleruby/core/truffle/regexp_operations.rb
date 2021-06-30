@@ -53,7 +53,6 @@ module Truffle
     Truffle::Boot.delay do
       COMPARE_ENGINES = Truffle::Boot.get_option('compare-regex-engines')
       USE_TRUFFLE_REGEX = Truffle::Boot.get_option('use-truffle-regex')
-      WARN_TRUFFLE_REGEX_FALLBACK = Truffle::Boot.get_option('warn-truffle-regex-fallback')
 
       if Truffle::Boot.get_option('regexp-instrument-creation') or Truffle::Boot.get_option('regexp-instrument-match')
         at_exit do
