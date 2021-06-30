@@ -18,7 +18,6 @@ module Truffle
       Primitive.regexp_last_match_set(s, v)
     }
 
-
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?
@@ -32,16 +31,6 @@ module Truffle
         to = start_index
       end
       match_in_region(re, str, from, to, false, 0)
-    end
-
-    # This path is used by some string and scanner methods and allows
-    # for at_start to be specified on the matcher.  FIXME it might be
-    # possible to refactor search region to offer the ability to
-    # specify at start, we should investigate this at some point.
-    def self.match_onwards(re, str, from, at_start)
-      md = match_in_region(re, str, from, str.bytesize, at_start, from)
-      Primitive.matchdata_fixup_positions(md, from) if md
-      md
     end
 
     def self.match(re, str, pos=0)

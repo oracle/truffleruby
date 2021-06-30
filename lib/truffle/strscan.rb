@@ -314,7 +314,9 @@ class StringScanner
     end
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
 
-    @match = Truffle::RegexpOperations.match_onwards pattern, @string, pos, headonly
+    md = Truffle::RegexpOperations.match_in_region pattern, @string, pos, @string.bytesize, headonly, pos
+    Primitive.matchdata_fixup_positions(md, pos) if md
+    @match = md
     return nil unless @match
 
     fin = Primitive.match_data_byte_end(@match, 0)
