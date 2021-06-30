@@ -181,8 +181,7 @@ public class ValueWrapperManager {
         HandleBlockWeakReference[] map = blockMap;
         HandleBlockAllocator allocator = language.handleBlockAllocator;
 
-        for (int i = 0; i < map.length; i++) {
-            HandleBlockWeakReference ref = map[i];
+        for (HandleBlockWeakReference ref : map) {
             if (ref == null) {
                 continue;
             }
@@ -374,21 +373,7 @@ public class ValueWrapperManager {
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLanguage RubyLanguage language,
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
-            HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
-            HandleBlock block = threadData.holder.handleBlock;
-            if (context.getOptions().CEXTS_TO_NATIVE_STATS) {
-                context.getValueWrapperManager().recordHandleAllocation();
-            }
-
-            if (block == null || block.isFull()) {
-                if (block != null) {
-                    context.getMarkingService().queueForMarking(block);
-                }
-                block = threadData
-                        .makeNewBlock(context, language.handleBlockAllocator);
-                context.getValueWrapperManager().addToBlockMap(block, language);
-            }
-            return block.setHandleOnWrapper(wrapper);
+            return allocateHandle(wrapper, context, language, getBlockHolderNode.execute(wrapper), false);
         }
 
         @Specialization(guards = "isSharedObject(wrapper)")
@@ -396,8 +381,18 @@ public class ValueWrapperManager {
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @CachedLanguage RubyLanguage language,
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
-            HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
-            HandleBlock block = threadData.holder.sharedHandleBlock;
+            return allocateHandle(wrapper, context, language, getBlockHolderNode.execute(wrapper), true);
+        }
+
+        protected static long allocateHandle(ValueWrapper wrapper, RubyContext context, RubyLanguage language,
+                HandleThreadData threadData, boolean shared) {
+            HandleBlock block;
+            if (shared) {
+                block = threadData.holder.sharedHandleBlock;
+            } else {
+                block = threadData.holder.handleBlock;
+            }
+
             if (context.getOptions().CEXTS_TO_NATIVE_STATS) {
                 context.getValueWrapperManager().recordHandleAllocation();
             }
@@ -406,9 +401,16 @@ public class ValueWrapperManager {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);
                 }
-                block = threadData
-                        .makeNewSharedBlock(context, language.handleBlockAllocator);
-                context.getValueWrapperManager().addToSharedBlockMap(block, language);
+                if (shared) {
+                    block = threadData
+                            .makeNewSharedBlock(context, language.handleBlockAllocator);
+                    context.getValueWrapperManager().addToSharedBlockMap(block, language);
+                } else {
+                    block = threadData
+                            .makeNewBlock(context, language.handleBlockAllocator);
+                    context.getValueWrapperManager().addToBlockMap(block, language);
+                }
+
             }
             return block.setHandleOnWrapper(wrapper);
         }
