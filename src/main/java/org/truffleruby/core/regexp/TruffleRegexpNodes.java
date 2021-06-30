@@ -254,7 +254,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -264,7 +264,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -274,7 +274,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -284,7 +284,7 @@ public class TruffleRegexpNodes {
             if (tregex != null) {
                 return tregex;
             } else {
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding);
+                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
@@ -298,6 +298,13 @@ public class TruffleRegexpNodes {
             return nil;
         }
 
+        DispatchNode getWarnOnFallbackNode() {
+            if (warnOnFallbackNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                warnOnFallbackNode = insert(DispatchNode.create());
+            }
+            return warnOnFallbackNode;
+        }
     }
 
     public abstract static class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
