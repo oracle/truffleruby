@@ -98,7 +98,7 @@ public abstract class TruffleMonitorNodes {
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             final RubyThread thread = getCurrentRubyThreadNode.execute();
             MutexOperations.lock(getContext(), mutex.lock, thread, this);
-            return mutex.lock.getHoldCount();
+            return nil;
         }
     }
 
