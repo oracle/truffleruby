@@ -161,9 +161,13 @@ public class ValueWrapperManager {
         final HandleBlockWeakReference[] blockMap = this.blockMap;
         final HandleBlockWeakReference[] sharedMap = language.handleBlockSharedMap;
         HandleBlockWeakReference ref = null;
+        // First try getting the block from the context's map
         if (index >= 0 && index < blockMap.length) {
             ref = blockMap[index];
         }
+        // If no block was found in the context's map then look in the
+        // shared map. If there is a block in a context's map then the
+        // same block will not be in the shared map and vice versa.
         if (ref == null && index >= 0 && index < sharedMap.length) {
             ref = sharedMap[index];
         }
