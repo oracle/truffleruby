@@ -528,7 +528,7 @@ public class RubyContext {
             RubyLanguage.LOGGER.info(
                     "Total VALUE object to native conversions: " + getValueWrapperManager().totalHandleAllocations());
         }
-        valueWrapperManager.freeAllBlocksInMap();
+        valueWrapperManager.freeAllBlocksInMap(language);
     }
 
     public boolean isPreInitializing() {

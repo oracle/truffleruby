@@ -27,6 +27,7 @@ import org.truffleruby.language.RubyBaseNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -64,11 +65,9 @@ public class ValueWrapperManager {
     private final ThreadLocal<HandleThreadData> threadBlocks;
 
     private final RubyContext context;
-    private final RubyLanguage language;
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
-        this.language = context.getLanguageSlow();
         this.threadBlocks = ThreadLocal.withInitial(this::makeThreadData);
     }
 
@@ -105,7 +104,7 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public synchronized void addToBlockMap(HandleBlock block) {
+    public synchronized void addToBlockMap(HandleBlock block, RubyLanguage language) {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
         HandleBlockAllocator allocator = language.handleBlockAllocator;
@@ -120,21 +119,20 @@ public class ValueWrapperManager {
     }
 
     @TruffleBoundary
-    public void addToSharedBlockMap(HandleBlock block) {
-        RubyLanguage rubyLanguage = this.language;
-        synchronized (rubyLanguage) {
+    public void addToSharedBlockMap(HandleBlock block, RubyLanguage language) {
+        synchronized (language) {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
             HandleBlockAllocator allocator = language.handleBlockAllocator;
             HandleBlockWeakReference[] map = growMapIfRequired(
-                    rubyLanguage.handleBlockSharedMap,
+                    language.handleBlockSharedMap,
                     allocator,
                     blockIndex);
-            rubyLanguage.handleBlockSharedMap = map;
+            language.handleBlockSharedMap = map;
             map[blockIndex] = new HandleBlockWeakReference(block);
 
-            rubyLanguage.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
-                rubyLanguage.handleBlockSharedMap[blockIndex] = null;
+            language.sharedFinzationService.addFinalizer(context, block, ValueWrapperManager.class, () -> {
+                language.handleBlockSharedMap[blockIndex] = null;
                 allocator.addFreeBlock(blockBase);
             }, null);
         }
@@ -150,16 +148,16 @@ public class ValueWrapperManager {
         return map;
     }
 
-    public ValueWrapper getWrapperFromHandleMap(long handle) {
+    public ValueWrapper getWrapperFromHandleMap(long handle, RubyLanguage language) {
         final int index = HandleBlock.getHandleIndex(handle);
-        final HandleBlock block = getBlockFromMap(index);
+        final HandleBlock block = getBlockFromMap(index, language);
         if (block == null) {
             return null;
         }
         return block.getWrapper(handle);
     }
 
-    private HandleBlock getBlockFromMap(int index) {
+    private HandleBlock getBlockFromMap(int index, RubyLanguage language) {
         final HandleBlockWeakReference[] blockMap = this.blockMap;
         final HandleBlockWeakReference[] sharedMap = language.handleBlockSharedMap;
         HandleBlockWeakReference ref = null;
@@ -175,7 +173,7 @@ public class ValueWrapperManager {
         return ref.get();
     }
 
-    public void freeAllBlocksInMap() {
+    public void freeAllBlocksInMap(RubyLanguage language) {
         HandleBlockWeakReference[] map = blockMap;
         HandleBlockAllocator allocator = language.handleBlockAllocator;
 
@@ -370,6 +368,7 @@ public class ValueWrapperManager {
         @Specialization(guards = "!isSharedObject(wrapper)")
         protected long allocateHandleOnKnownThread(ValueWrapper wrapper,
                 @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLanguage RubyLanguage language,
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
             HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
             HandleBlock block = threadData.holder.handleBlock;
@@ -382,8 +381,8 @@ public class ValueWrapperManager {
                     context.getMarkingService().queueForMarking(block);
                 }
                 block = threadData
-                        .makeNewBlock(context, context.getValueWrapperManager().language.handleBlockAllocator);
-                context.getValueWrapperManager().addToBlockMap(block);
+                        .makeNewBlock(context, language.handleBlockAllocator);
+                context.getValueWrapperManager().addToBlockMap(block, language);
             }
             return block.setHandleOnWrapper(wrapper);
         }
@@ -391,6 +390,7 @@ public class ValueWrapperManager {
         @Specialization(guards = "isSharedObject(wrapper)")
         protected long allocateSharedHandleOnKnownThread(ValueWrapper wrapper,
                 @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLanguage RubyLanguage language,
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
             HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
             HandleBlock block = threadData.holder.sharedHandleBlock;
@@ -403,8 +403,8 @@ public class ValueWrapperManager {
                     context.getMarkingService().queueForMarking(block);
                 }
                 block = threadData
-                        .makeNewSharedBlock(context, context.getValueWrapperManager().language.handleBlockAllocator);
-                context.getValueWrapperManager().addToSharedBlockMap(block);
+                        .makeNewSharedBlock(context, language.handleBlockAllocator);
+                context.getValueWrapperManager().addToSharedBlockMap(block, language);
             }
             return block.setHandleOnWrapper(wrapper);
         }
