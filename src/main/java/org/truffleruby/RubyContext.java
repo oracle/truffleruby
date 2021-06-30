@@ -484,7 +484,6 @@ public class RubyContext {
 
         atExitManager.runSystemExitHooks();
         threadManager.killAndWaitOtherThreads();
-        valueWrapperManager.freeAllBlocksInMap();
     }
 
     private final ReentrantLock disposeLock = new ReentrantLock();
@@ -529,6 +528,7 @@ public class RubyContext {
             RubyLanguage.LOGGER.info(
                     "Total VALUE object to native conversions: " + getValueWrapperManager().totalHandleAllocations());
         }
+        valueWrapperManager.freeAllBlocksInMap();
     }
 
     public boolean isPreInitializing() {
