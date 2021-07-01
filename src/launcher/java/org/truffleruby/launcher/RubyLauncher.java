@@ -215,9 +215,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
         int result = runContext(contextBuilder, config);
 
-        final boolean runTwice = config.getUnknownArguments().contains("--run-twice=true");
+        final boolean runTwice = config.getUnknownArguments().contains("--run-twice") ||
+                config.getUnknownArguments().contains("--run-twice=true");
         if (runTwice) {
-            result = runContext(contextBuilder, config);
+            final int secondResult = runContext(contextBuilder, config);
+            if (secondResult != 0 && result == 0) {
+                result = secondResult;
+            }
         }
 
         return result;

@@ -644,11 +644,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         if (singleContext) {
             return false;
         }
-        if (!firstOptions.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) ||
-                !newOptions.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY)) {
+
+        if (options.RUN_TWICE || options.EXPERIMENTAL_ENGINE_CACHING) {
+            return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
+        } else {
             return false;
         }
-        return LanguageOptions.areOptionsCompatible(firstOptions, newOptions);
     }
 
     /** {@link RubyLanguage#getSourcePath(Source)} should be used instead whenever possible (i.e., when we can access

@@ -155,8 +155,8 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SHARED_OBJECTS_DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_FORCE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> TESTING_RUBYGEMS_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> RUN_TWICE_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(RUN_TWICE_KEY.getDefaultValue());
     public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
@@ -1104,16 +1104,16 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor EXPERIMENTAL_ENGINE_CACHING = OptionDescriptor
-            .newBuilder(EXPERIMENTAL_ENGINE_CACHING_KEY, "ruby.experimental-engine-caching")
-            .help("Enables experimental support for engine caching for TruffleRuby")
+    public static final OptionDescriptor RUN_TWICE = OptionDescriptor
+            .newBuilder(RUN_TWICE_KEY, "ruby.run-twice")
+            .help("Run a workload twice using a shared engine in the same process")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor RUN_TWICE = OptionDescriptor
-            .newBuilder(RUN_TWICE_KEY, "ruby.run-twice")
-            .help("Run a workload twice using a shared engine in the same process")
+    public static final OptionDescriptor EXPERIMENTAL_ENGINE_CACHING = OptionDescriptor
+            .newBuilder(EXPERIMENTAL_ENGINE_CACHING_KEY, "ruby.experimental-engine-caching")
+            .help("Enables experimental support for engine caching for TruffleRuby")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1397,10 +1397,10 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_FORCE;
             case "ruby.testing-rubygems":
                 return TESTING_RUBYGEMS;
-            case "ruby.experimental-engine-caching":
-                return EXPERIMENTAL_ENGINE_CACHING;
             case "ruby.run-twice":
                 return RUN_TWICE;
+            case "ruby.experimental-engine-caching":
+                return EXPERIMENTAL_ENGINE_CACHING;
             case "ruby.compare-regex-engines":
                 return COMPARE_REGEX_ENGINES;
             default:
@@ -1545,8 +1545,8 @@ public class OptionsCatalog {
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,
             TESTING_RUBYGEMS,
-            EXPERIMENTAL_ENGINE_CACHING,
             RUN_TWICE,
+            EXPERIMENTAL_ENGINE_CACHING,
             COMPARE_REGEX_ENGINES,
         };
     }
