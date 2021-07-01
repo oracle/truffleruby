@@ -82,6 +82,26 @@ public abstract class ConditionVariableNodes {
             return condVar;
         }
 
+        @Specialization
+        protected RubyConditionVariable noMutexNoTimeout(RubyConditionVariable condVar, Nil mutex, Nil timeout,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
+
+            waitInternal(condVar, null, thread, -1);
+            return condVar;
+        }
+
+        @Specialization
+        protected RubyConditionVariable noMutexWithTimeout(RubyConditionVariable condVar, Nil mutex, long timeout,
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached BranchProfile errorProfile) {
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
+
+            waitInternal(condVar, null, thread, timeout);
+            return condVar;
+        }
+
         @TruffleBoundary
         private void waitInternal(RubyConditionVariable conditionVariable, ReentrantLock mutexLock,
                 RubyThread thread, long durationInNanos) {
@@ -104,7 +124,9 @@ public abstract class ConditionVariableNodes {
             // must imply being ready to be interrupted by Thread#{run,wakeup}.
             condLock.lock();
             try {
-                mutexLock.unlock();
+                if (mutexLock != null) {
+                    mutexLock.unlock();
+                }
 
                 conditionVariable.waiters++;
                 try {
@@ -121,7 +143,9 @@ public abstract class ConditionVariableNodes {
                 }
             } finally {
                 condLock.unlock();
-                MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
+                if (mutexLock != null) {
+                    MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
+                }
             }
         }
 

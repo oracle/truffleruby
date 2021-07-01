@@ -101,6 +101,22 @@ module MonitorMixin
   class ConditionVariable < ::ConditionVariable
 
     #
+    # Releases the lock held in the associated monitor and waits; reacquires the lock on wakeup.
+    #
+    # If +timeout+ is given, this method returns after +timeout+ seconds passed,
+    # even if no other thread doesn't signal.
+    #
+    def wait(timeout = nil)
+      if timeout
+        raise ArgumentError, 'Timeout must be positive' if timeout < 0
+        timeout = timeout * 1_000_000_000
+        timeout = Primitive.rb_num2long(timeout)
+      end
+
+      Primitive.condition_variable_wait(self, nil, timeout)
+    end
+
+    #
     # Calls wait repeatedly while the given block yields a truthy value.
     #
     def wait_while
