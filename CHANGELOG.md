@@ -37,6 +37,7 @@ Compatibility:
 * Implement `rb_backref_set`.
 * Fix `Float#<=>` when comparing `Infinity` to other `#infinite?` values.
 * Implement `date` library as a C extension to improve compatibility (#2344).
+* Update `rb_str_modify` and `rb_str_modify_expand` to raise a `FrozenError` when given a frozen string (#2392).
 
 Performance:
 
