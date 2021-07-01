@@ -2354,7 +2354,7 @@ module Commands
                    '--forbidden-class', 'org.truffleruby.language.RubyDynamicObject',
                    '--forbidden-class', 'org.truffleruby.RubyContext']
     args.unshift(*common_args)
-    mx 'ruby_check_heap_dump', '--shared-engine', *args, '--code', "p 42; p require 'set'" # "; p require 'openssl'"
+    mx 'ruby_check_heap_dump', '--shared-engine', *args, '--code', "p 42; p require 'set'; p require 'openssl'"
   end
 
   private def check_parser

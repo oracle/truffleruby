@@ -46,7 +46,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     // AST-inlined version of Symbol#to_proc
     // No need to guard the refinements here since refinements are always the same in a given source location
     @Specialization(
-            guards = "symbol == cachedSymbol",
+            guards = { "isSingleContext()", "symbol == cachedSymbol" },
             assumptions = "getLanguage().coreMethodAssumptions.symbolToProcAssumption",
             limit = "1")
     protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
