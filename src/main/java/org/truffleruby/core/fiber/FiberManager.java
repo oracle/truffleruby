@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.DummyNode;
@@ -357,11 +358,19 @@ public class FiberManager implements ObjectGraphNode {
 
         // This method might not be executed on the rootFiber Java Thread but possibly on another Java Thread.
 
-        final TruffleContext truffleContext = context.getEnv().getContext();
-        context.getThreadManager().leaveAndEnter(truffleContext, DummyNode.INSTANCE, () -> {
-            doKillOtherFibers();
-            return BlockingAction.SUCCESS;
-        });
+        // Disallow side-effecting safepoints, the current thread is cleaning up and terminating.
+        // It can no longer process any exception or guest code.
+        final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
+        boolean allowSideEffects = safepoint.setAllowSideEffects(false);
+        try {
+            final TruffleContext truffleContext = context.getEnv().getContext();
+            context.getThreadManager().leaveAndEnter(truffleContext, DummyNode.INSTANCE, () -> {
+                doKillOtherFibers();
+                return BlockingAction.SUCCESS;
+            });
+        } finally {
+            safepoint.setAllowSideEffects(allowSideEffects);
+        }
     }
 
     private void doKillOtherFibers() {
