@@ -12,6 +12,7 @@ Bug fixes:
 * Fix `File.{atime, mtime, ctime}` to include nanoseconds (#2337).
 * Fix `Array#[a, b] = "frozen string literal".freeze` (#2355).
 * `rb_funcall()` now releases the C-extension lock (similar to MRI).
+* Fix `rb_str_modify_expand` to preserve existing bytes (#2392).
 
 Compatibility:
 
