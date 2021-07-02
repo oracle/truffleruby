@@ -190,37 +190,37 @@ describe "The launcher" do
   end
 
   it "takes normal Ruby options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" }, args: @redirect)
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "#{ENV["TRUFFLERUBYOPT"]} -W2" }, args: @redirect)
     check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --option options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbose=true" }, args: @redirect)
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "#{ENV["TRUFFLERUBYOPT"]} --verbose=true" }, args: @redirect)
     check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --ruby.option options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbose=true" }, args: @redirect)
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "#{ENV["TRUFFLERUBYOPT"]} --ruby.verbose=true" }, args: @redirect)
     check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes normal Ruby options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "-W2" }, args: @redirect)
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "#{ENV["RUBYOPT"]} -W2" }, args: @redirect)
     check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --option options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbose=true" }, args: @redirect)
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "#{ENV["RUBYOPT"]} --verbose=true" }, args: @redirect)
     check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --ruby.option options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbose=true" }, args: @redirect)
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "#{ENV["RUBYOPT"]} --ruby.verbose=true" }, args: @redirect)
     check_status_and_empty_stderr
     out.should == "true\n"
   end
@@ -416,7 +416,7 @@ describe "The launcher" do
 
   ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
     it "should recognize ruby --vm options in #{var}" do
-      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" }, args: @redirect)
+      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "#{ENV[var]} --vm.Dfoo=bar" }, args: @redirect)
       check_status_and_empty_stderr
       out.should == 'bar'
     end
@@ -439,7 +439,7 @@ describe "The launcher" do
 
       ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
         it "should recognize ruby --vm options in #{var} when switching to JVM" do
-          env = { var => "--jvm --vm.Dfoo=bar" }
+          env = { var => "--jvm --vm.Dfoo=bar" } # ignoring the original value of RUBYOPT/TRUFFLERUBYOPT on purpose here
           out = ruby_exe('puts RUBY_DESCRIPTION; puts Truffle::System.get_java_property("foo")', env: env, args: @redirect)
           check_status_and_empty_stderr
           out = out.lines.map(&:chomp)
