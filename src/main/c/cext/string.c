@@ -340,11 +340,7 @@ void rb_str_modify_expand(VALUE str, long expand) {
 
   rb_check_frozen(str);
   if (expand > 0) {
-    // rb_str_modify_expand() resizes the native buffer but does not change
-    // RSTRING_LEN() (and therefore String#bytesize).
-    // TODO (eregon, 26 Apr 2018): Do this more directly.
-    rb_str_resize(str, len + expand);
-    rb_str_set_len(str, len);
+    polyglot_invoke(RUBY_CEXT, "rb_tr_str_capa_resize", rb_tr_unwrap(str), len + expand);
   }
 
   ENC_CODERANGE_CLEAR(str);

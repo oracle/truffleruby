@@ -666,6 +666,28 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_tr_str_capa_resize", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class TrStrCapaResizeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyString trStrCapaResize(RubyString string, int newCapacity,
+                @Cached StringToNativeNode stringToNativeNode,
+                @Cached ConditionProfile asciiOnlyProfile) {
+            final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
+
+            if (nativeRope.getCapacity() == newCapacity) {
+                return string;
+            } else {
+                final NativeRope newRope = nativeRope
+                        .expandCapacity(getContext(), newCapacity);
+                string.setRope(newRope);
+                return string;
+            }
+        }
+
+    }
+
+
     @CoreMethod(names = "rb_block_proc", onSingleton = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
