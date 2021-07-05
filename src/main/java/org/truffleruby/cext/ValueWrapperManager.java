@@ -108,7 +108,7 @@ public class ValueWrapperManager {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
         HandleBlockAllocator allocator = language.handleBlockAllocator;
-        HandleBlockWeakReference[] map = growMapIfRequired(blockMap, allocator, blockIndex);
+        HandleBlockWeakReference[] map = growMapIfRequired(blockMap, blockIndex);
         blockMap = map;
         map[blockIndex] = new HandleBlockWeakReference(block);
 
@@ -124,10 +124,7 @@ public class ValueWrapperManager {
             int blockIndex = block.getIndex();
             long blockBase = block.getBase();
             HandleBlockAllocator allocator = language.handleBlockAllocator;
-            HandleBlockWeakReference[] map = growMapIfRequired(
-                    language.handleBlockSharedMap,
-                    allocator,
-                    blockIndex);
+            HandleBlockWeakReference[] map = growMapIfRequired(language.handleBlockSharedMap, blockIndex);
             language.handleBlockSharedMap = map;
             map[blockIndex] = new HandleBlockWeakReference(block);
 
@@ -138,8 +135,7 @@ public class ValueWrapperManager {
         }
     }
 
-    private static HandleBlockWeakReference[] growMapIfRequired(HandleBlockWeakReference[] map,
-            HandleBlockAllocator allocator, int blockIndex) {
+    private static HandleBlockWeakReference[] growMapIfRequired(HandleBlockWeakReference[] map, int blockIndex) {
         if (blockIndex + 1 > map.length) {
             final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
             System.arraycopy(map, 0, copy, 0, map.length);
