@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `Marshal.load` of multiple `Symbols` with an explicit encoding (#1624).
 
 Compatibility:
 
