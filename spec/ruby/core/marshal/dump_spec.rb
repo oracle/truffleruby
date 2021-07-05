@@ -78,6 +78,20 @@ describe "Marshal.dump" do
       s = "\u2192".force_encoding("binary").to_sym
       Marshal.dump(s).should == "\x04\b:\b\xE2\x86\x92"
     end
+
+    it "dumps multiple Symbols sharing the same encoding" do
+      # Note that the encoding is a link for the second Symbol
+      symbol1 = "I:\t\xE2\x82\xACa\x06:\x06ET"
+      symbol2 = "I:\t\xE2\x82\xACb\x06;\x06T"
+      value = [
+        "€a".force_encoding(Encoding::UTF_8).to_sym,
+        "€b".force_encoding(Encoding::UTF_8).to_sym
+      ]
+      Marshal.dump(value).should == "\x04\b[\a#{symbol1}#{symbol2}"
+
+      value = [*value, value[0]]
+      Marshal.dump(value).should == "\x04\b[\b#{symbol1}#{symbol2};\x00"
+    end
   end
 
   describe "with an object responding to #marshal_dump" do
