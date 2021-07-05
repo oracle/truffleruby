@@ -665,6 +665,12 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_modify" do
+    it "raises an error if the string is frozen" do
+      -> { @s.rb_str_modify("frozen".freeze) }.should raise_error(FrozenError)
+    end
+  end
+
   describe "rb_str_modify_expand" do
     it "grows the capacity to bytesize + expand, not changing the bytesize" do
       str = @s.rb_str_buf_new(256, "abcd")
@@ -684,6 +690,10 @@ describe "C-API String function" do
       str.bytesize.should == 3
       @s.RSTRING_LEN(str).should == 3
       @s.rb_str_capacity(str).should == 1027
+    end
+
+    it "raises an error if the string is frozen" do
+      -> { @s.rb_str_modify_expand("frozen".freeze, 10) }.should raise_error(FrozenError)
     end
   end
 
