@@ -357,8 +357,13 @@ describe "Marshal.dump" do
     end
 
     it "dumps an extended Struct" do
-      st = Struct.new("Extended", :a, :b).new
-      Marshal.dump(st.extend(Meths)).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
+      obj = Struct.new("Extended", :a, :b).new.extend(Meths)
+      Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a0:\006b0"
+
+      s = 'hi'
+      obj.a = [:a, s]
+      obj.b = [:Meths, s]
+      Marshal.dump(obj).should == "\004\be:\nMethsS:\025Struct::Extended\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a"
       Struct.send(:remove_const, :Extended)
     end
   end
