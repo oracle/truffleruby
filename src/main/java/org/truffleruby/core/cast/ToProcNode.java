@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import com.oracle.truffle.api.RootCallTarget;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
@@ -20,8 +22,10 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.methods.DeclarationContext;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -31,6 +35,7 @@ import java.util.Map;
 
 /** The `&` in `foo(&block)`. Converts the passed block to a RubyProc or nil. */
 @NodeChild(value = "child", type = RubyNode.class)
+@ImportStatic(DeclarationContext.class)
 public abstract class ToProcNode extends RubyContextSourceNode {
 
     @Specialization
@@ -46,13 +51,24 @@ public abstract class ToProcNode extends RubyContextSourceNode {
     // AST-inlined version of Symbol#to_proc
     // No need to guard the refinements here since refinements are always the same in a given source location
     @Specialization(
-            guards = "symbol == cachedSymbol",
+            guards = { "isSingleContext()", "symbol == cachedSymbol" },
             assumptions = "getLanguage().coreMethodAssumptions.symbolToProcAssumption",
             limit = "1")
     protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
             @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("getProcForSymbol(getRefinements(frame), cachedSymbol)") RubyProc cachedProc) {
         return cachedProc;
+    }
+
+    @Specialization(
+            guards = { "getRefinements(frame) == NO_REFINEMENTS", "symbol == cachedSymbol" },
+            assumptions = "getLanguage().coreMethodAssumptions.symbolToProcAssumption",
+            limit = "1")
+    protected Object doRubySymbolASTInlined(VirtualFrame frame, RubySymbol symbol,
+            @Cached("symbol") RubySymbol cachedSymbol,
+            @Cached("getOrCreateCallTarget(getContext(), getLanguage(), cachedSymbol, NO_REFINEMENTS)") RootCallTarget callTarget) {
+        return SymbolNodes.ToProcNode
+                .createProc(getContext(), getLanguage(), DeclarationContext.NO_REFINEMENTS, callTarget);
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" }, replaces = "doRubySymbolASTInlined")
@@ -84,9 +100,13 @@ public abstract class ToProcNode extends RubyContextSourceNode {
         }
     }
 
+    protected RootCallTarget getOrCreateCallTarget(RubyContext context, RubyLanguage language, RubySymbol symbol,
+            Map<RubyModule, RubyModule[]> refinements) {
+        return SymbolNodes.ToProcNode.getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
+    }
+
     protected RubyProc getProcForSymbol(Map<RubyModule, RubyModule[]> refinements, RubySymbol symbol) {
-        final RootCallTarget callTarget = SymbolNodes.ToProcNode
-                .getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
+        final RootCallTarget callTarget = getOrCreateCallTarget(getContext(), getLanguage(), symbol, refinements);
         return SymbolNodes.ToProcNode.createProc(getContext(), getLanguage(), refinements, callTarget);
     }
 

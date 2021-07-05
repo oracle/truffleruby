@@ -32,6 +32,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -79,8 +80,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
         @Specialization(guards = "isTaggedObject(handle)")
         protected Object unwrapTaggedObject(long handle,
                 @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLanguage RubyLanguage language,
                 @Cached BranchProfile noHandleProfile) {
-            final ValueWrapper wrapper = context.getValueWrapperManager().getWrapperFromHandleMap(handle);
+            final ValueWrapper wrapper = context.getValueWrapperManager().getWrapperFromHandleMap(handle, language);
             if (wrapper == null) {
                 noHandleProfile.enter();
                 raiseError(handle);
@@ -139,8 +141,9 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "isTaggedObject(handle)")
         protected ValueWrapper unwrapTaggedObject(long handle,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return context.getValueWrapperManager().getWrapperFromHandleMap(handle);
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @CachedLanguage RubyLanguage language) {
+            return context.getValueWrapperManager().getWrapperFromHandleMap(handle, language);
         }
 
         @Fallback

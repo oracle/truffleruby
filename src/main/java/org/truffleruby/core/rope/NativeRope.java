@@ -12,7 +12,7 @@ package org.truffleruby.core.rope;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.core.FinalizationService;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.Pointer;
@@ -28,12 +28,12 @@ public class NativeRope extends Rope {
     private final Pointer pointer;
 
     public NativeRope(
-            FinalizationService finalizationService,
+            RubyContext context,
             byte[] bytes,
             Encoding encoding,
             int characterLength,
             CodeRange codeRange) {
-        this(allocateNativePointer(finalizationService, bytes), bytes.length, encoding, characterLength, codeRange);
+        this(allocateNativePointer(context, bytes), bytes.length, encoding, characterLength, codeRange);
     }
 
     private NativeRope(Pointer pointer, int byteLength, Encoding encoding, int characterLength, CodeRange codeRange) {
@@ -45,26 +45,26 @@ public class NativeRope extends Rope {
         this.pointer = pointer;
     }
 
-    private static Pointer allocateNativePointer(FinalizationService finalizationService, byte[] bytes) {
+    private static Pointer allocateNativePointer(RubyContext context, byte[] bytes) {
         final Pointer pointer = Pointer.malloc(bytes.length + 1);
-        pointer.enableAutorelease(finalizationService);
+        pointer.enableAutorelease(context);
         pointer.writeBytes(0, bytes, 0, bytes.length);
         pointer.writeByte(bytes.length, (byte) 0);
         return pointer;
     }
 
-    private static Pointer copyNativePointer(FinalizationService finalizationService, Pointer existing) {
+    private static Pointer copyNativePointer(RubyContext context, Pointer existing) {
         final Pointer pointer = Pointer.malloc(existing.getSize());
-        pointer.enableAutorelease(finalizationService);
+        pointer.enableAutorelease(context);
         pointer.writeBytes(0, existing, 0, existing.getSize());
         return pointer;
     }
 
-    public static NativeRope newBuffer(FinalizationService finalizationService, int byteCapacity, int byteLength) {
+    public static NativeRope newBuffer(RubyContext context, int byteCapacity, int byteLength) {
         assert byteCapacity >= byteLength;
 
         final Pointer pointer = Pointer.calloc(byteCapacity + 1);
-        pointer.enableAutorelease(finalizationService);
+        pointer.enableAutorelease(context);
 
         return new NativeRope(
                 pointer,
@@ -79,18 +79,18 @@ public class NativeRope extends Rope {
         return new NativeRope(pointer, newByteLength, getEncoding(), characterLength, codeRange);
     }
 
-    public NativeRope makeCopy(FinalizationService finalizationService) {
-        final Pointer newPointer = copyNativePointer(finalizationService, pointer);
+    public NativeRope makeCopy(RubyContext context) {
+        final Pointer newPointer = copyNativePointer(context, pointer);
         return new NativeRope(newPointer, byteLength(), getEncoding(), characterLength(), getCodeRange());
     }
 
-    public NativeRope resize(FinalizationService finalizationService, int newByteLength) {
+    public NativeRope resize(RubyContext context, int newByteLength) {
         assert byteLength() != newByteLength;
 
         final Pointer pointer = Pointer.malloc(newByteLength + 1);
         pointer.writeBytes(0, this.pointer, 0, Math.min(byteLength(), newByteLength));
         pointer.writeByte(newByteLength, (byte) 0); // Like MRI
-        pointer.enableAutorelease(finalizationService);
+        pointer.enableAutorelease(context);
         return new NativeRope(pointer, newByteLength, getEncoding(), UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 

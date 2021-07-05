@@ -12,7 +12,7 @@ package org.truffleruby.core;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
@@ -138,6 +138,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
     public static class ReferenceProcessor {
         protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
+        protected final ReferenceQueue<Object> sharedQueue;
 
         private volatile boolean shutdown = false;
         protected RubyThread processingThread;
@@ -145,12 +146,13 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         public ReferenceProcessor(RubyContext context) {
             this.context = context;
+            this.sharedQueue = context.getLanguageSlow().sharedReferenceQueue;
         }
 
         @TruffleBoundary
         protected void processReferenceQueue(Class<?> owner) {
             if (context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages()) {
-                drainReferenceQueue();
+                drainReferenceQueues();
             } else {
                 /* We can't create a new thread while the context is initializing or finalizing, as the polyglot API
                  * locks on creating new threads, and some core loading does things such as stat files which could
@@ -179,20 +181,28 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
             threadManager.initialize(newThread, DummyNode.INSTANCE, threadName(), sharingReason, () -> {
                 while (true) {
-                    final ProcessingReference<?> reference = (ProcessingReference<?>) threadManager
+                    final ProcessingReference<?> reference = threadManager
                             .runUntilResult(DummyNode.INSTANCE, () -> {
-                                try {
-                                    return processingQueue.remove();
-                                } catch (InterruptedException interrupted) {
-                                    if (shutdown) {
-                                        throw new KillException(DummyNode.INSTANCE);
-                                    } else {
-                                        throw interrupted;
+                                ProcessingReference<?> ref = null;
+                                while (ref == null) {
+                                    ref = (ProcessingReference<?>) sharedQueue.poll();
+                                    if (ref != null) {
+                                        return ref;
+                                    }
+                                    try {
+                                        ref = (ProcessingReference<?>) processingQueue
+                                                .remove(context.getOptions().REFERENCE_PROCESSOR_QUEUE_TIMEOUT);
+                                    } catch (InterruptedException interrupted) {
+                                        if (shutdown) {
+                                            throw new KillException(DummyNode.INSTANCE);
+                                        } else {
+                                            throw interrupted;
+                                        }
                                     }
                                 }
+                                return ref;
                             });
-
-                    reference.service().processReference(reference);
+                    reference.service().processReference(context, reference);
                 }
             });
         }
@@ -218,16 +228,21 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             return "Ruby-reference-processor";
         }
 
-        protected final void drainReferenceQueue() {
+        protected final void drainReferenceQueues() {
+            ReferenceQueue<Object> sharedReferenceQueue = context.getLanguageSlow().sharedReferenceQueue;
             while (true) {
                 @SuppressWarnings("unchecked")
-                final ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
+                ProcessingReference<?> reference = (ProcessingReference<?>) processingQueue.poll();
+
+                if (reference == null) {
+                    reference = (ProcessingReference<?>) sharedReferenceQueue.poll();
+                }
 
                 if (reference == null) {
                     break;
                 }
 
-                reference.service().processReference(reference);
+                reference.service().processReference(context, reference);
             }
         }
 
@@ -236,22 +251,20 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
     private R first = null;
 
-    protected final ReferenceProcessor referenceProcessor;
-    protected final RubyContext context;
+    protected final ReferenceQueue<Object> processingQueue;
 
-    public ReferenceProcessingService(RubyContext context, ReferenceProcessor referenceProcessor) {
-        this.context = context;
-        this.referenceProcessor = referenceProcessor;
+    public ReferenceProcessingService(ReferenceQueue<Object> processingQueue) {
+        this.processingQueue = processingQueue;
     }
 
     @SuppressWarnings("unchecked")
-    protected void processReference(ProcessingReference<?> reference) {
+    protected void processReference(RubyContext context, ProcessingReference<?> reference) {
         remove((R) reference);
     }
 
-    protected void runCatchingErrors(Consumer<R> action, R reference) {
+    protected void runCatchingErrors(RubyContext context, BiConsumer<RubyContext, R> action, R reference) {
         try {
-            action.accept(reference);
+            action.accept(context, reference);
         } catch (TerminationException e) {
             throw e;
         } catch (RaiseException e) {

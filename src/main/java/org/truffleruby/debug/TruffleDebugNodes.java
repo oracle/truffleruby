@@ -881,7 +881,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object drainFinalizationQueue() {
-            getContext().getFinalizationService().drainFinalizationQueue();
+            getContext().getFinalizationService().drainFinalizationQueue(getContext());
             return nil;
         }
 
