@@ -309,7 +309,8 @@ describe :marshal_load, shared: true do
 
     it "loads an extended Array object containing a user-marshaled object" do
       obj = [UserMarshal.new, UserMarshal.new].extend(Meths)
-      new_obj = Marshal.send(@method, "\x04\be:\nMeths[\ao:\x10UserMarshal\x06:\n@dataI\"\nstuff\x06:\x06ETo;\x06\x06;\aI\"\nstuff\x06;\bT")
+      dump = "\x04\be:\nMeths[\ao:\x10UserMarshal\x06:\n@dataI\"\nstuff\x06:\x06ETo;\x06\x06;\aI\"\nstuff\x06;\bT"
+      new_obj = Marshal.send(@method, dump)
 
       new_obj.should == obj
       obj_ancestors = class << obj; ancestors[1..-1]; end
@@ -606,6 +607,18 @@ describe :marshal_load, shared: true do
       -> do
         Marshal.send(@method, "\x04\bo:\tFile\001\001:\001\005@path\"\x10/etc/passwd")
       end.should raise_error(ArgumentError)
+    end
+  end
+
+  describe "for an object responding to #marshal_dump and #marshal_load" do
+    it "loads a user-marshaled object" do
+      obj = UserMarshal.new
+      obj.data = :data
+      value = [obj, :data]
+      dump = Marshal.dump(value)
+      dump.should == "\x04\b[\aU:\x10UserMarshal:\tdata;\x06"
+      reloaded = Marshal.load(dump)
+      reloaded.should == value
     end
   end
 
